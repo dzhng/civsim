@@ -1,1890 +1,498 @@
-# Implementation choices
+# Final implementation choices
 
-## Sound — high confidence: manual review life state
+This ledger describes the final implementation, not its build order. Superseded
+experiments, temporary scaffolding and gate narration have been removed.
+The user explicitly accepted the current visual quality and a performance
+follow-up. That is not a claim that the unchanged performance thresholds passed:
+the [current performance spec](../sim-perf/model-rendering-follow-up.md) owns
+that work. Engine behavior, timing and saves remain authoritative.
 
-During the manual-life harness pass, selecting a clip called `death` left corpse
-color treatment off, while `death_a` turned it on. A name is not a life-state
-observation. Manual reviewers now choose alive/dead independently of the clip;
-changing either input leaves canonical replay, just as selecting a manual pose
-already did. The plan required production parity but did not define this manual
-input. This lets a reviewer isolate motion from corpse treatment without creating
-a naming convention that future Blender exports must obey. Canonical engine
-observations still own life state during replay and gameplay.
-
-## Sound — medium confidence
-
-### Test delayed motion with an explicit bounded approximation (11)
-
-When a batch says a soldier travelled but does not say exactly when he started,
-the CPU candidate spreads that travel over the observed interval. A gait
-already playing owns its stride until the endpoint; an enabled standing soldier
-may be inferred to start at the interval's beginning. This replaces the previous
-incoming-stride convention in the timeline. Combat, disability and
-incompatible appearances cannot be overwritten by an inferred walk. Transport
-without leg drive can therefore remain visible at mixed-state boundaries.
-
-The spec left approximation versus finer engine observations open. Choosing one
-bounded interval avoids new observation infrastructure and prediction beyond
-known positions, but does not recover missing chronology. **Sound, provisional;
-confidence medium:** the isolated CPU contract is implemented; reject the
-compromise if matched live movement still looks wrong. Coherent delayed live
-presentation remains unbuilt, with no relaxation of foot-contact review. Compatible
-standing entry requires identical at-ease, pike-ready, guarded-facing and routing
-flags across the interval; this conservative choice avoids backdating a new posture.
-
-### Use diagnostic closure to inform unfinished open-hand anatomy (08)
-
-When a reference-led open hand has recognizable palm and finger segments but
-still looks imperfect, bend a separate copy around the sword or pike's actual
-shaft size. Keep the open source unchanged so both shapes can be compared.
-The closed copy may expose a thumb pad that cannot oppose the fingers, or a
-segment that collapses during bending; those findings feed back into the hand
-construction. The alternative is to finish every detached open-hand defect
-before learning whether its shape can form the required grasp.
-
-The plan required open anatomy before equipment fitting but did not distinguish
-a diagnostic bend from accepting that hand for the soldier. This decision only
-changes the authoring feedback order. It introduces no runtime finger bones,
-does not replace the current body, and does not relax either open/closed anatomy
-or final equipment and budget gates. **Sound, provisional; confidence medium:**
-a reversible copy tests the requested functional form earlier without treating
-a convincing closed silhouette as proof of natural open anatomy.
-
-## Sound — high confidence
-
-### Ask for the completed pose before applying an endpoint event (11)
-
-When a soldier's measured speed changes and a hit arrives together, replay must
-freeze the pose reached using that completed travel, not the previous speed's
-prediction. The existing timeline exposes the latest completed endpoint before
-new events; requesting that boundary at another time is an error. The plan left
-the query shape open. One explicit query keeps replay on the controller's truth
-without adding a second history owner. New soldiers have no invented earlier
-history: they anchor at their first known pose. Existing dead soldiers still keep
-their death appearance until reset. This constrains future delayed live wiring,
-which must not mix these retained poses with latest-only equipment or life state.
-
-
-### Fit provisional equipment before anatomy acceptance (08/09 authoring)
-
-When a usable human body and skeleton exist but the face still needs work, begin
-fitting the heavy infantry helmet, clothing and weapons to that editable body.
-Previously the plan made all equipment wait for anatomy acceptance. This changes
-the authoring order only: if shoulders or hands change, refit affected armor and
-grips; keep reviewing the unclothed body separately. Neither the equipment nor
-the body enters battle before the original quality and budget checks pass.
-
-The plan did not distinguish equipment source fitting from final acceptance.
-This allows a recognizable soldier to inform proportion and grip work without
-using armor to hide defects. **Sound; confidence high:** reversible source work
-advances the requested Blender units without weakening any acceptance gate.
-
-### Queue replacement poses before exposing their materials (07 storage correction)
-
-When a larger interruption frame needs new GPU buffers, compute its poses before
-switching the crowd's materials to that new output. If upload fails, release the
-candidate buffers and retain the previous output and materials for recovery.
-If material construction fails, the existing crowd callback disposes its candidate
-materials before swapping any of them. The next attempt uploads all needed poses
-again. The alternative exposes new materials and destroys the old output before
-knowing whether the replacement can be submitted.
-
-The plan required atomic failure/recovery but did not prescribe ordering. This
-retains the synchronous API and whole-generation replacement rule; callers still
-receive failures, and previously displayed pixels are not promised after an
-aborted frame. Future memory measurements include both generations during the
-candidate submission. **Sound; confidence high:** publication follows successful
-submission, with no rollback protocol or second rendering path.
-
-### Keep packing scratch separate from resident controls (07)
-
-When the production renderer submits another crowd frame, it reuses one CPU
-array for the packed animation instructions. The array grows to the largest
-worklist seen by that palette and is released on disposal. A 30,000-instance
-worklist retains 2.4 MB instead of allocating that amount again each upload.
-Every active word is cleared before packing so a soldier losing an upper-body
-action cannot inherit stale instructions from the previous frame.
-
-The plan required bounded costs but did not choose CPU storage ownership.
-Writing straight into the resident attribute would save a copy while exposing
-partial packing failures to resident CPU data. This choice keeps a separate
-preparation array and the existing copy. The shared packer accepts explicit
-caller storage; callers that retain independent prepared frames still allocate
-their own. Future reuse callers must finish submitting or discarding a frame
-before overwriting its storage. **Sound, high confidence:** bounded retained
-memory removes repeated backing allocations without changing pose math or
-snapshot transactions. A frame-time gain still requires measurement.
-
-### Observe state once and construct playback only when sampled (07)
-
-When a simulation tick arrives, the action controller records what each soldier
-is doing. The render loop then asks for the pose at the displayed time. Previously
-the observation step also built a complete output array which every production
-caller discarded. `update()` now returns nothing; `sample()` remains the single
-owner of output construction. Tests use those same two steps rather than a
-compatibility wrapper.
-
-The plan required separate observation and render clocks but did not specify
-whether observing should also produce output. Future consumers must explicitly
-sample after observing; rejected batches still leave the prior history intact.
-**Sound, high confidence:** deleting unused work simplifies the contract without
-changing motion. This is not a promise of faster frames: measured short-run CPU
-timings are mixed. Integrated in0129ee2e.
+Review first: completed-interval approximation, directional gait/phase policy,
+and practical mesh reduction. These carry the most remaining judgment. There
+are no outstanding user-only decisions here; explicitly accepted follow-ups
+are not unresolved requests for permission.
 
 ## Sound — medium confidence
 
-### Use body weights for provisional garment fitting (09 source checkpoint)
-
-When clothing is added around the existing human, each cloth vertex initially
-copies the skeleton weights of the nearest body vertex. A weight says how much
-that point follows a particular bone. This lets the new garment enter the same
-bend test without inventing another rig. The alternative is hand-weighting every
-garment before seeing whether its shape even fits.
-
-The plan did not prescribe the first weighting method. This is a reversible
-starting point only: a skirt spanning two legs can fold badly when copying one
-nearby leg, so the bend and later motion reviews must drive correction. **Sound
-as candidate scaffolding; confidence medium:** it enables real fitting evidence,
-but copying body weights is not evidence that garment deformation is correct.
-
-### Share candidate export and capture settings (09 source checkpoint)
-
-When the heavy kit is exported, it calls the same Blender export routine as the
-bare human, supplying only its output folder and name. Both named browser scenes
-use one private sheet helper for cameras, frozen poses and production-renderer
-checks. Otherwise each new unit would copy these settings and could quietly
-receive a more flattering camera or different export behavior.
-
-The plan required one rendering path but left these authoring helpers unspecified.
-This keeps future fitting subjects on the same review setup without adding a new
-schema or runtime. **Sound; confidence high.** Equipment remains separately
-editable in Blender; only copied meshes are joined for the existing single-skin
-export contract, preserving modular source work without another renderer.
-
-### Keep Blender candidate exports isolated from unrelated open-file animations (08 source checkpoint)
-
-When an artist has another animated rig open, Blender can export its actions
-along with a selected soldier even though that rig is in a different scene.
-The candidate exports only assigned actions. If another action already owns the
-required `bend` name, building stops before creating anything and requests a fresh
-Blender session; it does not rename or delete the artist's action. The alternative
-silently suffixes the name or includes unrelated clips, changing the harness input.
-
-The plan required local editable source but did not specify Blender's global
-action-name behavior. This constrains how the candidate script is rerun in an
-occupied Blender file, not the production asset format. **Sound, medium
-confidence:** unrelated work stays untouched and canonical clip names stay exact;
-clean-background authoring remains the reproducible path.
-
-### Author editable anatomy while its runtime budget is still measured (07/08 maintenance)
-
-When the budget fixture exposes a mounted animation stall, it does not prevent
-shaping an untextured human shoulder or testing an elbow in Blender. The original
-strict sequence made that independent source work wait for the whole envelope.
-Editable anatomy now proceeds in the workbench candidate path while07 remains
-open. The alternative keeps all modeling idle until every measurement is green.
-
-The user asked for useful infrastructure and original Blender art, but did not
-require every measurement before any editable source exists. This maintenance
-change separates authoring from acceptance: counts are provisional,08 cannot
-close before07, and no production appearance is promoted early. **Sound, medium
-confidence:** it advances the requested art without weakening a gate, at the
-cost of possible topology revisions once joint runtime costs are established.
-All07 requirements remain owned by07; none were removed or deferred away.
-
-### Use a fixed field with the real battle camera for asset measurements (07)
-
-**Confidence: medium.** Increasing the crowd must not also change its camera or
-terrain cost. The budget fixture therefore uses one1024m flat field and the real
-battle camera, with its default synthetic zoom range recorded in every result.
-The old model-inspector framing remains a separately named stress test, not a
-claim about gameplay. The unbuilt alternative would frame each crowd anew and
-confound asset cost with the amount of world visible.
-
-The plan required gameplay framing but did not select a synthetic field or
-range. Future budget comparisons must retain this world; real-map simulation
-and the standing foliage benchmark remain separate gates. **Sound:** shared
-camera math prevents an inspector zoom value from masquerading as a gameplay
-view, while fixed inputs make comparisons interpretable.
-
-### Share exactly identical interruption poses, not soldiers' action state (07)
-
-**Confidence: high.** When a whole formation interrupts the same pose, evaluating
-and copying that pose once for every man wastes time. Each observation update
-now remembers just the last two exact pose inputs and shares their read-only
-results. Each soldier still owns his own action history. A different phase,
-appearance, blend, or frozen source takes the original calculation path.
-
-The plan required bounded storage and exact motion but did not choose this
-optimization. Unlike phase rounding or grouping soldiers' actions, this cannot
-make two different poses equal. The cache ends with the update and cannot grow
-with the roster. Reported snapshot payload bytes count unique shared storage,
-not repeated references; object overhead is not included. **Sound:** exact
-identity preserves animation semantics. Irregular histories can miss the cache
-and pay comparison overhead, so synchronized speedups are not universal claims.
-
-### Construct prior playback only when an observation actually interrupts a lane (07)
-
-An unchanged lane does not need a frozen copy of its current playback. The
-controller defers that object construction until its existing transition callback
-needs it, and reuses it for a simultaneous base/upper-body interruption. The
-captured history is the old history, not the variable rebound during transition.
-This keeps immutable snapshots and atomic observation semantics intact without
-another cache lifetime or a change to sampling precision.
-
-The coordinator selected this bounded seam after interruption-frame telemetry
-showed observation work among the delayed-frame contributors. **Sound, medium
-confidence:** exact playback/posed output matches pinned source; the timing
-benefit remains unmeasured and must survive the matched production budget run.
-
-### Give main visibility and shadow casting independent representations (07 projected LOD)
-
-When a soldier is outside the main camera but inside the sun's shadow camera,
-removing its geometry can remove a shadow that is still visible. The shared
-detail planner considers both cameras without combining their representation
-choices. The main view can retain a readable far impostor while a shadow-only
-mesh supplies its caster. The coarsest existing mesh tier also casts; sprites
-still do not. Three's built-in layers route existing mesh buckets to the shadow
-camera without another render system or per-fragment visibility shader.
-
-The resliced plan required preserving shadow contributors but did not initially
-specify which existing mesh tiers could cast. The coordinator chose that boundary
-after review exposed the finer-only casting policy, then explicitly resliced the
-audience split after unprimed overview review rejected the combined result.
-Independent geometry/material ownership adds measurable buffer payload instead
-of a fragile shared-GPU-resource lifetime scheme. Both audiences use one pose
-slot per soldier. **Sound, medium confidence:** CPU tests cover actual single/CSM
-camera layers and unchanged pose capacity; visual readability, shadows and frame
-cost still require production acceptance.
-
-### Time a frame with scene-owned GPU markers (07 measurement)
-
-A frame submits animation compute, shadows and its final image through separate
-commands. The measurement places GPU clock markers before and after that work,
-and keeps the original frame number with each delayed result. Eight reusable
-readback slots bound pending work; if all are busy, rendering continues and the
-missing measurement is explicitly reported. The alternative reads Three's latest
-cached timing, which can mistake an old frame for a new one. The plan required
-correlation but left the instrument unspecified. **Sound:** this measures queue
-elapsed time, including submission gaps, not pure GPU activity; matched runs
-without markers reveal instrumentation overhead. Each marker dispatches one
-no-op invocation because Metal skips empty passes. Future budget claims must
-retain these qualifications and reject inadequate timing coverage.
-
-### Count requested resources in a separate allocation run (07 measurement)
-
-When a replacement model is prepared while its predecessor still exists, a
-scene-only observer counts the resources actually created and destroyed. It
-aggregates counters by phase instead of storing an ever-growing operation log.
-The alternative adds the old and new size formulas, which can invent overlap
-that never occurred. The plan required peak and initialization costs but not
-their instrumentation. **Sound:** bounded phase counters capture API-live
-requested bytes, not physical VRAM; unknown texture formats remain unknown.
-Mapped-at-creation capacity is distinguished from bytes proven written, and
-texture payload from padded source span. Queue traffic includes pre-existing
-world resources even though their allocations are outside the tracked set.
-The observer runs separately so its accounting does not inflate CPU timings.
-
-### Preserve motion while adding synthetic detail cost (07 measurement)
-
-To ask what a denser soldier costs, a test fixture splits existing triangles
-into coplanar pieces and adds transform-equivalent, actually referenced joints.
-Extra authored times sample the original tracks rather than inventing faster
-motion. One- versus four-weight variants keep the skeleton fixed; the shader
-already reads four slots, so this changes address locality, not instruction
-count. The unbuilt alternative duplicates overlapping faces or adds unused
-bones, giving misleading cost. The plan delegated detail allocation but left
-the synthetic subject unspecified. **Sound:** unchanged posed surfaces isolate
-cost, while genuine anatomy, hierarchy depth and material quality still require
-their later authored model gates. These fixtures never enter the gameplay catalog.
-
-### Check pose arithmetic and rendered consumption separately (06c)
-
-When two mathematically equivalent poses differ by a tiny rounding amount, one
-pixel at a shoulder or shadow boundary can still pick a different surface. The
-test first independently computes the CPU joint transforms and compares them
-with the actual GPU transforms under the existing1e-5 bound. It then uses those
-validated GPU transforms to pose geometry on the CPU and compares that render
-with production within one8-bit color level. The original all-CPU image is still
-reported, but is not falsely described as pixel-identical. The alternative was
-an exception for one troublesome pixel, which would hide rather than isolate
-the cause. The plan required CPU/GPU agreement without defining how numerical
-pose tolerance interacts with discontinuous raster/shadow boundaries.
-**Sound:** the independent numerical check prevents a circular reference, and
-the second check verifies actual rendering. Future fixture changes inherit both
-checks, exact temporal continuity, and exact screenshot baselines.
-
-### Give the authored diagnostic test-only action bindings (06c)
-
-The Blender export diagnostic has a gait and a rider motion but no gameplay
-action vocabulary. The test clones it, gives the original tracks named roles
-for the real controller, and uses the rider track's endpoint as a synthetic
-full-body terminal target. Nothing is downloaded, no new animation is claimed,
-and the actual catalog remains manual-only. The unbuilt alternative would let
-blocky gameplay horses stand in for an articulated horse/rider rig, leaving
-mounted composition under-tested. The plan required this diagnostic but did not
-specify its test bindings. **Sound:** the isolated aliases exercise the real
-controller and renderer without admitting fake death art into gameplay. Future
-authored soldiers still need genuine action clips and their own motion review.
-
-### Explicitly retire compute-only storage in the pinned Three version (06b)
-
-The production renderer's joint buffers have no geometry owner to release them.
-After retiring every reading material and compute node, the adapter therefore
-uses the pinned renderer's attribute cache to dispose storage and balance memory
-accounting. A narrow incomplete-allocation branch handles records without a
-registered buffer. The alternative leaks buffers or attaches fake geometry solely
-to obtain cleanup. The spec did not define this framework boundary. **Sound:**
-the dependency is explicit and covered at replacement/failure boundaries, but a
-Three upgrade must revalidate it. An opaque GPU handle that fails before the
-framework records it is not claimed recoverable through this cache.
-
-### Use a bounded quaternion calculation shared by both GPU renderers (06b)
-
-The GPU blends local rotations along the shortest arc before building the joint
-hierarchy. Its angle calculation and small sine polynomial cover only that
-bounded rotation problem; they are not a new general math library. Both renderers
-use the same implementation. The alternative uses GPU built-ins whose permitted
-error can exceed the existing pose gate. The spec delegated encoding and
-interpolation details. **Sound:** retain the intended rotation semantics and
-unchanged accuracy requirement, with the additional arithmetic cost owned by07.
-
-### Keep capacity growth synchronous and retire complete binding generations (06b)
-
-When the visible crowd or frozen-pose storage outgrows its allocation, the renderer
-allocates a checked replacement, installs coherent consumers and retires old
-buffers. Three replaces its coupled dynamic buffers together; raw can retain
-unchanged allocations. Fresh snapshot storage receives every still-active frozen
-source once. The alternative reserves maximum capacity or introduces asynchronous
-stale-frame policy. The spec did not prescribe a growth strategy. **Sound:** retain
-the existing synchronous API, with slack and temporary replacement memory costs
-explicitly left for07 measurement rather than claimed free.
-
-### Ease existing corpse effects with the actual death transition (06c)
-
-Roll, recoloring and contact shading must not jump when the skeleton begins a
-continuous death blend. Their shared strength follows that full-body transition
-weight, reaching the existing final corpse treatment when the blend finishes.
-Manual dead poses without playback retain full strength; initialization and
-successful model reload do not promise continuity from an incompatible old pose.
-The alternatives remove the effects now or add a separate presentation clock.
-The spec required continuous displayed death but left these inherited effects
-unaddressed. **Sound:** one controller transition now governs their onset as well
-as pose blending. This is a06c implementation obligation, not completed visual
-acceptance;13 still judges whether the final corpse styling belongs with the art.
-
-The13 geometry correction resolves the roll portion: an extra rotation can push
-an already grounded authored body into the floor, so only recoloring and contact
-shading retain this transition-driven treatment. Body orientation belongs to the
-authored clip. This supersedes the roll portion of the06c choice, not its single
-transition clock.
-
-### Remove unused corpse variation data without repacking GPU records (13)
-
-When a soldier dies, the renderer no longer invents a second body rotation.
-There is therefore no reason to compute or store a random variation identifier
-in the CPU instance. Its former GPU slot is zero padding, keeping the existing
-aligned record layout rather than shifting every following field. The plan
-required authored geometry but did not specify record cleanup. **Sound;
-confidence: high:** no dormant variation behavior survives, and the small padding
-cost remains visible within the existing measured instance allocation. Future
-authored variants must be explicit assets/actions, not revived hidden rotations.
-
-### Keep frozen poses in stable GPU slots until they stop being used (06b)
-
-**Confidence: medium.** An interrupted soldier's saved pose stays in its existing
-slot even if a lower-numbered slot becomes free. New poses reuse holes. This
-avoids uploading the same pose again just to make the storage look compact.
-The slot span can therefore exceed the current live count;07 must measure both
-and the high-water capacity. The plan required bounded reuse but did not choose
-compaction. **Sound:** visible frozen sources remain bounded without per-frame
-movement of retained data.
-
-### Invalidate potentially overwritten slots after an aborted upload (06b)
-
-**Confidence: medium.** A failed frame may already have written a new pose over
-an old slot. The next attempt uploads that old pose again if needed, even when
-the failure happened before the write actually reached the GPU. Unaffected
-slots remain reusable. The plan required failure safety but left partial writes
-open. **Sound:** conservative reupload prevents an old identity from referring
-to new bytes, without rebuilding every retained snapshot.
-
-### Read a stable indexed worklist instead of copying playback wrappers (06b)
-
-**Confidence: medium.** The packer asks the renderer for each already-decided
-pose by index. It does not advance animation history or create a wrapper object
-for every soldier. Manual clip inspection uses the same resolved-sample path
-without inventing combat history. Callers must keep that worklist stable during
-packing. The plan did not prescribe this interface. **Sound:** one sampler
-serves both inspection and gameplay;07 still owns the measured CPU cost.
-
-### Admit near-unit rotations instead of repairing malformed ones (06a/b)
-
-**Confidence: medium.** Source keys, bind rotations and loaded local samples
-must have quaternion length within0.0001 of one. This tolerates normal exported
-rounding but rejects tiny or materially non-unit rotations. Silently normalizing
-such inputs would alter authored endpoints. Admission also checks the actual
-Float32 representation, so accepted source/JSON cannot cross the limit during
-packing. The plan left numerical admission
-open. **Sound:** the GPU normalization/bounds proof has an explicit input
-domain; future exporters must satisfy it or justify a different contract.
-
-### Preserve source precision and expose immutable transition snapshots (05b)
-
-An interrupted pose retains double-precision local transforms until the shared
-sampler composes its Float32 joint matrices. Rounding the locals earlier would
-change previously accepted bake bytes. The public saved source uses frozen
-ordinary arrays, so a consumer cannot alter or transfer the controller's backing
-pose. Copying a mutable typed array on every rendered frame would preserve safety
-but repeat that cost throughout a transition.
-
-The plan required bounded saved poses without prescribing storage. **Sound,
-medium confidence:** numeric payload is80bytes per joint per active source,
-plus array/object overhead and conversion temporaries.07 must measure that real
-cost and the eventual GPU packing; this is not an approved final memory budget.
-
-### Distinct diagnostic release motions exercise actual role selection (05b)
-
-A bow release, a throw and a crew release now select different small authored
-motions. These are timing fixtures, not accepted final animations. Reusing one
-shooting motion for every weapon would hide wrong selection. The plan required
-meaningful applicability but left these temporary keyframes open. **Sound, medium
-confidence:** the source contract is testable now; later motion slices still owe
-the full visual-quality verdict.
-
-### One authored image set per appearance (slice04b)
-
-When one soldier has leather, cloth and metal parts, those parts can use different
-regions of the same color image and independently enable its roughness/metalness
-or occlusion map. They cannot each supply competing images for the same channel.
-The baker rejects that export instead of silently resizing or combining images.
-The alternative would require arbitrary per-part textures and more binding or
-atlas machinery before the first finished model exists.
-
-The original plan required material maps but did not choose their grouping.
-**Sound, medium confidence:** this keeps one appearance drawable as a batch and
-preserves the exact authored images. Future Blender authoring must lay out a shared
-image set; if a real roster asset cannot fit, revisit this constraint explicitly.
-
-### Prepare distinct image owners sequentially (slice04b)
-
-During reload, each image finishes decoding and GPU admission before the next
-starts. If a later image fails, all earlier allocations are already owned and can
-be released. A parallel implementation would need to handle images that finish
-after the overall reload has already failed.
-
-The plan specified atomic replacement but not scheduling. **Sound, medium
-confidence:** predictable cleanup comes before speculative startup concurrency.
-The measured asset-budget pass can justify bounded parallel preparation if loading
-time warrants its extra ownership machinery.
-
-### Keep correct material transfer before repairing placeholder readability (slice04a)
-
-When the campaign draws the old warm-colored soldiers using correctly decoded light and explicit material properties, some skin and limbs become darker and harder to distinguish. This pass keeps that truthful transfer instead of brightening the renderer to preserve the old accidental result. The future authored surface passes must restore readability through the actual assets; this is not approval of the darker placeholder art.
-
-The plan separates infrastructure from final art but leaves this intermediate visual tradeoff open. **Sound:** making authoring dependable comes first, consistent with the user's infrastructure-first clarification. The reach is the later foot, mounted and crew surface review: those passes inherit a visible readability obligation, not permission to lower the quality target.
-
-### Retain a simpler lighting model in the raw renderer (slice04a)
-
-When the same metal material appears in the campaign's raw renderer and the battle's Three renderer, both now read its authored color, roughness and metallic value. The raw renderer uses its existing smaller lighting model, extended to respond to those values; it does not acquire a second copy of Three's full physically based lighting system. The pictures can therefore differ even when the material data agrees.
-
-The plan permits different raw pixels but did not choose how much lighting machinery to share. **Sound:** this avoids a second full lighting engine while preserving authored channel response. Future raw-renderer work must maintain that response; exact battle/campaign lighting parity would be a separate architectural change.
-
-### Keep far-atlas edge quality provisional while measuring its cost (slice04a)
-
-When a soldier becomes a distant image, the new GPU bake records surface properties rather than a pre-lit picture. Its pixels currently use a single coverage sample, whereas the replaced canvas painter smoothed edges. Thin diagonal equipment may consequently have harder stair steps. The provisional call is to keep this infrastructure representation while the first-pair and roster distance passes compare actual authored silhouettes and decide the coverage budget; it is not a final edge-quality verdict.
-
-The plan delegated atlas packing but left this lost edge smoothing unspecified. **Sound, provisionally:** the representation is measured and reversible, and no unexplained material error may be excused as edge debt. Future distance acceptance must explicitly compare smoothing quality and memory cost, rather than inherit this setting as approved art.
-
-### Retain bake depth storage with its property targets (slice04a)
-
-When an atlas finishes baking, its depth buffer is no longer sampled, but remains owned by the same render target until the atlas is replaced or disposed. Releasing only that attachment early could save about45MiB across the current catalog, but would introduce a separate backend resource-lifetime path. The current choice retains the simpler target ownership and includes its full cost in reported allocation and reload peak.
-
-The plan required measured memory without specifying attachment lifetime. **Sound, provisionally:** ownership is explicit and cleanup is tested. The measured asset-budget pass can revisit the retained storage if it constrains the final roster; the quoted allocation must never omit it merely because shaders do not sample it.
-
-### Material tables are immutable GPU copies for one prepared crowd (slice04a)
-
-When an author changes a material file, reload constructs a new GPU material table and replaces the prepared crowd. Mutating an already-loaded JavaScript array does not update the visible material in place. Tiers that share the same loaded table share its GPU copy; a separately prepared crowd owns separate copies, even for identical bytes, so rejecting a reload cannot free the current crowd's resources.
-
-The plan required reload and shared source ownership but left GPU caching lifetime open. **Sound:** resource sharing stays inside one disposable preparation rather than adding global reference counting. A future live material editor must explicitly upload its edits or use reload; ordinary JavaScript mutation is not an editing API.
-
-### Give temporary geometry explicit surface categories (slice04a)
-
-When building the old diagnostic soldiers, a wooden shaft and a leather body can have the same brown color but receive different material slots. The builder now names those surfaces directly. Its temporary heavy body remains categorized as bronze, while the medium body is leather; these categories describe existing placeholder content, not a reinterpretation of the requested chainmail heavy infantry.
-
-The plan required explicit placeholder identity but did not assign every old primitive a surface. **Sound:** the categories make the transport testable without pretending the old geometry is finished equipment. The first-pair gear and surface passes replace this temporary content with the user's leather-versus-chainmail distinction.
-
-### Benchmark motion uses authored clip duration (slice03)
-
-When the crowd benchmark advances its marching soldiers, it samples the duration declared by their asset using the production phase rule. Keeping the former private shader's rounded clock would measure a different animation path even after sharing the mesh.
-
-The plan required a production-path benchmark but left this timing conversion open. **Sound:** the benchmark now exercises the same sampling behavior as the renderer. The fixed workload and frame-time limit are preserved; this remains a rendering benchmark, not proof of live simulation performance.
-
-### Reject uniformly colored benchmark captures (slice03)
-
-A software-rendered vista once reported healthy soldier counts while its screenshot was effectively one color. The image check now requires a small amount of brightness variation as well as the existing bright-pixel floor. A bright empty canvas no longer counts as visible content.
-
-The plan required readable evidence but did not prescribe this detection. **Sound:** this strengthens the check without replacing visual inspection, the screenshot comparison, or actual workload assertions. The variance threshold is only an empty-frame detector, not an art-quality score.
-
-### Preserve original GLBs beside candidate material metadata (slice03)
-
-When a local Blender export contains a checker texture, the geometry baker records its material slot and keeps the original export beside the candidate. The current scalar material description does not yet reproduce that texture; retaining the source preserves its images, sampling settings and material definitions for04. Discarding them would make a successful geometry import look like a complete surface import when it is not.
-
-The plan separated geometry and material acceptance without specifying this intermediate source provenance. **Sound:** the omission is explicit and recoverable, with no outside service involved. This costs duplicate source bytes in diagnostic bundles;04 should replace this intermediate material reference with the actual rendered texture contract, not leave an unused second material owner.
-
-### Use each appearance's complete near mesh to bake its initial far image (slice03)
-
-When a pikeman becomes a small distant figure, his image is baked from his own complete mesh, so his pike does not become another class's sword. The initial placeholder bundle references its near mesh for that bake rather than storing an identical extra file or using one generic soldier image. Each appearance therefore allocates its own small image atlas, a grid of views used at distance.
-
-The plan required appearance-specific far content but did not choose its first producer. **Sound:** this preserves equipment identity while the later distance-representation slices own authored reductions and final readability. It increases atlas memory and draw groups; performance must be measured with those real groups, not the former shared image.
-
-### Isolate soldiers by removing foliage occlusion (slice01)
-
-When reviewing a hand grip or a foot, randomly placed grass and rocks can cover the part being judged. The workbench hides those objects but retains production ground, lighting, shadows and post-processing. A fully dressed battlefield would provide more context but less reliable close inspection; later production formation/battle gates still require that context.
-
-The plan required production parity but did not specify review scenery. This choice constrains the workbench to asset inspection, not environment acceptance. **Sound:** it removes an occluder without changing how soldiers are shaded. Revisit if a future gate depends on soldier–foliage contact.
+### 1. Display completed movement rather than predict beyond known positions
+
+**When:** locomotion/live-consumer integration (11).
+Two observations saying a soldier travelled one metre do not reveal when he
+started within that interval. Live rendering interpolates the known endpoints
+and distributes qualified travel across that interval. An eligible existing
+gait owns its stride until the endpoint; compatible standing can infer onset at
+the interval's beginning. Combat, disability or changed posture cannot be
+backdated into walking. Finer event history would be the unbuilt alternative.
+**Gap:** chronology and display latency were unspecified. **Reach:** root
+position, facing, life/equipment state and pose now share retained time. Mixed
+boundaries remain approximate, not proven foot contact.
+**Verdict:** sound use of known history without changing the engine;
+**confidence: medium**.
+
+### 2. Count motor-capable constrained travel, not voluntary propulsion
+
+**When:** movement observation integration (11).
+A stunned man can slide and recover before the browser sees him. The engine
+qualifies ticks where ordinary or routing movement actually ran, then counts
+final constrained displacement. Conscious pressure recovery can count as
+possible stepping; disabled momentum does not. Three cumulative double-precision
+values retain X/Y net motion and summed path length, so opposite steps do not
+cancel gait distance. Endpoint subtraction loses that distinction; exporting
+all forces would be a larger contract.
+**Gap:** qualification and transport were unspecified. **Reach:** these
+read-only counters inform animation, never movement decisions or saves. They
+do not reconstruct a batch's direction order or prove intentional effort.
+**Verdict:** sound minimal truthful measurement; **confidence: medium**.
+
+### 3. Use nearest authored pace and nearest-cardinal protected travel
+
+**When:** distance playback/protected selection (11).
+An ordered runner moving slowly walks below the midpoint of the bound walk/run
+nominal speeds: cycle distance divided by duration. The exact midpoint chooses
+walk. Moving, non-routing, not-at-ease soldiers with the engine's guarding-facing
+output may use backward/left/right clips. The largest signed component chooses
+direction; longitudinal wins ties. Missing bindings or zero net direction retain
+ordinary selection rather than inventing a pose.
+**Gap:** crossover and diagonal approximation were unspecified. **Reach:**
+normalized cycle progress survives gait changes, even with different leading
+feet. This is not phase-matched foot planting; richer blending remains unbuilt.
+**Verdict:** sound bounded reversible policy; **confidence: medium**.
+
+### 4. Preserve detailed originals and export practical runtime copies
+
+**When:** roster distance delivery (15/28).
+A fitted model can contain more detail than thousands of simultaneous soldiers
+can afford. Offline exports produce near/mid/far copies with initial triangle
+targets 8,000/1,000/800; detailed Blender assemblies and original exports remain
+editable. Reduction treats disconnected pieces separately, keeps a minimum per
+retained piece, and may omit sufficiently small distant pieces. Thin long
+weapons are not discarded merely for thinness. Whole-mesh collapse could erase
+a spearhead before substantially simplifying the body.
+**Gap:** reduction algorithm and allocation were unspecified. **Reach:** targets
+are not exact counts or performance guarantees. Future optimization rebuilds
+copies rather than degrading the saved source.
+**Verdict:** sound under the explicit delivery priority, with visible faceting
+and detail loss disclosed; **confidence: medium**.
+
+### 5. Reuse fitted action families with real weapon-specific corrections
+
+**When:** foot, pike, mounted and crew completion (17–27).
+A spear infantryman reuses suitable fitted body motion but receives an actual
+spear grip/effort, not a renamed sword swing. The two-hand sword reuses the
+medium body's axial effort with both purchases fitted to its hilt. Mounted
+actions preserve horse/rider ownership. Independently polishing every class
+before completing the roster was the unbuilt alternative.
+**Gap:** sharing was permitted but assembly/retarget strategy was unspecified.
+**Reach:** recognizable but stiff or similar motions remain; names do not make
+them physically complete.
+**Verdict:** sound completion-first reuse without dummy bindings;
+**confidence: medium**.
+
+### 6. Construct supported garments and grips offline, not with runtime constraints
+
+**When:** anatomy/equipment authoring (08–12).
+Shirt points take interpolated bone weights from supporting body triangles;
+mail/leather follows its actual lining. Belts and rigid sheaths use pelvis
+support instead of accidentally following thighs. Hands remain on the existing
+arm rig, with local hand edits preserving untouched body weights. Offline arm
+solving uses actual joint lengths and, where needed, retained fitted hand roll.
+The alternative adds cloth/finger constraints or hand-authors every weight.
+**Gap:** exact construction and rig allocation were unspecified. **Reach:**
+four normalized influences and matched surface locations do not guarantee every
+posed clearance. New anatomy/extreme actions require deliberate refitting.
+**Verdict:** sound inspectable construction at the accepted quality, not a
+universal anatomical solution; **confidence: medium**.
+
+### 7. Store small surface detail in one appearance texture sheet
+
+**When:** first-pair and roster surfaces (10/18/22/26).
+Skin, leather and metal read different regions of shared color, normal and
+roughness/metal maps. Mail relief is baked from editable ring geometry rather
+than drawing every ring. The shared source uses three 2,048-square images.
+Separate per-piece images or runtime ring meshes would cost different resources.
+**Gap:** packing and resolution were unspecified. **Reach:** image regions and
+UV coordinates must be rebuilt together; this resolution is not a whole-roster
+memory guarantee.
+**Verdict:** sound explicit offline detail ownership; **confidence: medium**.
+
+### 8. Share material meaning without duplicating Three's lighting engine
+
+**When:** material transport (04).
+The same helmet can look different in battle's Three renderer and the raw
+campaign renderer. Both consume authored color, roughness, metalness and maps,
+but the raw renderer retains its simpler lighting model. Exact lighting parity
+would require substantially more shared or duplicated shading machinery.
+**Gap:** source fidelity did not specify identical lighting pixels. **Reach:**
+future raw work must preserve material response; parity is separate scope.
+**Verdict:** sound shared data without a second full lighting implementation;
+**confidence: medium**.
+
+### 9. Retain the far bake's resource ownership and current edge sampling
+
+**When:** far material baking (04/15).
+A distant soldier image uses its own appearance's mesh and bound ready pose,
+retaining equipment identity rather than borrowing a generic soldier. It stores
+surface properties for lighting, not a permanently lit photograph. Its render
+target retains the bake depth attachment until
+disposal even though later drawing does not sample it. Current sampled edge
+coverage remains rather than introducing a new smoothing system.
+**Gap:** attachment lifetime and coverage cost were unspecified. **Reach:**
+retained memory and thin-edge artifacts remain follow-ups; unused depth is not
+free. Separate early attachment disposal would add lifecycle complexity.
+**Verdict:** sound explicit simplicity/cost tradeoff; **confidence: medium**.
+
+### 10. Grow exact pose storage synchronously and keep stable reusable slots
+
+**When:** GPU playback/storage (06/07).
+More interruptions can require more saved poses. Storage grows before a complete
+new binding generation publishes; surviving snapshots keep their slots while
+new snapshots reuse holes. Even/odd slots occupy two GPU buffers to fit each
+shader input's size limit without rounding poses. The alternative compacts every frame,
+preallocates maximum capacity, or drops detail.
+**Gap:** growth and physical layout were unspecified. **Reach:** slack,
+temporary overlapping generations and an extra binding are real costs.
+**Verdict:** sound bounded exact storage with a synchronous API;
+**confidence: medium**.
+
+### 11. Preserve precise immutable interruption sources until GPU packing
+
+**When:** interruption ownership (05/06).
+A hit interrupting a blend retains the actual double-precision local transforms
+in immutable arrays. Smaller GPU floats are produced when preparing joint
+matrices, not earlier to save space. Earlier rounding changes the source;
+repeatedly copying mutable arrays adds continuing cost.
+**Gap:** snapshot representation was unspecified. **Reach:** memory includes
+objects/arrays as well as numeric payload; consumers cannot mutate or transfer
+the controller's source.
+**Verdict:** sound continuity ownership with explicit memory cost;
+**confidence: medium**.
+
+### 12. Correlate timing by frame and measure allocations separately
+
+**When:** animated budget instrumentation (07).
+Animation, shadows and final shading submit separate work. Scene-owned GPU
+markers bracket it and retain the originating frame through delayed readback.
+A bounded slot pool reports missing measurements, not stale values. A separate
+run counts resource creation/destruction by phase so accounting does not inflate
+CPU timings. Cached renderer timings or size formulas alone cannot do this.
+**Gap:** the instrument was unspecified. **Reach:** queue elapsed time includes
+submission gaps; API-live requested bytes are not physical VRAM. Coverage and
+uninstrumented controls remain necessary.
+**Verdict:** sound qualified measurement; **confidence: medium**.
 
 ## Sound — high confidence
 
-### Stop allocating timing queries when timing collection fails (06b)
-
-The renderer normally collects both GPU timing pools after a frame, while the
-standing metric still reports render work alone. If the timing API propagates a
-failure, it disables further timing-query allocation and publishes no timing value. A late
-successful readback cannot restore a stale number after that terminal failure.
-Rendering itself continues. The alternative stops reading but keeps allocating
-queries until the pool fills, while displaying an old measurement indefinitely.
-
-The plan required reliable performance evidence but did not specify this failure
-policy. **Sound, high confidence:** this completes the existing terminal timing
-failure behavior without retries or a new renderer state machine. A fresh world
-can initialize timing again; frame-correlated compute-inclusive budgeting remains
-the separate measurement work in07.
-
-This policy cannot detect errors that Three catches internally and replaces with
-its previous timing value. Those errors are logged by Three and fail the browser
-runner; they are not claimed to clear live stats through the public promise.
-Future measurement must distinguish fresh samples from retained values rather
-than interpreting every successful API resolution as a new measurement.
-
-### Suppress a partially uploaded crowd until a complete upload succeeds (06b)
-
-An upload can fail after an earlier skeleton group has already queued new data.
-The caller receives the original error, and subsequent rendering submits no
-partial crowd until a whole upload succeeds. This differs from catalog reload,
-whose separately prepared candidate can still be rejected while retaining the
-last working scene. The unbuilt alternative preserves every old live generation
-to roll back individual frames. The spec required explicit failure handling but
-did not select that policy. **Sound:** avoid silently drawing inconsistent poses
-without adding an unrequested rollback system.
-
-### The preview clock wraps loops; explicit phase1 remains the endpoint (06b)
-
-A manual or frozen request for phase1 displays the last authored sample, even for
-a looping clip. An advancing preview wraps its clock before submitting a phase.
-The alternative makes the renderer guess whether the same phase means an endpoint
-inspection or continuing playback. The spec left that manual-loop boundary open.
-**Sound:** one source resolver interprets samples; the caller owns time. Removing
-raw override options eliminates a second, conflicting clock policy.
-
-### Rider action admission checks the joints the action actually controls (05b)
-
-A moving horse leg cannot make a motionless rider action qualify as animated.
-The source check samples local transforms within the declared rider mask, so
-inherited movement from a parent also cannot qualify. Checking all world matrices
-would accept movement discarded by playback. The plan required no-op rejection
-without specifying this check. **Sound:** admission follows the same local-motion
-ownership as the bounded rider override, without adding another animation graph.
-
-### Generate the applicability review matrix from the asset owner (05b)
-
-Changing a source binding regenerates its review row beside the catalog. The
-determinism check detects stale review data; the matrix links to the existing spec
-acceptance checklist and stores no separate progress state. The plan requested a
-matrix but did not specify its owner. **Sound:** review and runtime cannot acquire
-independent hand-maintained rosters.
-
-### Isolate source transfer from unrelated presentation policies (slice04d)
-
-When the six material strips switch between the stock loader and production,
-they remain above ground-contact darkening, have no faction marking, and show
-front-facing surfaces in the same world. Otherwise the pair could differ because
-one renderer applies those presentation policies differently, even though the
-authored material arrived correctly. Independent controls still test those
-policies and posed/backface behavior; this fixture does not replace them.
-
-The plan required matched swatches but did not specify this isolation. **Sound,
-high confidence:** it gives the material comparison one interpretable variable.
-Future reviews must not treat these strips as proof of grounded silhouettes,
-faction behavior or stock/custom backface equivalence.
-
-### Bound cross-renderer arithmetic without weakening regression snapshots (slice04d)
-
-When the stock loader and weighted production path draw the same strip, small
-arithmetic and image-path quantization differences can change a channel by one
-or two RGB codes. The paired check bounds the whole-world difference and also
-checks each material's interior; map-disabled controls prevent unchanged
-backgrounds from hiding missing material response. A later run of the same
-production snapshot must still match exactly.
-
-The plan required comparison but left its numerical criterion unspecified.
-**Sound, high confidence:** a measured cross-renderer allowance is distinct from
-permitting regression drift. Future fixture changes must preserve that distinction,
-not raise the bound to hide a new transfer defect.
-
-### Admit mapped frames while computing existing animated bounds (slice04c)
-
-When an appearance is baked, its material slots now accompany the existing
-animated-bounds calculation. Each pose that calculation already visits also checks
-that normal-mapped vertices have usable surface directions. Callers cannot omit
-the material list and silently skip that check. Loading checks the starting mesh;
-it does not repeat a full animation scan in the browser.
-
-The plan required valid posed directions but left the validation API open.
-**Sound, high confidence:** one traversal and a required input enforce the rule
-without a second scan or an optional bypass. Future bounds callers must supply
-the appearance's actual material slots.
-
-### Preserve the existing deformation rule and define its collapsed limit (slice04c)
-
-When several bones bend a surface, its normal and tangent use the same weighted
-direction transform already used by the renderer. This does not introduce a new
-inverse-transpose normal convention that would relight all existing assets. If
-interpolation nearly cancels otherwise valid directions, shading uses the
-geometric surface direction instead of amplifying numerical noise. Invalid
-normal-mapped source frames still reject; this fallback does not admit bad assets.
-
-The original material requirement did not choose a deformation convention or its
-degenerate limit. **Sound, high confidence:** this isolates the requested map
-support and keeps ordinary untextured rendering stable. Future rig changes inherit
-that convention and must explicitly revisit it if they need different scaling.
-
-### Reject normal scales that cannot survive GPU packing (slice04c)
-
-An authored scale can be a finite JavaScript number yet become infinity in the
-GPU's smaller number format. The baker and loader now reject that value rather
-than letting it turn a surface's lighting invalid. Large values that do fit remain
-supported through bounded normalization; zero still scales only the map's X/Y
-components, not its Z direction.
-
-The plan required authored scale but left its numeric storage limit implicit.
-**Sound, high confidence:** explicit rejection preserves the actual rendering
-contract without silently clamping author data. Future material editors inherit
-the same Float32 boundary.
-
-### Exercise collapsed poses by modifying a real export in memory (slice04c)
-
-The source regression opens an existing Blender export and changes only its test
-weights and bone rotation to cancel a mapped direction. Its starting mesh is valid,
-so a rejection proves the animation check ran. The alternative was another
-checked-in art fixture or a fake importer result.
-
-The plan left this failure fixture unspecified. **Sound, high confidence:** the
-test exercises the actual byte importer and baker without adding another source
-asset to maintain. The ordinary exported fixtures remain unchanged.
-
-### Closing a world makes pending reloads terminal (slice04b)
-
-If an author closes a world while a replacement is loading, that replacement
-cannot become the new visible crowd after teardown. Completed preparation is
-released, and another reload on the closed owner fails before fetching. Calling
-dispose twice is harmless. The alternative would silently claim a successful
-reload into an owner that no longer has a usable renderer.
-
-The plan required atomic reload but did not define teardown races. **Sound, high
-confidence:** the original owner remains closed, without a generic cancellation
-manager or a hidden world-recreation path.
-
-The06b consumer retains this rule inside preparation as well: after an asynchronous
-wait, it checks the same world's existing closed state before starting more GPU
-work. Already acquired resources are registered before that check so cleanup owns
-them. This is one borrowed-lifetime assertion, not a second cancellation state;
-an error in a still-open world keeps its original cause.
-
-### A complete surface owns its GPU resources (slice04b)
-
-Two appearances may have identical scalar colors but different image maps. Sharing
-only by their color table would give one appearance the other's texture. Loaded
-surface identity therefore groups the material table, images and sampling settings.
-Near meshes and their far-image bake share that prepared owner; an independent
-crowd gets independent disposable resources, extending the existing reload lifetime
-decision without global reference counting.
-
-The original plan did not define image-cache ownership. **Sound, high confidence:**
-closing or rejecting a replacement cannot destroy the visible crowd's images.
-Three's external texture wrapper borrows the GPU image; the preparation owner
-explicitly destroys it rather than relying on wrapper disposal.
-
-### Omitted source samplers follow the standard loader (slice04b)
-
-If a Blender export omits optional filtering settings, the baker uses the installed
-standard glTF loader's linear filtering and mipmap policy. Explicit settings remain
-unchanged, including the diagnostic checker's nearest filtering. Choosing unrelated
-defaults would make an otherwise identical source look different between its
-reference loader and production.
-
-The plan required declared sampling fidelity but left absent settings open.
-**Sound, high confidence:** reference and production interpret the same omission
-consistently; future loader upgrades must preserve or deliberately review that rule.
-
-### Embedded image packaging does not change image identity (slice04b)
-
-A local export can put a PNG in its binary chunk or encode the same bytes as
-base64 text inside its JSON. The baker accepts both and emits the exact image bytes;
-external file and network image references still reject. Rejecting the second
-container would add a packaging restriction without protecting visual fidelity.
-
-The plan named embedded images without choosing their container. **Sound, high
-confidence:** the accepted packaging does not introduce external asset I/O or a
-second image source.
-
-### Browser decoding is the image-codec authority (slice04b)
-
-The baker checks image declarations, signatures and byte ranges, then retains the
-encoded bytes. The browser decodes them when preparing the GPU surface. A corrupt
-image body rejects that preparation and keeps the previous scene usable. Adding a
-second full decoder to the baker would duplicate a dependency and still would not
-prove that the target browser can decode the image.
-
-The plan required malformed images to fail but did not choose the decoding owner.
-**Sound, high confidence:** load-time decoding remains part of atomic admission,
-not an assumption that every correctly labeled byte array is renderable.
-
-### Neutral raw bindings mean absent maps, never failed maps (slice04b)
-
-An untextured soldier still uses the raw renderer's fixed binding layout. Small
-neutral images fill absent channels, while explicit per-slot flags decide whether
-a map contributes. A declared image that fails never receives this substitute.
-The alternative would compile separate pipeline layouts or split draws for each
-combination of maps.
-
-The plan prohibited extra material draws but left absent-resource binding open.
-**Sound, high confidence:** neutral bindings simplify batching without hiding
-broken authoring or inferring material meaning from colors.
-
-### Missing source faction attributes mean unmarked geometry (slice04b source transport)
-
-When an ordinary Blender export contains no `_FACTION_MASK` custom vertex attribute,
-its geometry receives no faction tint. If the attribute exists, its scalar values
-must be finite and between zero and one; broken references and other encodings
-reject rather than becoming zeros. An author who wants markings must enable
-Blender's Attributes export option and name the attribute exactly.
-
-The plan required independent faction masks but did not define their source
-convention or absence. **Sound:** ordinary unmarked geometry remains valid, while
-present markings have a strict tested contract and are never inferred from color.
-Future authoring must check the exported mask when markings are intended; omission
-is not evidence that the exporter preserved the intended markings.
-
-### Measure roads and sea-lane strips separately in full-game verification (04 maintenance)
-
-When the full-game check opens the campaign, roads are triangle meshes while its
-line counter covers sea-lane strips. The check now requires a substantial road
-triangle workload and nonzero sea-lane lines. It no longer asks sea lanes to exceed
-the old road-line count. The starting revision fails that same old assertion with
-identical map data and geometry, so lowering a timing limit would not address it.
-
-The plan required standing checks without identifying this carried-in mismatch.
-**Sound:** the assertion follows the actual workload owners and retains the
-existing city, depth and timing validity checks. Future verification must not use
-one drawing primitive's counter as evidence for a different primitive.
-
-### Validate gameplay clips at controller admission, not generic import (slice03)
-
-When the battle reloads an asset that can stand idle but has no attack clip, it rejects the replacement before a later attack can crash rendering. The required names live beside the controller that requests them. A diagnostic with only an elbow-bend clip is still valid: its workbench explicitly requests no gameplay vocabulary and selects the asset's own clips.
-
-The plan required meaningful clips and candidate inspection without defining this admission boundary. **Sound:** one generic loader can serve both uses without fake clips or fallback animation. Assets are checked before GPU allocation on startup and before replacing the current crowd on reload. Slice05 owns the later role-specific vocabulary; this check represents the current controller only.
-
-### Keep the retained crowd benchmark at full detail (slice03)
-
-When the old prototype switches to the production crowd implementation, it still submits every benchmark soldier at full detail. Applying normal battle distance reduction there would shrink the workload and make an apparent speed improvement incomparable to the old 33 ms gate.
-
-The plan required preserving the existing performance gate but left the shared-renderer submission seam open. **Sound:** the benchmark keeps its original cost, while actual battles retain their ordinary visibility and distance policy.
-
-### Keep candidate selection owned by the production world (slice03)
-
-When the workbench opens a locally baked diagnostic catalog, the production world remembers that catalog's address. Reload reads the same address instead of accidentally replacing the diagnostic with the gameplay roster. The workbench supplies a selection, not a separate loader or rendering path.
-
-The plan required candidate reload without specifying who retains its source. **Sound:** the same owner creates and replaces GPU content, so future reload behavior cannot diverge between inspection and battle. The default gameplay catalog remains unchanged.
-
-### Match fixture framing with an explicit camera target (slice03)
-
-When comparing a mounted fixture to its export reference, the camera aims at the fixture's recorded center rather than a hard-coded human chest height. That target travels with the inspection pose. Ordinary soldier review keeps its existing default target; the renderer's lighting and projection are not redesigned to flatter the candidate.
-
-The plan required matched framing but did not specify this input. **Sound:** the reference and production view can show the same geometry at the same framing, including non-human diagnostic dimensions.
-
-### Hold zero-duration diagnostic clips still (slice03)
-
-When a source fixture contains a single static pose, pressing play leaves it at phase zero rather than dividing elapsed time by a zero duration. Animated clips advance by their authored duration and use their declared loop behavior.
-
-The plan required source timing but did not define static-clip playback. **Sound:** static poses remain valid inspection assets without invented motion or a special replacement clip.
-
-### Match exported tiers by bone names and actual bind transforms (slice03)
-
-A Blender export can number the same arm bones differently in its near and reduced meshes. The baker matches uniquely named bones, checks their parent relationships and resting transforms, and rewrites each vertex's joint references into the near tier's order. It accepts reordered exports but rejects a genuinely different rig, rather than bending the reduced soldier with unrelated joints.
-
-The plan required a shared skeleton without prescribing tier matching. **Sound:** authoring can change export order without changing deformation, while one animation set remains authoritative for all three tiers. Reduced tiers must retain the compatible skeleton; they cannot silently substitute a different rig.
-
-### Changing the selected appearance chooses an applicable clip (slice03)
-
-If the reviewer switches from one appearance to another and the current clip exists on both, the workbench keeps the clip and phase. If it does not, the picker selects the new appearance's first declared clip at its start. Programmatic requests for a missing clip and incompatible reloads still fail explicitly.
-
-The plan required role-appropriate clips but did not define picker behavior. **Sound:** a deliberate selection change remains usable without inventing a missing animation or weakening asset-load failures. This is only a UI default, not a runtime fallback.
-
-### Keep four-weight geometry in one shared upload layout (slice03)
-
-When a vertex bends between an upper arm and forearm, its mesh retains each contributing joint and weight. Both renderers pack those attributes through the same layout immediately before GPU upload; the canonical asset keeps separate typed arrays for baking and CPU inspection. Giving every attribute its own GPU buffer exceeded the baseline device limit when shadows and instance data were added. Dropping weights would fit but would break the intended smooth bends.
-
-The plan delegated buffer packing; the load-bearing ownership choice is that both substrates share its single definition. **Sound:** it preserves the full deformation data and existing device requirements. Future material channels must extend this owner rather than create a renderer-local encoding. Exact packing sizes remain implementation discretion and are measured by the performance gates.
-
-### Fixed export fixtures are loaded once per review session (slice02)
-
-When the reviewer switches quickly between the human and mounted diagnostic, the selected object changes immediately. Both original assets are loaded once at startup and remain owned by this small oracle until the page closes. The alternative refetched each selection, allowing overlapping responses to leave two fixtures visible and repeatedly allocate textures.
-
-The plan required an independent export oracle but did not prescribe fixture loading lifetime. **Sound:** a fixed, bounded pair needs selection, not a general asynchronous asset-replacement system. Production authoring reload remains the separate workbench's responsibility. This constrains only the diagnostic route, not the roster loader.
-
-### Compare mapped surface vertices, not only joint locations (slice02)
-
-An exported elbow can have correctly placed bones but incorrectly weighted skin. Blender therefore records evaluated surface positions, and the exporter maps each glTF vertex back to its source vertex even when UV seams split it into multiple copies. The browser compares every mapped surface point. A joint-only check would miss lost weights or incorrect mesh bind transforms.
-
-The plan named geometry landmarks but left their encoding open. **Sound:** the original fixture is the independent answer, not the custom crowd baker being tested. Generated landmark files are deliberately verbose, and remain reproducible test data rather than hand-maintained geometry inventories.
-
-### Diagnostic fixtures use neutral surfaces and one checker patch (slice02)
-
-When examining the elbow bend, all-over high-frequency checks concealed the surface. Plain rough grey now reveals the shape; the shield alone retains the authored checker for UV inspection. This changes neither deformation nor final soldier art. The alternative would preserve texture noise that made the export check harder to judge.
-
-The plan excluded final material styling but left diagnostic presentation open. **Sound:** source surfaces stay inspectable, and material fidelity is still a later gate. Neutral color, roughness, checker resolution and exact fixture joint counts are reversible diagnostic settings, not a lower quality bar for the roster.
-
-### Failed reloads retain the last working scene (slice01)
-
-After a local bake, the author can press reload. If its files are broken or omit the selected appearance/clip, the workbench shows the error and keeps the previous soldier usable. A successfully loaded replacement is installed as a whole. The unbuilt alternative would blank or break the inspection view while the author corrects the export.
-
-The plan requested visible errors but did not specify replacement failure behavior. Future import work must retain this explicit last-good behavior, including disposing partially allocated GPU resources. **Sound:** an error stays visible without destroying the review session; this is not a hidden placeholder fallback.
-
-### Restore dependencies already recorded in the lockfile (slice01)
-
-A clean install failed because the package manifest omitted the Node and PNG type packages already present in its lockfile. The manifest now requests those same versions. No package upgrade or new dependency choice was made. Leaving the mismatch would make the new worktree impossible to verify with a frozen install.
-
-The plan did not address an inconsistent starting manifest. Future builds can use the existing frozen lockfile. **Sound:** source and lockfile now describe the same installation rather than requiring an undocumented local workaround.
-
-### Render probes honor the renderer's browser-frame boundary (slice01)
-
-When a test submits a second pose in the same browser frame, three.js's post-processing scene can still contain the first pose: that scene is updated once per frame. The parity test waits until the workbench has no pending draw, then submits each compared pose in a new browser frame. It still requires identical pixels; it does not retry until a lucky image matches.
-
-The plan required deterministic parity but left its scheduling unspecified. Other manual render probes must respect the same frame boundary. **Sound:** synchronization follows the renderer's actual update contract rather than increasing a screenshot tolerance or arbitrary delay.
-
-### One production owner for zero-copy battle views (05a, `f36211df`)
-
-**Confidence: medium.** When reinforcements append soldiers or WASM memory grows, the next health read must use the current memory buffer, pointer and soldier count. The existing position, facing and unit-info reads followed this rule inside world creation. The pass extracts those closures into `createBattleViews` and adds injury views there; world creation composes that same factory. An alternative would leave the closures embedded and require renderer/UI setup to test memory behavior, or create a separate test-only copy that could drift.
-
-The plan required minimal zero-copy observations but did not choose the view module boundary. Future observation channels inherit this one owner and its real-WASM lifecycle tests, not a cache or a second memory adapter. **Sound:** extraction isolates the existing memory-view responsibility while preserving its public methods and behavior. It introduces no injury history, action policy or permission to write simulation memory from presentation code.
-
-### One battle observation adapter, separate from action policy (05c)
-
-**Confidence: medium.** When a soldier switches from pike to sword, production and the battle lab now read the same equipped-weapon state and choose the same catalog appearance. A shared adapter reads WASM and measures motion; the action controller decides which action runs. The unbuilt alternative leaves the lab with its own frame/weapon policy, so a successful lab test can disagree with battle.
-
-The plan named the production adapter but did not settle how to eliminate the lab duplicate. Future observation fields belong to that shared boundary, while timing remains outside it. The existing class/weapon schema moves beside class data rather than remaining owned by the renderer. **Sound:** this gives each decision one owner without adding a second health cache or changing combat.
-
-### Reloading models starts fresh visual history (05c)
-
-**Confidence: medium.** If an author reloads a model while a soldier is midway through an action, the accepted catalog replacement starts a new visual action entry from current observations, including already-dead soldiers. It does not carry an old skeleton's partially blended pose into a new skeleton. A failed reload keeps the previous catalog and history. The unbuilt alternative attempts to preserve progress across potentially incompatible joint layouts.
-
-The plan required safe reload but did not choose cross-rig history behavior. Future hot-reload work inherits this deliberate loss of visual progress, not a promise of seamless action continuity while authoring. **Sound:** preventing incompatible pose reuse is more important than retaining authoring-session phase; gameplay state is untouched.
-
-### Reach overlays report engagement, not fabricated strike beats (05c)
-
-**Confidence: medium.** While a living soldier is engaged, the tactical reach overlay now shows that weapon's reach envelope within its existing visibility budget. Previously a numeric-frame rhythm made it blink as if particular strike moments were known. The unbuilt alternatives keep that invented rhythm or remove the overlay entirely.
-
-The plan removed fabricated action events but did not specify this diagnostic overlay. Future animation/contact work must not interpret the overlay as evidence of an actual hit. **Sound:** it retains useful spatial information while disclosing the less-specific observation. Likewise, switch cooldown no longer forces an idle pose: current equipment and genuine actions remain visible until authored switching/attachment continuity is implemented in slice14.
-
-### Frozen rendering caches observations, not just the camera (05c)
-
-**Confidence: high.** Advancing a frozen battle by three ticks can change a soldier's pose without moving the camera. The renderer therefore includes the observation tick and accepted catalog identity in its reuse decision. Repeating the same request can still reuse the submitted frame; a same-tick reload cannot. A thin debug reload call reaches the existing owner so the production path can be tested.
-
-The plan did not account for the inherited cache's missing inputs. Future pose changes made outside normal tick/catalog updates must provide an explicit invalidation signal; they cannot rely on a new array allocation to defeat caching. **Sound:** the cache follows actual state ownership without removing frozen reuse or weakening performance gates.
-
-### Recover release age from the existing simulation countdown (05c)
-
-**Confidence: high.** If a projectile's countdown is first observed partway through, the adapter subtracts its remaining time from the simulation's own duration and reports elapsed release age. The controller can advance beyond its authored release marker rather than pretending emission happened just now. The unbuilt alternative duplicates the duration in JavaScript or requires a new event log.
-
-The plan required release-compatible playback but did not define delayed-observation age transport. The read-only duration accessor is backed by the very constant used when missiles emit, and remaining TTL is still supplied for refresh detection. **Sound:** this supplies the information the current consumer needs without a second clock constant, event counter, or combat change.
-
-### Admit gameplay only when local and baked clip timing agree (05c)
-
-**Confidence: high.** A loaded model can contain a baked GPU clip and a local-joint clip with the same name but different duration. Rendering the former while freezing a blend source from the latter would produce inconsistent poses. Gameplay admission now rejects missing or mismatched required clip names, durations, looping and release markers before installing GPU resources. Manual-only inspection remains available.
-
-The earlier loader validated catalog bindings against GPU clips but did not need local clips for interrupted blends. Future exporters must keep these two representations aligned; the runtime does not guess or silently fall back. **Sound:** the newly active local-pose consumer makes this a concrete admission requirement, not speculative validation.
-
-### Replay is an explicit authoring mode in the existing inspector (05c)
-
-**Confidence: medium.** Opening the ordinary model inspector still shows the same
-manual controls. Opening its linked replay URL reveals a repeatable sequence of
-synthetic movement, release, injury, equipment and death observations. Those
-inputs drive the real action controller and instance submission path, but are
-not presented as a recorded fight. The unbuilt alternatives add controls to every
-manual visit or build a second viewer whose success could disagree with battle.
-
-The plan required a replay surface but did not choose entry or fixture capture.
-The URL is linked from the owning evidence; reduced discoverability is the cost
-of preserving the ordinary inspector. Future cases extend the input fixture,
-not action policy. **Sound:** one renderer and clearly labeled synthetic inputs
-make timing repeatable without claiming exact combat events or GPU blend proof.
-
-### Explicit manual edits end replay, while camera edits preserve it (05c)
-
-**Confidence: medium.** An author can orbit the model during replay without
-losing the current action. Choosing a different manual appearance, clip, phase
-or formation instead returns control to manual inspection. A successful asset
-reload resets replay if the selected appearance still supports it; a valid
-manual-only asset exits replay rather than turning that successful reload into
-an error. A failed reload retains the last good model and replay history.
-
-The plan did not define the interaction between manual controls and synthetic
-history. Keeping both active would leave two competing explanations for the
-displayed pose. Future inspection controls inherit one active pose owner.
-**Sound:** explicit mode changes prevent stale or misleading state while camera
-adjustments remain non-destructive to an author's timing inspection.
-
-### Bound every possible local pose rather than only sampled frames (06 prerequisite)
-
-**Confidence: medium.** A long weapon can swing outside the box containing its
-start and end poses. The source baker now follows the skeleton hierarchy and
-bounds all allowed translations, scales and rotations, including crossfades and
-mounted masks. It uses a sphere centered on the root-translation envelope, not
-an optimally tight sphere fitted to a few poses. The unbuilt sampled alternative
-can make the renderer wrongly remove a visible weapon near the screen edge.
-
-The plan required conservative continuous bounds but did not choose the method.
-Larger diagnostic spheres can retain more off-screen work;07 must measure that
-cost. The review camera keeps its own fixed framing rather than moving when a
-culling sphere changes. **Sound:** the hierarchy proof covers unseen intermediate
-poses without a guessed safety multiplier. Its current Float32 margin does not
-pre-approve a different GPU quaternion implementation.
-
-### Reject projective inverse binds instead of silently treating them as affine (06 prerequisite)
-
-**Confidence: medium.** The bounds proof assumes a skeleton transform preserves
-the usual homogeneous coordinate. An imported inverse-bind matrix with a small
-projective term can pass the importer's approximate shape check yet violate that
-assumption, especially far from the origin. The bounds owner rejects that matrix
-instead of dropping the term or returning a misleading sphere.
-
-The plan did not define this admission edge. Current Blender exports satisfy the
-exact affine row; a future exporter with numerical noise must correct its source
-or justify an explicit normalization policy. **Sound:** rejecting unsupported
-transforms preserves geometry rather than silently changing authored data to make
-the bound appear valid.
-
-### Remove repeated LOD work without lending mutable results (07 source-cost pass)
-
-**Confidence: high.** On each frame the renderer asks which mesh each body needs.
-This pass reuses the two private arrays remembering yesterday's choices, but the
-answer returned by the planner still belongs to that call. A caller can keep an
-old answer without tomorrow's frame rewriting it. The unbuilt alternative would
-pool every answer and require callers to understand that borrowed lifetime.
-
-The task allowed allocation reduction but did not require a new storage API.
-Keeping returned answers independent avoids introducing that contract before a
-matched measurement establishes its value. History arrays are overwritten only
-after all old history has been read, and shortened on empty or smaller uploads;
-no vanished body's detail choice survives regrowth. **Sound:** ownership remains
-simple while repeated arithmetic and temporary history/threshold arrays are
-removed. Remaining per-body allocations are explicit; this does not establish
-that garbage collection or the interruption cadence gate is fixed.
-
-### Split exact frozen poses across two GPU buffers (07 allocation correction)
-
-**Confidence: medium.** When mounted soldiers interrupt both their movement and
-upper-body actions, each can retain two exact starting poses. The measured
-30,000-body case needs more storage than one GPU buffer binding permits, even
-though the final joint-matrix output fits. The current renderer temporarily hides
-the crowd when it cannot submit that frame.
-
-The correction being implemented keeps pose values and their existing logical
-slot numbers unchanged, but stores even slots in one buffer and odd slots in
-another. A buffer binding is the portion of GPU memory a shader can access through
-one input. Each input then needs no more pose slots than the retained capacity
-of the output. The same shader reads both; this is not a second renderer or an
-approximation of nearby animation poses. Growth, retirement and replacement must
-account for both buffers together.
-
-The plan required bounded exact storage but did not choose its physical layout.
-Requesting a larger device limit would exclude devices that only support the
-measured limit; shrinking rigs or dropping poses would change the requested art
-or animation. **Sound, pending implementation verification:** splitting physical
-storage addresses the demonstrated per-binding limit without either compromise.
-Future palette consumers inherit one additional storage binding and two-buffer
-lifecycle accounting. This does not guarantee enough total memory, and passing
-the corrected workload will not by itself settle the whole art budget.
-
-### Transfer garment weights from a body surface, not a single vertex (09)
-
-**Sound; confidence: medium; provisional.** When a shirt vertex moves slightly
-during fitting, copying the closest body vertex can suddenly select a different
-bone mixture. The shirt now finds the nearest body triangle and blends its three
-corners' bone weights according to the contact point, then keeps four normalized
-influences. This makes nearby points on that triangle share a continuous field.
-
-The plan delegated garment attachment but did not prescribe transfer. This is
-an offline Blender authoring choice; the renderer still consumes the same skin
-format. It does not solve loose cloth between thighs, where the nearest body
-surface itself can change. Future walking and bending reviews must inspect that
-case; a dedicated authored garment weight field remains available if evidence
-requires it. No runtime cloth system or new simulation authority is introduced.
-
-### Keep pronation on the existing forearm and scope exported actions to its rig (08)
-
-**Sound; confidence: medium; provisional.** When the soldier rolls a sword in his
-hand, rotating only the hand twists the wrist while some nearby skin follows the
-forearm instead. The fitting study rotates the forearm along its own length and
-leaves the hand's local rotation alone. An existing elbow-support bone receives
-half the roll. This avoids adding another bone solely to cure that measured
-attachment drift; it does not establish that the present wrist shape is good.
-
-The plan left the exact skeleton and authoring recipe open. This recipe constrains
-the first ready/walk authoring, but more demanding motion may justify later joint
-changes. The original bend remains separate. Blender's muted animation tracks
-associate the inspection clips with this rig so exporting them does not pull in
-unrelated actions from other scenes or duplicate the active clip. Future clips
-must keep that ownership rather than broadcast all actions to every armature.
-
-### Develop candidate materials and motion before final geometry acceptance (09–11)
-
-**Sound; confidence: high.** At this maintenance checkpoint, an unfinished helmet
-could prevent even trying mail materials or a walking soldier. That ordered work
-by final approval rather than by what an artist actually needs to proceed. The
-plan now allows a material or walk candidate on a named, fixed geometry and rig
-revision. A later shoulder or hand correction requires the affected material
-mapping and animation to be fitted and checked again.
-
-The original plan specified final dependencies but over-constrained editable
-candidate work. The revised order preserves every final acceptance dependency,
-matched neutral-clay evidence, performance limit and complete-bundle promotion
-rule. It enables parallel local art work without calling rough geometry accepted
-or using texture and movement to conceal defects. No runtime schema changes.
-
-### Preserve local hand detail rather than enforce the provisional whole-body count (08)
-
-**Sound; confidence: medium; provisional.** In the hand authoring pass integrated
-through54860ea2, a fingertip and a broad torso originally underwent the same
-smoothing and mesh reduction. The process could erase fingertip pads while still
-producing a technically valid body. The authoring script now excludes distal
-hands from that relaxation and protects their vertices against collapse, adding
-their geometry to the provisional body allowance. Keeping the same total count
-instead would force that detail to consume geometry elsewhere on the body.
-
-The plan delegated topology but did not prescribe allocation. This is reversible
-source-authoring policy, not an accepted20,504-triangle budget. It preserves a
-visible feature for subsequent retopology and distance work; the current heavy
-equipment must be refitted to that surface and cannot be promoted until the
-measured budget and quality gates pass.
-
-### Supplement whole-body review with a native hand-detail camera (08)
-
-**Sound; confidence: high.** When the fingers occupy only a few pixels in the
-whole-body sheet, an apparently held sword can actually run through the palm.
-The existing fixture now also captures the right hand closer up, using the same
-production renderer, while retaining every original body/head camera. Its
-body-occluded side view is not counted as evidence of grip quality.
-
-The plan required credible grips but did not specify this detail framing.
-Future candidates inherit an extra deterministic sheet, not a separate renderer
-or promise of that gameplay zoom. A posed hand needs its moved position checked;
-the fixed neutral target cannot silently stand in for every future animation.
-
-### Supplement whole-body review with a native head-detail camera (08)
-
-**Sound; confidence: high.** A whole-body image can show sound proportions while
-the mouth occupies too few pixels to judge. The anatomy fixture now also moves
-its existing production camera closer to the head and captures the same four
-bearings in the neutral pose. It keeps the original whole-body and gameplay
-images, lighting, materials and skinning. Enlarging an old crop would only enlarge
-its existing pixels; this additional capture exposes actual facial geometry.
-
-The plan requires facial form but does not specify a dedicated head camera.
-Future anatomy reviews inherit one extra deterministic sheet, not a separate
-renderer or a new gameplay zoom promise. Passing this detail view cannot replace
-the full-body, deformation or gameplay-scale requirements. No baseline is
-accepted merely because the new camera creates its first image.
-
-### Share one provisional texture sheet across heavy material regions (10)
-
-**Sound, provisional; confidence: medium.** When the heavy soldier loads, skin,
-cloth, mail and equipment read different areas of the same texture sheet rather
-than each loading a full-size image. Three 2048-square images carry color, surface
-direction and roughness/metal response. The existing material contract still
-distinguishes each region; the sheet does not make leather behave like bronze.
-
-The plan required locally authored surfaces but did not choose their packing or
-resolution. This keeps the study self-contained and avoids separate image sets
-per small piece. It is not a measured memory allowance: slice07 and distance
-review can require a different packing or resolution before promotion. Changing
-this source policy rebuilds the images and UV coordinates together without a
-runtime schema change.
-
-### Bake mail relief into the existing atlas, not runtime ring meshes (10)
-
-**Sound, provisional; confidence: medium.** When the camera approaches a mail
-shirt, the surface should show rounded metal wire and dark openings. Blender now
-bakes a repeating arrangement of actual tilted rings into the existing texture
-atlas: its maps describe surface direction, metal coverage and local occlusion.
-The runtime still draws the weighted shirt surface, not thousands of individual
-ring meshes. The alternative would increase garment geometry and deformation
-cost instead of storing the small-scale detail in material maps.
-
-The material task delegates motif styling but leaves the relief-generation method
-open. This keeps one production material path and a fixed-geometry comparison.
-Area filtering averages subpixel wire coverage before storage, so distant detail
-does not depend on whether one tiny wire happened to land on a sample. The saved
-Blender tile remains editable. Resolution and close-detail quality are provisional;
-this does not establish a measured texture budget or fully resolved interwoven
-links. Future body/garment changes rebuild the maps through this author rather
-than importing the material lane's frozen soldier geometry.
-
-### Inspect ready footwear through an additional native close camera (09–11)
-
-**Sound; confidence: high.** A strap may look attached in a whole-body image
-while ending inside the heel. The combined candidate retains its original
-cameras and adds a close view of both planted feet from four directions. This
-exposes sole thickness and strap contact directly, rather than treating the
-numerical sole-floor check as proof that the entire sandal fits.
-
-The plan required credible footwear and planted motion but did not prescribe
-this framing. It is an extra review view, not a new gameplay zoom or renderer.
-Its standing pose cannot establish clearance throughout a walk; moving frames
-remain separately required.
-
-### Use distinct authored walk and run rhythms for the heavy candidate (11)
-
-**Sound, provisional; confidence: medium.** When a heavy soldier walks, the
-candidate takes 0.765-metre steps over a 0.9-second two-step cycle. Running uses
-a shorter 0.8-second cycle with brief periods when neither foot touches ground.
-The animations leave horizontal movement to the game; their backward foot travel
-is designed around the existing prescribed pace, not a new simulation speed.
-Simply accelerating the walking clip would retain walking's support pattern and
-would not create a visibly distinct run.
-
-The plan required individual walk/run motion but left rhythm and support timing
-to authoring. This first rhythm is a reversible working choice, not accepted
-motion: upright carriage, weak push-off and small between-key contact errors
-still require correction. Future changes must keep the actual movement consumer's
-pace relationship and be reviewed at real playback speed, rather than preserve
-these timings merely because they were captured once. No simulation or runtime
-schema change is implied.
-
-### Fit sandal straps from the frozen foot surface during baking (09)
-
-**Sound; confidence: medium.** When the sandal is rebuilt, short rays start
-inside the foot and locate its actual skin. The leather strips are placed just
-outside those intersections, with one strip lifted locally over the crossing.
-This lets the strip follow the current foot rather than assuming an oval foot
-cross-section. It is an offline modeling operation; gameplay receives the same
-ordinary weighted mesh as before.
-
-The footwear task delegated styling and asked for a fit to the fixed body, but
-did not prescribe how to find that fit. The implementation reuses the body's
-existing surface lookup in the geometry author. A substantially different foot
-can move the ray origins outside the skin, so future anatomy changes still
-require a deliberate footwear refit and contact review. This does not promise
-automatic fitting to arbitrary bodies or introduce runtime collision/IK.
-
-### Refine the face after assigning the body's skin weights (08)
-
-**Sound, provisional; confidence: medium.** Adding eyelid and nose detail should
-not change which bones move the untouched hands and torso. The local facial
-pass subdivides only front-head triangles after the existing bone weights have
-been assigned, interpolates those weights, and projects the new vertices onto
-the detailed head before shaping landmarks. Re-running whole-body weight solving
-instead could alter unrelated joints. The final editable deformation mesh owns
-these details; the hidden sculpt is a construction input, not an identical copy.
-
-The spec requires editable anatomy but leaves topology allocation and operation
-order open. This adds provisional face geometry rather than taking detail away
-elsewhere merely to hold an unaccepted count. Future body and distance work must
-still fit the measured budget; this does not accept the face's quality or count.
-
-### Fit the final shoulder surface before adding garment thickness (09)
-
-**Sound, provisional; confidence: medium.** When Blender rounds the shirt's
-sparse construction mesh, the resulting surface can shrink through the shoulder.
-The equipment author now fits that rounded shoulder surface just outside the
-fixed underlying body, then adds the garment's thickness and transfers the
-body's bone influences. Fitting only the original sparse mesh would leave the
-later shrinkage unaddressed. The neckline and lower hanging cloth retain their
-authored shape instead of being pulled tight to the body everywhere.
-
-The plan requires fitted layers but does not specify this operation order or
-the fitting method. The chosen offsets are modeling aids, not a collision
-system: raising an arm can still make the layers intersect, particularly where
-the nearest underlying surface switches between torso and arm. Future body
-changes therefore require a refit and full pose review. This stays an offline
-Blender operation and does not add a runtime fitting or cloth mechanism.
-
-### Keep the sheath rigid while its straps follow the waist (09)
-
-**Sound, provisional; confidence: medium.** When the soldier bends or runs, the
-leather casing moves with the pelvis instead of bending like a trouser leg. The
-top of each suspension strap follows the existing waist deformation; farther
-down, its bone influences gradually become those of the pelvis, keeping its end
-with the sheath. Giving the whole assembly waist weights would bend the casing;
-giving everything pelvis weights could pull its loops away from the belt.
-
-The equipment requirement specifies believable attachment but leaves this
-deformation ownership open. This uses ordinary authored skin weights, not a new
-bone, cloth simulation or runtime constraint. It deliberately does not add
-independent sheath sway. Future attacks and deeper bends must check both belt and
-sheath contacts, and can revise these weights or authored motion if this rigid
-carry looks implausible. The current fitting samples are not a universal collision
-guarantee or a decision to omit ordinary secondary motion from later work.
-
-### Supplement close model review with two formation pitches (09)
-
-**Sound, provisional; confidence: high.** When reviewing a new garment, a close
-portrait can show better details while the repeated soldiers still look like
-smooth mannequins. The existing model scene now also shows its sixteen-soldier
-formation at the gameplay tilt and a more side-on tilt, using the same assets,
-light and animation. Keeping only close-ups would miss this group impression;
-replacing close-ups would hide hand and attachment defects. Both therefore remain.
-
-The plan requires a small formation but leaves its review framing open. These
-are fixed authoring views, not a decision about the nearest playable camera or
-the accepted performance budget. Later camera-envelope work may refine them;
-the formation evidence cannot substitute for that measurement or live battle
-acceptance. No alternate rendering path is introduced.
-
-### Apply explicit snapshot selection before candidate rendering (01)
-
-**Sound; confidence: high.** When an author requests only a hand-detail sheet,
-the candidate harness now renders and checks that sheet without first rendering
-every walk/run frame. The same existing comma-separated name selection controls
-scene admission and pixel comparison. Running without a filter still renders
-and checks the complete scene. An explicitly filtered run is therefore focused
-evidence, never evidence that the full model gate passed.
-
-The workbench plan requires repeatable iteration but leaves capture scheduling
-open. Keeping all rendering before the filter wastes minutes on unrelated poses;
-introducing a second quick harness would duplicate the rendering setup. Moving
-the shared selection earlier keeps one path and makes focused iteration practical.
-Future full acceptance must continue to use an unfiltered run.
-
-### Replace hands locally without re-solving the whole body's weights (08)
-
-**Sound, provisional; confidence: medium.** When rebuilding a grip, only the new
-hand surface is combined and simplified. It is joined to the existing wrist edge
-and inherits nearby bone influences—the numbers that determine how skin follows
-the skeleton. Re-solving those influences for the entire body after a hand edit
-could change an already reviewed elbow or torso even though its shape did not
-change. The untouched body's existing positions and influences therefore remain.
-
-The plan asks for credible hands but leaves this offline construction method
-open. This gives subsequent hand revisions one local owner and keeps their
-effects reviewable. It does not freeze the current coarse palm or tubular fingers
-as the final design; wrist joins, gripping shape and future poses still require
-visual approval. No runtime fitting or extra animation system is introduced.
-
-### Convert authored forward at export while preserving editable source space (08–11)
-
-**Sound; confidence: high.** An authored soldier faced backward when moved through
-the production fixture. The exporter now turns the whole bound assembly into the
-engine's forward direction and then restores the editable Blender scene. Existing
-hand and equipment construction coordinates remain usable, while exported bones,
-skin and equipment agree with ordinary production movement. Detail-view cameras
-turn their source-space landmarks together; the travel fixture does not reverse
-its movement to hide the mismatch.
-
-The plan requires the production coordinate contract but did not prescribe
-whether to rewrite all authoring coordinates or convert at the file boundary.
-One shared exporter is the narrower owner. Future models using it must share its
-authoring convention; a model authored in another convention must deliberately
-resolve that boundary instead of adding a renderer exception. Re-exporting a
-frozen study preserves its saved actions rather than regenerating newer motion.
-
-### Two-cycle prescribed travel review (11)
-
-**Sound; confidence: medium.** When reviewing walking or running, the candidate
-travels through a fixed camera for two full animation cycles. The scene samples
-every 50 ms and the review GIF displays each frame for the same 50 ms, so the
-reviewer sees the authored rhythm at the prescribed speed and can inspect the
-clip boundary. The GIF jumps back to the beginning only after the complete
-traversal. This is a bounded inspection window, not proof of every subframe's
-contact or of the actual simulation speed.
-
-The task requires moving-world evidence but leaves the sampling interval and
-number of steps open. Two cycles expose both foot alternation and the wrap
-without making one authoring check a long replay. The original all-authored-frame
-in-place sheets remain available. Later contact acceptance must retain finer
-grounding evidence where this display sampling cannot resolve it.
-
-### Preserve the editable equipment assembly across a local anatomy revision (08–09)
-
-**Sound; confidence: high.** A hand change should not quietly reshape a helmet.
-Re-running all automatic equipment fitting did exactly that, so this integration
-keeps the already fitted equipment objects and replaces only the body's edited
-source. The saved Blender assembly remains editable and is exported normally.
-Re-running the fitting recipe later is a deliberate new fitting pass whose
-results must be compared, not assumed unchanged because its script is unchanged.
-
-The plan leaves the assembly method open. This choice constrains future local
-edits to preserve unrelated authored parts unless a refit is actually needed;
-it introduces no runtime correction or second asset loader. The alternative—
-silently accepting everything a full regeneration changes—would make focused
-visual review unreliable.
-
-### Cinch the belt to the pelvis, not the moving thigh (09 authoring)
-
-**Sound; confidence: medium.** When a leg swung forward, the belt followed it
-strongly enough to disappear into the shirt. Its inherited automatic skin
-weights made the thigh control much of the waist, even though the belt sits
-above the hip joint. The isolated garment candidate instead gives the unchanged
-belt shape pelvis support and makes the narrow cinched band of cloth share that
-movement. Cloth above and below transitions into its other authored movement.
-The alternative—making the whole shirt follow the faulty belt—would preserve
-contact by spreading the wrong motion.
-
-The plan requires credible worn equipment but leaves its attachment weighting
-open. This deliberately expands the garment-only edit to belt weights; it does
-not authorize changing unrelated equipment. Suspension joins and loaded poses
-must be rechecked after composition and on future actions. The combined root
-candidate now adopts this weighting; it is not final equipment acceptance.
-
-### Make lining the mail's construction and motion support (09)
-
-**Sound, provisional; confidence: medium.** The lining and main mail share
-corresponding subdivided surface locations and bone weights. Mail thickness is
-offset from the actual lining, not fitted independently to whichever nearby body
-part wins a nearest-point search. The torso samples trunk-supported body faces
-with interpolated support normals; separate overlapping sleeves and the shoulder
-reinforcement follow the garment they rest on. This prevents adjacent resting
-arms or discontinuous triangle normals from folding the shirt into itself.
-
-The spec asks for layered, moving coverage but leaves construction topology and
-deformation ownership open. These offline authored pieces add no rig, cloth
-simulation or runtime fitting mechanism. They trade physically simulated drape
-for inspectable fixed construction; shoulder corners and running skirt stiffness
-remain refinements. New anatomy or new extreme actions require renewed fitting
-and visual review, not an assumption that indexed correspondence proves clearance.
-
-### Derive authored leg reach from the actual rest joints (11 support revision)
-
-**Sound; confidence: high.** When the knee bends, the ankle does not follow the
-path of two perfectly vertical leg segments: the saved skeleton already has
-slightly angled thighs and shins. The offline Blender author now rotates that
-actual ankle offset to find the thigh angle for the chosen backward foot travel.
-The game still receives ordinary animation keys; it gains no foot solver or
-extra animation state. The unbuilt alternative adjusts stride constants to hide
-the error on this particular skeleton, leaving future rig changes to rediscover
-the same mismatch.
-
-The plan delegates stride style but does not prescribe the offline geometric
-calculation. This choice makes the saved rest joints its source of truth. Ready
-is deliberately preserved in this focused gait revision; its separate static
-calculation is not represented as a general contact solution. A changed skeleton
-still requires reauthoring and visual review, not blind reuse of the old keys.
-
-## Medium phalanx candidate construction (09)
-
-### A static carrying study is not a combat stance
-
-**Sound, provisional; confidence: medium.** When the new soldier is shown, both
-hands and the long pike use one authored carrying pose on the existing bones.
-The inherited walking/running actions are preserved but are not presented as
-correct medium equipment motion. The alternative—silently treating an inherited
-sword gait as pike motion—would imply untested contacts and neighboring ranks.
-The plan specifies the equipment role but not a finished carry/brace transition.
-This checkpoint enables first-pair shape review while leaving motion and grip
-refitting explicit. It must be revisited after shared hand changes.
-
-### Use genuine sleeveless construction instead of hiding broken sleeves
-
-**Sound, provisional; confidence: medium.** Short-sleeve fitting crossed the
-fixed shoulder surface when the arms carried the pike. The visible redesign
-removes the sleeves entirely and authors complete, finished armholes below the
-leather fastenings, exposing the upper arms. The parent explicitly approved this
-reference-compatible construction because the medium requirement does not demand
-short sleeves. It does not certify the shared shoulder deformation. A later
-sleeved design would need its own cloth construction, not restored hidden failing
-triangles. The lower tunic is also newly authored; only its donor motion field is
-reused, so future work must not mistake it for exact retained lower geometry.
-
-### Make layered leather share the real lining surface
-
-**Sound; confidence: high.** If a leather chest piece is projected independently
-onto a thickened tunic, a nearest-point lookup can choose the tunic's inward face
-or bridge its armhole. The final author cuts armor from the actual outer cloth
-topology and copies its movement weights before giving it thickness. The plan
-leaves construction topology open; this choice makes the physical supporting
-layer the owner instead of adding successive clearance offsets. It constrains
-later armor edits to preserve meaningful supported boundaries. This correspondence
-does not itself prove all posed collision freedom; actual triangle and visual
-checks remain necessary.
-
-### Direct attachment refits may intentionally change inherited equipment
-
-**Sound; confidence: high.** A belt fitted to the heavy's old tunic cut through
-the new medium lining. Preserving that exact belt would preserve the error, so
-the parent authorized a real leather wall on the new support and refitting both
-upper suspension returns. Their lower sheath ends, thickness vectors and weights
-stay exact, as do all unrelated parts. The scope gap was whether preservation
-outweighed necessary direct fitting; it does not. Future refits should name the
-affected attachments and prove unrelated controls rather than claim everything
-was retained or silently refit the whole assembly.
-
-### Keep diagnostic occlusion removal separate from the equipped verdict
-
-**Sound; confidence: high.** A complete shield hides the very front waist wedge
-being judged. A transient export removes only its board, revealing the same
-posed garment and hands; complete-kit companions retain the shield and its real
-occlusion. The first fresh reviewer correctly withheld the front verdict until
-this matched view existed. The plan asks for unobstructed grip evidence but
-leaves its implementation open. This diagnostic export never replaces the
-equipped candidate or its production catalog, and its source version must match
-the image under review.
-
-### Measure travel relative to the facing actually displayed (signed-motion pass)
-
-**Sound; confidence: high.** A pike soldier can be shown facing along the unit's
-frontage while his individual simulation angle differs. A step to his displayed
-right must be reported as rightward travel, not forward travel according to the
-other angle. The adapter therefore measures displacement against the existing
-presented facing, with positive lateral speed meaning right. The plan required
-faithful directional motion but did not choose a sign convention. Future carry
-selection inherits this basis; it must not change simulation facing to fit it.
-
-### Keep directional motion on the existing observation interval
-
-**Sound; confidence: high.** Between two reads, a soldier can move and turn. The
-new components describe net displacement over that same interval, projected
-against the final displayed facing—not instantaneous velocity or total distance
-along a curved path. First reads and resets have no earlier position, so all
-components are zero; repeated ticks reuse the observation. The scope gap was
-whether to introduce another history or sampling clock. Keeping one history
-preserves playback cadence. Both components are required numbers supplied by
-every producer, so consumers do not need a second missing-data interpretation.
-
-### Support attachment must fit the curved board, not its rim plane
-
-**Sound; confidence: high.** A support that reaches the shield's rim depth can
-still end in empty space behind the deeper curved center. The authoring study
-therefore fits support end vertices against the actual board surface. One ray
-through the center of a thick support is insufficient: its edges can pierce the
-shield face. The plan required credible equipment but left attachment fitting
-open. This geometric rule applies to future shield refits; the current long
-stand-off and open grip remain provisional, not accepted construction.
-
-### Preserve the reviewed export while regeneration remains unproven
-
-**Sound; confidence: medium. Carry integration e8d939fd.** Saving and exporting
-the same Blender scene again slightly changes some tangent numbers, which tell
-the renderer how to orient surface shading. The model positions and animation
-samples remain identical, but that does not prove identical pictures. The
-combined candidate therefore retains the already-reviewed GLB file instead of
-silently replacing it with the fresh export. The plan did not specify how to
-handle this exporter rounding. This is reversible and keeps the visible source
-stable; future clean-export acceptance still must establish the fresh export's
-pixel equivalence or fix the source of drift. It is not permission to loosen
-the image gate or conceal geometry changes.
-
-### Motion authoring consumes the fitted editable kit
-
-**Sound; confidence: high. Carry integration e8d939fd.** When changing an arm
-pose, rebuilding the soldier from an older procedural recipe would also replace
-the individually fitted shield supports and garment. The motion recipe instead
-opens the saved combined Blender scene and edits its animation. The plan left
-the ownership of later hand-edited fitting unspecified. The saved scene is the
-editable geometry owner; the recipe owns motion, not a second copy of equipment
-construction. Its normal target is the combined heavy kit, while explicitly
-chosen input/output paths permit isolated studies. Future motion edits must
-preserve unrelated fitted surfaces rather than regenerate them incidentally.
-
-### Hold unchanged tangent bytes fixed for a motion-only comparison
-
-**Sound; confidence: medium. Idle study 3322d03f.** When comparing breathing
-against a static soldier, re-exported surface-shading directions can change
-slightly even though the mesh does not. The isolated study first proves that
-positions, topology, normals, texture coordinates and skin weights are identical,
-then copies the original tangent bytes into its comparison export. This removes
-an unrelated shading variable from a motion judgment. The spec required a
-controlled comparison but did not prescribe this exporter workaround. It is
-limited to the diagnostic export, not a general bake fallback; if any geometry
-attribute changes, those original tangents cannot be assumed valid. A normal
-fresh export still needs its own visual check before source promotion.
-
-### Observe guarded posture without claiming voluntary stepping
-
-**Sound; confidence: medium. Guarded observations 7323ccbf.** A conscious
-soldier facing an enemy can be pushed backward while still protecting himself.
-Backward displacement therefore supports neither a relaxed run nor a claim that
-he deliberately took a backward step. The engine now reports its selected
-defensive-facing branch, current incapacity and routing separately; these are
-inputs to later pose selection, not a new gameplay state. The plan required
-engine authority but left this distinction unspecified. Withdrawal and automatic
-escape are not excluded merely because they lack a target: their existing
-controller can retain the old facing while turning. Future gait work must still
-separate stepping rhythm from externally driven displacement; these observations
-do not solve it by assertion.
-
-### Pack posture observations beside, not into, unit information
-
-**Sound; confidence: high. Guarded observations 7323ccbf.** One man in a unit
-can be stunned while his neighbour is still guarding. A unit-wide flag cannot
-describe both. A presentation-only byte per soldier carries current incapacity
-and the soldier/unit facing-owner outputs through the existing WASM refresh.
-WASM is the compiled simulation boundary; its pointer lets the browser read the
-buffer directly. The adapter chooses the unit-facing output for held pikes and
-the soldier-facing output otherwise, matching what is displayed. The plan left
-transport layout open. Existing unit-info offsets and save fields do not change,
-and no simulation decision reads these new outputs. Clearing before every
-steering pass prevents a dead, routed or disabled soldier retaining an earlier
-guard observation.
-
-### Keep the reviewed engine trace with its active motion fixture
-
-**Sound; confidence: high. Backward integration bebe5991.** When a future motion
-edit changes a backward step, replay the same recorded engine displacement so the
-review compares the animation rather than a different fight. The model fixture
-therefore owns that frozen trace; the alternative would rerun today's simulation
-and potentially move the subject differently before comparing it. The plan required
-engine-faithful review but did not choose where this input lives. This makes the
-authoring comparison reproducible, not a substitute for live battle acceptance:
-the recorded unit-centroid movement cannot prove an individual soldier took a
-voluntary step or planted his feet correctly.
-
-### Choose gait at the midpoint of its authored nominal paces
-
-**Sound; confidence: medium. Distance playback 0f8d77d8.** A soldier ordered to
-run may only move at walking speed. The picture now chooses whichever bound gait
-has the nearer nominal pace: travel per cycle divided by cycle duration. Exactly
-at the midpoint it chooses walk; changing gait retains cycle progress. The plan
-required actual-speed animation but did not choose the crossover. This avoids a
-universal class-independent threshold without inventing an engine gait enum.
-A richer gait blend remains possible if live review exposes unstable crossings.
-The placeholder's nominal rates are explicitly synthetic test inputs, not a
-claim that its block legs have physically calibrated foot contact.
-
-### Keep stride calibration beside the existing clip metadata
-
-**Sound; confidence: high. Distance playback 0f8d77d8.** To play one metre of
-walking, the consumer needs to know how far one authored cycle travels. The asset's
-existing bake metadata now carries that distance beside release markers, through
-both imported-rig and sampled-clip records. Loading verifies their agreement.
-The plan did not choose between this owner, exported glTF extras, or a separate
-runtime stride table. Extending the existing owner avoids competing calibration
-maps and does not require re-exporting unchanged geometry. Only locomotion roles
-use distance; standing and combat cannot accidentally freeze when travel stops.
-
-### Count known observation intervals, not render calls
-
-**Sound; confidence: high. Distance playback 0f8d77d8.** After seeing a soldier
-stand, the next observation reports half a metre of movement. That first moving
-interval counts immediately instead of being discarded while the gait starts.
-Between observations, rendered samples extrapolate the latest rate but do not
-bank more distance; observing again therefore cannot double-count it. A reset or
-new appearance starts at zero because no compatible earlier gait exists. Leaving
-locomotion discards its track; re-entry counts the new interval. The plan required
-distance and pause correctness but left these boundaries open. Keeping an unchanged
-track when its rate stays constant also preserves the exact arithmetic anchor
-needed by interruption tests, without allocating a second motion history.
-
-### Freeze the prior upper-body source while correcting lower-body distance
-
-**Sound; confidence: high. Distance playback 0f8d77d8.** A mounted archer can begin
-shooting at the same observation that corrects the horse's speed. The shooting
-transition starts from the complete previously presented source pose; its upper
-body remains exact at entry. The unmasked lower body uses the corrected gait
-distance, rather than an additional transition invented to hide the correction.
-A full-body hit or death still starts from the entire old composed pose. The
-plan specified layering and continuity but not simultaneous distance correction.
-One immutable prior history owns capture, so refreshing the working gait cannot
-silently replace the pose being interrupted.
-
-### Prove numerical event equivalence without allowing pixel drift
-
-**Sound; confidence: medium. Distance playback 0f8d77d8.** Freezing an animated
-pose can change its GPU rounding even when the CPU pose is exactly unchanged.
-A silhouette pixel can then choose a different surface. The event check now
-requires exact CPU poses, independently bounded actual GPU transforms, exact
-repeats of each side, and identical pictures when both event states use the same
-measured transforms. Deliberately changing pose or facing must fail the proof.
-The readback reference matches the shader's position arithmetic, while the source
-oracle remains independently evaluated. This extends the earlier two-part proof
-to event representations; it does not introduce a number of allowed bad pixels.
-The plan required continuity but did not define this rounding boundary.
-
-For that comparison, both sides start with the same empty visibility-demand
-history. Otherwise creating the reference clears its shadow-detail history while
-the live side retains an older tier, comparing two different render contexts.
-Only isolated comparisons reset that history; continuous playback checks remain.
-This deliberately changes reference-context shadows, including later inherited
-frames, not production shadow policy. Future changes must preserve the independent
-pose proof, state-matching controls and exact committed-snapshot repeatability.
-
-### Count constrained travel only when the movement branch ran
-
-**Sound; confidence: medium. Motor-capable travel e879fb47.** A stunned soldier
-can be carried sideways, and his stun can expire before the browser sees him.
-The engine therefore qualifies each tick where ordinary or routing movement
-actually ran, then counts the final constrained displacement. Conscious pressure
-recovery counts as possible stepping; this is not a claim of voluntary propulsion.
-The plan required engine authority but did not prescribe the measurement. A
-temporary per-body flag preserves branch eligibility through later combat: movement
-before death still counts, whereas an already dead body contributes nothing.
-Animation reads this history; no gameplay decision reads it.
-
-### Preserve travel distance separately from net direction
-
-**Sound; confidence: high. Motor-capable travel e879fb47.** Two opposite steps
-can leave a soldier where he started without cancelling the work of his legs.
-One cumulative record therefore carries world X/Y displacement and summed
-tick-path length through the bulk simulation boundary. The adapter replaces its
-old position copy with this record, using path for pace and final-facing net
-motion for direction. Double precision retains small increments in long battles;
-the engine's stored positions are converted before subtraction and never changed.
-The plan left this layout and interval policy open. A batch still cannot reveal
-its sequence of directions, so this is not a reconstructed trajectory or proof
-of planted feet.
-
-### Separate fixture travel direction from the soldier's facing
-
-**Sound; confidence: high. Guarded left integration cd6d2359.** A soldier can
-step sideways while still looking toward a threat. The existing review sampler
-therefore accepts a travel-angle offset without rotating the body or changing
-its absolute-time phase. Its default forward path stays unchanged. The plan
-required directional review but left this fixture mapping unspecified. The
-prescribed pure-left speed isolates the clip; it does not recreate the recorded
-engine trace's simultaneous backward component or prove self-propulsion.
-
-### Retain a reviewed fresh export instead of pinning one shading value
-
-**Sound; confidence: high. Guarded left integration cd6d2359.** Adding the new
-clip and exporting the unchanged kit changed one surface-shading direction by
-roughly0.0001. It changed one blue-channel value by1 in an older walk sheet.
-After an isolated control identified that value as the cause, exact repeat
-captures and visual review supported retaining the fresh asset and its new baseline.
-The plan left exporter rounding at source promotion open. This
-does not permit differing pixels: subsequent runs must match the new baseline
-exactly, and no tangent pinning or image-difference allowance ships.
-
-### Author the required pose set before demanding complete live admission
-
-**Sound; confidence: high. Candidate-order clarification5446978e.** The live
-loader requires genuine hit/death clips alongside standing and travel. Waiting
-for fully accepted live locomotion before authoring those clips would prevent
-the same appearance from ever entering that review. The plan's sequential
-acceptance dependencies therefore do not postpone provisional combat/reaction
-authoring on the usable saved rig. Unrelated clips and fitted surfaces stay
-frozen per pass; final quality gates and atomic promotion remain unchanged.
-This changes work order, not the animation contract or the user's scope.
-
-### Hold the gait clock, not the whole interrupted presentation
-
-**Sound; confidence: high. Final-disabled gait99e40376.** When a soldier becomes
-disabled, his completed movement still counts, but the current gait stops
-advancing into the future. If a transition was already settling, its blend keeps
-settling; combat animations also retain their timing and priority. Without a
-compatible gait history, the engine's existing standing posture remains in charge.
-The plan left this boundary open. Freezing the whole composed pose or forcing
-battle-ready despite at-ease would introduce different animation policies.
-Recovery uses ordinary measured-motion hysteresis rather than a new threshold.
-This is a phase-hold policy, not a claim that a held walking pose depicts every
-kind of stun or physical collapse realistically.
-
-### Preserve safe posture when facing is retained
-
-**Sound; confidence: high. Protected-selection plan.** Safe withdrawals and
-automatic evade can retain facing without a nearby threat. A protected travel
-override therefore also requires the engine's not-at-ease decision. Facing and
-posture are independent observations, not competing animation states. This keeps
-the user's canonical engine contract intact rather than raising a shield merely
-because travel is sideways.
-
-### Approximate supported travel directions without inventing missing poses
-
-**Provisional; confidence: medium. Protected-selection plan.** Three nullable
-backward/left/right bindings extend the existing gait owner. The largest signed
-component chooses the nearest direction, with longitudinal winning exact ties.
-Missing clips or a cancelled net direction retain existing behavior and remain
-explicitly unsupported; neither mirrored equipment nor an invented ready fallback
-pretends to cover them. The plan left this approximation open. Keeping normalized
-phase across different lead feet is not proof of matching support: live transition
-and reversal review must precede appearance promotion.
-
-### Preserve the asymmetric guard while authoring the other direction
-
-**Sound; confidence: high. Guarded-right study0e132cdf.** Rightward travel leads
-with the right foot but keeps the actual left shield and its forward stagger.
-It is independently posed on the saved kit, not a mirrored left-step body.
-The plan left the curves and cadence to authoring. The study isolates the measured
-rightward component at fixed facing; it does not reproduce the engine trace's
-simultaneous backward component or prove natural support.
-
-### Retain a provisional step without concealing a kit-fit limitation
-
-**Provisional; confidence: medium. Guarded-right study0e132cdf.** Extra probes
-found a small scabbard/mail surface overlap in both left and right steps. Actual
-scabbard-side views did not show a gross cut-through or detached part at whole-body
-scale, so the manual study is retained without distorting the step or moving the
-fixed kit to hide it. Hidden clearance remains unresolved. Narrow recovery and
-stiff upper-body loading also prevent treating this as final locomotion.
-
-### Share gait semantics without pretending diagnostic poses are finished art
-
-**Sound; confidence: high. Protected selection7e4414b3.** When a new protected
-step is added, both the asset validator and playback controller need to know it
-advances by travelled distance. One gait-role predicate beside the action type
-owns that distinction; a separate stride-role list could drift. The plan required
-shared semantics but left their location open. Distinct existing fixture clips
-prove that safe and threatened observations select different rendered poses;
-they do not become replacement soldier art or bypass complete live admission.
-This keeps one controller and leaves missing detailed bindings explicitly null.
-
-### Correct the medium's carried load before replacing its lower run
-
-**Provisional; confidence: medium. Medium run5f54a533.** The inherited run
-lets the left hand lose the pike and drives the shaft underground. This pass
-changes connected upper-body carrying while retaining the existing leg motion,
-so the comparison isolates that obvious defect. The retained legs are not
-accepted support motion: their measured planted travel differs from the fixture's
-prescribed speed and a small between-key sole dip remains. The plan delegated
-motion authoring but did not specify whether to replace both halves together.
-Keeping the bounded improvement is reversible; later ground-contact and load
-response work must judge the whole soldier before live promotion. The fixture's
-travel speed never overrides measured engine movement.
-
-### Give upright walk and run one authoring owner
-
-**Sound; confidence: high. Medium run5f54a533.** Reauthoring the medium's run
-starts from its saved two-hand carry and changes only the explicitly selected
-action. Walk and run share the same connected-arm calculation instead of
-maintaining competing recipes that could disagree about the hand or shield.
-The plan required preserved unrelated actions but left recipe ownership open.
-Existing walk geometry and images remain controls; shared authoring does not
-mean that the two motions share accepted timing or stride calibration.
-
-### Compose reviewed actions without rebuilding the fitted soldier
-
-**Sound; confidence: high. Heavy integration9eedab4c.** Named donor actions are
-appended through the existing Blender motion owner, with compatible bind rigs
-and unchanged prior action keys checked before export. This preserves the fitted
-source and reviewed locomotion instead of rebuilding them with each new motion.
-The candidates remain manual-only; composition does not grant live admission.
-
-### Treat held-pike readiness as posture, not hidden brace strength
-
-**Sound; confidence: high. Medium readyb237d061.** The new static study depicts
-the engine's held hedge. The physical brace ramp is not exposed in the animation
-observation, so no renderer-only brace state or invented strength clock is added.
-Its provisional support pose still needs art work; animation must follow the
-canonical engine distinction rather than redefine it.
-
-### Refit sleeve deformation before weakening a lowered-arm pose
-
-**Provisional; confidence: medium. Dressed shoulder refit.** A large arm bend
-exposes collapse in the existing garment weights even without axial twist.
-Test a local transition between the authored sleeve-cap rings, keeping the same
-bones and saved fitted geometry. This may move the pinch or expose an armhole;
-it is not an accepted remedy yet. Re-review all affected old clips rather than
-claiming that unchanged animation keys preserve posed geometry. The spec requires
-credible joints but did not choose this particular weight-transition experiment.
-No new deformation system or motion-based concealment is authorized.
-
-The transition-relocation trial introduced new clearance failures and is rejected.
-The next provisional local refit may change cap rest positions and transfer
-support weights from a verified underlying shoulder, keeping existing topology
-and the saved fitted source. This replaces threshold nudging with an explicit
-support surface; it still risks gaps or shifted collapse and earns retention only
-through both-shoulder and old-clip review. No chosen refit is yet accepted.
-
-### Preserve presentation ownership when merging upstream pooling
-
-**Sound; confidence: high.** Reusable crowd objects belong to the world's
-battle-input pool, not whichever array was last submitted by a model preview.
-This keeps a later battle draw from mutating a caller-owned inspection array.
-Upstream typed LOD storage is applied independently to camera and shadow
-audiences; it does not restore the superseded distance-only decision. Separate
-output buffers preserve preceding history if planning throws. These are merge
-adaptations to the existing explicit-pose and projected-view contracts, not new
-animation or visibility policy.
-
-### Repair the visible proximal body before refitting its sleeve
-
-**Sound; confidence: high. Authorized shoulder study,2026-09-08.** When the
-lowered arm reveals a deep back/arm ridge, correcting cloth weights alone can
-hide the skin beneath without making the joint believable. Inspecting the saved
-unarmored body shows poor shoulder-cap form and local self-crossing skin, so the
-next experiment may reshape and reweight only that proximal body patch. Its
-boundary, distal arms/hands, topology, rig and every action key remain fixed;
-there is no new bone, corrective system or whole-body rebuild. The earlier
-garment-only freedom did not cover body edits, so this is an explicit scope
-extension, not a successful-refit claim. The medium's frozen fitted source is
-not overwritten; any retained shared anatomy must be refitted and reviewed there
-separately. If the existing body topology cannot support the cap, stop and bound
-that decision instead of widening this experiment invisibly.
-
-### Bound the live motion pixel gate to its reviewed body region
-
-**Authorized; confidence: high for scope, unresolved compositor cause.** Use the
-same fixed `x400,y140,width512,height500` region for every A/B motion frame, with
-complete subject/rings/cues and whole-frame review required. Preserve original
-full images and their red reports. Eleven static portrait pixels varied by one
-channel step even though source, style and layout were unchanged; this falsifies
-those changing-input hypotheses, not proves a compositor mechanism. The new
-explicitly named body-motion-region gate excludes HUD/full-frame acceptance and
-keeps all existing default gates and zero tolerances unchanged.
-
-### Reuse fitted source parts and action calibration across sword infantry
-
-**Sound; confidence: high. Foot delivery pass,2026-09-08.** When creating a
-light swordsman, keep the already-fitted human skeleton and motions, remove the
-mail and swap the tunic's atlas tile to leather. A medium swordsman retains a
-shoulder cuirass; a peasant omits the shield and helmet. The spec allowed shared
-parts but did not select an assembly method. Composing saved editable parts
-avoids another anatomy generator and preserves the same joint/weapon placement
-across these roles. Shared stride calibration has one bake-time owner, so a
-future gait update cannot silently give identical action keys different travel
-speeds. Role-specific refinements remain possible in their saved Blend files;
-this does not create a runtime equipment assembly system.
-
-### Admit far content physically before magnifying its material diagnostic
-
-**Sound; confidence: high. Far fixture integration,2026-09-08.** A test needs
-to inspect the distant representation closely. It first places the real camera
-far enough away for the production planner to choose it, then changes only the
-inspection camera without uploading another set of soldiers. The alternative
-of changing a scalar zoom hint no longer selected distant content. The spec did
-not prescribe the repaired fixture, but it requires the actual production
-planner and independent mesh shadows. Separate full-distance context shots
-prevent the magnified diagnostic from being mistaken for gameplay LOD quality.
-
-### Let authored actions own held equipment visibility
-
-**Sound; confidence: high. Roster delivery,2026-09-08.** An archer uses a sword
-in the engine's melee state but a bow when shooting. The saved asset retains
-both; a child joint shows the sword only in the existing melee action and keeps
-it tiny in other actions. Crew tools use the same authoring helper. This avoids
-a second runtime equipment state machine. The gap was how one existing
-appearance could carry multiple functional tools without showing them stacked
-in one hand. The renderer still follows engine-selected actions, and mounted
-upper-body masks must include the equipment joints. Blend timing and real
-projectile coexistence remain consumer verification requirements.
-
-### Reduce broad surfaces while preserving small disconnected equipment
-
-**Sound; confidence: medium. Offline LOD delivery,2026-09-08.** When a distant
-soldier occupies only a few pixels, the exporter reduces the torso heavily but
-keeps tiny disconnected weapon pieces. A single global reduction could erase
-a spearhead before meaningfully reducing the body. The spec required genuine
-distance geometry but did not choose a reduction method. The retained per-piece
-triangle floors and initial targets are practical authoring defaults, not
-performance guarantees; real projected views and measured frame costs decide
-whether the output is usable. Near sources and action keys stay authoritative.
-
-### Release observations start recovery, not an invented firing countdown
-
-**Sound; confidence: high. Ranged foot delivery,2026-09-08.** When the game
-reports a shot, the handheld arrow or javelin disappears and the authored
-release action starts at its release pose. The engine still owns the projectile
-and its flight. The alternative would start a windup after the shot already
-happened, or change combat timing to suit the film. The plan required canonical
-engine timing but left the clip entry unspecified. A release marker at zero
-preserves that authority; a future anticipation system would need its own
-honest earlier observation rather than delaying the existing event.
+### 13. Publish immutable bundles before switching the catalog
+
+**When:** final roster cutover (30).
+Rebuilding a class writes its complete bundle to a directory named from a
+checksum of its content.
+Existing directories are checked, not overwritten. Only after all requested
+rows exist does publication replace the catalog pointing to them, so a failed
+row cannot leave the old catalog pointing at half-new files. The review matrix
+comes from those same bindings rather than separate hand-maintained state.
+**Gap:** publication semantics were unspecified. **Reach:** old bundles remain
+until deliberately retired. Matrix and catalog are separate renames, not one
+filesystem transaction; runtime catalog publication is authoritative.
+**Verdict:** sound last-good publication without mutable-bundle races;
+**confidence: high**.
+
+### 14. Resolve gameplay clip names through the manifest, including campaign
+
+**When:** action admission/final consumer cutover (05/30).
+A campaign army asks its appearance for marching or standing motion instead of
+assuming every source calls those clips walk or idle. The caller supplies the
+existing stack builder's clipForClass selection; battle's timeline reads the
+same manifest role vocabulary. Manual inspection still lists arbitrary clips.
+**Gap:** consumer naming was unspecified. **Reach:** new assets update their
+bindings, not scattered renderer string tables. Missing required roles reject
+instead of selecting an inspection pose.
+**Verdict:** sound one gameplay vocabulary; **confidence: high**.
+
+### 15. Isolate synthetic content in explicitly named diagnostic catalogs
+
+**When:** placeholder cutover (30).
+A raw material or timing diagnostic may deliberately load a block-shaped fixture
+to isolate a contract. Battle, campaign and ordinary model consumers instead
+load the authored roster. The fixture catalog is explicitly selected, never a
+fallback for a failed production load. Deleting useful test inputs was the
+unbuilt alternative.
+**Gap:** removing placeholder production content did not define diagnostic
+retention. **Reach:** tests must disclose what catalog/workload they measure.
+**Verdict:** sound content isolation on shared infrastructure;
+**confidence: high**.
+
+### 16. Let saved fitted geometry own the soldier; compose motion around it
+
+**When:** first-pair composition and roster reuse (09–27).
+Adding an action opens the saved fitted Blender assembly rather than rerunning
+an older generator that would also reshape a helmet or shield support.
+Compatible donor actions compose through the existing motion owner. Deterministic
+base reconstruction prevents repeated authoring from accumulating transforms.
+One export boundary converts source forward and restores editable coordinates.
+**Gap:** saved-source versus recipe ownership was unspecified. **Reach:**
+necessary refits are scoped edits; unchanged scripts do not prove unchanged
+fitting. Other authoring conventions must resolve at the export boundary.
+**Verdict:** sound one editable geometry owner; **confidence: high**.
+
+### 17. Ship fresh exports, not tangent-byte pinning
+
+**When:** motion integration/practical exports (11/15/28).
+Re-export can change tangents, the directions used for normal-map shading, even
+when positions remain unchanged. Final assets use the real fresh export;
+historical byte-pinned comparisons do not become a bake fallback. Reduced copies
+triangulate and correct genuinely degenerate smooth faces before admission
+rather than weakening the normal-map validity rule.
+**Gap:** rounding and reduced-face degeneracy were unspecified. **Reach:**
+future comparisons must evaluate actual output, not force old values to conceal
+an asset change.
+**Verdict:** sound source honesty; **confidence: high**.
+
+### 18. Match reduced rigs and materials by meaning rather than index
+
+**When:** weighted import/practical reductions (03/28).
+Blender can reorder bones or remove an unused material when a distant piece is
+omitted. Import matches unique bone names, parentage and bind transforms, then
+remaps vertex references. Retained material settings, image bytes and sampling
+must match semantically, not merely occupy the old array slot.
+**Gap:** cross-tier identity was unspecified. **Reach:** harmless reordering is
+accepted; a different skeleton or retained surface is not. Omission does not
+authorize arbitrary material changes.
+**Verdict:** sound semantic identity; **confidence: high**.
+
+### 19. Keep one read-only battle observation boundary
+
+**When:** battle views/adapter/live verification (05/11/30).
+When WebAssembly memory grows, one view owner refreshes pointers and counts.
+One adapter reads injury, equipment, posture and qualified travel; the timeline
+owns action policy. A debug motor-path getter reads that same cumulative value,
+rather than computing a second movement history or exporting all forces.
+**Gap:** module/diagnostic boundaries were unspecified. **Reach:** new
+observations must retain simulation-owned meaning, lifecycle handling and
+read-only use; no presentation caller gains permission to modify movement.
+**Verdict:** sound minimal ownership; **confidence: high**.
+
+### 20. Measure signed motion against the facing actually displayed
+
+**When:** signed/guarded observations (11).
+A held-pike soldier may display unit frontage rather than his individual angle.
+Net interval movement is projected against that final displayed facing, positive
+lateral meaning right. Per-soldier packed posture carries actual selected-facing
+branch outputs and current incapacity; pikes choose the same owner as the visible
+angle. Routing reuses unit information.
+**Gap:** sign convention and transport were unspecified. **Reach:** fresh outputs
+avoid stale guard flags, but retained facing alone does not imply a threat or
+deliberate stepping.
+**Verdict:** sound consistent basis without new gameplay states;
+**confidence: high**.
+
+### 21. Hold disabled future gait without erasing past travel or safe posture
+
+**When:** final-disabled playback (11).
+A soldier can move during a completed interval and end disabled. That travel
+still counts, but the gait stops extrapolating. Existing blends and combat
+continue their time-driven behavior. Without compatible gait history, at-ease,
+pike-ready or ready still follows the engine; incapacity does not force defense.
+**Gap:** disable boundaries were unspecified. **Reach:** this freezes a gait
+clock, not the whole pose or a physical collapse. Recovery uses the ordinary
+measured-motion policy.
+**Verdict:** sound canonical posture/time ownership; **confidence: high**.
+
+### 22. Put stride/release calibration beside existing clip metadata
+
+**When:** distance playback/action baking (05/11/20).
+One metre of movement needs an authored cycle distance; a shot needs an authored
+release marker. Existing bake metadata supplies both, with local/GPU timing
+agreement required at admission. Standing/combat remain time-driven. Separate
+renderer tables or geometry re-export solely for metadata were the alternatives.
+**Gap:** calibration ownership was unspecified. **Reach:** fixture rates remain
+explicit synthetic inputs, not physically calibrated legs or engine speed orders.
+**Verdict:** sound one calibration path; **confidence: high**.
+
+### 23. Start release recovery from the engine event; author tool visibility
+
+**When:** release/ranged delivery (05/20/24/27).
+If a projectile is already airborne, age comes from the engine's countdown and
+its own duration. Current ranged markers start recovery at release, hiding the
+held projectile rather than beginning a windup after emission. Melee tools use
+authored child-joint visibility; rider masks include those joints.
+**Gap:** entry/tool visibility were unspecified. **Reach:** anticipation needs
+an earlier truthful observation. Animation cannot delay shots or own flight,
+and no second runtime equipment state machine is introduced.
+**Verdict:** sound engine-first timing; **confidence: high**.
+
+### 24. Distinguish held-pike readiness from unobserved brace strength
+
+**When:** medium ready/thrust authoring (12).
+The held hedge is pike-ready. The engine's continuous brace ramp is not exposed
+to animation, so no invented brace clock or strength state is added. Thrust
+duration is an art cadence, not the engine's damage interval or weapon reach.
+**Gap:** the word brace did not settle this distinction. **Reach:** future
+contact/brace animation needs truthful observations instead of relabeling a pose.
+**Verdict:** sound separation of posture and mechanics; **confidence: high**.
+
+### 25. Freeze the correct composed source at an interruption
+
+**When:** layered/completed-endpoint timeline (05/11).
+A rider can start shooting when the horse's measured speed changes. The upper
+transition freezes the complete prior composed source; unmasked horse motion
+follows corrected distance. Whole-body hit/death keeps whole-pose continuity.
+The latest-completed before query exposes the endpoint before its new events,
+not an arbitrary history archive.
+**Gap:** simultaneous correction and query semantics were unspecified.
+**Reach:** immutable prior ownership prevents working gait refreshes from
+rewriting what was interrupted; no extra blend conceals distance correction.
+**Verdict:** sound one timeline; **confidence: high**.
+
+### 26. Reset visual history when a new catalog is accepted
+
+**When:** reload/live composition (05/11).
+A successful model reload starts history from current observations, including
+dead soldiers, instead of blending across possibly incompatible old bones.
+A failed reload retains the old catalog/history. New bodies have no invented
+past interval.
+**Gap:** cross-rig continuity was unspecified. **Reach:** authoring reload
+deliberately loses visual progress, never gameplay state.
+**Verdict:** sound explicit reset over unsafe pose reuse; **confidence: high**.
+
+### 27. Let death animation own orientation and life state own corpse treatment
+
+**When:** GPU blending/reactions/manual parity (06/13/30).
+An authored fallen body receives no extra random roll that could push it below
+ground. Recoloring/contact treatment eases with the existing death transition;
+manual dead poses get final treatment. Removed variation data leaves zero padding
+in the aligned GPU record. A manual death clip does not silently imply dead:
+life state is an independent input, including per-pose overrides on mixed sheets.
+**Gap:** inherited effects and inspection controls were unspecified. **Reach:**
+new variations must be authored, and clips cannot redefine canonical life state.
+**Verdict:** sound one orientation owner and explicit inspection inputs;
+**confidence: high**.
+
+### 28. Keep candidate review, portraits and sheets on the production poser
+
+**When:** workbench/consumer delivery (01–30).
+The production world retains the chosen candidate catalog for reload, rather
+than a second viewer loading it differently. Review may hide foliage occluders
+while retaining ground/light/shaders. Body portraits frame the person; full-kit
+sheets separately expose long weapons. Fixed crops keep actual pixels instead
+of deleting RGB colors that might also belong to skin or equipment.
+**Gap:** scenery/framing were unspecified. **Reach:** a portrait is not full
+weapon-clearance evidence, and an isolated sheet is not battlefield occlusion.
+Manual pose edits leave replay; camera edits preserve it.
+**Verdict:** sound explicit review scope; **confidence: high**.
+
+### 29. Give each prepared appearance complete immutable surface ownership
+
+**When:** material round trip/reload (04).
+Material slots can use regions/channels of one appearance image set; competing
+images for one channel reject rather than being silently combined. Exact
+embedded binary/data-URI image bytes survive import; external references reject.
+Browser decoding owns final codec validity. Absent maps receive neutral bindings,
+but failed declared maps never do. Prepared material/image/sampler resources
+share only inside one disposable preparation, with sequential image loading.
+Omitted sampling settings follow the standard glTF loader's defaults; explicit
+sampling settings remain authored inputs.
+**Gap:** grouping, codec and cache lifetime were unspecified. **Reach:** live
+editing or parallel loading must explicitly preserve cleanup; JavaScript array
+mutation is not a GPU editing API. Missing faction attributes mean unmarked
+geometry, while malformed present attributes reject rather than becoming zeros.
+**Verdict:** sound batching and failure ownership; **confidence: high**.
+
+### 30. Reject unsupported source math and conservatively bound blended poses
+
+**When:** weighted import/material/GPU admission (03–06).
+An almost plausible rotation or bind can become invalid on the GPU. Admission
+requires near-unit rotations in source and Float32 form, affine binds, packable
+normal scales and valid mapped directions throughout the existing bounds scan.
+The established weighted normal rule uses a geometric fallback only at an
+interpolated collapsed limit, not to admit bad source. Hierarchy-based bounds
+cover unsampled turns/blends rather than guessing from endpoint boxes.
+**Gap:** numerical domain/bounding method were unspecified. **Reach:** exporters
+must satisfy the domain; conservative spheres can retain more off-screen work
+and must not silently change review framing.
+**Verdict:** sound explicit supported math over hidden repair;
+**confidence: high**.
+
+### 31. Separate camera representation from shadow representation
+
+**When:** projected detail planning (07/15).
+A soldier outside the eye camera may cast a visible shadow. One planner considers
+both audiences, allowing a far image for the eye and a mesh for the sun. Both
+use one pose slot, but images do not cast mesh shadows. Separate resource owners
+avoid accidental shared-buffer retirement.
+**Gap:** the original visibility rule did not choose this split. **Reach:**
+future LOD work must preserve both audiences and count their geometry cost.
+**Verdict:** sound visibility rather than merged distance shortcuts;
+**confidence: high**.
+
+### 32. Preserve last-good reloads, but suppress partially uploaded live crowds
+
+**When:** reload/GPU failure handling (01/04/06).
+A failed catalog replacement can retain the old scene because preparation is
+separate. A failed live frame may already have changed one skeleton group, so
+the crowd stays suppressed until a complete upload succeeds. Potentially
+overwritten snapshot slots reupload; replacement poses submit before materials
+publish. Closing a world prevents pending reloads from reviving it.
+**Gap:** rollback scope and ordering were unspecified. **Reach:** this does not
+promise old pixels after a partial frame or add a general rollback system.
+**Verdict:** sound explicit failure boundaries; **confidence: high**.
+
+### 33. Share exact work while keeping ownership and framework lifetimes explicit
+
+**When:** bounded runtime work (06/07).
+Identical interruption inputs may share a frozen result within one update;
+different phases or appearances may not. Observing records state without building
+discarded playback, and sampling produces output. Packing reuses cleared private
+scratch/stable worklists; returned planner answers stay independently owned.
+Compute-only storage retires through the pinned Three attribute cache after its
+consumers, rather than fake geometry ownership. Timing failure stops further
+query allocation instead of reporting stale success.
+**Gap:** optimization and framework boundaries were unspecified. **Reach:**
+there is no pose quantization, and upgrades must revalidate cleanup. These
+changes do not promise that irregular animated crowds meet the budget.
+**Verdict:** sound bounded exact reuse with explicit dependency;
+**confidence: high**.
+
+### 34. Separate numerical equivalence from identical-input image repeatability
+
+**When:** material/animation oracle corrections (04/06/11).
+Equivalent CPU/GPU arithmetic can differ minutely at a silhouette edge. Tests
+independently bound actual GPU transforms, then check rendered consumption using
+validated transforms and matching position arithmetic. Event checks retain exact
+local sources, same-side repeats and a same-palette image control. Isolated
+pairs start with equal visibility/shadow history; continuous tests keep theirs.
+**Gap:** math tolerance was not a raster criterion. **Reach:** this allows
+neither arbitrary bad pixels nor looser ordinary baseline repeats.
+**Verdict:** sound independent proofs, not circular reference;
+**confidence: high**.
+
+### 35. Keep fixture timing, scope and workloads explicit
+
+**When:** production verification (01–30).
+A second pose in one browser frame may leave stale post-process content, so
+captures wait for the real frame/settled draw rather than retrying for lucky
+pixels. Far inspection obtains real projected admission before magnification.
+Snapshot filters skip unrequested work; only full runs cover the full scene.
+The named live body-region gate does not claim excluded HUD acceptance.
+Synthetic cost fixtures add referenced equivalent detail, not fake unused bones;
+the retained full-detail benchmark remains distinct from normal gameplay LOD.
+**Gap:** fixture scheduling and subjects were unspecified. **Reach:** mapped
+skin vertices, controlled rider joints and declared camera/workload remain the
+measured subjects. Paused/synthetic tests cannot certify full live performance.
+**Verdict:** sound honest, distinct scopes with unchanged thresholds;
+**confidence: high**.
+
+### 36. Share the weighted GPU layout and bounded rotation calculation
+
+**When:** weighted mesh and GPU interpolation (03/06).
+An elbow vertex keeps all four contributing bones rather than losing weights
+to fit a device's vertex-buffer limit. Both renderers use one shared packed
+layout. Their rotation blend takes the shorter turn between orientations and
+uses the same bounded angle/sine
+calculation rather than GPU built-ins whose permitted error exceeds the pose
+contract. This is a narrowly scoped rotation calculation, not a general math
+library. **Gap:** encoding/interpolation were unspecified. **Reach:** new
+channels extend the shared owner, and the extra arithmetic/storage cost remains
+part of the measured workload.
+**Verdict:** sound consistent deformation and numerical meaning;
+**confidence: high**.

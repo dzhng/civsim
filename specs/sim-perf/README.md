@@ -263,6 +263,9 @@ campaign handoff become) lives in the worker slices.
 
 ## Ledger
 
+The [original heavy-infantry timeline](assets/visual-baseline.md) records
+the pre-change visual comparison, including its existing baseline failures.
+
 | date, machine | scenario | native ms/tick | browser tick ms | rAF p50 live | notes |
 |---|---|---|---|---|---|
 | 2026-07-02, Mac (July) | 30.6k fighting | 49.4–50.3 | — | — | idle 24.5; 60k fighting 136 |

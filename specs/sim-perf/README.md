@@ -43,6 +43,7 @@ waits while the native verification jobs run.
 [browser hash identity](assets/worker-state-hash.md),
 [pending browser measurements](assets/worker-00-provisional.md),
 [original visual reference](assets/visual-baseline.md),
+[combined visual identity](assets/visual-comparison.md),
 [acceptance changes](assets/acceptance-changes.md), and
 [choices](choices.md). Run expensive correctness checks concurrently
 where useful, but reserve timing runs so they do not measure those checks.

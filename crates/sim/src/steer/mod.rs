@@ -13,7 +13,7 @@ mod speed_caps;
 mod weave;
 
 use facing::{finish_soldier, FinishArgs};
-use precompute::{precompute_unit, UnitPre};
+use precompute::{precompute_unit, CorridorFoe, UnitPre};
 use routing::{prepare_soldier, PrepareSoldierArgs, PreparedSoldier};
 use speed_caps::speed_caps;
 use speed_caps::{drive_velocity, DriveArgs, SpeedCapsArgs};
@@ -190,7 +190,6 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
                 order_advancing,
                 trampling,
                 tun: &tun,
-                units,
                 prev_positions,
                 alive,
                 trampled,

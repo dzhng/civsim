@@ -630,12 +630,11 @@ pub(super) fn compose_weave_and_corridor(
 }
 
 struct CorridorArgs<'a> {
-    u: &'a Unit,
     p: Vec2,
     f: Vec2,
     slot: Vec2,
     slot_anchor_vec: Vec2,
-    units: &'a [Unit],
+    foes: &'a [CorridorFoe],
 }
 
 struct CorridorTerm {
@@ -646,12 +645,11 @@ struct CorridorTerm {
 
 fn corridor_term(args: CorridorArgs<'_>) -> CorridorTerm {
     let CorridorArgs {
-        u,
         p,
         f,
         slot,
         slot_anchor_vec,
-        units,
+        foes,
     } = args;
     let mut slot_pull_vec = slot_anchor_vec;
     let mut formation_blocks_forward = false;
@@ -662,32 +660,22 @@ fn corridor_term(args: CorridorArgs<'_>) -> CorridorTerm {
     // magnet tow and later cap sim-drive to a fighting step. Flanks
     // outside the corridor still curl and wrap; collision can still
     // shove bodies either way. This closes the infantry "trample"
-    // hole without turning the whole enemy face into a wall.
-    if !u.tramples() {
-        for v in units.iter() {
-            if v.team == u.team || v.alive_count == 0 || v.is_mounted() || v.tramples() {
-                continue;
-            }
-            let vf = dir(v.facing);
-            if f.dot(vf) > -0.35 {
-                continue;
-            }
-            let vr = vf.perp();
-            let half_w = 0.5 * (v.files_eff.max(1) - 1) as f32 * v.spacing.x + 0.5 * v.spacing.x;
-            let p_lat = (p - v.center()).dot(vr);
-            let slot_lat = (slot - v.center()).dot(vr);
-            if p_lat.abs().min(slot_lat.abs()) > half_w {
-                continue;
-            }
-            let v_mid = v.center().dot(f);
-            if p.dot(f) > v_mid && slot.dot(f) > v_mid {
-                let forward_pull = slot_pull_vec.dot(f).max(0.0);
-                let removed = f * forward_pull;
-                slot_pull_vec = slot_pull_vec - removed;
-                corridor_slot_removed = corridor_slot_removed - removed;
-                formation_blocks_forward = true;
-                break;
-            }
+    // hole without turning the whole enemy face into a wall. Which
+    // formations can gate this man is settled per unit (`corridor_foes`);
+    // only the geometry is his.
+    for v in foes {
+        let p_lat = (p - v.center).dot(v.vr);
+        let slot_lat = (slot - v.center).dot(v.vr);
+        if p_lat.abs().min(slot_lat.abs()) > v.half_w {
+            continue;
+        }
+        if p.dot(f) > v.v_mid && slot.dot(f) > v.v_mid {
+            let forward_pull = slot_pull_vec.dot(f).max(0.0);
+            let removed = f * forward_pull;
+            slot_pull_vec = slot_pull_vec - removed;
+            corridor_slot_removed = corridor_slot_removed - removed;
+            formation_blocks_forward = true;
+            break;
         }
     }
     CorridorTerm {
@@ -723,7 +711,6 @@ pub(super) struct PrepareWeaveArgs<'a> {
     pub(super) order_advancing: bool,
     pub(super) trampling: bool,
     pub(super) tun: &'a Tunables,
-    pub(super) units: &'a [Unit],
     pub(super) prev_positions: &'a [f32],
     pub(super) alive: &'a [u8],
     pub(super) trampled: &'a [f32],
@@ -750,7 +737,6 @@ pub(super) fn prepare_weave(args: PrepareWeaveArgs<'_>) -> PreparedWeave {
         order_advancing,
         trampling,
         tun,
-        units,
         prev_positions,
         alive,
         trampled,
@@ -783,12 +769,11 @@ pub(super) fn prepare_weave(args: PrepareWeaveArgs<'_>) -> PreparedWeave {
         formation_blocks_forward,
         corridor_slot_removed,
     } = corridor_term(CorridorArgs {
-        u,
         p,
         f,
         slot,
         slot_anchor_vec,
-        units,
+        foes: &pre.corridor_foes,
     });
     let weave = weave_forces(WeaveArgs {
         ctx: &SoldierCtx {

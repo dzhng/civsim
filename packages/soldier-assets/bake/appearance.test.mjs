@@ -21,6 +21,7 @@ import {
 } from "../src/appearanceBundle.ts";
 import { poseSoldierMesh } from "../src/skin.ts";
 import { editGlb } from "./test-harness/glb.mjs";
+import { heavyMotionBake, heavyPresentation } from "./heavy-motion-contract.mjs";
 
 const sourceRoot = new URL("../assets/test/blender-reference/", import.meta.url);
 const human = await readFile(new URL("human.glb", sourceRoot));
@@ -31,6 +32,28 @@ const defaults = {
   loopClips: [],
 };
 const marked = bakeAppearance(defaults);
+assert.equal(
+  marked["appearance.json"].far.clip,
+  marked["animation.json"].clips[0].name,
+  "manual inspection keeps its first authored clip",
+);
+// The real reduced export has the exact same authored rig/actions; avoid
+// spending this policy tracer on three copies of the high-detail bound bake.
+const heavyBytes = await readFile(
+  new URL("../assets/source/heavy-kit/lods/far.glb", import.meta.url),
+);
+const admittedHeavy = bakeAppearance({
+  name: "heavy-kit",
+  mounted: false,
+  tiers: [heavyBytes, heavyBytes, heavyBytes],
+  ...heavyMotionBake,
+  presentation: heavyPresentation,
+});
+assert.equal(
+  admittedHeavy["appearance.json"].far.clip,
+  "ready",
+  "admitted heavy atlas uses actual ready, never alphabetical inspection bend",
+);
 assert.deepEqual(
   [...new Set(marked["tier-0.mesh.json"].factionMasks)].sort(),
   [0, 0.25, 0.75, 1],

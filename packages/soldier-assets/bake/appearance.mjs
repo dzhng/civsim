@@ -165,7 +165,11 @@ export function bakeAppearance({
     animation: "animation.json",
     materials: "materials.json",
     tiers: paths,
-    far: { mesh: paths[0], clip: animation.clips[0].name, phase: 0 },
+    far: {
+      mesh: paths[0],
+      clip: presentation?.actions.ready?.clip ?? animation.clips[0].name,
+      phase: 0,
+    },
     bounds: deriveAnimatedBounds(meshes, animation, materialSet.surface.materials, rig),
   };
   return files;

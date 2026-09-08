@@ -4,10 +4,31 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
+**User-directed delivery cutover, 2026-09-08:** current visual quality is good
+enough. Finish the overall feature before further per-piece refinement. This
+explicit instruction supersedes the polish-first priorities and cosmetic
+acceptance blockers recorded below and in individual slices. Retain the best
+usable fitted sources and complete roster/state coverage, production admission,
+distance representations and consumer consistency. Do not close unfinished
+functional work by relabeling it polish. Existing cosmetic defects belong in
+[follow-up work](follow-ups.md), not another first-pair iteration loop.
+
+Immediate delivery order: integrate usable heavy AQ death and medium I thrust;
+complete missing engine-state actions and first-pair admission; extend the
+authored pipeline across foot, mounted and crew families in parallel; verify
+whole-roster production loading, animation, LOD, cards and performance; remove
+superseded placeholders and close the spec. Preserve simulation/save/balance,
+local Blender authoring and reproducible exports. Historical failed visual
+studies remain evidence, not a mandate to repeat their acceptance process.
+
+### Prior checkpoint (historical quality gates)
+
 Last updated **2026-09-08; implementation resumed**. **01–06 complete;
 07 budget open;08–13 provisional;14–30 pending.** Worktree:
 `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`.
-No detailed appearance or final art is accepted; candidates remain manual-only.
+At that checkpoint candidates remained manual-only. The delivery cutover above
+now accepts their current cosmetic quality; production admission still needs
+complete bindings and verification.
 
 **Current pickup: complete the first pair's missing combat/reaction motion,
 with authored poses owning corpse geometry.** The [checkpoint](checkpoint.md)
@@ -57,7 +78,9 @@ Evidence ledger:
   now retains one completed interval with explicit entry/stride approximations
   and completed interruption sources. Its [merged replay GPU gate](assets/evidence/11/delayed-timeline/gpu/review.md)
   passes with explicit retained-storage accounting. Live crowd/root-clock wiring
-  and matched movement review remain next, without delaying independent authoring.
+  is integrated; merged verification passes 382 CPU tests and all 131 held/body-region
+  snapshots exactly. Natural foot contact remains follow-up quality work, not
+  another timing-infrastructure prerequisite.
 - [Anatomy](slices/08-anatomy.md), [equipment](slices/09-pair-gear.md) and
   [surfaces](slices/10-pair-surfaces.md): provisional fitted composition.
   Preserve saved geometry rather than regenerating unrelated equipment.

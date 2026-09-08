@@ -10,7 +10,8 @@ const cameras = (clip) => [
     name: "equipment-release",
     pitch: 1.4,
     zoom: 190,
-    target: [0, 0, 1.05],
+    // Shared sheet landmarks use authoring -Y space, not native engine space.
+    target: clip === "crew-release" ? [-0.35, -0.45, 0.95] : [0, 0, 1.05],
     poses: [
       ["at ease", 0, "idle"],
       ["ready", 0, "ready"],

@@ -23,11 +23,13 @@ The artillery machine is now root-attached in the authored crew source and all
 three production tiers; the complete roster passes real loader/source checks.
 Production cards and full-kit sheets are refreshed and pass exact repeats;
 their [artifact review](assets/evidence/30/production-review-drivers/artifact-review.md)
-records the framing decision and retained cosmetic limits. The full motion-film
-refresh is running on the isolated capture tree. Next diagnose the isolated live
-battle startup timeout, then finish production workbench/action and campaign
-checks, final review, commit/push and archive. Do not reopen model-polish or
-optimization loops.
+records the framing decision and retained cosmetic limits. Motion films and the
+production workbench also pass exact repeats. Live LOD, terrain seating and
+campaign checks pass. Remaining functional verification is the live gait fixture's
+walk-only assumptions and the independent preposed rendering comparison; neither
+is waived or diagnosed solely from aggregate results. Finish these bounded checks,
+refresh the remaining intended image changes, review, commit/push and archive.
+Do not reopen model-polish or optimization loops.
 
 The user explicitly accepted a documented performance follow-up instead of
 holding completion for the original frame-time gate. That work now belongs to

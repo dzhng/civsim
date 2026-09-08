@@ -21,6 +21,7 @@ export const meta = {
     "shared/soldiers/workbench/controls",
     "shared/soldiers/workbench/manual-alive",
     "shared/soldiers/workbench/manual-dead",
+    "shared/soldiers/workbench/authored-roster-far",
   ],
   describe:
     "Production soldier workbench: explicit frozen poses, readable close views, formation, local bake reload and visible load failures.",
@@ -35,20 +36,44 @@ export async function run(ctx) {
       timeout: 60000,
     });
     await page.evaluate(() => window.__battleModels.freeze());
+    const bindings = await page.evaluate(() =>
+      Object.fromEntries(
+        Object.entries(window.__battleModels.world.soldierAssets).map(([id, asset]) => [
+          id,
+          asset.manifest.presentation.actions,
+        ]),
+      ),
+    );
     for (const [name, pose] of [
       [
         "heavy-front",
-        { classId: 0, clip: "idle", phase: 0, yaw: 0.45, pitch: 1.15, zoom: 190, formation: false },
+        {
+          classId: 0,
+          clip: bindings[0].atEase.clip,
+          phase: 0,
+          yaw: 0.45,
+          pitch: 1.15,
+          zoom: 190,
+          formation: false,
+        },
       ],
       [
         "phalanx-side",
-        { classId: 14, clip: "idle", phase: 0, yaw: 1.2, pitch: 1.15, zoom: 150, formation: false },
+        {
+          classId: 14,
+          clip: bindings[14].atEase.clip,
+          phase: 0,
+          yaw: 1.2,
+          pitch: 1.15,
+          zoom: 150,
+          formation: false,
+        },
       ],
       [
         "formation",
         {
           classId: 0,
-          clip: "march",
+          clip: bindings[0].walk.clip,
           phase: 0.25,
           yaw: 0.45,
           pitch: 0.9,
@@ -143,22 +168,27 @@ export async function run(ctx) {
       !incompatible.ok && incompatible.error.includes("active appearance"),
     );
     await page.unroute("**/assets/soldiers/catalog.json");
-    await page.route(animationUrl, (route) => route.fulfill({ json: withoutClip("march") }));
+    await page.route(animationUrl, (route) =>
+      route.fulfill({ json: withoutClip(bindings[0].walk.clip) }),
+    );
     const missingClip = await page.evaluate(() => window.__battleModels.reload());
-    const retainedClip = await page.evaluate(() => ({
-      pose: window.__battleModels.stats().pose,
-      present: window.__battleModels.world.soldierAssets[0].animation.clips.some(
-        (clip) => clip.name === "march",
-      ),
-    }));
+    const retainedClip = await page.evaluate(
+      (walk) => ({
+        pose: window.__battleModels.stats().pose,
+        present: window.__battleModels.world.soldierAssets[0].animation.clips.some(
+          (clip) => clip.name === walk,
+        ),
+      }),
+      bindings[0].walk.clip,
+    );
     ctx.check(
       "incompatible reload retains the active appearance-specific clip",
       !missingClip.ok &&
         missingClip.error.includes("presentation walk") &&
-        missingClip.error.includes("march") &&
+        missingClip.error.includes(bindings[0].walk.clip) &&
         retainedClip.present &&
         retainedClip.pose.classId === 0 &&
-        retainedClip.pose.clip === "march" &&
+        retainedClip.pose.clip === bindings[0].walk.clip &&
         retainedClip.pose.phase === 0.25,
       JSON.stringify({ missingClip, retainedClip }),
     );
@@ -176,16 +206,20 @@ export async function run(ctx) {
       JSON.stringify(truncated),
     );
     await page.unroute(animationUrl);
-    await page.route(animationUrl, (route) => route.fulfill({ json: withoutClip("attack_a") }));
+    await page.route(animationUrl, (route) =>
+      route.fulfill({ json: withoutClip(bindings[0].melee.clip) }),
+    );
     const missingFutureAction = await page.evaluate(() => window.__battleModels.reload());
     ctx.check(
       "production reload rejects a missing non-active action before replacing the crowd",
       !missingFutureAction.ok &&
-        missingFutureAction.error.includes("attack_a") &&
-        (await page.evaluate(() =>
-          window.__battleModels.world.soldierAssets[0].animation.clips.some(
-            (clip) => clip.name === "attack_a",
-          ),
+        missingFutureAction.error.includes(bindings[0].melee.clip) &&
+        (await page.evaluate(
+          (melee) =>
+            window.__battleModels.world.soldierAssets[0].animation.clips.some(
+              (clip) => clip.name === melee,
+            ),
+          bindings[0].melee.clip,
         )),
       JSON.stringify(missingFutureAction),
     );
@@ -202,7 +236,7 @@ export async function run(ctx) {
     });
     ctx.check(
       "production startup rejects a missing controller action",
-      incompleteStartup?.includes("attack_a"),
+      incompleteStartup?.includes(bindings[0].melee.clip),
       String(incompleteStartup),
     );
     await page.unroute(animationUrl);
@@ -277,8 +311,17 @@ export async function run(ctx) {
           {
             appearanceId: 0,
             base: {
-              source: { kind: "clip", sample: { clip: "march", phase } },
-              destination: { clip: "march", phase },
+              source: {
+                kind: "clip",
+                sample: {
+                  clip: world.soldierAssets[0].manifest.presentation.actions.walk.clip,
+                  phase,
+                },
+              },
+              destination: {
+                clip: world.soldierAssets[0].manifest.presentation.actions.walk.clip,
+                phase,
+              },
               weight: 1,
             },
           },
@@ -316,8 +359,17 @@ export async function run(ctx) {
             {
               appearanceId: 0,
               base: {
-                source: { kind: "clip", sample: { clip: "march", phase } },
-                destination: { clip: "march", phase },
+                source: {
+                  kind: "clip",
+                  sample: {
+                    clip: world.soldierAssets[0].manifest.presentation.actions.walk.clip,
+                    phase,
+                  },
+                },
+                destination: {
+                  clip: world.soldierAssets[0].manifest.presentation.actions.walk.clip,
+                  phase,
+                },
                 weight: 1,
               },
             },
@@ -486,8 +538,17 @@ export async function run(ctx) {
               {
                 appearanceId: 0,
                 base: {
-                  source: { kind: "clip", sample: { clip: "march", phase } },
-                  destination: { clip: "march", phase },
+                  source: {
+                    kind: "clip",
+                    sample: {
+                      clip: world.soldierAssets[0].manifest.presentation.actions.walk.clip,
+                      phase,
+                    },
+                  },
+                  destination: {
+                    clip: world.soldierAssets[0].manifest.presentation.actions.walk.clip,
+                    phase,
+                  },
                   weight: 1,
                 },
               },
@@ -529,6 +590,56 @@ export async function run(ctx) {
       );
       for (const url of meshUrls) await page.unroute(url);
     }
+    const restoredRoster = await page.evaluate(() => window.__battleModels.reload());
+    ctx.check("far roster restores authored materials after tint probes", restoredRoster.ok);
+    const roster = await page.evaluate(async () => {
+      const h = window.__battleModels;
+      h.set({
+        classId: 0,
+        clip: h.world.soldierAssets[0].manifest.presentation.actions.ready.clip,
+        alive: true,
+        formation: false,
+        yaw: 0.15,
+        pitch: 1.15,
+        zoom: 0.9,
+      });
+      while (h.stats().pendingDraw) await new Promise(requestAnimationFrame);
+      // Keep this custom submission out of the workbench's cached camera frame.
+      await new Promise(requestAnimationFrame);
+      const w = h.world;
+      const entries = Object.entries(w.soldierAssets);
+      const instances = entries.flatMap(([id, asset], index) =>
+        Array.from({ length: 16 }, (_, n) => ({
+          x: ((index % 5) - 2) * 22 + (n % 4) * 2,
+          y: (Math.floor(index / 5) - 1.5) * 22 + Math.floor(n / 4) * 2,
+          elevation: 0,
+          facing: Math.PI / 2,
+          classId: Number(id),
+          faction: 0,
+          alive: true,
+          clip: asset.manifest.far.clip,
+          phase: asset.manifest.far.phase,
+          seed: 0,
+          mounted: asset.manifest.mounted,
+          lod: 0,
+        })),
+      );
+      w.drawInstances(instances, structuredClone(w.stats().camera));
+      w.render();
+      await w.settlePresentedFrame();
+      return { stats: w.stats(), ids: entries.map(([id]) => Number(id)), count: instances.length };
+    });
+    ctx.check(
+      "complete authored roster uses production far admission",
+      roster.ids.length === Object.keys(bindings).length &&
+        roster.stats.soldiers === roster.count &&
+        roster.stats.lod.impostors === roster.count,
+      roster,
+    );
+    await ctx.snap(page, "shared/soldiers/workbench/authored-roster-far", {
+      threshold: 0,
+      maxDiffRatio: 0,
+    });
     await checkLatePoseReload(ctx, page);
   } finally {
     await page.close();
@@ -635,7 +746,11 @@ async function checkLatePoseReload(ctx, page) {
             throw new Error("Reload did not await GPU admission");
           }),
         ]);
-        harness.set({ classId: 14, clip: "idle", phase: 0 });
+        harness.set({
+          classId: 14,
+          clip: harness.world.soldierAssets[14].manifest.presentation.actions.atEase.clip,
+          phase: 0,
+        });
         release();
         const loaded = await pending;
         return {

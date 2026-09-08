@@ -6,16 +6,21 @@ Fresh source bakes and the real appearance loader agree for the full registry,
 including actual reduced tiers and canonical action roles. Campaign stacks and
 review captures resolve those roles rather than assuming shared clip names.
 
-The initial workbench run passed functional loading, rejected-reload rollback,
-material semantics, pose-submission parity and full-roster far admission. Eight
-snapshot comparisons differ from their placeholder baselines; the initial report
-is retained in [workbench-initial.json](workbench-initial.json). Baseline refresh
-and an exact repeat are still pending, so this is not final visual clearance.
+The production workbench passes functional loading, rejected-reload rollback,
+material semantics, pose-submission parity and full-roster far admission. The
+[baseline refresh](workbench-update.json) and [normal repeat](workbench-repeat.json)
+both pass; every repeated image has zero differing pixels. The initial placeholder
+comparison remains in [workbench-initial.json](workbench-initial.json).
 
 The initial far-roster image did not provide readable roster evidence despite
 passing admission counts. It is retained as [rejected framing evidence](initial-far-framing.png),
 not as a baseline. The custom submission now waits for the workbench camera frame
-to finish before drawing; its next capture must establish actual visible output.
+to finish before drawing and restores authored materials after tint probes.
+Direct and fresh review see twenty clusters in four rows of five without a missing
+grid position or clipped group. At roughly 130 by 55 pixels, this distant view
+proves visible admission, not individual anatomy or equipment quality. Some flat
+cluster silhouettes remain ambiguous at that scale; full-kit sheets own detail
+inspection.
 
 The [fresh critique](workbench-critique.txt) reports patterned shadows, dense mail,
 indistinct small grips and inefficient framing, including a pike extending beyond
@@ -36,7 +41,8 @@ is now authored, root-attached and retained across all three production tiers;
 The [card and sheet review](production-review-drivers/artifact-review.md) now
 records exact repeats for the complete production roster. Full-kit framing uses
 the actual posed geometry over each clip, with a stable camera; portraits retain
-their separate figure framing. Motion films remain in progress.
+their separate figure framing. The [motion review](production-review-drivers/motion-review.md)
+also records exact repeats for all applicable films and their retained visual limits.
 
 Live consumer verification is still red at startup. An isolated `battle-arrows`
 run exceeded its unchanged 20-second readiness limit. The batch subsequently

@@ -4,9 +4,27 @@ $ vitest run
 
 {"bodies":3,"distinctPosedMeshes":5,"snapshotSlots":6,"controllerSnapshotBytes":5280}
 {"bodies":9,"distinctPosedMeshes":5,"snapshotSlots":18,"controllerSnapshotBytes":15840}
+8:42:38 PM [vite] (ssr) warning: invalid import "/@fs${root}apps/renderer-lab/src/battleModelReplay.ts". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. For example: import(`./foo/${bar}.js`).
+  Plugin: vite:dynamic-import-vars
+  File: /Users/david/dev/game-battle-model-quality/web/scenes/models/_temporal-replay.mjs
+8:42:38 PM [vite] (ssr) warning: invalid import "/@fs${root}web/scenes/models/_posed-bundle.ts". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. For example: import(`./foo/${bar}.js`).
+  Plugin: vite:dynamic-import-vars
+  File: /Users/david/dev/game-battle-model-quality/web/scenes/models/_temporal-replay.mjs
+8:42:38 PM [vite] (ssr) warning: invalid import "/@fs${root}packages/crowd-runtime/src/actionTimeline.ts". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. For example: import(`./foo/${bar}.js`).
+  Plugin: vite:dynamic-import-vars
+  File: /Users/david/dev/game-battle-model-quality/web/scenes/models/_temporal-replay.mjs
+8:42:38 PM [vite] (ssr) warning: invalid import "/@fs${root}packages/crowd-runtime/src/instanceData.ts". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. For example: import(`./foo/${bar}.js`).
+  Plugin: vite:dynamic-import-vars
+  File: /Users/david/dev/game-battle-model-quality/web/scenes/models/_temporal-replay.mjs
+8:42:38 PM [vite] (ssr) warning: invalid import "/@fs${root}packages/soldier-assets/src/localPose.ts". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. For example: import(`./foo/${bar}.js`).
+  Plugin: vite:dynamic-import-vars
+  File: /Users/david/dev/game-battle-model-quality/web/scenes/models/_temporal-replay.mjs
+8:42:38 PM [vite] (ssr) warning: invalid import "/@fs${root}web/scenes/models/_mounted-temporal-fixture.ts". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. For example: import(`./foo/${bar}.js`).
+  Plugin: vite:dynamic-import-vars
+  File: /Users/david/dev/game-battle-model-quality/web/scenes/models/_temporal-replay.mjs
 
- Test Files  67 passed (67)
-      Tests  400 passed (400)
-   Start at  19:41:02
-   Duration  2.80s (transform 9.04s, setup 8.42s, import 13.48s, tests 7.16s, environment 5.08s)
+ Test Files  69 passed (69)
+      Tests  403 passed (403)
+   Start at  20:42:35
+   Duration  3.25s (transform 10.05s, setup 11.03s, import 15.00s, tests 7.66s, environment 5.92s)
 

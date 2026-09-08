@@ -1,0 +1,55 @@
+Reading additional input from stdin...
+2026-09-08T10:30:05.258711Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T10:30:05.258746Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+OpenAI Codex v0.153.4
+--------
+workdir: /Users/david/dev/game-mounted-family-delivery
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a08091-5cb6-74d0-8eb2-b66680734bb2
+--------
+user
+<task>Read-only neutral visual review of all20 mounted poses in six attached sheets. Judge whole horse/rider/equipment and action readability. Separate concrete functional blockers from cosmetic refinement and uncertain ground cues. No motion timing claims from stills. Return concise ranked findings with exact variant/pose/view. No tools, code or files. Completion-first usable family quality is the goal, not anatomical polish.</task>
+2026-09-08T10:30:06.198602Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T10:30:06.198627Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+codex
+Reviewed all 20 poses. **The family looks usable for a completion-first pass; no definite functional blocker is visible.** Mounted silhouettes and equipment distinguish the three variants.
+
+Ranked findings:
+
+1. **Weak lance attack readability — shock-cavalry / melee effort / both views.** The low, nearly horizontal lance and upright rider closely resemble ready. Arm movement is visible, but the still offers little indication of an attack. This is the strongest action-readability concern.
+
+2. **Crowded equipment silhouette — horse-archer / melee effort / both views, especially opposing oblique.** The sword is visible, but the retained bow crosses the same space around the hands and chest. Melee remains identifiable; the equipment arrangement takes extra effort to read.
+
+3. **Rider merges with fallen horse — all three variants / fallen hold / both views.** The combined silhouette clearly communicates a fallen mounted unit. The rider’s torso and limbs are harder to separate from the horse, especially in opposing oblique. Acceptable for a casualty marker; refinement if individually readable bodies matter.
+
+4. **Ambiguous bow draw — horse-archer / drawn release / opposing oblique.** The bow, string, and horse’s ears overlap, weakening the read of the shooting apparatus. The extended arm makes the action substantially clearer in left side. These stills cannot establish release or motion timing.
+
+5. **Cosmetic horse refinement — all variants / upright poses / left side most clearly.** Angular hind-leg bends and abrupt shoulder/body joins give the horse a constructed appearance. They do not prevent recognition or obscure the mounted role.
+
+**Uncertain ground cues:** In all six fallen panels, body contact is plausible, but the soft shadows do not establish whether every limb or piece of equipment rests on the ground. No definite floating or ground penetration can be confirmed.
+
+**Strongest results:** Shock-cavalry-sidearm’s ready and melee effort read distinctly in both views; shields remain recognizable on both shock variants; horse-archer’s left-side shooting pose is clear. Prioritize the lance attack distinction, then the archer’s melee equipment overlap.
+tokens used
+20,411
+Reviewed all 20 poses. **The family looks usable for a completion-first pass; no definite functional blocker is visible.** Mounted silhouettes and equipment distinguish the three variants.
+
+Ranked findings:
+
+1. **Weak lance attack readability — shock-cavalry / melee effort / both views.** The low, nearly horizontal lance and upright rider closely resemble ready. Arm movement is visible, but the still offers little indication of an attack. This is the strongest action-readability concern.
+
+2. **Crowded equipment silhouette — horse-archer / melee effort / both views, especially opposing oblique.** The sword is visible, but the retained bow crosses the same space around the hands and chest. Melee remains identifiable; the equipment arrangement takes extra effort to read.
+
+3. **Rider merges with fallen horse — all three variants / fallen hold / both views.** The combined silhouette clearly communicates a fallen mounted unit. The rider’s torso and limbs are harder to separate from the horse, especially in opposing oblique. Acceptable for a casualty marker; refinement if individually readable bodies matter.
+
+4. **Ambiguous bow draw — horse-archer / drawn release / opposing oblique.** The bow, string, and horse’s ears overlap, weakening the read of the shooting apparatus. The extended arm makes the action substantially clearer in left side. These stills cannot establish release or motion timing.
+
+5. **Cosmetic horse refinement — all variants / upright poses / left side most clearly.** Angular hind-leg bends and abrupt shoulder/body joins give the horse a constructed appearance. They do not prevent recognition or obscure the mounted role.
+
+**Uncertain ground cues:** In all six fallen panels, body contact is plausible, but the soft shadows do not establish whether every limb or piece of equipment rests on the ground. No definite floating or ground penetration can be confirmed.
+
+**Strongest results:** Shock-cavalry-sidearm’s ready and melee effort read distinctly in both views; shields remain recognizable on both shock variants; horse-archer’s left-side shooting pose is clear. Prioritize the lance attack distinction, then the archer’s melee equipment overlap.

@@ -1,0 +1,12 @@
+shock-cavalry: real upper action changes hand while horse and seated base remain exact
+shock-cavalry: walk 0.269632m measured support interval
+shock-cavalry: run 0.322829m measured support interval
+shock-cavalry: closed loops and distinct authored settled death times
+shock-cavalry-sidearm: real upper action changes hand while horse and seated base remain exact
+shock-cavalry-sidearm: walk 0.269632m measured support interval
+shock-cavalry-sidearm: run 0.322829m measured support interval
+shock-cavalry-sidearm: closed loops and distinct authored settled death times
+horse-archer: real upper action changes hand while horse and seated base remain exact
+horse-archer: walk 0.269632m measured support interval
+horse-archer: run 0.322829m measured support interval
+horse-archer: closed loops and distinct authored settled death times

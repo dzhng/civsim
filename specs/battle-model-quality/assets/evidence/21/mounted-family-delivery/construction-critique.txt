@@ -1,0 +1,199 @@
+Reading additional input from stdin...
+2026-09-08T09:30:40.504809Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T09:30:40.504857Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+OpenAI Codex v0.153.4
+--------
+workdir: /Users/david/dev/game-mounted-family-delivery
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a0805a-f7e9-7161-be58-806be60314e8
+--------
+user
+Read-only visual construction review. Inspect all eight panels in the attached mounted model sheet. Describe visible whole-horse/rider proportion, seating, limb and equipment problems, distinguishing definite visible defects from uncertain ground cues. Rank the three most important issues for completing a usable mounted family. Do not edit files or run captures. This is a construction candidate, not a finished appearance; do not infer motion quality from the two still poses.
+2026-09-08T09:30:45.431676Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T09:30:45.431704Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+codex
+I’ll inspect all eight panels, separate visible construction defects from ambiguous ground contact, and rank the main completion priorities.
+exec
+/bin/zsh -lc 'cat /Users/david/dev/game-mounted-family-delivery/.agents/skills/compare-screenshots/SKILL.md' in /Users/david/dev/game-mounted-family-delivery
+ succeeded in 0ms:
+---
+name: compare-screenshots
+description: Compare screenshots to judge which image is less wrong, not to match a baseline. Use when a UI, game, document, render, chart, or generated asset needs objective visual telemetry, side-by-side inspection, crop/zoom review, or a fresh second opinion before accepting or rejecting a visual change.
+---
+
+# Compare Screenshots
+
+Decide which image is **less wrong** against what the scene should show — not
+whether the candidate matches the baseline. The baseline is just an earlier
+attempt; it can be wrong too. Treat both images as candidates measured against
+a target you establish yourself. Metrics locate where the images differ; they
+never decide who is right.
+
+## Workflow
+
+1. **Establish the target from first principles.** Before looking at distance,
+   decide what this image *should* show: the visual requirement, the design
+   intent, what the thing depicts in reality, and any domain skill that owns the
+   look (for civsim renders, `aesthetics`). This — not the baseline — is ground
+   truth. Write it down in one or two concrete sentences ("low sun should cast
+   long shadows east; trees fill the canopy; labels stay legible at this zoom").
+   - If the right answer isn't clear — competing valid readings, a taste or
+     product-intent call, a tradeoff only the owner can settle — **stop and ask
+     the user** what the correct answer should be. Show them the comparison.
+     Do not quietly default to the baseline to avoid asking; that bakes in
+     whatever the baseline got wrong.
+2. **Confirm comparability** so the differences you see are real, not capture
+   artifacts: same viewport, DPR, route/page, frozen time/tick, camera intent,
+   UI state, data, fonts/assets where they matter. If not comparable, fix
+   capture setup or compare only a crop/feature where the mismatch is harmless.
+3. **Generate artifacts to locate divergence**, sized to the question:
+   side-by-side, key-feature crops/zooms, grayscale, absolute grayscale heatmap,
+   pixelmatch diff, per-image Sobel/edge maps, edge-difference heatmap, JSON
+   metrics.
+4. **Judge each divergence against the target.** For every place the two images
+   differ, name what is actually there in plain terms — missing content, wrong
+   camera, bad hierarchy, weak contrast, wrong depth, text overlap, layout
+   shift, clipped edge, unexpected blur, style mismatch — and decide which side
+   is closer to correct. The answer can be the candidate, the baseline, both
+   wrong, or a genuine toss-up.
+5. **Get a neutral second opinion** for disputed or high-stakes calls: a fresh
+   subagent given only the two images and neutral labels, per
+   `references/subagent-visual-review.md`.
+6. **Conclude with one verdict:** candidate is less wrong (accept, and re-bless
+   the baseline if one exists), baseline is less wrong (reject), both wrong
+   (another pass needed — say what's still off), or unclear (ask the user).
+   Never accept on a lower score alone or reject on a higher one. Never hide
+   content, blur detail, crop away differences, or make the capture less
+   truthful to move a number.
+
+## Useful Metrics
+
+Pick metrics that answer the question. For full visual comparisons, report:
+
+- `mae`: mean absolute grayscale difference, 0..255, lower is closer.
+- `rmse`: grayscale root mean square error, lower is closer.
+- `diffRatio16`, `diffRatio32`, `diffRatio64`: fraction of pixels over each
+  grayscale delta threshold.
+- `pixelmatchRatio`: mismatch ratio from pixelmatch over grayscale images.
+- `edgeEnergyCurrent` and `edgeEnergyCandidate`: average Sobel edge strength.
+- `edgeEnergyRatio`: candidate/current. Far below 1 usually means missing
+  geometry, props, labels, or terrain; far above 1 usually means noisy or
+  incorrect detail.
+- `edgeDiffRatio32`: fraction of pixels whose Sobel edge differs materially.
+- `avgLuminanceCurrent`, `avgLuminanceCandidate`, `avgLuminanceDelta`: average
+  brightness and delta. Use when a render is visibly too dark/light even if a
+  broader distance score improves.
+- Content proxies relevant to the scene: black/void ratio, terrain-like ratio,
+  water-like ratio, team-color ratio, label/text mask ratio.
+
+For UI/document/layout reviews, also use crop bounds, text/foreground mask
+coverage, contrast checks, edge clipping, element positions, and before/after
+dimensions when those beat global pixel distance.
+
+## Distance Score
+
+When a single fixed-pair number is useful, this default works for structural
+changes:
+
+`distance = 0.35 * diffRatio32 + 0.25 * pixelmatchRatio + 0.25 * edgeDiffRatio32 + 0.15 * min(1, abs(log2(edgeEnergyRatio)))`
+
+It measures **distance from the other image**, nothing more. Because the
+baseline can be wrong, a distance of 0 is not success and a large distance is
+not failure — a richer scene, clearer models, stronger labels, real depth, or
+better lighting all legitimately raise it. Use the score to find *where* the
+images move; decide who is right in step 4. Name the field for what it measures
+(distance, not "parity") so no one reads it as a verdict.
+
+Report the full-frame score and, when UI dominates the shot, a labeled
+world-crop score. Use the world-crop score to locate renderer movement and keep
+the full-frame score so UI/camera mistakes stay visible.
+
+## Score Discipline
+
+- Quote the previous and new distance for the same pair each iteration, then say
+  whether the movement is toward the target, away from it, or diagnostic noise.
+- Prefer edge metrics for missing-content bugs. A flat top-down map can show a
+  deceptively moderate grayscale diff while edge energy proves trees, roads,
+  city forms, or army silhouettes are absent.
+- Segment out stable UI when it dominates and the question is the world render;
+  keep a full-frame score too, labeled.
+- If the camera is wrong, pixel scores are diagnostic only. Fix camera intent
+  first, then judge the render.
+
+## Tooling
+
+Keep comparison scripts inside the skill or a temporary workspace, not in
+product code, unless the product genuinely needs screenshot comparison at
+runtime.
+
+- `scripts/visual-parity-diff.mjs` is a reusable local helper. Run it with
+  `REFERENCE_DIR=<png-folder>`, `CANDIDATE_DIR=<png-folder>`, and optional
+  `OUT_DIR=<artifact-folder>`. `REPORT_ORDER=a,b,c` pins ordering;
+  `CROPS_JSON=<file>` adds labeled crops (keyed by image id, each crop in pixels
+  or `{ "unit": "ratio" }` normalized bounds).
+- For other tasks, adapt the same artifact set rather than adding one-off
+  scripts to the application. Extend the helper if a needed pair is uncovered.
+
+## References
+
+- `references/subagent-visual-review.md`: neutral subagent prompt/config for an
+  independent judgment when history could bias you.
+
+codex
+I’m using the compare-screenshots skill’s construction-first approach: checking whether the horse can plausibly carry the rider and whether the seat, limbs, and equipment connect clearly. I’ll use only the supplied sheet; no captures or file changes.
+codex
+The candidate reads as a mounted soldier in all eight panels. The main construction weakness is the relationship between the horse’s bulky body, thin angular limbs, and the rider’s seat. Surface finish is secondary.
+
+| Panel | Visible construction findings |
+|---|---|
+| **Ready · front** | The broad chest narrows abruptly into thin, straight forelegs. The long, narrow face has little distinct muzzle. The shield hides most of the rider’s arm and seat relationship; the feet project beyond both flanks. |
+| **Ready · side** | Clearest proportion view: a deep barrel, thin legs, and a long wedge-shaped head. Shoulder and hindquarter masses transition abruptly into separate-looking leg segments. The rider’s torso is quite upright, with a sharply bent knee and nearly horizontal foot; the pelvis-to-saddle connection is poorly defined. |
+| **Ready · rear** | The rider appears centered over the rump—no obvious sideways displacement. The broad rump again terminates in narrow legs. The thick, straight tail dominates the center and obscures part of the leg separation. Seat and upper thighs merge into the back silhouette. |
+| **Ready · opposing oblique** | Confirms the abrupt chest/foreleg junction and pointed head. Sword, shield, and horse neck overlap tightly, making the hands and equipment clearance difficult to read. This establishes crowding, but does **not** prove penetration. |
+| **Walk support · front** | The same chest-to-leg imbalance remains. Different hoof positions are visible, but frontal overlap conceals most joint construction. Shield placement still prevents a useful view of the rider’s arm connections. |
+| **Walk support · side** | Strongest limb-construction concern: the folded hind limbs make a compact zigzag beneath the barrel, with an angular upper-leg mass and weakly distinguished joints. The rider retains the upright torso, bent knee, and flat foot; the thigh does little to communicate a secure wrap around the horse. |
+| **Walk support · rear** | Rider remains visually centered. Tail and overlapping legs make it difficult to distinguish which hind limb supports weight. The broad-body/thin-limb relationship is especially apparent here. |
+| **Walk support · opposing oblique** | The spread legs expose their rod-like lower segments and abrupt joint changes. The near rider leg reads clearly against the flank, but its connection into the seat remains vague. Equipment is still crowded around the neck and shield. |
+
+**Definite visible gaps versus uncertainty**
+
+- **Visible:** weak muzzle/jaw definition; abrupt body-to-limb transitions; poorly articulated joints; an indistinct seat/thigh connection. No clear bridle or reins can be identified, so the rider’s control connection is visually missing.
+- **Uncertain:** actual saddle or equipment penetration, exact hand grips, and hoof contact. Soft offset shadows and unmarked ground cannot establish floating, sinking, or weight support reliably.
+- Bare legs and absent stirrups are not inherently defects. These two poses also provide no basis for judging gait timing, sliding, or motion quality.
+
+**Three priorities, ranked**
+
+1. **Resolve whole-horse anatomy and proportions:** connect shoulder and rump masses convincingly into articulated legs; give the head a recognizable jaw and muzzle.
+2. **Resolve the rider’s seat:** make pelvis contact, thighs around the barrel, knees, and relaxed lower legs read as one supported arrangement.
+3. **Complete equipment attachment and clearance:** establish readable hands, shield support, weapon clearance, and a visible means of controlling the horse.
+tokens used
+15,418
+The candidate reads as a mounted soldier in all eight panels. The main construction weakness is the relationship between the horse’s bulky body, thin angular limbs, and the rider’s seat. Surface finish is secondary.
+
+| Panel | Visible construction findings |
+|---|---|
+| **Ready · front** | The broad chest narrows abruptly into thin, straight forelegs. The long, narrow face has little distinct muzzle. The shield hides most of the rider’s arm and seat relationship; the feet project beyond both flanks. |
+| **Ready · side** | Clearest proportion view: a deep barrel, thin legs, and a long wedge-shaped head. Shoulder and hindquarter masses transition abruptly into separate-looking leg segments. The rider’s torso is quite upright, with a sharply bent knee and nearly horizontal foot; the pelvis-to-saddle connection is poorly defined. |
+| **Ready · rear** | The rider appears centered over the rump—no obvious sideways displacement. The broad rump again terminates in narrow legs. The thick, straight tail dominates the center and obscures part of the leg separation. Seat and upper thighs merge into the back silhouette. |
+| **Ready · opposing oblique** | Confirms the abrupt chest/foreleg junction and pointed head. Sword, shield, and horse neck overlap tightly, making the hands and equipment clearance difficult to read. This establishes crowding, but does **not** prove penetration. |
+| **Walk support · front** | The same chest-to-leg imbalance remains. Different hoof positions are visible, but frontal overlap conceals most joint construction. Shield placement still prevents a useful view of the rider’s arm connections. |
+| **Walk support · side** | Strongest limb-construction concern: the folded hind limbs make a compact zigzag beneath the barrel, with an angular upper-leg mass and weakly distinguished joints. The rider retains the upright torso, bent knee, and flat foot; the thigh does little to communicate a secure wrap around the horse. |
+| **Walk support · rear** | Rider remains visually centered. Tail and overlapping legs make it difficult to distinguish which hind limb supports weight. The broad-body/thin-limb relationship is especially apparent here. |
+| **Walk support · opposing oblique** | The spread legs expose their rod-like lower segments and abrupt joint changes. The near rider leg reads clearly against the flank, but its connection into the seat remains vague. Equipment is still crowded around the neck and shield. |
+
+**Definite visible gaps versus uncertainty**
+
+- **Visible:** weak muzzle/jaw definition; abrupt body-to-limb transitions; poorly articulated joints; an indistinct seat/thigh connection. No clear bridle or reins can be identified, so the rider’s control connection is visually missing.
+- **Uncertain:** actual saddle or equipment penetration, exact hand grips, and hoof contact. Soft offset shadows and unmarked ground cannot establish floating, sinking, or weight support reliably.
+- Bare legs and absent stirrups are not inherently defects. These two poses also provide no basis for judging gait timing, sliding, or motion quality.
+
+**Three priorities, ranked**
+
+1. **Resolve whole-horse anatomy and proportions:** connect shoulder and rump masses convincingly into articulated legs; give the head a recognizable jaw and muzzle.
+2. **Resolve the rider’s seat:** make pelvis contact, thighs around the barrel, knees, and relaxed lower legs read as one supported arrangement.
+3. **Complete equipment attachment and clearance:** establish readable hands, shield support, weapon clearance, and a visible means of controlling the horse.

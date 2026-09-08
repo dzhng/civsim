@@ -1,0 +1,20 @@
+{
+  "source": "/Users/david/dev/game-mounted-family-delivery/throwaway/mounted-family/complete-kit/shock-cavalry.blend",
+  "sourceSha256": "7ec91a3be051cf1cf9c367a68033a1229b5d270495e19af2027deff27c0b0173",
+  "tiers": [
+    {
+      "name": "mid",
+      "targetTriangles": 4000,
+      "sourceTriangles": 132432,
+      "triangles": 4242,
+      "glbSha256": "d78a449d04a41832c0be419eab18be1b091b85489f32d473251e347469f5075b"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 1200,
+      "sourceTriangles": 132432,
+      "triangles": 1664,
+      "glbSha256": "fb03d7dc5cada7f3c961369ff42b3a2e07f37c7eec6e9eb5130cf51667821d7a"
+    }
+  ]
+}

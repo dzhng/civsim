@@ -1,0 +1,20 @@
+{
+  "source": "/Users/david/dev/game-mounted-family-delivery/throwaway/mounted-family/complete-kit/shock-cavalry-sidearm.blend",
+  "sourceSha256": "d4871b10bd0f37edb0a218a2110edccd956652f40de898e8d5df5cb1b25a92b2",
+  "tiers": [
+    {
+      "name": "mid",
+      "targetTriangles": 4000,
+      "sourceTriangles": 132728,
+      "triangles": 4260,
+      "glbSha256": "ee5010cf8996796cabb1fb700a99c94e10550e2bdb4908bea814ea65d0d7975a"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 1200,
+      "sourceTriangles": 132728,
+      "triangles": 1692,
+      "glbSha256": "e5ab9a9082a8ad32728d4fc113bb7f25f253c9dcfecf0b8e8ef892c8ee6db89d"
+    }
+  ]
+}

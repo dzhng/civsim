@@ -94,6 +94,20 @@ independent merged snapshot review and disposition. All other 42 existing
 action-replay snapshots remain exact; neither source animation nor timeline
 selection was modified.
 
+Separate unprimed temporal-image review 78530, session
+`01a07f63-5035-7842-b305-30ea7e53cac0`, completed terminal 0 and actually loaded
+the four old/actual images. Its exact verdict is in
+[temporal-visual-review.txt](temporal-visual-review.txt), separate from the G
+critique. Both pairs are comparable and complete within the frame, with no
+obvious disappearing component or unmistakably detached equipment. At 39.5,
+B is slightly clearer while A has a stronger apparent grounding cue; there is
+no decisive overall winner. At 72, A is marginally stronger for the visible
+body/ground relationship, but both remain unclear as a settled mounted corpse.
+Main inspection agrees with the completeness finding and preserves the mixed
+grounding verdict. This does not establish physical contact or an art-quality
+upgrade. Parent still owns baseline disposition and merged normal repeat; this
+CPU-only follow-up changes no source, GPU output or baseline.
+
 The transfer oracle starts from observed living illumination, decodes sRGB,
 applies only the retained final linear desaturation/darkening, and re-encodes.
 It does not call the corpse shader to compute its expected result. Samples are

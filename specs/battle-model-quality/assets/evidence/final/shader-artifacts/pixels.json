@@ -1,0 +1,1882 @@
+{
+  "base": "082352e7",
+  "rows": [
+    {
+      "path": "web/shots/models/cards/portraits.png",
+      "width": 800,
+      "height": 920,
+      "changed": 2815,
+      "maxChannelDelta": 22,
+      "absoluteChannelDelta": 9203,
+      "mostChangedTile": [
+        "1,0",
+        649
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "12045502fb3ddeb3e446f80af9798e95b408e9d3cdc23e683d8b28ebd23a3248",
+      "afterSha256": "86ee446a02b91d68b686f3f0246589752b51bb5ea6c368f0dae22c8e1eac2a7a"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/00-heavy-sword-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 15570,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 48694,
+      "mostChangedTile": [
+        "2,0",
+        2254
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "a7fdbc02a96616e13ec6eaceaf2c64ab6c0751e06bcf6cf69d6f0183d0e62d0c",
+      "afterSha256": "a4e2b03821624287e6537e09444682cd9dac141c5fc766aed11c3879ceac7c9e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/00-heavy-sword-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 19766,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 59831,
+      "mostChangedTile": [
+        "6,0",
+        2823
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "aecd8b094f8cc2b110bb82ec71d2a400cca0131cf8e22b7c731a92d082ab1f7b",
+      "afterSha256": "e4aef3c8c542f5cabdcea65ba8eab17d8286fe0ce6c4eb032fe0f38193d96c24"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/00-heavy-sword-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 21995,
+      "maxChannelDelta": 18,
+      "absoluteChannelDelta": 66399,
+      "mostChangedTile": [
+        "3,0",
+        2727
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "5f5596f472978d37bd53a92f8a0b05b407140f461c57242357f9e73452ecf582",
+      "afterSha256": "8b0ea78098ae254c04f00b2b38c18eecafe3c48c9b9f0a7e3032f6a282e17502"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/00-heavy-sword-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 22913,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 56074,
+      "mostChangedTile": [
+        "6,0",
+        3075
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "52582f87edf3579a147f0d5b59e5f0ec97ca6e69d53cc596b481bdf83b3dd50d",
+      "afterSha256": "4375bc6b951ff61ada6271ddf53555ddd04e0c80a71fb464fa5a682d1366df5f"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/00-heavy-sword-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 20806,
+      "maxChannelDelta": 23,
+      "absoluteChannelDelta": 54697,
+      "mostChangedTile": [
+        "5,0",
+        2706
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "51cfaad0ae257f90021d9b13cd243d808d68b9718fd74b37ca9c1573dc8fecc4",
+      "afterSha256": "da397110d98a04d856a4d28a59622fbae47b42712c672b39fd59640360b20f09"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/01-light-spear-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 6361,
+      "maxChannelDelta": 15,
+      "absoluteChannelDelta": 13490,
+      "mostChangedTile": [
+        "2,0",
+        849
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "5bdff9637f20b2428d90b4549a60dba1914b787cbbd0dd707628072742c17e84",
+      "afterSha256": "02c223a3e6befe4be28ceb43eb5a82aaf1f76ee89162afbd14d373a2f1873020"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/01-light-spear-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8098,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 17995,
+      "mostChangedTile": [
+        "0,1",
+        1226
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "a058e98c29e0ce520c6f36408c27f03c03947a264fb153dcdb08a777313dd275",
+      "afterSha256": "4cf887cb3e2b04f29a338292e90b3ec9f4d41537184ca5cb462cb527e5706685"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/01-light-spear-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 7986,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 17173,
+      "mostChangedTile": [
+        "3,0",
+        974
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "ae5aff13dc1944abe149771f1fcace7c541d912af0caaa48955f8e5d5b448edc",
+      "afterSha256": "6fa0fdbe0388a2dc93a889c9f47b2ed77fc63882616eb170bc96ee7737830e17"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/01-light-spear-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 8412,
+      "maxChannelDelta": 18,
+      "absoluteChannelDelta": 16270,
+      "mostChangedTile": [
+        "6,0",
+        1117
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "8ddf60899298ebaaec7760a5d131f2012a9e5c3b5c5b7a344b04022d6d51b297",
+      "afterSha256": "57a6606480cd63d184af718e576e63f6e58d92bd468a699da5eaec715c7c9b0e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/01-light-spear-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 7728,
+      "maxChannelDelta": 16,
+      "absoluteChannelDelta": 15073,
+      "mostChangedTile": [
+        "7,0",
+        1071
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "4e45c15ca96956bba6c343269dda11ab08931e5603e22b19c56736dc0d9f5e74",
+      "afterSha256": "4d2ff569d12f68789e5aa8a3ec378ee2e22e358103993514e42666a61fc34cc4"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/02-longsword-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8272,
+      "maxChannelDelta": 14,
+      "absoluteChannelDelta": 13978,
+      "mostChangedTile": [
+        "4,0",
+        1221
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "649f596819187b3d1ee72a2b76302e5aa2c2b40f8d8f7e9c4ca5dbf5bfedf155",
+      "afterSha256": "61b564472f85c97ac7971a2639b35be95866c0038f8b66b72506e72e68d82e22"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/02-longsword-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8795,
+      "maxChannelDelta": 15,
+      "absoluteChannelDelta": 15920,
+      "mostChangedTile": [
+        "0,1",
+        1184
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "199461e2e96b78de2c3f31404ca41ab0609d57a802d28fd5d1311491ae4522f9",
+      "afterSha256": "bac00a333b173945092459d5920f5c2e8d8667598bdee100b9215b6a6111fd59"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/02-longsword-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 7634,
+      "maxChannelDelta": 6,
+      "absoluteChannelDelta": 9978,
+      "mostChangedTile": [
+        "3,0",
+        950
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "48d67acc8a470127f8d14ea6c1f229547fa58e754972d0377da8a717e040dc75",
+      "afterSha256": "d812856d9275885336ea6440fcd0ffde9591320a82bda886c6dde88cc25de290"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/02-longsword-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 5012,
+      "maxChannelDelta": 8,
+      "absoluteChannelDelta": 8266,
+      "mostChangedTile": [
+        "0,0",
+        701
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "d48206e7ca6a4685edd3054812669321b10f23072116011f23a6dfa5b78fcf38",
+      "afterSha256": "c3eb6c7ee3f2121a5cac78920631c484a317a023a4ce34d4599874b243fafafd"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/02-longsword-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 4373,
+      "maxChannelDelta": 6,
+      "absoluteChannelDelta": 6885,
+      "mostChangedTile": [
+        "0,0",
+        611
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "c523f84a73ebfecdb2be91095fd163d56731308dda142594cf5ebcdee5a4ad23",
+      "afterSha256": "cc226dd5176773693c814913cf1e55faa81247e634c25301515a0d5e741b30b0"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/03-phalanx-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2293,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 9313,
+      "mostChangedTile": [
+        "7,0",
+        272
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "c5b5599ffebf4572f62b2877a360b378ea5ff1a03b753c2c7c7ec54abe409a3b",
+      "afterSha256": "e420d0a9a06203acafb8e33386174801791e19059894dfdb5c321dcb995c6918"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/03-phalanx-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2296,
+      "maxChannelDelta": 35,
+      "absoluteChannelDelta": 9149,
+      "mostChangedTile": [
+        "0,1",
+        291
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "ed23b7560e549f8fe2e08debb6adfddfc217b1da25a7dda94a05f6a4225ec398",
+      "afterSha256": "7f88778f113cfd762ed95f2461928b1e167c711bbbab06233c194fecf9e6d227"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/03-phalanx-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2054,
+      "maxChannelDelta": 27,
+      "absoluteChannelDelta": 6586,
+      "mostChangedTile": [
+        "3,0",
+        283
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "14965933e0b1ed8025ca88604a22463724f04493d930fb24dad55005621a9d0e",
+      "afterSha256": "0e90c21f6325a8aa1481644515ea9c6cd7b9852bb7a72b59fb251f9e0fc18cf7"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/03-phalanx-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 2137,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 7009,
+      "mostChangedTile": [
+        "0,0",
+        289
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "669938de6812b7f79f5554809c1afebae41cc9a8bab5fc27399a53576ac5e6f8",
+      "afterSha256": "49613fbdd25310a464e25beed87dfb9bfab9b3f0442f39c5e12260665b84eb02"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/03-phalanx-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1966,
+      "maxChannelDelta": 23,
+      "absoluteChannelDelta": 6543,
+      "mostChangedTile": [
+        "2,0",
+        264
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "aa1343ab6a6d2e3109bc066cbbb3fea9454ea16a50fe6457120dd0b3c84d50cf",
+      "afterSha256": "3b10ee804cb29cc5ff97bda4379e59210928bb37c97b5646ead909a7fbdff4b2"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/04-archers-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 3757,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 13187,
+      "mostChangedTile": [
+        "2,0",
+        634
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "d494fe5e24b01ae84a872022a96de3538fe81a4b87eb23b6b76a081341dbea45",
+      "afterSha256": "f2b378cd7bcd6eeb6ad75d14564fba01786db327297708fb33b4f47b62cc200f"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/04-archers-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 4837,
+      "maxChannelDelta": 14,
+      "absoluteChannelDelta": 6589,
+      "mostChangedTile": [
+        "0,1",
+        762
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "e51aabaa09cef1914a56433f531c16ec8a739afed6f855818f652d7cc71eb009",
+      "afterSha256": "8e8ccec0eac84b70b331cfda47bad9b513d5f7b3ea7480fcf01f0397ed075796"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/04-archers-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 4264,
+      "maxChannelDelta": 14,
+      "absoluteChannelDelta": 5832,
+      "mostChangedTile": [
+        "3,0",
+        543
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "cc9d6cb55b3363cfcfadf59eb08037f2db3a535c75d1c70abafce244110bbde8",
+      "afterSha256": "cd13beedba742b37e479325e5e445f93fad4878056ff6ece89a71c93ea481d60"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/04-archers-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 4084,
+      "maxChannelDelta": 3,
+      "absoluteChannelDelta": 4773,
+      "mostChangedTile": [
+        "0,0",
+        584
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "daeda241ed73b0498ef4b2446b84a4060c73cab3a2e3c3ea7f31d3f92c0a4bf9",
+      "afterSha256": "296e19704898fa1780c314fe63eaf7b23b628df1efdfab0c77741c39eb11da2e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/04-archers-shoot.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2679,
+      "maxChannelDelta": 3,
+      "absoluteChannelDelta": 3062,
+      "mostChangedTile": [
+        "0,0",
+        336
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "b4504ec08303a89d1891d678b1a2491883b34dc375538a155f4c71f9f925998c",
+      "afterSha256": "60aa03ebe4a51cbd600653ca2be3d2e163e78155c3137aa1e2e1eaf43de0075f"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/04-archers-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 3388,
+      "maxChannelDelta": 2,
+      "absoluteChannelDelta": 3873,
+      "mostChangedTile": [
+        "4,0",
+        515
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "d3a066515e36a585344fd1f351df65b8185e409f21ed8f114098b7a3fd2839a0",
+      "afterSha256": "62bc69eaa307a0fe69fda2d3df575b587fb89016508a9f610480b83c2a4e1ed8"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/05-skirmishers-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 11128,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 28701,
+      "mostChangedTile": [
+        "2,0",
+        1607
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "14dcbe525e6a41d27ed6afa2790bc6b227c023d0746df9fbd7a38bda0110852c",
+      "afterSha256": "3921bb90885aed228875ed7875e232c44aef88026bb3d47e24efa145b2ab5d7e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/05-skirmishers-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 9258,
+      "maxChannelDelta": 25,
+      "absoluteChannelDelta": 20532,
+      "mostChangedTile": [
+        "0,1",
+        1347
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "6b23744b5af8435896ff79da8e99a1a0379c42b6f1873c563a5c22708e96b2bb",
+      "afterSha256": "43623fbc319e4c7d90ffa5d7beed87ee761a8eda3ae712a7eafb4bd29b5608b2"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/05-skirmishers-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8713,
+      "maxChannelDelta": 18,
+      "absoluteChannelDelta": 16927,
+      "mostChangedTile": [
+        "3,0",
+        1090
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "4eb6de8750a02b8e98433ae23ec4b55bddd35e9cf56c8f93b852a57c49f807c9",
+      "afterSha256": "8b478f1a9ad97b20eeed56ce5f222353aa1615319b9ea9e3d5f2f8d7d8d612f8"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/05-skirmishers-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 8449,
+      "maxChannelDelta": 31,
+      "absoluteChannelDelta": 16204,
+      "mostChangedTile": [
+        "6,0",
+        1148
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "cff425037b4b4542c366555eb90e3165c841c26beae6bfbf5b952c131df3282c",
+      "afterSha256": "1e760afec25f9a14a8d673ce6eabf57c6a9b4e6a92742ae76adc3cc6b70a0ee3"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/05-skirmishers-shoot.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 9121,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 18628,
+      "mostChangedTile": [
+        "0,1",
+        1072
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "6c1762057d793426484207f0c2ff931d6706efee4e383e68708a4149e9ca1c4c",
+      "afterSha256": "7a41448cd7a7152c63158f93288a05450693c4afc5af39ee72a1e2296e922c43"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/05-skirmishers-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 6947,
+      "maxChannelDelta": 20,
+      "absoluteChannelDelta": 11279,
+      "mostChangedTile": [
+        "4,0",
+        1000
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "66c34230dafed96d8fe66f6877df0d77668b2f9b053a3bddca5c9b7e6b317a34",
+      "afterSha256": "7a908abaf7b737f04525abb57a998e39bd6a7e51b48ed56f6b86c654aec5e81c"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/06-shock-cav-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 6340,
+      "maxChannelDelta": 16,
+      "absoluteChannelDelta": 17830,
+      "mostChangedTile": [
+        "5,0",
+        840
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "cbc79c0003add05157d8f86fb6967f3df2bc2054b2187e1b1e08f9370863fcef",
+      "afterSha256": "8ee4d34d97b6094c291e4330f0ac87de2c6a45027f5f41dcd4e6dbd86e9ac066"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/06-shock-cav-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8706,
+      "maxChannelDelta": 40,
+      "absoluteChannelDelta": 21566,
+      "mostChangedTile": [
+        "7,0",
+        1149
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "05082576f0e6956740382b83f06ddf7e1ee23f37ec69d23d6375f92684ef2221",
+      "afterSha256": "4dfc2cd00a0ee867614e2dda2a9c3198c93cf140dc179f262b5a16ee7bfe7284"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/06-shock-cav-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 6848,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 19179,
+      "mostChangedTile": [
+        "4,0",
+        923
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "2412896ee9493bdb92fbc991212b36e2b43d365ff8b38c6eae8ab45cdca61398",
+      "afterSha256": "a7544e915ff0db9fd37c0e5b7f9aa83d69377ced29e7c80c951c09e3e8e09fbd"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/06-shock-cav-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 7235,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 19213,
+      "mostChangedTile": [
+        "2,0",
+        994
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "d5e04b32225ba440f934e680e915ca8bb1a00c9bb98e99bb0dbfd07f3e0b96f7",
+      "afterSha256": "5b6402c372195af94c6bdf0e602f1a236dac7b9a2616f7cb0c38382878925466"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/06-shock-cav-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 7369,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 20248,
+      "mostChangedTile": [
+        "5,0",
+        981
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "31abf27c8582ba792e4a3d7d6653af1c465ae6ab296be0f575ed4c691a5931e1",
+      "afterSha256": "87d9eccafb653dc72dd613d95c997c91fbb5d8a484ef2228fae18690dafbc00d"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/07-horse-archers-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 5972,
+      "maxChannelDelta": 24,
+      "absoluteChannelDelta": 13049,
+      "mostChangedTile": [
+        "4,0",
+        749
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "592442d2e454743e5817087df754f5845c2f79bc613fde763f6919a446d31740",
+      "afterSha256": "b60f0f68d49a766c3ebbc084a42b4bb997b454d6ff33eda7c716cdf15cad6f43"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/07-horse-archers-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 12977,
+      "maxChannelDelta": 9,
+      "absoluteChannelDelta": 18546,
+      "mostChangedTile": [
+        "4,0",
+        1781
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "e4d8d4d160363f81fa6cbb3da0100e4df64323e02d0ac59fbe0749635cbfed4b",
+      "afterSha256": "9392e024480c0abe0aac3159583385790cebdaabe4b335f6f63700dc417f67ed"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/07-horse-archers-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 6968,
+      "maxChannelDelta": 16,
+      "absoluteChannelDelta": 11667,
+      "mostChangedTile": [
+        "5,0",
+        977
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "ff23334cf86dcee0f9978460381166eeceaf7012ecae01cf2e63b262e9dd81d9",
+      "afterSha256": "c56848cdf43d684470c70d25992c116b40fd567ff3ba68f1bacc6e269f99c419"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/07-horse-archers-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 7706,
+      "maxChannelDelta": 17,
+      "absoluteChannelDelta": 13172,
+      "mostChangedTile": [
+        "2,0",
+        1116
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "c1784d4c12703f6e11a99305b68a99afec1cb1c64f4d64428b4a3c8afe1b31f3",
+      "afterSha256": "c67af4bf05a92e9b7e2961d2e9f007aed6435d225e6b13f50bccefc120ab24a8"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/07-horse-archers-shoot.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 4803,
+      "maxChannelDelta": 8,
+      "absoluteChannelDelta": 8474,
+      "mostChangedTile": [
+        "1,0",
+        583
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "bcd16160cfdd2e9761a1d5787b0f1e3c589ed72e30822eba25b4172c28f7361f",
+      "afterSha256": "1494a470afcb9bc0b0eead9c5f7054f21f06f05274506fb67dd9bee78d2655ae"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/07-horse-archers-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 7768,
+      "maxChannelDelta": 15,
+      "absoluteChannelDelta": 12806,
+      "mostChangedTile": [
+        "6,0",
+        1041
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "aed9cda4b881b37c977d378618493fa3b2f583234109ce05e7650d632a1c6386",
+      "afterSha256": "a7f9b926b695362ecd85fab74ecbf654d56625949b6baa5667d507cb20c58733"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/08-artillery-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2903,
+      "maxChannelDelta": 35,
+      "absoluteChannelDelta": 9427,
+      "mostChangedTile": [
+        "2,0",
+        490
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "0ec7d4e8057af804cbaa47ec710a856c28dc14fd34c105939566430ea6a9f945",
+      "afterSha256": "1acec0c3b758ad658f7c1c5b7a584ed36fa293ee685d87226d8f8f27341ef3bc"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/08-artillery-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2841,
+      "maxChannelDelta": 10,
+      "absoluteChannelDelta": 3973,
+      "mostChangedTile": [
+        "7,0",
+        367
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "2450dcdb26554e3c4cdb6acc7d7977d74bad37fb18741bc635dcdc2104f52a9f",
+      "afterSha256": "77dc103ff68e24d6835923af4c1ae9774d2038b0869ccf258e3eb47c1c1b2bb5"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/08-artillery-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2051,
+      "maxChannelDelta": 9,
+      "absoluteChannelDelta": 2499,
+      "mostChangedTile": [
+        "3,0",
+        268
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "d05cd1c4759146ab96eb752718ad9ac79d0ef5ba9c990b927b9b03f89e3ce0cc",
+      "afterSha256": "f9773757438d59603b77e13ebaef770fdfec5de2da8e49910547703a68377dc6"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/08-artillery-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1887,
+      "maxChannelDelta": 3,
+      "absoluteChannelDelta": 2226,
+      "mostChangedTile": [
+        "6,0",
+        270
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "e242c5aafb20e73353d55a9348b6e56a71df92fc7e2f2e0ea0e44cb8d12bbec7",
+      "afterSha256": "932e19e23f264b5936a3c8fb53f9796bf19f29d9725f054c9d8be71bdb2575f8"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/08-artillery-shoot.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 1349,
+      "maxChannelDelta": 2,
+      "absoluteChannelDelta": 1525,
+      "mostChangedTile": [
+        "0,0",
+        166
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "bfac40932bd8827ddbe5ad9e2f356199d232746e2a1cae83285ba7e29c3126cd",
+      "afterSha256": "9b34ad0d79cd7ba4893b20c52c72b72103b8b5355ee0b1e06ada6b22655e08b0"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/08-artillery-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1861,
+      "maxChannelDelta": 2,
+      "absoluteChannelDelta": 2136,
+      "mostChangedTile": [
+        "0,0",
+        283
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "adfd1818c3c7b8f79d1b726f868e542dcc3408b7553b1c4d15f141edc8e29319",
+      "afterSha256": "753f40a0bd8ee8fde67c867fa286722f9ce8c23eb6ec4ac8d63839b96d20c731"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/09-peasant-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 4118,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 13600,
+      "mostChangedTile": [
+        "2,0",
+        665
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "bf3a1c2ed3b31777dfde18e5036cdc3615e9a26671b74ecc085bf20dc5c5aeb5",
+      "afterSha256": "9ef3e94af8a90c2590d5e04fe5d74f587e6d6615914ea8ee1cdd33cbcba7b804"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/09-peasant-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 7555,
+      "maxChannelDelta": 30,
+      "absoluteChannelDelta": 18351,
+      "mostChangedTile": [
+        "7,0",
+        1156
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "a619adee2b9ca4885b2c09c2a2d4f13a617fce247f5360355f7e042690e04b78",
+      "afterSha256": "ae2c0e89a7434cd6b48ada77690ce626e89e4bcebfb0738a4b27cb88ec6721ec"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/09-peasant-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 6723,
+      "maxChannelDelta": 17,
+      "absoluteChannelDelta": 28037,
+      "mostChangedTile": [
+        "3,0",
+        821
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "41ab8a4c1e566ccc18f74c3e1b197aec48ffc5b6183393d171acdbb5914259a1",
+      "afterSha256": "ed35bcaf929b0c126a2cf7cc70e4393c7c202c3c6dad88735243ae00aeb019a2"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/09-peasant-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 5978,
+      "maxChannelDelta": 36,
+      "absoluteChannelDelta": 16348,
+      "mostChangedTile": [
+        "7,0",
+        837
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "795bab8133759650b4c474a08f09dece84b01744ad41af44d58a99d2b1d9a412",
+      "afterSha256": "95fd51db883352d858da20f4daf4f49e420b412a2e703b5e8262fae98f72e161"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/09-peasant-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 5759,
+      "maxChannelDelta": 22,
+      "absoluteChannelDelta": 20758,
+      "mostChangedTile": [
+        "0,0",
+        874
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "f6e740980fa8304ce4a82022b5ba50589f047c0a78f54edec1b37eab30c65339",
+      "afterSha256": "c4112ee62bc03e447953f47ef9f7d756fae0e2e7588c8c6151341fcfc42527c9"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/10-light-sword-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 12048,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 30830,
+      "mostChangedTile": [
+        "2,0",
+        1752
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "59aa84413f5afb5d546b8daa6a3267b8b5f1b3fb8d0483e2f81897e1bf28dee7",
+      "afterSha256": "b74a4295d001cb35b0826899bff1bcb603a149ff1420b065c995139bf95de65c"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/10-light-sword-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 15349,
+      "maxChannelDelta": 30,
+      "absoluteChannelDelta": 38836,
+      "mostChangedTile": [
+        "0,1",
+        2249
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "a5d59774bf7623c4840c8403adb532df8e7e9f13bf1d132dfd60976565110bb3",
+      "afterSha256": "4ca0d012c0b2da3f1fd711b71b29d8447e3c576f178a330ddee87bfacce106fd"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/10-light-sword-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 17293,
+      "maxChannelDelta": 18,
+      "absoluteChannelDelta": 50456,
+      "mostChangedTile": [
+        "3,0",
+        2067
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "5a4c31aea5cacd7c659c8fd55ca120f84461bb3fb440ccb1960846b74820bc96",
+      "afterSha256": "12f2d7b49eefc9c11cc54c4dd69fda02370a7e75dacfc19c08cc64586b3d6350"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/10-light-sword-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 14452,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 33754,
+      "mostChangedTile": [
+        "6,0",
+        2002
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "20abb536ffa3fb2d1a110ede9625b56a6f66129f58b244b17251359db96678b0",
+      "afterSha256": "2054ab9fcc846a28590c84275c9208424d9facf9fe801bf46a52299062b6f637"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/10-light-sword-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 13675,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 38173,
+      "mostChangedTile": [
+        "7,0",
+        1836
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "4da6e2e6a9262070f3612988ab876bb5e1732306126d3079b3530fa33106916e",
+      "afterSha256": "040a8eabb41e802e1e3a87605c6c053bd634aa4511825ed63644657fe9614e24"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/11-heavy-spear-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8156,
+      "maxChannelDelta": 26,
+      "absoluteChannelDelta": 25613,
+      "mostChangedTile": [
+        "2,0",
+        1064
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "944edba24eff843c55bee10ac2249948c64e124e55009f07175672d69771ec46",
+      "afterSha256": "11fa873ade8323e485abc41fe0aeb196c14484c55f76b0b1bb13209926b87ecc"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/11-heavy-spear-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 10948,
+      "maxChannelDelta": 39,
+      "absoluteChannelDelta": 33314,
+      "mostChangedTile": [
+        "7,0",
+        1635
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "9363a9e7d54b0b3a9c8b957b7f85d262d47d52429b411cc39af62be4a94317dd",
+      "afterSha256": "46b982cdffcc322f1f0890f970c5b5df0ecfd422634c21dc4fdd7b7e47774150"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/11-heavy-spear-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 9782,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 28282,
+      "mostChangedTile": [
+        "3,0",
+        1188
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "bf740954fe82f8b8900186ab2df6bb00a67de3e115b4134dc8020919253a4de3",
+      "afterSha256": "280b7bb412f54bb20ff12d029c76f11b5a853cd452849c9992c4a798221a6bad"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/11-heavy-spear-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 12747,
+      "maxChannelDelta": 31,
+      "absoluteChannelDelta": 29781,
+      "mostChangedTile": [
+        "7,0",
+        1742
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "1978c3d59749927bb57752fdc8f9e0b5b0faf41a58693e9281c0dbb1f9bb2b52",
+      "afterSha256": "84c840fe0c5460402abde5df3e833c7cdd2938177252d2ae534eaeb7032d74fa"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/11-heavy-spear-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 12052,
+      "maxChannelDelta": 35,
+      "absoluteChannelDelta": 26323,
+      "mostChangedTile": [
+        "0,0",
+        1559
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "bf3128fb6a9ebc80f50dc0a918073ff24149a2b94480fe143e58d8e3487c3f99",
+      "afterSha256": "1d475a94f271e4237892b780a579b1e87f35e01d61ecfe957a9399ed62e39777"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/12-medium-infantry-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 13350,
+      "maxChannelDelta": 27,
+      "absoluteChannelDelta": 35263,
+      "mostChangedTile": [
+        "2,0",
+        1894
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "da6fb1c2fcc988000995e3fcdac15685e3ded9e05457dac80925d4f9fb971ae4",
+      "afterSha256": "1a8dc278d96442a23e5fa6c164c03ec117de3c2fd837b24f35f06049a06e49ce"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/12-medium-infantry-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 16417,
+      "maxChannelDelta": 32,
+      "absoluteChannelDelta": 43053,
+      "mostChangedTile": [
+        "0,1",
+        2310
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "f46d12454d1d29d99f6379b64f7ef5b4a11fc847c3db24833c3722c3fd5e3014",
+      "afterSha256": "48a5cfb7463e9e857aa8493e092be0ee174e061a509b8d14ff7c091f75a3415b"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/12-medium-infantry-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 19040,
+      "maxChannelDelta": 21,
+      "absoluteChannelDelta": 55316,
+      "mostChangedTile": [
+        "3,0",
+        2332
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "bbd1e0705ef2b57b6dc534b39577640c253662b5b51996b55b7e1ecd2cb596ae",
+      "afterSha256": "40f58c2e9762a9f05e462affae0833552e205dc2bd38135fa5e7a725df4ac40a"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/12-medium-infantry-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 16022,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 38363,
+      "mostChangedTile": [
+        "7,0",
+        2175
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "714d87592ad99bc3a41928bfbfdf7ef9709b5efe0a71adfd91f922e0e9f79dc5",
+      "afterSha256": "cc35d3963a5687e39b759fe6a9aad9a964aa78ec829a3dd187bc3f8df3fee73c"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/12-medium-infantry-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 14659,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 40723,
+      "mostChangedTile": [
+        "4,0",
+        1975
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "0f78eb5111c5778e833aea38df033e42cce3bfe279aad266f6bd06556d8ca98b",
+      "afterSha256": "bfbfde0b9f2a76369e82111def9b6e4925e9f10fc977ae43058be89f35ea1101"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/13-medium-spear-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 6738,
+      "maxChannelDelta": 16,
+      "absoluteChannelDelta": 15255,
+      "mostChangedTile": [
+        "2,0",
+        892
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "9f67c02764379ff9f2fe3c4114e846e652ec5b6e636077802f6768a42afce716",
+      "afterSha256": "482b672c100f1a957d50f8910bf61b7c81cf9f2176a1e0b945406d8c679c00d6"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/13-medium-spear-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8229,
+      "maxChannelDelta": 21,
+      "absoluteChannelDelta": 19661,
+      "mostChangedTile": [
+        "0,1",
+        1238
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "f573d42222f09928f0604a385141de88aa327c4fadfd152caa1cb06d98717e3e",
+      "afterSha256": "c1ac1ff059ca46ffa63d0e93eced6fec4593de55fbaac784a968669b800c0e29"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/13-medium-spear-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 8519,
+      "maxChannelDelta": 21,
+      "absoluteChannelDelta": 18145,
+      "mostChangedTile": [
+        "3,0",
+        1042
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "0b4d810b88cb139606eff3bd6254f60fd20bd2bb03fc7f22317ab02b60f00412",
+      "afterSha256": "396c38e2ba096da202677d0909b044dce5a63142036f6c863676c727af88076b"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/13-medium-spear-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 8635,
+      "maxChannelDelta": 20,
+      "absoluteChannelDelta": 18223,
+      "mostChangedTile": [
+        "7,0",
+        1156
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "ba220ddf12a05733483b816ce2dfae80ed7c5966ce577e1617990b8971393e29",
+      "afterSha256": "76cd29a1a7785cd3aa62bedcf4c2c461747cbb8c509e3ea5deb92d21c3b44cbd"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/13-medium-spear-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 8090,
+      "maxChannelDelta": 15,
+      "absoluteChannelDelta": 16619,
+      "mostChangedTile": [
+        "7,0",
+        1086
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "bbeaaf4ab86098e62ed6f43de222f21e15773f63cc380042f80278a478ac3da0",
+      "afterSha256": "42f90775dd41b1b20714599153bd39fc4d5ef52a0eb1e690fa37295951b7760d"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/14-medium-phalanx-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 1836,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 6121,
+      "mostChangedTile": [
+        "4,0",
+        264
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "36fcb53d7ac99b4a39906fc6f2b41e3570ec4d50e8e4d24e9cecbb216f170bea",
+      "afterSha256": "d0581d6b5b50521587e7d2f5200b718075fbaa866b6f7cb776cf31dfc938f86b"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/14-medium-phalanx-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 1473,
+      "maxChannelDelta": 32,
+      "absoluteChannelDelta": 4088,
+      "mostChangedTile": [
+        "7,0",
+        198
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "b903cae70be049faf25cffb5f2899f393322199084d97e9c1223fcceff0e51b3",
+      "afterSha256": "eb24754dfd8a09e4f01b0b026508079863320bbf86da99c8ff3fecb34d0852e3"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/14-medium-phalanx-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 1332,
+      "maxChannelDelta": 26,
+      "absoluteChannelDelta": 3553,
+      "mostChangedTile": [
+        "3,0",
+        189
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "62fa97901ef4d9eac8de6861b9a55bf43e52d1ead579e583585c1033dc14b0b8",
+      "afterSha256": "cbf7b5bc548389824d62d172f85dd5c8a323325a4bf59f3999c27e1e007bbe4c"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/14-medium-phalanx-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1300,
+      "maxChannelDelta": 20,
+      "absoluteChannelDelta": 4770,
+      "mostChangedTile": [
+        "7,0",
+        194
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "fe89280252087997b0f8c8ed8163337ea1683f02bfb6d7d0c8c58b3782b91c0e",
+      "afterSha256": "cfaf30f55cf8c8948318c73eac55b1323f6966b9aca04ccd6cdad380c4222c58"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/14-medium-phalanx-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1230,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 4261,
+      "mostChangedTile": [
+        "1,0",
+        176
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "ca1fe53ba854f572182b8e4e583583c18342e624103aee2702378bf2841971d9",
+      "afterSha256": "45707cdfe87f2f0d7b2fa500dc841daf243dd5dae44a79f7bcdd3c0ceec8b432"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/15-shock-cav-sidearm-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 9780,
+      "maxChannelDelta": 23,
+      "absoluteChannelDelta": 29271,
+      "mostChangedTile": [
+        "4,0",
+        1292
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "6e51a8ec82ca0afb450c1de2eb75d0f2012263fc425253e53f02334552047ff0",
+      "afterSha256": "e636297a16f15fdb377e9a00b9853cfd17e64872c59f070bb22d2b8fbc1c4808"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/15-shock-cav-sidearm-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 16817,
+      "maxChannelDelta": 35,
+      "absoluteChannelDelta": 46298,
+      "mostChangedTile": [
+        "6,0",
+        2208
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "642fb13ff0ed97b2d3800583b4b50739344c76f22f3fcd4ba5ff607d6da1812d",
+      "afterSha256": "32493fbd1e74f811919b90eab694d1752240d4ffe93853665f721df8ab4aed0c"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/15-shock-cav-sidearm-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 9973,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 29936,
+      "mostChangedTile": [
+        "4,0",
+        1393
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "7369c0f50ade7e9f8bad35654a49b3d62bf598c51fa145e082db9afe29bb75d3",
+      "afterSha256": "987b43210f3ec9acc2e20dfea86dacdbc3e06fe7b7b1b4459842b86a73625e79"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/15-shock-cav-sidearm-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 10482,
+      "maxChannelDelta": 31,
+      "absoluteChannelDelta": 29049,
+      "mostChangedTile": [
+        "2,0",
+        1518
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "c3ab722c0b0418a702bfc94ddf7faa9609251732dd58d49172d85f816b710c79",
+      "afterSha256": "4820df73b7500bbd2b580e9233a85f5eb1efe4e79515dc962e38c79f7ef6ed7e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/15-shock-cav-sidearm-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 10815,
+      "maxChannelDelta": 30,
+      "absoluteChannelDelta": 29668,
+      "mostChangedTile": [
+        "5,0",
+        1449
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "d24b709b712449c3a60ef2e49a10f0851ade1dc909d96981c1b1305a380a11db",
+      "afterSha256": "01ae333403e8b11b09e5a9f3332349a06c911575bb01f451167919a8941e0750"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/16-heavy-phalanx-rest-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2293,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 9313,
+      "mostChangedTile": [
+        "7,0",
+        272
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "c5b5599ffebf4572f62b2877a360b378ea5ff1a03b753c2c7c7ec54abe409a3b",
+      "afterSha256": "e420d0a9a06203acafb8e33386174801791e19059894dfdb5c321dcb995c6918"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/16-heavy-phalanx-rest-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2296,
+      "maxChannelDelta": 35,
+      "absoluteChannelDelta": 9149,
+      "mostChangedTile": [
+        "0,1",
+        291
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "ed23b7560e549f8fe2e08debb6adfddfc217b1da25a7dda94a05f6a4225ec398",
+      "afterSha256": "7f88778f113cfd762ed95f2461928b1e167c711bbbab06233c194fecf9e6d227"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/16-heavy-phalanx-rest-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 2054,
+      "maxChannelDelta": 27,
+      "absoluteChannelDelta": 6586,
+      "mostChangedTile": [
+        "3,0",
+        283
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "14965933e0b1ed8025ca88604a22463724f04493d930fb24dad55005621a9d0e",
+      "afterSha256": "0e90c21f6325a8aa1481644515ea9c6cd7b9852bb7a72b59fb251f9e0fc18cf7"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/16-heavy-phalanx-rest-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 2137,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 7009,
+      "mostChangedTile": [
+        "0,0",
+        289
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "669938de6812b7f79f5554809c1afebae41cc9a8bab5fc27399a53576ac5e6f8",
+      "afterSha256": "49613fbdd25310a464e25beed87dfb9bfab9b3f0442f39c5e12260665b84eb02"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/16-heavy-phalanx-rest-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1966,
+      "maxChannelDelta": 23,
+      "absoluteChannelDelta": 6543,
+      "mostChangedTile": [
+        "2,0",
+        264
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "aa1343ab6a6d2e3109bc066cbbb3fea9454ea16a50fe6457120dd0b3c84d50cf",
+      "afterSha256": "3b10ee804cb29cc5ff97bda4379e59210928bb37c97b5646ead909a7fbdff4b2"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/17-medium-phalanx-rest-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 1836,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 6121,
+      "mostChangedTile": [
+        "4,0",
+        264
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "36fcb53d7ac99b4a39906fc6f2b41e3570ec4d50e8e4d24e9cecbb216f170bea",
+      "afterSha256": "d0581d6b5b50521587e7d2f5200b718075fbaa866b6f7cb776cf31dfc938f86b"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/17-medium-phalanx-rest-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 1473,
+      "maxChannelDelta": 32,
+      "absoluteChannelDelta": 4088,
+      "mostChangedTile": [
+        "7,0",
+        198
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "b903cae70be049faf25cffb5f2899f393322199084d97e9c1223fcceff0e51b3",
+      "afterSha256": "eb24754dfd8a09e4f01b0b026508079863320bbf86da99c8ff3fecb34d0852e3"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/17-medium-phalanx-rest-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 1332,
+      "maxChannelDelta": 26,
+      "absoluteChannelDelta": 3553,
+      "mostChangedTile": [
+        "3,0",
+        189
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "62fa97901ef4d9eac8de6861b9a55bf43e52d1ead579e583585c1033dc14b0b8",
+      "afterSha256": "cbf7b5bc548389824d62d172f85dd5c8a323325a4bf59f3999c27e1e007bbe4c"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/17-medium-phalanx-rest-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1300,
+      "maxChannelDelta": 20,
+      "absoluteChannelDelta": 4770,
+      "mostChangedTile": [
+        "7,0",
+        194
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "fe89280252087997b0f8c8ed8163337ea1683f02bfb6d7d0c8c58b3782b91c0e",
+      "afterSha256": "cfaf30f55cf8c8948318c73eac55b1323f6966b9aca04ccd6cdad380c4222c58"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/17-medium-phalanx-rest-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 1230,
+      "maxChannelDelta": 28,
+      "absoluteChannelDelta": 4261,
+      "mostChangedTile": [
+        "1,0",
+        176
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "ca1fe53ba854f572182b8e4e583583c18342e624103aee2702378bf2841971d9",
+      "afterSha256": "45707cdfe87f2f0d7b2fa500dc841daf243dd5dae44a79f7bcdd3c0ceec8b432"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/18-heavy-phalanx-sidearm-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 12443,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 30321,
+      "mostChangedTile": [
+        "4,0",
+        1670
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "53995ab7fcb447c27393b98cf2457800e0dbfcaca4da0095fe8ac56b8c64fd47",
+      "afterSha256": "e32064ea712f5766d2e2922f0b10719916e8bd65188f8dab1a1619d248f813bd"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/18-heavy-phalanx-sidearm-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 13820,
+      "maxChannelDelta": 31,
+      "absoluteChannelDelta": 38607,
+      "mostChangedTile": [
+        "4,0",
+        1782
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "35defa10d1e2af6dcea91f001d9ac52e3a1a85e6543146219e5361c5d2b3e28c",
+      "afterSha256": "2517508f48bfa6c6851786ccf95777a2201289e602cb13185d7ee26bf6f1395a"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/18-heavy-phalanx-sidearm-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 16129,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 42048,
+      "mostChangedTile": [
+        "3,0",
+        2008
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "3687fd48ec1c80857510c41c38c07c3a814a73ccb6dc057900675bdeec18f7d5",
+      "afterSha256": "901f4ff4e2be0b25a1804682539fe5394e8a0f90ad2762b76c0b6ec3f2f1896e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/18-heavy-phalanx-sidearm-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 14769,
+      "maxChannelDelta": 46,
+      "absoluteChannelDelta": 32446,
+      "mostChangedTile": [
+        "4,0",
+        1993
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "e68cf769396071d36f7f3b83e66a699a098410ac9492e30b3cdd762984b85b03",
+      "afterSha256": "515748ecb9ecc46d442f1dad1a032b5993d2d9ef0ca3d1f576260080deacc4b0"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/18-heavy-phalanx-sidearm-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 12998,
+      "maxChannelDelta": 24,
+      "absoluteChannelDelta": 32530,
+      "mostChangedTile": [
+        "4,0",
+        1798
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "c833597f9f623f4c55c7dfa9fad6f20ec86c2cd5918ec7599a655c3226869d14",
+      "afterSha256": "9fa32c49786a1b3fd31fac6470941b8d97daec1827c1fcd21ab0f17f825621f8"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/19-medium-phalanx-sidearm-attack.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 7726,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 18985,
+      "mostChangedTile": [
+        "2,0",
+        1084
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "4fea7c3b4e6a0db43500cdc3ff5895c72feb4bee3597b1119aad821637257a2e",
+      "afterSha256": "891686c89746ed6dd1af7f83119e8a28a0fc31f6042848d0b14d11997e70f72e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/19-medium-phalanx-sidearm-die.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 11360,
+      "maxChannelDelta": 18,
+      "absoluteChannelDelta": 25896,
+      "mostChangedTile": [
+        "0,1",
+        1613
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "73b0662674070b19d2eba32e3bc1e6da59b6fdf0d6a5ca8e69fbe5faf77e74a6",
+      "afterSha256": "52db4a06546b8be3f06969db7d3b4944f1cfdc669540fa2fc65c83b1ddaf1cb4"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/19-medium-phalanx-sidearm-hit.png",
+      "width": 2880,
+      "height": 720,
+      "changed": 12690,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 35232,
+      "mostChangedTile": [
+        "4,0",
+        1533
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "7ffb36f406d769640493a84a743b57fc1bfce9cc8dba4eddf360f8f9b0b558a9",
+      "afterSha256": "959efdda489ab3247cca45708aec434cebccde860247ce35719ca48ff60fffda"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/19-medium-phalanx-sidearm-run.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 8201,
+      "maxChannelDelta": 32,
+      "absoluteChannelDelta": 18837,
+      "mostChangedTile": [
+        "7,0",
+        1183
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "e589e539a92e9d054a06270f18a0b7fe8cb9c4842eb15fa22bdd824ca70b2ee1",
+      "afterSha256": "6ec626efa9050cd2cc9004424b335780cf3302d58132feb818a4e0962b114277"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/anim/19-medium-phalanx-sidearm-walk.png",
+      "width": 2880,
+      "height": 360,
+      "changed": 8448,
+      "maxChannelDelta": 19,
+      "absoluteChannelDelta": 23395,
+      "mostChangedTile": [
+        "4,0",
+        1150
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "0975bf4a97d3a2cfc1d4af2cef7c4f62114e1226f4e89bd32ad55a6ef3442dab",
+      "afterSha256": "54417ce3d28b163ee08f19a71cfc5e9814a734a1f2a91feb58957a1c5d07790e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/00-heavy-sword.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 81261,
+      "maxChannelDelta": 42,
+      "absoluteChannelDelta": 217899,
+      "mostChangedTile": [
+        "6,1",
+        3824
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "0685e0cb4ca722e4308481291b0a75048fbb12ceb564bdba573e2b7874db717e",
+      "afterSha256": "d5d7dc2eefb459d0eac0d67102586527d6345c1d3942efbecd1c332987b3914e"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/01-light-spear.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 29541,
+      "maxChannelDelta": 35,
+      "absoluteChannelDelta": 63180,
+      "mostChangedTile": [
+        "5,2",
+        1317
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "106435a846104e303c8e6fa911b4f6b995eb66efd5d74dbed16862ae34c731bd",
+      "afterSha256": "8bb38db712a78263458244db27cf1edc33bb07937e6923771dfb43937c1ed4e0"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/02-longsword.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 31490,
+      "maxChannelDelta": 18,
+      "absoluteChannelDelta": 54000,
+      "mostChangedTile": [
+        "3,2",
+        1806
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "76d10950dbcc4b8f8560499a43d5fb12fd49261331393a6367e07c0408e03d99",
+      "afterSha256": "f689908ea6cd50b04a0e59003de64c3b6ecb1e7348cbd003231c8d2dcc5284b4"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/03-phalanx.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 8622,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 35506,
+      "mostChangedTile": [
+        "3,1",
+        423
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "5e613e48e84e6875e42f6ef460a0d556d424e7748b9b09a466a5bac10cf158b8",
+      "afterSha256": "f4db12e33e462e9f4e5c20be66c1a243c97c6790827daa797cfd4edf5b17cd50"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/04-archers.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 11353,
+      "maxChannelDelta": 5,
+      "absoluteChannelDelta": 14106,
+      "mostChangedTile": [
+        "7,3",
+        591
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "053541dfa644e6523dcaf2743984fe837383c4b0a2cfb0d945fa32e7a14141ee",
+      "afterSha256": "e53ca6a6af91414c6be85731e82ef6a87d418a4c04b4af8e6877eb67f47c03ac"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/05-skirmishers.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 32018,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 66011,
+      "mostChangedTile": [
+        "7,1",
+        1366
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "a17a1a5c7b69c66810f12a33013b8a2863fdfe749b508dc82c2d1c101920bd36",
+      "afterSha256": "521738ad456331e6f1900d0133cc95267788d001b1e082e7c672734d6969ecd5"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/06-shock-cav.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 21920,
+      "maxChannelDelta": 26,
+      "absoluteChannelDelta": 53177,
+      "mostChangedTile": [
+        "7,3",
+        1133
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "14d8749172c0c02d0543f56255308a3dee794df45632b162182c4ec6705c25e3",
+      "afterSha256": "aa3a91ff87070af24e64bb85809a1b1a94a71c106471a0e8767a61447dff1ae2"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/07-horse-archers.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 22399,
+      "maxChannelDelta": 18,
+      "absoluteChannelDelta": 42771,
+      "mostChangedTile": [
+        "7,3",
+        1320
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "76b0d45546fbad42f26e80aff0ebbd1dafca1b00a49481ace5304a40bde93bce",
+      "afterSha256": "a212d3af69a4976bc47c43e11104af43ccf063227f9d75a2e503bee60ecbb5d2"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/08-artillery.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 4884,
+      "maxChannelDelta": 10,
+      "absoluteChannelDelta": 6253,
+      "mostChangedTile": [
+        "1,3",
+        249
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "a614fda69de2395c0f4cb799c37ea0d5dd142744fbbcd5df51f6e65628670f8f",
+      "afterSha256": "5fe5d9784f0dfee4e497aca17bf8fd87a42945902330e2c78e39cfc9a10d8916"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/09-peasant.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 26478,
+      "maxChannelDelta": 38,
+      "absoluteChannelDelta": 85426,
+      "mostChangedTile": [
+        "6,1",
+        1378
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "141aebfdd6a46244e62ccc7e91abdb7f4e0a1a73441c4e866ad6652ba98f86c8",
+      "afterSha256": "445509d78c6d9ace3f2fc76285ad35c9460f9a216d6dba9bcf12c00ef514356f"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/10-light-sword.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 62764,
+      "maxChannelDelta": 43,
+      "absoluteChannelDelta": 170579,
+      "mostChangedTile": [
+        "6,1",
+        3113
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "f6cec3e39c41d5e859da263839eb6e326f30cb44b8333930245de5371e4b1738",
+      "afterSha256": "f4c0b254ee2aa7032a9af45e407ee2cb6fda0f6042db854735e4cfcd7d9b8791"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/11-heavy-spear.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 40473,
+      "maxChannelDelta": 37,
+      "absoluteChannelDelta": 97885,
+      "mostChangedTile": [
+        "7,3",
+        1760
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "db77d91fad9f651a37414e101d5589ceb3204b00befc7a49c533dbff20c20394",
+      "afterSha256": "458dfcb87569e4a3361b81e88cbeda39b9445c019a7a7d6d0647393042d5dfb1"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/12-medium-infantry.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 69096,
+      "maxChannelDelta": 42,
+      "absoluteChannelDelta": 181285,
+      "mostChangedTile": [
+        "6,1",
+        3200
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "41c227c014286c6fc35a5c7aa9d38b1c0bbc51c9f9a6f550215d4c389453d1f0",
+      "afterSha256": "7169bcac2037a7d0fa8d63ae1d071cf5a2b4166d58977f1a04071b326b75eb66"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/13-medium-spear.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 31072,
+      "maxChannelDelta": 33,
+      "absoluteChannelDelta": 64963,
+      "mostChangedTile": [
+        "7,3",
+        1314
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "1440b22ad3c8828209b7ad129da88ff9ac7a9d44ff3dc37768ee5d48a7594555",
+      "afterSha256": "da7064d83a036e53e13b3af3115809fb85d68f9e8ca8f224b9962591a7354911"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/14-medium-phalanx.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 7425,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 21590,
+      "mostChangedTile": [
+        "3,2",
+        451
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "5f7d540b4b2f5e39fc3b63da139b7c33f1a243ad526bd2c5a6f8b74376bfcda9",
+      "afterSha256": "6a07c47d6012b796328bbf3356fc22aaa18b89376383a6f1a722d4f629343513"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/15-shock-cav-sidearm.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 34817,
+      "maxChannelDelta": 41,
+      "absoluteChannelDelta": 102259,
+      "mostChangedTile": [
+        "6,3",
+        1763
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "d1fd663137eea48bb78b6d68d8d7f707de1121d83bcad85813c787899b957221",
+      "afterSha256": "ae992f4a6ddf58977ca5eacdb6bfd9b423e4705b01392bd5b1658e601591fbbe"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/16-heavy-phalanx-rest.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 7761,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 31550,
+      "mostChangedTile": [
+        "3,2",
+        348
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "0476ec408344eb988ed9fd882c0a2c2debaf85696fda3076f532c7dbf7bee50e",
+      "afterSha256": "23b90a34abea1739849619c58ec1dd0a63465ba1256f5c06d0f6ad13d22e8013"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/17-medium-phalanx-rest.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 6477,
+      "maxChannelDelta": 34,
+      "absoluteChannelDelta": 20274,
+      "mostChangedTile": [
+        "3,2",
+        451
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "9b9a60c585a2f37e8d1eb5d809eaf77b233a7aa4b2c7a5cafb9fc609f9f0f9f4",
+      "afterSha256": "eac450c797e4be78289f821880c2b2e82b1ad271ec6bb7e639bc716e60ed5822"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/18-heavy-phalanx-sidearm.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 56550,
+      "maxChannelDelta": 35,
+      "absoluteChannelDelta": 153148,
+      "mostChangedTile": [
+        "7,2",
+        2533
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "796c5f6a6a0252307473e20679f9328932b4e3a4d7f1dcd72438f2d3097c9d80",
+      "afterSha256": "fa883d9a12bfc39afb63b1c0db2a2da43746bdd7020f646a2d8c79bc7a0e0166"
+    },
+    {
+      "path": "web/shots/models/shared/soldiers/ingame/19-medium-phalanx-sidearm.png",
+      "width": 2880,
+      "height": 1440,
+      "changed": 49044,
+      "maxChannelDelta": 37,
+      "absoluteChannelDelta": 115083,
+      "mostChangedTile": [
+        "7,2",
+        2429
+      ],
+      "repeatChangedPixels": 0,
+      "beforeSha256": "77ace350856f07cd54fbe1ae2c3356d2cabcd7f94e8ef9730f6644c0e30520d9",
+      "afterSha256": "2656e1428853a52077fee3ce925bd55110be859860ab0d4491e5d53547317992"
+    }
+  ],
+  "shaderCommit": "3c2a4a97c4b7ce0632e15a0ebcad6922c56465e9",
+  "capture": "Bundled Chromium / SwiftShader, unchanged soldier-capture drivers, 1280x800/DPR1"
+}

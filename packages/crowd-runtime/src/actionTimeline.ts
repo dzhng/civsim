@@ -251,7 +251,25 @@ export class ActionTimeline {
   // One interval only: shells own lane edits; immutable source payloads stay shared.
   private completed?: { tick: number; histories: (History | undefined)[] };
   private tick = -Infinity;
-  constructor(private appearances: Readonly<Record<number, PlaybackAppearance>>) {}
+  private readonly rigLayouts: Record<number, string>;
+  constructor(private appearances: Readonly<Record<number, PlaybackAppearance>>) {
+    // Only identical local spaces permit pose reuse; this is not retargeting.
+    this.rigLayouts = Object.fromEntries(
+      Object.entries(appearances).map(([id, appearance]) => [
+        id,
+        JSON.stringify(
+          appearance.rig.bones.map((bone) => [
+            bone.name,
+            bone.parent,
+            bone.bind.T,
+            bone.bind.R,
+            bone.bind.S,
+            Array.from(bone.inverseBind),
+          ]),
+        ),
+      ]),
+    );
+  }
 
   reset(): void {
     this.histories = [];
@@ -488,7 +506,8 @@ export class ActionTimeline {
       const upperBody = presentation.actions[role]?.layer === "riderUpperBody";
       const baseTrack = track(upperBody ? background : role);
       const restart = injured || (role === "release" && released) || (role === "melee" && !playing);
-      // Equipment can change skeleton/clip indices; never carry a blend across bundles.
+      // Equipment identity changes immediately; compatible body locals may blend,
+      // but clip indices never cross bundles.
       const sameAppearance = history?.appearanceId === observation.appearanceId;
       const previousHistory = history;
       let previous: SoldierPlayback | undefined;
@@ -506,13 +525,22 @@ export class ActionTimeline {
         );
       };
       const freezeComposed = () => freezePlayback(appearance, priorPlayback());
-      const base = transition(
-        sameAppearance ? history.base : undefined,
-        baseTrack,
-        seconds,
-        freezeBase,
-        !upperBody && restart,
-      );
+      const base =
+        !sameAppearance &&
+        history &&
+        this.rigLayouts[history.appearanceId] === this.rigLayouts[observation.appearanceId]
+          ? {
+              current: baseTrack,
+              source: freezePlayback(this.appearances[history.appearanceId], priorPlayback()),
+              changed: seconds,
+            }
+          : transition(
+              sameAppearance ? history.base : undefined,
+              baseTrack,
+              seconds,
+              freezeBase,
+              !upperBody && restart,
+            );
       if (baseTrack.phaseRate !== undefined) base.current = baseTrack;
       history = {
         ...history,

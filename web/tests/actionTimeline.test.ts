@@ -1,5 +1,6 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "vitest";
 import {
   ActionTimeline,
@@ -902,24 +903,122 @@ test("equipment changes retain injury history but never mix old and new clip ind
       binding ? { ...binding, clip: `other_${binding.clip}` } : null,
     ]),
   ) as AppearancePresentation["actions"];
-  const timeline = new ActionTimeline({
+  const catalog = {
     ...appearances,
     1: {
       rig: { ...rig, clips: rig.clips.map((clip) => ({ ...clip, name: `other_${clip.name}` })) },
       manifest: { presentation: { actions: otherActions, riderUpperBodyJoints: null } },
       animation: { clips: renamed },
     },
-  });
+  };
+  const timeline = new ActionTimeline(catalog);
   timeline.update(0, [soldier()]);
+  const before = evaluatePlaybackPose(catalog[0], timeline.sample(3)[0]);
   timeline.update(3, [soldier({ appearanceId: 1, health: 90 })]);
   const changed = timeline.sample()[0];
   assert.equal(changed.appearanceId, 1);
-  assert.deepEqual(changed.base.source, {
-    kind: "clip",
-    sample: { clip: "other_recoil", phase: 0 },
-  });
+  assert.equal(changed.base.source.kind, "frozen");
+  assert.deepEqual(evaluatePlaybackPose(catalog[1], changed), before);
   assert.equal(changed.base.destination.clip, "other_recoil");
   assert.equal(changed.base.destination.phase, 0);
+});
+
+test("rapid compatible equipment reversal and simultaneous death preserve the presented body", () => {
+  const catalog = { ...appearances, 1: structuredClone(appearances[0]) };
+  const timeline = new ActionTimeline(catalog);
+  timeline.update(0, [soldier({ fighting: true })]);
+  for (const [tick, appearanceId, alive] of [
+    [9, 1, true],
+    [10, 0, true],
+    [11, 1, false],
+  ] as const) {
+    const before = timeline.sample(tick)[0];
+    const expected = evaluatePlaybackPose(catalog[before.appearanceId as 0 | 1], before);
+    timeline.update(tick, [soldier({ appearanceId, alive })]);
+    const after = timeline.sample()[0];
+    assert.equal(after.appearanceId, appearanceId);
+    assert.deepEqual(evaluatePlaybackPose(catalog[appearanceId], after), expected);
+  }
+  assert.equal(timeline.sample()[0].base.destination.clip, "fall");
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+  timeline.update(60, [soldier({ appearanceId: 0, alive: false })]);
+  assert.equal(timeline.sample()[0].appearanceId, 1);
+  assert.equal(timeline.sample()[0].base.destination.phase, 1);
+  timeline.reset();
+  timeline.update(60, [soldier()]);
+  assert.equal(timeline.sample()[0].base.source.kind, "clip");
+});
+
+test("equipment with different bind spaces or names resets rather than retargeting", () => {
+  for (const mutate of [
+    (bone: ImportedRig["bones"][number]) => {
+      bone.bind.T[0] += 0.1;
+    },
+    (bone: ImportedRig["bones"][number]) => {
+      bone.bind.R[2] = 0.1;
+    },
+    (bone: ImportedRig["bones"][number]) => {
+      bone.bind.S[0] = 2;
+    },
+    (bone: ImportedRig["bones"][number]) => {
+      const inverse = Array.from(bone.inverseBind);
+      inverse[12] = 0.1;
+      bone.inverseBind = inverse;
+    },
+    (bone: ImportedRig["bones"][number]) => {
+      bone.name = "other";
+    },
+  ]) {
+    const other = structuredClone(appearances[0]);
+    mutate(other.rig.bones[0]);
+    const timeline = new ActionTimeline({ ...appearances, 1: other });
+    timeline.update(0, [soldier({ fighting: true })]);
+    timeline.update(9, [soldier({ appearanceId: 1 })]);
+    assert.equal(timeline.sample()[0].appearanceId, 1);
+    assert.equal(timeline.sample()[0].base.source.kind, "clip");
+    assert.equal(timeline.sample()[0].base.weight, 1);
+  }
+});
+
+test("shipped pike/rest/sidearm and cavalry equipment retain compatible skeletal poses", async () => {
+  const read = async (url: URL) => JSON.parse(await readFile(url, "utf8"));
+  const root = new URL("../public/assets/soldiers/catalog.json", import.meta.url);
+  const source = await read(root);
+  const catalog: ConstructorParameters<typeof ActionTimeline>[0] = Object.fromEntries(
+    await Promise.all(
+      [3, 16, 18, 14, 17, 19, 6, 15].map(async (id) => {
+        const url = new URL(source.appearances[id], root);
+        const manifest = await read(url);
+        return [
+          id,
+          {
+            manifest,
+            rig: await read(new URL(manifest.skeleton, url)),
+            animation: await read(new URL(manifest.animation, url)),
+          },
+        ];
+      }),
+    ),
+  );
+  for (const [from, to] of [
+    [3, 16],
+    [16, 18],
+    [18, 3],
+    [14, 17],
+    [17, 19],
+    [19, 14],
+    [6, 15],
+    [15, 6],
+  ]) {
+    const timeline = new ActionTimeline(catalog);
+    timeline.update(0, [soldier({ appearanceId: from, fighting: true })]);
+    const before = evaluatePlaybackPose(catalog[from], timeline.sample(7)[0]);
+    timeline.update(7, [soldier({ appearanceId: to })]);
+    const after = timeline.sample()[0];
+    assert.equal(after.appearanceId, to);
+    assert.equal(after.base.source.kind, "frozen");
+    assert.deepEqual(evaluatePlaybackPose(catalog[to], after), before);
+  }
 });
 
 test("death beats simultaneous release, injury and engagement; inapplicable release stays absent", () => {

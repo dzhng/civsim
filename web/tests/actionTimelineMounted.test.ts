@@ -102,6 +102,35 @@ const observation = (changes: Partial<ActionObservation> = {}): ActionObservatio
   ...changes,
 });
 const pose = (sample: SoldierPlayback) => evaluatePlaybackPose(appearance, sample);
+
+test("equipment changes freeze the complete rider overlay, including simultaneous release or death", () => {
+  for (const next of [{}, { releaseTtl: 0.8 }, { alive: false }]) {
+    const other = structuredClone(appearance);
+    const catalog = { 0: appearance, 1: other };
+    const timeline = new ActionTimeline(catalog);
+    timeline.update(0, [observation()]);
+    timeline.update(4, [observation({ releaseTtl: 0.5 })]);
+    const before = timeline.sample(6)[0];
+    assert.ok(before.riderUpperBody);
+    const expected = pose(before);
+    timeline.update(6, [observation({ appearanceId: 1, ...next })]);
+    const after = timeline.sample()[0];
+    assert.equal(after.appearanceId, 1);
+    assert.deepEqual(evaluatePlaybackPose(other, after), expected);
+    if (next.alive === false) assert.equal(after.base.destination.clip, "death");
+  }
+});
+
+test("matching names with different ancestry do not permit equipment pose reuse", () => {
+  const other = structuredClone(appearance);
+  other.rig.bones[2].parent = 0;
+  const timeline = new ActionTimeline({ 0: appearance, 1: other });
+  timeline.update(0, [observation()]);
+  timeline.update(4, [observation({ appearanceId: 1 })]);
+  assert.equal(timeline.sample()[0].base.source.kind, "clip");
+  assert.equal(timeline.sample()[0].base.weight, 1);
+});
+
 function close(
   actual: ArrayLike<number>,
   expected: ArrayLike<number>,

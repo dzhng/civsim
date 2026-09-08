@@ -10,6 +10,11 @@ The three added physical-far context images show the small admitted bodies on th
 
 ## Verification and disposition
 
+- Root integration: source diff reviewed; representative full comparisons from
+  all three fixture owners inspected directly, with the independent review
+  covering all15. Merged run90245 passed all24 images/111 checks exactly and
+  closed its browser; `merged.json` retains the result. The merged web suite
+  passed383 tests/63files. No default image threshold changed.
 - CPU red: `red.txt` shows the new production consumer expecting far L3 but receiving near L0 from scalar zoom alone.
 - CPU green: 383 tests in 63 files passed, session40927 terminal0; typecheck86943 terminal0. An initial full-suite attempt lacked a sparse-excluded committed campaign probe; restoring that input resolved the setup failure without a code change.
 - First browser13319 terminal1: all functional, allocation, material, handedness and immediate repeat checks passed; nine old snapshots differed. `first.json` retains the red result. No UPDATE was used. Three new physical-far baselines were created for subsequent review.

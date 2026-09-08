@@ -13,92 +13,56 @@ distance representations and consumer consistency. Do not close unfinished
 functional work by relabeling it polish. Existing cosmetic defects belong in
 [follow-up work](follow-ups.md), not another first-pair iteration loop.
 
-Immediate delivery order: integrate usable heavy AQ death and medium I thrust;
-complete missing engine-state actions and first-pair admission; extend the
-authored pipeline across foot, mounted and crew families in parallel; verify
-whole-roster production loading, animation, LOD, cards and performance; remove
-superseded placeholders and close the spec. Preserve simulation/save/balance,
-local Blender authoring and reproducible exports. Historical failed visual
-studies remain evidence, not a mandate to repeat their acceptance process.
+Current pickup: finish actual roster equipment/actions, then admit the complete
+catalog and verify its consumers. Heavy AQ death and medium I thrust are now
+integrated, as are fitted peasant/light-sword/medium-infantry candidates.
+[Foot delivery evidence](assets/evidence/17/foot-sword-delivery.md) records their
+static checks and retained limitations. They remain manual candidates until
+distance meshes and genuine state bindings are ready.
 
-### Prior checkpoint (historical quality gates)
+Parallel owners: pike family completes reactions/protected travel and all six
+equipment states; mounted family completes original horse/rider/tack and actions;
+LOD owner exports genuinely reduced meshes and measures the existing animated
+budget fixture; integration owner completes ranged/crew and remaining foot roles,
+then production catalog/cards, battle gates and placeholder removal.
 
-Last updated **2026-09-08; implementation resumed**. **01–06 complete;
-07 budget open;08–13 provisional;14–30 pending.** Worktree:
-`/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`.
-At that checkpoint candidates remained manual-only. The delivery cutover above
-now accepts their current cosmetic quality; production admission still needs
-complete bindings and verification.
+The original six infrastructure slices are complete. Later slices have usable
+partial deliveries, not final whole-roster acceptance. Do not reopen rejected
+shoulder or timing experiments. Preserve the fitted source meshes and action
+keys except where a missing role genuinely requires new authoring.
 
-**Current pickup: complete the first pair's missing combat/reaction motion,
-with authored poses owning corpse geometry.** The [checkpoint](checkpoint.md)
-records the integrated heavy attack/hit and medium held-pike ready, their exact
-merged verification, and the rejected heavy fall.
+Carry invariants: at-ease standing and ordinary walk/run put the shield beside
+the left flank; battle-ready/protected travel carries it forward. Canonical
+engine observations select posture, life state and equipment; animations never
+decide combat or simulation timing. Do not substitute inspection actions for
+missing gameplay roles. Keep uniform class appearances; paired actions and
+fine-grained variation remain deferred.
 
-Priority order:
+Evidence owners:
 
-1. In parallel, author medium thrust and revise the heavy fall's unsupported
-   finish. Use the current fitted sources; preserve unrelated meshes, rig and
-   actions. The fall needs convincing body/ground support, not simply a passing
-   minimum-height number. Authored poses now own corpse geometry in both
-   renderers and visibility bounds; do not add a second roll or lift a particular
-   asset to compensate for unclear ground-contact shading.
-   The lowered sword arm exposes a large sleeve-cap collapse rooted in the body;
-   garment redistribution and three local body trials are rejected. The
-   [shoulder deformation refit](slices/08-anatomy.md#reopened-dressed-shoulder-deformation)
-   now needs a coherent joint-form/support design before further fall acceptance.
-2. Resolve engine-faithful live movement sampling, foot contact and transitions,
-   then admit complete detailed appearances. Missing actions are not filled with
-   stand-ins. Measured travel owns gait; engine observations own posture and
-   reactions, not animation clocks.
-3. Finish first-pair anatomy, equipment, surfaces and distance representations,
-   prove the animated performance envelope, then pass16 before roster expansion.
-   Budget07 blocks art acceptance, not isolated editable authoring.
-
-Carry constraints: at-ease standing and ordinary forward walk/run carry the
-shield beside the left flank; battle-ready/protected travel carries it forward.
-Retained facing alone is not a threat decision: respect canonical `atEase`.
-The medium's held-pike readiness is not the unobserved continuous brace-strength
-ramp. Preserve connected grips and basic handedness. Whole-body motion comes
-before fine fingers or faces; the separate hand-detail worktree remains deferred.
-
-Evidence ledger:
-
-- [Workbench parity](slices/01-production-workbench.md): manual life state is
-  independent of clip names. Historical manual death studies using `death` were
-  alive-state previews; they can compare motion, not establish corpse-treatment parity.
-- [Checkpoint and combined gates](checkpoint.md): current integrated sources,
-  retained limitations and rejected death G.
-- [Locomotion](slices/11-pair-locomotion.md): measured-distance playback, protected
-  travel and fitted heavy/medium motion. Contact calibration, rigidity and
-  equipment overlap remain open. [Live prediction](assets/evidence/11/live-root-phase/review.md)
-  and [completed-interval sampling](assets/evidence/11/completed-interval/review.md)
-  are historical experiments: summarized observations cannot reconstruct
-  entry/direction changes exactly. The [bounded CPU candidate](assets/evidence/11/delayed-timeline/review.md)
-  now retains one completed interval with explicit entry/stride approximations
-  and completed interruption sources. Its [merged replay GPU gate](assets/evidence/11/delayed-timeline/gpu/review.md)
-  passes with explicit retained-storage accounting. Live crowd/root-clock wiring
-  is integrated; merged verification passes 382 CPU tests and all 131 held/body-region
-  snapshots exactly. Natural foot contact remains follow-up quality work, not
-  another timing-infrastructure prerequisite.
-- [Anatomy](slices/08-anatomy.md), [equipment](slices/09-pair-gear.md) and
-  [surfaces](slices/10-pair-surfaces.md): provisional fitted composition.
-  Preserve saved geometry rather than regenerating unrelated equipment.
-- [Budget](slices/07-budget-envelope.md): mixed hardware measurements do not
-  establish the animated33ms envelope. The current typed workload repairs an
-  obsolete gait hint and remains over budget; historical walking-only timings
-  are not a matched comparison with its walk/run interruptions.
-- [Choices](choices.md): banked decisions and unresolved quality tradeoffs.
+- [Checkpoint](checkpoint.md), [anatomy](slices/08-anatomy.md),
+  [equipment](slices/09-pair-gear.md), [surfaces](slices/10-pair-surfaces.md):
+  fitted first-pair sources and historical studies.
+- [Locomotion](slices/11-pair-locomotion.md): live completed-interval sampling
+  is integrated, with 382 CPU tests and all 131 held/body-region snapshots
+  exact. Natural foot-contact polish is a follow-up, not another timing project.
+- [Medium thrust](assets/evidence/12/medium-pike-thrust/integration.md) and
+  [reactions](slices/13-pair-reactions.md): retained usable combat actions.
+- [Far fixture repair](assets/evidence/15/far-fixture-repair/review.md):
+  actual projected admission and independent mesh shadows, not new art approval.
+  Root merged repeat passed all 24 images/111 checks exactly.
+- [Budget](slices/07-budget-envelope.md): actual animated detailed-asset budget
+  remains open; paused or synthetic workloads cannot close it.
+- [Choices](choices.md) and [cosmetic follow-ups](follow-ups.md): retained
+  decisions and refinement backlog.
 
 Preserve simulation/save/balance, exact interruption poses, atomic catalog
-replacement, the production skin/material/environment path and existing image
-gates. Author with isolated background Blender processes and separate worktree
-files; never alter another session's interactive Blender/MCP scene. Serialize
-GPU captures across authoring lanes. Scope and acceptance below remain binding.
-Keep this integration worktree current with `origin/main` at checkpoints; merge
-upstream changes rather than allowing conflicts to accumulate. Frozen A/B study
-worktrees stay fixed during a comparison, then their retained changes are
-integrated and reverified on the updated branch.
+replacement, the production skin/material/environment path and zero-tolerance
+image gates. Use isolated background Blender processes and separate files;
+never alter another task's interactive Blender/MCP scene. Serialize GPU captures.
+Merge origin/main at clean checkpoints; frozen comparisons remain fixed until
+integration. Current branch: `codex/battle-model-quality`, worktree
+`/Users/david/dev/game-battle-model-quality`.
 
 ## Scope and firewalls
 

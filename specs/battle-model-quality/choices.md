@@ -1843,3 +1843,14 @@ across these roles. Shared stride calibration has one bake-time owner, so a
 future gait update cannot silently give identical action keys different travel
 speeds. Role-specific refinements remain possible in their saved Blend files;
 this does not create a runtime equipment assembly system.
+
+### Admit far content physically before magnifying its material diagnostic
+
+**Sound; confidence: high. Far fixture integration,2026-09-08.** A test needs
+to inspect the distant representation closely. It first places the real camera
+far enough away for the production planner to choose it, then changes only the
+inspection camera without uploading another set of soldiers. The alternative
+of changing a scalar zoom hint no longer selected distant content. The spec did
+not prescribe the repaired fixture, but it requires the actual production
+planner and independent mesh shadows. Separate full-distance context shots
+prevent the magnified diagnostic from being mistaken for gameplay LOD quality.

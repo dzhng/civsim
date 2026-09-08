@@ -39,23 +39,32 @@ function renderState(state) {
     corpse: state.corpseStrength,
   };
 }
+// Names describe the same semantic samples even when authored durations change.
+// Runtime timing comes from the existing replay recipe, not copied clip lengths.
+const temporalSamples = [
+  { name: "motion-start", tick: 6 },
+  { name: "motion-quarter", tick: 6.25 },
+  { name: "motion-half", tick: 6.5 },
+  ...[11, 14, 15, 18].map((tick) => ({ name: `event-release-${tick}`, tick, event: true })),
+  { name: "event-release-exit", anchor: "Release exit", event: true },
+  { name: "event-run-during-exit", anchor: "Run during exit", event: true },
+  { name: "event-death", anchor: "Composed death", event: true },
+  { name: "death-quarter", anchor: "Composed death", offset: 2.25 },
+  { name: "death-blend-end", anchor: "Composed death", offset: 4.5 },
+  { name: "terminal", anchor: "Terminal hold" },
+];
 export const temporalSnapshots = [4, 7, 41].flatMap((id) =>
-  [
-    6,
-    6.25,
-    6.5,
-    "event-11",
-    "event-14",
-    "event-15",
-    "event-18",
-    "event-24",
-    "event-25",
-    "event-35",
-    37.25,
-    39.5,
-    id === 41 ? 75 : 72,
-  ].map((sample) => `shared/soldiers/action-replay/temporal-${id}-${sample}`),
+  temporalSamples.map((sample) => `shared/soldiers/action-replay/temporal-${id}-${sample.name}`),
 );
+export function temporalCaptureSamples(recipe) {
+  return temporalSamples.map((sample) => {
+    const tick = sample.anchor
+      ? recipe.events.find((event) => event.label === sample.anchor)?.tick
+      : sample.tick;
+    if (!Number.isFinite(tick)) throw new Error(`Missing temporal sample anchor ${sample.anchor}`);
+    return { ...sample, tick: tick + (sample.offset ?? 0) };
+  });
+}
 
 // The existing replay scene owns this fixed-world motion gate; no separate renderer.
 export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
@@ -284,6 +293,12 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
   for (const id of ids) {
     const foreground = id === 41 ? foregrounds.diagnostic : foregrounds.production;
     const recipe = await page.evaluate((id) => window.__temporalReplay.select(id), id);
+    const samples = temporalCaptureSamples(recipe);
+    ctx.check(
+      `${id}: semantic capture timing`,
+      true,
+      samples.map(({ name, tick }) => ({ name, tick })),
+    );
     ctx.check(
       `${id}: fixed fixture framing`,
       recipe.framing.width === (id === 41 ? 1280 : 970) &&
@@ -359,9 +374,9 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
         ],
       },
     );
-    for (const tick of [6, 6.25, 6.5]) {
+    for (const { name, tick } of samples.slice(0, 3)) {
       const sample = await draw(tick);
-      await snap(`shared/soldiers/action-replay/temporal-${id}-${tick}`, sample.bytes);
+      await snap(`shared/soldiers/action-replay/temporal-${id}-${name}`, sample.bytes);
       const repeated = await draw(tick);
       ctx.check(`${id}/${tick}: paused frame is exact`, changed(sample.png, repeated.png) === 0);
       ctx.check(
@@ -371,7 +386,7 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
     }
     const deathTick = recipe.events.find((event) => event.label === "Composed death").tick;
     const exitTick = recipe.events.find((event) => event.label === "Release exit").tick;
-    for (const tick of [11, 14, 15, 18, exitTick, exitTick + 1, deathTick]) {
+    for (const { name, tick } of samples.filter((sample) => sample.event)) {
       // Actual and preposed reference start with identical visibility demand.
       // The reference's upload([]) must not silently change shadow hysteresis mid-comparison.
       const boundary = await page.evaluate(() => window.__temporalReplay.beginComparison());
@@ -466,11 +481,11 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
           );
         }
       }
-      await snap(`shared/soldiers/action-replay/temporal-${id}-event-${tick}`, after.bytes);
+      await snap(`shared/soldiers/action-replay/temporal-${id}-${name}`, after.bytes);
     }
-    for (const tick of [deathTick + 2.25, deathTick + 4.5, recipe.endTick]) {
+    for (const { name, tick } of samples.slice(-3)) {
       const sample = await draw(tick);
-      await snap(`shared/soldiers/action-replay/temporal-${id}-${tick}`, sample.bytes);
+      await snap(`shared/soldiers/action-replay/temporal-${id}-${name}`, sample.bytes);
     }
     const terminal = await draw(recipe.endTick),
       previous = await draw(recipe.endTick - 1);

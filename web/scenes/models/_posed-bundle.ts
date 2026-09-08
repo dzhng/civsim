@@ -21,13 +21,14 @@ export function posedBundle(source: AppearanceBundle, playback: SoldierPlayback)
 export function bundleAtPose(
   source: AppearanceBundle,
   palette: Float32Array,
-  positionArithmetic: "independent" | "readback" = "independent",
+  arithmetic: "independent" | "readback" = "independent",
 ): AppearanceBundle {
   const cpu = structuredClone(source);
   const pose = (mesh: AppearanceBundle["farMesh"]) => ({
     ...mesh,
-    ...poseSoldierMesh(mesh, palette),
-    ...(positionArithmetic === "readback" ? { positions: readbackPositions(mesh, palette) } : {}),
+    ...(arithmetic === "readback"
+      ? readbackAttributes(mesh, palette)
+      : poseSoldierMesh(mesh, palette)),
     joints: new Uint16Array(mesh.joints.length),
     weights: Float32Array.from(mesh.weights, (_, index) => Number(index % 4 === 0)),
   });
@@ -50,10 +51,13 @@ export function bundleAtPose(
   return cpu;
 }
 
-/** Raster-reference arithmetic only: match skinNodes' column-first f32 positions.
+/** Raster-reference arithmetic only: match skinNodes' column-first f32 attributes.
+ * Keep directions raw: the production material normalizes them exactly once.
  * The source oracle and production skin/bakes retain their independent owners. */
-function readbackPositions(mesh: AppearanceBundle["farMesh"], palette: Float32Array) {
+function readbackAttributes(mesh: AppearanceBundle["farMesh"], palette: Float32Array) {
   const result = new Float32Array(mesh.positions.length),
+    normals = new Float32Array(mesh.normals.length),
+    tangents = new Float32Array(mesh.tangents.length),
     f = Math.fround;
   for (let vertex = 0; vertex < result.length / 3; vertex++) {
     const columns = Array.from({ length: 16 }, (_, element) => {
@@ -65,6 +69,13 @@ function readbackPositions(mesh: AppearanceBundle["farMesh"], palette: Float32Ar
       return f(f(f(term(0) + term(1)) + term(2)) + term(3));
     });
     for (let axis = 0; axis < 3; axis++) {
+      const direction = (values: Float32Array, offset: number) =>
+        f(
+          f(f(columns[axis] * values[offset]) + f(columns[4 + axis] * values[offset + 1])) +
+            f(columns[8 + axis] * values[offset + 2]),
+        );
+      normals[vertex * 3 + axis] = direction(mesh.normals, vertex * 3);
+      tangents[vertex * 4 + axis] = direction(mesh.tangents, vertex * 4);
       result[vertex * 3 + axis] = f(
         f(
           f(
@@ -74,6 +85,7 @@ function readbackPositions(mesh: AppearanceBundle["farMesh"], palette: Float32Ar
         ) + columns[12 + axis],
       );
     }
+    tangents[vertex * 4 + 3] = mesh.tangents[vertex * 4 + 3];
   }
-  return result;
+  return { positions: result, normals, tangents };
 }

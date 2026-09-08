@@ -12,6 +12,7 @@ import {
 import { evaluatePlaybackPose } from "@packages/crowd-runtime/src/actionTimeline";
 import {
   localPoseToJointMatrices,
+  mat4Identity,
   sampleRigLocalPose,
 } from "@packages/soldier-assets/src/localPose";
 import { poseSoldierMesh } from "@packages/soldier-assets/src/skin";
@@ -73,6 +74,24 @@ test("rebaked aliases retain original authored poses at endpoints and fractional
   }
 });
 
+test("readback directions retain raw weighted vectors for one production normalization", () => {
+  const fixture = structuredClone(source);
+  const mesh = fixture.tiers[0];
+  mesh.normals.set([1, 0, 0]);
+  mesh.tangents.set([0, 1, 0, -1]);
+  mesh.joints.set([0, 1, 0, 1]);
+  mesh.weights.set([0.25, 0.75, 0, 0]);
+  const palette = new Float32Array(fixture.rig.bones.length * 16);
+  for (let bone = 0; bone < fixture.rig.bones.length; bone++)
+    palette.set(mat4Identity(), bone * 16);
+  palette.set([0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], 16);
+  const raw = bundleAtPose(fixture, palette, "readback").tiers[0];
+  assert.deepEqual(Array.from(raw.normals.slice(0, 3)), [0.25, 0.75, 0]);
+  assert.deepEqual(Array.from(raw.tangents.slice(0, 4)), [-0.75, 0.25, 0, -1]);
+  const independent = bundleAtPose(fixture, palette).tiers[0];
+  assert.notDeepEqual(raw.normals.slice(0, 3), independent.normals.slice(0, 3));
+});
+
 test("readback raster arithmetic is explicit and leaves the independent source oracle unchanged", () => {
   const fixture = mountedTemporalFixture(source);
   const recipe = denseBattleModelReplayRecipe(fixture, 41);
@@ -87,8 +106,8 @@ test("readback raster arithmetic is explicit and leaves the independent source o
     assert.deepEqual(independent.tiers[tier].positions, expected.positions);
     assert.deepEqual(defaultArithmetic.tiers[tier].positions, expected.positions);
     assert.notDeepEqual(readback.tiers[tier].positions, expected.positions);
-    assert.deepEqual(readback.tiers[tier].normals, expected.normals);
-    assert.deepEqual(readback.tiers[tier].tangents, expected.tangents);
+    assert.deepEqual(independent.tiers[tier].normals, expected.normals);
+    assert.deepEqual(defaultArithmetic.tiers[tier].tangents, expected.tangents);
   }
   assert.deepEqual(fixture, saved);
 });

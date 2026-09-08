@@ -17,6 +17,7 @@ export default mergeConfig(
         "tests/**/*.test.ts",
         "snapshot.test.mjs",
         "scene.test.mjs",
+        "temporal-replay.test.mjs",
       ],
       exclude: ["**/node_modules/**", "**/dist/**"],
       setupFiles: ["./setup-tests.ts"],

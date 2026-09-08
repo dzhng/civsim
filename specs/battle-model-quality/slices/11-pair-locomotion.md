@@ -197,6 +197,36 @@ time without destroying retained history. Append, rewind and catalog replacement
 need atomic boundaries. Batched starts/stops and reversals remain approximate;
 the live comparison must reject contact excursions even if CPU tests pass.
 
+#### Next live consumer pass
+
+Replace BattleCrowd's residual position easing with one owned pair of copied
+observation endpoints. Choose presentation time once, clamp it to known history,
+and use it for raw root interpolation, shortest-arc facing, timeline sampling
+and discrete body metadata. Interpolation uses the actual preceding/latest tick
+interval, including batches; it must not compress a batch into one tick. Keep
+copying bounded to observation changes, not render frames, and never retain
+mutable WASM views. Appearance replacement and history resets remain atomic.
+
+Body-attached attack arcs, selection rings and standards consume this presented
+view. Unit chip contents and standard visibility use the same bounded per-unit
+endpoint metadata; no presented living soldier means no attached standard, not
+a fallback to the latest centroid. Command destinations, targeting, formation
+previews and debug cues remain authoritative. Detached projectiles remain current
+in this pass: delaying them needs separate projectile identity/history, outside
+the bounded soldier change. This limitation is explicit, not full scene temporal
+acceptance. Camera and environment clocks remain unchanged.
+
+First-observation, append, shrink, rewind, same-tick redraw and catalog replacement
+must preserve the timeline's matching boundaries. Ordinary pause retains alpha;
+explicit freeze displays the authoritative endpoint without destroying history.
+Actual BattleCrowd/SimClock consumer tests precede GPU: compare root/phase at
+several fractions, single/batched advances, idle entry, disability recovery,
+endpoint reactions, directional stride changes, wrapped facing, lifecycle and
+retained-input mutation. Attached markers must follow the shown bodies while
+command previews retain their current inputs. Existing visibility/LOD consumes
+presented instances; do not add a second culling owner. Then review matched real
+movement through the production route, preserving image and performance gates.
+
 ### Integrated: stop future gait while disabled
 
 [Evidence](../assets/evidence/11/final-disabled-gait/review.md) includes a matched

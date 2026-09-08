@@ -67,6 +67,46 @@ def add_helmet_crest(scene, arm):
     return part
 
 
+def author_held_sword(scene, arm, parts, active_clips):
+    """Keep the fitted sword, showing it only in the existing named action roles.
+
+    The child is part of the rider/upper mask, not a gameplay equipment state.
+    Tiny nonzero scale avoids singular skin transforms outside the held action;
+    the fitted belt scabbard remains unchanged in every action.
+    """
+    swords = [part for part in parts if part.name.startswith("Sword")]
+    if not swords:
+        raise ValueError("Retain fitted Sword parts before authoring held visibility")
+    actions = [track.strips[0].action for track in arm.animation_data.nla_tracks]
+    if not set(active_clips).issubset({action.name for action in actions}):
+        raise ValueError("Held sword active clips must already exist")
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    parent = arm.data.edit_bones["hand.R"]
+    bone = arm.data.edit_bones.new("held-sword")
+    bone.head, bone.tail, bone.parent = parent.head, parent.tail, parent
+    bpy.ops.object.mode_set(mode="OBJECT")
+    for part in swords:
+        for group in list(part.vertex_groups):
+            part.vertex_groups.remove(group)
+        part.vertex_groups.new(name="held-sword").add(
+            list(range(len(part.data.vertices))), 1, "REPLACE")
+    active, frame = arm.animation_data.action, scene.frame_current
+    for action in actions:
+        arm.animation_data.action = action
+        arm.animation_data.action_slot = action.slots[0]
+        scale = 1 if action.name in active_clips else .001
+        pose = arm.pose.bones["held-sword"]
+        pose.scale = (scale,)*3
+        for endpoint in action.frame_range:
+            pose.keyframe_insert("scale", frame=endpoint)
+    arm.animation_data.action = active
+    if active:
+        arm.animation_data.action_slot = active.slots[0]
+    scene.frame_set(frame)
+    return "held-sword"
+
+
 def build(source, output, name, armor, shield, helmet):
     with bpy.data.libraries.load(str(source)) as (data, target):
         target.scenes = [next(n for n in data.scenes if n == "HeavyMotionCandidate")]

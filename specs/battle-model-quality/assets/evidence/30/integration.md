@@ -30,7 +30,11 @@ view. Uniform repeated appearances are intentional. Other quality limitations
 remain disclosed in the feature follow-ups under David's accepted quality cutoff.
 
 The [web suite](web-tests.txt) passes after consumer cutover and compatible-rig
-equipment continuity. The [complete roster check](complete-roster.txt) verifies
+equipment continuity, including the final gait correction (404 tests). The
+[web production build](web-build.txt) passes on the integrated renderer.
+The independent [whole-feature review](final-feature-review.txt) found no
+actionable production defect; its stale-status findings are closeout-doc work,
+not evidence of final visual repeats. The [complete roster check](complete-roster.txt) verifies
 both published catalogs against fresh bakes and exercises the real loader.
 The full [bake suite](bake-tests.txt) also passes after card integration, including
 the animation/export/material contracts and named diagnostic fixture checks.
@@ -44,12 +48,30 @@ the actual posed geometry over each clip, with a stable camera; portraits retain
 their separate figure framing. The [motion review](production-review-drivers/motion-review.md)
 also records exact repeats for all applicable films and their retained visual limits.
 
-Live consumer verification is still red at startup. An isolated `battle-arrows`
-run exceeded its unchanged 20-second readiness limit. The batch subsequently
-failed other startup checks, but its failed pages were left open until browser
-shutdown, so those later failures are not independent diagnoses. A separate
-30-second diagnostic using an archers mirror duel reached readiness. The next
-probe must record the exact arrows URL's readiness time, caught GPU fatal state
-and outstanding requests; neither an initialization fault nor a cold-start
-timeout has yet been established. Final consumer captures remain pending; no
-whole-spec completion is claimed by this checkpoint.
+The exact arrows URL reached readiness at 23.676 seconds in the isolated
+[startup trace](startup-timing.txt), without a GPU fatal state or pending request.
+Functional startup ceilings are now 60 seconds with the same readiness
+predicates. This changes no frame-time threshold and claims no performance pass.
+Failed scenario pages are closed before the next scene so a failed startup does
+not contaminate later captures. The [initial live batch](live-consumers-initial.json)
+passes battle LOD, terrain seating and campaign checks; only its walk-only gait
+assumptions failed. Arrows then passed the actual volley checks, with expected
+placeholder-image differences still awaiting baseline publication.
+
+The [gait diagnosis](gait-cadence/review.md) establishes the preceding-gait stride
+contract from actual engine travel. The [merged live repeat](gait-cadence/merged-live-repeat.json)
+passes without changing the controller, simulation, source clips or numerical
+tolerance. The [initial replay](action-replay-initial.json) additionally exposed
+posed/rendered material differences. The
+[causal comparison](../final/posed-geometric-normal/reviews.md) isolates Three's
+geometric roughness normal: the native shader now receives the posed normal for
+that calculation as well as lighting. The
+[corrected full replay](action-replay-fixed.json) passes all functional checks,
+including independent GPU matrix and render-consumption checks, with unchanged
+tolerances.
+
+Final shader-affected artifact refreshes and exact repeats remain pending. The
+equipment-handoff capture also needs its actual submitted-state panel visible.
+The earlier workbench/card/sheet/motion repeats above predate the final shading
+correction and are not evidence of the final raster. No whole-spec completion is
+claimed by this checkpoint.

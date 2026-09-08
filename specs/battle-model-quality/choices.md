@@ -479,12 +479,16 @@ captures wait for the real frame/settled draw rather than retrying for lucky
 pixels. Far inspection obtains real projected admission before magnification.
 Snapshot filters skip unrequested work; only full runs cover the full scene.
 The named live body-region gate does not claim excluded HUD acceptance.
+Cold authored-catalog loading may take longer than a functional scene's old
+startup allowance. These scenes wait up to 60 seconds for the same readiness
+predicates; they still fail if loading never completes. This is a functional
+startup ceiling, not a claimed loading-time guarantee or frame-time pass.
 Synthetic cost fixtures add referenced equivalent detail, not fake unused bones;
 the retained full-detail benchmark remains distinct from normal gameplay LOD.
 **Gap:** fixture scheduling and subjects were unspecified. **Reach:** mapped
 skin vertices, controlled rider joints and declared camera/workload remain the
 measured subjects. Paused/synthetic tests cannot certify full live performance.
-**Verdict:** sound honest, distinct scopes with unchanged thresholds;
+**Verdict:** sound distinct scopes; raster and frame-time thresholds unchanged;
 **confidence: high**.
 
 ### 36. Share the weighted GPU layout and bounded rotation calculation

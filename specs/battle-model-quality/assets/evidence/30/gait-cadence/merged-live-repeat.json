@@ -1,0 +1,71 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-08T14:33:25.719Z",
+  "target": "http://127.0.0.1:5437",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-anim-gait",
+      "file": "battle/battle-anim-gait.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-anim-gait",
+      "name": "marching unit entered sample window",
+      "ok": true,
+      "detail": " samples=91 tickSpan=90"
+    },
+    {
+      "scenario": "battle-anim-gait",
+      "name": "sampling includes every consecutive simulation tick",
+      "ok": true,
+      "detail": "{\"samples\":91}"
+    },
+    {
+      "scenario": "battle-anim-gait",
+      "name": "gait samples have finite loop phases and positive authored duration",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-anim-gait",
+      "name": "NO CLASS FLICKER: sampled soldiers retain appearance and declared gaits",
+      "ok": true,
+      "detail": "{\"transitions\":12,\"nonMarch\":0,\"appearanceChanges\":0,\"soldiers\":8,\"frames\":91}"
+    },
+    {
+      "scenario": "battle-anim-gait",
+      "name": "PHASE ADVANCES: marching phases advance steadily",
+      "ok": true,
+      "detail": "[{\"index\":1700,\"actualCycles\":3.509626959523579,\"expectedCycles\":3.5096269595235787,\"negativeSteps\":0,\"maxCycleError\":2.2690183065776637e-15},{\"index\":1701,\"actualCycles\":3.5666472746174516,\"expectedCycles\":3.566647274617449,\"negativeSteps\":0,\"maxCycleError\":2.671474153004283e-15},{\"index\":1702,\"actualCycles\":3.566215983388447,\"expectedCycles\":3.5662159833884473,\"negativeSteps\":0,\"maxCycleError\":2.671474153004283e-15},{\"index\":1703,\"actualCycles\":3.569132127109854,\"expectedCycles\":3.569132127109853,\"negativeSteps\":0,\"maxCycleError\":2.6575963651964685e-15},{\"index\":1704,\"actualCycles\":3.5272591521055743,\"expectedCycles\":3.5272591521055743,\"negativeSteps\":0,\"maxCycleError\":2.6645352591003757e-15},{\"index\":1705,\"actualCycles\":3.527852241274536,\"expectedCycles\":3.5278522412745397,\"negativeSteps\":0,\"maxCycleError\":2.761679773755077e-15},{\"index\":1706,\"actualCycles\":3.5303404247911327,\"expectedCycles\":3.5303404247911327,\"negativeSteps\":0,\"maxCycleError\":2.67841304690819e-15},{\"index\":1707,\"actualCycles\":3.214412758903633,\"expectedCycles\":3.2144127589036318,\"negativeSteps\":0,\"maxCycleError\":2.0886070650760757e-15}]"
+    },
+    {
+      "scenario": "battle-anim-gait",
+      "name": "DISTANCE: each gait interval follows motor path / preceding authored stride",
+      "ok": true,
+      "detail": "[{\"index\":1700,\"actualCycles\":3.509626959523579,\"expectedCycles\":3.5096269595235787,\"negativeSteps\":0,\"maxCycleError\":2.2690183065776637e-15},{\"index\":1701,\"actualCycles\":3.5666472746174516,\"expectedCycles\":3.566647274617449,\"negativeSteps\":0,\"maxCycleError\":2.671474153004283e-15},{\"index\":1702,\"actualCycles\":3.566215983388447,\"expectedCycles\":3.5662159833884473,\"negativeSteps\":0,\"maxCycleError\":2.671474153004283e-15},{\"index\":1703,\"actualCycles\":3.569132127109854,\"expectedCycles\":3.569132127109853,\"negativeSteps\":0,\"maxCycleError\":2.6575963651964685e-15},{\"index\":1704,\"actualCycles\":3.5272591521055743,\"expectedCycles\":3.5272591521055743,\"negativeSteps\":0,\"maxCycleError\":2.6645352591003757e-15},{\"index\":1705,\"actualCycles\":3.527852241274536,\"expectedCycles\":3.5278522412745397,\"negativeSteps\":0,\"maxCycleError\":2.761679773755077e-15},{\"index\":1706,\"actualCycles\":3.5303404247911327,\"expectedCycles\":3.5303404247911327,\"negativeSteps\":0,\"maxCycleError\":2.67841304690819e-15},{\"index\":1707,\"actualCycles\":3.214412758903633,\"expectedCycles\":3.2144127589036318,\"negativeSteps\":0,\"maxCycleError\":2.0886070650760757e-15}]"
+    },
+    {
+      "scenario": "battle-anim-gait",
+      "name": "on-screen marching scene moves over three simulation ticks",
+      "ok": true,
+      "detail": "{\"shortDiff\":3.11}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

@@ -51,6 +51,6 @@ Focused Vitest3tests and web TypeScript pass. Independent read-only Codex
 review1446 found no defect within the two-file scope and independently reran
 all3 tests; no GPU launched by the reviewer. Main shape review retains the scene
 as the sole owner and uses shared ACTION_ROLES/isGaitRole rather than another
-role registry. Root owns the corrected merged browser repeat; none is claimed
-by this CPU-only correction. The root's existing60s readiness value is preserved,
+role registry. The subsequent [merged browser repeat](merged-live-repeat.json)
+passes all checks on the corrected production renderer. The root's existing60s readiness value is preserved,
 not a timing-policy change in this pass.

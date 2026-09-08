@@ -21,14 +21,16 @@ explicit test fixtures. Campaign and review consumers now resolve manifest roles
 
 The artillery machine is now root-attached in the authored crew source and all
 three production tiers; the complete roster passes real loader/source checks.
-Production cards and full-kit sheets are refreshed and pass exact repeats;
-their [artifact review](assets/evidence/30/production-review-drivers/artifact-review.md)
-records the framing decision and retained cosmetic limits. Motion films and the
-production workbench also pass exact repeats. Live LOD, terrain seating and
-campaign checks pass. Remaining functional verification is the live gait fixture's
-walk-only assumptions and the independent preposed rendering comparison; neither
-is waived or diagnosed solely from aggregate results. Finish these bounded checks,
-refresh the remaining intended image changes, review, commit/push and archive.
+Production cards, full-kit sheets, motion films and the workbench passed exact
+repeats before the final native posed-normal correction. Their
+[artifact review](assets/evidence/30/production-review-drivers/artifact-review.md)
+records the framing decision and retained cosmetic limits. Live LOD, terrain
+seating and campaign checks pass. The corrected live gait fixture and full replay
+comparison now pass on the merged renderer; neither gate was waived.
+Current pickup: serially refresh and repeat the affected visual baselines, make
+the replay equipment-handoff status visible in its capture, then reconcile the
+final evidence and archive. The integrated web suite passes 404 tests and the
+whole-feature independent code review is clean. Finish review, commit/push and archive.
 Do not reopen model-polish or optimization loops.
 
 The user explicitly accepted a documented performance follow-up instead of

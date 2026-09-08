@@ -12,6 +12,9 @@ David.
 - Run tick/00's full sweep (15.5k, 30k, 60k; idle and fighting).
   `profile_tick idle [soldiers]` uses the same spawn grid with commanders
   disabled, two fresh 600-tick runs, and per-repeat mean/stddev and hashes.
+  Here `idle` means commanders disabled: the fixed grid can still produce
+  initial contact at larger sizes. Each repeat reports `max_living_fighting`,
+  sampled outside the tick timer, so contact cannot be mistaken for idle cost.
   Omitting the target sweeps all three sizes. Record the
   ledger rows and the 30k → 60k ratio (July: fighting cost ×2.71 for ×1.97
   soldiers — has it improved?).

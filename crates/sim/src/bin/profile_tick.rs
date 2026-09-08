@@ -93,12 +93,14 @@ fn idle(target: usize) {
     for repeat in 1..=2 {
         let mut battle = scaled_battle(target, false);
         let mut samples = Vec::with_capacity(600);
+        let mut max_living_fighting = fighting_count(&battle.sim);
         #[cfg(feature = "perf_timing")]
         sim::perf_timing::reset();
         for _ in 0..600 {
             let start = Instant::now();
             battle.tick();
             samples.push(start.elapsed().as_secs_f64() * 1000.0);
+            max_living_fighting = max_living_fighting.max(fighting_count(&battle.sim));
         }
         let mean = samples.iter().sum::<f64>() / samples.len() as f64;
         let stddev = (samples
@@ -114,7 +116,7 @@ fn idle(target: usize) {
         expected_hash = Some(hash);
         repeats.push(mean);
         let alive = battle.sim.alive.iter().filter(|&&v| v == 1).count();
-        println!("idle target {target} repeat {repeat} soldiers {} window 0..600 alive {alive} mean_ms {mean:.3} stddev_ms {stddev:.3} hash {hash:#018x}", battle.sim.soldier_count());
+        println!("idle target {target} repeat {repeat} soldiers {} window 0..600 alive {alive} max_living_fighting {max_living_fighting} mean_ms {mean:.3} stddev_ms {stddev:.3} hash {hash:#018x}", battle.sim.soldier_count());
         #[cfg(feature = "perf_timing")]
         sim::perf_timing::report(600);
     }

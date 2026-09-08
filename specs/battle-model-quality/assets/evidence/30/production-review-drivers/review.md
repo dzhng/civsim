@@ -1,8 +1,8 @@
 # Production model review consumers
 
-CPU/code checkpoint only. Final catalog capture, framing inspection, exact repeat
-and fresh visual critique remain pending; no portrait, sheet or film was blessed
-by this checkpoint.
+The original CPU/code checkpoint is followed by the
+[card/static artifact review](artifact-review.md). Motion artifact refresh remains
+separately queued; no film was blessed by the original checkpoint.
 
 The existing card, sheet and animation commands now share one capture boundary to
 the production model workbench. Appearance identity comes from the registry;

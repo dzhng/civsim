@@ -1,0 +1,18 @@
+Inspected both at native scale. Locations below use **row/column in the 4 × 5 sheet**, with approximate pixel coordinates measured from the top left.
+
+**Clear defects**
+
+- **R5C1 and R5C2: pole tips are cropped.** Both shafts run into the cards’ upper boundary without a visible tip, at sheet **(116, 736)** and **(317, 736)**—approximately **(116, 0)** within each card. This makes the weapons look truncated. **High confidence.**
+
+**Readability and cosmetic limitations**
+
+- **Figures occupy little of each card.** Most standing figures are approximately 90–100 pixels tall within the 184-pixel height, leaving substantial grass around them. Faces, hands, and small weapons consequently have little readable detail. This is a framing limitation rather than missing geometry. **High confidence; sheet-wide.**
+- **Small weapons lose their identity.** Particularly **R1C3**, around **(480–508, 80–102)**, and **R3C2**, around **(281–314, 446–480)**: equipment merges with hands, clothing, or background. I cannot confidently identify the weapon from these portraits alone; that does **not** establish that it is absent. **High confidence on ambiguity.**
+- **Mounted silhouettes overlap heavily.** **R2C3, R2C4, and R4C4:** the nearly frontal view layers riders’ legs against the horses’ bodies and legs. The mounts remain recognizable, but tack and limb separation are weak. **Medium-high confidence.**
+- **Shield-bearing cards look similar at a glance.** Especially **R1C2, R3C3, and R4C2**: central round shields obscure much of the torso, while distinguishing weapons are thin and low contrast. **Medium-high confidence.**
+
+**Artillery specifically**
+
+- The standalone image visibly contains **both an operator and a wheeled wooden engine**. Neither is wholly missing. The equipment occupies approximately **x29–98, y91–149**, with the operator at **x76–117, y54–146**. **High confidence.**
+- The operator overlaps the engine’s right side; horizontal weapon components merge with the hands around **x77–116, y86–103**. The engine reads more readily as a wooden cart/frame than as an unmistakable artillery mechanism. **Medium-high confidence.**
+- No obvious figure or engine clipping is visible in this card. Its sheet counterpart, **R3C1**, shows the same composition. **High confidence.**

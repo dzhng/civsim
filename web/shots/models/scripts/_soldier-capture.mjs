@@ -115,6 +115,7 @@ export async function openSoldierCapture() {
       if (errors.length) throw new Error(errors.join("\n"));
     };
     assertHealthy();
+    const clipBounds = new Map();
     return {
       assets,
       page,
@@ -122,13 +123,79 @@ export async function openSoldierCapture() {
         appearance,
         clip,
         phase,
-        { width = 360, height = 360, yaw = Math.PI / 4, pitch = 1.15, alive = true } = {},
+        {
+          width = 360,
+          height = 360,
+          yaw = Math.PI / 4,
+          pitch = 1.15,
+          alive = true,
+          framing = "fullKit",
+        } = {},
       ) {
-        // Framing categories describe visible equipment, not a duplicate roster or model scale.
-        const pike =
-          appearance.look.weapon.startsWith("pike") && appearance.look.weapon !== "pike_sidearm";
         const bodyHeight = appearance.look.mounted ? 2.6 : 1.95;
-        const extent = pike ? 6.6 : appearance.look.mounted ? 4.3 : 3;
+        const key = `${appearance.id}:${clip.name}`;
+        if (framing === "fullKit" && !clipBounds.has(key)) {
+          clipBounds.set(
+            key,
+            await page.evaluate(
+              async ({ id, name, phases }) => {
+                const entry = performance
+                  .getEntriesByType("resource")
+                  .find((resource) =>
+                    /\/soldier-assets\/src\/localAnimation\.ts(?:\?|$)/.test(resource.name),
+                  );
+                if (!entry) throw new Error("Production local animation module URL missing");
+                const { decodeLocalSample, resolveLocalSample } = await import(entry.name);
+                const { localPoseToJointMatrices } = await import(
+                  new URL("localPose.ts", entry.name).href
+                );
+                const { poseSoldierMesh } = await import(new URL("skin.ts", entry.name).href);
+                const asset = window.__battleModels.world.soldierAssets[id];
+                const exported = asset.animation.clips.find((candidate) => candidate.name === name);
+                const min = [Infinity, Infinity, Infinity],
+                  max = [-Infinity, -Infinity, -Infinity];
+                // A clip-wide focus stays still in motion films; conservative culling spheres
+                // include unrelated motion and waste most of a small review panel.
+                const samples = new Set([
+                  ...phases,
+                  ...Array.from(exported.times, (time) =>
+                    exported.duration ? time / exported.duration : 0,
+                  ),
+                ]);
+                for (const phase of samples) {
+                  const locals = decodeLocalSample(
+                    asset.animation,
+                    resolveLocalSample(asset.animation, name, phase),
+                  );
+                  const { positions } = poseSoldierMesh(
+                    asset.tiers[0],
+                    localPoseToJointMatrices(asset.rig, locals),
+                  );
+                  for (let i = 0; i < positions.length; i++) {
+                    const axis = i % 3;
+                    min[axis] = Math.min(min[axis], positions[i]);
+                    max[axis] = Math.max(max[axis], positions[i]);
+                  }
+                }
+                return {
+                  center: min.map((value, axis) => (value + max[axis]) / 2),
+                  radius: Math.hypot(...min.map((value, axis) => max[axis] - value)) / 2,
+                };
+              },
+              {
+                id: appearance.id,
+                name: clip.name,
+                phases: [
+                  phase,
+                  ...motionSamples(clip).phases,
+                  ...sheetSamples(assets[appearance.id]).map((sample) => sample.phase),
+                ],
+              },
+            ),
+          );
+        }
+        const kitBounds = framing === "fullKit" ? clipBounds.get(key) : null;
+        const extent = kitBounds ? kitBounds.radius * 2 : appearance.look.mounted ? 4.3 : 3;
         const zoom = (Math.min(width, height) * 0.86) / extent;
         const before = await page.evaluate(
           (pose) => {
@@ -146,7 +213,7 @@ export async function openSoldierCapture() {
             yaw,
             pitch,
             zoom,
-            target: [0, 0, bodyHeight / 2],
+            target: kitBounds ? kitBounds.center : [0, 0, bodyHeight / 2],
           },
         );
         await page.waitForFunction((frame) => window.__battleModels.stats().frame > frame, before);

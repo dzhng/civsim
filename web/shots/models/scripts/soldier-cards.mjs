@@ -7,6 +7,7 @@ import {
   montage,
   openSoldierCapture,
   roleClip,
+  selectedAppearances,
 } from "./_soldier-capture.mjs";
 
 const directories = [
@@ -31,10 +32,15 @@ if (process.argv.includes("--check")) {
   }
   console.log("Card manifests and served portraits agree");
 } else if (snapshotSelected("models/cards/portraits")) {
+  const selected = new Set(selectedAppearances().map(({ id }) => id));
   const capture = await openSoldierCapture();
   try {
     const portraits = [];
     for (const appearance of appearances) {
+      if (!selected.has(appearance.id)) {
+        portraits.push(await readFile(new URL(manifest[appearance.id], directories[0])));
+        continue;
+      }
       const clip = roleClip(capture.assets[appearance.id], "ready");
       portraits.push(
         await capture.capture(appearance, clip, 0, {
@@ -42,6 +48,7 @@ if (process.argv.includes("--check")) {
           height: 184,
           yaw: Math.PI + Math.PI / 12,
           pitch: 1.25,
+          framing: "figure",
         }),
       );
     }
@@ -59,7 +66,8 @@ if (process.argv.includes("--check")) {
     for (const directory of directories) {
       await mkdir(directory, { recursive: true });
       for (let i = 0; i < appearances.length; i++)
-        await writeFile(new URL(manifest[appearances[i].id], directory), portraits[i]);
+        if (selected.has(appearances[i].id))
+          await writeFile(new URL(manifest[appearances[i].id], directory), portraits[i]);
       await writeFile(
         new URL("manifest.json", directory),
         JSON.stringify(manifest, null, 2) + "\n",

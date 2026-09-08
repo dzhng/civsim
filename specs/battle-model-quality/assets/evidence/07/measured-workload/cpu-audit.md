@@ -88,3 +88,6 @@ the upper lane too. Review found no new lifetime or approximation decision to
 add to the choices ledger. The merged tree passes all 356 tests in 60 files and
 TypeScript (session54727, terminal0). No GPU rerun or performance acceptance is
 claimed for this exact-work reduction.
+
+The subsequent [isolated CPU profile](cpu-profile.md) ranks clip resolution and
+history cloning ahead of seating, while preserving the browser/runtime caveat.

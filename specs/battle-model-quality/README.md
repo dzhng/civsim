@@ -52,7 +52,9 @@ Evidence ledger:
   [surfaces](slices/10-pair-surfaces.md): provisional fitted composition.
   Preserve saved geometry rather than regenerating unrelated equipment.
 - [Budget](slices/07-budget-envelope.md): mixed hardware measurements do not
-  establish the animated33ms envelope.
+  establish the animated33ms envelope. The current typed workload repairs an
+  obsolete gait hint and remains over budget; historical walking-only timings
+  are not a matched comparison with its walk/run interruptions.
 - [Choices](choices.md): banked decisions and unresolved quality tradeoffs.
 
 Preserve simulation/save/balance, exact interruption poses, atomic catalog

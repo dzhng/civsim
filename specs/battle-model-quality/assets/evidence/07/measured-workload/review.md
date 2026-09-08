@@ -35,6 +35,11 @@ and simulation untouched. Representative clip and phase telemetry is recorded
 outside CPU submission timing; all bodies share the synchronized history.
 Root owns the slice pickup, README and checkpoint updates.
 
+Root integration independently passes all355 web tests and TypeScript. The
+current slice pickup links this report and distinguishes the repaired workload
+from historical walking-only rows. No production runtime code changed in this
+pass; the schedule has one typed owner and the real controller is its test seam.
+
 ## Change ledger
 
 | Test | Previous behavior | New behavior | Why |

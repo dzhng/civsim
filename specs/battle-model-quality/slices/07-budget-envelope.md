@@ -3,7 +3,15 @@
 Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
 
 Current pickup: investigate remaining cadence and submission tails at the
-controlled lower near density. The [fixed-5K A/B/A](../assets/evidence/07/near-density/review.md)
+controlled lower near density using the
+[current measured-gait workload](../assets/evidence/07/measured-workload/review.md).
+Its typed observations genuinely exercise both walk and run; the historical
+running hint had left those older timed rows at walking pace. The current
+single5K hardware run remains red and is a new workload baseline, not evidence
+of a slowdown or speedup relative to those rows. Preserve the existing33ms
+thresholds and investigate actual recurring CPU work before another measurement.
+
+The historical [fixed-5K A/B/A](../assets/evidence/07/near-density/review.md)
 shows sensitivity to near geometry with matched camera, tiers and palette demand,
 but the lower density still fails cadence. No art limit is accepted.
 The [frozen-source retirement cleanup](../assets/evidence/07/frozen-retirement/review.md)

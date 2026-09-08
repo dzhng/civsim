@@ -2,7 +2,6 @@ import { runCandidateSheet, candidateSnapshots } from "./_candidate-sheet.mjs";
 import { pikeFamilyPresentation } from "../../../packages/soldier-assets/bake/pike-motion-contract.mjs";
 import { captureMeshLods, meshLodSnapshots } from "./_mesh-lod-sheet.mjs";
 import { captureMediumMotion, mediumMotionSnapshots } from "./_medium-motion.mjs";
-import { pikeFamilyPresentation } from "../../../packages/soldier-assets/bake/pike-motion-contract.mjs";
 
 const views = [
   ["front", 0],

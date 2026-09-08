@@ -1,0 +1,22 @@
+{
+  "frozenDonorSha256": "cbdeb8d6879c0607aaf173df4ba524a249ed427ed3e371651a2003a27e035300",
+  "unchangedVertices": 24620,
+  "unchangedTriangles": 49276,
+  "unchangedActions": [
+    "bend",
+    "bend-pronation",
+    "death",
+    "guarded-backward-walk",
+    "guarded-left-walk",
+    "guarded-right-walk",
+    "hit",
+    "idle",
+    "pronation",
+    "ready",
+    "run",
+    "sword-effort",
+    "walk"
+  ],
+  "unchangedBodyWeightsUvsRig": true,
+  "omittedFromGlb": "clothing and equipment only"
+}

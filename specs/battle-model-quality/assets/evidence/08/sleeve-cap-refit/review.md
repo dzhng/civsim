@@ -101,6 +101,10 @@ refit still requires both-shoulder extremes, dense clearance, paired production
 views with fresh critique, and full re-review of all old clips. Identical keys
 cannot prove unchanged posed surfaces.
 
+The [unchanged unarmored inspection](unarmored-review.md) subsequently exposes
+the shoulder's visible form before choosing a body refit; it changes no source
+anatomy and does not accept a remedy.
+
 ## Evidence review
 
 Independent read-only review found one overclaim: absence from the thresholded

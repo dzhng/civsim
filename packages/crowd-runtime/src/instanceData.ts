@@ -50,10 +50,6 @@ export interface CrowdBuildStats {
   enemy: number;
 }
 
-export interface CrowdInstanceBuffers {
-  instances: CrowdInstance[];
-}
-
 /** Build (or refresh) the per-soldier render instances from the sim's flat
  *  arrays. Pass the previous frame's `pool` to refresh its objects in place:
  *  the crowd is rebuilt every frame, and 30k fresh objects a frame is pure
@@ -61,7 +57,7 @@ export interface CrowdInstanceBuffers {
 export function buildCrowdInstances(
   inputs: CrowdBuildInputs,
   pool: CrowdInstance[] = [],
-): CrowdInstanceBuffers & { stats: CrowdBuildStats } {
+): { instances: CrowdInstance[]; stats: CrowdBuildStats } {
   const count = inputs.count ?? Math.floor(inputs.positions.length / 2);
   const mountedClasses = new Set(inputs.mountedClasses ?? []);
   const instances = pool;

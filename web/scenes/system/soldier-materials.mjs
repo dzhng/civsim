@@ -22,6 +22,7 @@ export const meta = {
     "soldier-materials-metal",
     "soldier-materials-blender-checker",
     "soldier-materials-posed-normal",
+    "soldier-materials-authored-corpse",
   ],
   describe:
     "Raw production soldier material IDs, scalar factors and independent faction masks; ordinary blue is not faction identity.",
@@ -704,30 +705,87 @@ export async function run(ctx) {
     turnError.interiorMaximum <= 2 && turnError.mean < 0.01,
     JSON.stringify(turnError),
   );
-  const roll = (variant) => (variant - 1) * 0.42 + Math.sin(variant * 2.3) * 0.18;
   const corpse = await capture(
     ctx,
-    `${normalParams}&alive=0&deathVariant=2`,
-    null,
+    `${normalParams}&alive=0`,
+    "soldier-materials-authored-corpse",
     candidateNormalCase([224, 192, 240], { scale: 0.7 }),
   );
   const bakedCorpse = await capture(
     ctx,
-    `${normalParams}&alive=0&deathVariant=0`,
+    `${normalParams}&alive=0`,
     null,
     candidateNormalCase([224, 192, 240], {
       scale: 0.7,
-      bakedRotation: new Matrix4().makeRotationX(roll(2) - roll(0)),
+      preposePhase: 0.5,
     }),
   );
   const corpseError = pixelDifference(corpse, bakedCorpse);
-  // SwiftShader's runtime sin(4.6) differs from JS Math.sin by 0.000173:
-  // the shader roll differs by 0.000031 rad from this independent CPU oracle.
-  // Allow that measured trig precision, separately from rasterized edges.
   ctx.check(
-    "corpse roll rotates the mapped tangent frame",
-    corpseError.interiorMaximum <= 4 && corpseError.mean < 0.01,
+    "corpse shading preserves independently preposed mapped tangent frame",
+    corpseError.interiorMaximum <= 2 && corpseError.mean < 0.01,
     JSON.stringify(corpseError),
+  );
+  const empty = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], {
+      scale: 0.7,
+      bakedRotation: new Matrix4().makeTranslation(100, 0, 0),
+    }),
+  );
+  let changedCoverage = 0,
+    covered = 0;
+  for (let pixel = 0; pixel < normal.data.length; pixel += 4) {
+    const foreground = (image) =>
+      [0, 1, 2].some((c) => image.data[pixel + c] !== empty.data[pixel + c]);
+    const livingCoverage = foreground(normal),
+      corpseCoverage = foreground(corpse);
+    if (livingCoverage) covered++;
+    if (livingCoverage !== corpseCoverage) changedCoverage++;
+  }
+  ctx.check(
+    "corpse shading preserves authored geometry coverage",
+    covered > 100 && changedCoverage === 0,
+    JSON.stringify({ covered, changedCoverage }),
+  );
+  // Start from observed living illumination, not another pass through the
+  // corpse shader. Only the final linear-space color transfer may differ.
+  // Unclipped flat interiors avoid raster-edge mixtures; two bytes cover
+  // quantization of the observed input and the final encoded output.
+  const decode = (v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const encode = (v) => (v <= 0.0031308 ? v * 12.92 : 1.055 * v ** (1 / 2.4) - 0.055);
+  let transferSamples = 0,
+    transferMaximum = 0;
+  for (let y = 1; y < normal.height - 1; y++)
+    for (let x = 1; x < normal.width - 1; x++) {
+      const o = (y * normal.width + x) * 4;
+      if ([0, 1, 2].every((c) => normal.data[o + c] === empty.data[o + c])) continue;
+      if ([0, 1, 2].some((c) => normal.data[o + c] >= 254)) continue;
+      let interior = true;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++)
+          for (let c = 0; c < 3; c++)
+            if (
+              Math.abs(normal.data[o + c] - normal.data[o + (dy * normal.width + dx) * 4 + c]) > 3
+            )
+              interior = false;
+      if (!interior) continue;
+      const rgb = [0, 1, 2].map((c) => decode(normal.data[o + c] / 255));
+      const luminance = rgb[0] * 0.3 + rgb[1] * 0.59 + rgb[2] * 0.11;
+      for (let c = 0; c < 3; c++) {
+        const expected = Math.round(
+          255 * encode(rgb[c] * 0.3 + (luminance * 0.62 + [0.06, 0.04, 0.03][c]) * 0.7),
+        );
+        transferMaximum = Math.max(transferMaximum, Math.abs(corpse.data[o + c] - expected));
+      }
+      transferSamples++;
+    }
+  ctx.check(
+    "corpse mapped lighting changes only by the final color transfer",
+    transferSamples > 100 && transferMaximum <= 2,
+    JSON.stringify({ transferSamples, transferMaximum }),
   );
   const normalOracle = await capture(
     ctx,

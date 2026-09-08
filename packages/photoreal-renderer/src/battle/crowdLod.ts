@@ -1,8 +1,5 @@
 import * as THREE from "three/webgpu";
-import {
-  corpsePresentationStrength,
-  type CrowdInstance,
-} from "../../../crowd-runtime/src/instanceData";
+import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import {
   assignLodForProjection,
   DEFAULT_LOD_POLICY,
@@ -39,19 +36,12 @@ export function planPhotorealCrowdLods(
   const assignments = instances.map((inst, index) => {
     const { center, radius } = assets[inst.classId].manifest.bounds;
     const angle = inst.facing - Math.PI / 2;
-    const variant = inst.deathVariant ?? 0;
-    const roll =
-      corpsePresentationStrength(inst) * ((variant - 1) * 0.42 + Math.sin(variant * 2.3) * 0.18);
-    const cosRoll = Math.cos(roll),
-      sinRoll = Math.sin(roll);
     const cosAngle = Math.cos(angle),
       sinAngle = Math.sin(angle);
-    const y = center[1] * cosRoll - center[2] * sinRoll;
-    const z = center[1] * sinRoll + center[2] * cosRoll;
     sphere.center.set(
-      inst.x + center[0] * cosAngle - y * sinAngle,
-      inst.y + center[0] * sinAngle + y * cosAngle,
-      (inst.elevation ?? 0) + z,
+      inst.x + center[0] * cosAngle - center[1] * sinAngle,
+      inst.y + center[0] * sinAngle + center[1] * cosAngle,
+      (inst.elevation ?? 0) + center[2],
     );
     sphere.radius = radius;
     let viewPixels = 0,

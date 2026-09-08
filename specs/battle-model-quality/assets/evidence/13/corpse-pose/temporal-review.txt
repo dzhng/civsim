@@ -1,0 +1,5 @@
+No concrete actionable defects found in the scoped changes.
+
+The center transform matches production facing and elevation handling. Restricting the scope to one non-shadow view makes `stats().visible` an admission signal without shadow-only admissions masking rejection. The ±5 cm halfspaces require both admission and rejection at every sampled weight, so bypassed culling cannot pass.
+
+Static review only; no execution.

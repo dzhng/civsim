@@ -231,7 +231,7 @@ export class OctahedralImpostorLayer {
     material.roughnessNode = orm.g;
     material.metalnessNode = orm.b;
     // Contact grounding is a separate posed property, not authored occlusion.
-    // Fade fixed-pose grounding out with the same blend that introduces corpse roll.
+    // Fade fixed-pose grounding out with the corpse shading blend.
     const living = varying(attribute<"float">("impostorLiving", "float"));
     material.aoNode = orm.r.mul(mix(1, normalAndContact.a, living));
     material.colorNode = vec4(

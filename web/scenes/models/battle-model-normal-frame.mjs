@@ -41,7 +41,7 @@ export async function run(ctx) {
       { name: "decoded-zero-linear", scale: 1, decodedZero: true },
       { name: "large-finite-scale", scale: 3e38 },
       { name: "unmapped-slot", scale: 1, unmapped: true },
-      { name: "corpse-roll", scale: 1, corpse: true },
+      { name: "authored-corpse", scale: 1, corpse: true },
       { name: "collapsed-T-front", scale: 1, collapse: "tangent" },
       { name: "collapsed-T-back", scale: 1, collapse: "tangent", back: true },
       { name: "collapsed-N-front", scale: 1, collapse: "normal" },
@@ -202,10 +202,7 @@ export async function run(ctx) {
             normals = [],
             tangents = [];
           const yaw = control.collapse ? 0 : 0.61;
-          const roll = control.corpse ? 0.42 + Math.sin(4.6) * 0.18 : 0;
-          const rotation = new THREE.Matrix4()
-            .makeRotationZ(yaw)
-            .multiply(new THREE.Matrix4().makeRotationX(roll));
+          const rotation = new THREE.Matrix4().makeRotationZ(yaw);
           for (let vertex = 0; vertex < mesh.positions.length / 3; vertex++) {
             const matrix = new THREE.Matrix4();
             matrix.elements.fill(0);
@@ -263,7 +260,6 @@ export async function run(ctx) {
                 classId: 40,
                 faction: 0,
                 alive: !control.corpse,
-                deathVariant: 2,
                 clip: "bend",
                 phase: 0.5,
                 seed: 0,
@@ -284,7 +280,7 @@ export async function run(ctx) {
             w.camera.lookAt(0, 0, 0.9);
             w.camera.updateMatrixWorld();
           }
-          const visible = replacement.buckets[40].find((bucket) => bucket.mesh.visible).mesh;
+          const visible = replacement.buckets[40].main.find((bucket) => bucket.mesh.visible).mesh;
           const material = visible.material;
           const width = control.collapse ? 641 : 640,
             height = control.collapse ? 401 : 400;

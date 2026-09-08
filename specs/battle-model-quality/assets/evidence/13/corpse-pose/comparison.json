@@ -1,0 +1,37 @@
+{
+  "rows": [
+    {
+      "name": "oblique-living",
+      "changedPixels": 0
+    },
+    {
+      "name": "oblique-0",
+      "changedPixels": 42043
+    },
+    {
+      "name": "oblique-1",
+      "changedPixels": 33771
+    },
+    {
+      "name": "oblique-2",
+      "changedPixels": 42256
+    },
+    {
+      "name": "opposing-living",
+      "changedPixels": 0
+    },
+    {
+      "name": "opposing-0",
+      "changedPixels": 48282
+    },
+    {
+      "name": "opposing-1",
+      "changedPixels": 43914
+    },
+    {
+      "name": "opposing-2",
+      "changedPixels": 42013
+    }
+  ],
+  "candidateVariantPixelsIdentical": true
+}

@@ -107,35 +107,38 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
           const state = replay.seek(6);
           const instance = state.instances[0];
           const bounds = w.soldierAssets[instance.classId].manifest.bounds;
-          // One real frustum plane distinguishes the upright and fully rolled
-          // conservative sphere; the other planes repeat that half-space.
-          const uprightY = bounds.center[1];
-          const rolledY = bounds.center[1] * Math.cos(-0.42) - bounds.center[2] * Math.sin(-0.42);
-          const sign = Math.sign(uprightY - rolledY);
-          if (!sign) throw new Error("Culling fixture lacks a roll-sensitive center");
-          const plane = new THREE.Plane(
-            new THREE.Vector3(0, sign, 0),
-            -bounds.radius - (sign * (uprightY + rolledY)) / 2,
-          );
-          const frustum = new THREE.Frustum(...Array.from({ length: 6 }, () => plane.clone()));
+          const center = new THREE.Vector3(...bounds.center)
+            .applyAxisAngle(new THREE.Vector3(0, 0, 1), instance.facing - Math.PI / 2)
+            .add(new THREE.Vector3(instance.x, instance.y, instance.elevation ?? 0));
           const scope = w.crowdVisibilityScope();
-          scope.views = [{ ...scope.views.find((view) => !view.shadow), frustum }];
-          return [0, 0.5, 1].map((weight) => {
-            const sample = {
-              ...instance,
-              alive: false,
-              deathVariant: 0,
-              playback: { ...instance.playback, base: { ...instance.playback.base, weight } },
-            };
-            productionCrowd.upload([sample], scope);
-            const y =
-              bounds.center[1] * Math.cos(-0.42 * weight) -
-              bounds.center[2] * Math.sin(-0.42 * weight);
-            return {
-              weight,
-              visible: productionCrowd.stats().visible,
-              expectedVisible: Number(sign * y + plane.constant >= -bounds.radius),
-            };
+          const main = scope.views.find((view) => !view.shadow);
+          // Bracket authored sphere admission by 5cm; shading cannot move it
+          // across either real halfspace. Repeated planes isolate this boundary.
+          return [-0.05, 0.05].flatMap((margin) => {
+            const plane = new THREE.Plane(
+              new THREE.Vector3(0, 1, 0),
+              -center.y - bounds.radius + margin,
+            );
+            scope.views = [
+              {
+                ...main,
+                frustum: new THREE.Frustum(...Array.from({ length: 6 }, () => plane.clone())),
+              },
+            ];
+            return [0, 0.5, 1].map((weight) => {
+              const sample = {
+                ...instance,
+                alive: false,
+                playback: { ...instance.playback, base: { ...instance.playback.base, weight } },
+              };
+              productionCrowd.upload([sample], scope);
+              return {
+                weight,
+                margin,
+                visible: productionCrowd.stats().visible,
+                expectedVisible: Number(margin > 0),
+              };
+            });
           });
         },
         async select(id) {
@@ -283,10 +286,10 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
     );
     const culling = await page.evaluate(() => window.__temporalReplay.culling());
     ctx.check(
-      `${id}: production frustum culling follows death blend`,
+      `${id}: production frustum culling preserves authored bounds across death shading`,
       culling.every((row) => row.visible === row.expectedVisible) &&
-        culling[0].visible === 1 &&
-        culling[2].visible === 0,
+        culling.some((row) => row.visible === 1) &&
+        culling.some((row) => row.visible === 0),
       culling,
     );
     const captured = [];

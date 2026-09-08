@@ -168,22 +168,13 @@ fn vs(
   let n = normalize((joint * vec4f(normal, 0.0)).xyz);
   let t = finiteNormal((joint * vec4f(tangent.xyz, 0.0)).xyz, vec3f(0));
 
-  // Corpses (inst2.z) roll by a per-variant angle (inst2.y) so the fallen field
-  // reads as varied poses, not one frozen death animation.
   let corpse = inst2.z;
-  let variant = inst2.y;
-  let roll = corpse * ((variant - 1.0) * 0.42 + sin(variant * 2.3) * 0.18);
-  let rc = cos(roll);
-  let rs = sin(roll);
-  let rolled = vec3f(local.x, local.y * rc - local.z * rs, local.y * rs + local.z * rc);
   let a = inst0.z - 1.5707964;
   let c = cos(a);
   let s = sin(a);
-  let rolledNormal = vec3f(n.x, n.y * rc - n.z * rs, n.y * rs + n.z * rc);
-  let worldNormal = vec3f(rolledNormal.x * c - rolledNormal.y * s, rolledNormal.x * s + rolledNormal.y * c, rolledNormal.z);
-  let rolledTangent = vec3f(t.x, t.y * rc - t.z * rs, t.y * rs + t.z * rc);
-  let worldTangent = vec3f(rolledTangent.x * c - rolledTangent.y * s, rolledTangent.x * s + rolledTangent.y * c, rolledTangent.z);
-  let p = rolled * inst1.x;
+  let worldNormal = vec3f(n.x * c - n.y * s, n.x * s + n.y * c, n.z);
+  let worldTangent = vec3f(t.x * c - t.y * s, t.x * s + t.y * c, t.z);
+  let p = local.xyz * inst1.x;
   // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
   let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z + inst2.x);
 
@@ -773,7 +764,7 @@ export class SkinnedCrowdPipeline {
       data[o + 5] = paletteIndices[group[i]];
       data[o + 6] = resource.palette.bones;
       data[o + 8] = inst.elevation ?? 0; // inst2.x: terrain elevation
-      data[o + 9] = inst.deathVariant ?? 0; // inst2.y: corpse variant 0..2
+      data[o + 9] = 0; // inst2.y: aligned padding
       data[o + 10] = corpsePresentationStrength(inst); // inst2.z: corpse strength
     }
     resource.instanceBuffer.write(data);

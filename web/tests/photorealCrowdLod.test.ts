@@ -68,7 +68,7 @@ function shadowView(extent = 1000, y = 0) {
 test("projected LOD keeps the exact pre-optimization audience sequence", () => {
   // Captured on 5657d660 before changing arithmetic/storage. This is an exactness
   // pin, not an art-quality or performance gate. Fixed inputs include culled,
-  // near-plane, elevated, mounted and rolled asymmetric corpse bounds.
+  // near-plane, elevated, mounted and asymmetric corpse bounds.
   const fixtureAssets = {
     0: {
       manifest: { bounds: { center: [0.13, -0.21, 0.9] as [number, number, number], radius: 1.3 } },
@@ -84,7 +84,6 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
       mounted: i % 2 === 0,
       facing: i * 0.73,
       alive: i % 4 === 0,
-      deathVariant: i % 3,
       elevation: i % 3 === 0 ? 0 : i * 0.7,
     }));
     const views =
@@ -276,7 +275,7 @@ test("actual single and cascade cameras see shadow meshes but the main camera ca
   material.dispose();
 });
 
-test("near-plane bounds keep full detail and corpse roll still controls view admission", () => {
+test("near-plane bounds keep full detail and corpse shading never moves authored bounds", () => {
   const view = mainView();
   const near = { ...body(0, -3), elevation: 2.3 };
   const plan = planPhotorealCrowdLods([near], [view], assets);
@@ -291,7 +290,6 @@ test("near-plane bounds keep full detail and corpse roll still controls view adm
   const upright: CrowdInstance = {
     ...body(0, 0),
     alive: false,
-    deathVariant: 0,
     playback: {
       appearanceId: 0,
       base: {
@@ -305,6 +303,11 @@ test("near-plane bounds keep full detail and corpse roll still controls view adm
     ...upright,
     playback: { ...upright.playback!, base: { ...upright.playback!.base, weight: 1 } },
   };
-  const rolled = planPhotorealCrowdLods([upright, fallen], [halfspace], assets);
-  assert.notEqual(rolled.visibility[0], rolled.visibility[1]);
+  const admission = planPhotorealCrowdLods([upright, fallen], [halfspace], assets);
+  assert.deepEqual(
+    Array.from(admission.visibility),
+    [0, 0],
+    "Changing death shading weight must not rotate the authored bounding sphere into view",
+  );
+  assert.deepEqual(admission.assignments[0], admission.assignments[1]);
 });

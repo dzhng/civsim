@@ -34,9 +34,6 @@ export interface CrowdInstance {
   /** Render-only terrain height at (x,y); added to world Z so soldiers sit on
    *  the surface and sort by it. Sim positions are unaffected. */
   elevation?: number;
-  /** 0..2 corpse variant for fallen soldiers — varies fall roll + reaches the
-   *  GPU so the field of dead reads as varied, not one frozen pose. */
-  deathVariant?: number;
 }
 
 /** Coherent dead submissions enter corpse effects with the death blend, not clip phase. */
@@ -86,7 +83,6 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): {
       elevation: inputs.terrainHeight
         ? inputs.terrainHeight(inputs.positions[i * 2], inputs.positions[i * 2 + 1])
         : 0,
-      deathVariant: alive ? 0 : deathVariantForSoldier(i, unit),
     };
     instances.push(inst);
     stats.written++;
@@ -103,14 +99,6 @@ export function deterministicInstanceSeed(index: number, unit: number): number {
   x = Math.imul(x, 0xc2b2ae35) >>> 0;
   x ^= x >>> 13;
   return x >>> 0;
-}
-
-function deathVariantForSoldier(index: number, unit: number): number {
-  let h = (Math.imul(index + 1, 2246822507) ^ Math.imul(unit + 17, 3266489917)) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 668265263) >>> 0;
-  h ^= h >>> 16;
-  return (h >>> 0) % 3;
 }
 
 export function generatedFormation(

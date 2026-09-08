@@ -1,5 +1,5 @@
 // crowdLayer — the skinned crowd on the photoreal substrate: per-class meshes,
-// shared computed joint palettes, corpse roll/desaturation, and faction accents. Soldiers use
+// shared computed joint palettes, corpse desaturation, and faction accents. Soldiers use
 // a standard-material response with a NEUTRAL albedo; the sun + IBL light the
 // skinned normals. The layer consumes the SAME buildCrowdInstances output and
 // casts/receives REAL sun shadows; the shadow pass re-skins the same palette
@@ -13,7 +13,6 @@ import {
   uint,
   mix,
   normalize,
-  sin,
   transformNormalToView,
   varying,
   vec3,
@@ -457,7 +456,7 @@ export class PhotorealCrowd {
       bucket.inst1[o + 2] = 0;
       bucket.inst1[o + 3] = 0;
       bucket.inst2[o] = inst.elevation ?? 0;
-      bucket.inst2[o + 1] = inst.deathVariant ?? 0;
+      bucket.inst2[o + 1] = 0; // aligned padding
       bucket.inst2[o + 2] = corpsePresentationStrength(inst);
       bucket.inst2[o + 3] = 0;
     }
@@ -548,28 +547,11 @@ function crowdMaterial(
   const local = c0.mul(position.x).add(c1.mul(position.y)).add(c2.mul(position.z)).add(c3).toVar();
   const n = normalize(c0.mul(normal.x).add(c1.mul(normal.y)).add(c2.mul(normal.z)).xyz).toVar();
 
-  // Corpses roll by a per-variant angle so the fallen field reads as varied.
   const corpse = inst2.z.toVar();
-  const variant = inst2.y;
-  const roll = corpse
-    .mul(
-      variant
-        .sub(1.0)
-        .mul(0.42)
-        .add(sin(variant.mul(2.3)).mul(0.18)),
-    )
-    .toVar();
-  const rc = roll.cos().toVar();
-  const rs = roll.sin().toVar();
-  const rolled = vec3(
-    local.x,
-    local.y.mul(rc).sub(local.z.mul(rs)),
-    local.y.mul(rs).add(local.z.mul(rc)),
-  );
   const a = inst0.z.sub(1.5707964).toVar();
   const c = a.cos().toVar();
   const s = a.sin().toVar();
-  const p = rolled.mul(inst1.x).toVar();
+  const p = local.xyz.mul(inst1.x).toVar();
   // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
   const worldPosition = vec3(
     inst0.x.add(p.x.mul(c)).sub(p.y.mul(s)),
@@ -580,19 +562,13 @@ function crowdMaterial(
   const vWorldPosition = varying(worldPosition);
   material.receivedShadowPositionNode = vWorldPosition;
 
-  // The environment lights the FULLY posed normal: skinned, corpse-rolled,
-  // then yaw-rotated into world space.
-  const rolledN = vec3(n.x, n.y.mul(rc).sub(n.z.mul(rs)), n.y.mul(rs).add(n.z.mul(rc)));
-  const worldN = vec3(
-    rolledN.x.mul(c).sub(rolledN.y.mul(s)),
-    rolledN.x.mul(s).add(rolledN.y.mul(c)),
-    rolledN.z,
-  );
+  // Authored skinning owns body orientation; instance facing rotates into world space.
+  const worldN = vec3(n.x.mul(c).sub(n.y.mul(s)), n.x.mul(s).add(n.y.mul(c)), n.z);
   material.normalNode = viewNormalNode(worldN);
 
   // Pack scalar instance/contact properties into one varying location so mapped
   // surfaces fit baseline WebGPU's inter-stage limit alongside production shadows.
-  const contactAo = soldierContactOcclusion(rolled.z);
+  const contactAo = soldierContactOcclusion(local.z);
   const instanceSurface = varying(
     vec3(inst0.w, corpse, mix(float(1), contactAo, float(1).sub(corpse))),
   );
@@ -605,12 +581,7 @@ function crowdMaterial(
       c0.mul(tangent.x).add(c1.mul(tangent.y)).add(c2.mul(tangent.z)).xyz,
       vec3(0),
     ).toVar();
-    const rolledT = vec3(t.x, t.y.mul(rc).sub(t.z.mul(rs)), t.y.mul(rs).add(t.z.mul(rc)));
-    const worldT = vec3(
-      rolledT.x.mul(c).sub(rolledT.y.mul(s)),
-      rolledT.x.mul(s).add(rolledT.y.mul(c)),
-      rolledT.z,
-    );
+    const worldT = vec3(t.x.mul(c).sub(t.y.mul(s)), t.x.mul(s).add(t.y.mul(c)), t.z);
     material.normalNode = transformNormalToView(
       surface.normal(
         varying(worldN),

@@ -1,5 +1,6 @@
 import { runCandidateSheet, candidateSnapshots } from "./_candidate-sheet.mjs";
 import { captureMediumMotion, mediumMotionSnapshots } from "./_medium-motion.mjs";
+import { pikeFamilyPresentation } from "../../../packages/soldier-assets/bake/pike-motion-contract.mjs";
 
 const views = [
   ["front", 0],
@@ -152,7 +153,7 @@ export const meta = {
   tier: "full",
   snapshots: [...candidateSnapshots("medium-phalanx", [], cameras), ...mediumMotionSnapshots],
   describe:
-    "Fitted medium armor, pike posture, upright-pike travel and stationary thrust; manual row14 candidate only.",
+    "Fitted medium armor, pike posture, upright-pike travel and stationary thrust with playable action bindings.",
 };
 
 export async function run(ctx) {
@@ -162,6 +163,7 @@ export async function run(ctx) {
     label: "Medium phalanx candidate",
     folder: "medium-phalanx",
     classes: [14],
+    expectedPresentation: pikeFamilyPresentation(),
     baseCameras: cameras,
     afterSheets: captureMediumMotion,
   });

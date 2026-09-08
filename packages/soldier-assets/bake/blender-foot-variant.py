@@ -177,7 +177,7 @@ def build(source, output, name, armor, shield, helmet, export=True):
     return scene, arm, parts
 
 
-def export_parts(scene, arm, parts, output, name):
+def export_parts(scene, arm, parts, output, name, body_name=None):
     bpy.ops.object.select_all(action="DESELECT")
     copies = []
     for part in parts:
@@ -193,7 +193,7 @@ def export_parts(scene, arm, parts, output, name):
     bpy.context.view_layer.objects.active = copies[0]
     bpy.ops.object.join()
     body = copies[0]
-    body.name = f"{name}-Deform"
+    body.name = body_name or f"{name}-Deform"
     mesh = bmesh.new()
     mesh.from_mesh(body.data)
     bmesh.ops.triangulate(mesh, faces=list(mesh.faces))

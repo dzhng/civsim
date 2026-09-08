@@ -1,0 +1,16 @@
+Inspected **all 12 sheets using `view_image`**. No code inspected or files changed. Rows below are numbered top to bottom: **1 ordinary carry, 2 weapon ready, 3 effort, 4 fallen hold**.
+
+**No clearly missing role equipment:** the pike variants visibly carry a pike, shield, and sheathed sidearm; the sidearm variants carry a drawn sword, shield, and scabbard. That does not establish that every attachment is correct.
+
+| Sheets | Row | Concrete finding | Confidence / classification |
+|---|---|---|---|
+| `heavy-phalanx-sidearm/equipment.png` and `medium-phalanx-sidearm/equipment.png` | **2–3**, especially front-right | The shield sits beside/behind the elbow while the forearm folds across the chest. It reads as mounted near the elbow rather than following the forearm convincingly, leaving the forward guard open. The corresponding `complete-weapon.png` side views reinforce the awkward orientation. | **Medium-high — functional equipment/attachment concern**, not missing equipment. Exact penetration is unproven. |
+| `phalanx`, `medium-phalanx`, `heavy-phalanx-rest`, `medium-phalanx-rest` — all four `equipment-actual.png` sheets | **1–4** | Row 1 cuts off the upper pike; rows 2–4 cut off its long forward extent. In rows 2–3, shafts from adjacent panels meet at the central seam and resemble one bent weapon. | **High — framing defect**, not evidence of a broken shaft. |
+| Same four variants — all four `complete-weapon-actual.png` sheets | **1, right** | The title box obscures the upper weapon endpoint, so this “complete weapon” view cannot establish tip completeness. The left view shows an endpoint. | **High — framing/occlusion defect.** |
+| Same four variants — both sheet types | **2 → 3** | Arms and shield move, but the leg stance, hips, and upright torso change very little. The effort pose lacks a clear whole-body brace or forward weight commitment. | **High — posture/readability limitation.** |
+| Both sidearm variants — both sheet types | **3** | The raised sword elbow, sharply folded arm, and downward/outward blade produce a cramped windup silhouette. Knee bend and some rotation are visible, but the torso contributes little to the apparent effort. | **Medium — pose quality**, not a broken sword. |
+| All six variants — both sheet types | **4** | Fallen bodies retain deliberately organized grips and guards; pike carriers keep the pole suspended above the torso. The result reads stiff and posed rather than relaxed after collapse. | **High observation; medium defect confidence** because “fallen hold” may intentionally preserve the grip. |
+
+Cosmetic limitations are separate: smooth, simplified limbs and faces, repetitive mail texture, and largely featureless shield faces reduce anatomical and material richness. They do **not** demonstrate missing armor or broken equipment. Heavy and medium silhouettes remain distinguishable through crest/mail versus sleeveless segmented armor.
+
+The rest variants show no obvious distinct rest posture in these samples. That is a coverage concern unless identical poses are intended. **Static sheets cannot prove motion rhythm, transition quality, or foot sliding.**

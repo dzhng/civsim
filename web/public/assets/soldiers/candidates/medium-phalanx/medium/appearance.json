@@ -1,7 +1,56 @@
 {
   "name": "medium-phalanx",
   "mounted": false,
-  "presentation": null,
+  "presentation": {
+    "riderUpperBodyJoints": null,
+    "actions": {
+      "ready": {
+        "clip": "pike-ready",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at-ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "walk",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "guardedBackwardWalk": {
+        "clip": "guarded-backward-walk",
+        "layer": "fullBody"
+      },
+      "guardedLeftWalk": {
+        "clip": "guarded-left-walk",
+        "layer": "fullBody"
+      },
+      "guardedRightWalk": {
+        "clip": "guarded-right-walk",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "pike-thrust",
+        "layer": "fullBody"
+      },
+      "release": null,
+      "hit": {
+        "clip": "hit",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death",
+        "layer": "fullBody"
+      },
+      "pikeReady": {
+        "clip": "pike-ready",
+        "layer": "fullBody"
+      }
+    }
+  },
   "skeleton": "skeleton.json",
   "animation": "animation.json",
   "materials": "materials.json",
@@ -12,7 +61,7 @@
   ],
   "far": {
     "mesh": "tier-0.mesh.json",
-    "clip": "bend",
+    "clip": "pike-ready",
     "phase": 0
   },
   "bounds": {
@@ -21,6 +70,6 @@
       0,
       0
     ],
-    "radius": 5.7021307945251465
+    "radius": 5.7315874099731445
   }
 }

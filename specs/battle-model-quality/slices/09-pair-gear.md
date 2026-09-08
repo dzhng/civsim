@@ -124,7 +124,7 @@ From the repository root, with this worktree served on port 5316:
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --threads 2 --python-exit-code 1 --python packages/soldier-assets/bake/blender-medium-phalanx.py
-node packages/soldier-assets/bake/medium-phalanx.mjs
+node packages/soldier-assets/bake/pike-family.mjs --name medium-phalanx
 VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5316 node web/scene.mjs medium-phalanx
 ```
 

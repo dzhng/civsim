@@ -18,6 +18,64 @@ spec = importlib.util.spec_from_file_location("motion", HERE / "blender-heavy-mo
 motion = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(motion)
 GRIP_CENTERS = {side: Vector((sign * .5732, -.051, .9024)) for side, sign in (("L", 1), ("R", -1))}
+POLEARM_ACTIONS = ("hit", "death", "guarded-backward-walk", "guarded-left-walk", "guarded-right-walk")
+
+
+def author_polearm_action(arm, donor, clip):
+    """Reuse fitted body motion, retaining the connected two-hand weapon chain."""
+    scene = bpy.context.scene
+    controls = {a.name: motion.action_signature(a) for a in bpy.data.actions if a.name != clip}
+    old = bpy.data.actions.get(clip)
+    if old:
+        if old.get("author") != "medium-polearm-" + clip:
+            raise ValueError(f"Refusing to replace unrelated {clip}")
+        for track in list(arm.animation_data.nla_tracks):
+            if any(strip.action == old for strip in track.strips):
+                arm.animation_data.nla_tracks.remove(track)
+        arm.animation_data.action = None
+        bpy.data.actions.remove(old)
+    ready = bpy.data.actions["pike-ready"]
+    arm.animation_data.action = ready
+    arm.animation_data.action_slot = ready.slots[0]
+    scene.frame_set(0)
+    upper = {b.name: (b.rotation_euler.copy(), b.location.copy()) for b in arm.pose.bones
+             if b.name.startswith(("clavicle.", "upper-arm.", "forearm.", "hand.", "elbow-volume."))}
+    with bpy.data.libraries.load(str(donor)) as (data, target):
+        if clip not in data.actions or len(data.armatures) != 1:
+            raise ValueError(f"Donor must contain {clip} and one fitted rig")
+        target.actions, target.armatures = [clip], data.armatures[:]
+    source, rig = target.actions[0], target.armatures[0]
+    signature = lambda data: [(b.name, b.parent.name if b.parent else None,
+                               tuple(tuple(row) for row in b.matrix_local), b.length)
+                              for b in data.bones]
+    if signature(rig) != signature(arm.data):
+        raise ValueError("Polearm motion requires the same fitted rest rig")
+    bpy.data.armatures.remove(rig)
+    source.name = "polearm-donor-" + clip
+    arm.animation_data.action = source
+    arm.animation_data.action_slot = source.slots[0]
+    frames = range(round(source.frame_range[0]), round(source.frame_range[1]) + 1)
+    poses = []
+    for frame in frames:
+        scene.frame_set(frame)
+        poses.append({b.name: (b.rotation_euler.copy(), b.location.copy()) for b in arm.pose.bones})
+    distance = source.get("stride_distance_m")
+    arm.animation_data.action = None
+    bpy.data.actions.remove(source)
+    for frame, pose in zip(frames, poses):
+        scene.frame_set(frame)
+        for bone in arm.pose.bones:
+            bone.rotation_euler, bone.location = upper.get(bone.name, pose[bone.name])
+        if clip == "death":
+            # The medium leather panels and small shield seat below the donor's
+            # fitted armor. Preserve the initial supports, then land on this kit.
+            t = max(0, min(1, (frame - 20) / 4))
+            root = arm.pose.bones["root"]
+            root.location += root.bone.matrix_local.to_3x3().inverted() @ Vector((0, 0, .020 * t * t * (3 - 2 * t)))
+        for bone in arm.pose.bones:
+            bone.keyframe_insert("rotation_euler", frame=frame)
+            bone.keyframe_insert("location", frame=frame)
+    motion.finish_ready_action(arm, clip, "medium-polearm-" + clip, distance, controls)
 
 
 def upright_carry(arm, original_forearm, phase, running=False):
@@ -105,6 +163,25 @@ def author_pike_ready(arm):
         for bone in arm.pose.bones:
             bone.keyframe_insert("rotation_euler", frame=frame)
             bone.keyframe_insert("location", frame=frame)
+
+
+def author_at_ease(arm):
+    carry = bpy.data.actions["pike-carry"]
+    arm.animation_data.action = carry
+    arm.animation_data.action_slot = carry.slots[0]
+    bpy.context.scene.frame_set(0)
+    forearm = arm.pose.bones["forearm.L"].matrix.copy()
+    clip, author = "at-ease", "medium-upright-rest"
+    controls, base, _, _ = motion.begin_ready_action(arm, bpy.context.scene, clip, author)
+    for frame in (0, 30):
+        for bone in arm.pose.bones:
+            bone.rotation_euler, bone.location = base[bone.name]
+        bpy.context.view_layer.update()
+        upright_carry(arm, forearm, 0)
+        for bone in arm.pose.bones:
+            bone.keyframe_insert("rotation_euler", frame=frame)
+            bone.keyframe_insert("location", frame=frame)
+    motion.finish_ready_action(arm, clip, author, None, controls)
 
 
 def author_pike_thrust(arm):
@@ -250,9 +327,17 @@ def author(arm, clip):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--clip", choices=("walk", "run", "pike-ready", "pike-thrust"), required=True)
+    parser.add_argument("--clip", choices=("walk", "run", "pike-ready", "pike-thrust", "at-ease") + POLEARM_ACTIONS, required=True)
+    parser.add_argument("--donor", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     arm = next(o for o in bpy.context.scene.objects if o.type == "ARMATURE")
-    author(arm, args.clip)
+    if args.clip == "at-ease":
+        author_at_ease(arm)
+    elif args.clip in POLEARM_ACTIONS:
+        if args.donor is None:
+            parser.error("polearm reactions and guarded travel require --donor")
+        author_polearm_action(arm, args.donor, args.clip)
+    else:
+        author(arm, args.clip)
     motion.anatomy.export_candidate(bpy.data.objects["MediumPhalanx-Deform"], arm, args.output, "medium-phalanx")

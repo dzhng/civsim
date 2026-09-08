@@ -529,6 +529,11 @@ impl Game {
             .map_or(-1, |u| u as i32)
     }
 
+    /// Fingerprint the battle state for cross-thread determinism checks.
+    pub fn state_hash(&self) -> u64 {
+        self.battle.sim.state_hash()
+    }
+
     pub fn tick(&mut self) {
         self.battle.tick();
         self.refresh_unit_info();

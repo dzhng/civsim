@@ -82,3 +82,9 @@ The remaining decision gap is prioritization, not an implied authorization to
 cache mutable appearance metadata or weaken atomic observation updates. A
 targeted CPU profile separating seating, LOD, packing and timeline allocation
 would determine which larger cost merits the next structural pass.
+
+Root integration `ac2d6ccd` preserves the existing base-lane identity rule for
+the upper lane too. Review found no new lifetime or approximation decision to
+add to the choices ledger. The merged tree passes all 356 tests in 60 files and
+TypeScript (session54727, terminal0). No GPU rerun or performance acceptance is
+claimed for this exact-work reduction.

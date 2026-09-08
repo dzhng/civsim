@@ -1,8 +1,11 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { PNG } from "pngjs";
 import { readFile } from "node:fs/promises";
-import {
+// @ts-expect-error Node capture scripts have no declaration module.
+import * as capture from "../shots/models/scripts/_soldier-capture.mjs";
+const {
   cropPixels,
   roleClip,
   motionSamples,
@@ -10,7 +13,7 @@ import {
   artifactStem,
   selectedAppearances,
   sheetSamples,
-} from "../shots/models/scripts/_soldier-capture.mjs";
+} = capture;
 
 test("portrait crop retains every source pixel, including bronze, green cloth and alpha", () => {
   const source = new PNG({ width: 4, height: 3 });
@@ -86,7 +89,7 @@ test("static review accepts zero-duration holds and an inapplicable melee action
           atEase: { clip: "stand" },
           walk: { clip: "step" },
           melee: null,
-          release: { clip: "loose" },
+          release: { clip: "loose" } as { clip: string } | null,
         },
       },
     },
@@ -98,12 +101,12 @@ test("static review accepts zero-duration holds and an inapplicable melee action
   };
   assert.equal(roleClip(asset, "ready").name, "stand");
   assert.deepEqual(
-    sheetSamples(asset).map(({ clip }) => clip.name),
+    sheetSamples(asset).map(({ clip }: { clip: (typeof asset.clips)[number] }) => clip.name),
     ["stand", "stand", "loose", "step"],
   );
   asset.manifest.presentation.actions.release = null;
   assert.deepEqual(
-    sheetSamples(asset).map(({ clip }) => clip.name),
+    sheetSamples(asset).map(({ clip }: { clip: (typeof asset.clips)[number] }) => clip.name),
     ["stand", "stand", "step"],
   );
   assert.equal(roleClip(asset, "melee", { optional: true }), null);

@@ -51,6 +51,12 @@ without topology changes. Preserve the set-in overlapping construction, distal
 sleeves, rig, all action keys and unrelated geometry. Do not regenerate the body.
 If the underlying shoulder is unsound, diagnose its owner before fitting over it.
 
+The [saved-source audit](../assets/evidence/08/sleeve-cap-refit/review.md) now
+finds nonadjacent triangle crossings in the underlying shoulder, including some
+in ready before the fall. The cap refit therefore has not begun. Inspect the
+unchanged body without armor through the production poser before selecting a
+local anatomy remedy; numerical warnings alone do not choose new weights or form.
+
 Before screenshots, compare both shoulders at relaxed carry, ready, deep bend,
 pronation, sword effort, hit and late fall. Check coverage, lining orientation,
 body intersections and dense floor clearance; then use paired production views.

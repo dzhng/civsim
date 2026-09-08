@@ -128,14 +128,14 @@ export async function runCandidateSheet(
         height: crop.height * camera.poses.length,
       });
       let tile = 0;
-      for (const [stance, phase, clip = "bend"] of camera.poses) {
+      for (const [stance, phase, clip = "bend", alive = camera.alive ?? true] of camera.poses) {
         for (const [view, yaw] of bearings) {
           const soldierCount = camera.formation ? 16 : 1;
           const pose = {
             classId: classes[0],
             clip,
             phase,
-            alive: camera.alive ?? true,
+            alive,
             formation: camera.formation ?? false,
             // Detail landmarks are authored in Blender's -Y-facing source space.
             target: [-camera.target[0], -camera.target[1], camera.target[2]],

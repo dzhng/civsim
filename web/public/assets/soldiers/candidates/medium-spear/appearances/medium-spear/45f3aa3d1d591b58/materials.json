@@ -1,0 +1,172 @@
+{
+  "materials": [
+    {
+      "name": "heavy-leather",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.8199999928474426,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.2800000011920929,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-bronze",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.5699999928474426,
+      "metallic": 1,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.3199999928474426,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-shield-hide",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9599999785423279,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.6499999761581421,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-wood",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.8600000143051147,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.2800000011920929,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-iron",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 1,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.18000000715255737,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-skin",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.7599999904632568,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.18000000715255737,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-cloth",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9399999976158142,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.25,
+      "occlusionStrength": 1
+    }
+  ],
+  "textures": {
+    "baseColor": {
+      "image": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "mimeType": "image/png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      }
+    },
+    "normal": {
+      "image": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "mimeType": "image/png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      }
+    },
+    "orm": {
+      "image": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "mimeType": "image/png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      }
+    }
+  }
+}

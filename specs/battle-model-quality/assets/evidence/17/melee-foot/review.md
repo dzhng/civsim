@@ -47,6 +47,34 @@ editable geometry remains untouched. Visual gates are pending; this source
 checkpoint deliberately enables parent integration before those gates and
 does not claim visual completion.
 
+## Four-class visual closeout
+
+The shared `blender-melee-foot` scene captures six actual action poses from
+two opposed views per class. First capture 11992 and normal repeat 6382 both
+pass 105 checks, four snapshots, and zero page errors; every repeated sheet
+is pixel-exact. These first sheets inspected the death clip with living
+renderer state. Independent fixture review caught that coverage gap before
+closeout. An optional fourth per-pose `alive` value now preserves every old
+camera/default while submitting the fallen row as dead. The corrected red
+run changes only the bottom row: all forty living panels remain byte-exact.
+Shared update 10610 and normal repeat 44624 pass all 105 checks, four exact
+snapshots and no page errors. Fresh correction review
+`01a080d1-8aba-7b43-9ebc-9d58e097f6b4` verified the default/false semantics
+and loaded all four corrected images; it confirms retained rigid equipment
+poses, not missing or detached parts.
+Main inspection and fresh review covered all four sheets /
+48 panels. This is completion-first equipment/action coverage, not a claim
+of polished motion rhythm or complete all-phase contact validation.
+
+Fresh review found no missing limbs/weapons or exploded geometry. Retained
+limitations are the spear hand/shaft projecting across the shield boss in
+one drive view (stills do not establish mesh intersection), weapons held
+aloft in the authored fallen hold, subdued sword effort, thin weapon contrast,
+and weak light/medium silhouette differentiation. Heavy armor, crest and tall
+shield remain distinct. These are disclosed quality follow-ups, not hidden
+engine-state substitutions or reasons for another cosmetic iteration under
+the user's completion-first direction.
+
 ## Changed-test ledger
 
 - New exported-source test preserves donor body/actions while requiring the
@@ -56,3 +84,6 @@ does not claim visual completion.
   hold through the shared production workbench and exact repeat primitive.
 - Existing ranged pose calculations move to the shared motion owner; their
   default calculation and previously exported content do not change.
+- Mixed class sheets now explicitly submit the fallen row's dead life state,
+  rather than mistaking a death clip on a living instance for corpse coverage.
+  Existing sheets without the optional per-pose flag retain their old state.

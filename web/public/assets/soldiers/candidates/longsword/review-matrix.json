@@ -1,0 +1,56 @@
+{
+  "appearances": {
+    "2": {
+      "name": "longsword",
+      "selection": {
+        "unitClass": 2,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "twohand-ready",
+          "layer": "fullBody"
+        },
+        "atEase": {
+          "clip": "at-ease",
+          "layer": "fullBody"
+        },
+        "walk": {
+          "clip": "walk",
+          "layer": "fullBody"
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody"
+        },
+        "guardedBackwardWalk": {
+          "clip": "guarded-backward-walk",
+          "layer": "fullBody"
+        },
+        "guardedLeftWalk": {
+          "clip": "guarded-left-walk",
+          "layer": "fullBody"
+        },
+        "guardedRightWalk": {
+          "clip": "guarded-right-walk",
+          "layer": "fullBody"
+        },
+        "melee": {
+          "clip": "sword-effort",
+          "layer": "fullBody"
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit",
+          "layer": "fullBody"
+        },
+        "death": {
+          "clip": "death",
+          "layer": "fullBody"
+        },
+        "pikeReady": null
+      }
+    }
+  }
+}

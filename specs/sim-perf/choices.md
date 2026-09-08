@@ -62,3 +62,24 @@ changing simulation behavior or lowering a threshold. **Confidence:** high.
 **Gap:** The slice explicitly named `UnitPre` and its nested allocations, but did not separately name the returned measurement vector.
 **Reach:** The tick remains the sole caller responsible for returning the vector after its last consumer. No measurement value is carried forward as a simulation input; only capacity survives.
 **Verdict:** Sound: a small extension of the same storage lifetime with one existing caller and no new adapter. Its individual timing gain is not claimed separately. **Confidence:** medium.
+
+### Characterize contact in the commanders-off sweep
+
+**When:** tick/03 measurement preparation.
+**Choice:** The large-army idle diagnostic disables both commanders but keeps
+the same deployment grid as the fighting diagnostic. It runs two fresh
+600-tick battles and prints the greatest number of living fighters observed.
+For example, if the largest grid places opposing soldiers close enough to
+fight without orders, the report exposes that contact; disabling AI alone
+does not prove that the measured soldiers were idle. The alternative was to
+move the armies or suppress combat just to make the label true, which would
+measure a different deployment or different physics.
+**Gap:** The checkpoint requested an idle sweep at every size, but the old
+idle command only supported the generated 15.5k army and did not define
+larger idle deployments. The repeat length retains that original oracle;
+the shared grid avoids a second placement recipe.
+**Reach:** Future comparisons use identical fixture and harness versions,
+and interpret commanders-off timings alongside their observed contact.
+The contact count is collected outside the tick timer.
+**Verdict:** Sound: makes the workload visible without changing simulation
+rules to obtain a favorable timing. **Confidence:** high.

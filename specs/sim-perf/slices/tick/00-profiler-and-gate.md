@@ -81,5 +81,6 @@ Profiler, fixture and standing gate are implemented. [Native evidence](../../ass
 records exact off/on/original hashes, a clean default check, both unchanged
 golden-test passes, stage tables and the **red** 36.294 ms budget run. The
 late interleaved idle control found no measurable disabled-profiler overhead.
-The integrated workspace gate remains the integrating agent's responsibility;
-this slice does not claim that pending result or that the performance goal is met.
+The integrated profiler-only workspace suite passed; later native changes
+have their own combined verification. This result does not establish that
+the performance goal is met.

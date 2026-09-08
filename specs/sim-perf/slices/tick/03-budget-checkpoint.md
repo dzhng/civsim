@@ -43,7 +43,7 @@ David.
 
 ## Must stay green
 
-Everything; this slice changes nothing.
+Everything; the checkpoint extends measurement coverage, never simulation behavior.
 
 Harness validation: `cargo check -p sim --bin profile_tick` and the release
 build passed. Both fresh `idle 15500` repeats retained 15,560 living soldiers

@@ -1854,3 +1854,26 @@ of changing a scalar zoom hint no longer selected distant content. The spec did
 not prescribe the repaired fixture, but it requires the actual production
 planner and independent mesh shadows. Separate full-distance context shots
 prevent the magnified diagnostic from being mistaken for gameplay LOD quality.
+
+### Let authored actions own held equipment visibility
+
+**Sound; confidence: high. Roster delivery,2026-09-08.** An archer uses a sword
+in the engine's melee state but a bow when shooting. The saved asset retains
+both; a child joint shows the sword only in the existing melee action and keeps
+it tiny in other actions. Crew tools use the same authoring helper. This avoids
+a second runtime equipment state machine. The gap was how one existing
+appearance could carry multiple functional tools without showing them stacked
+in one hand. The renderer still follows engine-selected actions, and mounted
+upper-body masks must include the equipment joints. Blend timing and real
+projectile coexistence remain consumer verification requirements.
+
+### Reduce broad surfaces while preserving small disconnected equipment
+
+**Sound; confidence: medium. Offline LOD delivery,2026-09-08.** When a distant
+soldier occupies only a few pixels, the exporter reduces the torso heavily but
+keeps tiny disconnected weapon pieces. A single global reduction could erase
+a spearhead before meaningfully reducing the body. The spec required genuine
+distance geometry but did not choose a reduction method. The retained per-piece
+triangle floors and initial targets are practical authoring defaults, not
+performance guarantees; real projected views and measured frame costs decide
+whether the output is usable. Near sources and action keys stay authoritative.

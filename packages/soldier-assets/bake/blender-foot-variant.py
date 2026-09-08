@@ -67,36 +67,35 @@ def add_helmet_crest(scene, arm):
     return part
 
 
-def author_held_sword(scene, arm, parts, active_clips):
-    """Keep the fitted sword, showing it only in the existing named action roles.
+def author_held_equipment(scene, arm, parts, active_clips, *, bone_name, parent_name="hand.R"):
+    """Show fitted handheld equipment only in the existing named action roles.
 
     The child is part of the rider/upper mask, not a gameplay equipment state.
     Tiny nonzero scale avoids singular skin transforms outside the held action;
     the fitted belt scabbard remains unchanged in every action.
     """
-    swords = [part for part in parts if part.name.startswith("Sword")]
-    if not swords:
-        raise ValueError("Retain fitted Sword parts before authoring held visibility")
+    if not parts:
+        raise ValueError("Retain fitted parts before authoring held visibility")
     actions = [track.strips[0].action for track in arm.animation_data.nla_tracks]
     if not set(active_clips).issubset({action.name for action in actions}):
-        raise ValueError("Held sword active clips must already exist")
+        raise ValueError("Held equipment active clips must already exist")
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode="EDIT")
-    parent = arm.data.edit_bones["hand.R"]
-    bone = arm.data.edit_bones.new("held-sword")
+    parent = arm.data.edit_bones[parent_name]
+    bone = arm.data.edit_bones.new(bone_name)
     bone.head, bone.tail, bone.parent = parent.head, parent.tail, parent
     bpy.ops.object.mode_set(mode="OBJECT")
-    for part in swords:
+    for part in parts:
         for group in list(part.vertex_groups):
             part.vertex_groups.remove(group)
-        part.vertex_groups.new(name="held-sword").add(
+        part.vertex_groups.new(name=bone_name).add(
             list(range(len(part.data.vertices))), 1, "REPLACE")
     active, frame = arm.animation_data.action, scene.frame_current
     for action in actions:
         arm.animation_data.action = action
         arm.animation_data.action_slot = action.slots[0]
         scale = 1 if action.name in active_clips else .001
-        pose = arm.pose.bones["held-sword"]
+        pose = arm.pose.bones[bone_name]
         pose.scale = (scale,)*3
         for endpoint in action.frame_range:
             pose.keyframe_insert("scale", frame=endpoint)
@@ -104,10 +103,10 @@ def author_held_sword(scene, arm, parts, active_clips):
     if active:
         arm.animation_data.action_slot = active.slots[0]
     scene.frame_set(frame)
-    return "held-sword"
+    return bone_name
 
 
-def build(source, output, name, armor, shield, helmet):
+def build(source, output, name, armor, shield, helmet, export=True):
     with bpy.data.libraries.load(str(source)) as (data, target):
         target.scenes = [next(n for n in data.scenes if n == "HeavyMotionCandidate")]
     scene = target.scenes[0]
@@ -148,7 +147,7 @@ def build(source, output, name, armor, shield, helmet):
     if helmet == "cap":
         bowl = scene.objects["Helmet bowl and rolled edge"]
         rematerial(bowl, "leather")
-    if shield == "round":
+    if shield in {"round", "small"}:
         board = scene.objects["Convex oval shield"]
         # The fitted shield is rolled in bind space. Shorten its actual long
         # axis, not world Z, preserving the rigid hand attachment and convexity.
@@ -166,6 +165,19 @@ def build(source, output, name, armor, shield, helmet):
             along = (vertex.co.x-cx)*ax + (vertex.co.z-cz)*az
             vertex.co.x += along*(ratio-1)*ax
             vertex.co.z += along*(ratio-1)*az
+        if shield == "small":
+            for part in (board, scene.objects["Shield boss"]):
+                for vertex in part.data.vertices:
+                    vertex.co.x = .5732 + (vertex.co.x - .5732) * .65
+                    vertex.co.z = .9024 + (vertex.co.z - .9024) * .65
+    scene["equipment_source"] = str(source)
+    scene["appearance_name"] = name
+    if export:
+        export_parts(scene, arm, parts, output, name)
+    return scene, arm, parts
+
+
+def export_parts(scene, arm, parts, output, name):
     bpy.ops.object.select_all(action="DESELECT")
     copies = []
     for part in parts:
@@ -187,8 +199,6 @@ def build(source, output, name, armor, shield, helmet):
     bmesh.ops.triangulate(mesh, faces=list(mesh.faces))
     mesh.to_mesh(body.data)
     mesh.free()
-    scene["equipment_source"] = str(source)
-    scene["appearance_name"] = name
     anatomy.export_candidate(body, arm, output, name)
     print({"appearance": name, "parts": len(parts), "vertices": len(body.data.vertices),
            "actions": [track.name for track in arm.animation_data.nla_tracks]})
@@ -200,7 +210,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--name", required=True)
     parser.add_argument("--armor", choices=["heavy", "medium", "light", "cloth", "rag"], required=True)
-    parser.add_argument("--shield", choices=["tall", "round", "none"], required=True)
+    parser.add_argument("--shield", choices=["tall", "round", "small", "none"], required=True)
     parser.add_argument("--helmet", choices=["bronze", "cap", "bare"], required=True)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     build(args.source, args.output, args.name, args.armor, args.shield, args.helmet)

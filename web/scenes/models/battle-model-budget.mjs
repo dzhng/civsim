@@ -80,6 +80,9 @@ export async function run(ctx) {
           "web/scenes/models/_allocation-budget-probe.ts",
         );
         const { ActionTimeline } = await module("packages/crowd-runtime/src/actionTimeline.ts");
+        const { synchronizedBudgetObservations } = await module(
+          "web/scenes/models/_synthetic-budget-fixture.ts",
+        );
         const { SimClock } = await module("web/src/shared/simClock.ts");
         const { BATTLE_TICK_DT, BATTLE_MAX_TICKS_PER_FRAME, BattleCameraRig } = await module(
           "web/src/battle/battleWorld.ts",
@@ -195,18 +198,7 @@ export async function run(ctx) {
             // controller observes only the latest state, never every missed tick.
             for (const instrumented of [false, true]) {
               const timeline = new ActionTimeline(w.soldierAssets);
-              const observations = Array.from({ length: config.count }, () => ({
-                appearanceId,
-                alive: true,
-                health: 100,
-                mountHealth: 100,
-                speedMps: 1,
-                atEase: false,
-                pikeReady: false,
-                fighting: false,
-                releaseTtl: 0,
-                releaseAgeSeconds: 0,
-              }));
+              const workload = synchronizedBudgetObservations(config.count, appearanceId, source);
               const probe = instrumented ? new FrameBudgetProbe(device) : null;
               const samples = [];
               const clock = new SimClock({
@@ -223,17 +215,8 @@ export async function run(ctx) {
                 if (tick < nextTick) {
                   tick = nextTick;
                   observedTicks = 1;
-                  const cycle = tick % 60;
-                  const lastRelease = [10, 11, 14, 15, 18].findLast((event) => event <= cycle);
-                  const age = lastRelease === undefined ? Infinity : (cycle - lastRelease) / 30;
-                  for (const observation of observations) {
-                    observation.running =
-                      mode === "interruptions" && ((cycle >= 4 && cycle < 23) || cycle >= 25);
-                    observation.releaseTtl = mode === "interruptions" ? Math.max(0, 0.5 - age) : 0;
-                    observation.releaseAgeSeconds =
-                      mode === "interruptions" && Number.isFinite(age) ? age : 0;
-                  }
-                  timeline.update(tick, observations);
+                  workload.update(tick, mode);
+                  timeline.update(tick, workload.observations);
                 }
                 const t1 = performance.now();
                 const playback = timeline.sample(sampleTick);
@@ -298,6 +281,8 @@ export async function run(ctx) {
                       telemetryMs,
                       advancedTicks,
                       activeRiderOverlays,
+                      baseClip: w.instances[0].playback.base.destination.clip,
+                      basePhase: w.instances[0].playback.base.destination.phase,
                       ...phases,
                     });
                   }

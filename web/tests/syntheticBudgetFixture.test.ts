@@ -6,6 +6,7 @@ import { loadAppearanceBundle } from "@packages/soldier-assets/src/appearanceBun
 import {
   syntheticBudgetFixture,
   staggeredBudgetObservations,
+  synchronizedBudgetObservations,
 } from "../scenes/models/_synthetic-budget-fixture";
 import {
   localPoseToJointMatrices,
@@ -37,6 +38,30 @@ const source = await loadAppearanceBundle(
   "http://fixture/candidates/blender-reference/mounted/appearance.json",
 );
 vi.unstubAllGlobals();
+
+test("timed mounted workload exercises measured walk/run and release interruptions", () => {
+  const fixture = syntheticBudgetFixture(source);
+  for (const mode of ["steady", "interruptions"] as const) {
+    const timeline = new ActionTimeline({ 41: fixture });
+    const workload = synchronizedBudgetObservations(1, 41, fixture);
+    const clips = new Set<string>();
+    let releaseSamples = 0;
+    for (let tick = 0; tick < 60; tick++) {
+      workload.update(tick, mode);
+      timeline.update(tick, workload.observations);
+      const value = timeline.sample(tick)[0];
+      clips.add(value.base.destination.clip);
+      if (value.riderUpperBody && "clip" in value.riderUpperBody.destination) releaseSamples++;
+      const later = timeline.sample(tick + 0.5)[0];
+      assert.notEqual(later.base.destination.phase, value.base.destination.phase);
+    }
+    assert.deepEqual(
+      [...clips].sort(),
+      mode === "steady" ? ["fixture-walk"] : ["fixture-run", "fixture-walk"],
+    );
+    assert.equal(releaseSamples > 0, mode === "interruptions");
+  }
+});
 
 test("staggered mounted observations expose distinct weighted frozen poses without long setup", () => {
   const fixture = syntheticBudgetFixture(source);

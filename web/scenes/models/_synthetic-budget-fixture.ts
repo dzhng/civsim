@@ -5,6 +5,54 @@ import { mountedTemporalFixture } from "./_mounted-temporal-fixture";
 import { bakeLocalAnimation } from "../../../packages/soldier-assets/src/localAnimation";
 import { sampleRigLocalPoseSeconds } from "../../../packages/soldier-assets/src/localPose";
 
+/** Synchronized timed workload; staggered histories below are allocation-only. */
+export function synchronizedBudgetObservations(
+  count: number,
+  appearanceId: number,
+  source: AppearanceBundle,
+) {
+  const nominalSpeed = (role: "walk" | "run") => {
+    const name = source.manifest.presentation!.actions[role]!.clip;
+    const clip = source.animation.clips.find((clip) => clip.name === name)!;
+    return clip.strideMeters! / clip.duration;
+  };
+  const walkMps = nominalSpeed("walk"),
+    runMps = nominalSpeed("run");
+  const observations: ActionObservation[] = Array.from({ length: count }, () => ({
+    appearanceId,
+    alive: true,
+    health: 100,
+    mountHealth: 100,
+    speedMps: walkMps,
+    forwardMps: walkMps,
+    lateralMps: 0,
+    routing: false,
+    incapacitated: false,
+    guardedFacing: false,
+    atEase: false,
+    pikeReady: false,
+    fighting: false,
+    releaseTtl: 0,
+    releaseAgeSeconds: 0,
+  }));
+  return {
+    observations,
+    update(tick: number, mode: "steady" | "interruptions") {
+      const cycle = tick % 60;
+      const lastRelease = [18, 15, 14, 11, 10].find((event) => event <= cycle);
+      const age = lastRelease === undefined ? Infinity : (cycle - lastRelease) / 30;
+      const speedMps =
+        mode === "interruptions" && ((cycle >= 4 && cycle < 23) || cycle >= 25) ? runMps : walkMps;
+      for (const observation of observations) {
+        observation.speedMps = speedMps;
+        observation.forwardMps = speedMps;
+        observation.releaseTtl = mode === "interruptions" ? Math.max(0, 0.5 - age) : 0;
+        observation.releaseAgeSeconds = mode === "interruptions" && Number.isFinite(age) ? age : 0;
+      }
+    },
+  };
+}
+
 /** Interleaved observed histories, with a setup length independent of crowd size. */
 export function staggeredBudgetObservations(
   count: number,

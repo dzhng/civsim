@@ -5,8 +5,8 @@ $ vitest run
 {"bodies":3,"distinctPosedMeshes":5,"snapshotSlots":6,"controllerSnapshotBytes":5280}
 {"bodies":9,"distinctPosedMeshes":5,"snapshotSlots":18,"controllerSnapshotBytes":15840}
 
- Test Files  66 passed (66)
-      Tests  392 passed (392)
-   Start at  18:54:01
-   Duration  2.08s (transform 6.21s, setup 6.77s, import 8.91s, tests 4.99s, environment 4.04s)
+ Test Files  67 passed (67)
+      Tests  400 passed (400)
+   Start at  19:41:02
+   Duration  2.80s (transform 9.04s, setup 8.42s, import 13.48s, tests 7.16s, environment 5.08s)
 

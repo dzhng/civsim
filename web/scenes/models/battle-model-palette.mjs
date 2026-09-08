@@ -30,18 +30,10 @@ export async function run(ctx) {
           w = h.world,
           renderer = w.world.renderer;
         const module = (path) => import(`/@fs${root}${path}`);
-        const threeUrl = performance
-          .getEntriesByType("resource")
-          .find((entry) => /\/three_webgpu\.js\?/.test(entry.name))?.name;
-        if (!threeUrl) throw new Error("production Three dependency missing");
-        const THREE = await import(threeUrl);
         const { evaluatePlaybackPose } = await module(
           "packages/crowd-runtime/src/actionTimeline.ts",
         );
         const { posedBundle } = await module("web/scenes/models/_posed-bundle.ts");
-        const { bakeLocalAnimation } = await module(
-          "packages/soldier-assets/src/localAnimation.ts",
-        );
         const human = structuredClone(w.soldierAssets[40]);
         const source = structuredClone(w.soldierAssets[41]);
         const upperJoints = source.rig.bones

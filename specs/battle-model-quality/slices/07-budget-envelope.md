@@ -1,6 +1,9 @@
 # 07 — Measure asset and animated-view budgets
 
-Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
+Status: measured, with remaining performance acceptance explicitly deferred by
+David on 2026-09-08. [sim-perf](../../sim-perf/model-rendering-follow-up.md) owns
+the follow-up. The unchanged gates remain unmet; the investigation priorities
+below are historical evidence, not instructions to continue optimization here.
 
 Current pickup: investigate remaining cadence and submission tails at the
 controlled lower near density using the

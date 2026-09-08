@@ -19,10 +19,9 @@ the complete authored catalog is published in the working tree. Fresh bake and
 loader checks pass for every appearance, and synthetic assets are isolated as
 explicit test fixtures. Campaign and review consumers now resolve manifest roles.
 
-Remaining functional omission: slice25 requires root-attached artillery equipment;
-the current crew source has its hand tool but lacks the machine. Complete that
-source and regenerate its bundle before final crew captures. In parallel, refresh
-the other production cards/sheets and consolidate the choices ledger. Then repeat
+The artillery machine is now root-attached in the authored crew source and all
+three production tiers; the complete roster passes real loader/source checks.
+Refresh the production cards/sheets using the shared full-kit framing rule. Then repeat
 the production workbench/action, live battle and campaign checks, run final review,
 commit/push and archive. Do not reopen model-polish or optimization loops.
 

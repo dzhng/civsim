@@ -75,8 +75,6 @@ The `web` app also carries a linter and tests alongside the formatter:
 bun run --cwd web lint           # oxlint (react/import/typescript/unicorn)
 bun run --cwd web typecheck      # tsc --noEmit
 bun run --cwd web test           # vitest (React overlay component tests)
-bun run --cwd web test:ui        # node --test (pure DOM-free .mjs suites)
-bun run --cwd web test:unit      # node --test (TypeScript seam suites in web/tests/)
 ```
 
 Keep broad formatting churn in its own commit, separate from mechanics,

@@ -496,3 +496,19 @@ channels extend the shared owner, and the extra arithmetic/storage cost remains
 part of the measured workload.
 **Verdict:** sound consistent deformation and numerical meaning;
 **confidence: high**.
+
+### 37. Keep body continuity across exactly compatible equipment rigs
+
+**When:** equipment continuity closeout (14).
+When the engine replaces a pike with a sword, the new equipment appears on that
+same observation. If both assets have identical bone names, hierarchy and bind
+transforms, the body starts from its previous composed pose and uses the existing
+short blend toward the new action. Old clip indices never enter the new asset.
+Different skeletons still reset. The alternative would either snap every body,
+or require a general skeleton remapper and authored draw/sheath choreography.
+**Gap:** safe pose reuse across separate equipment bundles was unspecified.
+**Reach:** this preserves skeletal continuity, not continuous weapon geometry;
+the sword initially follows the previous hand pose. No extra weapon, switch
+clock or simulation authority is introduced.
+**Verdict:** sound reuse of identical local spaces within the existing timeline;
+**confidence: high**.

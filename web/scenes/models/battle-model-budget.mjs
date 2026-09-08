@@ -352,7 +352,7 @@ export async function run(ctx) {
           w.crowd = replacement;
           replacement = undefined;
           allocationStates.initialization = w.stats().crowd;
-          for (const size of [...new Set([1, Math.ceil(config.count / 2), config.count])]) {
+          for (const size of new Set([1, Math.ceil(config.count / 2), config.count])) {
             allocation.phase(`grow-${size}`);
             w.drawInstances(instances.slice(0, size), camera);
             w.render();

@@ -24,6 +24,11 @@ integration, not full equipment inspection: the full-kit model sheets own that
 view. Uniform repeated appearances are intentional. Other quality limitations
 remain disclosed in the feature follow-ups under David's accepted quality cutoff.
 
-The [web suite](web-tests.txt) passes after consumer cutover. Artillery machine
-delivery and final consumer captures remain pending; no whole-spec completion is
-claimed by this checkpoint.
+The [web suite](web-tests.txt) passes after consumer cutover and compatible-rig
+equipment continuity. The [complete roster check](complete-roster.txt) verifies
+both published catalogs against fresh bakes and exercises the real loader.
+The artillery machine
+is now authored, root-attached and retained across all three production tiers;
+[equipment](crew-equipment.txt) and [loader](crew-loader.txt) checks pass.
+Final consumer captures remain pending; no whole-spec completion is claimed by
+this checkpoint.

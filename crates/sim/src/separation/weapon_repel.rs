@@ -1,5 +1,6 @@
 use crate::force_trace::{ForceChannel, Tracer};
 use crate::grid::SpatialHash;
+use crate::math::{dir, Vec2};
 use crate::tunables::{Tunables, DT};
 use crate::unit::Unit;
 
@@ -64,9 +65,49 @@ where
         // The grid is built at body-pair resolution; reach runs far past
         // that, so scan a wider window around each man.
         let reach_cells = (max_reach / cell).ceil() as i32 + 1;
+        // Everything below is a pure search: it finds the nearest frontal
+        // foe inside a bearer's reach band, or nothing. The three
+        // precomputations here only skip work that could not have found
+        // anyone, so the answer is bit-identical to an exhaustive scan — and
+        // an exhaustive scan is a field-wide window around every body, every
+        // tick, whether or not any enemy is within a day's march.
+        //
+        // Unit facing once per unit, not a sin/cos per candidate.
+        let unit_aim: Vec<Vec2> = units.iter().map(|u| dir(u.facing)).collect();
+        // Per-unit extent of its bodies. A bearer's window reaches at most
+        // `window` past him on each axis, so a unit whose extent (grown by
+        // that) meets no enemy unit's extent has no bearer with anything to
+        // find — two armies still deploying skip the whole pass.
+        let nu = units.len();
+        let mut ext_lo = vec![Vec2::new(f32::INFINITY, f32::INFINITY); nu];
+        let mut ext_hi = vec![Vec2::new(f32::NEG_INFINITY, f32::NEG_INFINITY); nu];
+        let mut max_body_r = 0.0f32;
+        for bi in 0..nb {
+            let u = soldier_unit[body_owner[bi] as usize] as usize;
+            let (x, y) = (body_pos[2 * bi], body_pos[2 * bi + 1]);
+            ext_lo[u] = Vec2::new(ext_lo[u].x.min(x), ext_lo[u].y.min(y));
+            ext_hi[u] = Vec2::new(ext_hi[u].x.max(x), ext_hi[u].y.max(y));
+            max_body_r = max_body_r.max(body_r[bi]);
+        }
+        let window = (reach_cells + 1) as f32 * cell;
+        let unit_scans: Vec<bool> = (0..nu)
+            .map(|uj| {
+                ext_lo[uj].x <= ext_hi[uj].x
+                    && (0..nu).any(|ui| {
+                        units[ui].team != units[uj].team
+                            && ext_lo[ui].x <= ext_hi[uj].x + window
+                            && ext_hi[ui].x >= ext_lo[uj].x - window
+                            && ext_lo[ui].y <= ext_hi[uj].y + window
+                            && ext_hi[ui].y >= ext_lo[uj].y - window
+                    })
+            })
+            .collect();
         for bi in 0..nb {
             let j = body_owner[bi] as usize;
             let uj = soldier_unit[j] as usize;
+            if !unit_scans[uj] {
+                continue;
+            }
             // A trampler rides THROUGH contact — it holds no line and repels
             // no one (the trample bleed, not a repel, spends its charge).
             if units[uj].tramples() {
@@ -92,7 +133,7 @@ where
             // along that line. Swords cover one file; braced pole points overlap
             // several files into a continuous hedge so a staggered front cannot
             // zipper between isolated columns.
-            let aim = crate::math::dir(units[uj].facing);
+            let aim = unit_aim[uj];
             let (perp_x, perp_y) = (-aim.y, aim.x);
             let half_w = units[uj].spacing.x.max(0.5)
                 * if hedge {
@@ -113,8 +154,19 @@ where
             let mut near_i = usize::MAX;
             let mut near_fwd = f32::INFINITY;
             let mut near_pen = 0.0f32;
-            for oy in -reach_cells..=reach_cells {
-                for ox in -reach_cells..=reach_cells {
+            // The window THIS bearer needs: anyone his band test can accept
+            // lies within hypot(rdist, half_w) of him, and rdist is at most
+            // his reach (hedge) or a body pair plus the sword standoff. One
+            // cell of slack past that, never wider than the field-wide window
+            // (so a sword line stops paying for the longest pike on the map).
+            let rdist_max = if hedge {
+                reach
+            } else {
+                body_r[bi] + max_body_r + SWORD_STANDOFF
+            };
+            let rc = reach_cells.min((rdist_max.hypot(half_w) / cell).ceil() as i32 + 1);
+            for oy in -rc..=rc {
+                for ox in -rc..=rc {
                     let b = grid.bucket(cx + ox, cy + oy);
                     let (lo, hi) = (grid.starts[b] as usize, grid.starts[b + 1] as usize);
                     for &bk in &grid.entries[lo..hi] {
@@ -132,6 +184,16 @@ where
                         let dx = body_pos[2 * bk as usize] - jx;
                         let dy = body_pos[2 * bk as usize + 1] - jy;
                         let fwd = dx * aim.x + dy * aim.y;
+                        // Ahead of the bearer, in his column — the cheap
+                        // rejects first; the frontal test below needs a
+                        // square root and only matters for a sword.
+                        if fwd <= 0.0 {
+                            continue;
+                        }
+                        let lat = dx * perp_x + dy * perp_y;
+                        if lat.abs() > half_w {
+                            continue;
+                        }
                         // The standoff holds only in a FRONTAL clash — where this
                         // bearer sits along the foe's OWN facing axis (the foe is
                         // squared up to him, two lines meeting). When the foe is
@@ -144,9 +206,11 @@ where
                         // flank men only read as flanked by where the foe stands.
                         // This is what separates the blob (frontal interleave,
                         // bad) from a wrap (flank envelopment, the point).
-                        let foe_aim = crate::math::dir(units[ui].facing);
-                        let d2c = dx * dx + dy * dy;
-                        let frontal = (-dx * foe_aim.x - dy * foe_aim.y) > 0.55 * d2c.sqrt();
+                        let frontal = !hedge && {
+                            let foe_aim = unit_aim[ui];
+                            let d2c = dx * dx + dy * dy;
+                            (-dx * foe_aim.x - dy * foe_aim.y) > 0.55 * d2c.sqrt()
+                        };
                         // A sword holds a SOFT standoff past body contact: full
                         // repel on overlap (front contact, where men FIGHT, is
                         // unchanged) plus a WEAK ramp in the standoff band beyond
@@ -160,12 +224,8 @@ where
                         let foot = mounted[j] == 0 && mounted[i] == 0;
                         let standoff_dist = if frontal && foot { SWORD_STANDOFF } else { 0.0 };
                         let rdist = if hedge { reach } else { bsum + standoff_dist };
-                        // Inside the forward reach band, in this man's column.
-                        if fwd <= 0.0 || fwd >= rdist {
-                            continue;
-                        }
-                        let lat = dx * perp_x + dy * perp_y;
-                        if lat.abs() > half_w {
+                        // Inside the forward reach band.
+                        if fwd >= rdist {
                             continue;
                         }
                         if fwd < near_fwd {

@@ -92,7 +92,18 @@ export function assignCrowdLodsByDistance(
 }
 
 export function countLods(assignments: LodAssignment[]): LodCounts {
-  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
-  for (const a of assignments) counts[`l${a.level}` as keyof LodCounts]++;
-  return counts;
+  // Plain counters, not a template-string key per instance: this runs over
+  // the whole crowd every frame.
+  let l0 = 0;
+  let l1 = 0;
+  let l2 = 0;
+  let l3 = 0;
+  for (let i = 0; i < assignments.length; i++) {
+    const level = assignments[i].level;
+    if (level === 0) l0++;
+    else if (level === 1) l1++;
+    else if (level === 2) l2++;
+    else l3++;
+  }
+  return { l0, l1, l2, l3 };
 }

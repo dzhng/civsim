@@ -23,9 +23,12 @@ pub(crate) struct WeaveAccum {
     pub enemy_inside_push: Vec2,
 }
 
+/// `f` is `dir(u.facing)`, passed in because every caller already holds it
+/// for the unit and this runs once per soldier per pass.
 pub(crate) fn slot_neighbours<'a>(
     u: &'a Unit,
     pre: &'a UnitPre,
+    f: Vec2,
     si: usize,
     skip: usize,
     alive: &'a [u8],
@@ -35,7 +38,6 @@ pub(crate) fn slot_neighbours<'a>(
     let slot_capacity = pre.soldier_at_slot.len();
     let (file, rank) = (si % files, si / files);
     let (sx, sy) = (u.spacing.x, u.spacing.y);
-    let f = dir(u.facing);
     let r = f.perp();
     let ranks = slot_capacity.div_ceil(files);
     let available = |j: usize| j != usize::MAX && alive[j] == 1 && trampled[j] <= 0.0;
@@ -130,7 +132,7 @@ fn accumulate_slot_and_pivot_bonds(args: &WeaveArgs<'_>) -> SlotBondAccum {
     let mut nn = 0.0f32;
     let mut bond_stretch = 0.0f32;
     let mut bond_pivot = 0.0f32;
-    for (j, off) in slot_neighbours(u, ctx.pre, si, neighbor_skip, alive, trampled) {
+    for (j, off) in slot_neighbours(u, ctx.pre, ctx.f, si, neighbor_skip, alive, trampled) {
         let jp = Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
         let d = p - jp;
         let (al, rl) = (d.len(), off.len());

@@ -143,7 +143,7 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
                 let si = sim.soldier_slot[i] as usize;
                 let mut raw = Vec2::ZERO;
                 for (j, off) in
-                    slot_neighbours(u, &pre, si, neighbor_skip, &sim.alive, &sim.trampled)
+                    slot_neighbours(u, &pre, f, si, neighbor_skip, &sim.alive, &sim.trampled)
                 {
                     let jp = Vec2::new(sim.prev_positions[2 * j], sim.prev_positions[2 * j + 1]);
                     let d = p - jp;

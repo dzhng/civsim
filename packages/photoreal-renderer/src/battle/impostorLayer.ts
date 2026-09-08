@@ -20,6 +20,7 @@ import { factionForTeam } from "../../../game-renderer/src/battle/factionColors"
 import type { VatBake } from "../../../soldier-assets/src/schema";
 import type { SoldierMeshData } from "../../../soldier-assets/src/soldierMesh";
 import { linearAlbedo } from "./battleTsl";
+import { hemiOctTileDirections, nearestHemiOctTile } from "./impostorTile";
 import { RENDER_ORDER } from "./terrainLayer";
 
 interface ImpostorAtlas {
@@ -55,7 +56,11 @@ export function createSoldierImpostorAtlas(
   const rows = opts.rows ?? 8;
   const tileSize = opts.tileSize ?? 96;
   const posedMesh = poseMeshWithVat(mesh, vat, "march", 0.18);
-  const directions = hemiOctDirections(columns, rows);
+  const flat = hemiOctTileDirections(columns, rows);
+  const directions: THREE.Vector3[] = [];
+  for (let i = 0; i < columns * rows; i++) {
+    directions.push(new THREE.Vector3(flat[i * 3], flat[i * 3 + 1], flat[i * 3 + 2]));
+  }
   const canvas = document.createElement("canvas");
   canvas.width = columns * tileSize;
   canvas.height = rows * tileSize;
@@ -111,11 +116,14 @@ export class OctahedralImpostorLayer {
   private inst = new Float32Array(0);
   private meta = new Float32Array(0);
   private source: CrowdInstance[] = [];
+  /** The atlas tile directions, flat, for the per-instance tile pick. */
+  private readonly tileDirs: Float64Array;
 
   constructor(
     scene: THREE.Scene,
     private readonly atlas: ImpostorAtlas,
   ) {
+    this.tileDirs = hemiOctTileDirections(atlas.columns, atlas.rows);
     this.geometry = new THREE.InstancedBufferGeometry();
     this.geometry.setAttribute(
       "position",
@@ -207,15 +215,31 @@ export class OctahedralImpostorLayer {
     // Half-angle of the vertical FOV, for the projected screen-size floor below.
     const fovY = "fov" in camera ? ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180 : 0;
     const tanHalfFov = fovY > 0 ? Math.tan(fovY / 2) : 0;
-    const localDir = new THREE.Vector3();
+    const { columns, rows } = this.atlas;
+    const dirs = this.tileDirs;
+    // Scalar math on purpose: this runs once per impostor per frame, and the
+    // far crowd is most of a 30k battle.
     for (let i = 0; i < this.source.length; i++) {
       const src = this.source[i];
-      localDir.set(eye.x - src.x, eye.y - src.y, eye.z - (src.elevation ?? 0));
-      const dist = localDir.length();
-      localDir.normalize();
-      rotateViewDirectionIntoSoldierLocal(localDir, src.facing);
+      const wx = eye.x - src.x;
+      const wy = eye.y - src.y;
+      const wz = eye.z - (src.elevation ?? 0);
+      const dist = Math.sqrt(wx * wx + wy * wy + wz * wz);
+      const inv = 1 / (dist || 1);
+      const vx = wx * inv;
+      const vy = wy * inv;
+      const vz = wz * inv;
+      // View direction in the soldier's frame: undo his facing about z.
+      const c = Math.cos(-src.facing);
+      const s = Math.sin(-src.facing);
+      const rx = vx * c - vy * s;
+      const ry = vx * s + vy * c;
+      const rinv = 1 / (Math.sqrt(rx * rx + ry * ry + vz * vz) || 1);
+      const lx = rx * rinv;
+      const ly = ry * rinv;
+      const lz = vz * rinv;
       const o = i * 4;
-      this.meta[o] = nearestTile(localDir, this.atlas.directions);
+      this.meta[o] = nearestHemiOctTile(lx, ly, lz, columns, rows, dirs);
       // Screen-size floor: enlarge the world-space billboard whenever it would
       // project below the minimum viewport fraction, so a far crowd stays a
       // visible blob instead of sub-pixel-vanishing through the alpha-tested
@@ -229,7 +253,8 @@ export class OctahedralImpostorLayer {
       }
       this.meta[o + 1] = IMPOSTOR_BASE_WIDTH_M * scale;
       this.meta[o + 2] = IMPOSTOR_BASE_HEIGHT_M * scale;
-      this.meta[o + 3] = clampShade(0.72 + 0.28 * Math.max(0, localDir.dot(LIGHT_DIR)));
+      const lit = lx * LIGHT_DIR.x + ly * LIGHT_DIR.y + lz * LIGHT_DIR.z;
+      this.meta[o + 3] = clampShade(0.72 + 0.28 * Math.max(0, lit));
     }
     const attr = this.geometry.getAttribute("impostorMeta") as
       | THREE.InstancedBufferAttribute
@@ -319,27 +344,6 @@ function vatColumn(
 ): [number, number, number, number] {
   const o = ((bone * 4 + col) * vat.width + frame) * 4;
   return [vat.data[o], vat.data[o + 1], vat.data[o + 2], vat.data[o + 3]];
-}
-
-function hemiOctDirections(columns: number, rows: number): THREE.Vector3[] {
-  const out: THREE.Vector3[] = [];
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < columns; x++) {
-      const ox = ((x + 0.5) / columns) * 2 - 1;
-      const oy = ((y + 0.5) / rows) * 2 - 1;
-      let dx = ox;
-      let dy = oy;
-      let dz = 1 - Math.abs(dx) - Math.abs(dy);
-      if (dz < 0) {
-        const px = dx;
-        dx = (1 - Math.abs(dy)) * Math.sign(px || 1);
-        dy = (1 - Math.abs(px)) * Math.sign(dy || 1);
-        dz = -dz;
-      }
-      out.push(new THREE.Vector3(dx, dy, Math.abs(dz)).normalize());
-    }
-  }
-  return out;
 }
 
 function viewBasis(dir: THREE.Vector3) {
@@ -460,29 +464,6 @@ function shadedTriangleColor(
     Math.round(Math.min(255, (rgb[1] / 3) * shade * 255)),
     Math.round(Math.min(255, (rgb[2] / 3) * shade * 255)),
   ];
-}
-
-function rotateViewDirectionIntoSoldierLocal(dir: THREE.Vector3, facing: number): void {
-  const c = Math.cos(-facing);
-  const s = Math.sin(-facing);
-  const x = dir.x * c - dir.y * s;
-  const y = dir.x * s + dir.y * c;
-  dir.x = x;
-  dir.y = y;
-  dir.normalize();
-}
-
-function nearestTile(dir: THREE.Vector3, directions: THREE.Vector3[]): number {
-  let best = 0;
-  let bestDot = -Infinity;
-  for (let i = 0; i < directions.length; i++) {
-    const d = dir.dot(directions[i]);
-    if (d > bestDot) {
-      bestDot = d;
-      best = i;
-    }
-  }
-  return best;
 }
 
 function clampShade(x: number): number {

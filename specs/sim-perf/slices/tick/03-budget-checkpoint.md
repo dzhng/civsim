@@ -12,6 +12,15 @@ David.
 - Run tick/00's full sweep (15.5k, 30k, 60k; idle and fighting). Record the
   ledger rows and the 30k → 60k ratio (July: fighting cost ×2.71 for ×1.97
   soldiers — has it improved?).
+- Validate what the measured window represents. The exact expanded spawn
+  grid reaches first contact much earlier than the generated-only battle;
+  the initial 30k window contained a minimum of only 49 living fighters.
+  The developed window starts no earlier than tick 1500 and measures 300
+  ticks: reconnaissance found over 30k living soldiers and roughly 3.4k
+  living fighters across 20 units there. The standing gate retains the
+  opening window and also requires the developed window to meet 25 ms with
+  at least 30k still alive. A cheap opening skirmish alone does not establish
+  the broad fighting budget. See [window evidence](../../assets/developed-window.md).
 - **If ≤ 25 ms at 30k fighting:** the gate flips green; tick/04 and tick/05
   become optional headroom. Present the numbers to David (non-blocking,
   about five minutes per house style): stop the tick track here, or continue

@@ -15,22 +15,27 @@ folder holds a one-line redirect until close-spec.
 
 ## Next Agent Prompt
 
-**Status (2026-09-09):** implementation is active from `2bef8193`.
-The weapon-repel gate is already on main. No new slice has passed its
-acceptance gates yet.
+**Status (2026-09-09):** `tick/00` implementation, identity checks and
+review are committed (`5461c235`); the integrated workspace suite passes.
+The budget gate is honestly red, with substantial machine variation. The
+contact pass is being implemented in its own worktree. `worker/00` has a
+matching cross-thread hash, but no admissible quiet-machine timing yet.
 
-**Current pickup:** finish the independent `tick/00` profiler/budget pass
-and `worker/00` measurement pass in their separate worktrees, then integrate
-the reviewed commits. Native identity baselines precede tick edits; browser
-baselines precede worker production changes. Coordinate expensive native
-runs and browser timings so they do not measure each other's contention.
-The initial machine load was above the browser gate's quiet-machine limit;
-loaded results are diagnostics, not keep/drop evidence.
+**Current pickup:** measure the contact variants, then verify and integrate
+`tick/01`. Follow with scratch reuse and the budget checkpoint.
+The first-contact window is a small skirmish; check a developed fight before
+concluding the broad budget is met. Worker measurements proceed independently
+when a quiet timing lane is available; worker production refactoring starts
+only after a keep verdict. Its later 12–14 ms frame gates are under review
+because an empty-page diagnostic shows a 16.7 ms cadence; thresholds remain
+unchanged pending an explicit decision.
 
-**Priority:** establish the fighting budget gate, then preserve candidate
-order through `tick/01` and reuse scratch in `tick/02`. The worker branch
-advances only if `worker/00` earns a keep verdict. Every recorded decision
-must be reconciled before the two tracks close.
+**Evidence:** [native baseline](assets/tick00-native-2026-09-09.md),
+[developed-window verification](assets/developed-window.md),
+[original visual reference](assets/visual-baseline.md),
+[acceptance changes](assets/acceptance-changes.md), and
+[choices](choices.md). Run expensive correctness checks concurrently
+where useful, but reserve timing runs so they do not measure those checks.
 
 **Warnings:**
 - Every browser number needs a quiet machine (load average under ~4). On
@@ -47,7 +52,7 @@ must be reconciled before the two tracks close.
 **Global TODO (each → owning slice):**
 
 Tick track
-- [ ] `tick/00` stage profiler behind a feature + standing budget gate ([slices/tick/00-profiler-and-gate.md](slices/tick/00-profiler-and-gate.md))
+- [x] `tick/00` stage profiler behind a feature + standing budget gate ([slices/tick/00-profiler-and-gate.md](slices/tick/00-profiler-and-gate.md))
 - [x] weapon-repel gate — shipped on main 2026-09-08 as an exact per-unit-extent cull (`2e0e4a7c`)
 - [ ] `tick/01` shared per-tick contact neighborhood for targeting, weapon-repel and the wall ([slices/tick/01-contact-neighborhood.md](slices/tick/01-contact-neighborhood.md))
 - [ ] `tick/02` scratch-buffer reuse ([slices/tick/02-scratch-buffers.md](slices/tick/02-scratch-buffers.md))
@@ -272,4 +277,5 @@ the pre-change visual comparison, including its existing baseline failures.
 | 2026-09-08, Mac | 15.5k idle (seed 7) | 6.6 | 8.3 | 18 ms | after weapon-repel + steer prunes; was 20 / 27 / 102 |
 | 2026-09-08, Mac | 15.5k ai, 1000 ticks | 7.2 | — | — | was 16.6 |
 | 2026-09-08, Mac | 30k live | — | 25 | 36–60 ms | paused-sim frame 17 ms; gate passes |
-| clean machine | re-baseline | | | | fill before any slice |
+| 2026-09-09, M5 Pro | 30,560 first-contact, AI on | 36.294 | — | — | gate red; repeats 50.055 / 22.532 ms, 49 minimum fighters; see native evidence |
+| 2026-09-09, M5 Pro | 60,060 first-contact, AI on | 102.564 | — | — | telemetry; large repeat spread, ratio 2.826 |

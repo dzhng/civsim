@@ -2,6 +2,7 @@
 //! headless so a sampling profiler can name the hot passes, ending in a state
 //! hash so a perf change can prove it is bit-identical.
 //! `cargo run --release -p sim --bin profile_tick -- [seed] [ticks] [ai]`
+//! `cargo run --release -p sim --bin profile_tick -- fighting [soldiers] [earliest_tick]`
 //! `fighting [soldier-target]` measures persistent melee; `gate` enforces the
 //! native budget. Add `--features perf_timing` for exclusive stage diagnostics;
 //! instrumentation overhead is deliberately excluded from the budget build.
@@ -93,9 +94,15 @@ fn fighting_count(sim: &Sim) -> usize {
         .count()
 }
 
-fn fighting(target: usize) -> f64 {
+struct TickMeasurement {
+    median_ms: f64,
+    min_alive: usize,
+}
+
+fn fighting(target: usize, earliest_tick: u64) -> TickMeasurement {
     let mut repeats = Vec::new();
     let mut expected_hash = None;
+    let mut min_alive = usize::MAX;
     for repeat in 1..=2 {
         let mut battle = fighting_battle(target);
         // Bound preparation: a broken fixture must fail rather than time an approach forever.
@@ -108,6 +115,9 @@ fn fighting(target: usize) -> f64 {
         );
         let contact = battle.sim.tick_count;
         for _ in 0..60 {
+            battle.tick();
+        }
+        while battle.sim.tick_count < earliest_tick {
             battle.tick();
         }
         let start_tick = battle.sim.tick_count;
@@ -140,14 +150,20 @@ fn fighting(target: usize) -> f64 {
             .sqrt();
         repeats.push(ms);
         let alive_end = battle.sim.alive.iter().filter(|&&v| v == 1).count();
+        min_alive = min_alive.min(alive_end);
         println!("fighting target {target} repeat {repeat} soldiers {} contact {contact} window {start_tick}..{} alive {alive_start}->{alive_end} min_fighting {min_fighting} mean_ms {ms:.3} stddev_ms {stddev:.3} hash {hash:#018x}", battle.sim.soldier_count(), battle.sim.tick_count);
         #[cfg(feature = "perf_timing")]
         sim::perf_timing::report(300);
     }
     // For two repetitions the median is the midpoint of their measured tick means.
     let median = (repeats[0] + repeats[1]) / 2.0;
-    println!("fighting target {target} median_repeat_mean_ms {median:.3}");
-    median
+    println!(
+        "fighting target {target} median_repeat_mean_ms {median:.3} earliest_tick {earliest_tick}"
+    );
+    TickMeasurement {
+        median_ms: median,
+        min_alive,
+    }
 }
 
 fn main() {
@@ -157,24 +173,33 @@ fn main() {
             s.parse::<usize>()
                 .expect("soldier target must be an integer")
         });
+        let earliest_tick = args
+            .get(3)
+            .map(|s| s.parse::<u64>().expect("earliest tick must be an integer"))
+            .unwrap_or(0);
         if let Some(target) = target {
-            fighting(target);
+            fighting(target, earliest_tick);
         } else {
             for target in [15_500, 30_500, 60_000] {
-                fighting(target);
+                fighting(target, earliest_tick);
             }
         }
         return;
     }
     if args.get(1).is_some_and(|s| s == "gate") {
-        let thirty = fighting(30_500);
-        let sixty = fighting(60_000);
+        let thirty = fighting(30_500, 0);
+        let developed = fighting(30_500, 1_500);
+        let sixty = fighting(60_000, 0);
+        let passes = thirty.median_ms <= 25.0
+            && developed.median_ms <= 25.0
+            && developed.min_alive >= 30_000;
         println!(
-            "30k -> 60k ratio {:.3}; 30k budget 25 ms: {}",
-            sixty / thirty,
-            if thirty <= 25.0 { "PASS" } else { "FAIL" }
+            "early 30k -> 60k ratio {:.3}; early/developed 30k budget 25 ms (developed min alive {}): {}",
+            sixty.median_ms / thirty.median_ms,
+            developed.min_alive,
+            if passes { "PASS" } else { "FAIL" }
         );
-        if thirty > 25.0 {
+        if !passes {
             std::process::exit(1);
         }
         return;

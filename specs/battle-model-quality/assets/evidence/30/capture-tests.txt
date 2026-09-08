@@ -1,0 +1,10 @@
+$ vitest run tests/soldierCapture.test.ts
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-model-quality/web
+
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:13:39
+   Duration  827ms (transform 122ms, setup 215ms, import 434ms, tests 32ms, environment 0ms)
+

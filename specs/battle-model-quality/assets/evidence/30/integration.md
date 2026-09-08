@@ -27,6 +27,9 @@ remain disclosed in the feature follow-ups under David's accepted quality cutoff
 The [web suite](web-tests.txt) passes after consumer cutover and compatible-rig
 equipment continuity. The [complete roster check](complete-roster.txt) verifies
 both published catalogs against fresh bakes and exercises the real loader.
+The full [bake suite](bake-tests.txt) also passes after card integration, including
+the animation/export/material contracts and named diagnostic fixture checks.
+The shared [capture tests](capture-tests.txt) pass on the merged framing helper.
 The artillery machine
 is now authored, root-attached and retained across all three production tiers;
 [equipment](crew-equipment.txt) and [loader](crew-loader.txt) checks pass.

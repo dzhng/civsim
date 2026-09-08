@@ -139,7 +139,13 @@ Review human-body silhouette, equipment shape, materials and motion independentl
 
 At human checkpoints use **preview-shots**, allow about five minutes for feedback while doing safe ancillary work, and if silent decide on evidence, document why, close Preview and proceed. This is non-blocking review, not assumed approval. A failed gate requires another iteration, not a timeout override.
 
-Preserve the existing 30k/33ms renderer gate. The live animated close-view envelope is measured and locked in [07](slices/07-budget-envelope.md), before accepting detailed exported art. Editable candidate anatomy may proceed while measurement remains open; no provisional count is an accepted budget. Report hardware, viewport, load, LOD distribution and timing methodology. The existing paused-simulation benchmark alone does not prove live performance.
+Preserve the existing 30k/33ms renderer gate. David explicitly accepted model
+delivery with that gate still unmet; the [performance spec](../sim-perf/model-rendering-follow-up.md)
+owns the remaining measurement and optimization work. Historical budget work in
+[07](slices/07-budget-envelope.md) is evidence, not a passed envelope or a reason
+to restart art. Report hardware, viewport, load, LOD distribution and timing
+methodology. The existing paused-simulation benchmark alone does not prove live
+performance.
 
 At each substantive implementation checkpoint run **review**; use **change-report** when tests change behavior and the independent review required by **codex** before presenting substantive code as finished. Archive source references, candidates, comparisons, critiques and measurements under this spec; harness folders still own active regression baselines. Close/archive this spec only after all slices ship.
 

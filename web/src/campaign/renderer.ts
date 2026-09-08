@@ -149,6 +149,7 @@ export class CampaignRenderer {
   private passes: CampaignPasses | null = null;
   private destroyed = false;
   private mountedClasses: number[] = [];
+  private soldierClips: Record<number, { walk: string; atEase: string }> = {};
   private surface: CampaignSurface;
   private staticLabels: CampaignLabel[] = [];
   private sceneryCandidates: CampaignSceneryInstance[] = [];
@@ -348,7 +349,14 @@ export class CampaignRenderer {
     const buildStart = performance.now();
     const animTime = this.fixedTime ?? performance.now() / 1000;
     const buildOpts = { ...opts, controlledStage: isControlledStage(this.data) };
-    const frame = buildEntityFrame(this.data, this.field, buildOpts, this.mountedClasses, animTime);
+    const frame = buildEntityFrame(
+      this.data,
+      this.field,
+      buildOpts,
+      this.mountedClasses,
+      animTime,
+      (id, marching) => this.soldierClips[id][marching ? "walk" : "atEase"],
+    );
     const buildEnd = performance.now();
     this.lastEntities = {
       cityEntities: frame.cityEntities,
@@ -768,6 +776,15 @@ export class CampaignRenderer {
     );
     if (this.destroyed) return;
     assertGameplayAppearances(appearances);
+    this.soldierClips = Object.fromEntries(
+      Object.entries(appearances).map(([id, asset]) => [
+        id,
+        {
+          walk: asset.manifest.presentation!.actions.walk!.clip,
+          atEase: asset.manifest.presentation!.actions.atEase!.clip,
+        },
+      ]),
+    );
     // One projector engine-wide: every pass projects through camera3d's viewProj
     // and depth-tests reverse-Z against the shell's depth32float world buffer.
     const shell = await createFrameShell(this.canvas, { sun: CAMPAIGN_ENVIRONMENT });

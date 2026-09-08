@@ -141,11 +141,7 @@ const FIGURE_NEAR_ZOOM = 3.6;
 // (red), neutral=2 (amber). Note this is NOT the raw Allegiance enum order
 // (Neutral=1, Foe=2), so a neutral stack reads amber, not enemy-red.
 function allegianceCrowdFaction(allegiance: Allegiance): 0 | 1 | 2 {
-  return allegiance === Allegiance.Friend
-    ? 0
-    : allegiance === Allegiance.Foe
-      ? 1
-      : 2;
+  return allegiance === Allegiance.Friend ? 0 : allegiance === Allegiance.Foe ? 1 : 2;
 }
 
 export function buildEntityFrame(
@@ -154,6 +150,7 @@ export function buildEntityFrame(
   opts: CampaignFrameOptions,
   mountedClasses: number[],
   animTime: number,
+  clipForClass: (classId: number, marching: boolean) => string,
 ) {
   const entities: CampaignEntityInstance[] = [];
   const standards: StandardInstance[] = [];
@@ -275,7 +272,7 @@ export function buildEntityFrame(
           y: display.y,
           faction: allegianceCrowdFaction(allegiance),
           seed: army.id,
-          clip: army.marching ? "march" : "idle",
+          clipForClass: (classId) => clipForClass(classId, army.marching),
           phase: animTime,
           mountedClasses,
           // Space figures by their rendered footprint so they read as individuals,

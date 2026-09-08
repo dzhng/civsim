@@ -9,7 +9,7 @@ import { once } from "node:events";
 import { readFile } from "node:fs/promises";
 import { bakeLocalAnimation } from "../src/localAnimation.ts";
 
-const { files } = await bakePlaceholder({ write: false });
+const { files, descriptors } = await bakePlaceholder({ write: false });
 const sword = files["appearances/heavy-sword/appearance.json"];
 assert.equal(
   sword.presentation?.actions.release,
@@ -50,7 +50,7 @@ try {
   const releases = new Map();
   const states = new Set();
   for (const [id, bundle] of Object.entries(catalog)) {
-    assert.deepEqual(bundle.manifest.presentation, APPEARANCE_DESCRIPTORS[id].presentation);
+    assert.deepEqual(bundle.manifest.presentation, descriptors[id].presentation);
     const selection = APPEARANCE_DESCRIPTORS[id].selection;
     const key = `${selection.unitClass}/${selection.state}`;
     assert.ok(!states.has(key), `ambiguous appearance selection ${key}`);

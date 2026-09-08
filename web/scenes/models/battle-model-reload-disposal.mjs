@@ -16,7 +16,11 @@ export async function run(ctx) {
       await page.route("**/assets/soldiers/catalog.json", (route) =>
         route.fulfill({
           contentType: "application/json",
-          body: JSON.stringify({ appearances: { 0: "appearances/heavy-sword/appearance.json" } }),
+          body: JSON.stringify({
+            appearances: {
+              0: "fixtures/placeholder-soldiers/appearances/heavy-sword/appearance.json",
+            },
+          }),
         }),
       );
       await page.goto(`${ctx.target}/renderer/battle-models?ref=1`);

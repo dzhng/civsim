@@ -20,8 +20,8 @@ export interface StackCrowdOpts {
   seed: number;
   /** Facing for the whole stack (radians). Default faces +y like a player unit. */
   facing?: number;
-  /** Animation clip all figures play (e.g. 'idle' | 'march'). Default 'march'. */
-  clip?: string;
+  /** Resolve an authored clip for each represented class from its appearance. */
+  clipForClass: (classId: number) => string;
   /** Base animation phase (0..1) from the campaign clock; per-figure offset added. */
   phase?: number;
   /** Class ids that ride a mount, so mounted figures scale/compose correctly. */
@@ -73,7 +73,6 @@ export function buildStackCrowd(
   const classIds = sampleFigureClasses(unitsByClass, figures);
   const mounted = new Set(opts.mountedClasses ?? []);
   const facing = opts.facing ?? Math.PI / 2;
-  const clip = opts.clip ?? "march";
   const basePhase = opts.phase ?? 0;
   const spacing = opts.spacing ?? 1.3;
   const cols = Math.min(3, figures);
@@ -99,7 +98,7 @@ export function buildStackCrowd(
       faction: opts.faction,
       alive: true,
 
-      clip,
+      clip: opts.clipForClass(classId),
       // Offset each figure so the stack doesn't animate in lockstep.
       phase: (basePhase + (seed % 997) / 997) % 1,
       seed,

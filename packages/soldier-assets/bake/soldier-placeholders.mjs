@@ -11,9 +11,39 @@ import { assertAppearancePresentation, ACTION_ROLES } from "../src/presentation.
 import { assertPresentationMotion } from "./presentation.mjs";
 
 const ASSET_ROOTS = [
-  new URL("../assets/", import.meta.url),
-  new URL("../../../web/public/assets/soldiers/", import.meta.url),
+  new URL("../assets/fixtures/placeholder-soldiers/", import.meta.url),
+  new URL("../../../web/public/assets/soldiers/fixtures/placeholder-soldiers/", import.meta.url),
 ];
+
+// Synthetic transport content belongs to explicit tests, never the live catalog.
+const descriptors = APPEARANCE_DESCRIPTORS.map((description) => {
+  const { weapon, mounted } = description.look;
+  const full = (clip) => ({ clip, layer: "fullBody" });
+  const action = (clip) => ({ clip, layer: mounted ? "riderUpperBody" : "fullBody" });
+  const release = { bow: "bow_release", javelin: "throw_release", artillery: "crew_release" }[
+    weapon
+  ];
+  return {
+    ...description,
+    presentation: {
+      riderUpperBodyJoints: mounted ? ["spine", "head", "arm_l", "arm_r"] : null,
+      actions: {
+        ready: full("idle"),
+        atEase: full("at_ease"),
+        walk: full("march"),
+        run: full("run"),
+        guardedBackwardWalk: null,
+        guardedLeftWalk: null,
+        guardedRightWalk: null,
+        melee: action("attack_a"),
+        release: release ? action(release) : null,
+        hit: full("hit_a"),
+        death: full("death_a"),
+        pikeReady: weapon === "pike" ? full("idle") : null,
+      },
+    },
+  };
+});
 
 const qx = (a) => [Math.sin(a / 2), 0, 0, Math.cos(a / 2)];
 const qy = (a) => [0, Math.sin(a / 2), 0, Math.cos(a / 2)];
@@ -182,7 +212,7 @@ function completeBundleFiles(rig, animation) {
   };
   const appearances = {};
   const meshes = createPlaceholderSoldierMeshTiers();
-  for (const [id, archetype] of Object.entries(APPEARANCE_DESCRIPTORS)) {
+  for (const [id, archetype] of Object.entries(descriptors)) {
     const path = `appearances/${archetype.name}`;
     const tiers = meshes[Number(id)];
     const tierPaths = tiers.map((mesh, lod) => {
@@ -266,7 +296,7 @@ export async function bakePlaceholder({ write = true } = {}) {
       }
     }
   }
-  return { out, descriptors: APPEARANCE_DESCRIPTORS, files };
+  return { out, descriptors, files };
 }
 
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").href) {

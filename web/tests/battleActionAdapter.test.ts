@@ -26,7 +26,7 @@ beforeAll(async () => {
 
 async function diagnosticGuardedBundle(appearanceId: number) {
   const url = new URL(
-    `../public/assets/soldiers/appearances/${APPEARANCE_DESCRIPTORS[appearanceId].name}/appearance.json`,
+    `../public/assets/soldiers/fixtures/placeholder-soldiers/appearances/${APPEARANCE_DESCRIPTORS[appearanceId].name}/appearance.json`,
     import.meta.url,
   );
   const read = async (path: URL) => JSON.parse(await readFile(path, "utf8"));
@@ -118,7 +118,7 @@ test("targetless Disengage selects protected travel only when the actual engine 
 
 test("production crowd submits distance-driven poses despite contrary ordered pace", async () => {
   const url = new URL(
-    "../public/assets/soldiers/appearances/heavy-sword/appearance.json",
+    "../public/assets/soldiers/fixtures/placeholder-soldiers/appearances/heavy-sword/appearance.json",
     import.meta.url,
   );
   const read = async (path: URL) => JSON.parse(await readFile(path, "utf8"));
@@ -190,7 +190,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
 
 test("production crowd preserves delayed positions across append and resets playback on catalog replacement", async () => {
   const url = new URL(
-    "../public/assets/soldiers/appearances/heavy-sword/appearance.json",
+    "../public/assets/soldiers/fixtures/placeholder-soldiers/appearances/heavy-sword/appearance.json",
     import.meta.url,
   );
   const read = async (path: URL) => JSON.parse(await readFile(path, "utf8"));

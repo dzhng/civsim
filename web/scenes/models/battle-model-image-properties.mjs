@@ -51,7 +51,9 @@ export async function run(ctx) {
   const normal = png(1, 1, [255, 0, 0, 255]);
   const decode = (v) => (v / 255 <= 0.04045 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4);
   try {
-    await page.goto(`${ctx.target}/renderer/battle-models?ref=1`);
+    await page.goto(
+      `${ctx.target}/renderer/battle-models?ref=1&catalog=/assets/soldiers/fixtures/placeholder-soldiers/catalog.json`,
+    );
     await page.waitForFunction(() => window.__battleModels?.stats().frame >= 3, undefined, {
       timeout: 60000,
     });
@@ -294,7 +296,7 @@ export async function run(ctx) {
       const loaded = await h.reload();
       while (h.stats().pendingDraw) await new Promise(requestAnimationFrame);
       await h.world.settlePresentedFrame();
-      const catalogUrl = new URL("/assets/soldiers/catalog.json", location.href);
+      const catalogUrl = new URL(h.world.soldierCatalogUrl, location.href);
       const catalog = await fetch(catalogUrl).then((r) => r.json());
       const manifestUrl = new URL(catalog.appearances[0], catalogUrl);
       const manifest = await fetch(manifestUrl).then((r) => r.json());

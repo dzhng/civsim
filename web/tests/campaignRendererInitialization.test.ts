@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { readFile } from "node:fs/promises";
 import { afterEach, expect, test, vi } from "vitest";
 import { CampaignRenderer } from "../src/campaign/renderer";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
@@ -23,7 +24,21 @@ afterEach(() => {
 test("campaign teardown during crowd preparation cannot publish or retain GPU owners", async () => {
   vi.stubGlobal("location", { href: "http://localhost/", search: "" });
   vi.stubGlobal("window", { addEventListener() {}, removeEventListener() {} });
-  vi.mocked(loadAppearanceCatalog).mockResolvedValue({});
+  const fixtureRoot = new URL(
+    "../public/assets/soldiers/fixtures/placeholder-soldiers/",
+    import.meta.url,
+  );
+  vi.stubGlobal(
+    "fetch",
+    async (url: string) =>
+      new Response(await readFile(new URL(`.${new URL(url).pathname}`, fixtureRoot))),
+  );
+  const actual = await vi.importActual<
+    typeof import("@packages/soldier-assets/src/appearanceBundle")
+  >("@packages/soldier-assets/src/appearanceBundle");
+  vi.mocked(loadAppearanceCatalog).mockResolvedValue(
+    await actual.loadAppearanceCatalog("http://fixture/catalog.json"),
+  );
   const shell = { destroy: vi.fn() };
   vi.mocked(createFrameShell).mockResolvedValue(
     shell as unknown as Awaited<ReturnType<typeof createFrameShell>>,

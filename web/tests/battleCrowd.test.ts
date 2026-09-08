@@ -25,7 +25,7 @@ beforeAll(async () => {
     module_or_path: await readFile(new URL("../src/wasm/game_wasm_bg.wasm", import.meta.url)),
   });
   const url = new URL(
-    "../public/assets/soldiers/appearances/heavy-sword/appearance.json",
+    "../public/assets/soldiers/fixtures/placeholder-soldiers/appearances/heavy-sword/appearance.json",
     import.meta.url,
   );
   const read = async (path: URL) => JSON.parse(await readFile(path, "utf8"));
@@ -372,7 +372,7 @@ test("equipment and death switch at the same endpoint as facing, root and attach
     for (const [id, descriptor] of APPEARANCE_DESCRIPTORS.entries()) {
       if (descriptor.selection.unitClass !== 3) continue;
       const url = new URL(
-        `../public/assets/soldiers/appearances/${descriptor.name}/appearance.json`,
+        `../public/assets/soldiers/fixtures/placeholder-soldiers/appearances/${descriptor.name}/appearance.json`,
         import.meta.url,
       );
       const read = async (path: URL) => JSON.parse(await readFile(path, "utf8"));

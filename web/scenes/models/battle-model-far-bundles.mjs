@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
-import { PLACEHOLDER_RENDER_CLASS_COUNT } from "../../../packages/soldier-assets/src/soldierMesh.ts";
+import { APPEARANCE_DESCRIPTORS } from "../../../packages/soldier-assets/src/appearance.ts";
 
 export const meta = {
   name: "battle-model-far-bundles",
@@ -24,7 +24,9 @@ export async function run(ctx) {
   requireSwiftShaderBaseline(meta.name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
   try {
-    await page.goto(`${ctx.target}/renderer/battle-models?ref=1`);
+    await page.goto(
+      `${ctx.target}/renderer/battle-models?ref=1&catalog=/assets/soldiers/fixtures/placeholder-soldiers/catalog.json`,
+    );
     await page.waitForFunction(() => window.__battleModels?.stats().frame >= 3, undefined, {
       timeout: 60000,
     });
@@ -90,8 +92,7 @@ export async function run(ctx) {
       if (roster)
         ctx.check(
           `${name}: catalog covers every current appearance`,
-          JSON.stringify(result.ids) ===
-            JSON.stringify(Array.from({ length: PLACEHOLDER_RENDER_CLASS_COUNT }, (_, id) => id)),
+          JSON.stringify(result.ids) === JSON.stringify(APPEARANCE_DESCRIPTORS.map((_, id) => id)),
           JSON.stringify(result.ids),
         );
       ctx.check(

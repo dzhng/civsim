@@ -49,7 +49,7 @@ function inFormation(x: number, y: number): boolean {
   return Math.abs(x) < 115 && (Math.abs(y - 70) < 55 || Math.abs(y + 70) < 55);
 }
 
-function buildSoldiers(count: number): CrowdInstance[] {
+function buildSoldiers(count: number, clip: string): CrowdInstance[] {
   // Two blocks retain the original 190-column layout and deterministic phase spread.
   const half = Math.floor(count / 2);
   const cols = 190;
@@ -74,7 +74,7 @@ function buildSoldiers(count: number): CrowdInstance[] {
         faction: block === 0 ? 0 : 1,
         alive: true,
 
-        clip: "march",
+        clip,
         phase,
         seed: phase,
         mounted: false,
@@ -274,10 +274,11 @@ export async function route(ctx: PhotorealRouteContext) {
   ground.position.set(0, 450, 0);
   world.scene.add(ground);
 
-  const instances = buildSoldiers(soldierCount);
+  const walkClip = assets[0].manifest.presentation!.actions.walk!.clip;
+  const instances = buildSoldiers(soldierCount, walkClip);
   const soldiers = instances.length;
   const crowd = await PhotorealCrowd.create(world.renderer, world.scene, assets);
-  const march = assets[0].animation.clips.find((clip) => clip.name === "march");
+  const march = assets[0].animation.clips.find((clip) => clip.name === walkClip);
   if (!march || march.duration <= 0) throw new Error("Crowd fixture requires a timed march clip");
 
   const { mesh: grassMesh, placed: grassBlades } = buildGrass(world, grassCount);

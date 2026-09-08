@@ -1,5 +1,3 @@
-import type { AppearancePresentation } from "./presentation";
-
 export type Armor = "heavy" | "medium" | "light" | "cloth" | "rag";
 export type Helmet = "crested" | "bronze" | "cap" | "hood" | "bare";
 export type Shield = "tall" | "round" | "small" | "none";
@@ -17,7 +15,7 @@ type Weapon =
   | "artillery"
   | "none";
 
-export interface PlaceholderLook {
+export interface AppearanceLook {
   armor: Armor;
   helmet: Helmet;
   shield: Shield;
@@ -28,11 +26,10 @@ export interface PlaceholderLook {
 export interface AppearanceDescriptor {
   name: string;
   selection: { unitClass: number; state: "primary" | "atEase" | "sidearm" };
-  look: PlaceholderLook;
-  presentation: AppearancePresentation;
+  look: AppearanceLook;
 }
 
-const descriptions: Omit<AppearanceDescriptor, "presentation">[] = [
+export const APPEARANCE_DESCRIPTORS: AppearanceDescriptor[] = [
   {
     name: "heavy-sword",
     selection: { unitClass: 0, state: "primary" },
@@ -170,40 +167,3 @@ const descriptions: Omit<AppearanceDescriptor, "presentation">[] = [
     },
   },
 ];
-
-export const APPEARANCE_DESCRIPTORS: AppearanceDescriptor[] = descriptions.map((description) => {
-  const { weapon, mounted } = description.look;
-  const full = (clip: string) => ({ clip, layer: "fullBody" as const });
-  const action = (clip: string) => ({
-    clip,
-    layer: mounted ? ("riderUpperBody" as const) : ("fullBody" as const),
-  });
-  const release =
-    weapon === "bow"
-      ? "bow_release"
-      : weapon === "javelin"
-        ? "throw_release"
-        : weapon === "artillery"
-          ? "crew_release"
-          : null;
-  return {
-    ...description,
-    presentation: {
-      riderUpperBodyJoints: mounted ? ["spine", "head", "arm_l", "arm_r"] : null,
-      actions: {
-        ready: full("idle"),
-        atEase: full("at_ease"),
-        walk: full("march"),
-        run: full("run"),
-        guardedBackwardWalk: null,
-        guardedLeftWalk: null,
-        guardedRightWalk: null,
-        melee: action("attack_a"),
-        release: release ? action(release) : null,
-        hit: full("hit_a"),
-        death: full("death_a"),
-        pikeReady: weapon === "pike" ? full("idle") : null,
-      },
-    },
-  };
-});

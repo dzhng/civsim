@@ -31,7 +31,10 @@ export async function route(ctx: LabContext) {
   snapshot.camera3d.target = [0, 0, 1.6];
   shell.setCamera(snapshot);
   const appearances = await loadAppearanceCatalog(
-    new URL(ctx.params.get("catalog") ?? "/assets/soldiers/catalog.json", location.href).href,
+    new URL(
+      ctx.params.get("catalog") ?? "/assets/soldiers/fixtures/placeholder-soldiers/catalog.json",
+      location.href,
+    ).href,
   );
   const classId = integerParam(
     ctx.params,

@@ -23,7 +23,7 @@ foot = module("foot", "blender-foot-variant.py")
 motion = module("motion", "blender-heavy-motion.py")
 
 
-def finish_equipment(scene, arm, parts, obj, material, joint, smooth=True):
+def finish_equipment(arm, parts, obj, material, joint, smooth=True):
     obj.data.materials.append(bpy.data.materials["heavy-" + material])
     obj.vertex_groups.new(name=joint).add(list(range(len(obj.data.vertices))), 1, "REPLACE")
     obj.parent = arm
@@ -45,7 +45,7 @@ def finish_equipment(scene, arm, parts, obj, material, joint, smooth=True):
     return obj
 
 
-def add_artillery_equipment(scene, arm, parts):
+def add_artillery_equipment(arm, parts):
     """Rigid root-mounted carriage in the existing native right/forward envelope.
 
     Coordinates below are native engine XYZ; the saved authoring scene faces
@@ -61,7 +61,7 @@ def add_artillery_equipment(scene, arm, parts):
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         modifier = obj.modifiers.new("Rigid equipment triangles", "TRIANGULATE")
         bpy.ops.object.modifier_apply(modifier=modifier.name)
-        return finish_equipment(scene, arm, parts, obj, material, "root", smooth=False)
+        return finish_equipment(arm, parts, obj, material, "root", smooth=False)
 
     def beam(label, start, end, width, depth=None, material="wood"):
         a, b = (Vector((-p[0], -p[1], p[2])) for p in (start, end))
@@ -114,7 +114,7 @@ def build(source, output, name):
     side = "L" if archer else "R"
 
     def finish(obj, material="wood", joint=None):
-        return finish_equipment(scene, arm, parts, obj, material, joint or "hand." + side)
+        return finish_equipment(arm, parts, obj, material, joint or "hand." + side)
 
     def rod(label, points, radius, material="wood", across=(0, 1, 0), depth=None):
         obj = foot.anatomy.loft(label, [(p, radius, radius) for p in points],
@@ -261,7 +261,7 @@ def build(source, output, name):
             arm.pose.bones["held-projectile"].scale = (.0001, .0001, .0001)
             arm.pose.bones["held-projectile"].keyframe_insert("scale", frame=frame)
     if crew:
-        add_artillery_equipment(scene, arm, parts)
+        add_artillery_equipment(arm, parts)
     foot.export_parts(scene, arm, parts, output, name)
 
 

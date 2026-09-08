@@ -26,7 +26,7 @@ function stretchRig(rig: ImportedRig, factor: number): ImportedRig {
 
 export async function route(ctx: LabContext) {
   const appearances = await loadAppearanceCatalog(
-    new URL("/assets/soldiers/catalog.json", location.href).href,
+    new URL("/assets/soldiers/fixtures/placeholder-soldiers/catalog.json", location.href).href,
   );
   const stretched = stretchRig(appearances[1].rig, 2);
   const shell = await createConfiguredShell(ctx.canvas, {

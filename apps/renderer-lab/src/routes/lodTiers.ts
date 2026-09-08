@@ -27,7 +27,12 @@ export async function route(ctx: LabContext) {
   // Three soldiers side by side, explicitly L0/L1/L2, so detail reduction is
   // directly reviewable.
   const lineup = [0, 1, 2].map((lod) => ({
-    ...crowdInstance((lod - 1) * 2.6, 0, 0, "at_ease"),
+    ...crowdInstance(
+      (lod - 1) * 2.6,
+      0,
+      0,
+      appearances[0].manifest.presentation!.actions.atEase!.clip,
+    ),
     lod,
   }));
   const triCounts = appearances[0].tiers.map((mesh) => mesh.indices.length / 3);

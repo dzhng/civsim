@@ -1,24 +1,62 @@
-import { type FrameGraphPass, type OverlayRenderPass, type RawFrameShell, type WorldRenderPass } from "@packages/renderer-core/src/frameShell";
+import {
+  type FrameGraphPass,
+  type OverlayRenderPass,
+  type RawFrameShell,
+  type WorldRenderPass,
+} from "@packages/renderer-core/src/frameShell";
 import { WORLD_CAMERA_WGSL } from "@packages/renderer-core/src/cameraWgsl";
 import { gpuWorldDepthStencil } from "@packages/renderer-core/src/pipelineContracts";
 import { compileShader } from "@packages/renderer-core/src/compileShader";
-import { CAMPAIGN_FIGURE_SIZE, campaignArmyStandardScale, campaignSettlementStandardScale } from "@packages/game-renderer/src/campaign/entityFrame";
+import {
+  CAMPAIGN_FIGURE_SIZE,
+  campaignArmyStandardScale,
+  campaignSettlementStandardScale,
+} from "@packages/game-renderer/src/campaign/entityFrame";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
 import { CampaignCloudPass } from "@packages/game-renderer/src/campaign/atmospherePass";
-import { CampaignEntityPass, type CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityPass";
-import { CampaignLabelPass, type CampaignMarker, CampaignMarkerPass, CampaignRoadPass, type CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
+import {
+  CampaignEntityPass,
+  type CampaignEntityInstance,
+} from "@packages/game-renderer/src/campaign/entityPass";
+import {
+  CampaignLabelPass,
+  type CampaignMarker,
+  CampaignMarkerPass,
+  CampaignRoadPass,
+  type CampaignLabel,
+} from "@packages/game-renderer/src/campaign/mapPass";
 import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
-import { CampaignSceneryPass, type CampaignSceneryInstance } from "@packages/game-renderer/src/campaign/sceneryPass";
-import { standardSeed, standardWindPhase } from "@packages/game-renderer/src/models/shared/standardAsset";
-import { SharedStandardPass, type StandardInstance } from "@packages/game-renderer/src/models/shared/standardPass";
+import {
+  CampaignSceneryPass,
+  type CampaignSceneryInstance,
+} from "@packages/game-renderer/src/campaign/sceneryPass";
+import {
+  standardSeed,
+  standardWindPhase,
+} from "@packages/game-renderer/src/models/shared/standardAsset";
+import {
+  SharedStandardPass,
+  type StandardInstance,
+} from "@packages/game-renderer/src/models/shared/standardPass";
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
-import { CampaignSelectionPass, type CampaignSelectionInstance } from "@packages/game-renderer/src/campaign/selectionPass";
+import {
+  CampaignSelectionPass,
+  type CampaignSelectionInstance,
+} from "@packages/game-renderer/src/campaign/selectionPass";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { projectNestedPoint } from "../labCampaign";
-import { type LabContext, LabGroundPass, chartSnapshot, createCampaignShell, labGroundFramePass, publish, reportTable } from "../labShell";
+import {
+  type LabContext,
+  LabGroundPass,
+  chartSnapshot,
+  createCampaignShell,
+  labGroundFramePass,
+  publish,
+  reportTable,
+} from "../labShell";
 
 const MODEL_SHOT_GROUND_DEPTH_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -128,11 +166,10 @@ export async function route(ctx: LabContext) {
     const appearances = await loadAppearanceCatalog(
       new URL("/assets/soldiers/catalog.json", location.href).href,
     );
-    const mountedClasses = Object.entries(appearances).filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
-    soldierCrowd = await SkinnedCrowdPipeline.create(
-      shell,
-      appearances,
-    );
+    const mountedClasses = Object.entries(appearances)
+      .filter(([, bundle]) => bundle.manifest.mounted)
+      .map(([id]) => Number(id));
+    soldierCrowd = await SkinnedCrowdPipeline.create(shell, appearances);
     soldierShadows = new SoldierShadowDecalPass(shell);
     const modelStackRoster = [4, 0, 3, 0, 2, 1];
     modelCrowd = frame.armyAnchors.flatMap((entity, i) =>
@@ -143,7 +180,7 @@ export async function route(ctx: LabContext) {
         y: entity.y,
         faction: 0,
         seed: 100 + i,
-        clip: "idle",
+        clipForClass: (id) => appearances[id].manifest.presentation!.actions.atEase!.clip,
         phase: 0,
         mountedClasses,
         spacing: CAMPAIGN_FIGURE_SIZE * 1.1,

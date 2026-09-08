@@ -56,7 +56,9 @@ export async function run(ctx) {
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
   const captures = {};
   try {
-    await page.goto(`${ctx.target}/renderer/battle-models?ref=1`);
+    await page.goto(
+      `${ctx.target}/renderer/battle-models?ref=1&catalog=/assets/soldiers/fixtures/placeholder-soldiers/catalog.json`,
+    );
     await page.waitForFunction(() => window.__battleModels?.stats().frame >= 3, undefined, {
       timeout: 60000,
     });

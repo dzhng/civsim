@@ -15,7 +15,7 @@ import {
 } from "../src/localAnimation.ts";
 import { localPoseToJointMatrices } from "../src/localPose.ts";
 
-const root = new URL("../assets/", import.meta.url);
+const root = new URL("../assets/fixtures/placeholder-soldiers/", import.meta.url);
 const server = createServer(async (request, response) => {
   try {
     const content = await readFile(new URL(`.${request.url}`, root));
@@ -93,7 +93,7 @@ try {
   assert.deepEqual(again.files, generated.files);
   for (const assetRoot of [
     root,
-    new URL("../../../web/public/assets/soldiers/", import.meta.url),
+    new URL("../../../web/public/assets/soldiers/fixtures/placeholder-soldiers/", import.meta.url),
   ]) {
     for (const [path, expected] of Object.entries(generated.files)) {
       assert.equal(

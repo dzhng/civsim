@@ -14,7 +14,12 @@ import { DEFAULT_MODEL_POSE, modelInstances } from "../../apps/renderer-lab/src/
 vi.stubGlobal("fetch", async (url: string) => {
   const path = new URL(String(url)).pathname;
   return new Response(
-    await readFile(new URL(`../../packages/soldier-assets/assets${path}`, import.meta.url)),
+    await readFile(
+      new URL(
+        `../../packages/soldier-assets/assets/fixtures/placeholder-soldiers${path}`,
+        import.meta.url,
+      ),
+    ),
   );
 });
 const assets = await loadAppearanceCatalog("http://fixture/catalog.json");

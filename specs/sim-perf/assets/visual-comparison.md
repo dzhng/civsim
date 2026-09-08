@@ -4,6 +4,8 @@ The contact metadata and scratch reuse changes (`d6846bb0`, including
 `2318f2e7`) were rebuilt to wasm and captured through the same production
 battle route as the [original reference](visual-baseline.md). No renderer,
 fixture, camera, clock or tolerance was changed.
+The production entry imports the newly generated `game_wasm.js`; the served
+wasm's SHA-256 matches the rebuilt file recorded in the comparison data.
 
 Run: `VERIFY_GPU=1 VERIFY_URL=http://localhost:5181 NAME=heavy-both ATK=0 DEF=0 POSTURE=both node web/vibe/duel-posture.mjs`.
 

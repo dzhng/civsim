@@ -45,3 +45,12 @@ handle a busy front at the intended population. The benchmark can explicitly
 select a later window; it does not change when any game event happens.
 **Verdict:** Sound: strengthens the evidence for the existing budget without
 changing simulation behavior or lowering a threshold. **Confidence:** high.
+
+### Resolve tick/01 without shipping the proposed shared neighborhood
+
+- **When:** tick/01 contact-data pass.
+- **The choice:** When repeated timings of the unchanged battle varied more than the apparent optimization gain, we removed both experimental caches and closed their trial instead of retaining extra state on the strength of an early-combat result. A cache is remembered search work: one prototype remembered each body's grid bucket, and the other remembered neighboring buckets for repeated searches. The final code remembers neither. It only keeps using the existing body-owner and radius arrays while the wall solver adjusts positions; those identities and sizes cannot change during the adjustment passes. The alternative would have shipped new remembered data whose maintenance cost was certain while its benefit in developed combat remained uncertain.
+- **The gap:** The plan called for a shared neighborhood and allowed preserving consumers with different ordering, but did not specify how to resolve an exact-state prototype whose developed-combat benefit could not be distinguished from host variation. It also did not identify immutable owner/radius reuse as the replacement scope.
+- **The reach:** Targeting, weapon-repel and projection keep their existing candidate traversal contracts. Future search optimization must establish its own benefit; there is no dormant cache, optional mode or deferred implementation hidden behind this slice's completion. This closes a rejected experiment, not a claim that the originally proposed mechanism shipped.
+- **Verdict:** Sound. The change removes redundant writes using a proven immutable boundary and avoids adding state without demonstrated benefit. It does not weaken the budget or reinterpret a timing problem as a mechanics problem.
+- **Confidence:** Medium. A user could reasonably choose to retain the promising early-window grid result, but developed combat is the governing problem and did not support that commitment reliably.

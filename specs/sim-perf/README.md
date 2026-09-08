@@ -18,13 +18,14 @@ folder holds a one-line redirect until close-spec.
 **Status (2026-09-09):** `tick/00` implementation, identity checks and
 review are committed (`5461c235`); the integrated workspace suite passes.
 The budget gate is honestly red, with substantial machine variation. The
-contact pass is being implemented in its own worktree. `worker/00` has a
+contact pass now reuses immutable projection metadata; its experimental
+caches were rejected for lack of a demonstrated developed-combat gain. Scratch
+reuse is undergoing identity checks. `worker/00` has a
 matching cross-thread hash, but no admissible quiet-machine timing yet.
 
-**Current pickup:** measure the contact variants, then verify and integrate
-`tick/01`. Implement scratch reuse in parallel, then integrate both before
-the budget checkpoint. Their source owners are separate; correctness and
-timing checks remain coordinated so measurements do not include other jobs.
+**Current pickup:** integrate scratch reuse, then verify and profile the
+combined native change before the budget checkpoint. Correctness and timing
+checks remain coordinated so measurements do not include other jobs.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
 when a quiet timing lane is available; worker production refactoring starts
@@ -58,7 +59,7 @@ where useful, but reserve timing runs so they do not measure those checks.
 Tick track
 - [x] `tick/00` stage profiler behind a feature + standing budget gate ([slices/tick/00-profiler-and-gate.md](slices/tick/00-profiler-and-gate.md))
 - [x] weapon-repel gate — shipped on main 2026-09-08 as an exact per-unit-extent cull (`2e0e4a7c`)
-- [ ] `tick/01` shared per-tick contact neighborhood for targeting, weapon-repel and the wall ([slices/tick/01-contact-neighborhood.md](slices/tick/01-contact-neighborhood.md))
+- [x] `tick/01` immutable projection metadata reuse; shared-neighborhood caches tried and rejected ([slices/tick/01-contact-neighborhood.md](slices/tick/01-contact-neighborhood.md))
 - [ ] `tick/02` scratch-buffer reuse ([slices/tick/02-scratch-buffers.md](slices/tick/02-scratch-buffers.md))
 - [ ] `tick/03` BUDGET CHECKPOINT — decide the rest with David ([slices/tick/03-budget-checkpoint.md](slices/tick/03-budget-checkpoint.md))
 - [ ] `tick/04` deterministic idle sleeping — behavior track ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))

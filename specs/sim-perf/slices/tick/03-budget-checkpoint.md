@@ -9,7 +9,10 @@ David.
 
 ## What to do
 
-- Run tick/00's full sweep (15.5k, 30k, 60k; idle and fighting). Record the
+- Run tick/00's full sweep (15.5k, 30k, 60k; idle and fighting).
+  `profile_tick idle [soldiers]` uses the same spawn grid with commanders
+  disabled, two fresh 600-tick runs, and per-repeat mean/stddev and hashes.
+  Omitting the target sweeps all three sizes. Record the
   ledger rows and the 30k → 60k ratio (July: fighting cost ×2.71 for ×1.97
   soldiers — has it improved?).
 - Validate what the measured window represents. The exact expanded spawn
@@ -38,3 +41,11 @@ David.
 ## Must stay green
 
 Everything; this slice changes nothing.
+
+Harness validation: `cargo check -p sim --bin profile_tick` and the release
+build passed. Both fresh `idle 15500` repeats retained 15,560 living soldiers
+and hash `ed293ec75fc41bcb`; both `fighting 30500` repeats retained the existing
+opening-window hash `a0bce061b5e99c62`. Independent read-only review found no
+issues. These checks ran alongside other workspace work, so their timings
+are not budget evidence; the paired sweep must use the identical harness
+for the original baseline and the candidate.

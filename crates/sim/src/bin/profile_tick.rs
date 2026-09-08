@@ -2,6 +2,7 @@
 //! headless so a sampling profiler can name the hot passes, ending in a state
 //! hash so a perf change can prove it is bit-identical.
 //! `cargo run --release -p sim --bin profile_tick -- [seed] [ticks] [ai]`
+//! `cargo run --release -p sim --bin profile_tick -- idle [soldiers]`
 //! `cargo run --release -p sim --bin profile_tick -- fighting [soldiers] [earliest_tick]`
 //! `fighting [soldier-target]` measures persistent melee; `gate` enforces the
 //! native budget. Add `--features perf_timing` for exclusive stage diagnostics;
@@ -55,7 +56,7 @@ fn duels(ticks: usize) {
 }
 
 /// Grow through the exact 500-man, 28-file grid used by battle-perf-30k.
-fn fighting_battle(target: usize) -> sim::Battle {
+fn scaled_battle(target: usize, ai: bool) -> sim::Battle {
     let mut sim = Sim::new(Tunables::default(), 7);
     setup_battle_generated(
         &mut sim,
@@ -81,9 +82,46 @@ fn fighting_battle(target: usize) -> sim::Battle {
         });
     }
     let mut battle = sim::Battle::from_sim(sim);
-    battle.set_ai(0, true);
-    battle.set_ai(1, true);
+    battle.set_ai(0, ai);
+    battle.set_ai(1, ai);
     battle
+}
+
+fn idle(target: usize) {
+    let mut expected_hash = None;
+    let mut repeats = Vec::new();
+    for repeat in 1..=2 {
+        let mut battle = scaled_battle(target, false);
+        let mut samples = Vec::with_capacity(600);
+        #[cfg(feature = "perf_timing")]
+        sim::perf_timing::reset();
+        for _ in 0..600 {
+            let start = Instant::now();
+            battle.tick();
+            samples.push(start.elapsed().as_secs_f64() * 1000.0);
+        }
+        let mean = samples.iter().sum::<f64>() / samples.len() as f64;
+        let stddev = (samples
+            .iter()
+            .map(|sample| (sample - mean).powi(2))
+            .sum::<f64>()
+            / samples.len() as f64)
+            .sqrt();
+        let hash = battle.sim.state_hash();
+        if let Some(expected) = expected_hash {
+            assert_eq!(hash, expected, "idle repeat diverged");
+        }
+        expected_hash = Some(hash);
+        repeats.push(mean);
+        let alive = battle.sim.alive.iter().filter(|&&v| v == 1).count();
+        println!("idle target {target} repeat {repeat} soldiers {} window 0..600 alive {alive} mean_ms {mean:.3} stddev_ms {stddev:.3} hash {hash:#018x}", battle.sim.soldier_count());
+        #[cfg(feature = "perf_timing")]
+        sim::perf_timing::report(600);
+    }
+    println!(
+        "idle target {target} median_repeat_mean_ms {:.3}",
+        (repeats[0] + repeats[1]) / 2.0
+    );
 }
 
 fn fighting_count(sim: &Sim) -> usize {
@@ -104,7 +142,7 @@ fn fighting(target: usize, earliest_tick: u64) -> TickMeasurement {
     let mut expected_hash = None;
     let mut min_alive = usize::MAX;
     for repeat in 1..=2 {
-        let mut battle = fighting_battle(target);
+        let mut battle = scaled_battle(target, true);
         // Bound preparation: a broken fixture must fail rather than time an approach forever.
         while fighting_count(&battle.sim) == 0 && battle.sim.tick_count < 18_000 {
             battle.tick();
@@ -168,6 +206,16 @@ fn fighting(target: usize, earliest_tick: u64) -> TickMeasurement {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
+    if args.get(1).is_some_and(|s| s == "idle") {
+        if let Some(target) = args.get(2) {
+            idle(target.parse().expect("soldier target must be an integer"));
+        } else {
+            for target in [15_500, 30_500, 60_000] {
+                idle(target);
+            }
+        }
+        return;
+    }
     if args.get(1).is_some_and(|s| s == "fighting") {
         let target = args.get(2).map(|s| {
             s.parse::<usize>()

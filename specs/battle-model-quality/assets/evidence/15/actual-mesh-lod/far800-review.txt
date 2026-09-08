@@ -1,0 +1,3 @@
+- **P2 — Retained `doubleSided` changes pass undetected:** [mesh-lods.test.mjs:28](/Users/david/dev/game-actual-mesh-lod/packages/soldier-assets/bake/mesh-lods.test.mjs:28). `appearanceMaterials` omits this property from its canonical key, so changing `false` to `true` leaves the material count unchanged. Confirmed with a CPU-only probe. Preserve an explicit sidedness comparison alongside the production registry.
+
+No other findings against `56295a8`. Far defaults to 800; `--tier far` skips near/mid exports and writes `far-reduction.json`. No files changed or Blender/GPU launched.

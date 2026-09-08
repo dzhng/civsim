@@ -1,0 +1,2 @@
+47e79dfddf16c898978f15de1e4c64817146c51a53b8f63333aaf7ac74fe147f  throwaway/mesh-lod/usable-heavy/near.glb
+d889f239a218ed070621ecc089c8397c47eb7da89753f875978ad65ad2553ca0  throwaway/mesh-lod/usable-heavy/mid.glb

@@ -102,7 +102,7 @@ def reduced_copy(body, target_triangles, min_extent=0, min_triangles=12):
     return result
 
 
-def export_lods(source, body_name, output, targets):
+def export_lods(source, body_name, output, targets, tier="all"):
     source = source.resolve()
     original_hash = hashlib.sha256(source.read_bytes()).hexdigest()
     spec = importlib.util.spec_from_file_location(
@@ -111,6 +111,8 @@ def export_lods(source, body_name, output, targets):
     spec.loader.exec_module(anatomy)
     report = {"source": str(source), "sourceSha256": original_hash, "tiers": []}
     for name, target, extent, floor in zip(("near", "mid", "far"), targets, (0, .03, .15), (12, 8, 4)):
+        if tier != "all" and name != tier:
+            continue
         # Reload the original for each tier, never decimate an earlier reduction.
         bpy.ops.wm.open_mainfile(filepath=str(source))
         scenes = [scene for scene in bpy.data.scenes if body_name in scene.objects]
@@ -131,7 +133,8 @@ def export_lods(source, body_name, output, targets):
         row["glbSha256"] = hashlib.sha256((output / f"{name}.glb").read_bytes()).hexdigest()
         report["tiers"].append(row)
     assert hashlib.sha256(source.read_bytes()).hexdigest() == original_hash
-    (output / "reduction.json").write_text(json.dumps(report, indent=2) + "\n")
+    report_name = "reduction.json" if tier == "all" else f"{tier}-reduction.json"
+    (output / report_name).write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report))
 
 
@@ -140,10 +143,12 @@ if __name__ == "__main__":
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--body", required=True)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--tier", choices=("all", "far"), default="all")
     parser.add_argument("--near-triangles", type=int, default=8000)
     parser.add_argument("--mid-triangles", type=int, default=1000)
-    parser.add_argument("--far-triangles", type=int, default=250)
+    parser.add_argument("--far-triangles", type=int, default=800)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     if not args.near_triangles > args.mid_triangles > args.far_triangles > 0:
         parser.error("Require positive, decreasing near/mid/far triangle targets")
-    export_lods(args.source, args.body, args.output, (args.near_triangles, args.mid_triangles, args.far_triangles))
+    export_lods(args.source, args.body, args.output,
+                (args.near_triangles, args.mid_triangles, args.far_triangles), args.tier)

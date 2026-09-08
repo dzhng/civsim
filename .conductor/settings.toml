@@ -1,0 +1,41 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+# Shared Conductor defaults for this repo (committed; Conductor reads it from the
+# default branch on the remote, so it takes effect once merged). Per-machine
+# overrides go in .conductor/settings.local.toml.
+
+[scripts]
+# Per-workspace: web deps + the pre-commit hook (both idempotent), then the
+# Rust -> wasm build, because web/src/wasm/ is gitignored and `dev` needs it in
+# every fresh worktree. cargo builds into the workspace's own /target, so
+# parallel workspaces never contend for a build lock.
+setup = "bun run setup && bun run build:wasm"
+
+# Each workspace's dev server binds its own CONDUCTOR_PORT and `verify` points
+# VERIFY_URL at it, so workspaces (and dev + verify inside one workspace) can
+# run side by side.
+run_mode = "concurrent"
+
+[scripts.run.dev]
+command = "bun run --cwd web dev --port $CONDUCTOR_PORT"
+default = true
+icon = "play"
+available_in = [ "local" ]
+
+[scripts.run.verify]
+# Browser battle verification against THIS workspace's dev server (start `dev`
+# first). Pinning VERIFY_URL to the workspace port is the free-port rule from
+# web/shots/README.md: never verify against another checkout's build.
+command = "VERIFY_URL=http://localhost:$CONDUCTOR_PORT bun run --cwd web verify"
+icon = "camera"
+available_in = [ "local" ]
+
+[scripts.run.test]
+# Rust workspace tests + web vitest (`bun run test` at the repo root).
+command = "bun run test"
+icon = "test-tube"
+
+[scripts.run.check]
+# Full green gate: fmt:check + lint + typecheck + test.
+command = "bun run check"
+icon = "shield-check"

@@ -55,7 +55,7 @@ alignment; whether the worker fetches the wasm or receives a posted
 
 Everything: no production code changes beyond the `state_hash` export.
 
-## KILL (any one → drop the spike, delete the branch, record the numbers next to `specs/sim-tick-30k` slice 07)
+## KILL (any one → drop the spike, delete the branch, record the numbers next to the tick track ledger)
 
 - worker ms/tick at 30k > 30 ms (cannot hold 30 Hz on its own core);
 - main rAF p50 with the worker running > 21 ms against the paused-sim 17 ms
@@ -74,4 +74,4 @@ than 10 ms.
 
 If David decides a lower sim rate at 30k is acceptable product behaviour,
 the ticks/s threshold drops to that rate and this rung becomes far easier to
-pass; that is sim-tick-30k 07's product decision, not this spike's.
+pass; that is the tick track's product decision, not this spike's.

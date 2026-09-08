@@ -25,7 +25,7 @@ deleted in this same commit. Zero re-blessed baselines.
 - `sim/simWorker.ts` — mirrors `campaign/ai-worker.ts`: `init()`, build the
   `Game` from the recipe, read `SimStatic` once and post it, own `SimClock`
   (moved unchanged from `web/src/shared`) on the wake strategy 00 chose,
-  bounded catch-up of at most 4 overdue ticks per wake (sim-tick-30k 07's
+  bounded catch-up of at most 4 overdue ticks per wake (the tick track's
   "no death spiral"), FIFO handling in arrival order, publish after every
   tick batch and after every count-changing command even while paused,
   `advance(n)` synchronous then publish then ack, pause on a host
@@ -74,7 +74,7 @@ whether `MAX_TICKS_PER_FRAME`'s value 4 stays the catch-up cap.
 `cargo test --workspace`; the `web` vitest suite (`simClock.test.ts`
 unchanged); every campaign scene (the campaign now hands off JSON, 03).
 
-## KILL (any one → revert 04, keep 01–03, record NO-GO next to sim-tick-30k slice 07)
+## KILL (any one → revert 04, keep 01–03, record NO-GO in the README ledger)
 
 - a battle or campaign baseline needs re-blessing for a reason traceable to
   the worker (determinism not proven);

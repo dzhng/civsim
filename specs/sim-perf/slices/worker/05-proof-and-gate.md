@@ -45,11 +45,10 @@ is a presentation tune in `battleCrowd`, never a sim change.
 
 ## Close
 
-Fill the README ledger; update `specs/sim-tick-30k/README.md` slice 07 as
-delivered by this spec (keep) or record the NO-GO numbers there (drop);
+Fill the README ledger with the verdict (keep, or the NO-GO numbers);
 delete the spike-only code (`debugStall` emitter, the 00 scene); run the
-review skill; then close-spec into `specs/done/sim-worker` with the measured
-table and the keep/drop rationale.
+review skill. The worker track closes with the tick track: one close-spec
+into `specs/done/sim-perf` when both have a verdict.
 
 ## KILL
 

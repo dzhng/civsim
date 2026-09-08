@@ -29,7 +29,7 @@ mod resolution;
 mod run;
 mod targeting;
 
-pub(crate) use run::run_combat;
+pub(crate) use run::{run_combat, Scratch};
 
 /// Why a soldier died. Measurement only — lets tests split a unit's losses into
 /// the charge's bodily shock, the lance going in, the standing grind, and arrows,

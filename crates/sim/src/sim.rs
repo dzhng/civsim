@@ -196,6 +196,9 @@ pub struct Sim {
     pub rng: Pcg32,
     pub(crate) grid: SpatialHash,
     pub(crate) scratch: Vec<f32>,
+    pub(crate) separation_scratch: crate::separation::Scratch,
+    pub(crate) combat_scratch: crate::combat::Scratch,
+    pub(crate) steer_scratch: crate::steer::Scratch,
     #[cfg(feature = "force-trace")]
     pub force_trace: ForceTrace,
 }
@@ -273,6 +276,9 @@ impl Sim {
             rng: Pcg32::new(seed, 0xda3e),
             grid: SpatialHash::new(),
             scratch: Vec::new(),
+            separation_scratch: crate::separation::Scratch::default(),
+            combat_scratch: crate::combat::Scratch::default(),
+            steer_scratch: crate::steer::Scratch::default(),
             #[cfg(feature = "force-trace")]
             force_trace: ForceTrace::new(),
         }
@@ -945,6 +951,7 @@ impl Sim {
         self.mark_at_ease(); // fresh centroids; before morale reads it
         perf_next!(_timer, "morale");
         self.run_morale(dt);
+        self.steer_scratch.measures = measures;
 
         self.tick_count += 1;
     }

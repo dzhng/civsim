@@ -3,12 +3,24 @@ use super::resolution::{apply_impale, resolve_swing, Attack, SwingNeighborhood};
 use super::targeting::{find_target, TargetSearch, Targeting};
 use super::*;
 
+#[derive(Default)]
+pub(crate) struct Scratch {
+    gang_rank: Vec<u16>,
+    near_enemy: Vec<bool>,
+}
+
 /// One combat pass; call every tick. Soldier i acts when i % 3 == phase.
 pub(crate) fn run_combat(sim: &mut Sim) {
     let n = sim.soldier_count();
     if n == 0 {
         return;
     }
+    // Targeting and damage borrow the whole sim while these buffers stay live.
+    let mut scratch = std::mem::take(&mut sim.combat_scratch);
+    let Scratch {
+        gang_rank,
+        near_enemy,
+    } = &mut scratch;
     let tun = sim.tun;
     let phase = (sim.tick_count % 3) as usize;
     let cell = sim.grid.cell_size;
@@ -41,7 +53,8 @@ pub(crate) fn run_combat(sim: &mut Sim) {
     sim.dmg_from_charge.resize(n, 0.0);
     sim.push_acc.clear();
     sim.push_acc.resize(2 * n, 0.0);
-    let mut gang_rank = vec![0u16; n];
+    gang_rank.clear();
+    gang_rank.resize(n, 0);
     for (i, rank) in gang_rank.iter_mut().enumerate().take(n) {
         if sim.alive[i] == 1 {
             let t = sim.target[i];
@@ -54,18 +67,15 @@ pub(crate) fn run_combat(sim: &mut Sim) {
 
     // Units anywhere near an enemy (coarse gate so the quiet 90% of the
     // battlefield costs nothing).
-    let near_enemy: Vec<bool> = sim
-        .units
-        .iter()
-        .map(|u| {
-            let eu = u.bound_radius();
-            sim.units.iter().any(|v| {
-                v.team != u.team
-                    && v.alive_count > 0
-                    && (v.center() - u.center()).len() < eu + v.bound_radius() + 40.0
-            })
+    near_enemy.clear();
+    near_enemy.extend(sim.units.iter().map(|u| {
+        let eu = u.bound_radius();
+        sim.units.iter().any(|v| {
+            v.team != u.team
+                && v.alive_count > 0
+                && (v.center() - u.center()).len() < eu + v.bound_radius() + 40.0
         })
-        .collect();
+    }));
 
     for i in (phase..n).step_by(3) {
         if sim.alive[i] == 0 || sim.stun[i] > 0.0 {
@@ -287,4 +297,5 @@ pub(crate) fn run_combat(sim: &mut Sim) {
     }
 
     apply_staged_damage(sim, n);
+    sim.combat_scratch = scratch;
 }

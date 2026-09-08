@@ -20,6 +20,27 @@ mod bodies;
 mod walls;
 mod weapon_repel;
 
+#[derive(Default)]
+pub(crate) struct Scratch {
+    brace: Vec<f32>,
+    impact_kills: Vec<usize>,
+    mom0_x: Vec<f32>,
+    mom0_y: Vec<f32>,
+    bleed_x: Vec<f32>,
+    bleed_y: Vec<f32>,
+    set_mag: Vec<f32>,
+    set_nx: Vec<f32>,
+    set_ny: Vec<f32>,
+    wall_depth: Vec<f32>,
+    wall_cx: Vec<f32>,
+    wall_cy: Vec<f32>,
+    wall_r: Vec<f32>,
+    repel: Vec<f32>,
+    project_unit_active: Vec<u8>,
+    unit_near_enemy: Vec<bool>,
+    weapon_repel: weapon_repel::Scratch,
+}
+
 pub(crate) fn apply_separation(sim: &mut Sim) {
     let n = sim.soldier_count();
     if n == 0 {
@@ -36,7 +57,13 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
     );
 
     // --- per-unit brace factor; per-soldier effective mass -------------
-    let brace: Vec<f32> = sim.units.iter().map(|u| u.brace()).collect();
+    sim.separation_scratch.brace.clear();
+    sim.separation_scratch
+        .brace
+        .extend(sim.units.iter().map(|u| u.brace()));
+    // Applying queued kills needs the whole sim after the array borrows end.
+    let mut impact_kills = std::mem::take(&mut sim.separation_scratch.impact_kills);
+    impact_kills.clear();
 
     bodies::rebuild(sim, n);
     let nb = sim.body_owner.len();
@@ -67,10 +94,28 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
         rng,
         impact_kill_count,
         enemy_contact,
+        separation_scratch,
         ..
     } = sim;
-    // Collision damage is applied after the pass (kill() needs &mut sim).
-    let mut impact_kills: Vec<usize> = Vec::new();
+    let Scratch {
+        brace,
+        mom0_x,
+        mom0_y,
+        bleed_x,
+        bleed_y,
+        set_mag,
+        set_nx,
+        set_ny,
+        wall_depth,
+        wall_cx,
+        wall_cy,
+        wall_r,
+        repel,
+        project_unit_active,
+        unit_near_enemy,
+        weapon_repel,
+        ..
+    } = separation_scratch;
     // Jacobi impact: the charge stack READS carried momentum (the trample
     // bleed reads the trampler's, the retain-set reads the victim's) and
     // WRITES it across bodies. In place those reads/writes ran in body-index
@@ -79,13 +124,20 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
     // tick-start snapshot; stage the bleed (additive) and the retain (a
     // max-magnitude set) and apply both after the body loop.
     let n_sol = mom_x.len();
-    let mom0_x = mom_x.clone();
-    let mom0_y = mom_y.clone();
-    let mut bleed_x = vec![0.0f32; n_sol];
-    let mut bleed_y = vec![0.0f32; n_sol];
-    let mut set_mag = vec![0.0f32; n_sol];
-    let mut set_nx = vec![0.0f32; n_sol];
-    let mut set_ny = vec![0.0f32; n_sol];
+    mom0_x.clear();
+    mom0_x.extend_from_slice(mom_x);
+    mom0_y.clear();
+    mom0_y.extend_from_slice(mom_y);
+    bleed_x.clear();
+    bleed_x.resize(n_sol, 0.0);
+    bleed_y.clear();
+    bleed_y.resize(n_sol, 0.0);
+    set_mag.clear();
+    set_mag.resize(n_sol, 0.0);
+    set_nx.clear();
+    set_nx.resize(n_sol, 0.0);
+    set_ny.clear();
+    set_ny.resize(n_sol, 0.0);
     grid.rebuild(cell, body_pos);
     // The REAL WALL: deepest enemy body a soldier overlaps this tick. The
     // capped push relieves crowds gently; an ENEMY body, though, a man may
@@ -93,10 +145,14 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
     // This is what stops a SHORT-weapon clash walking through: the planted
     // front line is a wall of bodies the rear can't shove past. Long braced
     // weapons extend the same wall out to reach (the pole pass below).
-    let mut wall_depth = vec![-1.0f32; n];
-    let mut wall_cx = vec![0.0f32; n];
-    let mut wall_cy = vec![0.0f32; n];
-    let mut wall_r = vec![0.0f32; n];
+    wall_depth.clear();
+    wall_depth.resize(n, -1.0);
+    wall_cx.clear();
+    wall_cx.resize(n, 0.0);
+    wall_cy.clear();
+    wall_cy.resize(n, 0.0);
+    wall_r.clear();
+    wall_r.resize(n, 0.0);
     // scratch: per-soldier [push_x, push_y] (the body separation, capped).
     scratch.clear();
     scratch.resize(2 * n, 0.0);
@@ -104,8 +160,10 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
     // on its own magnitude against the rear-rank backing (the contest of
     // pushes that decides the standoff distance), not get flattened by the
     // crowd-relief separation cap into a binary win/lose wall.
-    let mut repel = vec![0.0f32; 2 * n];
-    let mut project_unit_active = vec![0u8; units.len()];
+    repel.clear();
+    repel.resize(2 * n, 0.0);
+    project_unit_active.clear();
+    project_unit_active.resize(units.len(), 0);
     let mut project_any = false;
 
     // DIRECTIONAL brace: a man braces his FRONT — planted feet, leveled weapon,
@@ -134,21 +192,19 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
         1.0 + (b - 1.0) * dir
     };
     let m_eff = |i: usize, tx: f32, ty: f32, enemy: bool| mass[i] * brace_dir(i, tx, ty, enemy);
-    let unit_near_enemy: Vec<bool> = units
-        .iter()
-        .map(|u| {
-            if u.tramples() && u.mass_advance > tun.charge_spent_speed {
-                return false;
-            }
-            let eu = u.bound_radius();
-            units.iter().any(|v| {
-                v.team != u.team
-                    && v.alive_count > 0
-                    && !(v.tramples() && v.mass_advance > tun.charge_spent_speed)
-                    && (v.center() - u.center()).len() < eu + v.bound_radius() + 40.0
-            })
+    unit_near_enemy.clear();
+    unit_near_enemy.extend(units.iter().map(|u| {
+        if u.tramples() && u.mass_advance > tun.charge_spent_speed {
+            return false;
+        }
+        let eu = u.bound_radius();
+        units.iter().any(|v| {
+            v.team != u.team
+                && v.alive_count > 0
+                && !(v.tramples() && v.mass_advance > tun.charge_spent_speed)
+                && (v.center() - u.center()).len() < eu + v.bound_radius() + 40.0
         })
-        .collect();
+    }));
     perf_scope!(_timer, "separation body pairs");
     bodies::separate_pairs(
         bodies::PairCtx {
@@ -162,15 +218,15 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
             soldier_unit,
             units,
             enemy_contact,
-            unit_near_enemy: &unit_near_enemy,
-            project_unit_active: &mut project_unit_active,
+            unit_near_enemy,
+            project_unit_active,
             project_any: &mut project_any,
             trampled,
             stun,
-            mom0_x: &mom0_x,
-            mom0_y: &mom0_y,
-            bleed_x: &mut bleed_x,
-            bleed_y: &mut bleed_y,
+            mom0_x,
+            mom0_y,
+            bleed_x,
+            bleed_y,
             facings,
             rng,
             impact_kill_count,
@@ -178,14 +234,14 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
             mount_health,
             health,
             impact_kills: &mut impact_kills,
-            set_mag: &mut set_mag,
-            set_nx: &mut set_nx,
-            set_ny: &mut set_ny,
+            set_mag,
+            set_nx,
+            set_ny,
             scratch,
-            wall_depth: &mut wall_depth,
-            wall_cx: &mut wall_cx,
-            wall_cy: &mut wall_cy,
-            wall_r: &mut wall_r,
+            wall_depth,
+            wall_cx,
+            wall_cy,
+            wall_r,
         },
         &m_eff,
         &brace_dir,
@@ -198,11 +254,11 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
             n_sol,
             mom_x,
             mom_y,
-            bleed_x: &bleed_x,
-            bleed_y: &bleed_y,
-            set_mag: &set_mag,
-            set_nx: &set_nx,
-            set_ny: &set_ny,
+            bleed_x,
+            bleed_y,
+            set_mag,
+            set_nx,
+            set_ny,
             soldier_unit,
         },
         &mut tracer,
@@ -221,9 +277,10 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
             grid,
             body_r,
             mounted,
-            project_unit_active: &mut project_unit_active,
+            project_unit_active,
             project_any: &mut project_any,
-            repel: &mut repel,
+            repel,
+            scratch: weapon_repel,
         },
         &m_eff,
         &mut tracer,
@@ -234,13 +291,13 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
             n,
             tun,
             scratch,
-            repel: &repel,
+            repel,
             positions,
             terrain,
-            wall_depth: &wall_depth,
-            wall_cx: &wall_cx,
-            wall_cy: &wall_cy,
-            wall_r: &wall_r,
+            wall_depth,
+            wall_cx,
+            wall_cy,
+            wall_r,
             soldier_unit,
             project_any,
             body_pos,
@@ -251,7 +308,7 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
             facings,
             grid,
             cell,
-            project_unit_active: &project_unit_active,
+            project_unit_active,
             units,
         },
         &mut tracer,
@@ -262,6 +319,7 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
     for &i in &impact_kills {
         sim.kill_with(i, crate::combat::KillCause::Impact);
     }
+    sim.separation_scratch.impact_kills = impact_kills;
     drop(tracer);
     #[cfg(feature = "force-trace")]
     sim.force_trace.extend(force_records);

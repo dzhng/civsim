@@ -35,3 +35,35 @@ vector, or one struct of them) and the clearing discipline.
 ## Must stay green
 
 Everything.
+
+
+## Storage contract
+
+Each hot pass owns reusable capacity on `Sim`; buffers retain their peak
+capacity between ticks, but scratch values themselves are never carried
+forward as simulation state. Full resets happen at the same
+phase boundaries and with the same sentinels as the former fresh allocations.
+The momentum snapshot still copies the incoming values: reuse removes its
+allocation, not the snapshot or its Jacobi semantics.
+
+Steering retains each unit's precomputation object and its nested vectors.
+Changing the unit count resizes those objects, and every slot and pivot entry
+is reset before reuse, including dead slots. Every unit finishes precomputation
+before any soldier moves. Measurement storage returns to its owner only after
+all tick consumers finish. Buffers that must coexist with a whole-`Sim` mutable
+borrow temporarily move out of their owner and return on the normal path;
+empty-sim returns happen before that move.
+
+The small formation-file bitmap helper and feature-only force-trace record
+allocations remain outside this pass. Their interfaces and lifetimes are not
+changed merely to remove every allocation. The contact algorithm and its
+phase-specific grid snapshots are unchanged.
+
+
+## Pass handoff
+
+Scratch-only implementation and focused identity checks are complete; see
+[verification evidence](../../assets/tick02-verification.md). Integrate it
+with the contact pass, then run the combined workspace and browser identity
+gates and a coordinated timing/variance comparison. No timing improvement
+is claimed from the concurrent correctness runs.

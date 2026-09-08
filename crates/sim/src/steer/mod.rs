@@ -44,6 +44,12 @@ pub(crate) struct UnitMeasure {
     pub(crate) pivot_sum: f32,
 }
 
+#[derive(Default)]
+pub(crate) struct Scratch {
+    unit_pre: Vec<UnitPre>,
+    pub(crate) measures: Vec<UnitMeasure>,
+}
+
 pub(crate) const TRAMPLE_SLOT_GRIP: f32 = 0.3;
 pub(crate) const REFORM_COH: f32 = 0.55;
 pub(crate) const IDLE_FIDGET: f32 = 0.12;
@@ -54,14 +60,20 @@ pub(crate) const WEAVE_NEIGHBOR_SKIP: usize = 4;
 pub(crate) const WEAVE_TERRAIN_CHECK_STRETCH: f32 = 2.0;
 pub(crate) const SLOT_TERRAIN_CHECK_DIST: f32 = 3.0;
 
-/// Per-soldier steering and measurement. Returns one `UnitMeasure` per unit.
+/// Per-soldier steering and measurement. Returns one `UnitMeasure` per unit;
+/// the caller returns that storage after consuming the measurements.
 pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
     perf_scope!(_timer, "steer precompute_unit");
-    let unit_pre: Vec<_> = (0..sim.units.len())
-        .map(|ui| precompute_unit(sim, ui))
-        .collect();
+    let mut unit_pre = std::mem::take(&mut sim.steer_scratch.unit_pre);
+    unit_pre.resize_with(sim.units.len(), UnitPre::default);
+    // Every unit reads the same pre-movement world, including its neighbours.
+    for (ui, pre) in unit_pre.iter_mut().enumerate() {
+        precompute_unit(sim, ui, pre);
+    }
     #[cfg(feature = "perf_timing")]
     drop(_timer);
+    let mut measures = std::mem::take(&mut sim.steer_scratch.measures);
+    measures.clear();
     let tun = sim.tun;
     let Sim {
         units,
@@ -110,7 +122,6 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
     // reach-spring shoving him back when ranks pile him inside reach. No
     // separate force ledger; the same springs that move him measure him.
     let press_alpha = 1.0 - (-dt / tun.press_tau).exp();
-    let mut measures = Vec::with_capacity(units.len());
     for (ui, u) in units.iter().enumerate() {
         let pre = &unit_pre[ui];
         let f = dir(u.facing);
@@ -353,5 +364,6 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
     }
     #[cfg(feature = "force-trace")]
     sim.force_trace.extend(force_records);
+    sim.steer_scratch.unit_pre = unit_pre;
     measures
 }

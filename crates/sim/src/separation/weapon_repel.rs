@@ -8,6 +8,14 @@ pub(super) const BRACED_REPEL_FILE_OVERLAP: f32 = 4.0;
 pub(super) const SWORD_STANDOFF: f32 = 0.5;
 pub(super) const SWORD_STANDOFF_SOFT: f32 = 0.2;
 
+#[derive(Default)]
+pub(super) struct Scratch {
+    unit_aim: Vec<Vec2>,
+    ext_lo: Vec<Vec2>,
+    ext_hi: Vec<Vec2>,
+    unit_scans: Vec<bool>,
+}
+
 pub(super) struct WeaponRepelCtx<'a> {
     pub(super) units: &'a [Unit],
     pub(super) tun: Tunables,
@@ -23,6 +31,7 @@ pub(super) struct WeaponRepelCtx<'a> {
     pub(super) project_unit_active: &'a mut [u8],
     pub(super) project_any: &'a mut bool,
     pub(super) repel: &'a mut [f32],
+    pub(super) scratch: &'a mut Scratch,
 }
 
 pub(super) fn apply<F>(ctx: WeaponRepelCtx<'_>, m_eff: &F, tracer: &mut Tracer<'_>)
@@ -44,6 +53,7 @@ where
         project_unit_active,
         project_any,
         repel,
+        scratch,
     } = ctx;
     // --- WEAPON REPEL: a leveled weapon PUSHES the enemy out of its reach.
     // A man holds a foe off not with a wall but with a FORCE: the points (or
@@ -73,14 +83,23 @@ where
         // tick, whether or not any enemy is within a day's march.
         //
         // Unit facing once per unit, not a sin/cos per candidate.
-        let unit_aim: Vec<Vec2> = units.iter().map(|u| dir(u.facing)).collect();
+        let Scratch {
+            unit_aim,
+            ext_lo,
+            ext_hi,
+            unit_scans,
+        } = scratch;
+        unit_aim.clear();
+        unit_aim.extend(units.iter().map(|u| dir(u.facing)));
         // Per-unit extent of its bodies. A bearer's window reaches at most
         // `window` past him on each axis, so a unit whose extent (grown by
         // that) meets no enemy unit's extent has no bearer with anything to
         // find — two armies still deploying skip the whole pass.
         let nu = units.len();
-        let mut ext_lo = vec![Vec2::new(f32::INFINITY, f32::INFINITY); nu];
-        let mut ext_hi = vec![Vec2::new(f32::NEG_INFINITY, f32::NEG_INFINITY); nu];
+        ext_lo.clear();
+        ext_lo.resize(nu, Vec2::new(f32::INFINITY, f32::INFINITY));
+        ext_hi.clear();
+        ext_hi.resize(nu, Vec2::new(f32::NEG_INFINITY, f32::NEG_INFINITY));
         let mut max_body_r = 0.0f32;
         for bi in 0..nb {
             let u = soldier_unit[body_owner[bi] as usize] as usize;
@@ -90,18 +109,17 @@ where
             max_body_r = max_body_r.max(body_r[bi]);
         }
         let window = (reach_cells + 1) as f32 * cell;
-        let unit_scans: Vec<bool> = (0..nu)
-            .map(|uj| {
-                ext_lo[uj].x <= ext_hi[uj].x
-                    && (0..nu).any(|ui| {
-                        units[ui].team != units[uj].team
-                            && ext_lo[ui].x <= ext_hi[uj].x + window
-                            && ext_hi[ui].x >= ext_lo[uj].x - window
-                            && ext_lo[ui].y <= ext_hi[uj].y + window
-                            && ext_hi[ui].y >= ext_lo[uj].y - window
-                    })
-            })
-            .collect();
+        unit_scans.clear();
+        unit_scans.extend((0..nu).map(|uj| {
+            ext_lo[uj].x <= ext_hi[uj].x
+                && (0..nu).any(|ui| {
+                    units[ui].team != units[uj].team
+                        && ext_lo[ui].x <= ext_hi[uj].x + window
+                        && ext_hi[ui].x >= ext_lo[uj].x - window
+                        && ext_lo[ui].y <= ext_hi[uj].y + window
+                        && ext_hi[ui].y >= ext_lo[uj].y - window
+                })
+        }));
         for bi in 0..nb {
             let j = body_owner[bi] as usize;
             let uj = soldier_unit[j] as usize;

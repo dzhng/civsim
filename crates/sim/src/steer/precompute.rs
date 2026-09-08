@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Default)]
 pub(crate) struct UnitPre {
     pub sprint_sp: f32,
     pub surge_sp: f32,
@@ -28,7 +29,7 @@ pub(crate) struct CorridorFoe {
     pub v_mid: f32,
 }
 
-pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
+pub(crate) fn precompute_unit(sim: &Sim, ui: usize, pre: &mut UnitPre) {
     let tun = sim.tun;
     let u = &sim.units[ui];
     let f = dir(u.facing);
@@ -93,36 +94,40 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
     // The corridor test is per man, but which foes can gate him at all is
     // per unit: living enemy foot, squared up against this facing. Resolve
     // that (and each foe's geometry) once here rather than per soldier.
-    let corridor_foes: Vec<CorridorFoe> = if u.tramples() {
-        Vec::new()
-    } else {
-        sim.units
-            .iter()
-            .filter(|v| v.team != u.team && v.alive_count > 0 && !v.is_mounted() && !v.tramples())
-            .filter_map(|v| {
-                let vf = dir(v.facing);
-                if f.dot(vf) > -0.35 {
-                    return None;
-                }
-                let center = v.center();
-                Some(CorridorFoe {
-                    vr: vf.perp(),
-                    half_w: 0.5 * (v.files_eff.max(1) - 1) as f32 * v.spacing.x + 0.5 * v.spacing.x,
-                    center,
-                    v_mid: center.dot(f),
+    pre.corridor_foes.clear();
+    if !u.tramples() {
+        pre.corridor_foes.extend(
+            sim.units
+                .iter()
+                .filter(|v| {
+                    v.team != u.team && v.alive_count > 0 && !v.is_mounted() && !v.tramples()
                 })
-            })
-            .collect()
-    };
+                .filter_map(|v| {
+                    let vf = dir(v.facing);
+                    if f.dot(vf) > -0.35 {
+                        return None;
+                    }
+                    let center = v.center();
+                    Some(CorridorFoe {
+                        vr: vf.perp(),
+                        half_w: 0.5 * (v.files_eff.max(1) - 1) as f32 * v.spacing.x
+                            + 0.5 * v.spacing.x,
+                        center,
+                        v_mid: center.dot(f),
+                    })
+                }),
+        );
+    }
 
     let slot_capacity = u.count.div_ceil(u.files_eff.max(1)) * u.files_eff.max(1);
-    let mut soldier_at_slot = vec![usize::MAX; slot_capacity];
+    pre.soldier_at_slot.clear();
+    pre.soldier_at_slot.resize(slot_capacity, usize::MAX);
     for s in 0..u.count {
         let i = u.start + s;
         if sim.alive[i] == 1 {
             let sl = sim.soldier_slot[i] as usize;
             if sl < slot_capacity {
-                soldier_at_slot[sl] = i;
+                pre.soldier_at_slot[sl] = i;
             }
         }
     }
@@ -141,20 +146,17 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
         living_centroid = living_centroid * (1.0 / living_count);
     }
 
-    let mut pre = UnitPre {
-        sprint_sp,
-        surge_sp,
-        keep_up_sp,
-        reach,
-        advancing,
-        strict_formation,
-        slot_pull,
-        broad_press,
-        soldier_at_slot,
-        projected_pivot: vec![Vec2::ZERO; u.count],
-        mounted_threat_near,
-        corridor_foes,
-    };
+    pre.sprint_sp = sprint_sp;
+    pre.surge_sp = surge_sp;
+    pre.keep_up_sp = keep_up_sp;
+    pre.reach = reach;
+    pre.advancing = advancing;
+    pre.strict_formation = strict_formation;
+    pre.slot_pull = slot_pull;
+    pre.broad_press = broad_press;
+    pre.mounted_threat_near = mounted_threat_near;
+    pre.projected_pivot.clear();
+    pre.projected_pivot.resize(u.count, Vec2::ZERO);
     if living_count > 0.0 {
         let order_advancing = u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
         let running =
@@ -182,7 +184,7 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
                 let si = sim.soldier_slot[i] as usize;
                 let mut raw = Vec2::ZERO;
                 for (j, off) in
-                    slot_neighbours(u, &pre, f, si, neighbor_skip, &sim.alive, &sim.trampled)
+                    slot_neighbours(u, pre, f, si, neighbor_skip, &sim.alive, &sim.trampled)
                 {
                     let jp = Vec2::new(sim.prev_positions[2 * j], sim.prev_positions[2 * j + 1]);
                     let d = p - jp;
@@ -230,6 +232,4 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
             }
         }
     }
-
-    pre
 }

@@ -1786,3 +1786,10 @@ it is not an accepted remedy yet. Re-review all affected old clips rather than
 claiming that unchanged animation keys preserve posed geometry. The spec requires
 credible joints but did not choose this particular weight-transition experiment.
 No new deformation system or motion-based concealment is authorized.
+
+The transition-relocation trial introduced new clearance failures and is rejected.
+The next provisional local refit may change cap rest positions and transfer
+support weights from a verified underlying shoulder, keeping existing topology
+and the saved fitted source. This replaces threshold nudging with an explicit
+support surface; it still risks gaps or shifted collapse and earns retention only
+through both-shoulder and old-clip review. No chosen refit is yet accepted.

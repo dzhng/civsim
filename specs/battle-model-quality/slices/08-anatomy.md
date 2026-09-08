@@ -40,6 +40,23 @@ clip and its full frame gate: identical keys do not mean identical posed garment
 geometry. Unrelated geometry and motion remain controlled. Reaction acceptance
 stays open until the corrected garment and whole fall pass together.
 
+The first transition-relocation experiment is rejected: it improves collapsed
+edge/area ratios but introduces new armhole/body overlap and a small ground
+intersection. It disproves that uniform redistribution, not every weight-only
+solution. Next inspect the underlying shoulder at the strained poses; if sound,
+fit only the saved proximal cap and adjacent armhole boundary around that actual
+support surface, using the existing local weight-transfer mechanism. Allow
+scoped rest-position and corresponding lining/mail/layer changes, initially
+without topology changes. Preserve the set-in overlapping construction, distal
+sleeves, rig, all action keys and unrelated geometry. Do not regenerate the body.
+If the underlying shoulder is unsound, diagnose its owner before fitting over it.
+
+Before screenshots, compare both shoulders at relaxed carry, ready, deep bend,
+pronation, sword effort, hit and late fall. Check coverage, lining orientation,
+body intersections and dense floor clearance; then use paired production views.
+Existing loops failing to form a credible cap require a separate bounded topology
+decision, not an unrecorded rewrite. All old-clip re-review obligations remain.
+
 API seam: Blender human source mesh and deform rig → existing appearance bundle, initially classes 0 and 14 with equipment hidden.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.

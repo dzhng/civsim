@@ -1,7 +1,11 @@
 import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
+import { APPEARANCE_DESCRIPTORS } from "../../soldier-assets/src/appearance";
 
-/** Bundle loading validates the schema; gameplay additionally excludes manual fixtures. */
+/** Gameplay requires the complete roster; manual inspection may load a subset. */
 export function assertGameplayAppearances(appearances: Record<number, AppearanceBundle>): void {
+  for (const [id, descriptor] of APPEARANCE_DESCRIPTORS.entries()) {
+    if (!appearances[id]) throw new Error(`Missing gameplay appearance ${id} (${descriptor.name})`);
+  }
   for (const [id, appearance] of Object.entries(appearances)) {
     if (appearance.manifest.presentation === null)
       throw new Error(`Appearance ${id} is manual-only and cannot be used in gameplay`);

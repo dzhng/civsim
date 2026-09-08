@@ -89,20 +89,6 @@ test("instance pool refresh replaces playback and defaults, truncates and regrow
   expect(buildCrowdInstances(inputs, initial)).toEqual(buildCrowdInstances(inputs));
 });
 
-test("gameplay admission rejects manual-only appearances without imposing a blanket clip list", () => {
-  // Loader owns the complete schema; this gate owns only gameplay/manual admission.
-  const catalog = { 40: { manifest: { presentation: null } } } as unknown as Record<
-    number,
-    AppearanceBundle
-  >;
-  expect(() => assertGameplayAppearances(catalog)).toThrow("40 is manual-only");
-  catalog[40].manifest.presentation = {
-    actions: {},
-    riderUpperBodyJoints: [],
-  } as unknown as NonNullable<AppearanceBundle["manifest"]["presentation"]>;
-  expect(() => assertGameplayAppearances(catalog)).not.toThrow();
-});
-
 test("all shipped gameplay action clips match their local rig, and mismatches fail before use", async () => {
   const read = async (url: URL) => JSON.parse(await readFile(url, "utf8"));
   const root = new URL("../public/assets/soldiers/catalog.json", import.meta.url);
@@ -118,6 +104,10 @@ test("all shipped gameplay action clips match their local rig, and mismatches fa
     } as AppearanceBundle;
   }
   expect(() => assertGameplayAppearances(appearances)).not.toThrow();
+  const presentation = appearances[0].manifest.presentation;
+  appearances[0].manifest.presentation = null;
+  expect(() => assertGameplayAppearances(appearances)).toThrow("0 is manual-only");
+  appearances[0].manifest.presentation = presentation;
   const original = appearances[0].rig.clips;
   const name = appearances[0].manifest.presentation!.actions.ready!.clip;
   appearances[0].rig.clips = original.filter((clip) => clip.name !== name);

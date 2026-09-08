@@ -86,13 +86,14 @@ over 36,428 samples and all six raw snapshots were exact. The three temporal
 culling fixtures each measured `[0,0,0]` outside and `[1,1,1]` inside across
 weights 0/0.5/1. Their structured rows are in `final-raw-replay.json`.
 
-The old mounted snapshots `temporal-7-39.5` and `temporal-7-72` differ by 20,915
-and 15,870 pixels respectively. Their actual PNGs are archived here, not blessed.
+The old mounted snapshots `temporal-7-39.5` and `temporal-7-72` have 20,915
+and 15,870 thresholded mismatch pixels respectively. Their actual PNGs are archived here, not blessed.
 The main author inspected both old/actual pairs: framing and content remain,
 with changed body orientation during death and terminal hold. Parent owns
 independent merged snapshot review and disposition. All other 42 existing
-action-replay snapshots remain exact; neither source animation nor timeline
-selection was modified.
+action-replay snapshots passed the gate; this was not pixel equality. The
+complete merged inventory below corrects that earlier overstatement. Neither
+source animation nor timeline selection changed.
 
 Separate unprimed temporal-image review 78530, session
 `01a07f63-5035-7842-b305-30ea7e53cac0`, completed terminal 0 and actually loaded
@@ -136,6 +137,42 @@ to compensate the source for the renderer. The diagnostic block figure's gaps
 also exist in its unchanged living control; no final anatomical quality is
 claimed. Navigation overflow has its existing scroll-accessibility check.
 
+## Complete merged temporal inventory
+
+Root's selective refresh exposed nine changed death snapshots: seven earlier
+passed under the existing 2% mismatch-ratio limit. Passing that gate was
+incorrectly called exact in the earlier report. The two reported failure counts
+also counted thresholded mismatches, not every changed decoded pixel.
+
+[Preserved comparisons](temporal-nine/comparison.json) compare root
+`1ba33789cedb2b8c97abc20b4f258b639b0519eb` HEAD images (A) with its current
+refreshed images (B), before root's normal repeat completed. Original PNGs,
+candidate PNGs and whole-image side-by-side pairs are preserved beside the JSON.
+Decoded counts below include any differing RGBA channel, including shadows;
+they are not the harness's thresholded metric and do not judge quality.
+
+| Fixture | 37.25 | 39.5 | Terminal |
+| --- | ---: | ---: | ---: |
+| 4 | 102325 | 115124 | 44264 (72) |
+| 7 | 173560 | 188909 | 119371 (72) |
+| 41 | 171426 | 186509 | 187166 (75) |
+
+Fresh neutral CLI review 30327, session
+`01a07f79-da77-7fd2-bbff-e41fd88d0060`, completed terminal 0. Its transcript
+contains all nine paired input images; no code/history was supplied. The exact
+[verdict](temporal-nine/visual-review.txt) finds no obvious missing, detached or
+frame-clipped component. B is modestly less wrong in four pairs for readability
+or apparent balance; five are unclear. The strongest shared concern is the
+elevated rear assembly of fixture 7 at 72, with no convincing visible support.
+This is diagnostic completeness review, not final art or physical contact proof.
+
+Main inspected all nine whole pairs and agrees with that bounded verdict.
+The critic calls B's higher projected position a framing difference; no camera
+change is demonstrated by these pixels, so that phrase is not adopted as a
+camera-change finding. Pose rotation itself changes projected height. Root owns
+baseline disposition and the merged normal gate. This CPU-only follow-up edits
+no source or baseline and does not count as another capture.
+
 ## Reproduction and scope
 
 Run the existing `battle-model-normal-frame` and `soldier-materials` scenes with
@@ -171,8 +208,15 @@ was entirely green.
 | `run()` / `snapshot soldier-materials-authored-corpse`, `web/scenes/system/soldier-materials.mjs` | No baseline; old-roll mutation differs by 58,323 pixels | New diagnostic baseline repeats at zero pixels; all five old snapshots remain exact | Pin inspected renderer output, not anatomical art acceptance. **moved** |
 | `run()` / `corpse mapped lighting changes only by the final color transfer`, `web/scenes/system/soldier-materials.mjs` | No assertion; directions-only mutation has maximum 31-byte error over 36,428 stable samples while coverage remains exact | Maximum permitted error 2 bytes, with >100 samples; final standard run measures 1 byte across 36,428 samples | Independent observed-light transfer detects extra normal/tangent rotation without conflating it with geometry displacement. **moved** |
 | `verifyTemporalReplay()` / `{4,7,41}: production frustum culling preserves authored bounds across death shading`, `web/scenes/models/_temporal-replay.mjs` | Halfspace expected visibility to change from 1 at weight 0 to 0 at weight 1, deriving the expected center from `cos(-0.42*weight)` | At ±5cm authored-bound halfspaces, each fixture measures `[0,0,0]` outside and `[1,1,1]` inside across weights 0/0.5/1 | Parent review found this missed old-contract consumer. Removing only its variant property was insufficient; the assertion now checks source-owned bounds rather than restating removed shader geometry. **moved** |
-| `verifyTemporalReplay()` / `snapshot shared/soldiers/action-replay/temporal-7-39.5`, `web/scenes/models/_temporal-replay.mjs` | Exact snapshot pins the procedurally rolled death blend | 20,915 changed pixels; baseline deliberately remains old pending parent review | Shader post-roll removal changes displayed orientation without changing the independently verified local pose/palette. Not blessed here. **moved** |
-| `verifyTemporalReplay()` / `snapshot shared/soldiers/action-replay/temporal-7-72`, `web/scenes/models/_temporal-replay.mjs` | Exact snapshot pins the procedurally rolled terminal death | 15,870 changed pixels; baseline deliberately remains old pending parent review | Shader post-roll removal changes displayed orientation without changing the independently verified local pose/palette. Not blessed here. **moved** |
+| `verifyTemporalReplay()` / `snapshot shared/soldiers/action-replay/temporal-7-39.5`, `web/scenes/models/_temporal-replay.mjs` | Baseline contains the procedurally rolled death blend | 20,915 thresholded mismatches; merged comparison has 188,909 exact decoded changes | Shader post-roll removal changes displayed orientation without changing the independently verified local pose/palette. Baseline disposition belongs to parent. **moved** |
+| `verifyTemporalReplay()` / `snapshot shared/soldiers/action-replay/temporal-7-72`, `web/scenes/models/_temporal-replay.mjs` | Baseline contains the procedurally rolled terminal death | 15,870 thresholded mismatches; merged comparison has 119,371 exact decoded changes | Same source-owned pose correction; baseline disposition belongs to parent. **moved** |
+| `verifyTemporalReplay()` / `snapshot temporal-4-37.25`, `web/scenes/models/_temporal-replay.mjs` | Procedurally rolled baseline | 102,325 exact decoded changes; earlier gate passed tolerance | Post-roll removal changes geometry/shadow projection, not a pixel-exact pass. **moved** |
+| `verifyTemporalReplay()` / `snapshot temporal-4-39.5`, `web/scenes/models/_temporal-replay.mjs` | Procedurally rolled baseline | 115,124 exact decoded changes; earlier gate passed tolerance | Same source-owned pose correction. **moved** |
+| `verifyTemporalReplay()` / `snapshot temporal-4-72`, `web/scenes/models/_temporal-replay.mjs` | Procedurally rolled baseline | 44,264 exact decoded changes; earlier gate passed tolerance | Same source-owned pose correction. **moved** |
+| `verifyTemporalReplay()` / `snapshot temporal-7-37.25`, `web/scenes/models/_temporal-replay.mjs` | Procedurally rolled baseline | 173,560 exact decoded changes; earlier gate passed tolerance | Same source-owned pose correction. **moved** |
+| `verifyTemporalReplay()` / `snapshot temporal-41-37.25`, `web/scenes/models/_temporal-replay.mjs` | Procedurally rolled baseline | 171,426 exact decoded changes; earlier gate passed tolerance | Same source-owned pose correction. **moved** |
+| `verifyTemporalReplay()` / `snapshot temporal-41-39.5`, `web/scenes/models/_temporal-replay.mjs` | Procedurally rolled baseline | 186,509 exact decoded changes; earlier gate passed tolerance | Same source-owned pose correction. **moved** |
+| `verifyTemporalReplay()` / `snapshot temporal-41-75`, `web/scenes/models/_temporal-replay.mjs` | Procedurally rolled baseline | 187,166 exact decoded changes; earlier gate passed tolerance | Same source-owned pose correction. **moved** |
 
 Reconciliation: the earlier LOD audience-sequence test only loses an obsolete
 fixture property/comment; its assertion and hash remain exact. The temporal

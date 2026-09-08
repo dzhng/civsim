@@ -1,0 +1,106 @@
+# Provisional heavy surface candidate
+
+This is an editable local Blender material study over frozen provisional heavy
+geometry, not slice10 acceptance. Geometry, source weights and rig match the
+retained clay source; its hash and independent source comparison are recorded in
+[source-check.json](source-check.json). Later anatomy/equipment changes require a
+refit. The production catalog is unchanged; identical candidate tiers do not
+constitute LOD acceptance or a measured resource envelope.
+
+## Authored source and integration
+
+The [surface module](../../../../../../packages/soldier-assets/bake/blender-heavy-surfaces.py)
+owns the original analytic texture motifs, explicit material slots, UV placement
+and faction mask. The shared atlas carries sRGB albedo, linear tangent normals,
+and packed AO/roughness/metallic; it uses the existing slice04 contract. Mail uses
+angle-based front/back panel unwrapping, cut at silhouette and solidified opening
+rims. Separating inner from outer surfaces is essential: leaving the rim joined
+folds both surfaces into one distorted UV island. Other parts retain source UV
+islands inside their material tile, with padded edges. Physical texel density
+and linked-metal rather than embossed-knit appearance remain review concerns.
+
+The minimal integration is to import the module and call
+`author_surfaces([body] + gear)` immediately before the geometry owner's existing
+export-copy join. Export through `anatomy.export_candidate`; its explicit
+`export_attributes=True` carries `_FACTION_MASK`. No other export policy belongs
+to the surface module. Keep surface candidate generation separate from clay
+geometry acceptance. The [frozen fixture driver](build-candidate.py) reconstructs
+this particular comparison from the retained input without regenerating anatomy
+or equipment geometry.
+
+The [editable source](../../../../../../packages/soldier-assets/assets/source/heavy-surfaces/heavy-surfaces.blend)
+keeps original separate parts and the joined export copy. Locally generated PNGs,
+GLB and provenance sit beside it. The baker creates a clay control with the same
+mesh attributes, rig and animation; only material response and faction masks
+differ. It shares animation and skeleton references rather than creating a second
+control rig.
+
+## Reproduction and checks
+
+Run from the repository root, with the existing verification server serving this
+checkout. The source driver consumes its retained `clay-input.blend` by default:
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python specs/battle-model-quality/assets/evidence/10/build-candidate.py
+node packages/soldier-assets/bake/heavy-surfaces.mjs
+node packages/soldier-assets/bake/heavy-surfaces.mjs --check
+/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python specs/battle-model-quality/assets/evidence/10/source-check.py
+node --test packages/soldier-assets/bake/appearance-materials.test.mjs packages/soldier-assets/bake/material-swatches.test.mjs
+VERIFY_GPU=1 VERIFY_URL=http://localhost:5178 node web/scene.mjs heavy-surfaces
+```
+
+The scene owns fixed camera/viewport/pose values and paired clay-left/surface-right
+stills through `snapCheck`. It checks another rendered frozen frame for exact
+stability, real production submission and a nonzero visible material change. Its
+[active baselines](../../../../../../web/shots/models/shared/soldiers/heavy-surfaces)
+include full-body front/rear, gameplay pitch, native material/hand detail and a
+small formation. Production daylight is unchanged. No new motion is authored.
+
+## Review record
+
+The [first front](first-pass/front.png) and [first mail close-up](first-pass/mail.png)
+were rejected: the large bright hexagonal relief read as embossed scales and
+the full shield tint read as synthetic purple. Subsequent source work darkened
+and reduced mail links, retained hide/wood as the main shield surfaces, and used
+an authored faction border. A clamped rear unwrap initially produced a stretched
+strip; the periodic motif now continues through its gutter instead of collapsing
+seam triangles.
+
+An independent visual critique rejected the intervening candidate for radial
+neck stretching, flat sleeve waves, embossed honeycomb instead of linked mail,
+and a glossy gradient shield with regular wooden corrugation. The retained latest
+candidate uses continuous front/back UV panels and overlapping tilted wire
+motifs, with irregular wood grain and rough hide. The focused panel revision
+removes the hard torso/collar/sleeve classifiers and reduces broad shield
+mottling in normal and albedo. Author inspection finds less abrupt mail
+transitions and fewer shield swirls, but link scale/direction varies and full-body
+moire remains; the shield is plain and its faction border soft.
+Cloth/leather remain uniform and metal wear insufficient. These changes are a
+provisional study, not a claim that the critique is resolved.
+
+Fresh review of the focused panel revision judged it less wrong with high
+confidence: continuous mail and removed shield waves improve the image, but the
+enlarged soft zigzag/knit motif and smooth plastic-looking hide remain defects.
+Main-agent inspection agreed. The controlled change leaves the clay half of all
+seven shots byte-identical to commit `4a9cc563`; the material half changes in six
+views, while the hand close-up is unchanged. No geometry/runtime change or final
+surface acceptance follows from this improvement.
+
+The [capture check](capture-check.txt) records seven exact repeat baselines with
+production submission and no page errors. The [transport check](transport-check.txt)
+passes the existing appearance/material fixtures; the source comparison records
+unchanged geometry, weights, transforms and rig. The [image comparison](comparison.json)
+measures change from the rejected first pass, not closeness to acceptance:
+grayscale MAE is 1.17236 for the paired front and 13.43353 for the paired mail
+close-up. Its diagnostic images are regenerable scratch output, not retained
+acceptance artifacts.
+
+The main-agent source review found duplicated glTF export policy; it was removed
+in favor of the shared anatomy exporter. It also identified the rear seam clamp
+and the need to inspect shoulder density. The independent CLI review could not
+run: Codex CLI0.144.4 rejected configured `gpt-6-astra` as requiring a newer
+client. This is a recorded missing review, not a passing verdict.
+
+Material quality, physical texture scale, leather seams/wear, and integration onto
+accepted geometry remain open. Existing garment drape, anatomy, grip contact,
+motion, LOD and resource-envelope defects remain with their owning slices.

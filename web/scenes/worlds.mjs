@@ -46,7 +46,7 @@ export async function campaign(ctx, kind, opts = {}) {
   });
   if (kind === "new") {
     await page.goto(`${ctx.target}/`);
-    await page.waitForSelector("#menu-new-campaign", { timeout: opts.menuTimeout ?? 20000 });
+    await page.waitForSelector("#menu-new-campaign", { timeout: opts.menuTimeout ?? 60000 });
     await page.click("#menu-new-campaign");
   } else {
     await page.goto(`${ctx.target}/?campaign=${kind}`);
@@ -65,7 +65,8 @@ export async function labRoute(ctx, route, query = "") {
   return page;
 }
 
-export async function ready(page, flag, timeoutMs = 20000) {
+// Cold authored-roster loading is separate from frame-time performance gates.
+export async function ready(page, flag, timeoutMs = 60000) {
   await page.waitForFunction((name) => window[name] === true, flag, { timeout: timeoutMs });
 }
 
@@ -73,7 +74,7 @@ export async function ready(page, flag, timeoutMs = 20000) {
  *  renderer is ready only once it reports ready and has uploaded every soldier.
  *  Every battle boot waits on this so no scene freezes or shoots a half-built
  *  frame. */
-export async function battleRendererReady(page, timeoutMs = 20000) {
+export async function battleRendererReady(page, timeoutMs = 60000) {
   await page.waitForFunction(
     () => {
       const stats = window.__game?.stats?.();

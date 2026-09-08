@@ -426,7 +426,11 @@ export async function run(ctx) {
       });
     });
     await page.click("#model-reload");
-    await page.waitForFunction(() => window.__battleModels.stats().reloads === 2);
+    // Full-catalog preparation measured 43.2s on SwiftShader. This checks
+    // successful reload, not the separate renderer frame-time budget.
+    await page.waitForFunction(() => window.__battleModels.stats().reloads === 2, undefined, {
+      timeout: 60000,
+    });
     await page.waitForTimeout(300);
     await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     await ctx.snap(page, "shared/soldiers/workbench/controls", { threshold: 0, maxDiffRatio: 0 });

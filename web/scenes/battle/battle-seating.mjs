@@ -63,7 +63,7 @@ export async function run(ctx) {
         soldier = soldierFraction(PNG.sync.read(shot));
       }
       ctx.check(`${id} soldiers render over the ground`, soldier > 0.005, `soldier=${soldier}`);
-      await ctx.snap(page, `seating/${id}`, { shot });
+      await ctx.snap(page, `seating/${id}`, { shot, threshold: 0, maxDiffRatio: 0 });
     } finally {
       await page.close();
     }

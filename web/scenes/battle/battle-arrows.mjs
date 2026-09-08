@@ -9,11 +9,34 @@ export const meta = {
 
 export async function run(ctx) {
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: "arrows" });
+  // Freeze when the debug API is installed, before the first simulation frame.
+  // Waiting for renderer readiness first lets catalog loading advance the duel.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "__game", {
+      configurable: true,
+      set(game) {
+        Object.defineProperty(window, "__game", {
+          value: game,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
+        game.freeze(true);
+      },
+    });
+  });
   await page.goto(`${ctx.target}?battle=duel&a=4&b=0&ai=off&env=noon`);
-  await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+  // Cold authored-catalog preparation exceeds 20s on SwiftShader; this is a
+  // functional volley check, not the separate renderer frame-time budget.
+  await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
   await page.addStyleTag({
     content:
       "#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitcards, #toolbar { display: none !important; }",
+  });
+
+  const orderStartTick = await page.evaluate(() => window.__game.tickCount());
+  ctx.check("volley orders start at simulation tick zero", orderStartTick === 0, {
+    orderStartTick,
   });
 
   const frozenTick = await page.evaluate(async () => {
@@ -62,7 +85,7 @@ export async function run(ctx) {
     });
   });
   await page.waitForTimeout(180);
-  await ctx.snap(page, "arrows-close");
+  await ctx.snap(page, "arrows-close", { threshold: 0, maxDiffRatio: 0 });
 
   await page.evaluate(async () => {
     window.__game.reviewFrameClear?.();
@@ -77,7 +100,7 @@ export async function run(ctx) {
     await window.__game.freezeAtTickWithEffects(window.__game.tickCount());
   });
   await page.waitForTimeout(180);
-  await ctx.snap(page, "arrows-far");
+  await ctx.snap(page, "arrows-far", { threshold: 0, maxDiffRatio: 0 });
 
   await page.close();
 }

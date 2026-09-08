@@ -50,5 +50,5 @@ so its hand/forearm-weighted grip surface follows rigid hand-attached equipment.
 The source checks that tracking numerically, but cannot establish handle clearance
 or credible anatomy. Owned muted NLA tracks associate inspection clips with this
 rig without exporting unrelated Blender actions.
-The [anatomy slice](../../../../../specs/battle-model-quality/slices/08-anatomy.md)
-owns current acceptance evidence and unresolved art work.
+The [model rationale](../../../../../specs/done/battle-model-quality/README.md)
+records the delivered boundary and retained art limitations.

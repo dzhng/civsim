@@ -238,7 +238,7 @@ function completeBundleFiles(rig, animation) {
   }
   files["catalog.json"] = { appearances };
   files["review-matrix.json"] = {
-    acceptanceLedger: "specs/battle-model-quality/README.md",
+    acceptanceLedger: "specs/done/battle-model-quality/README.md",
     source: {
       geometry: "packages/soldier-assets/src/soldierMesh.ts",
       rigAndClips: "packages/soldier-assets/bake/soldier-placeholders.mjs",

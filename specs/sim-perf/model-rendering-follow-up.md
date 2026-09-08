@@ -17,9 +17,10 @@ rerun completed. These are renderer/animation measurements, not full live-battle
 simulation framerates. GPU queue elapsed time includes submission gaps and must
 not be described as active GPU pass time or added to CPU time as independent cost.
 
-The model delivery retains the raw `usable-budget-heavy.json` and
-`usable-budget-medium.json` reports in its `assets/evidence/15/actual-mesh-lod/`
-evidence directory. Treat those as a starting observation, not a clean-machine
+The model delivery retains the raw
+[heavy](../done/battle-model-quality/assets/evidence/15/actual-mesh-lod/usable-budget-heavy.json) and
+[medium](../done/battle-model-quality/assets/evidence/15/actual-mesh-lod/usable-budget-medium.json)
+reports. Treat those as a starting observation, not a clean-machine
 baseline or proof of the remaining bottleneck.
 
 ## Next pass

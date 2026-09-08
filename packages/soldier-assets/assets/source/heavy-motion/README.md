@@ -19,8 +19,8 @@ format conversion. To change only export coordinates, load the saved scene and
 use the shared anatomy exporter directly, preserving those actions. Otherwise a
 frozen comparison silently takes newer gait keys while retaining old geometry.
 
-The first ready pose is deliberately planted and static. Walk encodes the current
-heavy march speed through stride length and cadence, but has not been accepted
-for production. Ground checks do not establish natural joint shape, weapon contact
-or actual-speed visual quality; the [motion evidence](../../../../../specs/battle-model-quality/assets/evidence/11/heavy-walk/review.md)
+The study's ready pose is deliberately planted and static. Its walk calibration
+belongs to the saved comparison, not to current production cadence or acceptance.
+Ground checks do not establish natural joint shape, weapon contact
+or actual-speed visual quality; the [motion evidence](../../../../../specs/done/battle-model-quality/assets/evidence/11/heavy-walk/review.md)
 owns those limits.

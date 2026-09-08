@@ -177,6 +177,7 @@ export const meta = {
   tier: "full",
   snapshots: [
     "shared/soldiers/action-replay/controller",
+    "shared/soldiers/action-replay/equipment-handoff",
     ...temporalSnapshots,
     ...disabledSnapshots,
     ...protectedSnapshots,
@@ -215,23 +216,26 @@ export async function run(ctx) {
     );
     const first = await seek(60);
     const repeat = await seek(90);
+    const actions = await page.evaluate(
+      () => window.__battleModels.world.soldierAssets[4].manifest.presentation.actions,
+    );
     ctx.check(
       "each observed release enters its authored release phase",
-      first.sampled.clip === "bow_release" &&
-        repeat.sampled.clip === "bow_release" &&
+      first.sampled.clip === actions.release.clip &&
+        repeat.sampled.clip === actions.release.clip &&
         first.sampled.phase === repeat.sampled.phase,
       { first: first.sampled, repeat: repeat.sampled },
     );
     const injured = await seek(105);
     ctx.check(
       "health decrease selects a fresh hit",
-      injured.sampled.clip === "hit_a" && injured.sampled.phase === 0,
+      injured.sampled.clip === actions.hit.clip && injured.sampled.phase === 0,
       injured.sampled,
     );
     const dead = await seek(240);
     ctx.check(
       "terminal death holds its final phase",
-      dead.sampled.clip === "death_a" && dead.sampled.phase === 1,
+      dead.sampled.clip === actions.death.clip && dead.sampled.phase === 1,
       dead.sampled,
     );
     const rewound = await seek(90);
@@ -251,11 +255,18 @@ export async function run(ctx) {
       await page.evaluate(
         () =>
           window.__battleModels.stats().replay.tick === 0 &&
-          window.__battleModels.stats().sampled.clip === "idle",
+          window.__battleModels.stats().sampled.clip ===
+            window.__battleModels.world.soldierAssets[4].manifest.presentation.actions.ready.clip,
       ),
     );
 
-    await page.evaluate(() => window.__battleModels.set({ classId: 3, clip: "idle" }));
+    await page.evaluate(() =>
+      window.__battleModels.set({
+        classId: 3,
+        clip: window.__battleModels.world.soldierAssets[3].manifest.presentation.actions.atEase
+          .clip,
+      }),
+    );
     ctx.check(
       "switching back to manual inspection clears replay tick",
       (await page.locator("#model-replay-tick").textContent()) === "0",
@@ -265,8 +276,20 @@ export async function run(ctx) {
       "equipment replay uses the canonical sidearm appearance",
       equipment.replay.playback.appearanceId === 18 && equipment.replay.instances[0].classId === 18,
     );
+    ctx.check(
+      "compatible equipment handoff starts from a frozen source under the new appearance",
+      equipment.replay.playback.base.source.kind === "frozen" &&
+        equipment.replay.playback.base.weight === 0,
+      equipment.replay.playback.base,
+    );
     await page.locator("#model-replay-panel").evaluate((element) => {
       element.open = true;
+      element.scrollIntoView({ block: "center" });
+    });
+    await page.locator("#model-submitted-status").scrollIntoViewIfNeeded();
+    await ctx.snap(page, "shared/soldiers/action-replay/equipment-handoff", {
+      threshold: 0,
+      maxDiffRatio: 0,
     });
     await page.selectOption("#model-replay-jump", "60");
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
@@ -286,9 +309,12 @@ export async function run(ctx) {
 
     await page.evaluate(() => window.__battleModels.set({ classId: 7, clip: "idle", zoom: 150 }));
     const mounted = await seek(90);
+    const mountedRelease = await page.evaluate(
+      () => window.__battleModels.world.soldierAssets[7].manifest.presentation.actions.release.clip,
+    );
     ctx.check(
       "mounted controller submits an overlay and reports the base destination separately",
-      mounted.replay.playback.riderUpperBody.destination.clip === "bow_release" &&
+      mounted.replay.playback.riderUpperBody.destination.clip === mountedRelease &&
         mounted.sampled.clip === mounted.replay.playback.base.destination.clip,
     );
     await page.locator("#model-replay-panel").evaluate((element) => {
@@ -352,7 +378,7 @@ export async function run(ctx) {
       "successful reload resets replay against new bundles",
       loaded.ok && (await page.evaluate(() => window.__battleModels.stats().replay.tick === 0)),
     );
-    await page.route("**/appearances/horse-archers/appearance.json*", async (route) => {
+    await page.route("**/appearances/horse-archers/**/appearance.json*", async (route) => {
       const response = await route.fetch();
       const manifest = await response.json();
       manifest.presentation = null;
@@ -369,7 +395,7 @@ export async function run(ctx) {
       (await page.locator("#model-replay-play").isDisabled()) &&
         (await page.locator("#model-clip").isEnabled()),
     );
-    await page.unroute("**/appearances/horse-archers/appearance.json*");
+    await page.unroute("**/appearances/horse-archers/**/appearance.json*");
     const matrix = await page.request.get(`${ctx.target}/assets/soldiers/review-matrix.json`);
     ctx.check(
       "source-generated applicability matrix is available",

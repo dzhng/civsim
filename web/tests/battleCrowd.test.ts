@@ -166,7 +166,7 @@ test("selection rings follow the presented body while destination cues stay auth
   }
 });
 
-test("real clock pause and freeze preserve the same delayed roots, facing and local pose", () => {
+test("real clock pause preserves delayed presentation and freeze selects the authoritative endpoint", () => {
   const f = fixture();
   try {
     const clock = new SimClock({ tickHz: 30, maxTicksPerFrame: 4 });

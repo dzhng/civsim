@@ -23,6 +23,16 @@ proves impossible without behavior change, SPLIT: share the consumers that
 stay hash-identical, record the holdout and why in `choices.md`, and leave
 it for the behavior track.
 
+The consumers also read different **body snapshots**. Weapon-repel reads
+bodies before wall correction; projection rebuilds at each pass's start;
+targeting reads the last rebuilt body snapshot but queries from final
+soldier positions. Keep those phase boundaries: rebuilding just before
+combat would change behavior. Share grid/traversal work, never cached live
+combat decisions. The grid's counting sort yields descending body IDs in
+each bucket. Targeting and projection deduplicate bucket hashes in first
+`oy`-then-`ox` occurrence order; weapon-repel does not deduplicate buckets.
+Owner deduplication remains local to each consumer.
+
 Known exact levers to try first, each provable by the hash:
 - The projection passes rebuild `body_pos` and the grid three times; the
   second and third passes can reuse the previous pass's grid when no body

@@ -15,20 +15,22 @@ folder holds a one-line redirect until close-spec.
 
 ## Next Agent Prompt
 
-**Status (2026-09-08):** merged and re-based on this week's measurements.
-The tick track's slice 01 (weapon-repel gate) shipped on main, the
-state-hash oracle exists, and the July stage-profiler patch is gone (it no
-longer applied after the owners split). **You are implementing on a clean
-machine: do "Clean machine setup" and "Re-baseline" below first**, then pick
-the track's next slice.
+**Status (2026-09-09):** implementation is active from `2bef8193`.
+The weapon-repel gate is already on main. No new slice has passed its
+acceptance gates yet.
 
-**Exact pickup point:** re-baseline, then tick track
-[slices/tick/00-profiler-and-gate.md](slices/tick/00-profiler-and-gate.md)
-and worker track [slices/worker/00-measure.md](slices/worker/00-measure.md).
-They are independent (different crates, different oracles); run them in
-either order or in parallel worktrees. Do not start a tick slice past 00
-without the budget gate, and do not write worker production code before
-worker 00's numbers are in the ledger.
+**Current pickup:** finish the independent `tick/00` profiler/budget pass
+and `worker/00` measurement pass in their separate worktrees, then integrate
+the reviewed commits. Native identity baselines precede tick edits; browser
+baselines precede worker production changes. Coordinate expensive native
+runs and browser timings so they do not measure each other's contention.
+The initial machine load was above the browser gate's quiet-machine limit;
+loaded results are diagnostics, not keep/drop evidence.
+
+**Priority:** establish the fighting budget gate, then preserve candidate
+order through `tick/01` and reuse scratch in `tick/02`. The worker branch
+advances only if `worker/00` earns a keep verdict. Every recorded decision
+must be reconciled before the two tracks close.
 
 **Warnings:**
 - Every browser number needs a quiet machine (load average under ~4). On

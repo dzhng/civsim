@@ -1,0 +1,12 @@
+$ vitest run
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-model-quality/web
+
+{"bodies":3,"distinctPosedMeshes":5,"snapshotSlots":6,"controllerSnapshotBytes":5280}
+{"bodies":9,"distinctPosedMeshes":5,"snapshotSlots":18,"controllerSnapshotBytes":15840}
+
+ Test Files  66 passed (66)
+      Tests  392 passed (392)
+   Start at  18:54:01
+   Duration  2.08s (transform 6.21s, setup 6.77s, import 8.91s, tests 4.99s, environment 4.04s)
+

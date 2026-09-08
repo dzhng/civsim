@@ -27,5 +27,12 @@ waivers. Functional coverage and usable production integration remain in scope.
   found the bow and crew gestures too subtle to communicate clearly. Improve
   retained-bow placement during sword use as a separate equipment refinement.
 
-Performance failures, missing required actions, broken assets, incorrect class
-identity and missing production consumers are not cosmetic follow-ups.
+## Performance follow-up — explicitly accepted at closeout
+
+The user-accepted performance follow-up is owned by
+[sim-perf](../sim-perf/model-rendering-follow-up.md), including the remaining
+budget miss, measurement caveats and next-pass requirements. This acceptance
+does not claim that the timing gates passed.
+
+Missing required actions, broken assets, incorrect class identity and missing
+production consumers remain functional requirements, not cosmetic follow-ups.

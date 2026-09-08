@@ -13,21 +13,23 @@ distance representations and consumer consistency. Do not close unfinished
 functional work by relabeling it polish. Existing cosmetic defects belong in
 [follow-up work](follow-ups.md), not another first-pair iteration loop.
 
-Current pickup: finish actual roster equipment/actions, then admit the complete
-catalog and verify its consumers. Heavy AQ death and medium I thrust are now
-integrated, as are fitted peasant/light-sword/medium-infantry candidates.
-[Foot delivery evidence](assets/evidence/17/foot-sword-delivery.md) records their
-static checks and retained limitations. They remain manual candidates until
-distance meshes and genuine state bindings are ready. Fitted ranged infantry
-and crew now have [source/equipment-action evidence](assets/evidence/20/ranged-foot-delivery.md);
-their final three sheets repeat exactly, with motion-readability refinements
-explicitly deferred.
+Current pickup: final production consumer verification and cleanup. All roster
+sources, practical distance meshes and canonical action bindings are integrated;
+the complete authored catalog is published in the working tree. Fresh bake and
+loader checks pass for every appearance, and synthetic assets are isolated as
+explicit test fixtures. Campaign and review consumers now resolve manifest roles.
 
-Parallel owners: pike family completes reactions/protected travel and all six
-equipment states; mounted family completes original horse/rider/tack and actions;
-LOD owner exports genuinely reduced meshes and measures the existing animated
-budget fixture; integration owner completes ranged/crew and remaining foot roles,
-then production catalog/cards, battle gates and placeholder removal.
+Remaining functional omission: slice25 requires root-attached artillery equipment;
+the current crew source has its hand tool but lacks the machine. Complete that
+source and regenerate its bundle before final crew captures. In parallel, refresh
+the other production cards/sheets and consolidate the choices ledger. Then repeat
+the production workbench/action, live battle and campaign checks, run final review,
+commit/push and archive. Do not reopen model-polish or optimization loops.
+
+The user explicitly accepted a documented performance follow-up instead of
+holding completion for the original frame-time gate. That work now belongs to
+[sim-perf](../sim-perf/model-rendering-follow-up.md). Timing thresholds remain
+unchanged and unmet; no performance pass is claimed here.
 
 The original six infrastructure slices are complete. Later slices have usable
 partial deliveries, not final whole-roster acceptance. Do not reopen rejected
@@ -51,6 +53,9 @@ Evidence owners:
   exact. Natural foot-contact polish is a follow-up, not another timing project.
 - [Medium thrust](assets/evidence/12/medium-pike-thrust/integration.md) and
   [reactions](slices/13-pair-reactions.md): retained usable combat actions.
+- [Mounted delivery](assets/evidence/21/mounted-family-delivery/review.md):
+  complete source/action delivery and exact pose repeats; runtime performance
+  remains a separate acceptance requirement.
 - [Far fixture repair](assets/evidence/15/far-fixture-repair/review.md):
   actual projected admission and independent mesh shadows, not new art approval.
   Root merged repeat passed all 24 images/111 checks exactly.

@@ -19,6 +19,8 @@ export const meta = {
     "shared/soldiers/workbench/formation",
     "shared/soldiers/workbench/submission-parity",
     "shared/soldiers/workbench/controls",
+    "shared/soldiers/workbench/manual-alive",
+    "shared/soldiers/workbench/manual-dead",
   ],
   describe:
     "Production soldier workbench: explicit frozen poses, readable close views, formation, local bake reload and visible load failures.",
@@ -89,6 +91,7 @@ export async function run(ctx) {
       const repeat = await page.screenshot();
       ctx.check(`${name}: frozen frame is byte-stable`, shot.equals(repeat));
     }
+    await checkManualLifeState(ctx, page);
     const before = await page.screenshot();
     const loaded = await page.evaluate(() => window.__battleModels.reload());
     await page.waitForFunction(() => window.__battleModels.stats().reloads === 1);
@@ -530,6 +533,54 @@ export async function run(ctx) {
   } finally {
     await page.close();
   }
+}
+
+async function checkManualLifeState(ctx, page) {
+  const saved = await page.evaluate(() => ({ ...window.__battleModels.stats().pose }));
+  await page.evaluate(() =>
+    window.__battleModels.set({
+      classId: 0,
+      clip: "idle",
+      phase: 0.5,
+      alive: true,
+      formation: false,
+      yaw: 0.45,
+      pitch: 1.15,
+      zoom: 190,
+    }),
+  );
+  const shots = [];
+  for (const alive of [true, false, true]) {
+    // Reference framing hides the panel; dispatch its native checkbox action.
+    await page.locator("#model-alive").evaluate((input, alive) => {
+      if (input.checked !== alive) input.click();
+    }, alive);
+    await page.waitForFunction((alive) => {
+      const stats = window.__battleModels.stats();
+      return !stats.pendingDraw && stats.pose.alive === alive;
+    }, alive);
+    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    const shot = await page.screenshot();
+    shots.push(shot);
+    if (shots.length < 3)
+      await ctx.snap(page, `shared/soldiers/workbench/manual-${alive ? "alive" : "dead"}`, {
+        shot,
+        threshold: 0,
+        maxDiffRatio: 0,
+      });
+  }
+  ctx.check(
+    "manual life control changes corpse treatment without changing the clip",
+    !shots[0].equals(shots[1]) && shots[0].equals(shots[2]),
+  );
+  const pose = await page.evaluate(() => window.__battleModels.stats().pose);
+  ctx.check(
+    "manual life control preserves clip and phase",
+    pose.clip === "idle" && pose.phase === 0.5,
+  );
+  await page.evaluate((saved) => window.__battleModels.set(saved), saved);
+  await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+  await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
 }
 
 async function checkLatePoseReload(ctx, page) {

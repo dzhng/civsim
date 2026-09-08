@@ -46,6 +46,7 @@ export async function route(ctx: LabContext): Promise<void> {
     <label>Tilt <output id="model-pitch-value"></output><input id="model-pitch" type="range" min="0.1" max="1.5" step="0.01" value="1.15"></label>
     <label>Scale <output id="model-zoom-value"></output><input id="model-zoom" type="range" min="15" max="260" step="1" value="190"></label>
     <label><input id="model-formation" type="checkbox"> 4 × 4 formation</label>
+    <label><input id="model-alive" type="checkbox"> Alive (manual clip)</label>
     <div><button id="model-play">Play clip</button><button id="model-turn">Turntable</button></div>
     <button id="model-reload">Reload local bake</button>
     <p>Import GLBs with the local appearance baker. Source errors are reported by that command.</p>
@@ -175,6 +176,7 @@ export async function route(ctx: LabContext): Promise<void> {
       control(key + "-value").textContent = pose[key].toFixed(2);
     }
     control<HTMLInputElement>("formation").checked = pose.formation;
+    control<HTMLInputElement>("alive").checked = pose.alive;
     syncReplay();
   };
   const set = (change: Partial<BattleModelPose>) => {
@@ -193,6 +195,7 @@ export async function route(ctx: LabContext): Promise<void> {
       change.classId !== undefined ||
       change.clip !== undefined ||
       change.phase !== undefined ||
+      change.alive !== undefined ||
       change.formation !== undefined
     ) {
       replay = null;
@@ -242,6 +245,8 @@ export async function route(ctx: LabContext): Promise<void> {
     const formation = (event.target as HTMLInputElement).checked;
     set({ formation, zoom: formation ? 65 : DEFAULT_MODEL_POSE.zoom });
   };
+  control<HTMLInputElement>("alive").onchange = (event) =>
+    set({ alive: (event.target as HTMLInputElement).checked });
   control("play").onclick = () => {
     replay = null;
     replayPlaying = false;

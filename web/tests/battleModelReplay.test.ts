@@ -8,6 +8,8 @@ import {
 } from "../../apps/renderer-lab/src/battleModelReplay";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { evaluatePlaybackPose } from "@packages/crowd-runtime/src/actionTimeline";
+import { corpsePresentationStrength } from "@packages/crowd-runtime/src/instanceData";
+import { DEFAULT_MODEL_POSE, modelInstances } from "../../apps/renderer-lab/src/battleModelFixture";
 
 vi.stubGlobal("fetch", async (url: string) => {
   const path = new URL(String(url)).pathname;
@@ -17,6 +19,22 @@ vi.stubGlobal("fetch", async (url: string) => {
 });
 const assets = await loadAppearanceCatalog("http://fixture/catalog.json");
 vi.unstubAllGlobals();
+
+test("manual workbench life state is independent of the authored clip name", () => {
+  for (const clip of ["idle", "death_a"]) {
+    for (const alive of [false, true]) {
+      const pose = { ...DEFAULT_MODEL_POSE, clip, alive, phase: 0.5, formation: true };
+      const instances = modelInstances(pose, assets);
+      assert.equal(instances.length, 16);
+      for (const instance of instances) {
+        assert.equal(instance.alive, alive);
+        assert.equal(corpsePresentationStrength(instance), alive ? 0 : 1);
+        assert.equal(instance.clip, clip);
+        assert.equal(instance.phase, 0.5);
+      }
+    }
+  }
+});
 
 test("same-time death boundary preserves the previous alive observation and displayed pose", () => {
   const replay = new BattleModelReplay(assets, 7);

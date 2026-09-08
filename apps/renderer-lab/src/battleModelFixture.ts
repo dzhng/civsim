@@ -7,6 +7,7 @@ export interface BattleModelPose {
   classId: number;
   clip: string;
   phase: number;
+  alive: boolean;
   formation: boolean;
   yaw: number;
   pitch: number;
@@ -18,6 +19,7 @@ export const DEFAULT_MODEL_POSE: BattleModelPose = {
   classId: 0,
   clip: "idle",
   phase: 0,
+  alive: true,
   formation: false,
   yaw: 0.45,
   pitch: 1.15,
@@ -31,6 +33,7 @@ export function modelInstances(
 ): CrowdInstance[] {
   const bundle = assets[pose.classId];
   if (!bundle) throw new Error(`Unknown appearance: ${pose.classId}`);
+  if (typeof pose.alive !== "boolean") throw new Error("Manual model life state must be boolean");
   if (!bundle.animation.clips.some((clip) => clip.name === pose.clip))
     throw new Error(`Unknown clip for appearance ${pose.classId}: ${pose.clip}`);
   return generatedFormation(pose.formation ? 16 : 1, {
@@ -42,7 +45,7 @@ export function modelInstances(
     ...instance,
     clip: pose.clip,
     phase: pose.phase,
-    alive: pose.clip !== "death_a",
+    alive: pose.alive,
     elevation: 0,
   }));
 }

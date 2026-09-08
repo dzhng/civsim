@@ -39,6 +39,9 @@ before fine fingers or faces; the separate hand-detail worktree remains deferred
 
 Evidence ledger:
 
+- [Workbench parity](slices/01-production-workbench.md): manual life state is
+  independent of clip names. Historical manual death studies using `death` were
+  alive-state previews; they can compare motion, not establish corpse-treatment parity.
 - [Checkpoint and combined gates](checkpoint.md): current integrated sources,
   retained limitations and rejected death G.
 - [Locomotion](slices/11-pair-locomotion.md): measured-distance playback, protected

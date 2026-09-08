@@ -1,5 +1,16 @@
 # Implementation choices
 
+## Sound — high confidence: manual review life state
+
+During the manual-life harness pass, selecting a clip called `death` left corpse
+color treatment off, while `death_a` turned it on. A name is not a life-state
+observation. Manual reviewers now choose alive/dead independently of the clip;
+changing either input leaves canonical replay, just as selecting a manual pose
+already did. The plan required production parity but did not define this manual
+input. This lets a reviewer isolate motion from corpse treatment without creating
+a naming convention that future Blender exports must obey. Canonical engine
+observations still own life state during replay and gameplay.
+
 ## Sound — medium confidence
 
 ### Test delayed motion with an explicit bounded approximation (11)

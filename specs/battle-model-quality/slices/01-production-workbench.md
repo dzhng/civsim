@@ -6,6 +6,12 @@ Status: COMPLETE. Harness accepted; current model art is not accepted.
 
 Review inputs feed PhotorealBattleWorld and its existing environment/crowd, never a second soldier shader.
 
+Manual clip selection and life state are independent: an authored clip name cannot
+tell the renderer whether to apply corpse presentation. The workbench exposes that
+state explicitly; canonical replay still gets it from engine observations.
+[Manual-state verification](../assets/evidence/01/manual-life/review.md) also records
+the causal repair of stale shadow-LOD baselines, without changing production lighting.
+
 API seam: apps/renderer-lab: /renderer/battle-models; typed review scene {appearance, pose/time, camera, formation}; production world accepts explicit instances alongside its battle adapter.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.

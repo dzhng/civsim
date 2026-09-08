@@ -1,0 +1,35 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/actionTimeline.test.ts (46 tests | 1 failed | 45 skipped) 5ms
+   × snapshot storage stays bounded through repeated interruptions and releases after death blend 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/actionTimeline.test.ts > snapshot storage stays bounded through repeated interruptions and releases after death blend
+AssertionError: Expected values to be strictly equal:
+
+80 !== 160
+
+
+- Expected
++ Received
+
+- 160
++ 80
+
+ ❯ tests/actionTimeline.test.ts:919:12
+    917|   for (let tick = 1; tick < 20; tick++) {
+    918|     timeline.update(tick, [soldier({ health: 100 - tick })]);
+    919|     assert.equal(
+       |            ^
+    920|       timeline.snapshotBytes,
+    921|       (tick === 1 ? 1 : 2) * rig.bones.length * 10 * Float64Array.BYTE…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 45 skipped (46)
+   Start at  13:17:17
+   Duration  174ms (transform 42ms, setup 70ms, import 40ms, tests 5ms, environment 0ms)

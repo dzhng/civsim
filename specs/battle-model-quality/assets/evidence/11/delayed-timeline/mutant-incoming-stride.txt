@@ -1,0 +1,43 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/actionTimeline.test.ts (46 tests | 1 failed | 45 skipped) 5ms
+   × direction changes transport normalized phase and disabled endpoints retain their compatible gait 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/actionTimeline.test.ts > direction changes transport normalized phase and disabled endpoints retain their compatible gait
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    clip: 'left',
++   phase: 0.25
+-   phase: 0.5
+  }
+
+
+- Expected
++ Received
+
+  {
+    "clip": "left",
+-   "phase": 0.5,
++   "phase": 0.25,
+  }
+
+ ❯ tests/actionTimeline.test.ts:351:10
+    349|   // The completed backward interval owns its 1 m stride; left owns fu…
+    350|   assert.deepEqual(timeline.sample(7.5)[0].base.destination, { clip: "…
+    351|   assert.deepEqual(timeline.sample()[0].base.destination, { clip: "lef…
+       |          ^
+    352|   timeline.update(30, [{ ...motion, incapacitated: true }]);
+    353|   assert.deepEqual(timeline.sample(30.9)[0].base.destination, { clip: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 45 skipped (46)
+   Start at  13:16:47
+   Duration  187ms (transform 46ms, setup 73ms, import 44ms, tests 5ms, environment 0ms)

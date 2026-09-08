@@ -1,0 +1,32 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/actionTimeline.test.ts (46 tests | 1 failed | 45 skipped) 5ms
+   × completed entry respects disabled, combat, posture and appearance boundaries 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/actionTimeline.test.ts > completed entry respects disabled, combat, posture and appearance boundaries
+AssertionError: Expected values to be strictly equal:
+
+'walk' !== 'rest'
+
+
+Expected: "rest"
+Received: "walk"
+
+ ❯ tests/actionTimeline.test.ts:204:12
+    202|     timeline.update(0, [soldier()]);
+    203|     timeline.update(6, [soldier({ speedMps: 1, ...changed })]);
+    204|     assert.equal(timeline.sample(3)[0].base.destination.clip, "rest");
+       |            ^
+    205|     assert.equal(timeline.sample(3)[0].appearanceId, 0);
+    206|     assert.equal(timeline.sample()[0].base.destination.phase, 0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 45 skipped (46)
+   Start at  13:13:33
+   Duration  155ms (transform 44ms, setup 47ms, import 42ms, tests 5ms, environment 0ms)

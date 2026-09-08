@@ -165,15 +165,22 @@ interface Lane {
   source: PoseSource;
   changed: number;
 }
-interface History {
-  appearanceId: number;
+interface History extends Pick<
+  ActionObservation,
+  | "appearanceId"
+  | "incapacitated"
+  | "atEase"
+  | "pikeReady"
+  | "guardedFacing"
+  | "routing"
+  | "health"
+  | "mountHealth"
+  | "releaseTtl"
+> {
   moving: boolean;
   base: Lane;
   overlay?: Lane;
   overlayExiting?: boolean;
-  health: number;
-  mountHealth: number;
-  releaseTtl: number;
 }
 
 const BLEND_SECONDS = 0.15;
@@ -241,11 +248,14 @@ function transition(
 /** Render-only histories follow observed simulation time; no wall clock or combat writes. */
 export class ActionTimeline {
   private histories: History[] = [];
+  // One interval only: shells own lane edits; immutable source payloads stay shared.
+  private completed?: { tick: number; histories: (History | undefined)[] };
   private tick = -Infinity;
   constructor(private appearances: Readonly<Record<number, PlaybackAppearance>>) {}
 
   reset(): void {
     this.histories = [];
+    this.completed = undefined;
     this.tick = -Infinity;
   }
 
@@ -253,7 +263,8 @@ export class ActionTimeline {
   get snapshotBytes(): number {
     let bytes = 0;
     const counted = new Set<PoseSource>();
-    for (const history of this.histories) {
+    for (const history of [...this.histories, ...(this.completed?.histories ?? [])]) {
+      if (!history) continue;
       for (const lane of [history.base, history.overlay])
         if (lane?.source.kind === "frozen" && !counted.has(lane.source)) {
           counted.add(lane.source);
@@ -263,11 +274,21 @@ export class ActionTimeline {
     return bytes;
   }
 
-  sample(tick = this.tick): SoldierPlayback[] {
+  /** Before samples only the latest completed endpoint, before its observed events. */
+  sample(tick = this.tick, boundary: "before" | "after" = "after"): SoldierPlayback[] {
+    if (boundary === "before" && (!this.completed || tick !== this.tick))
+      throw new Error("before boundary requires the latest completed observation");
     if (this.histories.length === 0) return [];
-    if (!Number.isFinite(tick) || tick < this.tick)
-      throw new Error("cannot sample before the latest observation or at invalid time");
-    return this.histories.map((history) => playback(history, tick * ACTION_TICK_SECONDS));
+    if (!Number.isFinite(tick) || tick < (this.completed?.tick ?? this.tick))
+      throw new Error("cannot sample before the retained observation or at invalid time");
+    return this.histories.map((history, index) => {
+      const past =
+        tick < this.tick || boundary === "before" ? this.completed?.histories[index] : undefined;
+      return playback(
+        past ?? history,
+        (past ? tick : Math.max(tick, this.tick)) * ACTION_TICK_SECONDS,
+      );
+    });
   }
 
   /** Observe atomically; sample() is the sole playback-output owner. */
@@ -277,10 +298,17 @@ export class ActionTimeline {
     const previousHistories = resetting ? [] : this.histories;
     const previousTick = resetting ? -Infinity : this.tick;
     const nextHistories: History[] = [];
+    const completed =
+      resetting || !Number.isFinite(previousTick)
+        ? undefined
+        : tick === previousTick
+          ? this.completed
+          : { tick: previousTick, histories: [] as (History | undefined)[] };
     const seconds = tick * ACTION_TICK_SECONDS;
     const freezePlayback = frozenPoseCapture();
     observations.forEach((observation, index) => {
       const prior = previousHistories[index];
+      if (completed && tick !== previousTick) completed.histories[index] = prior;
       let history = prior && {
         ...prior,
         base: { ...prior.base },
@@ -297,6 +325,23 @@ export class ActionTimeline {
       const moving = marchingStateForSpeed(observation.speedMps, history?.moving ?? false);
       const validSpeed = Number.isFinite(observation.speedMps) && observation.speedMps >= 0;
       const speed = validSpeed ? observation.speedMps : 0;
+      // Qualified path is uniform over this interval and belongs to its eligible left gait.
+      if (
+        history &&
+        !history.incapacitated &&
+        history.appearanceId === observation.appearanceId &&
+        isGaitRole(history.base.current.role)
+      ) {
+        const old = history.base.current;
+        const phaseRate = speed / old.clip.strideMeters!;
+        if (phaseRate !== old.phaseRate)
+          history.base.current = {
+            ...old,
+            started: previousTick * ACTION_TICK_SECONDS,
+            startPhase: sample(old, previousTick * ACTION_TICK_SECONDS).phase,
+            phaseRate,
+          };
+      }
       const actionClip = (role: ActionRole) => {
         const clip = this.appearances[observation.appearanceId].animation.clips.find(
           (clip) => clip.name === presentation.actions[role]?.clip,
@@ -331,10 +376,6 @@ export class ActionTimeline {
         moving && validSpeed
           ? speed > (nominalSpeed("walk") + nominalSpeed("run")) / 2
           : history?.base.current.role === "run";
-      const oldGait =
-        history?.appearanceId === observation.appearanceId && isGaitRole(history.base.current.role)
-          ? history.base.current.role
-          : undefined;
       const standing: ActionRole = observation.atEase
         ? "atEase"
         : observation.pikeReady && presentation.actions.pikeReady
@@ -358,6 +399,49 @@ export class ActionTimeline {
         presentation.actions[direction]
           ? direction
           : undefined;
+      // Infer onset only over compatible background standing, never past combat or disability.
+      if (
+        history &&
+        history.appearanceId === observation.appearanceId &&
+        !history.incapacitated &&
+        !history.overlay &&
+        moving &&
+        speed > 0 &&
+        ["atEase", "ready", "pikeReady"].includes(history.base.current.role) &&
+        history.atEase === observation.atEase &&
+        history.pikeReady === observation.pikeReady &&
+        history.guardedFacing === observation.guardedFacing &&
+        history.routing === observation.routing
+      ) {
+        const inferredRole = protectedRole ?? (run ? "run" : "walk");
+        const clip = actionClip(inferredRole);
+        const started = previousTick * ACTION_TICK_SECONDS;
+        const source = freezePlayback(
+          this.appearances[observation.appearanceId],
+          playback(history, started),
+        );
+        history.base = {
+          current: {
+            role: inferredRole,
+            clip,
+            started,
+            startPhase: 0,
+            phaseRate: speed / clip.strideMeters!,
+          },
+          source,
+          changed: started,
+        };
+      }
+      if (completed && tick !== previousTick)
+        completed.histories[index] = history && {
+          ...history,
+          base: { ...history.base },
+          overlay: history.overlay && { ...history.overlay },
+        };
+      const oldGait =
+        history?.appearanceId === observation.appearanceId && isGaitRole(history.base.current.role)
+          ? history.base.current.role
+          : undefined;
       const background: ActionRole = observation.incapacitated
         ? (oldGait ?? standing)
         : moving
@@ -380,14 +464,7 @@ export class ActionTimeline {
           history?.appearanceId === observation.appearanceId ? history.base.current : undefined;
         // Keep the same arithmetic anchor while the measured rate is unchanged.
         // Re-anchoring an identical trajectory can round an interruption pose differently.
-        // A disabled endpoint stops future sampling, not qualified past travel.
-        if (
-          locomotion &&
-          old?.role === role &&
-          old.clip === clip &&
-          old.phaseRate === phaseRate &&
-          (!observation.incapacitated || speed === 0)
-        )
+        if (locomotion && old?.role === role && old.clip === clip && old.phaseRate === phaseRate)
           return old;
         return {
           role,
@@ -401,10 +478,9 @@ export class ActionTimeline {
                     Math.max(0, observation.releaseAgeSeconds) / clip.duration,
                 )
               : locomotion && old
-                ? (old.phaseRate !== undefined
-                    ? sample(old, previousTick * ACTION_TICK_SECONDS).phase
-                    : 0) +
-                  (speed * (tick - previousTick) * ACTION_TICK_SECONDS) / clip.strideMeters!
+                ? old.phaseRate !== undefined
+                  ? sample(old, seconds).phase
+                  : 0
                 : 0,
           ...(locomotion ? { phaseRate } : {}),
         };
@@ -414,7 +490,7 @@ export class ActionTimeline {
       const restart = injured || (role === "release" && released) || (role === "melee" && !playing);
       // Equipment can change skeleton/clip indices; never carry a blend across bundles.
       const sameAppearance = history?.appearanceId === observation.appearanceId;
-      const previousHistory = prior;
+      const previousHistory = history;
       let previous: SoldierPlayback | undefined;
       // Transition callbacks run only when a lane changes. Capture the old history
       // before rebinding it so base and overlay interruptions freeze the same pose.
@@ -441,6 +517,11 @@ export class ActionTimeline {
       history = {
         ...history,
         appearanceId: observation.appearanceId,
+        incapacitated: observation.incapacitated,
+        atEase: observation.atEase,
+        pikeReady: observation.pikeReady,
+        guardedFacing: observation.guardedFacing,
+        routing: observation.routing,
         moving,
         health: observation.health,
         mountHealth: observation.mountHealth,
@@ -493,6 +574,7 @@ export class ActionTimeline {
       nextHistories[index] = history;
     });
     this.histories = nextHistories;
+    this.completed = completed;
     this.tick = tick;
   }
 }

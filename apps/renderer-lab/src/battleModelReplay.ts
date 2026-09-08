@@ -175,8 +175,7 @@ export class BattleModelReplay {
     return this.buildState(this.observation(this.tick));
   }
 
-  private buildState(observation: ActionObservation) {
-    const playback = this.timeline.sample(this.tick);
+  private buildState(observation: ActionObservation, playback = this.timeline.sample(this.tick)) {
     const { instances } = buildCrowdInstances({
       positions: new Float32Array([0, 0]),
       playback,
@@ -194,16 +193,16 @@ export class BattleModelReplay {
     };
   }
 
-  /** Rebuild if necessary; never observe the boundary before its first sample. */
+  /** Both sides use completed motion; only the right side applies newly observed events. */
   seekBoundary(tick: number) {
     if (!Number.isInteger(tick) || tick <= 0 || tick > this.endTick)
       throw new Error(
         "Replay boundary requires an observed predecessor and an integer tick in range",
       );
     this.seek(tick - 1);
-    this.tick = tick;
-    const before = this.buildState(this.latestObservation);
+    const previous = this.latestObservation;
     const after = this.seek(tick);
+    const before = this.buildState(previous, this.timeline.sample(tick, "before"));
     return { before, after };
   }
 

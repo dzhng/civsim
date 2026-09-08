@@ -140,18 +140,19 @@ function moving() {
   return timeline;
 }
 
-test("speed correction keeps the old composed interruption source while the unmasked gait follows measured distance", () => {
+test("speed correction completes the composed interruption source and unmasked gait from measured distance", () => {
   const timeline = new ActionTimeline({ 0: appearance });
   timeline.update(0, [observation({ speedMps: 0.8 })]);
   timeline.update(1, [observation({ speedMps: 0.8 })]);
   const before = pose(timeline.sample(2)[0]);
+  const completed = sampleRigLocalPose(rig, "walk", 0.8 * (1 / 30) + 1.2 * (1 / 30));
   timeline.update(2, [observation({ speedMps: 1.2, releaseTtl: 0.5 })]);
   const playback = timeline.sample()[0];
   assert.equal(playback.riderUpperBody!.source.kind, "frozen");
   if (playback.riderUpperBody!.source.kind !== "frozen") throw new Error("expected owned pose");
-  close(playback.riderUpperBody!.source.locals, before, "complete frozen composed source");
+  close(playback.riderUpperBody!.source.locals, completed, "complete frozen composed source");
   const after = pose(playback);
-  close(after.slice(20), before.slice(20), "interrupted upper mask");
+  close(after.slice(20), completed.slice(20), "interrupted upper mask");
   const correctedBase = pose({ ...playback, riderUpperBody: undefined });
   close(after.slice(0, 20), correctedBase.slice(0, 20), "measured unmasked gait");
   assert.notDeepEqual(Array.from(after.slice(0, 20)), Array.from(before.slice(0, 20)));
@@ -169,13 +170,14 @@ test("final incapacity holds corrected lower gait without freezing a masked rele
     timeline.update(0, [observation(motion)]);
     timeline.update(1, [observation(motion)]);
     const before = pose(timeline.sample(2)[0]);
+    const completed = sampleRigLocalPose(rig, "walk", 0.8 * (1 / 30) + 1.2 * (1 / 30));
     timeline.update(2, [observation({ speedMps: 1.2, releaseTtl: 0.5, incapacitated: true })]);
     const playback = timeline.sample()[0];
     assert.equal(playback.riderUpperBody!.source.kind, "frozen");
     if (playback.riderUpperBody!.source.kind !== "frozen") throw new Error("expected owned pose");
-    assert.deepEqual(playback.riderUpperBody!.source.locals, Array.from(before));
+    assert.deepEqual(playback.riderUpperBody!.source.locals, Array.from(completed));
     const after = pose(playback);
-    assert.deepEqual(after.slice(20), before.slice(20));
+    assert.deepEqual(after.slice(20), completed.slice(20));
     assert.notDeepEqual(after.slice(0, 20), before.slice(0, 20));
     const later = timeline.sample(2.75)[0];
     assert.deepEqual(later.base.destination, playback.base.destination);
@@ -249,7 +251,7 @@ test("mounted death captures the full composed pose during simultaneous base and
   assert.ok(live.base.weight > 0 && live.base.weight < 1, "base must be crossfading");
   const before = pose(live);
   assert.ok(Math.abs(before[20] - pose({ ...live, riderUpperBody: undefined })[20]) > 0.1);
-  timeline.update(6, [observation({ alive: false })]);
+  timeline.update(6, [observation({ alive: false, speedMps: 2 })]);
   continuous(pose(timeline.sample()[0]), before);
   const terminal = pose(timeline.sample(60)[0]);
   continuous(terminal, sampleRigLocalPose(rig, "death", 1));

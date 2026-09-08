@@ -1,0 +1,14 @@
+CLI: /Applications/ChatGPT.app/Contents/Resources/codex review --uncommitted
+Worktree: /Users/david/dev/game-delayed-root-phase-policy
+Session: 01a07fad-5a82-7530-91e2-6779c6d79dac
+Terminal exit: 0
+Complete transcript preserved at throwaway/delayed-timeline-review/independent-review-full.txt in that worktree.
+
+Exact final verdict:
+
+The 68 focused tests pass, but a reproduced idle-to-disabled transition discards the newly inferred gait and its completed phase. That boundary case needs correction.
+
+Review comment:
+
+- [P2] Recompute disabled background after inferring gait entry — /Users/david/dev/game-delayed-root-phase-policy/packages/crowd-runtime/src/actionTimeline.ts:432-438
+  When an enabled resting soldier records travel but is incapacitated at the next observation, this block installs an inferred gait after `oldGait` and `background` have already selected standing. The endpoint consequently blends back to rest instead of holding the completed gait, and recovery loses its phase. With the test fixture, updates at ticks 0 (rest) and 6 (speed 1, incapacitated) produce walk phase 0.1 before the boundary, but rest afterward and walk phase 0 on recovery. Resolve the disabled background from the corrected history so the inferred gait receives the same hold behavior as an existing gait.

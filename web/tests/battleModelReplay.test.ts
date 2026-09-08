@@ -119,7 +119,7 @@ test("mounted release exit follows a changing base, then composed death holds an
   for (let tick = 0; tick <= recipe.endTick; tick += 0.25) {
     const state = replay.seek(tick);
     assert.ok(
-      state.snapshotBytes <= 2 * evaluatePlaybackPose(assets[7], state.playback).byteLength,
+      state.snapshotBytes <= 4 * evaluatePlaybackPose(assets[7], state.playback).byteLength,
       `snapshot storage at ${tick}`,
     );
   }

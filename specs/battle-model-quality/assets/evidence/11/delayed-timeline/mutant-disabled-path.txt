@@ -1,0 +1,35 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/actionTimeline.test.ts (46 tests | 1 failed | 45 skipped) 8ms
+   × completed disabled recovery holds prior gait and never catches up unassigned path 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/actionTimeline.test.ts > completed disabled recovery holds prior gait and never catches up unassigned path
+AssertionError: Expected values to be strictly equal:
+
+0.15 !== 0.1
+
+
+- Expected
++ Received
+
+- 0.1
++ 0.15
+
+ ❯ tests/actionTimeline.test.ts:148:10
+    146|   assert.equal(timeline.sample()[0].base.destination.phase, 0.1);
+    147|   timeline.update(12, [soldier({ speedMps: 1 })]);
+    148|   assert.equal(timeline.sample(9)[0].base.destination.phase, 0.1);
+       |          ^
+    149|   assert.equal(timeline.sample()[0].base.destination.phase, 0.1);
+    150|   timeline.update(18, [soldier({ speedMps: 1 })]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 45 skipped (46)
+   Start at  13:13:55
+   Duration  249ms (transform 74ms, setup 80ms, import 72ms, tests 8ms, environment 0ms)

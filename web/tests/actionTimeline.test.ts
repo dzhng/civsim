@@ -112,6 +112,236 @@ const guardedAppearance = {
   },
 };
 
+test("completed gait uses observed interval distance at midpoint and exact hit boundary", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(12, [soldier({ speedMps: 0.5, health: 90 })]);
+  // 0.5 m/s for 0.2 s, divided by the authored 2 m stride.
+  assert.equal(timeline.sample(6)[0].base.destination.phase, 0.05);
+  assert.equal(evaluatePlaybackPose(appearances[0], timeline.sample(6)[0])[0], 1.05);
+  // The hit begins from completed 0.2 m of travel, not the old 1 m/s prediction.
+  assert.equal(evaluatePlaybackPose(appearances[0], timeline.sample(12)[0])[0], 1.1);
+  assert.equal(timeline.sample(12)[0].base.destination.clip, "recoil");
+  assert.deepEqual(timeline.sample(12, "before")[0].base.destination, { clip: "walk", phase: 0.1 });
+  assert.deepEqual(
+    evaluatePlaybackPose(appearances[0], timeline.sample(12, "before")[0]),
+    evaluatePlaybackPose(appearances[0], timeline.sample(12, "after")[0]),
+  );
+  assert.throws(() => timeline.sample(6, "before"), /latest completed observation/);
+  assert.throws(() => timeline.sample(13, "before"), /latest completed observation/);
+});
+
+test("completed idle entry blends from prior rest at inferred onset, not the observation endpoint", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  timeline.update(6, [soldier({ speedMps: 1 })]);
+  assert.equal(evaluatePlaybackPose(appearances[0], timeline.sample(0)[0])[0], 0);
+  const middle = timeline.sample(2.25)[0];
+  assert.equal(middle.base.destination.clip, "walk");
+  assert.equal(middle.base.weight, 0.5);
+  assert.equal(middle.base.destination.phase, 0.0375);
+  assert.equal(evaluatePlaybackPose(appearances[0], middle)[0], 1.0375 / 2);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.1);
+  assert.equal(timeline.sample()[0].base.weight, 1);
+});
+
+test("completed disabled recovery holds prior gait and never catches up unassigned path", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(6, [soldier({ speedMps: 1, incapacitated: true })]);
+  assert.equal(timeline.sample(3)[0].base.destination.phase, 0.05);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.1);
+  timeline.update(12, [soldier({ speedMps: 1 })]);
+  assert.equal(timeline.sample(9)[0].base.destination.phase, 0.1);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.1);
+  timeline.update(18, [soldier({ speedMps: 1 })]);
+  assert.ok(Math.abs(timeline.sample()[0].base.destination.phase - 0.2) < 1e-12);
+});
+
+test("inferred entry holds its completed phase at a disabled endpoint and resumes without replay", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  timeline.update(6, [soldier({ speedMps: 1, incapacitated: true })]);
+  const held = { clip: "walk", phase: 0.1 };
+  assert.deepEqual(timeline.sample(6, "before")[0].base.destination, held);
+  assert.deepEqual(timeline.sample()[0].base.destination, held);
+  assert.deepEqual(timeline.sample(6.75)[0].base.destination, held);
+  timeline.update(12, [soldier({ speedMps: 1 })]);
+  assert.deepEqual(timeline.sample()[0].base.destination, held);
+  timeline.update(18, [soldier({ speedMps: 1 })]);
+  assert.ok(Math.abs(timeline.sample()[0].base.destination.phase - 0.2) < 1e-12);
+});
+
+test("completed death history remains sampleable until its interval retires", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  timeline.update(3, [soldier({ alive: false })]);
+  const previous = timeline.sample(4);
+  timeline.update(6, [soldier({ alive: false })]);
+  assert.deepEqual(timeline.sample(4), previous);
+  assert.ok(Math.abs(timeline.sample(4)[0].base.weight - 1 / 30 / 0.15) < 1e-12);
+  assert.throws(() => timeline.sample(2), /before.*observation/);
+});
+
+test("retained clip sources and caller observations cannot mutate past eligibility or output", () => {
+  const timeline = new ActionTimeline(appearances);
+  const input = soldier({ incapacitated: true });
+  timeline.update(0, [input]);
+  const output = timeline.sample()[0];
+  assert.equal(output.base.source.kind, "clip");
+  if (output.base.source.kind !== "clip") throw new Error("expected clip source");
+  output.base.source.sample.phase = 0.9;
+  const reread = timeline.sample()[0].base.source;
+  assert.equal(reread.kind === "clip" && reread.sample.phase, 0);
+  input.incapacitated = false;
+  input.speedMps = 1;
+  timeline.update(6, [input]);
+  assert.equal(timeline.sample(3)[0].base.destination.clip, "rest");
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+});
+
+test("completed entry respects disabled, combat, posture and appearance boundaries", () => {
+  for (const left of [
+    soldier({ incapacitated: true }),
+    soldier({ fighting: true }),
+    soldier({ alive: false }),
+  ]) {
+    const timeline = new ActionTimeline(appearances);
+    timeline.update(0, [left]);
+    const before = timeline.sample(3);
+    timeline.update(6, [soldier({ speedMps: 1 })]);
+    assert.deepEqual(timeline.sample(3), before);
+  }
+  for (const changed of [
+    { atEase: true },
+    { pikeReady: true },
+    { guardedFacing: true },
+    { routing: true },
+    { appearanceId: 1 },
+  ]) {
+    const timeline = new ActionTimeline({ ...appearances, 1: appearances[0] });
+    timeline.update(0, [soldier()]);
+    timeline.update(6, [soldier({ speedMps: 1, ...changed })]);
+    assert.equal(timeline.sample(3)[0].base.destination.clip, "rest");
+    assert.equal(timeline.sample(3)[0].appearanceId, 0);
+    assert.equal(timeline.sample()[0].base.destination.phase, 0);
+    assert.equal(timeline.sample()[0].appearanceId, changed.appearanceId ?? 0);
+  }
+  const hit = new ActionTimeline(appearances);
+  hit.update(0, [soldier()]);
+  hit.update(3, [soldier({ health: 90 })]);
+  const before = hit.sample(12);
+  hit.update(30, [soldier({ health: 90, speedMps: 1 })]);
+  assert.deepEqual(hit.sample(12), before);
+  assert.deepEqual(hit.sample()[0].base.destination, { clip: "walk", phase: 0 });
+  for (const layer of ["fullBody", "riderUpperBody"] as const) {
+    const releaseAppearance = {
+      ...appearances[0],
+      manifest: {
+        presentation: {
+          actions: { ...actions, release: { clip: "swing", layer } },
+          riderUpperBodyJoints: layer === "riderUpperBody" ? ["spine"] : null,
+        },
+      },
+      animation: {
+        clips: clips.map((clip) =>
+          clip.name === "swing" ? { ...clip, markers: { release: 0.6 } } : clip,
+        ),
+      },
+    };
+    const released = new ActionTimeline({ 0: releaseAppearance });
+    released.update(0, [soldier()]);
+    released.update(3, [soldier({ releaseTtl: 0.75 })]);
+    const beforeTravel = released.sample(6);
+    released.update(30, [soldier({ speedMps: 1 })]);
+    assert.deepEqual(released.sample(6), beforeTravel, `no inferred entry over ${layer} release`);
+    assert.deepEqual(released.sample()[0].base.destination, { clip: "walk", phase: 0 });
+  }
+});
+
+test("completed masked interruption freezes independently calibrated base and rider endpoint", () => {
+  const mounted = {
+    ...appearances[0],
+    manifest: {
+      presentation: {
+        actions: { ...actions, melee: { clip: "swing", layer: "riderUpperBody" as const } },
+        riderUpperBodyJoints: ["spine"],
+      },
+    },
+    rig: {
+      bones: [rig.bones[0], { ...rig.bones[0], name: "legs" }],
+      clips: rig.clips.map((clip, index) => ({
+        ...clip,
+        tracks: {
+          ...clip.tracks,
+          1: {
+            T: { times: [0, clip.duration], values: [index * 10, 0, 0, (index + 1) * 10, 0, 0] },
+          },
+        },
+      })),
+    },
+  };
+  const timeline = new ActionTimeline({ 0: mounted });
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(3, [soldier({ speedMps: 1, fighting: true })]);
+  const retained = timeline.sample(4);
+  const retainedBytes = JSON.stringify(retained);
+  timeline.update(6, [soldier({ speedMps: 0.5, health: 90 })]);
+  const phase = 0.1 / 2 + (0.5 * 0.1) / 2;
+  const expected = evaluatePlaybackPose(mounted, {
+    appearanceId: 0,
+    base: {
+      source: { kind: "clip", sample: { clip: "walk", phase } },
+      destination: { clip: "walk", phase },
+      weight: 1,
+    },
+    riderUpperBody: {
+      source: { kind: "clip", sample: { clip: "walk", phase: 0.1 / 2 } },
+      destination: { clip: "swing", phase: 0.1 / 2 },
+      weight: 0.1 / 0.15,
+    },
+  });
+  const actual = evaluatePlaybackPose(mounted, timeline.sample()[0]);
+  assert.deepEqual(actual, expected);
+  assert.equal(actual[10], 10.75, "unmasked legs include completed path, not old predicted speed");
+  assert.equal(timeline.sample()[0].riderUpperBody, undefined);
+  assert.equal(
+    JSON.stringify(retained),
+    retainedBytes,
+    "retained output remains immutable across correction",
+  );
+});
+
+test("completed lifecycle retains one interval through append and discards it on rewind or shrink", () => {
+  const timeline = new ActionTimeline(appearances);
+  const moving = soldier({ speedMps: 1 });
+  timeline.update(0, [moving]);
+  assert.throws(() => timeline.sample(0, "before"), /latest completed observation/);
+  timeline.update(6, [moving]);
+  const middle = timeline.sample(3)[0];
+  timeline.update(6, [soldier({ speedMps: 20 }), soldier({ fighting: true })]);
+  assert.deepEqual(timeline.sample(3)[0], middle);
+  assert.equal(
+    timeline.sample(3)[1].base.destination.phase,
+    0,
+    "append anchors at first known pose",
+  );
+  const past = timeline.sample(3);
+  timeline.sample(7);
+  assert.deepEqual(timeline.sample(3), past, "out-of-order sampling does not consume history");
+  timeline.update(12, [moving, soldier({ fighting: true })]);
+  assert.throws(() => timeline.sample(3), /before.*observation/);
+  timeline.update(12, [moving]);
+  assert.throws(() => timeline.sample(11), /before.*observation/);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+  timeline.update(2, [moving]);
+  assert.throws(() => timeline.sample(1), /before.*observation/);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+  timeline.reset();
+  assert.deepEqual(timeline.sample(), []);
+  assert.equal(timeline.snapshotBytes, 0);
+});
+
 test("protected gait uses nearest cardinal with longitudinal ties and canonical eligibility", () => {
   for (const [forwardMps, lateralMps, expected] of [
     [-1, 0, "backward"],
@@ -153,16 +383,18 @@ test("direction changes transport normalized phase and disabled endpoints retain
   const motion = soldier({ speedMps: 1, forwardMps: -1, guardedFacing: true });
   timeline.update(0, [motion]);
   timeline.update(15, [{ ...motion, forwardMps: 0, lateralMps: -1 }]);
-  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "left", phase: 0.25 });
+  // The completed backward interval owns its 1 m stride; left owns future 2 m strides.
+  assert.deepEqual(timeline.sample(7.5)[0].base.destination, { clip: "backward", phase: 0.25 });
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "left", phase: 0.5 });
   timeline.update(30, [{ ...motion, incapacitated: true }]);
-  assert.deepEqual(timeline.sample(30.9)[0].base.destination, { clip: "left", phase: 0.5 });
+  assert.deepEqual(timeline.sample(30.9)[0].base.destination, { clip: "left", phase: 0.75 });
   timeline.update(45, [{ ...motion, incapacitated: true }]);
   assert.deepEqual(timeline.sample(45.9)[0].base.destination, { clip: "left", phase: 0.75 });
   const paused = timeline.sample(45.9);
   timeline.update(45, [{ ...motion, speedMps: 20 }]);
   assert.deepEqual(timeline.sample(45.9), paused);
   timeline.update(60, [{ ...motion, forwardMps: 0, lateralMps: 1 }]);
-  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "right", phase: 0.75 + 0.5 / 3 });
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "right", phase: 0.75 });
   timeline.update(75, [{ ...motion, appearanceId: 1, incapacitated: true, atEase: true }]);
   assert.deepEqual(timeline.sample()[0].base.destination, { clip: "rest", phase: 0 });
   timeline.update(0, [motion]);
@@ -182,9 +414,9 @@ test("protected direction changes and time-driven combat preserve exact interrup
     const timeline = new ActionTimeline({ 0: guardedAppearance });
     const motion = soldier({ speedMps: 1, forwardMps: -1, guardedFacing: true });
     timeline.update(0, [motion]);
-    const before = evaluatePlaybackPose(guardedAppearance, timeline.sample(10)[0]);
+    const completed = 10 + (0.5 * (10 / 30)) / 1;
     timeline.update(10, [{ ...motion, speedMps: 0.5, ...change }]);
-    assert.deepEqual(evaluatePlaybackPose(guardedAppearance, timeline.sample()[0]), before);
+    assert.equal(evaluatePlaybackPose(guardedAppearance, timeline.sample()[0])[0], completed);
     const clip =
       "health" in change
         ? "recoil"
@@ -287,13 +519,13 @@ test("locomotion cadence follows measured interval distance through speed change
   assert.equal(timeline.sample()[0].base.destination.phase, 0.375);
 });
 
-test("a second final-disabled interval still counts its qualified past travel", () => {
+test("a disabled-left interval does not assign hidden qualified travel to its held gait", () => {
   const timeline = new ActionTimeline(appearances);
   timeline.update(0, [soldier({ speedMps: 1 })]);
   timeline.update(15, [soldier({ speedMps: 1, incapacitated: true })]);
   timeline.update(30, [soldier({ speedMps: 0.5, incapacitated: true })]);
-  assert.equal(timeline.sample()[0].base.destination.phase, 0.375);
-  assert.equal(timeline.sample(30.75)[0].base.destination.phase, 0.375);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.25);
+  assert.equal(timeline.sample(30.75)[0].base.destination.phase, 0.25);
 });
 
 test("incapacity holds the compatible gait through zero travel and recovers without replay", () => {
@@ -307,8 +539,8 @@ test("incapacity holds the compatible gait through zero travel and recovers with
   timeline.update(45, [soldier({ speedMps: 9 })]);
   assert.deepEqual(timeline.sample(45.5), paused);
   timeline.update(60, [soldier({ speedMps: 1 })]);
-  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "walk", phase: 0.375 });
-  assert.ok(Math.abs(timeline.sample(60.75)[0].base.destination.phase - 0.3875) < 1e-12);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "walk", phase: 0.125 });
+  assert.ok(Math.abs(timeline.sample(60.75)[0].base.destination.phase - 0.1375) < 1e-12);
 });
 
 test("disabled fresh, reset and replaced appearances preserve canonical time-driven standing", () => {
@@ -351,9 +583,11 @@ test("disabling and interrupting gait keeps exact full-body source and event tim
   for (const event of [{ health: 90 }, { alive: false }, { fighting: true }]) {
     const timeline = new ActionTimeline(appearances);
     timeline.update(0, [soldier({ speedMps: 1 })]);
-    const before = evaluatePlaybackPose(appearances[0], timeline.sample(15)[0]);
     timeline.update(15, [soldier({ speedMps: 0.5, incapacitated: true, ...event })]);
-    assert.deepEqual(evaluatePlaybackPose(appearances[0], timeline.sample()[0]), before);
+    assert.equal(
+      evaluatePlaybackPose(appearances[0], timeline.sample()[0])[0],
+      1 + (0.5 * 0.5) / 2,
+    );
     assert.equal(
       timeline.sample()[0].base.destination.clip,
       "alive" in event ? "fall" : "health" in event ? "recoil" : "swing",
@@ -369,7 +603,7 @@ test("disabled gait phase holds while an existing transition still settles by ti
   timeline.update(3, [soldier({ speedMps: 1 })]);
   timeline.update(4, [soldier({ speedMps: 1, incapacitated: true })]);
   const first = timeline.sample(4)[0],
-    later = timeline.sample(4.75)[0];
+    later = timeline.sample(4.25)[0];
   assert.deepEqual(later.base.destination, first.base.destination);
   assert.ok(first.base.weight > 0 && first.base.weight < later.base.weight);
   assert.ok(later.base.weight < 1);
@@ -377,7 +611,7 @@ test("disabled gait phase holds while an existing transition still settles by ti
     evaluatePlaybackPose(appearances[0], later),
     evaluatePlaybackPose(appearances[0], first),
   );
-  assert.deepEqual(timeline.sample(4.75)[0], later);
+  assert.deepEqual(timeline.sample(4.25)[0], later);
 });
 
 test("measured speed chooses gait and preserves phase through rapid crossovers", () => {
@@ -447,8 +681,9 @@ test("gait entry counts its observed interval while blending from the exact prio
   const entered = timeline.sample()[0];
   assert.equal(entered.base.destination.clip, "walk");
   assert.equal(entered.base.destination.phase, 0.5);
-  assert.equal(evaluatePlaybackPose(appearances[0], entered)[0], 0.25);
-  assert.equal(entered.base.weight, 0);
+  assert.equal(evaluatePlaybackPose(appearances[0], timeline.sample(900)[0])[0], 0);
+  assert.equal(evaluatePlaybackPose(appearances[0], entered)[0], 1.5);
+  assert.equal(entered.base.weight, 1);
   timeline.update(945, [soldier({ speedMps: 1 })]);
   const later = timeline.sample()[0];
   assert.equal(later.base.destination.phase, 0.75);
@@ -607,7 +842,8 @@ test("render sampling advances clip time without advancing observation or consum
   assert.equal(timeline.sample(3)[0].base.destination.phase, 0);
   timeline.update(6, [soldier({ health: 90 })]);
   assert.ok(Math.abs(timeline.sample()[0].base.destination.phase - 0.2) < 1e-10);
-  assert.throws(() => timeline.sample(5), /before.*observation/);
+  assert.ok(Math.abs(timeline.sample(5)[0].base.destination.phase - 2 / 15) < 1e-12);
+  assert.throws(() => timeline.sample(2), /before.*observation/);
 });
 
 test("mounted effort overlays ongoing gait and full-body injury clears that overlay", () => {
@@ -704,7 +940,7 @@ test("interruptions preserve the exact blended pose, including repeated early an
   timeline.update(3, [soldier({ speedMps: 1 })]);
   for (const tick of [4, 7, 8, 12]) {
     const before = evaluatePlaybackPose(appearances[0], timeline.sample(tick)[0]);
-    timeline.update(tick, [soldier({ health: 100 - tick })]);
+    timeline.update(tick, [soldier({ speedMps: 1, health: 100 - tick })]);
     const interrupted = timeline.sample()[0];
     const after = evaluatePlaybackPose(appearances[0], interrupted);
     assert.deepEqual(after, before);
@@ -717,10 +953,15 @@ test("snapshot storage stays bounded through repeated interruptions and releases
   timeline.update(0, [soldier()]);
   for (let tick = 1; tick < 20; tick++) {
     timeline.update(tick, [soldier({ health: 100 - tick })]);
-    assert.equal(timeline.snapshotBytes, rig.bones.length * 10 * Float64Array.BYTES_PER_ELEMENT);
+    assert.equal(
+      timeline.snapshotBytes,
+      (tick === 1 ? 1 : 2) * rig.bones.length * 10 * Float64Array.BYTES_PER_ELEMENT,
+    );
   }
   timeline.update(20, [soldier({ alive: false })]);
   timeline.update(60, [soldier({ alive: false })]);
+  assert.equal(timeline.snapshotBytes, rig.bones.length * 10 * 8);
+  timeline.update(61, [soldier({ alive: false })]);
   assert.equal(timeline.snapshotBytes, 0);
   assert.equal(timeline.sample(60)[0].base.destination.phase, 1);
 });
@@ -753,7 +994,7 @@ test("identical interrupted poses share one immutable numeric snapshot without s
   const interrupted = timeline.sample();
   const sources = new Set(interrupted.map((p) => p.base.source));
   assert.equal(sources.size, 1);
-  assert.equal(timeline.snapshotBytes, rig.bones.length * 10 * 8);
+  assert.equal(timeline.snapshotBytes, 2 * rig.bones.length * 10 * 8);
   const source = interrupted[0].base.source;
   assert.equal(source.kind, "frozen");
   if (source.kind !== "frozen") throw new Error("expected frozen source");

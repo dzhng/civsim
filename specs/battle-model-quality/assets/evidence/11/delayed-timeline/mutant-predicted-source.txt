@@ -1,0 +1,61 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/actionTimeline.test.ts (46 tests | 1 failed | 45 skipped) 12ms
+   × completed masked interruption freezes independently calibrated base and rider endpoint 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/actionTimeline.test.ts > completed masked interruption freezes independently calibrated base and rider endpoint
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  Float64Array(20) [
+    2.3833333333333333,
+    0,
+    0,
+    0,
+...
+    1,
++   11,
+-   10.75,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+
+- Expected
++ Received
+
+@@ -7,11 +7,11 @@
+    0,
+    1,
+    1,
+    1,
+    1,
+-   10.75,
++   11,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+ ❯ tests/actionTimeline.test.ts:261:10
+    259|   });
+    260|   const actual = evaluatePlaybackPose(mounted, timeline.sample()[0]);
+    261|   assert.deepEqual(actual, expected);
+       |          ^
+    262|   assert.equal(actual[10], 10.75, "unmasked legs include completed pat…
+    263|   assert.equal(timeline.sample()[0].riderUpperBody, undefined);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 45 skipped (46)
+   Start at  13:13:56
+   Duration  331ms (transform 96ms, setup 105ms, import 97ms, tests 12ms, environment 0ms)

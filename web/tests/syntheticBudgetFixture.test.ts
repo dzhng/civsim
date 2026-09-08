@@ -80,7 +80,14 @@ test("staggered mounted observations expose distinct weighted frozen poses witho
         ).positions,
       );
     });
-    assert.equal(new Set(posed.map((positions) => JSON.stringify(positions))).size, 6);
+    const geometryKeys = posed.map((positions) => JSON.stringify(positions));
+    // The first rider source and second base source now meet at the same completed pose.
+    // Keep every other phase group discriminating; a count alone could hide a different collapse.
+    assert.deepEqual(
+      geometryKeys.map((key) => geometryKeys.indexOf(key)),
+      geometryKeys.map((_, index) => [0, 1, 1, 3, 4, 5][index % 6]),
+    );
+    assert.equal(new Set(geometryKeys).size, 5);
     const packer = new PlaybackPacker(fixture.rig, fixture.animation);
     const frame = packer.prepare(
       count,
@@ -96,7 +103,7 @@ test("staggered mounted observations expose distinct weighted frozen poses witho
     process.stdout.write(
       JSON.stringify({
         bodies: count,
-        distinctPosedMeshes: 6,
+        distinctPosedMeshes: new Set(geometryKeys).size,
         snapshotSlots: frame.requiredSnapshotSlots,
         controllerSnapshotBytes: timeline.snapshotBytes,
       }) + "\n",

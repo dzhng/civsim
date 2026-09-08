@@ -55,3 +55,6 @@ Body-only diagnostic GLB SHA256:
 Its frozen AQ donor hash is recorded in the accompanying
 [source controls](unarmored-controls.json). Diagnostic source/bundle and scratch
 export recipe remain in the isolated worktree; no production appearance was added.
+
+The subsequent [bounded body trials](body-trials-review.md) remain CPU-rejected;
+none replaces this unchanged control or establishes a successful refit.

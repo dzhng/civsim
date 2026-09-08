@@ -137,6 +137,10 @@ export class PlaybackPacker {
         weight(upper.weight, offset + PLAYBACK_HEADER_UPPER_WEIGHT);
         source(upper.source, offset + PLAYBACK_UPPER_SOURCE);
         if ("kind" in upper.destination) flags |= PLAYBACK_UPPER_DEST_BASE;
+        else if (upper.source.kind === "clip" && upper.source.sample === upper.destination)
+          for (let word = 0; word < 4; word++)
+            controls[offset + PLAYBACK_UPPER_DESTINATION + word] =
+              controls[offset + PLAYBACK_UPPER_SOURCE + word];
         else clip(upper.destination, offset + PLAYBACK_UPPER_DESTINATION);
       }
       controls[offset + PLAYBACK_HEADER_FLAGS] = flags;

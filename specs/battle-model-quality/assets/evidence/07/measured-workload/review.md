@@ -119,3 +119,7 @@ CPU phase medians, but profiling would be required to attribute those phases to
 specific allocations or algorithms. This pass neither optimizes them nor
 introduces another renderer/timer. Real simulation, WASM extraction and battle
 UI are still excluded; the separate standing30k/foliage gate is unchanged.
+
+The subsequent [CPU work audit](cpu-audit.md) identifies a small exact repeated
+upper-endpoint resolution and records its consumer proof separately. It does
+not turn this earlier hardware result into a passing envelope.

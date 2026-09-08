@@ -46,6 +46,46 @@ const rig: ImportedRig = {
 };
 const frozen = (x: number) => Object.freeze([x, 0, 0, 0, 0, 0, 1, 1, 1, 1]);
 
+test("settled upper endpoint is resolved once without changing packed controls", () => {
+  const animation = bakeLocalAnimation(rig);
+  let phaseReads = 0;
+  const shared = {
+    clip: "move",
+    get phase() {
+      phaseReads++;
+      return 0.375;
+    },
+  };
+  const baseSample = { clip: "move", phase: 0.25 };
+  const value: SoldierPlayback = {
+    appearanceId: 0,
+    base: { source: { kind: "clip", sample: baseSample }, destination: baseSample, weight: 1 },
+    riderUpperBody: { source: { kind: "clip", sample: shared }, destination: shared, weight: 1 },
+  };
+  const packer = new PlaybackPacker(rig, animation);
+  const actual = packer.prepare(
+    1,
+    () => value,
+    () => 0,
+  );
+  const reads = phaseReads;
+  const reference = new PlaybackPacker(rig, animation).prepare(
+    1,
+    () => ({
+      ...value,
+      riderUpperBody: {
+        source: { kind: "clip", sample: { clip: "move", phase: 0.375 } },
+        destination: { clip: "move", phase: 0.375 },
+        weight: 1,
+      },
+    }),
+    () => 0,
+  );
+  assert.deepEqual(actual, reference);
+  assert.equal(decodeRecord(animation, actual.controls, new Map(), [0], 0)[0], 0.75);
+  assert.equal(reads, 1, "one source endpoint, one authored interval resolution");
+});
+
 test("indexed manual samples retain endpoint semantics without timeline or snapshot allocation", () => {
   const animation = bakeLocalAnimation(rig);
   const packer = new PlaybackPacker(rig, animation);

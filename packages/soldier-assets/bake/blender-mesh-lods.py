@@ -15,16 +15,16 @@ def triangle_count(obj):
     return len(obj.data.loop_triangles)
 
 
-def reduced_copy(body, target_triangles):
-    """Reduce disconnected surfaces independently so thin gear cannot vanish.
+def reduced_copy(body, target_triangles, min_extent=0, min_triangles=12):
+    """Reduce disconnected surfaces while retaining long thin gear.
 
     Blender interpolates UV and deform weights during collapse. Material slots
     travel with each surface; no material, armature or animation is rebuilt.
-    The source mesh is never edited. Small islands remain exact, while larger
-    islands retain at least a closed primitive's worth of triangles.
+    The source mesh is never edited. Distant tiers may omit detached components
+    smaller than min_extent metres; retained low-poly islands remain exact.
     """
-    if target_triangles < 1:
-        raise ValueError("triangle target must be positive")
+    if target_triangles < 1 or min_extent < 0 or min_triangles < 4:
+        raise ValueError("Require positive triangle target, nonnegative extent and >=4 triangle floor")
     bpy.ops.object.select_all(action="DESELECT")
     result = body.copy()
     result.data = body.data.copy()
@@ -38,21 +38,31 @@ def reduced_copy(body, target_triangles):
     bpy.ops.mesh.separate(type="LOOSE")
     bpy.ops.object.mode_set(mode="OBJECT")
     pieces = list(bpy.context.selected_objects)
+    for obj in pieces:
+        points = [obj.matrix_world @ vertex.co for vertex in obj.data.vertices]
+        extent = max(max(v[i] for v in points) - min(v[i] for v in points) for i in range(3))
+        if extent < min_extent:
+            bpy.data.objects.remove(obj, do_unlink=True)
+    pieces = list(bpy.context.selected_objects)
+    if not pieces:
+        raise ValueError("Extent cutoff removed the complete mesh")
     counts = {obj: triangle_count(obj) for obj in pieces}
-    fixed = sum(n for n in counts.values() if n <= 32)
-    reducible = sum(n for n in counts.values() if n > 32)
-    ratio = min(1, max(0, target_triangles - fixed) / max(1, reducible))
+    floors = {obj: n if n <= 32 else min_triangles for obj, n in counts.items()}
+    available = max(0, target_triangles - sum(floors.values()))
+    reducible = sum(counts[obj] - floors[obj] for obj in pieces)
+    ratio = min(1, available / max(1, reducible))
     for obj, count in counts.items():
         if count <= 32:
             continue
         bpy.context.view_layer.objects.active = obj
         modifier = obj.modifiers.new("Offline mesh LOD", "DECIMATE")
-        modifier.ratio = min(1, max(12 / count, ratio))
+        modifier.ratio = min(1, (floors[obj] + (count - floors[obj]) * ratio) / count)
         modifier.use_collapse_triangulate = True
         # Apply in bind space, before the existing armature modifier.
         while obj.modifiers.find(modifier.name) > 0:
             bpy.ops.object.modifier_move_up(modifier=modifier.name)
         bpy.ops.object.modifier_apply(modifier=modifier.name)
+    result = pieces[0]
     bpy.context.view_layer.objects.active = result
     bpy.ops.object.join()
     return result
@@ -66,7 +76,7 @@ def export_lods(source, body_name, output, targets):
     anatomy = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(anatomy)
     report = {"source": str(source), "sourceSha256": original_hash, "tiers": []}
-    for name, target in zip(("mid", "far"), targets):
+    for name, target, extent, floor in zip(("near", "mid", "far"), targets, (0, .03, .15), (12, 8, 4)):
         # Reload the original for each tier, never decimate an earlier reduction.
         bpy.ops.wm.open_mainfile(filepath=str(source))
         scenes = [scene for scene in bpy.data.scenes if body_name in scene.objects]
@@ -77,9 +87,10 @@ def export_lods(source, body_name, output, targets):
         arms = [m.object for m in body.modifiers if m.type == "ARMATURE"]
         if len(arms) != 1 or arms[0] is None:
             raise ValueError("Runtime mesh requires exactly one existing armature")
-        reduced = reduced_copy(body, target)
+        reduced = reduced_copy(body, target, min_extent=extent, min_triangles=floor)
         row = {"name": name, "targetTriangles": target,
-               "sourceTriangles": triangle_count(body), "triangles": triangle_count(reduced)}
+               "sourceTriangles": triangle_count(body), "triangles": triangle_count(reduced),
+               "omittedBelowMetres": extent, "retainedIslandTriangleFloor": floor}
         if not 0 < row["triangles"] < row["sourceTriangles"]:
             raise ValueError(f"{name}: mesh reduction did not reduce triangles")
         anatomy.export_candidate(reduced, arms[0], output, name)
@@ -95,9 +106,10 @@ if __name__ == "__main__":
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--body", required=True)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--mid-triangles", type=int, default=4000)
-    parser.add_argument("--far-triangles", type=int, default=1200)
+    parser.add_argument("--near-triangles", type=int, default=8000)
+    parser.add_argument("--mid-triangles", type=int, default=1000)
+    parser.add_argument("--far-triangles", type=int, default=250)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-    if not args.mid_triangles > args.far_triangles > 0:
-        parser.error("Require positive, decreasing mid/far triangle targets")
-    export_lods(args.source, args.body, args.output, (args.mid_triangles, args.far_triangles))
+    if not args.near_triangles > args.mid_triangles > args.far_triangles > 0:
+        parser.error("Require positive, decreasing near/mid/far triangle targets")
+    export_lods(args.source, args.body, args.output, (args.near_triangles, args.mid_triangles, args.far_triangles))

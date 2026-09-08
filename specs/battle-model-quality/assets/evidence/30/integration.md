@@ -30,5 +30,17 @@ both published catalogs against fresh bakes and exercises the real loader.
 The artillery machine
 is now authored, root-attached and retained across all three production tiers;
 [equipment](crew-equipment.txt) and [loader](crew-loader.txt) checks pass.
-Final consumer captures remain pending; no whole-spec completion is claimed by
-this checkpoint.
+The [card and sheet review](production-review-drivers/artifact-review.md) now
+records exact repeats for the complete production roster. Full-kit framing uses
+the actual posed geometry over each clip, with a stable camera; portraits retain
+their separate figure framing. Motion films remain in progress.
+
+Live consumer verification is still red at startup. An isolated `battle-arrows`
+run exceeded its unchanged 20-second readiness limit. The batch subsequently
+failed other startup checks, but its failed pages were left open until browser
+shutdown, so those later failures are not independent diagnoses. A separate
+30-second diagnostic using an archers mirror duel reached readiness. The next
+probe must record the exact arrows URL's readiness time, caught GPU fatal state
+and outstanding requests; neither an initialization fault nor a cold-start
+timeout has yet been established. Final consumer captures remain pending; no
+whole-spec completion is claimed by this checkpoint.

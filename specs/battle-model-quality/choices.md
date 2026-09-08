@@ -376,6 +376,11 @@ than a second viewer loading it differently. Review may hide foliage occluders
 while retaining ground/light/shaders. Body portraits frame the person; full-kit
 sheets separately expose long weapons. Fixed crops keep actual pixels instead
 of deleting RGB colors that might also belong to skin or equipment.
+For a moving full-kit sheet or film, the camera fits the union of posed geometry
+across the clip's exported keys and review samples. It stays still as the weapon
+moves; fitting each frame separately would make the camera appear to breathe.
+The existing animation decoder and skinning calculation supply these positions,
+so this does not introduce a second definition of the soldier's pose.
 **Gap:** scenery/framing were unspecified. **Reach:** a portrait is not full
 weapon-clearance evidence, and an isolated sheet is not battlefield occlusion.
 Manual pose edits leave replay; camera edits preserve it.

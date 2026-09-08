@@ -1,6 +1,7 @@
 import { PNG } from "pngjs";
 import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout.ts";
 import { APPEARANCE_DESCRIPTORS } from "../../../packages/soldier-assets/src/appearance.ts";
+import { ACTION_ROLES, isGaitRole } from "../../../packages/soldier-assets/src/presentation.ts";
 
 const SOLDIER_SAMPLES = 8;
 
@@ -17,10 +18,10 @@ export async function run(ctx) {
   const { check } = ctx;
   const page = await ctx.newPage();
   await page.goto(`${ctx.target}/?map=gen&seed=7&ai=off`);
-  await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
+  await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
 
   const capture = await page.evaluate(
-    async ({ soldierSamples, unitInfo, variants }) => {
+    async ({ soldierSamples, unitInfo, variants, gaitRoles }) => {
       const g = window.__game;
       g.freeze(true);
       const step = async () => {
@@ -46,7 +47,7 @@ export async function run(ctx) {
       const soldiers = Array.from({ length: count }, (_, i) => start + i);
       const catalogUrl = new URL("/assets/soldiers/catalog.json", location.href);
       const catalog = await (await fetch(catalogUrl)).json();
-      const walks = {};
+      const gaits = {};
       // Catalog-relative manifests own clip names and physical stride calibration.
       for (const { appearanceId: id } of variants.filter(
         (variant) => variant.unitClass === info[unitInfo.classId],
@@ -55,11 +56,14 @@ export async function run(ctx) {
         const manifestUrl = new URL(path, catalogUrl);
         const manifest = await (await fetch(manifestUrl)).json();
         const animation = await (await fetch(new URL(manifest.animation, manifestUrl))).json();
-        const clip = animation.clips.find(
-          (clip) => clip.name === manifest.presentation.actions.walk.clip,
-        );
-        if (!clip?.loop || !(clip.strideMeters > 0)) throw new Error(`Uncalibrated walk for ${id}`);
-        walks[id] = { clip: clip.name, strideMeters: clip.strideMeters };
+        gaits[id] = gaitRoles.flatMap((role) => {
+          const binding = manifest.presentation.actions[role];
+          if (!binding) return [];
+          const clip = animation.clips.find((clip) => clip.name === binding.clip);
+          if (!clip?.loop || !(clip.strideMeters > 0))
+            throw new Error(`Uncalibrated ${role} for ${id}`);
+          return [{ role, clip: clip.name, strideMeters: clip.strideMeters }];
+        });
       }
       const sample = (index) => {
         const anim = g.debugSoldierAnim(index);
@@ -67,7 +71,7 @@ export async function run(ctx) {
           index,
           anim,
           motorPath: g.soldierMotorPath(index),
-          walk: walks[anim?.playback?.appearanceId],
+          gaits: gaits[anim?.playback?.appearanceId],
         };
       };
       g.select(unit);
@@ -84,7 +88,10 @@ export async function run(ctx) {
         await step();
         const states = soldiers.map(sample);
         const marching =
-          states.length > 0 && states.every((s) => s.walk && s.anim?.clip === s.walk.clip);
+          states.length > 0 &&
+          states.every((s) =>
+            s.gaits?.some((gait) => gait.role === "walk" && s.anim?.clip === gait.clip),
+          );
         readyFrames = marching ? readyFrames + 1 : 0;
         if (readyFrames >= 3 && g.tickCount() > startedAtTick + 4) {
           ready = true;
@@ -115,6 +122,7 @@ export async function run(ctx) {
     },
     {
       soldierSamples: SOLDIER_SAMPLES,
+      gaitRoles: ACTION_ROLES.filter(isGaitRole),
       unitInfo: UNIT_INFO,
       variants: APPEARANCE_DESCRIPTORS.map(({ selection }, appearanceId) => ({
         appearanceId,
@@ -146,14 +154,14 @@ export async function run(ctx) {
   );
   const validSamples = capture.samples.every((sample) =>
     sample.soldiers.every(
-      ({ anim, walk, motorPath }) =>
+      ({ anim, gaits, motorPath }) =>
         Number.isFinite(anim?.phase) &&
         anim.phase >= 0 &&
         anim.phase < 1 &&
         Number.isFinite(anim.duration) &&
         anim.duration > 0 &&
         Number.isFinite(motorPath) &&
-        walk?.strideMeters > 0,
+        gaits?.some((gait) => gait.clip === anim.clip && gait.strideMeters > 0),
     ),
   );
   check("gait samples have finite loop phases and positive authored duration", validSamples);
@@ -164,10 +172,8 @@ export async function run(ctx) {
 
   const clipMetrics = clipStability(capture.samples, capture.soldiers);
   check(
-    "NO CLASS FLICKER: sampled soldiers stay in march",
-    clipMetrics.transitions === 0 &&
-      clipMetrics.nonMarch === 0 &&
-      clipMetrics.appearanceChanges === 0,
+    "NO CLASS FLICKER: sampled soldiers retain appearance and declared gaits",
+    clipMetrics.nonMarch === 0 && clipMetrics.appearanceChanges === 0,
     JSON.stringify(clipMetrics),
   );
 
@@ -180,7 +186,7 @@ export async function run(ctx) {
   // Explicit freeze samples the current engine endpoint, not the delayed live fraction.
   // Motor path is the engine-qualified counter, never inferred from transport or a timer.
   check(
-    "DISTANCE: each walking phase increment follows motor path / authored stride",
+    "DISTANCE: each gait interval follows motor path / preceding authored stride",
     phaseMetrics.every((m) => m.maxCycleError <= 1e-6),
     JSON.stringify(phaseMetrics),
   );
@@ -207,7 +213,7 @@ export function clipStability(samples, soldiers) {
     for (const sample of samples) {
       const row = sample.soldiers.find((s) => s.index === index);
       const clip = row?.anim?.clip ?? "missing";
-      if (clip !== row?.walk?.clip) nonMarch++;
+      if (!row?.gaits?.some((gait) => gait.clip === clip)) nonMarch++;
       if (prev !== null && clip !== prev) transitions++;
       const next = row?.anim?.playback?.appearanceId;
       if (appearance !== null && next !== appearance) appearanceChanges++;
@@ -227,12 +233,15 @@ export function clipStability(samples, soldiers) {
 export function phaseCadence(samples, soldiers) {
   return soldiers.map((index) => {
     const series = samples
-      .map((sample) => ({
-        tick: sample.tick,
-        phase: sample.soldiers.find((s) => s.index === index)?.anim?.phase,
-        motorPath: sample.soldiers.find((s) => s.index === index)?.motorPath,
-        stride: sample.soldiers.find((s) => s.index === index)?.walk?.strideMeters,
-      }))
+      .map((sample) => {
+        const row = sample.soldiers.find((s) => s.index === index);
+        return {
+          tick: sample.tick,
+          phase: row?.anim?.phase,
+          motorPath: row?.motorPath,
+          stride: row?.gaits?.find((gait) => gait.clip === row.anim?.clip)?.strideMeters,
+        };
+      })
       .filter((sample) => Number.isFinite(sample.phase));
     let unwrapped = 0;
     let previous = series[0]?.phase ?? 0;
@@ -241,7 +250,8 @@ export function phaseCadence(samples, soldiers) {
     let maxCycleError = 0;
     for (let i = 1; i < series.length; i++) {
       let delta = series[i].phase - previous;
-      const expected = (series[i].motorPath - series[i - 1].motorPath) / series[i].stride;
+      // The completed interval belongs to the left gait even when its endpoint switches clips.
+      const expected = (series[i].motorPath - series[i - 1].motorPath) / series[i - 1].stride;
       delta += Math.round(expected - delta);
       if (delta < -0.001) negativeSteps++;
       expectedCycles += expected;

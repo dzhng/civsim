@@ -1,0 +1,8 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-artillery-equipment/web
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  21:22:07
+   Duration  224ms (transform 36ms, setup 104ms, import 33ms, tests 2ms, environment 0ms)

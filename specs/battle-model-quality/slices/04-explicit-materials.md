@@ -78,7 +78,9 @@ Transform tangent XYZ with the same four-weight linear matrix used for normals;
 preserve the existing blended-normal convention rather than introducing an
 inverse-transpose lighting change. Normalize both directions at each posed vertex
 before interpolation. Preserve authored handedness W across mirrored
-UV seams. Instance yaw and corpse roll transform both directions. At fragments,
+UV seams. Instance yaw transforms both directions; corpse shading adds no
+rotation to the authored pose or tangent frame. The [corpse geometry correction](../assets/evidence/13/corpse-pose/review.md)
+supersedes the historical post-roll convention in the original evidence. At fragments,
 orthogonalize the interpolated tangent against the normal and reconstruct the
 bitangent from their cross product and W. Decode the linear normal image, apply
 authored scale to XY, then transform and normalize that direction. Near and raw

@@ -66,8 +66,9 @@ unbuilt. Death authoring and this slice's acceptance remain open.
 
 The [rejected fall](../assets/evidence/13/rejected-death-g/review.md) owns the
 unsupported finish and clearance findings. Revise whole-body support on the
-current fitted source without changing existing actions. In parallel, remove
-the renderer's additional corpse rotation: the authored pose must own body
-geometry and grounding, while corpse shading remains independent. Verify both
-renderers and visibility bounds against that contract before live fall review;
-do not compensate by lifting the source asset.
+current fitted source without changing existing actions. The integrated
+[corpse-pose correction](../assets/evidence/13/corpse-pose/review.md) makes
+authored poses own body geometry in both renderers and visibility bounds,
+while corpse shading remains independent. This is a renderer contract correction,
+not acceptance of the rejected fall or the placeholder corpses. Do not compensate
+for unclear grounding by lifting or contorting the source asset.

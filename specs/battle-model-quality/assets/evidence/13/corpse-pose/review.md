@@ -191,10 +191,30 @@ pitch 1.1, zoom 190, target (0,0,0.35), facing π/2, final death phase 1, positi
 and elevation zero. The living diagnostic deliberately holds the same final
 death pose with corpse shading off; it is not a live animation binding.
 
-Action-timeline and simulation policy are unchanged. The two temporal snapshot
-dispositions remain a separate parent-coordinated regression gate; this evidence
-does not claim that all battle screenshots are unchanged or the combined run
-was entirely green.
+Action-timeline and simulation policy are unchanged.
+
+## Integrated regression closeout
+
+Root inspected all nine temporal pairs and the fresh critique, retaining their
+diagnostic completeness while explicitly rejecting any final corpse-art claim.
+All nine baselines are refreshed for the source-owned pose contract; seven had
+previously passed the existing tolerance despite changing pixels. No tolerance
+was widened. The shared fixture's elevated mounted rear mass remains placeholder
+content to replace, not a reason to preserve the incorrect global rotation.
+
+The merged [before run](merged-before.json) records727 checks with exactly two
+threshold failures. The [refresh](merged-refresh.json) records636 passing checks.
+The independent [normal repeat](merged-final.json), with no update flag, passes
+all727 checks and50 snapshots at zero differing pixels, with no page errors.
+Root also passed all354 web tests and TypeScript after code integration.
+These are SwiftShader correctness results, not hardware-performance evidence.
+
+Review found no remaining competing geometry owner: both shaders and visibility
+bounds use authored poses plus instance placement. Production changes remove
+more code than they add; no dependency, runtime adapter or new clock was added.
+The documentation pass corrected the stale future-tense renderer task and kept
+the authoring limitations open. The choice ledger records the retained aligned
+GPU padding and removal of unused variant metadata.
 
 ## Change ledger
 

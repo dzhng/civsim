@@ -19,8 +19,9 @@ Priority order:
 1. In parallel, author medium thrust and revise the heavy fall's unsupported
    finish. Use the current fitted sources; preserve unrelated meshes, rig and
    actions. The fall needs convincing body/ground support, not simply a passing
-   minimum-height number. Correct the shared renderer's additional corpse roll
-   before judging live grounding; do not lift a particular asset to compensate.
+   minimum-height number. Authored poses now own corpse geometry in both
+   renderers and visibility bounds; do not add a second roll or lift a particular
+   asset to compensate for unclear ground-contact shading.
 2. Resolve engine-faithful live movement sampling, foot contact and transitions,
    then admit complete detailed appearances. Missing actions are not filled with
    stand-ins. Measured travel owns gait; engine observations own posture and

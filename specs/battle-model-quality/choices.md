@@ -330,6 +330,23 @@ unaddressed. **Sound:** one controller transition now governs their onset as wel
 as pose blending. This is a06c implementation obligation, not completed visual
 acceptance;13 still judges whether the final corpse styling belongs with the art.
 
+The13 geometry correction resolves the roll portion: an extra rotation can push
+an already grounded authored body into the floor, so only recoloring and contact
+shading retain this transition-driven treatment. Body orientation belongs to the
+authored clip. This supersedes the roll portion of the06c choice, not its single
+transition clock.
+
+### Remove unused corpse variation data without repacking GPU records (13)
+
+When a soldier dies, the renderer no longer invents a second body rotation.
+There is therefore no reason to compute or store a random variation identifier
+in the CPU instance. Its former GPU slot is zero padding, keeping the existing
+aligned record layout rather than shifting every following field. The plan
+required authored geometry but did not specify record cleanup. **Sound;
+confidence: high:** no dormant variation behavior survives, and the small padding
+cost remains visible within the existing measured instance allocation. Future
+authored variants must be explicit assets/actions, not revived hidden rotations.
+
 ### Keep frozen poses in stable GPU slots until they stop being used (06b)
 
 **Confidence: medium.** An interrupted soldier's saved pose stays in its existing

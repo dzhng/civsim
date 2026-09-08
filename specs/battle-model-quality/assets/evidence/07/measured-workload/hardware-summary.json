@@ -1,0 +1,5470 @@
+{
+  "sourceCommit": "fdb6a12a",
+  "session": 77370,
+  "startedAt": "2026-09-08T05:28:15Z",
+  "generatedAt": "2026-09-08T05:29:10.118Z",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 1,
+  "rows": [
+    {
+      "mode": "steady",
+      "instrumented": false,
+      "device": "apple / metal-3",
+      "frames": 180,
+      "phases": {
+        "cpuFrameMs": {
+          "median": 21.580000042915344,
+          "p95": 33.93999993801117
+        },
+        "rafMs": {
+          "median": 33.33000000000084,
+          "p95": 99.99499999999989
+        },
+        "observeMs": {
+          "median": 7.115000009536743,
+          "p95": 12.634999990463257
+        },
+        "sampleMs": {
+          "median": 2.4250000715255737,
+          "p95": 3.509999990463257
+        },
+        "buildMs": {
+          "median": 1.190000057220459,
+          "p95": 1.6950000524520874
+        },
+        "uploadMs": {
+          "median": 8.835000038146973,
+          "p95": 13.960000038146973
+        },
+        "renderSubmitMs": {
+          "median": 1.6950000524520874,
+          "p95": 2.069999933242798
+        },
+        "telemetryMs": {
+          "median": 0.8499999046325684,
+          "p95": 1.684999942779541
+        }
+      },
+      "gpuQueue": null,
+      "timingStatus": {},
+      "gaitFrames": {
+        "fixture-walk": 180
+      },
+      "overlayFrames": 0,
+      "sampleTick": [
+        57.49770000000001,
+        278.99935
+      ],
+      "advancedTicks": 222,
+      "observedFrames": 154,
+      "snapshotHighWater": 0,
+      "asset": {
+        "bones": 67,
+        "vertices": [
+          1800,
+          648,
+          288
+        ],
+        "triangles": [
+          2304,
+          576,
+          144
+        ],
+        "nonzeroInfluences": [
+          [
+            0,
+            0,
+            0,
+            0,
+            1800
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            648
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            288
+          ]
+        ],
+        "authoredSamples": [
+          {
+            "name": "gait",
+            "samples": 49
+          },
+          {
+            "name": "rider-action",
+            "samples": 49
+          },
+          {
+            "name": "fixture-walk",
+            "samples": 49
+          },
+          {
+            "name": "fixture-run",
+            "samples": 49
+          },
+          {
+            "name": "fixture-release",
+            "samples": 49
+          },
+          {
+            "name": "fixture-fullbody-terminal",
+            "samples": 49
+          }
+        ],
+        "animationBytes": 947112
+      },
+      "culling": {
+        "input": 30000,
+        "visible": 30000,
+        "culled": 0,
+        "viewFrusta": 1,
+        "shadowFrusta": 1,
+        "viewVisible": 6113,
+        "shadowOnly": 23887
+      },
+      "mainTiers": {
+        "l0": 6113,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": {
+        "l0": 0,
+        "l1": 0,
+        "l2": 30000,
+        "l3": 0
+      },
+      "palettes": [
+        {
+          "bones": 67,
+          "visible": 30000,
+          "capacity": 30000,
+          "snapshotCapacity": 2,
+          "snapshotBankCapacity": 1,
+          "residentSnapshots": 0,
+          "snapshotSlotHighWater": 0,
+          "allocatedBytes": 131998368,
+          "uploadedBytes": 2400000,
+          "snapshotUploadedBytes": 0
+        }
+      ]
+    },
+    {
+      "mode": "steady",
+      "instrumented": true,
+      "device": "apple / metal-3",
+      "frames": 180,
+      "phases": {
+        "cpuFrameMs": {
+          "median": 26.56000006198883,
+          "p95": 41.31500005722046
+        },
+        "rafMs": {
+          "median": 33.33499999999913,
+          "p95": 50
+        },
+        "observeMs": {
+          "median": 8.47000002861023,
+          "p95": 16.485000014305115
+        },
+        "sampleMs": {
+          "median": 2.790000081062317,
+          "p95": 3.799999952316284
+        },
+        "buildMs": {
+          "median": 1.4850000143051147,
+          "p95": 1.8149999380111694
+        },
+        "uploadMs": {
+          "median": 10.84500002861023,
+          "p95": 17.100000023841858
+        },
+        "renderSubmitMs": {
+          "median": 1.9450000524520874,
+          "p95": 2.290000081062317
+        },
+        "telemetryMs": {
+          "median": 0.9199999570846558,
+          "p95": 1.7549999952316284
+        }
+      },
+      "gpuQueue": {
+        "median": 32.824583,
+        "p95": 36.756982
+      },
+      "timingStatus": {
+        "measured": 180
+      },
+      "gaitFrames": {
+        "fixture-walk": 180
+      },
+      "overlayFrames": 0,
+      "sampleTick": [
+        69.49945000000001,
+        254.99215000000004
+      ],
+      "advancedTicks": 186,
+      "observedFrames": 170,
+      "snapshotHighWater": 0,
+      "asset": {
+        "bones": 67,
+        "vertices": [
+          1800,
+          648,
+          288
+        ],
+        "triangles": [
+          2304,
+          576,
+          144
+        ],
+        "nonzeroInfluences": [
+          [
+            0,
+            0,
+            0,
+            0,
+            1800
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            648
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            288
+          ]
+        ],
+        "authoredSamples": [
+          {
+            "name": "gait",
+            "samples": 49
+          },
+          {
+            "name": "rider-action",
+            "samples": 49
+          },
+          {
+            "name": "fixture-walk",
+            "samples": 49
+          },
+          {
+            "name": "fixture-run",
+            "samples": 49
+          },
+          {
+            "name": "fixture-release",
+            "samples": 49
+          },
+          {
+            "name": "fixture-fullbody-terminal",
+            "samples": 49
+          }
+        ],
+        "animationBytes": 947112
+      },
+      "culling": {
+        "input": 30000,
+        "visible": 30000,
+        "culled": 0,
+        "viewFrusta": 1,
+        "shadowFrusta": 1,
+        "viewVisible": 6113,
+        "shadowOnly": 23887
+      },
+      "mainTiers": {
+        "l0": 6113,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": {
+        "l0": 0,
+        "l1": 0,
+        "l2": 30000,
+        "l3": 0
+      },
+      "palettes": [
+        {
+          "bones": 67,
+          "visible": 30000,
+          "capacity": 30000,
+          "snapshotCapacity": 2,
+          "snapshotBankCapacity": 1,
+          "residentSnapshots": 0,
+          "snapshotSlotHighWater": 0,
+          "allocatedBytes": 131998368,
+          "uploadedBytes": 2400000,
+          "snapshotUploadedBytes": 0
+        }
+      ]
+    },
+    {
+      "mode": "interruptions",
+      "instrumented": false,
+      "device": "apple / metal-3",
+      "frames": 180,
+      "phases": {
+        "cpuFrameMs": {
+          "median": 34.50499999523163,
+          "p95": 52.125
+        },
+        "rafMs": {
+          "median": 33.33499999999913,
+          "p95": 50
+        },
+        "observeMs": {
+          "median": 13.554999947547913,
+          "p95": 25.014999985694885
+        },
+        "sampleMs": {
+          "median": 3.465000033378601,
+          "p95": 5.924999952316284
+        },
+        "buildMs": {
+          "median": 1.715000033378601,
+          "p95": 4.224999904632568
+        },
+        "uploadMs": {
+          "median": 13.799999952316284,
+          "p95": 22.425000071525574
+        },
+        "renderSubmitMs": {
+          "median": 2.384999990463257,
+          "p95": 2.899999976158142
+        },
+        "telemetryMs": {
+          "median": 1.2350000143051147,
+          "p95": 2.569999933242798
+        }
+      },
+      "gpuQueue": null,
+      "timingStatus": {},
+      "gaitFrames": {
+        "fixture-walk": 22,
+        "fixture-run": 158
+      },
+      "overlayFrames": 55,
+      "sampleTick": [
+        60.497549999999976,
+        271.4892
+      ],
+      "advancedTicks": 212,
+      "observedFrames": 177,
+      "snapshotHighWater": 10720,
+      "asset": {
+        "bones": 67,
+        "vertices": [
+          1800,
+          648,
+          288
+        ],
+        "triangles": [
+          2304,
+          576,
+          144
+        ],
+        "nonzeroInfluences": [
+          [
+            0,
+            0,
+            0,
+            0,
+            1800
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            648
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            288
+          ]
+        ],
+        "authoredSamples": [
+          {
+            "name": "gait",
+            "samples": 49
+          },
+          {
+            "name": "rider-action",
+            "samples": 49
+          },
+          {
+            "name": "fixture-walk",
+            "samples": 49
+          },
+          {
+            "name": "fixture-run",
+            "samples": 49
+          },
+          {
+            "name": "fixture-release",
+            "samples": 49
+          },
+          {
+            "name": "fixture-fullbody-terminal",
+            "samples": 49
+          }
+        ],
+        "animationBytes": 947112
+      },
+      "culling": {
+        "input": 30000,
+        "visible": 30000,
+        "culled": 0,
+        "viewFrusta": 1,
+        "shadowFrusta": 1,
+        "viewVisible": 6113,
+        "shadowOnly": 23887
+      },
+      "mainTiers": {
+        "l0": 6113,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": {
+        "l0": 0,
+        "l1": 0,
+        "l2": 30000,
+        "l3": 0
+      },
+      "palettes": [
+        {
+          "bones": 67,
+          "visible": 30000,
+          "capacity": 30000,
+          "snapshotCapacity": 2,
+          "snapshotBankCapacity": 1,
+          "residentSnapshots": 0,
+          "snapshotSlotHighWater": 2,
+          "allocatedBytes": 131998368,
+          "uploadedBytes": 2400000,
+          "snapshotUploadedBytes": 0
+        }
+      ]
+    },
+    {
+      "mode": "interruptions",
+      "instrumented": true,
+      "device": "apple / metal-3",
+      "frames": 180,
+      "phases": {
+        "cpuFrameMs": {
+          "median": 38.18999993801117,
+          "p95": 55.27999997138977
+        },
+        "rafMs": {
+          "median": 33.33499999999913,
+          "p95": 66.66000000000349
+        },
+        "observeMs": {
+          "median": 14.680000066757202,
+          "p95": 25.99500000476837
+        },
+        "sampleMs": {
+          "median": 3.8200000524520874,
+          "p95": 6.240000009536743
+        },
+        "buildMs": {
+          "median": 1.9850000143051147,
+          "p95": 3.424999952316284
+        },
+        "uploadMs": {
+          "median": 14.955000042915344,
+          "p95": 24.044999957084656
+        },
+        "renderSubmitMs": {
+          "median": 2.4800000190734863,
+          "p95": 3.090000033378601
+        },
+        "telemetryMs": {
+          "median": 1.1899999380111694,
+          "p95": 2.575000047683716
+        }
+      },
+      "gpuQueue": {
+        "median": 38.85074,
+        "p95": 56.081728
+      },
+      "timingStatus": {
+        "measured": 180
+      },
+      "gaitFrames": {
+        "fixture-run": 164,
+        "fixture-walk": 16
+      },
+      "overlayFrames": 46,
+      "sampleTick": [
+        88.99699999999994,
+        314.98805000000004
+      ],
+      "advancedTicks": 227,
+      "observedFrames": 179,
+      "snapshotHighWater": 10720,
+      "asset": {
+        "bones": 67,
+        "vertices": [
+          1800,
+          648,
+          288
+        ],
+        "triangles": [
+          2304,
+          576,
+          144
+        ],
+        "nonzeroInfluences": [
+          [
+            0,
+            0,
+            0,
+            0,
+            1800
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            648
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            288
+          ]
+        ],
+        "authoredSamples": [
+          {
+            "name": "gait",
+            "samples": 49
+          },
+          {
+            "name": "rider-action",
+            "samples": 49
+          },
+          {
+            "name": "fixture-walk",
+            "samples": 49
+          },
+          {
+            "name": "fixture-run",
+            "samples": 49
+          },
+          {
+            "name": "fixture-release",
+            "samples": 49
+          },
+          {
+            "name": "fixture-fullbody-terminal",
+            "samples": 49
+          }
+        ],
+        "animationBytes": 947112
+      },
+      "culling": {
+        "input": 30000,
+        "visible": 30000,
+        "culled": 0,
+        "viewFrusta": 1,
+        "shadowFrusta": 1,
+        "viewVisible": 6113,
+        "shadowOnly": 23887
+      },
+      "mainTiers": {
+        "l0": 6113,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": {
+        "l0": 0,
+        "l1": 0,
+        "l2": 30000,
+        "l3": 0
+      },
+      "palettes": [
+        {
+          "bones": 67,
+          "visible": 30000,
+          "capacity": 30000,
+          "snapshotCapacity": 2,
+          "snapshotBankCapacity": 1,
+          "residentSnapshots": 1,
+          "snapshotSlotHighWater": 2,
+          "allocatedBytes": 131998368,
+          "uploadedBytes": 2403216,
+          "snapshotUploadedBytes": 3216
+        }
+      ]
+    }
+  ],
+  "failures": [
+    {
+      "name": "close/steady/control: live cadence p95 <= 33ms",
+      "detail": {
+        "rafP95Ms": 99.99499999999989
+      }
+    },
+    {
+      "name": "close/steady/timed: live cadence p95 <= 33ms",
+      "detail": {
+        "rafP95Ms": 50
+      }
+    },
+    {
+      "name": "close/interruptions/control: CPU submission median <= 33ms",
+      "detail": {
+        "cpuMedianMs": 34.50499999523163
+      }
+    },
+    {
+      "name": "close/interruptions/control: live cadence p95 <= 33ms",
+      "detail": {
+        "rafP95Ms": 50
+      }
+    },
+    {
+      "name": "close/interruptions/timed: CPU submission median <= 33ms",
+      "detail": {
+        "cpuMedianMs": 38.18999993801117
+      }
+    },
+    {
+      "name": "close/interruptions/timed: live cadence p95 <= 33ms",
+      "detail": {
+        "rafP95Ms": 66.66000000000349
+      }
+    },
+    {
+      "name": "close/interruptions/timed: GPU-queue elapsed median <= 33ms",
+      "detail": {
+        "median": 38.85074
+      }
+    }
+  ],
+  "allocation": {
+    "allocation": {
+      "total": {
+        "bufferCreatedBytes": 888039072,
+        "textureCreatedBytes": 52428840,
+        "createdResources": 125,
+        "destroyedResources": 90,
+        "mappedAtCreationBytes": 888035344,
+        "writeBufferBytes": 484649136,
+        "writeBufferCalls": 32913,
+        "writeTextureBytes": 96,
+        "writeTextureCalls": 2,
+        "writeTextureSourceSpanBytes": 96,
+        "externalImageBytes": 25165824,
+        "externalImageCalls": 6,
+        "unknownTextureAllocations": 2,
+        "unknownTextureUploads": 0,
+        "startLiveBytes": 0,
+        "liveBytes": 355307060,
+        "peakLiveBytes": 582827076
+      },
+      "phases": {
+        "unassigned": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 0,
+          "writeBufferCalls": 0,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 0,
+          "liveBytes": 0,
+          "peakLiveBytes": 0
+        },
+        "initialization": {
+          "bufferCreatedBytes": 2102200,
+          "textureCreatedBytes": 26214420,
+          "createdResources": 30,
+          "destroyedResources": 14,
+          "mappedAtCreationBytes": 2101928,
+          "writeBufferBytes": 264,
+          "writeBufferCalls": 4,
+          "writeTextureBytes": 48,
+          "writeTextureCalls": 1,
+          "writeTextureSourceSpanBytes": 48,
+          "externalImageBytes": 12582912,
+          "externalImageCalls": 3,
+          "unknownTextureAllocations": 1,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 0,
+          "liveBytes": 28291012,
+          "peakLiveBytes": 28316620
+        },
+        "grow-1": {
+          "bufferCreatedBytes": 44048,
+          "textureCreatedBytes": 0,
+          "createdResources": 6,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 43968,
+          "writeBufferBytes": 5844,
+          "writeBufferCalls": 26,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 28291012,
+          "liveBytes": 28335060,
+          "peakLiveBytes": 28335060
+        },
+        "grow-15000": {
+          "bufferCreatedBytes": 66246528,
+          "textureCreatedBytes": 0,
+          "createdResources": 9,
+          "destroyedResources": 6,
+          "mappedAtCreationBytes": 66246432,
+          "writeBufferBytes": 2556,
+          "writeBufferCalls": 25,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 28335060,
+          "liveBytes": 93456852,
+          "peakLiveBytes": 93861508
+        },
+        "grow-30000": {
+          "bufferCreatedBytes": 132995456,
+          "textureCreatedBytes": 0,
+          "createdResources": 16,
+          "destroyedResources": 6,
+          "mappedAtCreationBytes": 132994704,
+          "writeBufferBytes": 3120,
+          "writeBufferCalls": 33,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 93456852,
+          "liveBytes": 160925780,
+          "peakLiveBytes": 224503300
+        },
+        "frozen-repeat": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 41359040,
+          "writeBufferCalls": 290,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 160925780,
+          "liveBytes": 160925780,
+          "peakLiveBytes": 160925780
+        },
+        "advancing-interruptions": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 248186400,
+          "writeBufferCalls": 1750,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 160925780,
+          "liveBytes": 160925780,
+          "peakLiveBytes": 160925780
+        },
+        "replacement-overlap": {
+          "bufferCreatedBytes": 135129336,
+          "textureCreatedBytes": 26214420,
+          "createdResources": 48,
+          "destroyedResources": 48,
+          "mappedAtCreationBytes": 135128312,
+          "writeBufferBytes": 3384,
+          "writeBufferCalls": 37,
+          "writeTextureBytes": 48,
+          "writeTextureCalls": 1,
+          "writeTextureSourceSpanBytes": 48,
+          "externalImageBytes": 12582912,
+          "externalImageCalls": 3,
+          "unknownTextureAllocations": 1,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 160925780,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 189242400
+        },
+        "staggered-0": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-1": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4139120,
+          "writeBufferCalls": 30,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-2": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-3": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4139120,
+          "writeBufferCalls": 30,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-4": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-5": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-6": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4139120,
+          "writeBufferCalls": 30,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-7": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-8": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-9": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-10": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-11": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 162353492,
+          "peakLiveBytes": 162353492
+        },
+        "staggered-12": {
+          "bufferCreatedBytes": 227520752,
+          "textureCreatedBytes": 0,
+          "createdResources": 8,
+          "destroyedResources": 8,
+          "mappedAtCreationBytes": 227520000,
+          "writeBufferBytes": 1736544,
+          "writeBufferCalls": 39,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 162353492,
+          "liveBytes": 258827060,
+          "peakLiveBytes": 389873508
+        },
+        "staggered-13": {
+          "bufferCreatedBytes": 324000752,
+          "textureCreatedBytes": 0,
+          "createdResources": 8,
+          "destroyedResources": 8,
+          "mappedAtCreationBytes": 324000000,
+          "writeBufferBytes": 1736544,
+          "writeBufferCalls": 39,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 258827060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 582827076
+        },
+        "staggered-14": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-15": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-16": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-17": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-18": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 100615904,
+          "writeBufferCalls": 30029,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-19": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-20": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-21": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-22": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-23": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        },
+        "staggered-24": {
+          "bufferCreatedBytes": 0,
+          "textureCreatedBytes": 0,
+          "createdResources": 0,
+          "destroyedResources": 0,
+          "mappedAtCreationBytes": 0,
+          "writeBufferBytes": 4135904,
+          "writeBufferCalls": 29,
+          "writeTextureBytes": 0,
+          "writeTextureCalls": 0,
+          "writeTextureSourceSpanBytes": 0,
+          "externalImageBytes": 0,
+          "externalImageCalls": 0,
+          "unknownTextureAllocations": 0,
+          "unknownTextureUploads": 0,
+          "startLiveBytes": 355307060,
+          "liveBytes": 355307060,
+          "peakLiveBytes": 355307060
+        }
+      }
+    },
+    "allocationStates": {
+      "initialization": {
+        "instances": 0,
+        "visible": 0,
+        "culled": 0,
+        "drawCalls": 0,
+        "meshDrawCalls": 0,
+        "shadowMeshDrawCalls": 0,
+        "shadowGeometryBytes": 302688,
+        "impostorDrawCalls": 0,
+        "meshVariants": 3,
+        "shadowMeshVariants": 3,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 0,
+          "visible": 0,
+          "culled": 0,
+          "viewFrusta": 0,
+          "shadowFrusta": 0,
+          "viewVisible": 0,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 1,
+          "atlasAllocatedBytes": 11796456,
+          "atlasBakeMs": 8.490000009536743,
+          "atlasBakeDrawCalls": 2
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [
+          {
+            "channel": "baseColor",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "normal",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "orm",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          }
+        ],
+        "palettes": [
+          {
+            "bones": 67,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 2076576,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "grow-1": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 0,
+        "meshDrawCalls": 0,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 303552,
+        "impostorDrawCalls": 0,
+        "meshVariants": 3,
+        "shadowMeshVariants": 3,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 1
+        },
+        "visibleTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 0,
+          "shadowOnly": 1
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 1,
+          "atlasAllocatedBytes": 11796456,
+          "atlasBakeMs": 8.490000009536743,
+          "atlasBakeDrawCalls": 2
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [
+          {
+            "channel": "baseColor",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "normal",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "orm",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          }
+        ],
+        "palettes": [
+          {
+            "bones": 67,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 2076576,
+            "uploadedBytes": 3296,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        "uploadFailed": false
+      },
+      "grow-15000": {
+        "instances": 15000,
+        "visible": 15000,
+        "culled": 0,
+        "drawCalls": 0,
+        "meshDrawCalls": 0,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 303552,
+        "impostorDrawCalls": 0,
+        "meshVariants": 3,
+        "shadowMeshVariants": 3,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 15000,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 15000
+        },
+        "visibleTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 15000,
+          "visible": 15000,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 0,
+          "shadowOnly": 15000
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 1,
+          "atlasAllocatedBytes": 11796456,
+          "atlasBakeMs": 8.490000009536743,
+          "atlasBakeDrawCalls": 2
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [
+          {
+            "channel": "baseColor",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "normal",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "orm",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          }
+        ],
+        "palettes": [
+          {
+            "bones": 67,
+            "visible": 15000,
+            "capacity": 15000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 66478368,
+            "uploadedBytes": 1203216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        "uploadFailed": false
+      },
+      "grow-30000": {
+        "instances": 30000,
+        "visible": 30000,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 303552,
+        "impostorDrawCalls": 0,
+        "meshVariants": 3,
+        "shadowMeshVariants": 3,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "visibleTierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 30000,
+          "visible": 30000,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 6113,
+          "shadowOnly": 23887
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 1,
+          "atlasAllocatedBytes": 11796456,
+          "atlasBakeMs": 8.490000009536743,
+          "atlasBakeDrawCalls": 2
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [
+          {
+            "channel": "baseColor",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "normal",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "orm",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          }
+        ],
+        "palettes": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        "uploadFailed": false
+      },
+      "frozen-repeat": {
+        "instances": 30000,
+        "visible": 30000,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 303552,
+        "impostorDrawCalls": 0,
+        "meshVariants": 3,
+        "shadowMeshVariants": 3,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "visibleTierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 30000,
+          "visible": 30000,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 6113,
+          "shadowOnly": 23887
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 1,
+          "atlasAllocatedBytes": 11796456,
+          "atlasBakeMs": 8.490000009536743,
+          "atlasBakeDrawCalls": 2
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [
+          {
+            "channel": "baseColor",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "normal",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "orm",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          }
+        ],
+        "palettes": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "advancing-interruptions": [
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 2,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 2,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 2,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 2,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 2,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ]
+      ],
+      "replacement-overlap": {
+        "instances": 30000,
+        "visible": 30000,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 303552,
+        "impostorDrawCalls": 0,
+        "meshVariants": 3,
+        "shadowMeshVariants": 3,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "visibleTierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 30000,
+          "visible": 30000,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 6113,
+          "shadowOnly": 23887
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 1,
+          "atlasAllocatedBytes": 11796456,
+          "atlasBakeMs": 5.929999947547913,
+          "atlasBakeDrawCalls": 2
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [
+          {
+            "channel": "baseColor",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "normal",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          },
+          {
+            "channel": "orm",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "bytes": 5592404
+          }
+        ],
+        "palettes": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2403216,
+            "snapshotUploadedBytes": 3216
+          }
+        ],
+        "uploadFailed": false
+      },
+      "staggered-histories": [
+        {
+          "tick": 0,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 0,
+          "controllerSnapshotBytes": 0,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 0,
+                "snapshotSlotHighWater": 1,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 1,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 1,
+          "controllerSnapshotBytes": 5360,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 1,
+                "snapshotSlotHighWater": 1,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2403216,
+                "snapshotUploadedBytes": 3216
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 2,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 1,
+          "controllerSnapshotBytes": 5360,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 1,
+                "snapshotSlotHighWater": 1,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 3,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 2,
+          "controllerSnapshotBytes": 10720,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 2,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2403216,
+                "snapshotUploadedBytes": 3216
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 4,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 2,
+          "controllerSnapshotBytes": 10720,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 2,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 5,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 2,
+          "controllerSnapshotBytes": 10720,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 2,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 6,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 2,
+          "controllerSnapshotBytes": 10720,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 2,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2403216,
+                "snapshotUploadedBytes": 3216
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 7,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 2,
+          "controllerSnapshotBytes": 10720,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 2,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 8,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 1,
+          "controllerSnapshotBytes": 5360,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 1,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 9,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 1,
+          "controllerSnapshotBytes": 5360,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 1,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 10,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 1,
+          "controllerSnapshotBytes": 5360,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 1,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 11,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 0,
+          "controllerSnapshotBytes": 0,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 2,
+                "snapshotBankCapacity": 1,
+                "residentSnapshots": 0,
+                "snapshotSlotHighWater": 2,
+                "allocatedBytes": 131998368,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 12,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 30000,
+          "controllerSnapshotBytes": 160800000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 30000,
+                "snapshotBankCapacity": 15000,
+                "residentSnapshots": 30000,
+                "snapshotSlotHighWater": 30000,
+                "allocatedBytes": 228471936,
+                "uploadedBytes": 98880000,
+                "snapshotUploadedBytes": 96480000
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 13,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 60000,
+          "controllerSnapshotBytes": 321600000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 60000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 195360000,
+                "snapshotUploadedBytes": 192960000
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 14,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 60000,
+          "controllerSnapshotBytes": 321600000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 60000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 15,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 60000,
+          "controllerSnapshotBytes": 321600000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 60000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 16,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 60000,
+          "controllerSnapshotBytes": 321600000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 60000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 17,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 30000,
+          "controllerSnapshotBytes": 160800000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 30000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 18,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 30000,
+          "controllerSnapshotBytes": 160800000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 30000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 98880000,
+                "snapshotUploadedBytes": 96480000
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 19,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 30000,
+          "controllerSnapshotBytes": 160800000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 30000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 20,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 30000,
+          "controllerSnapshotBytes": 160800000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 30000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 21,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 30000,
+          "controllerSnapshotBytes": 160800000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 30000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 22,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 30000,
+          "controllerSnapshotBytes": 160800000,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 30000,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 23,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 0,
+          "controllerSnapshotBytes": 0,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 0,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        },
+        {
+          "tick": 24,
+          "error": null,
+          "observedBodies": 30000,
+          "distinctFrozenSources": 0,
+          "controllerSnapshotBytes": 0,
+          "crowd": {
+            "instances": 30000,
+            "visible": 30000,
+            "culled": 0,
+            "drawCalls": 1,
+            "meshDrawCalls": 1,
+            "shadowMeshDrawCalls": 1,
+            "shadowGeometryBytes": 303552,
+            "impostorDrawCalls": 0,
+            "meshVariants": 3,
+            "shadowMeshVariants": 3,
+            "shadowTierHistogram": {
+              "l0": 0,
+              "l1": 0,
+              "l2": 30000,
+              "l3": 0
+            },
+            "tierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 23887
+            },
+            "visibleTierHistogram": {
+              "l0": 6113,
+              "l1": 0,
+              "l2": 0,
+              "l3": 0
+            },
+            "culling": {
+              "input": 30000,
+              "visible": 30000,
+              "culled": 0,
+              "viewFrusta": 1,
+              "shadowFrusta": 1,
+              "viewVisible": 6113,
+              "shadowOnly": 23887
+            },
+            "impostors": {
+              "impostorInstances": 0,
+              "impostorDrawCalls": 0,
+              "appearances": 1,
+              "atlasAllocatedBytes": 11796456,
+              "atlasBakeMs": 5.929999947547913,
+              "atlasBakeDrawCalls": 2
+            },
+            "material": {
+              "identity": "soldier-assets-explicit-materials",
+              "channels": [
+                "albedo",
+                "normal",
+                "orm",
+                "factionMask"
+              ],
+              "mapping": {
+                "albedo": "linear vertex color times base-color factor and optional sRGB image",
+                "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+                "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+                "factionMask": "explicit vertex factionMask, independent of color"
+              }
+            },
+            "surfaceImages": [
+              {
+                "channel": "baseColor",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "normal",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              },
+              {
+                "channel": "orm",
+                "width": 1024,
+                "height": 1024,
+                "mipLevels": 11,
+                "bytes": 5592404
+              }
+            ],
+            "palettes": [
+              {
+                "bones": 67,
+                "visible": 30000,
+                "capacity": 30000,
+                "snapshotCapacity": 60000,
+                "snapshotBankCapacity": 30000,
+                "residentSnapshots": 0,
+                "snapshotSlotHighWater": 60000,
+                "allocatedBytes": 324951936,
+                "uploadedBytes": 2400000,
+                "snapshotUploadedBytes": 0
+              }
+            ],
+            "uploadFailed": false
+          }
+        }
+      ]
+    },
+    "camera": {
+      "x": 0,
+      "y": 0,
+      "zoom": 22.857142857142858,
+      "zoomT": 1,
+      "camera3d": {
+        "target": [
+          0,
+          0,
+          2.368040807505029
+        ],
+        "distance": 3.5,
+        "pitch": 0.24,
+        "yaw": -1.5707963267948966,
+        "fovY": 0.85,
+        "aspect": 1.7777777777777777,
+        "near": 1
+      }
+    },
+    "storageLimits": {
+      "maxBufferSize": 268435456,
+      "maxStorageBufferBindingSize": 134217728
+    },
+    "scope": "Tracked fresh crowd generations at the last measured camera; uploads include whole-device traffic. Advancing-interruptions observes 60 successive ticks separately from timing. Mounted staggered histories observe one tick per settled frame, record failures and continue through source retirement. Requested bytes exclude opaque texture storage and driver overhead."
+  }
+}

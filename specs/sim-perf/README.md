@@ -20,21 +20,26 @@ review are committed (`5461c235`); the integrated workspace suite passes.
 The budget gate is honestly red, with substantial machine variation. The
 contact pass now reuses immutable projection metadata; its experimental
 caches were rejected for lack of a demonstrated developed-combat gain. Scratch
-reuse is undergoing identity checks. `worker/00` has a
+reuse is integrated and reproduces the original identity oracles. Combined
+workspace and rebuilt-wasm checks are running. `worker/00` has a
 matching cross-thread hash, but no admissible quiet-machine timing yet.
 
-**Current pickup:** integrate scratch reuse, then verify and profile the
-combined native change before the budget checkpoint. Correctness and timing
+**Current pickup:** finish combined workspace and visual verification, then
+profile the native change before the budget checkpoint. Correctness and timing
 checks remain coordinated so measurements do not include other jobs.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
 when a quiet timing lane is available; worker production refactoring starts
 only after a keep verdict. Its later 12–14 ms frame gates are under review
 because an empty-page diagnostic shows a 16.7 ms cadence; thresholds remain
-unchanged pending an explicit decision.
+unchanged pending an explicit decision. David requested finishing other work
+first and checking for a quiet window afterward; do not repeat acquisition
+waits while the native verification jobs run.
 
 **Evidence:** [native baseline](assets/tick00-native-2026-09-09.md),
 [developed-window verification](assets/developed-window.md),
+[contact trials](assets/tick01-native-2026-09-09.md),
+[scratch identity checks](assets/tick02-verification.md),
 [browser hash identity](assets/worker-state-hash.md),
 [pending browser measurements](assets/worker-00-provisional.md),
 [original visual reference](assets/visual-baseline.md),
@@ -60,7 +65,7 @@ Tick track
 - [x] `tick/00` stage profiler behind a feature + standing budget gate ([slices/tick/00-profiler-and-gate.md](slices/tick/00-profiler-and-gate.md))
 - [x] weapon-repel gate — shipped on main 2026-09-08 as an exact per-unit-extent cull (`2e0e4a7c`)
 - [x] `tick/01` immutable projection metadata reuse; shared-neighborhood caches tried and rejected ([slices/tick/01-contact-neighborhood.md](slices/tick/01-contact-neighborhood.md))
-- [ ] `tick/02` scratch-buffer reuse ([slices/tick/02-scratch-buffers.md](slices/tick/02-scratch-buffers.md))
+- [x] `tick/02` scratch-buffer reuse ([slices/tick/02-scratch-buffers.md](slices/tick/02-scratch-buffers.md))
 - [ ] `tick/03` BUDGET CHECKPOINT — decide the rest with David ([slices/tick/03-budget-checkpoint.md](slices/tick/03-budget-checkpoint.md))
 - [ ] `tick/04` deterministic idle sleeping — behavior track ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))
 - [ ] `tick/05` deterministic in-tick parallelism — last lever ([slices/tick/05-parallelism.md](slices/tick/05-parallelism.md))

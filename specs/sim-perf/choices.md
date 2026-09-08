@@ -54,3 +54,11 @@ changing simulation behavior or lowering a threshold. **Confidence:** high.
 - **The reach:** Targeting, weapon-repel and projection keep their existing candidate traversal contracts. Future search optimization must establish its own benefit; there is no dormant cache, optional mode or deferred implementation hidden behind this slice's completion. This closes a rejected experiment, not a claim that the originally proposed mechanism shipped.
 - **Verdict:** Sound. The change removes redundant writes using a proven immutable boundary and avoids adding state without demonstrated benefit. It does not weaken the budget or reinterpret a timing problem as a mechanics problem.
 - **Confidence:** Medium. A user could reasonably choose to retain the promising early-window grid result, but developed combat is the governing problem and did not support that commitment reliably.
+
+### Retain the measurement vector as well as precomputations
+
+**When:** tick/02.
+**Choice:** Steering returns one set of per-unit measurements for the rest of the tick to consume. Once those consumers finish, the tick returns that vector to `Sim` for reuse. For example, a battle with the same units on the next tick can overwrite the existing measurement storage instead of allocating a new container and dropping the old one thirty times a second. The alternative was to leave this small allocation in place while reusing only the larger precomputation vectors.
+**Gap:** The slice explicitly named `UnitPre` and its nested allocations, but did not separately name the returned measurement vector.
+**Reach:** The tick remains the sole caller responsible for returning the vector after its last consumer. No measurement value is carried forward as a simulation input; only capacity survives.
+**Verdict:** Sound: a small extension of the same storage lifetime with one existing caller and no new adapter. Its individual timing gain is not claimed separately. **Confidence:** medium.

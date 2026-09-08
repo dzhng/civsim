@@ -35,6 +35,38 @@ def rematerial(obj, name):
     obj.data.materials.append(bpy.data.materials["heavy-" + name])
 
 
+def add_helmet_crest(scene, arm):
+    """Rigid sagittal horsehair crest for the fitted human helmet."""
+    helmet = scene.objects["Helmet bowl and rolled edge"]
+    front, rear = (fn(v.co.y for v in helmet.data.vertices) for fn in (min, max))
+    top = max(v.co.z for v in helmet.data.vertices)
+    center, radius = (front + rear) / 2, (rear - front) * .45
+    samples = (-1, -.6, 0, .6, 1)
+    bottom = [(center + radius * t, top - .085 * t*t) for t in samples]
+    profile = [(y, z + .10 * (1 - .35 * abs(t))) for (y, z), t in zip(bottom, samples)]
+    profile += list(reversed(bottom))
+    vertices = [(x, y, z) for x in (-.016, .016) for y, z in profile]
+    count = len(profile)
+    faces = [tuple(reversed(range(count))), tuple(range(count, 2 * count))]
+    faces += [(i, (i+1) % count, (i+1) % count + count, i+count) for i in range(count)]
+    mesh = bpy.data.meshes.new("Fitted horsehair crest")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    part = bpy.data.objects.new("Helmet horsehair crest", mesh)
+    scene.collection.objects.link(part)
+    group = part.vertex_groups.new(name="head")
+    group.add(list(range(len(vertices))), 1, "REPLACE")
+    modifier = part.modifiers.new("Fitted rig", "ARMATURE")
+    modifier.object = arm
+    material = bpy.data.materials.new("Crest dyed horsehair")
+    material.use_nodes = True
+    shader = material.node_tree.nodes.get("Principled BSDF")
+    shader.inputs["Base Color"].default_value = (.20, .035, .018, 1)
+    shader.inputs["Roughness"].default_value = .85
+    part.data.materials.append(material)
+    return part
+
+
 def build(source, output, name, armor, shield, helmet):
     with bpy.data.libraries.load(str(source)) as (data, target):
         target.scenes = [next(n for n in data.scenes if n == "HeavyMotionCandidate")]

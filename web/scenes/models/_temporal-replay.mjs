@@ -161,7 +161,13 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
           return {
             events: recipe.events,
             endTick: recipe.endTick,
-            snapshotLimit: 2 * w.soldierAssets[id].rig.bones.length * 10 * 8,
+            // Current and completed interval each retain at most one source per lane.
+            snapshotLimit:
+              2 *
+              (w.soldierAssets[id].manifest.presentation.riderUpperBodyJoints ? 2 : 1) *
+              w.soldierAssets[id].rig.bones.length *
+              10 *
+              8,
             framing: {
               pose: h.stats().pose,
               camera,

@@ -1,0 +1,10 @@
+Both screenshots look suitable for a diagnostic workbench, with no obvious model or rendering regression.
+
+- **Legibility:** Cream text reads clearly against the dark sidebar. Labels, controls, and state groups are easy to distinguish. The top navigation is comparatively small and crowded.
+- **Clipping:** The navigation cuts off another item at the right edge. The bottom status line sits very close to the image boundary. The main sidebar content is fully visible.
+- **Model and framing:** The mounted figure is fully in frame, with generous surrounding space and a useful three-quarter view. Brown and tan parts overlap enough that the rider’s lower body and saddle are harder to distinguish, but the placeholder geometry remains readable.
+- **Rendering:** No obvious missing geometry, broken limbs, severe intersections, or corrupted shading. Fine stippling is visible across the ground shadow; it looks like a rendering pattern, though a still image cannot establish whether it flickers.
+
+**Visible difference:** The base run phase changes from **0.628** to **0.644** in the From, To, submitted destination, and bottom status text. Tick **90**, bow-release phase **0.733**, and blend weights remain unchanged. Model pose, framing, and lighting appear effectively identical.
+
+**Confidence:** High for UI observations and text differences; moderate for subtle pose or shading differences at this scale.

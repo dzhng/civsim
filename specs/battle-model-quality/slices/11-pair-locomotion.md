@@ -160,6 +160,10 @@ record the isolated controller pass. The existing timeline retains one completed
 interval, sharing immutable pose payloads instead of capturing every bone every
 tick. This deliberately approximates batched observations; it does not reconstruct
 intermediate engine states. The earlier incomplete prototype is historical evidence.
+The [merged production replay](../assets/evidence/11/delayed-timeline/gpu/review.md)
+passes functional and numerical GPU gates. CPU retained storage is bounded by
+two intervals times applicable lanes; GPU residency still counts only submitted
+sources. This does not accept delayed live root placement.
 
 - An eligible active gait owns the completed interval through its own stride.
   Apply the newly selected gait at the right endpoint, transporting normalized

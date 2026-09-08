@@ -51,8 +51,9 @@ Evidence ledger:
   are historical experiments: summarized observations cannot reconstruct
   entry/direction changes exactly. The [bounded CPU candidate](assets/evidence/11/delayed-timeline/review.md)
   now retains one completed interval with explicit entry/stride approximations
-  and completed interruption sources. Live crowd/root-clock wiring and matched
-  movement review remain next, without delaying independent authoring.
+  and completed interruption sources. Its [merged replay GPU gate](assets/evidence/11/delayed-timeline/gpu/review.md)
+  passes with explicit retained-storage accounting. Live crowd/root-clock wiring
+  and matched movement review remain next, without delaying independent authoring.
 - [Anatomy](slices/08-anatomy.md), [equipment](slices/09-pair-gear.md) and
   [surfaces](slices/10-pair-surfaces.md): provisional fitted composition.
   Preserve saved geometry rather than regenerating unrelated equipment.

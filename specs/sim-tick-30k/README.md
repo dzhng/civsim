@@ -18,6 +18,16 @@ test suite are sacred.
 > and no longer applies; re-derive the instrumentation against the new owners
 > before following the pickup below.
 
+> **2026-09-08 (perf commits on main, `2e0e4a7c`..`1efc624f`):** slice `00`'s
+> state-hash oracle now exists as `Sim::state_hash` (the golden test pins it;
+> `cargo run --release -p sim --bin profile_tick -- duels` is the seed-set
+> A/B), and slice `01`'s weapon-repel gate shipped as an exact per-unit-extent
+> cull plus per-bearer window — idle tick 20 → 6.6 ms natively at 15.5k, with
+> steer-pass prunes on top. Re-measure before treating the baseline row below
+> as current. Slice `07` (frame/tick decoupling) is now planned as physical
+> decoupling in [`../sim-worker/README.md`](../sim-worker/README.md); that
+> spec's verdict updates the `07` row here. Slice `06` is untouched.
+
 ## Next Agent Prompt
 
 **Status:** Spec authored 2026-07-02 from the codex investigation

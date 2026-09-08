@@ -22,6 +22,9 @@ Priority order:
    minimum-height number. Authored poses now own corpse geometry in both
    renderers and visibility bounds; do not add a second roll or lift a particular
    asset to compensate for unclear ground-contact shading.
+   The lowered sword arm now exposes a large sleeve-cap collapse; the bounded
+   [shoulder deformation refit](slices/08-anatomy.md#reopened-dressed-shoulder-deformation)
+   owns that correction before further fall acceptance.
 2. Resolve engine-faithful live movement sampling, foot contact and transitions,
    then admit complete detailed appearances. Missing actions are not filled with
    stand-ins. Measured travel owns gait; engine observations own posture and

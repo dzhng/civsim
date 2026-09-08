@@ -17,6 +17,29 @@ facial refinement does not block independent equipment source work.
 
 A reusable articulated human base has natural adult proportions and believable joints.
 
+### Reopened dressed shoulder deformation
+
+The provisional heavy fall exposes a large sleeve-cap collapse when the sword
+arm drops beside the body. The saved motion must not be weakened to conceal a
+skinning defect. A read-only zero-twist control leaves the collapse, identifying
+the existing clavicle-to-upper-arm transition under large swing as the next
+bounded experiment, not proof that a particular replacement weight is correct.
+
+On a copy of the saved fitted source, move only the proximal sleeve's existing
+smooth weight transition to its authored cap-ring centers. Keep the proximal
+attachment anchored and distal sleeve unchanged. Propagate through existing
+lining/mail/shoulder-layer correspondence; add no bones, topology, corrective
+system or alternate renderer. Preserve rest geometry, material/UV data and action
+keys. This is a local deformation refit, not regenerated anatomy or accepted art.
+
+First compare strained shoulder edge/area collapse and armhole/lining clearance,
+then matched old/new whole and low shoulder views with exact repeats and fresh
+critique. A narrower blend can move the pinch or open the armhole; numerical
+improvement alone cannot retain it. If retained, re-review every existing heavy
+clip and its full frame gate: identical keys do not mean identical posed garment
+geometry. Unrelated geometry and motion remain controlled. Reaction acceptance
+stays open until the corrected garment and whole fall pass together.
+
 API seam: Blender human source mesh and deform rig → existing appearance bundle, initially classes 0 and 14 with equipment hidden.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.

@@ -1775,3 +1775,14 @@ the engine's held hedge. The physical brace ramp is not exposed in the animation
 observation, so no renderer-only brace state or invented strength clock is added.
 Its provisional support pose still needs art work; animation must follow the
 canonical engine distinction rather than redefine it.
+
+### Refit sleeve deformation before weakening a lowered-arm pose
+
+**Provisional; confidence: medium. Dressed shoulder refit.** A large arm bend
+exposes collapse in the existing garment weights even without axial twist.
+Test a local transition between the authored sleeve-cap rings, keeping the same
+bones and saved fitted geometry. This may move the pinch or expose an armhole;
+it is not an accepted remedy yet. Re-review all affected old clips rather than
+claiming that unchanged animation keys preserve posed geometry. The spec requires
+credible joints but did not choose this particular weight-transition experiment.
+No new deformation system or motion-based concealment is authorized.

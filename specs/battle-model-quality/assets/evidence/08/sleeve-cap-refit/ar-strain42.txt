@@ -1,0 +1,13 @@
+00:00.281  blend            | Read blend: "/Users/david/dev/game-heavy-death-grounded/throwaway/heavy-death/aq/heavy-kit.blend"
+00:00.437  blend            | Read blend: "/Users/david/dev/game-heavy-death-grounded/throwaway/heavy-death/ar/heavy-kit.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Warning: Library file, loading empty scene
+Warning: Library file, loading empty scene
+SHOULDER_STUDY [{"variant": "aq", "frame": 42, "region": "proximal", "localSwingDegrees": 115.17537627566065, "localTwistDegrees": -10.329139695006665, "authored": {"vertices": 1333, "triangles": 2414, "areaRatioMin": 0.055184183400301304, "areaRatioMedian": 1.0696516486921246, "edgeRatioMin": 0.0914761727859983, "edgeRatioMedian": 1.0000027504800801}, "zeroTwistControl": {"vertices": 1333, "triangles": 2414, "areaRatioMin": 0.04596213978564669, "areaRatioMedian": 1.0906805673839843, "edgeRatioMin": 0.12339648900650622, "edgeRatioMedian": 1.0000026131397386}, "upperDirectionChangeDegrees": 0.0}, {"variant": "ar", "frame": 42, "region": "proximal", "localSwingDegrees": 115.17537627566065, "localTwistDegrees": -10.329139695006665, "authored": {"vertices": 1333, "triangles": 2414, "areaRatioMin": 0.14105613164182917, "areaRatioMedian": 1.0937432589429894, "edgeRatioMin": 0.28424416285314424, "edgeRatioMedian": 1.0000025961445909}, "zeroTwistControl": {"vertices": 1333, "triangles": 2414, "areaRatioMin": 0.1119358239823268, "areaRatioMedian": 1.138089677236186, "edgeRatioMin": 0.24690758800400556, "edgeRatioMedian": 1.0000039841942958}, "upperDirectionChangeDegrees": 0.0}]
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

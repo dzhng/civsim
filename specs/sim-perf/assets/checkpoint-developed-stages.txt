@@ -1,0 +1,49 @@
+fighting target 30500 repeat 1 soldiers 30560 contact 515 window 1500..1800 alive 30402->30280 min_fighting 3344 mean_ms 51.246 stddev_ms 15.494 hash 0x080c80b28e8ae3db
+stage (exclusive)                         ms/tick
+combat resolution                            0.574
+combat targeting                            21.699
+contact_facing                               0.001
+displacement                                 0.101
+integrate_units                              0.005
+kinematics                                   0.059
+mark_at_ease                                 0.016
+missiles                                     0.011
+morale                                       0.030
+navigate_units                               0.011
+orders and reflexes                          0.049
+reform_slots                                 0.041
+separation body pairs                        4.128
+separation momentum                          0.040
+separation projection                       11.050
+separation setup                             0.237
+separation walls                             0.119
+separation weapon repel                      5.623
+slide_halted_frames                          0.000
+steer precompute_unit                        0.651
+steer_soldiers                               6.793
+unit motion                                  0.005
+fighting target 30500 repeat 2 soldiers 30560 contact 515 window 1500..1800 alive 30402->30280 min_fighting 3344 mean_ms 46.069 stddev_ms 5.819 hash 0x080c80b28e8ae3db
+stage (exclusive)                         ms/tick
+combat resolution                            0.467
+combat targeting                            19.648
+contact_facing                               0.001
+displacement                                 0.092
+integrate_units                              0.004
+kinematics                                   0.053
+mark_at_ease                                 0.015
+missiles                                     0.010
+morale                                       0.029
+navigate_units                               0.011
+orders and reflexes                          0.047
+reform_slots                                 0.039
+separation body pairs                        3.830
+separation momentum                          0.032
+separation projection                        9.459
+separation setup                             0.213
+separation walls                             0.110
+separation weapon repel                      5.292
+slide_halted_frames                          0.000
+steer precompute_unit                        0.601
+steer_soldiers                               6.110
+unit motion                                  0.005
+fighting target 30500 median_repeat_mean_ms 48.657 earliest_tick 1500

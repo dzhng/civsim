@@ -22,3 +22,12 @@ measurements do not justify a percentage-improvement claim.
 standard deviation, population, interval and fingerprint. The next decision
 requires a developed-window stage profile; neither sleeping nor parallelism
 has been implemented or declared necessary solely from an opening profile.
+
+The [developed stage profile](checkpoint-developed-stages.txt) reproduces the
+same hash. Targeting is 21.699 / 19.648 ms, projection 11.050 / 9.459 ms,
+weapon repel 5.623 / 5.292 ms and steering 6.793 / 6.110 ms. Instrumented
+whole-tick means are 51.246 / 46.069 ms; they are diagnostic, not the budget
+measurement. Both repeats put targeting near 42% and projection near 21%.
+Steering alone cannot plausibly close the measured deficit. Operation-count
+probes will determine whether smaller exact reductions remain worthwhile
+before introducing a broader concurrency or behavior change.

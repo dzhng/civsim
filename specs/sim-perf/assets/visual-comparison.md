@@ -30,3 +30,10 @@ is identical, the existing original asset also represents this capture.
 The release wasm build and combined `force-trace` feature check passed.
 These correctness captures ran alongside the workspace suite and supply no
 performance measurements.
+
+The later single-body friend-recording change (`ec32c09c`) was rebuilt and
+captured through the same route. Its whole GIF and all 16 saved actual PNGs
+again match the original bytes; all 18 reference pixel counts match, with
+the same exit 16 and no re-bless. The served-build file fingerprint is
+`f053961a7aa63fd09334d8e82debbf5ac016655ff0adeec9d24025d24e4dd91d`.
+The original timeline therefore also represents this later capture.

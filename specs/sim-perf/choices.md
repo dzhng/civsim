@@ -83,3 +83,25 @@ and interpret commanders-off timings alongside their observed contact.
 The contact count is collected outside the tick timer.
 **Verdict:** Sound: makes the workload visible without changing simulation
 rules to obtain a favorable timing. **Confidence:** high.
+
+### Stop the worker branch when the harness cannot meet its final frame target
+
+**When:** worker feasibility decision, after the revised load threshold.
+**Choice:** An empty browser page delivers a frame every 16.7 ms on this
+harness. The final worker contract rejects a median above 14 ms. We therefore
+stop before building the read seam and worker cutover, retaining only the
+hash export. For example, moving every simulation calculation off the main
+thread still cannot make this empty-page clock deliver frames at the required
+rate. The alternative was to build the entire seam despite already knowing
+that its final acceptance test could not pass without a separate change.
+**Gap:** The plan specified staged worker kill thresholds but did not cover
+a final frame requirement below the measured cadence of the harness itself.
+**Reach:** No transport, asynchronous command surface or worker lifecycle
+becomes production debt. Reopening requires an explicit frame-target or
+harness decision. The transport probe also needs a corrected snapshot-age
+measurement; its negative ages were not treated as valid latency evidence.
+**Verdict:** Sound: preserves the specified final requirements and avoids
+building a branch that cannot satisfy them. This is an early planning no-go,
+not a claim that the full worker/00 or worker/04 gates ran and failed.
+**Confidence:** medium; changing the frame contract could make the measured
+30 Hz worker worthwhile, but only the load threshold was revised by David.

@@ -25,13 +25,19 @@ workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
 is byte-identical. The worker branch is closed by an early feasibility
 no-go; the hash export remains, and no worker seam ships.
 
-**Current pickup:** serial integration verification and both isolated
-native-parallel identity matrices pass. Compare weapon repel first, then
-whole-unit steering, in exclusive timing lanes under David's
-load-under-10 precondition, integrate only demonstrated gains, and complete
-the scaled sweep and budget gate. The single-body friend change saved about
-0.94 ms; the developed budget remains near 39 ms against 25 ms. Sleeping is
-not selected while engaged-contact work dominates. The worker track has an [early feasibility no-go](assets/worker-verdict.md)
+**Current pickup:** the first repel and steering trials preserve identity and
+improve developed combat, but both were rejected for small-battle scheduling
+overhead. Their coarser scheduling revisions are running fresh identity
+checks in isolated worktrees. Projection's bounded replay trial passes its
+identity, overflow and 30k/60k sizing checks; its timing is still pending.
+When all CPU checks finish, compare revised repel and steering (overhead
+first), then projection, in exclusive lanes under David's load-under-10
+precondition. Integrate only demonstrated gains, then complete the scaled
+sweep and standing budget gate. No parallel code is retained yet.
+
+The single-body friend change saved about 0.94 ms; the developed budget
+remains near 39 ms against 25 ms. Sleeping is not selected while
+engaged-contact work dominates. The worker track has an [early feasibility no-go](assets/worker-verdict.md)
 against the unchanged final frame targets; its six transport measurements
 and the original renderer gate completed under load 10.
 The first-contact window is a small skirmish; developed combat must also

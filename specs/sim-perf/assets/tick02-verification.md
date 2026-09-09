@@ -30,10 +30,11 @@ soldier moves. The small shared file-coverage helper remains unchanged.
 
 Buffers retain peak capacity between ticks; truncating the unit-precomputation
 list drops the nested storage for removed units, and dropping `Sim` releases
-the remaining storage. Allocation elimination is **code-based evidence**, not
-an allocation-counter measurement: fresh vector construction was replaced
-with clearing and refilling retained capacity. No allocation-count instrument
-was run, and no speed or variance improvement has yet been demonstrated.
+the remaining storage. The initial pass established reuse by code inspection:
+fresh vector construction was replaced with clearing and refilling retained
+capacity. A later [allocation-count probe](operation-counts.md) measured the
+reduction in allocator calls. No speed or variance improvement attributable
+to scratch reuse alone has yet been demonstrated.
 The shared `covered_fighting_files` bitmap and feature-only force-trace record
 vectors remain temporary allocations; this is not an allocation-free tick.
 

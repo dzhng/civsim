@@ -28,6 +28,9 @@ matching cross-thread hash, but no admissible quiet-machine timing yet.
 **Current pickup:** profile the native change and run the budget checkpoint.
 Correctness and timing
 checks remain coordinated so measurements do not include other jobs.
+The integrated gate is red at 39.006 ms in developed combat. Targeting is
+the largest stage; [a single-body friend-recording trial](slices/tick/01b-single-body-friends.md)
+tests one exact reduction before broader concurrency or behavior work.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
 when a quiet timing lane is available; worker production refactoring starts

@@ -1,0 +1,2 @@
+allocation_calls repeat 1 ticks 300 alloc 51113 realloc 4597 dealloc 51113
+allocation_calls repeat 2 ticks 300 alloc 51113 realloc 4597 dealloc 51113

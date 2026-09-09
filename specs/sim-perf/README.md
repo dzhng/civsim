@@ -21,11 +21,12 @@ The budget gate is honestly red, with substantial machine variation. The
 contact pass now reuses immutable projection metadata; its experimental
 caches were rejected for lack of a demonstrated developed-combat gain. Scratch
 reuse is integrated and reproduces the original identity oracles. Combined
-workspace and rebuilt-wasm checks are running. `worker/00` has a
+workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
+is byte-identical. `worker/00` has a
 matching cross-thread hash, but no admissible quiet-machine timing yet.
 
-**Current pickup:** finish combined workspace and visual verification, then
-profile the native change before the budget checkpoint. Correctness and timing
+**Current pickup:** profile the native change and run the budget checkpoint.
+Correctness and timing
 checks remain coordinated so measurements do not include other jobs.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
@@ -40,6 +41,7 @@ waits while the native verification jobs run.
 [developed-window verification](assets/developed-window.md),
 [contact trials](assets/tick01-native-2026-09-09.md),
 [scratch identity checks](assets/tick02-verification.md),
+[combined verification](assets/combined-verification.md),
 [browser hash identity](assets/worker-state-hash.md),
 [pending browser measurements](assets/worker-00-provisional.md),
 [original visual reference](assets/visual-baseline.md),

@@ -33,6 +33,9 @@ is 0.017 ms above the threshold; the earlier qualified revised-weapon-repel
 comparison measured 34.896 ms, which David explicitly accepted as sufficient.
 Neither result is hidden or substituted for the other.
 
-The actual `scripts/test-perf` entry-point run is still pending; its full
-result will be appended before closeout. No optimization or threshold edit
-occurs between the recorded runs.
+The actual `scripts/test-perf` entry-point run completed with exit 0:
+opening 20.212 ms, developed 34.279 ms and 60k 51.482 ms. Developed combat
+retains the same state hash and 30,280 living soldiers. Load was 3.330 before
+and 5.542 after. [The command output and metadata](standing-gate-final.json)
+record the pass. No optimization or threshold edit occurred between this
+run and the earlier boundary result; both are retained to expose variation.

@@ -1,5 +1,10 @@
 # Slice 00 — Measure before building (throwaway, ≤ half a day)
 
+Closed by [early feasibility no-go](../../assets/worker-verdict.md). Six
+transport runs and hash checks completed; snapshot-age validity remains
+unproven, and the unchanged final frame target is below the harness cadence.
+No worker seam or cutover was attempted.
+
 ## Contract unlocked
 
 The numbers that decide whether any of this is worth building: can a worker
@@ -40,7 +45,7 @@ each thread with the same spawn script.
 
 ## Verification
 
-Hardware Chrome, quiet machine (load average under 4). Three 20 s runs per
+Hardware Chrome, load average under 10 (David's 2026-09-09 revision). Three 20 s runs per
 mode; report medians of the medians. Record every number in the README
 ledger even on a kill.
 

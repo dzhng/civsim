@@ -9,6 +9,18 @@ David.
 
 ## What to do
 
+Current decision: proceed with exact native parallelism experiments. The
+qualifying developed window remains near 39 ms after the pure reductions;
+targeting, projection and weapon repel dominate. Sleeping cannot remove
+those engaged-contact costs and would change behavior, so it is not the
+next lever. Independent weapon-repel search and whole-unit steering passes
+can be implemented concurrently, but their timing and integration are
+serialized. Each must preserve the original hashes at 1/2/8 threads and
+demonstrate useful gain before being retained. Projection follows only if
+the smaller pass justifies the concurrency machinery. The complete scaled
+sweep remains a required checkpoint deliverable; this decision does not
+claim that telemetry or the budget has passed.
+
 - Run tick/00's full sweep (15.5k, 30k, 60k; idle and fighting).
   `profile_tick idle [soldiers]` uses the same spawn grid with commanders
   disabled, two fresh 600-tick runs, and per-repeat mean/stddev and hashes.

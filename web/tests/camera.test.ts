@@ -254,7 +254,7 @@ test("wheel zoom returns an elevated free-look camera to a close ground view", (
 test("a small outward zoom near the floor does not amplify a new head turn", () => {
   const camera = makeCamera(-Math.PI / 2);
   camera.groundSurface = planeSurface(12, 0, 0);
-  camera.zoomAt(600, 350, camera.params().distance / 3.51);
+  camera.zoomAt(600, 350, camera.params().distance / 10.01);
   camera.pitchAboutEye(-1.1);
   const start = eyePosition(camera.params());
   camera.zoomAt(600, 350, 0.95);

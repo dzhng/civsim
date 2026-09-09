@@ -46,9 +46,6 @@ interface RigCurve {
   distInFactor: number;
   /** Optional absolute cap for the zoomed-in endpoint, in world meters. */
   distInMeters?: number;
-  /** Optional continued distance descent after zoomT reaches 1. Battle uses
-   *  this for inspection zooms beyond the authored close-vista endpoint. */
-  overZoomMinFactor?: number;
   /** Forward look-ahead at max zoom, as a fraction of the field's short axis. */
   maxForwardFraction: number;
   /** >1 keeps the framing near-top-down for more of the zoom range before it
@@ -58,20 +55,19 @@ interface RigCurve {
   tiltStartMeters?: number;
 }
 
-// Battle: a genuine near-top-down tactical read through most of the range,
-// only dropping toward the low cinematic vista in the final zoom stretch.
+// Battle: tilt begins at army-wide scale, passes through an oblique formation
+// view, and ends just above the soldiers with the horizon near the top of frame.
 const BATTLE_CURVE: RigCurve = {
   topDownPitch: 1.35, // ~77° down — near-vertical tactical
-  vistaPitch: 0.24, // ~14° — low, just above soldier eye height at 10m
+  vistaPitch: 0.3, // ~17° — the horizon sits in the upper sixth of the frame
   topDownFovY: 0.5, // ~29° — narrow, keeps formations legible top-down
   vistaFovY: 0.85, // ~49° — wide cinematic
   distOutFactor: 2.0,
   distInFactor: 0.6,
   distInMeters: 10,
-  overZoomMinFactor: 0.35,
   maxForwardFraction: 0.3,
   easeBias: 20,
-  tiltStartMeters: 200,
+  tiltStartMeters: 1200,
 };
 
 // Campaign: a strategic chart. Flatter (stays near-top-down longer via easeBias),
@@ -106,30 +102,6 @@ export function campaignCameraRig(
   return rigForZoom(CAMPAIGN_CURVE, zoom, zoomRange, bounds);
 }
 
-/** The zoom above which the battle rig's framing stops changing: distance has
- *  bottomed out at its overzoom floor and pitch/fovY are saturated. Callers
- *  clamp the stored `zoom` here (not at some far hard cap) so wheel input past
- *  the closest usable view cannot bank an invisible distance reserve. */
-export function battleZoomCeiling(zoomRange: CameraRigRange, bounds: CameraRigBounds): number {
-  return zoomCeiling(BATTLE_CURVE, zoomRange, bounds);
-}
-
-function zoomCeiling(curve: RigCurve, zoomRange: CameraRigRange, bounds: CameraRigBounds): number {
-  const min = Math.max(0.0001, Math.min(zoomRange.min, zoomRange.max));
-  const max = Math.max(min + 0.0001, Math.max(zoomRange.min, zoomRange.max));
-  if (!curve.overZoomMinFactor) return max;
-  const fieldReach = Math.max(1, Math.min(bounds.width, bounds.height));
-  const closeDistance = Math.min(
-    fieldReach * curve.distInFactor,
-    curve.distInMeters ?? Number.POSITIVE_INFINITY,
-  );
-  const minCloseDistance = Math.max(1.5, closeDistance * curve.overZoomMinFactor);
-  // Past `max` the rig sets distance = closeDistance * max / zoom, floored at
-  // minCloseDistance. The zoom where the floor takes over is the last one that
-  // changes the frame — beyond it every zoom is identical, so it's the ceiling.
-  return (max * closeDistance) / minCloseDistance;
-}
-
 function rigForZoom(
   curve: RigCurve,
   zoom: number,
@@ -141,19 +113,14 @@ function rigForZoom(
   const zoomT = clamp01((zoom - min) / (max - min));
   // Distance retains the authored dial; wheel input inverts this curve.
   // Battle framing follows physical proximity so map size cannot make the
-  // camera look at the horizon while it is still hundreds of meters away.
+  // camera reach its soldier-height angle while it is still far from the army.
   const eased = Math.pow(smoothstep(0, 1, zoomT), curve.easeBias);
   const fieldReach = Math.max(1, Math.min(bounds.width, bounds.height));
   const closeDistance = Math.min(
     fieldReach * curve.distInFactor,
     curve.distInMeters ?? Number.POSITIVE_INFINITY,
   );
-  const baseDistance = lerp(fieldReach * curve.distOutFactor, closeDistance, eased);
-  const overZoomScale = curve.overZoomMinFactor && zoom > max ? max / Math.max(max, zoom) : 1;
-  const minCloseDistance = curve.overZoomMinFactor
-    ? Math.max(1.5, closeDistance * curve.overZoomMinFactor)
-    : closeDistance;
-  const distance = Math.max(minCloseDistance, baseDistance * overZoomScale);
+  const distance = lerp(fieldReach * curve.distOutFactor, closeDistance, eased);
   const closeForward = Math.min(fieldReach * curve.maxForwardFraction, closeDistance * 1.25);
   const framing = curve.tiltStartMeters
     ? 1 -

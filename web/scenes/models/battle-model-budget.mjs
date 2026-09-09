@@ -89,7 +89,6 @@ export async function run(ctx) {
           "web/src/battle/battleWorld.ts",
         );
         const { Camera } = await module("web/src/shared/camera.ts");
-        const { battleZoomCeiling } = await module("web/src/battle/cameraRig.ts");
         const { generatedFormation, buildCrowdInstances } = await module(
           "packages/crowd-runtime/src/instanceData.ts",
         );
@@ -170,12 +169,7 @@ export async function run(ctx) {
               config.width,
               config.height,
             );
-          cam.zoom =
-            stop === "close"
-              ? battleZoomCeiling(rig.range, rig.bounds)
-              : stop === "mid"
-                ? (rig.range.min + rig.range.max) / 2
-                : rig.range.max;
+          cam.zoom = stop === "mid" ? (rig.range.min + rig.range.max) / 2 : rig.range.max;
           cam.setViewCenter(0, 0);
           cam.clampView();
           const [x, y] = cam.viewCenter();

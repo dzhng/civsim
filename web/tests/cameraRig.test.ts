@@ -25,7 +25,7 @@ test("battle zoom rig clamps zoomT and endpoints past both ends", () => {
   assert.equal(out.pitch, BATTLE_ZOOM_RIG_LIMITS.topDownPitch);
   assert.equal(out.fovY, BATTLE_ZOOM_RIG_LIMITS.topDownFovY);
   // zoomed in → low oblique vista, wide fov
-  assert.equal(vista.pitch, BATTLE_ZOOM_RIG_LIMITS.vistaPitch);
+  assert.ok(Math.abs(vista.pitch - BATTLE_ZOOM_RIG_LIMITS.vistaPitch) < 1e-12);
   assert.equal(vista.fovY, BATTLE_ZOOM_RIG_LIMITS.vistaFovY);
 });
 
@@ -100,23 +100,12 @@ test("battle zoom rig distance scales with the field short axis", () => {
   assert.ok(big.distance > small.distance, "a bigger field frames from farther out");
 });
 
-test("battle zoom rig keeps descending after the close-vista endpoint", () => {
+test("battle zoom stops at the soldier-height vista instead of magnifying past it", () => {
   const endpoint = battleCameraRig(9, range, bounds);
-  const z12 = battleCameraRig(12, range, bounds);
-  const z28 = battleCameraRig(28, range, bounds);
-
-  assert.equal(z12.zoomT, 1);
-  assert.equal(z28.zoomT, 1);
-  assert.equal(z12.pitch, endpoint.pitch);
-  assert.equal(z28.fovY, endpoint.fovY);
-  assert.ok(
-    z12.distance < endpoint.distance,
-    `z12 ${z12.distance} should descend from endpoint ${endpoint.distance}`,
-  );
-  assert.ok(
-    z28.distance < z12.distance,
-    `z28 ${z28.distance} should descend from z12 ${z12.distance}`,
-  );
+  assert.ok(endpoint.distance >= 8 && endpoint.distance <= 12);
+  for (const zoom of [12, 28, 99]) {
+    assert.deepEqual(battleCameraRig(zoom, range, bounds), endpoint);
+  }
 });
 
 test("campaign zoom rig stays a flatter, near-top-down chart", () => {
@@ -147,19 +136,28 @@ test("campaign zoom rig pitch/distance fall and fovY rises monotonically", () =>
   }
 });
 
-test("battle auto tilt reveals the horizon earlier while preserving the overview", () => {
+test("battle auto tilt follows army overview, oblique approach, and soldier-height framing", () => {
   for (const field of [bounds, { width: 2400, height: 1600 }]) {
-    for (let zoom = range.min; zoom < range.max; zoom += 0.002) {
+    for (let zoom = range.min; zoom <= range.max; zoom += 0.001) {
       const rig = battleCameraRig(zoom, range, field);
-      if (rig.distance >= 200)
-        assert.ok(rig.pitch >= 1.2, `distance ${rig.distance}: prematurely tilted to ${rig.pitch}`);
-      if (rig.distance >= 90 && rig.distance <= 110)
-        assert.ok(rig.pitch < 1.25, "the approach must start opening toward the horizon by 100m");
-      if (rig.pitch < 0.5)
+      if (rig.distance >= 700)
+        assert.ok(rig.pitch >= 1.3, `overview pitch ${rig.pitch} at ${rig.distance}m`);
+      if (rig.distance >= 400 && rig.distance <= 500)
         assert.ok(
-          rig.distance < 35,
-          `horizon-like pitch ${rig.pitch} while still ${rig.distance}m away`,
+          rig.pitch < 1.34 && rig.pitch > 1.2,
+          `army-wide view should begin tilting: ${rig.pitch} at ${rig.distance}m`,
+        );
+      if (rig.distance >= 90 && rig.distance <= 110)
+        assert.ok(
+          rig.pitch > 0.65 && rig.pitch < 0.85,
+          `approach should be oblique: ${rig.pitch} at ${rig.distance}m`,
         );
     }
+    const closest = battleCameraRig(99, range, field);
+    // The supplied soldier-height reference leaves sky in roughly the upper
+    // sixth of the frame. The horizontal horizon's projected height is stable
+    // across terrain because this is the lens/pitch contract, not ground relief.
+    const horizonY = (1 - Math.tan(closest.pitch) / Math.tan(closest.fovY / 2)) / 2;
+    assert.ok(horizonY > 0.12 && horizonY < 0.2, `closest horizon ${horizonY}`);
   }
 });

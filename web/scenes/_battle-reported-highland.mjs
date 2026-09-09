@@ -19,13 +19,15 @@ export const reportedHighlandSetup = {
 };
 
 export async function reportedHighland(ctx, deviceScaleFactor = 1) {
+  // Full armies can spend several minutes compiling on canonical SwiftShader.
+  const timeout = 300000;
   const page = await ctx.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor });
   await page.goto(
     `${ctx.target}/battle/run?${new URLSearchParams({ setup: JSON.stringify(reportedHighlandSetup) })}`,
   );
-  await page.waitForFunction(() => window.__game, undefined, { timeout: 120000 });
+  await page.waitForFunction(() => window.__game, undefined, { timeout });
   await page.evaluate(() => window.__game.freeze(true));
-  await battleRendererReady(page, 120000);
+  await battleRendererReady(page, timeout);
   await page.evaluate(() => window.__game.freezeAtTick(120));
   return page;
 }

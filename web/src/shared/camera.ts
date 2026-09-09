@@ -1,9 +1,4 @@
-import {
-  battleCameraRig,
-  battleZoomCeiling,
-  type CameraRigRange,
-  type ZoomCameraRig,
-} from "../battle/cameraRig";
+import { battleCameraRig, type CameraRigRange, type ZoomCameraRig } from "../battle/cameraRig";
 import {
   eyePosition,
   projectPoint,
@@ -79,12 +74,6 @@ export class Camera {
     return battleCameraRig(this.zoom, this.zoomRange, this.rigBounds);
   }
 
-  /** Highest zoom that still changes the framing. Above it the rig saturates,
-   *  so clamping here keeps wheel input from banking dead travel. */
-  private maxZoom() {
-    return battleZoomCeiling(this.zoomRange, this.rigBounds);
-  }
-
   /** Normalized zoom-rig state: 0 = tactical top-down, 1 = close vista. */
   get zoomT() {
     return this.rig().zoomT;
@@ -95,7 +84,7 @@ export class Camera {
   panSpeed() {
     const { min, max } = this.zoomRange;
     const far = battleCameraRig(min, this.zoomRange, this.rigBounds).distance;
-    const near = battleCameraRig(this.maxZoom(), this.zoomRange, this.rigBounds).distance;
+    const near = battleCameraRig(this.zoomRange.max, this.zoomRange, this.rigBounds).distance;
     const closeness = Math.max(0, Math.min(1, (far - this.rig().distance) / (far - near)));
     const z = min + Math.max(0.25, closeness) * (max - min);
     const t = Math.max(0, Math.min(1, (z - min) / Math.max(1e-6, max - min)));
@@ -162,7 +151,7 @@ export class Camera {
   private zoomForDistance(distance: number): number {
     const dist = (z: number) => battleCameraRig(z, this.zoomRange, this.rigBounds).distance;
     let lo = this.zoomRange.min;
-    let hi = this.maxZoom();
+    let hi = this.zoomRange.max;
     const reachable = Math.max(dist(hi), Math.min(dist(lo), distance));
     if (Math.abs(dist(this.zoom) - reachable) < 1e-3) return this.zoom;
     if (reachable >= dist(lo)) return lo;
@@ -290,7 +279,7 @@ export class Camera {
    *  space; in the oblique vista the view sees far past the field toward the
    *  horizon, so panning stays free and only the look target is clamped to bounds. */
   clampView() {
-    this.zoom = Math.min(this.maxZoom(), Math.max(this.zoomRange.min, this.zoom));
+    this.zoom = Math.min(this.zoomRange.max, Math.max(this.zoomRange.min, this.zoom));
     if (!this.bounds || this.freeLook) return;
     const [x0, y0, x1, y1] = this.bounds;
     // Only the near-top-down overview centres the field; the vista pans freely.
@@ -366,7 +355,7 @@ export class Camera {
     // Keeping its altitude fixed strands horizon-facing views above the field.
     const nextDistance = this.rig().distance;
     if (nextDistance < distance) {
-      const near = battleCameraRig(this.maxZoom(), this.zoomRange, this.rigBounds).distance;
+      const near = battleCameraRig(this.zoomRange.max, this.zoomRange, this.rigBounds).distance;
       this.lookElevation *= (nextDistance - near) / (distance - near);
     }
     afterZoom?.();

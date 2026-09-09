@@ -198,17 +198,21 @@ export async function run(ctx) {
       const c = window.__cam;
       c.resetLook();
       c.setViewCenter(0, 0);
-      return [200, 100, 40, 20, 10].map((distance) => {
+      return [700, 500, 100, 20, 10].map((distance) => {
         c.zoomAt(1600, 900, c.params().distance / distance);
         return window.__game.cameraSurfaceDebug();
       });
     });
     ctx.check(
-      "automatic tilt opens earlier during the approach while retaining the overview",
-      tilt[0].camera3d.pitch > 1.2 &&
-        tilt[1].camera3d.pitch < 1.25 &&
-        tilt[2].camera3d.pitch < 0.9 &&
-        tilt[3].camera3d.pitch < 0.5,
+      "automatic tilt progresses from army-wide to oblique to soldier-height",
+      tilt[0].camera3d.pitch > 1.3 &&
+        tilt[1].camera3d.pitch < 1.34 &&
+        tilt[1].camera3d.pitch > 1.2 &&
+        tilt[2].camera3d.pitch > 0.65 &&
+        tilt[2].camera3d.pitch < 0.85 &&
+        tilt[3].camera3d.pitch < 0.5 &&
+        tilt[4].camera3d.pitch > 0.25 &&
+        tilt[4].camera3d.pitch < 0.35,
       JSON.stringify(
         tilt.map((s) => ({
           distance: s.camera3d.distance,
@@ -230,12 +234,12 @@ export async function run(ctx) {
     await page.mouse.move(800, 450);
     for (let i = 0; i < 60; i++) {
       const distance = await page.evaluate(() => window.__cam.params().distance);
-      if (distance < 4) break;
+      if (distance <= 10.01) break;
       await page.mouse.wheel(0, -1000);
       // Wait for each input to land instead of letting Chromium coalesce a burst.
       await page.waitForFunction((d) => window.__cam.params().distance < d, distance);
     }
-    await page.waitForFunction(() => window.__cam.params().distance < 4);
+    await page.waitForFunction(() => window.__cam.params().distance <= 10.01);
     const closeLook = await pose();
     ctx.check(
       "wheel zoom after high free-look reaches the ground again",

@@ -138,16 +138,23 @@ fn record_friend(
     friends: &mut [Option<NearbyFriend>; MAX_NEARBY_FRIENDS],
     friends_len: &mut usize,
     friend: NearbyFriend,
+    multiple_bodies: bool,
 ) {
-    if let Some(existing) = friends[..*friends_len]
-        .iter_mut()
-        .flatten()
-        .find(|f| f.owner == friend.owner)
-    {
-        if friend.distance < existing.distance {
-            *existing = friend;
+    // A foot soldier has one body, and the caller visits each bucket once.
+    // Only multi-body soldiers can already occupy a slot in this scan.
+    if multiple_bodies {
+        if let Some(existing) = friends[..*friends_len]
+            .iter_mut()
+            .flatten()
+            .find(|f| f.owner == friend.owner)
+        {
+            if friend.distance < existing.distance {
+                *existing = friend;
+            }
+            return;
         }
-    } else if *friends_len < MAX_NEARBY_FRIENDS {
+    }
+    if *friends_len < MAX_NEARBY_FRIENDS {
         friends[*friends_len] = Some(friend);
         *friends_len += 1;
     } else {
@@ -408,7 +415,7 @@ mod tests {
         let mut friends = [None; MAX_NEARBY_FRIENDS];
         let mut friends_len = 0usize;
         for friend in order {
-            record_friend(&mut friends, &mut friends_len, friend);
+            record_friend(&mut friends, &mut friends_len, friend, true);
         }
         let mut measured: Vec<_> = friends[..friends_len].iter().flatten().copied().collect();
         measured.sort_by_key(|f| f.owner);

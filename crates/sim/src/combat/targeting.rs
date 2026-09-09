@@ -119,6 +119,7 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                                 fighting: sim.fighting[j] == 1,
                                 priority,
                             },
+                            sim.mounted[j] == 1,
                         );
                     }
                     continue;

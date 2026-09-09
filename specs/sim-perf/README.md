@@ -57,7 +57,9 @@ waits while the native verification jobs run.
 where useful, but reserve timing runs so they do not measure those checks.
 
 **Warnings:**
-- Every browser number needs a quiet machine (load average under ~4). On
+- Measurement runs require load average under 10 (David's revised threshold,
+  2026-09-09). The earlier under-4 requirement no longer applies to new runs.
+  Performance, latency and identity targets remain unchanged. On
   2026-09-08 a loaded machine doubled every frame time, including code that
   had not changed.
 - Battle verify baselines (`battle-smoke`, `banner-gallery`,

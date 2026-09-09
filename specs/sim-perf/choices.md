@@ -1,9 +1,11 @@
-# Choices ledger
+# Final choices ledger
 
-Decisions made where the plan was silent. Banked choices are settled for
-subsequent passes; the final audit reconciles them with the shipped state.
+Decisions retained in the shipped code and measurement contract.
+The user's 35 ms acceptance and simple-changes limit supersede the earlier
+optimization ladder. Discarded steering and projection prototypes create no
+ongoing implementation obligations.
 
-## Sound
+## Sound — least confident first
 
 ### budget the median of complete-window means
 
@@ -21,31 +23,6 @@ subsequent passes; the final audit reconciles them with the shipped state.
 **Reach:** This preserves the requested first-contact window without silently imposing a new battle-density target. The developed-fight check separately covers the busier phase before any broad budget conclusion.
 **Verdict:** Sound within the literal first-contact fixture; broad fighting-budget conclusions also require the separately recorded developed-fight check. **Confidence:** medium.
 
-### fail a fixture that never reaches contact
-
-**When:** tick/00.
-**Choice:** If a generated battle has still not produced living melee contact after 18,000 ticks, preparation fails. For example, an AI regression that makes both armies stop advancing produces a failed fixture rather than an indefinitely running command or a cheap idle budget result.
-**Gap:** The spec required waiting until contact but supplied no termination rule if contact never arrives. Its known approach reached combat before 9,000 ticks; the chosen limit allows twice that time.
-**Reach:** Later timing runs cannot silently measure idle preparation as combat, and a broken fixture has bounded work.
-**Verdict:** Sound: the limit rejects failure without changing any battle state or the locked timing budget. **Confidence:** high.
-
-### Check developed combat while the army still contains 30k living men
-
-**When:** developed-window acceptance pass.
-**Choice:** The budget now checks two phases of the same battle. The first
-begins after initial contact, as planned. The second waits until at least
-tick 1500, when thousands of men are fighting and over 30,000 remain alive.
-Both must meet the current 35 ms budget (revised by David on 2026-09-09), and the later window must finish with at least
-30,000 living soldiers. Otherwise, a fast opening skirmish—or a cheap late
-battle after most men have died—could be mistaken for success at 30k scale.
-**Gap:** The spec defined when first contact occurs but did not establish that
-this short opening window represented developed combat.
-**Reach:** Future optimizations retain the original coverage and must also
-handle a busy front at the intended population. The benchmark can explicitly
-select a later window; it does not change when any game event happens.
-**Verdict:** Sound: strengthens the evidence for the existing budget without
-changing simulation behavior or lowering a threshold. **Confidence:** high.
-
 ### Resolve tick/01 without shipping the proposed shared neighborhood
 
 - **When:** tick/01 contact-data pass.
@@ -62,27 +39,6 @@ changing simulation behavior or lowering a threshold. **Confidence:** high.
 **Gap:** The slice explicitly named `UnitPre` and its nested allocations, but did not separately name the returned measurement vector.
 **Reach:** The tick remains the sole caller responsible for returning the vector after its last consumer. No measurement value is carried forward as a simulation input; only capacity survives.
 **Verdict:** Sound: a small extension of the same storage lifetime with one existing caller and no new adapter. Its individual timing gain is not claimed separately. **Confidence:** medium.
-
-### Characterize contact in the commanders-off sweep
-
-**When:** tick/03 measurement preparation.
-**Choice:** The large-army idle diagnostic disables both commanders but keeps
-the same deployment grid as the fighting diagnostic. It runs two fresh
-600-tick battles and prints the greatest number of living fighters observed.
-For example, if the largest grid places opposing soldiers close enough to
-fight without orders, the report exposes that contact; disabling AI alone
-does not prove that the measured soldiers were idle. The alternative was to
-move the armies or suppress combat just to make the label true, which would
-measure a different deployment or different physics.
-**Gap:** The checkpoint requested an idle sweep at every size, but the old
-idle command only supported the generated 15.5k army and did not define
-larger idle deployments. The repeat length retains that original oracle;
-the shared grid avoids a second placement recipe.
-**Reach:** Future comparisons use identical fixture and harness versions,
-and interpret commanders-off timings alongside their observed contact.
-The contact count is collected outside the tick timer.
-**Verdict:** Sound: makes the workload visible without changing simulation
-rules to obtain a favorable timing. **Confidence:** high.
 
 ### Stop the worker branch when the harness cannot meet its final frame target
 
@@ -122,6 +78,66 @@ retained maintenance surfaces. Browser performance remains a separate result.
 **Verdict:** Sound: makes the measured configuration explicit and avoids new
 runtime machinery. **Confidence:** medium.
 
+### Batch enough search work to avoid scheduling overhead
+
+**When:** weapon-repel scheduling revision.
+**Choice:** Each parallel search task receives at least 1024 bodies before
+Rayon divides it further. A small duel consequently stays together; a large
+army offers multiple substantial tasks. Both call the same search code and
+apply the resulting forces in the original serial order. The alternative
+split tiny tasks whose scheduling cost exceeded their useful work.
+**Gap:** The plan did not select task size.
+**Reach:** This is a performance choice, not a physics cutoff. Retain it until
+a real workload shows a problem; no automatic tuning is introduced.
+**Verdict:** Sound: resolves observed small-battle overhead with one library
+setting. **Confidence:** medium.
+
+### fail a fixture that never reaches contact
+
+**When:** tick/00.
+**Choice:** If a generated battle has still not produced living melee contact after 18,000 ticks, preparation fails. For example, an AI regression that makes both armies stop advancing produces a failed fixture rather than an indefinitely running command or a cheap idle budget result.
+**Gap:** The spec required waiting until contact but supplied no termination rule if contact never arrives. Its known approach reached combat before 9,000 ticks; the chosen limit allows twice that time.
+**Reach:** Later timing runs cannot silently measure idle preparation as combat, and a broken fixture has bounded work.
+**Verdict:** Sound: the limit rejects failure without changing any battle state or the locked timing budget. **Confidence:** high.
+
+### Check developed combat while the army still contains 30k living men
+
+**When:** developed-window acceptance pass.
+**Choice:** The budget now checks two phases of the same battle. The first
+begins after initial contact, as planned. The second waits until at least
+tick 1500, when thousands of men are fighting and over 30,000 remain alive.
+Both must meet the current 35 ms budget (revised by David on 2026-09-09), and the later window must finish with at least
+30,000 living soldiers. Otherwise, a fast opening skirmish—or a cheap late
+battle after most men have died—could be mistaken for success at 30k scale.
+**Gap:** The spec defined when first contact occurs but did not establish that
+this short opening window represented developed combat.
+**Reach:** Future optimizations retain the original coverage and must also
+handle a busy front at the intended population. The benchmark can explicitly
+select a later window; it does not change when any game event happens.
+**Verdict:** Sound: strengthens the evidence for the existing budget without
+changing simulation behavior or lowering a threshold. **Confidence:** high.
+
+### Characterize contact in the commanders-off sweep
+
+**When:** tick/03 measurement preparation.
+**Choice:** The large-army idle diagnostic disables both commanders but keeps
+the same deployment grid as the fighting diagnostic. It runs two fresh
+600-tick battles and prints the greatest number of living fighters observed.
+For example, if the largest grid places opposing soldiers close enough to
+fight without orders, the report exposes that contact; disabling AI alone
+does not prove that the measured soldiers were idle. The alternative was to
+move the armies or suppress combat just to make the label true, which would
+measure a different deployment or different physics.
+**Gap:** The checkpoint requested an idle sweep at every size, but the old
+idle command only supported the generated 15.5k army and did not define
+larger idle deployments. The repeat length retains that original oracle;
+the shared grid avoids a second placement recipe.
+**Reach:** Future comparisons use identical fixture and harness versions,
+and interpret commanders-off timings alongside their observed contact.
+The contact count is collected outside the tick timer.
+**Verdict:** Sound: makes the workload visible without changing simulation
+rules to obtain a favorable timing. **Confidence:** high.
+
 ### Skip duplicate lookup for a soldier represented by one body
 
 **When:** tick/01b.
@@ -137,20 +153,6 @@ operation count exposed repeated duplicate searches after the cache trials.
 visits. Future body representations must preserve that distinction.
 **Verdict:** Sound: removes impossible-case work without remembered state
 or a different friend order. **Confidence:** high.
-
-### Batch enough search work to avoid scheduling overhead
-
-**When:** weapon-repel scheduling revision.
-**Choice:** Each parallel search task receives at least 1024 bodies before
-Rayon divides it further. A small duel consequently stays together; a large
-army offers multiple substantial tasks. Both call the same search code and
-apply the resulting forces in the original serial order. The alternative
-split tiny tasks whose scheduling cost exceeded their useful work.
-**Gap:** The plan did not select task size.
-**Reach:** This is a performance choice, not a physics cutoff. Retain it until
-a real workload shows a problem; no automatic tuning is introduced.
-**Verdict:** Sound: resolves observed small-battle overhead with one library
-setting. **Confidence:** medium.
 
 ### Buffer only search results and preserve serial force arithmetic
 

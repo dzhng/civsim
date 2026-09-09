@@ -78,6 +78,7 @@ Tick track
 - [ ] `tick/03` BUDGET CHECKPOINT — decide the rest with David ([slices/tick/03-budget-checkpoint.md](slices/tick/03-budget-checkpoint.md))
 - [ ] `tick/04` deterministic idle sleeping — deferred while engaged-contact cost dominates ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))
 - [ ] `tick/05` deterministic in-tick parallelism — last lever ([slices/tick/05-parallelism.md](slices/tick/05-parallelism.md))
+- [ ] `tick/05c` bounded exact projection trial — implementation may proceed while earlier comparisons run; builds wait for the CPU lane ([slice](slices/tick/05c-parallel-projection.md))
 
 Worker track
 - [x] `worker/00` measured; early planning no-go under final frame targets, not full transport acceptance ([verdict](assets/worker-verdict.md))
@@ -202,6 +203,7 @@ tick/03 budget checkpoint + scaled sweep
    └─ tick/05b parallel whole-unit steering trial
             │
        exclusive comparisons → integrate retained gains → budget gate
+       tick/05c bounded projection trial if the budget remains red
 tick/04 sleeping deferred; remaining levers depend on measured deficit
 ```
 

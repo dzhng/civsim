@@ -21,6 +21,14 @@ pub enum OrderMode {
     Disengage,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct QueuedOrder {
+    pub mode: OrderMode,
+    pub target: Vec2,
+    pub facing: Option<f32>,
+    pub files: Option<usize>,
+}
+
 pub struct Unit {
     pub class: UnitClassId,
     /// Visual model id exposed to the renderer. Tactical class remains the
@@ -236,14 +244,14 @@ pub struct Unit {
     /// After an expired chase, don't re-latch immediately.
     pub latch_cd: f32,
     /// Queued follow-up orders (shift-issued): executed in sequence as each
-    /// completes. (mode, target, final facing).
-    pub order_queue: Vec<(OrderMode, Vec2, Option<f32>)>,
+    /// completes, including its arrival turn.
+    pub order_queue: Vec<QueuedOrder>,
 }
 
 impl Unit {
     pub fn files_bounds(count: usize) -> RangeInclusive<usize> {
-        let lower = 4.min(count.max(1));
-        lower..=(count / 3).max(lower)
+        let upper = (count / 3).max(1);
+        4.min(upper)..=upper
     }
 }
 

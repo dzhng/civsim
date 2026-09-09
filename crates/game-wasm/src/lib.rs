@@ -602,6 +602,44 @@ impl Game {
         self.refresh_unit_info();
     }
 
+    /// Packed formation placements: unit, x, y, facing, alive, files, spacing.
+    pub fn formation_preview(&self, units: &[u32], x0: f32, y0: f32, x1: f32, y1: f32) -> Vec<f32> {
+        let ids: Vec<_> = units.iter().map(|&u| u as usize).collect();
+        self.battle
+            .sim
+            .formation_line(&ids, Vec2::new(x0, y0), Vec2::new(x1, y1))
+            .iter()
+            .flat_map(|p| {
+                let u = &self.battle.sim.units[p.unit];
+                [
+                    p.unit as f32,
+                    p.target.x,
+                    p.target.y,
+                    p.facing,
+                    u.alive_count as f32,
+                    p.files as f32,
+                    u.spacing.x,
+                ]
+            })
+            .collect()
+    }
+
+    pub fn order_formation_line(
+        &mut self,
+        units: &[u32],
+        x0: f32,
+        y0: f32,
+        x1: f32,
+        y1: f32,
+        queued: bool,
+    ) {
+        let ids: Vec<_> = units.iter().map(|&u| u as usize).collect();
+        self.battle
+            .sim
+            .order_formation_line(&ids, Vec2::new(x0, y0), Vec2::new(x1, y1), queued);
+        self.refresh_unit_info();
+    }
+
     pub fn set_files(&mut self, unit: u32, files: u32) {
         self.battle.sim.set_files(unit as usize, files as usize);
         self.refresh_unit_info();
@@ -657,7 +695,9 @@ impl Game {
             return Vec::new();
         };
         let mut out = Vec::with_capacity(u.order_queue.len() * 3);
-        for (mode, target, _facing) in &u.order_queue {
+        for order in &u.order_queue {
+            let mode = &order.mode;
+            let target = &order.target;
             let m = match mode {
                 OrderMode::Move => 0.0,
                 OrderMode::Attack(_) => 1.0,

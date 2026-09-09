@@ -77,12 +77,20 @@ export async function run(ctx) {
       return {
         world: hits[0],
         screen,
-        facing: Math.atan2(hits[1][1] - hits[0][1], hits[1][0] - hits[0][0]),
+        facing: Math.atan2(hits[1][1] - hits[0][1], hits[1][0] - hits[0][0]) + Math.PI / 2,
+        width: Math.hypot(hits[1][0] - hits[0][0], hits[1][1] - hits[0][1]),
       };
     }, UNIT_INFO);
     const formationCamera = await pose();
     await page.mouse.move(...formation.screen[0]);
     await page.mouse.down({ button: "right" });
+    await page.mouse.move(
+      (formation.screen[0][0] + formation.screen[1][0]) / 2,
+      (formation.screen[0][1] + formation.screen[1][1]) / 2,
+      { steps: 3 },
+    );
+    await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
+    const narrowPreview = await page.evaluate(() => window.__game.previewDebug(4));
     await page.mouse.move(...formation.screen[1], { steps: 6 });
     await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
     const dragPreview = await page.evaluate(() => window.__game.previewDebug(4));
@@ -91,19 +99,28 @@ export async function run(ctx) {
     ctx.check(
       "right-drag displays the current formation preview",
       !!dragPreview &&
-        Math.abs((dragPreview.y0 + dragPreview.y1) / 2 - formation.world[1]) < 1 &&
-        Math.abs(dragPreview.x1 - dragPreview.x0) < Math.abs(dragPreview.y1 - dragPreview.y0),
+        !!narrowPreview &&
+        dragPreview.files > narrowPreview.files &&
+        dragPreview.width > narrowPreview.width * 1.7 &&
+        Math.abs(dragPreview.x0 - formation.world[0]) < 1 &&
+        Math.abs(dragPreview.y1 - formation.world[1]) < 1 &&
+        Math.abs(dragPreview.width - formation.width) < 1.1,
       JSON.stringify(dragPreview),
     );
     await page.mouse.up({ button: "right" });
     await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
     const formationOrder = await page.evaluate(() => Array.from(window.__game.unitInfo(4)));
     ctx.check(
-      "right-drag places the formation and faces along the drag",
+      "right-drag places the front edge across the drag and faces forward",
       Math.hypot(
-        formationOrder[UNIT_INFO.targetX] - formation.world[0],
-        formationOrder[UNIT_INFO.targetY] - formation.world[1],
+        formationOrder[UNIT_INFO.targetX] -
+          formation.world[0] -
+          (Math.sin(formation.facing) * dragPreview.width) / 2,
+        formationOrder[UNIT_INFO.targetY] -
+          formation.world[1] +
+          (Math.cos(formation.facing) * dragPreview.width) / 2,
       ) < 1 &&
+        formationOrder[UNIT_INFO.currentFiles] === dragPreview.files &&
         formationOrder[UNIT_INFO.hasGoalFacing] === 1 &&
         Math.abs(formationOrder[UNIT_INFO.goalFacing] - formation.facing) < 0.001,
       JSON.stringify(formationOrder),

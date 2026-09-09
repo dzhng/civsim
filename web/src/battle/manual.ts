@@ -15,7 +15,7 @@ physically stops horseflesh.</em></p>
 <tr><td>left-drag FROM a selected unit</td><td><b>drag-move</b>: carry the whole selection somewhere, facing preserved — destination ghosts preview while you drag</td></tr>
 <tr><td>right-click ground</td><td>group move: each cluster keeps formation, the selection turns to face the move direction; <b>double right-click = run</b></td></tr>
 <tr><td>right-click enemy</td><td>attack. A multi-unit selection approaches IN FORMATION and breaks to individual charges at ~150m</td></tr>
-<tr><td>right-drag</td><td>move to the press point and <b>end facing the drag direction</b> — destination ghosts preview live while held, then fade after release</td></tr>
+<tr><td>right-drag</td><td>paint the <b>front edge</b> from its left corner: drag length sets width, left-to-right faces forward, and ranks extend behind the line. Selected units line up side by side. Ghosts preview live; Shift queues the placement</td></tr>
 <tr><td>shift + any order</td><td><b>QUEUE</b> it: runs after everything already underway completes — chain waypoints, then an attack, then a withdrawal</td></tr>
 <tr><td>alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
 <tr><td>R</td><td>walk-run</td></tr>

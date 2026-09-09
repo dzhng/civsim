@@ -5,7 +5,7 @@ import {
 } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import type { SimClock } from "../shared/simClock";
 import type { BattleFreeze } from "./battleFreeze";
-import { Input } from "./input";
+import { Input, type OrderSink } from "./input";
 import { createBattleOrders, type BattleOrders } from "./battleOrders";
 import { groupMoveDests, type UnitSnap } from "./orders";
 import type { BattleWorld } from "./battleWorld";
@@ -89,7 +89,7 @@ export function createBattleControls(
     return { u: unit, x, y, r: 0.5 * files * CLASS_SPACING[classId] };
   };
 
-  const sink = {
+  const sink: OrderSink = {
     unitsInScreenRect: (x0: number, y0: number, x1: number, y1: number) => {
       const info = world.unitInfo();
       const units: number[] = [];
@@ -178,14 +178,7 @@ export function createBattleControls(
         orders.markFlash(selected);
       } else orders.groupMove(selected, x, y, alt ? "disengage" : "move");
     },
-    orderFacing: (units: number[], x: number, y: number, facing: number, queued: boolean) => {
-      if (queued) {
-        const selected = myUnits(units);
-        for (const destination of groupMoveDests(selected.map(unitSnap), x, y))
-          game.enqueue(destination.u, 0, destination.x, destination.y, facing, 1);
-        orders.markFlash(selected);
-      } else orders.groupMove(units, x, y, "move", facing);
-    },
+    orderLine: (units, line, queued) => orders.orderLine(units, line, queued),
     togglePace: (units: number[]) => {
       const selected = myUnits(units);
       const info = world.unitInfo();

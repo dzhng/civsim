@@ -1,5 +1,9 @@
 # Battle camera and mouse controls
 
+The [frontage-drag report](battle-formation-drag.md) describes the current
+left-corner, width-setting gesture, superseding the direction-arrow behavior
+verified by the earlier input work below.
+
 Middle-drag owns camera rotation. Right-drag owns the selected units' existing
 formation destination and facing preview, and right-click remains a point
 order. A right drag that returns to its start does not become an accidental

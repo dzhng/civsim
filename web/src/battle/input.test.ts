@@ -33,7 +33,7 @@ function fixture() {
     allUnits: vi.fn(() => [0]),
     dragMove: vi.fn(),
     orderPoint: vi.fn(),
-    orderFacing: vi.fn(),
+    orderLine: vi.fn(),
     togglePace: vi.fn(),
     reform: vi.fn(),
     toggleKite: vi.fn(),
@@ -66,7 +66,7 @@ test("middle-drag looks around at a fixed eye with or without a unit selected, a
     expect(after.pitch).not.toBe(before.pitch);
     expect(Math.hypot(...end.map((v, i) => v - eye[i]))).toBeLessThan(0.001);
     expect(sink.orderPoint).not.toHaveBeenCalled();
-    expect(sink.orderFacing).not.toHaveBeenCalled();
+    expect(sink.orderLine).not.toHaveBeenCalled();
   }
 });
 
@@ -83,7 +83,7 @@ test("right-click issues exactly one order, while a drag returning to its start 
   expect(sink.orderPoint).toHaveBeenCalledTimes(1);
 });
 
-test("right-drag previews and gives formation-facing orders without rotating the camera", () => {
+test("right-drag previews and gives front-edge orders without rotating the camera", () => {
   const { input, sink, camera, mouse } = fixture();
   input.selected = [0];
   const before = camera.params();
@@ -93,14 +93,8 @@ test("right-drag previews and gives formation-facing orders without rotating the
   expect(preview).not.toBeNull();
   mouse("mouseup", 670, 380);
   expect(camera.params()).toEqual(before);
-  expect(sink.orderFacing).toHaveBeenCalledWith(
-    [0],
-    preview!.x,
-    preview!.y,
-    preview!.facing,
-    false,
-  );
-  expect(sink.orderFacing).toHaveBeenCalledTimes(1);
+  expect(sink.orderLine).toHaveBeenCalledWith([0], preview, false);
+  expect(sink.orderLine).toHaveBeenCalledTimes(1);
   expect(sink.orderPoint).not.toHaveBeenCalled();
 });
 
@@ -155,4 +149,20 @@ test("battle wheel sensitivity doubles the previous distance response", () => {
   // The previous 120-pixel wheel input retained 96.47% of distance. Twofold
   // logarithmic travel retains about 93.06%, not a doubling of the zoom factor.
   expect(camera.params().distance / distance).toBeCloseTo(0.93058, 3);
+});
+
+test("frontage drag retains its ground anchor and passes the release endpoint", () => {
+  const { input, camera, mouse, sink } = fixture();
+  input.selected = [0];
+  const a = camera.screenToWorld(500, 350)!;
+  mouse("mousedown", 500, 350);
+  camera.setViewCenter(30, 50);
+  mouse("mousemove", 650, 350);
+  const b = camera.screenToWorld(700, 350)!;
+  mouse("mouseup", 700, 350);
+  expect(sink.orderLine).toHaveBeenCalledWith(
+    [0],
+    { x0: a[0], y0: a[1], x1: b[0], y1: b[1] },
+    false,
+  );
 });

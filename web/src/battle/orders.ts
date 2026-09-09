@@ -1,3 +1,11 @@
+/** A front edge painted from its left corner to its right corner. */
+export interface FormationLine {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
 // Group-order geometry: clustering, formation-preserving moves, and the
 // compressed-star merge for far-flung selections. Pure functions — the
 // verify harness exercises them through the same path the mouse does.

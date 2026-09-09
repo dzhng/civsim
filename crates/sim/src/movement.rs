@@ -421,20 +421,19 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             if u.frame_speed > 0.0 {
                 u.anchor = u.anchor + dir(u.facing) * (u.frame_speed * dt);
             }
-            // Arrived with a commanded facing: pivot to it, then settle.
-            if let Some(ff) = u.final_facing {
+            // The destination is the front-center anchor. Pivot about that anchor
+            // so the painted front edge still lands where it was ordered.
+            if let Some(ff) = u.final_facing.filter(|_| u.pending_target.is_none()) {
                 if u.frame_speed < 0.05 {
                     let err = wrap_angle(ff - u.facing);
-                    if err.abs() < 0.08 {
+                    if err.abs() < 0.0001 {
                         u.final_facing = None;
                         u.pivoting = false;
                     } else {
                         u.pivoting = true;
-                        let geom = tun.wheel_speed_factor * top / u.bound_radius().max(1.0);
+                        let geom = tun.wheel_speed_factor * top / u.march_turn_radius().max(1.0);
                         let rate = tun.base_turn_rate.min(geom);
-                        let center = u.center();
                         u.facing = rotate_toward(u.facing, ff, rate * dt);
-                        u.anchor = center + dir(u.facing) * (0.5 * u.depth());
                     }
                 }
             } else {

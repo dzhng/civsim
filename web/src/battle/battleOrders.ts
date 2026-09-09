@@ -10,10 +10,22 @@ import type { SimClock } from "../shared/simClock";
 import { pushDestRings, pushPie, SOLDIER_RING_RADIUS } from "../shared/overlays";
 import type { BattleFreeze } from "./battleFreeze";
 import type { Input } from "./input";
-import { groupMoveDests, type UnitSnap } from "./orders";
+import { groupMoveDests, type FormationLine, type UnitSnap } from "./orders";
 import type { BattleTacticalLineFrame } from "./renderer";
 import type { BattleWorld } from "./battleWorld";
 import type { PresentedSoldiers } from "./battleCrowd";
+
+// Packed formation_preview contract in game-wasm.
+const FORMATION_PREVIEW = {
+  unit: 0,
+  x: 1,
+  y: 2,
+  facing: 3,
+  alive: 4,
+  files: 5,
+  spacing: 6,
+  stride: 7,
+};
 
 export interface BattleOrders {
   groupMove(
@@ -23,6 +35,7 @@ export interface BattleOrders {
     kind?: "move" | "disengage",
     facing?: number,
   ): void;
+  orderLine(units: number[], line: FormationLine, queued: boolean): void;
   groupAttack(units: number[], target: number): void;
   markFlash(units: number[]): void;
   orderPointAttack(units: number[], target: number): void;
@@ -59,6 +72,11 @@ export function createBattleOrders({
 }): BattleOrders {
   const { game, stride } = world;
   let groupAttacks: GroupAttack[] = [];
+  const detachGroupAttackUnits = (units: number[]) => {
+    groupAttacks = groupAttacks
+      .map((attack) => ({ ...attack, units: attack.units.filter((unit) => !units.includes(unit)) }))
+      .filter((attack) => attack.units.length > 0);
+  };
   const orderFlash = new Map<number, number>();
   const markFlash = (units: number[]) => {
     const time = performance.now();
@@ -132,14 +150,25 @@ export function createBattleOrders({
 
   return {
     groupMove,
+    orderLine(units, line, queued) {
+      const selected = myUnits(units);
+      if (!queued) detachGroupAttackUnits(selected);
+      game.order_formation_line(
+        new Uint32Array(selected),
+        line.x0,
+        line.y0,
+        line.x1,
+        line.y1,
+        queued,
+      );
+      markFlash(selected);
+    },
     groupAttack(units, target) {
       groupAttacks.push({ units, target, lastTx: 1e9, lastTy: 1e9 });
       tickGroupAttacks();
     },
     orderPointAttack(units, target) {
-      groupAttacks = groupAttacks.filter(
-        (attack) => !attack.units.some((unit) => units.includes(unit)),
-      );
+      detachGroupAttackUnits(units);
       groupAttacks.push({ units: [...units], target, lastTx: 1e9, lastTy: 1e9 });
       tickGroupAttacks();
     },
@@ -382,44 +411,82 @@ function buildTacticalLineFrame(
     if (showTransient && info[o + UNIT_INFO.orderProgress] > 0)
       pushPie(groundCues, ax, ay, info[o + UNIT_INFO.orderProgress], 7, 1, 1, 1, 1);
   }
-  // Right-drag preview: where every man will stand, facing the cursor —
-  // the soldier-ring grid in the selection green.
+  // The sim owns the same line layout for both this ghost and the released order.
   if (input.rightDrag) {
     const sel = myUnits(input.selected);
-    if (sel.length > 0) {
-      const snaps = sel.map(unitSnap);
-      for (const dst of groupMoveDests(snaps, input.rightDrag.x, input.rightDrag.y)) {
-        const o = dst.u * STRIDE;
-        const cls = info[o + UNIT_INFO.classId];
-        const alive = info[o + UNIT_INFO.alive];
-        pushPreviewRings(
-          lastPreviewBounds,
-          rings,
-          dst.u,
-          dst.x,
-          dst.y,
-          input.rightDrag.facing,
-          alive,
-          currentUnitFiles(info, o),
-          currentUnitRanks(info, o),
-          CLASS_SPACING[cls],
-          ...SELECTION_GREEN,
-          1,
-        );
-      }
-      // The arrow itself.
-      const a = input.rightDrag;
-      groundCues.push(
-        a.x,
-        a.y,
-        ...SELECTION_GREEN,
-        1,
-        a.x + Math.cos(a.facing) * 14,
-        a.y + Math.sin(a.facing) * 14,
+    const line = input.rightDrag;
+    const placements = game.formation_preview(
+      new Uint32Array(sel),
+      line.x0,
+      line.y0,
+      line.x1,
+      line.y1,
+    );
+    const P = FORMATION_PREVIEW;
+    for (let i = 0; i < placements.length; i += P.stride) {
+      const alive = placements[i + P.alive],
+        files = placements[i + P.files];
+      pushPreviewRings(
+        lastPreviewBounds,
+        rings,
+        placements[i + P.unit],
+        placements[i + P.x],
+        placements[i + P.y],
+        placements[i + P.facing],
+        alive,
+        files,
+        Math.ceil(alive / files),
+        placements[i + P.spacing],
         ...SELECTION_GREEN,
         1,
       );
     }
+    if (placements.length) {
+      rings.push(line.x0, line.y0, SOLDIER_RING_RADIUS * 2, ...SELECTION_GREEN, 1);
+      const facing = placements[P.facing],
+        fx = Math.cos(facing),
+        fy = Math.sin(facing);
+      const x = (line.x0 + line.x1) / 2,
+        y = (line.y0 + line.y1) / 2;
+      const tipX = x + fx * 6,
+        tipY = y + fy * 6;
+      groundCues.push(
+        x,
+        y,
+        ...SELECTION_GREEN,
+        1,
+        tipX,
+        tipY,
+        ...SELECTION_GREEN,
+        1,
+        tipX,
+        tipY,
+        ...SELECTION_GREEN,
+        1,
+        tipX - fx * 2 + fy * 1.5,
+        tipY - fy * 2 - fx * 1.5,
+        ...SELECTION_GREEN,
+        1,
+        tipX,
+        tipY,
+        ...SELECTION_GREEN,
+        1,
+        tipX - fx * 2 - fy * 1.5,
+        tipY - fy * 2 + fx * 1.5,
+        ...SELECTION_GREEN,
+        1,
+      );
+    }
+    groundCues.push(
+      line.x0,
+      line.y0,
+      ...SELECTION_GREEN,
+      1,
+      line.x1,
+      line.y1,
+      ...SELECTION_GREEN,
+      1,
+    );
   }
   // Drag-move preview: the ring grid of every selected unit at the
   // dragged spot.

@@ -1,3 +1,4 @@
+import type { FormationLine } from "./orders";
 import type { Camera } from "../shared/camera";
 import { createCameraKeyController } from "../shared/cameraKeys";
 
@@ -18,8 +19,8 @@ export interface OrderSink {
     double: boolean,
     alt: boolean,
   ): void;
-  /** Right-drag: move to (x, y) and end facing `facing` (the drag arrow). */
-  orderFacing(units: number[], x: number, y: number, facing: number, queued: boolean): void;
+  /** Right-drag paints the formation front edge. */
+  orderLine(units: number[], line: FormationLine, queued: boolean): void;
   togglePace(units: number[]): void;
   reform(units: number[]): void;
   toggleKite(units: number[]): void;
@@ -37,7 +38,7 @@ export class Input {
   /** World-space translation of an in-progress drag-move of the selection. */
   dragDelta: [number, number] | null = null;
   /** In-progress Right-drag: press point + current cursor (world). */
-  rightDrag: { x: number; y: number; facing: number } | null = null;
+  rightDrag: FormationLine | null = null;
   private readonly cameraKeys: ReturnType<typeof createCameraKeyController>;
 
   /** All listeners detach when `signal` aborts. */
@@ -56,7 +57,11 @@ export class Input {
       );
     };
     let lDown: [number, number] | null = null;
-    let rDown: { start: [number, number]; dragged: boolean } | null = null;
+    let rDown: {
+      start: [number, number];
+      ground: [number, number] | null;
+      dragged: boolean;
+    } | null = null;
     let lastRightUp = 0;
 
     let dragMoving = false;
@@ -79,6 +84,7 @@ export class Input {
         if (e.button === 2)
           rDown = {
             start: [e.clientX, e.clientY],
+            ground: pickGround(e.clientX, e.clientY),
             dragged: false,
           };
       },
@@ -100,14 +106,15 @@ export class Input {
         if (rDown) {
           const moved = Math.hypot(e.clientX - rDown.start[0], e.clientY - rDown.start[1]);
           if (moved > DRAG_PX) rDown.dragged = true;
-          const start = pickGround(...rDown.start);
+          const start = rDown.ground;
           const end = pickGround(e.clientX, e.clientY);
           this.rightDrag =
             this.selected.length > 0 && moved > DRAG_PX && start && end
               ? {
-                  x: start[0],
-                  y: start[1],
-                  facing: Math.atan2(end[1] - start[1], end[0] - start[0]),
+                  x0: start[0],
+                  y0: start[1],
+                  x1: end[0],
+                  y1: end[1],
                 }
               : null;
         }
@@ -170,8 +177,8 @@ export class Input {
           if (this.selected.length === 0) return;
           const moved = Math.hypot(e.clientX - sx, e.clientY - sy);
           if (moved > DRAG_PX && drag) {
-            // Drag arrow: go to the press point, face the cursor direction.
-            sink.orderFacing(this.selected, drag.x, drag.y, drag.facing, e.shiftKey);
+            const end = pickGround(e.clientX, e.clientY);
+            if (end) sink.orderLine(this.selected, { ...drag, x1: end[0], y1: end[1] }, e.shiftKey);
           } else {
             if (gesture.dragged || moved > DRAG_PX) return;
             const point = pickGround(e.clientX, e.clientY);

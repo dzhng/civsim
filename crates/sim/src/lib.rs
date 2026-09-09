@@ -22,6 +22,7 @@ pub mod combat;
 mod force_trace;
 #[cfg(feature = "force-trace")]
 pub mod force_trace;
+pub mod formation_orders;
 pub mod genmap;
 pub mod grid;
 pub mod maps;

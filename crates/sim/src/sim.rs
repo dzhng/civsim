@@ -18,7 +18,9 @@ use crate::separation::apply_separation;
 use crate::steer::{steer_soldiers, UnitMeasure, REFORM_COH};
 use crate::terrain::Terrain;
 use crate::tunables::{Pace, Tunables, DT};
-use crate::unit::{reassign_slots, reform_slots, slide_halted_frames, OrderMode, Unit};
+use crate::unit::{
+    reassign_slots, reform_slots, slide_halted_frames, OrderMode, QueuedOrder, Unit,
+};
 use contract::Pcg32;
 
 pub struct SpawnSpec {
@@ -649,26 +651,41 @@ impl Sim {
         target: Vec2,
         facing: Option<f32>,
     ) {
-        let Some(u) = self.units.get_mut(unit) else {
+        self.enqueue_command(
+            unit,
+            QueuedOrder {
+                mode,
+                target,
+                facing,
+                files: None,
+            },
+        );
+    }
+
+    pub(crate) fn enqueue_command(&mut self, unit: usize, order: QueuedOrder) {
+        let Some(u) = self.units.get(unit) else {
             return;
         };
         let idle = u.move_target.is_none()
             && u.pending_target.is_none()
+            && u.final_facing.is_none()
             && matches!(u.mode, OrderMode::Move)
             && u.order_queue.is_empty();
         if idle {
-            self.apply_order(unit, mode, target, facing);
+            self.apply_order(unit, order);
         } else {
-            self.units[unit].order_queue.push((mode, target, facing));
+            self.units[unit].order_queue.push(order);
         }
     }
 
-    fn apply_order(&mut self, unit: usize, mode: OrderMode, target: Vec2, facing: Option<f32>) {
+    fn apply_order(&mut self, unit: usize, order: QueuedOrder) {
         let queue = std::mem::take(&mut self.units[unit].order_queue);
-        self.queue_order(unit, mode, target);
-        let u = &mut self.units[unit];
-        u.order_queue = queue;
-        u.final_facing = facing;
+        self.queue_order(unit, order.mode, order.target);
+        self.units[unit].order_queue = queue;
+        self.units[unit].final_facing = order.facing;
+        if let Some(files) = order.files {
+            self.set_files(unit, files);
+        }
     }
 
     fn queue_order(&mut self, unit: usize, mode: OrderMode, target: Vec2) {
@@ -751,7 +768,7 @@ impl Sim {
         if unit >= self.units.len() {
             return;
         }
-        let files_bounds = Unit::files_bounds(self.units[unit].count);
+        let files_bounds = Unit::files_bounds(self.units[unit].alive_count);
         let files = files.clamp(*files_bounds.start(), *files_bounds.end());
         let u = &mut self.units[unit];
         u.files = files;
@@ -1261,16 +1278,15 @@ impl Sim {
                 if !u.order_queue.is_empty()
                     && u.move_target.is_none()
                     && u.pending_target.is_none()
+                    && u.final_facing.is_none()
                     && matches!(u.mode, OrderMode::Move)
                     && u.engaged == 0
                 {
-                    let (mode, target, facing) = self.units[ui].order_queue.remove(0);
-                    let target = if let OrderMode::Attack(e) = mode {
-                        self.units[e as usize].anchor
-                    } else {
-                        target
-                    };
-                    self.apply_order(ui, mode, target, facing);
+                    let mut order = self.units[ui].order_queue.remove(0);
+                    if let OrderMode::Attack(e) = order.mode {
+                        order.target = self.units[e as usize].anchor;
+                    }
+                    self.apply_order(ui, order);
                 }
             }
             // Queued order transmission.

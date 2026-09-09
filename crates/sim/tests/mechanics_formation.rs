@@ -279,3 +279,193 @@ fn live_frontage_reshape_gathers_before_running_off() {
         "a live width change should gather around its new slots before running off; max lateral slot error {max_lat_err:.1}m"
     );
 }
+
+#[test]
+fn dragged_frontage_anchors_left_edge_and_changes_width() {
+    let (mut sim, u) = block(no_morale_parade(), SEED, 12, 10, 0.9, 1.0, 0);
+    let start = Vec2::new(40.0, 60.0);
+    for width in [12.0, 24.0] {
+        let end = start + Vec2::new(width, 0.0);
+        let preview = sim.formation_line(&[u], start, end);
+        let p = &preview[0];
+        let span = (p.files - 1) as f32 * sim.units[u].spacing.x;
+        assert!((p.target.x - span / 2.0 - start.x).abs() < 0.001);
+        assert!((p.target.y - start.y).abs() < 0.001);
+        assert!(span <= width + 0.001 && span > width - sim.units[u].spacing.x - 0.001);
+        assert!((p.facing - FRAC_PI_2).abs() < 0.001);
+        sim.order_formation_line(&[u], start, end, false);
+        assert_eq!(sim.units[u].files, p.files);
+        assert_eq!(sim.units[u].final_facing, Some(p.facing));
+        assert_eq!(
+            sim.units[u].pending_target.or(sim.units[u].move_target),
+            Some(p.target)
+        );
+    }
+}
+
+#[test]
+fn queued_frontage_keeps_its_width_until_the_order_executes() {
+    let (mut sim, u) = block(no_morale_parade(), SEED, 12, 10, 0.9, 1.0, 0);
+    sim.order_formation_line(&[u], Vec2::new(20.0, 0.0), Vec2::new(26.0, 0.0), false);
+    let first = sim.units[u]
+        .pending_target
+        .or(sim.units[u].move_target)
+        .unwrap();
+    let first_files = sim.units[u].files;
+    let start = Vec2::new(40.0, 30.0);
+    let end = Vec2::new(67.0, 30.0);
+    let preview = sim.formation_line(&[u], start, end);
+    sim.order_formation_line(&[u], start, end, true);
+    assert_eq!(
+        sim.units[u].files, first_files,
+        "queued resizing must not reshape the active order"
+    );
+    for _ in 0..(90.0 / DT) as usize {
+        sim.tick();
+        if sim.units[u].files == preview[0].files {
+            break;
+        }
+    }
+    assert_eq!(sim.units[u].files, preview[0].files);
+    assert!(
+        sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs() < 0.03,
+        "first arrival pivot must complete before the next placement starts"
+    );
+    assert!(
+        (sim.units[u].anchor - first).len() < 3.0,
+        "first leg must finish before reshaping"
+    );
+    assert_eq!(
+        sim.units[u].pending_target.or(sim.units[u].move_target),
+        Some(preview[0].target)
+    );
+    for _ in 0..(90.0 / DT) as usize {
+        sim.tick();
+    }
+    assert!((sim.units[u].anchor - preview[0].target).len() < 3.0);
+    assert!(
+        sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs() < 0.2,
+        "facing={} goal={:?} anchor={:?} cohesion={} speed={} target={:?}",
+        sim.units[u].facing,
+        sim.units[u].final_facing,
+        sim.units[u].anchor,
+        sim.units[u].cohesion,
+        sim.units[u].frame_speed,
+        sim.units[u].move_target
+    );
+}
+
+#[test]
+fn group_frontage_preserves_lateral_order_and_reverses_facing_with_the_drag() {
+    let (mut sim, left) = block(no_morale_parade(), SEED, 12, 10, 0.9, 1.0, 0);
+    let right = sim.spawn_unit(
+        Vec2::new(30.0, 0.0),
+        FRAC_PI_2,
+        120,
+        12,
+        Vec2::new(0.9, 1.1),
+        0,
+        1.0,
+    );
+    for (start, end, first) in [
+        (Vec2::new(40.0, 60.0), Vec2::new(95.0, 60.0), left),
+        (Vec2::new(95.0, 60.0), Vec2::new(40.0, 60.0), right),
+    ] {
+        let placements = sim.formation_line(&[right, left], start, end);
+        assert_eq!(placements[0].unit, first);
+        let direction = (end - start) * (1.0 / (end - start).len());
+        let first_width = (placements[0].files - 1) as f32 * 0.9;
+        assert!((placements[0].target - direction * (first_width / 2.0) - start).len() < 0.001);
+        let last = &placements[1];
+        let right_edge = last.target + direction * ((last.files - 1) as f32 * 0.9 / 2.0);
+        assert!((right_edge - end).len() < 0.91);
+        assert!(sim::dir(last.facing).dot(direction).abs() < 0.001);
+        assert!(sim::dir(last.facing).dot(Vec2::new(-direction.y, direction.x)) > 0.999);
+        assert!(
+            (last.target - placements[0].target).dot(direction)
+                > (first_width + (last.files - 1) as f32 * 0.9) / 2.0
+        );
+    }
+}
+
+#[test]
+fn damaged_formation_preview_uses_survivors_and_stays_at_its_ordered_width() {
+    let (mut sim, u) = block(no_morale_parade(), SEED, 12, 10, 0.9, 1.0, 0);
+    for soldier in 6..120 {
+        sim.kill(soldier);
+    }
+    let start = Vec2::new(10.0, 20.0);
+    let end = Vec2::new(100.0, 20.0);
+    let preview = sim.formation_line(&[u], start, end);
+    assert_eq!(
+        preview[0].files, 2,
+        "six survivors form three ranks, not empty files"
+    );
+    sim.order_formation_line(&[u], start, end, false);
+    for _ in 0..30 {
+        sim.tick();
+    }
+    assert_eq!(sim.units[u].files_eff, preview[0].files);
+}
+
+#[test]
+fn painted_front_edge_survives_a_large_arrival_turn() {
+    let mut tun = no_morale_parade();
+    tun.arrive_radius = 1.5;
+    let (mut sim, u) = block(tun, SEED, 12, 10, 0.9, 1.0, 0);
+    let start = Vec2::new(60.0, 0.0);
+    let end = Vec2::new(66.0, 0.0);
+    sim.order_formation_line(&[u], start, end, false);
+    for _ in 0..(180.0 / DT) as usize {
+        sim.tick();
+    }
+    let front_left = sim.units[u].slot_world(0);
+    assert!(
+        (front_left - start).len() < 1.6,
+        "painted left corner drifted to {front_left:?}"
+    );
+    assert!(sim::wrap_angle(sim.units[u].facing - FRAC_PI_2).abs() < 0.01);
+}
+
+#[test]
+fn mixed_width_units_fit_a_short_frontage_when_a_legal_layout_exists() {
+    let (mut sim, a) = block(no_morale_parade(), SEED, 4, 30, 0.9, 1.0, 0);
+    let b = sim.spawn_unit(
+        Vec2::new(50.0, 0.0),
+        FRAC_PI_2,
+        120,
+        40,
+        Vec2::new(0.9, 1.1),
+        0,
+        1.0,
+    );
+    let start = Vec2::new(0.0, 40.0);
+    let end = Vec2::new(12.0, 40.0);
+    let layout = sim.formation_line(&[a, b], start, end);
+    let last = &layout[1];
+    let edge = last.target.x + (last.files - 1) as f32 * 0.9 / 2.0;
+    assert!(
+        edge <= end.x + 0.001 && edge > end.x - 0.91,
+        "right edge {edge} must fit 12m drag"
+    );
+}
+
+#[test]
+fn impassable_frontage_preview_matches_the_accepted_destination() {
+    let (mut sim, u) = block(no_morale_parade(), SEED, 12, 10, 0.9, 1.0, 0);
+    sim.terrain = sim::terrain::Terrain::flat(100, 100, 1.0, Vec2::ZERO);
+    for y in 40..60 {
+        for x in 40..60 {
+            sim.terrain.speed[y * 100 + x] = 0.0;
+        }
+    }
+    let start = Vec2::new(40.0, 50.0);
+    let end = Vec2::new(52.0, 50.0);
+    let preview = sim.formation_line(&[u], start, end);
+    sim.order_formation_line(&[u], start, end, false);
+    assert_eq!(
+        Some(preview[0].target),
+        sim.units[u].pending_target.or(sim.units[u].move_target)
+    );
+    assert!(sim.terrain.speed_at(preview[0].target) > 0.0);
+}

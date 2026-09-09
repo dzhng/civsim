@@ -14,7 +14,7 @@ horseflesh.*
 | left-click / left-drag | select unit / box-select; **ctrl+A** selects the army; click empty ground deselects |
 | left-drag FROM a selected unit | **drag-move**: carry the selection somewhere, facing preserved — ghosts preview while dragging |
 | right-click ground | group move: clusters keep formation, selection faces the move direction; **double right-click = run** |
-| right-click + DRAG | move to the press point, **end facing the drag direction** — live ghost preview, fades after release |
+| right-click + DRAG | Paint the front edge from its left corner. Drag length sets width; left-to-right faces forward. Selected units line up side by side; Shift queues the placement. |
 | right-click enemy | attack; a multi-unit selection approaches IN FORMATION, breaking to individual charges at ~150m |
 | shift/alt + right-click | **disengage** move: turn and run at full pace, answering nothing — fast but backs exposed |
 | R / F / C | walk-run / othismos-fence / charge setting |

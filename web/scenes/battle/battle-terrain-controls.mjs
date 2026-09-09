@@ -1,3 +1,4 @@
+import { UNIT_INFO } from "../_battle-unit-info.mjs";
 import { reportedHighland } from "../_battle-reported-highland.mjs";
 
 export const meta = {
@@ -13,7 +14,7 @@ export const meta = {
 export async function run(ctx) {
   const page = await reportedHighland(ctx, 2);
   try {
-    await page.evaluate(async () => {
+    await page.evaluate(async (info) => {
       const c = window.__cam,
         g = window.__game,
         u = g.unitInfo(4);
@@ -21,24 +22,30 @@ export async function run(ctx) {
       c.yaw = -Math.PI / 2;
       c.pitchBias = 0;
       c.pitchBias = c.pitch - 0.25;
-      c.setViewCenter(u[0], u[1] + 20);
+      c.setViewCenter(u[info.x], u[info.y] + 20);
       g.select(4);
       await g.freezeAtTick(120);
-    });
+    }, UNIT_INFO);
     for (const ahead of [20, 60, 100]) {
-      const point = await page.evaluate((ahead) => {
-        const g = window.__game,
-          c = window.__cam,
-          u = g.unitInfo(4);
-        const world = [u[0], u[1] + ahead];
-        return { world, screen: c.worldToScreen(...world, g.heightAt(...world)) };
-      }, ahead);
+      const point = await page.evaluate(
+        ({ ahead, info }) => {
+          const g = window.__game,
+            c = window.__cam,
+            u = g.unitInfo(4);
+          const world = [u[info.x], u[info.y] + ahead];
+          return { world, screen: c.worldToScreen(...world, g.heightAt(...world)) };
+        },
+        { ahead, info: UNIT_INFO },
+      );
       await page.mouse.click(...point.screen, { button: "right" });
       await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
-      const result = await page.evaluate(() => ({
-        target: Array.from(window.__game.unitInfo(4)).slice(10, 13),
-        preview: window.__game.previewDebug(4),
-      }));
+      const result = await page.evaluate((info) => {
+        const u = window.__game.unitInfo(4);
+        return {
+          target: [u[info.targetX], u[info.targetY], u[info.hasTarget]],
+          preview: window.__game.previewDebug(4),
+        };
+      }, UNIT_INFO);
       const error = Math.hypot(
         result.target[0] - point.world[0],
         result.target[1] - point.world[1],
@@ -55,13 +62,13 @@ export async function run(ctx) {
       );
     }
     const pose = () => page.evaluate(() => window.__game.cameraSurfaceDebug());
-    const formation = await page.evaluate(() => {
+    const formation = await page.evaluate((info) => {
       const c = window.__cam,
         g = window.__game,
         u = g.unitInfo(4);
       const points = [
-        [u[0], u[1] + 80],
-        [u[0] + 30, u[1] + 80],
+        [u[info.x], u[info.y] + 80],
+        [u[info.x] + 30, u[info.y] + 80],
       ];
       const screen = points.map((p) => c.worldToScreen(...p, g.heightAt(...p)).map(Math.round));
       const hits = screen.map((p) =>
@@ -72,25 +79,33 @@ export async function run(ctx) {
         screen,
         facing: Math.atan2(hits[1][1] - hits[0][1], hits[1][0] - hits[0][0]),
       };
-    });
+    }, UNIT_INFO);
     const formationCamera = await pose();
     await page.mouse.move(...formation.screen[0]);
     await page.mouse.down({ button: "right" });
     await page.mouse.move(...formation.screen[1], { steps: 6 });
     await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
+    const dragPreview = await page.evaluate(() => window.__game.previewDebug(4));
+    // The preceding click leaves a preview too. Its mere presence cannot prove
+    // the current drag reached the renderer; check this drag's position and axis.
     ctx.check(
-      "right-drag displays the formation preview",
-      !!(await page.evaluate(() => window.__game.previewDebug(4))),
+      "right-drag displays the current formation preview",
+      !!dragPreview &&
+        Math.abs((dragPreview.y0 + dragPreview.y1) / 2 - formation.world[1]) < 1 &&
+        Math.abs(dragPreview.x1 - dragPreview.x0) < Math.abs(dragPreview.y1 - dragPreview.y0),
+      JSON.stringify(dragPreview),
     );
     await page.mouse.up({ button: "right" });
     await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
     const formationOrder = await page.evaluate(() => Array.from(window.__game.unitInfo(4)));
     ctx.check(
       "right-drag places the formation and faces along the drag",
-      Math.hypot(formationOrder[10] - formation.world[0], formationOrder[11] - formation.world[1]) <
-        1 &&
-        formationOrder[23] === 1 &&
-        Math.abs(formationOrder[22] - formation.facing) < 0.001,
+      Math.hypot(
+        formationOrder[UNIT_INFO.targetX] - formation.world[0],
+        formationOrder[UNIT_INFO.targetY] - formation.world[1],
+      ) < 1 &&
+        formationOrder[UNIT_INFO.hasGoalFacing] === 1 &&
+        Math.abs(formationOrder[UNIT_INFO.goalFacing] - formation.facing) < 0.001,
       JSON.stringify(formationOrder),
     );
     ctx.check(
@@ -98,17 +113,19 @@ export async function run(ctx) {
       JSON.stringify((await pose()).camera3d) === JSON.stringify(formationCamera.camera3d),
     );
     const before = await pose();
-    const targetBefore = await page.evaluate(() =>
-      Array.from(window.__game.unitInfo(4)).slice(10, 13),
-    );
+    const targetBefore = await page.evaluate((info) => {
+      const u = window.__game.unitInfo(4);
+      return [u[info.targetX], u[info.targetY], u[info.hasTarget]];
+    }, UNIT_INFO);
     await page.mouse.move(800, 400);
     await page.mouse.down({ button: "middle" });
     await page.mouse.move(920, 460, { steps: 8 });
     await page.mouse.up({ button: "middle" });
     const after = await pose();
-    const targetAfter = await page.evaluate(() =>
-      Array.from(window.__game.unitInfo(4)).slice(10, 13),
-    );
+    const targetAfter = await page.evaluate((info) => {
+      const u = window.__game.unitInfo(4);
+      return [u[info.targetX], u[info.targetY], u[info.hasTarget]];
+    }, UNIT_INFO);
     const drift = Math.hypot(...after.eye.map((x, i) => x - before.eye[i]));
     ctx.check(
       "middle-drag rotates at a fixed eye with a unit selected",
@@ -152,17 +169,17 @@ export async function run(ctx) {
         JSON.stringify({ drift, before: before.camera3d, after: after.camera3d }),
       );
     }
-    await page.evaluate(async () => {
+    await page.evaluate(async (info) => {
       const c = window.__cam,
         g = window.__game,
         u = g.unitInfo(4);
       c.zoom = 9.5;
       c.yaw = -Math.PI / 2;
       c.pitchBias = 0;
-      c.setViewCenter(u[30], u[31]);
+      c.setViewCenter(u[info.centerX], u[info.centerY]);
       g.select(-1);
       await g.freezeAtTick(120);
-    });
+    }, UNIT_INFO);
     await page.mouse.move(500, 5);
     await page.mouse.down();
     await page.mouse.move(1200, 620, { steps: 6 });

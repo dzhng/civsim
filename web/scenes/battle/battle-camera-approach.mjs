@@ -1,3 +1,4 @@
+import { UNIT_INFO } from "../_battle-unit-info.mjs";
 import { reportedHighland } from "../_battle-reported-highland.mjs";
 
 export const meta = {
@@ -11,18 +12,21 @@ export const meta = {
 export async function run(ctx) {
   const page = await reportedHighland(ctx);
   try {
-    await page.evaluate(async () => {
+    // This snapshot owns camera framing, not HUD paint. Repeated Chromium
+    // captures can repaint the tray differently while the world is identical.
+    await page.addStyleTag({ content: "#battle-hud { visibility: hidden !important; }" });
+    await page.evaluate(async (info) => {
       const c = window.__cam,
         g = window.__game,
         u = g.unitInfo(4);
       c.resetLook();
       c.zoom = 3;
-      c.setViewCenter(u[0], u[1]);
+      c.setViewCenter(u[info.x], u[info.y]);
       c.zoomAt(800, 450, c.params().distance / 25);
-      c.setViewCenter(u[0], u[1]);
+      c.setViewCenter(u[info.x], u[info.y]);
       g.select(4);
       await g.freezeAtTick(120);
-    });
+    }, UNIT_INFO);
     await page.waitForFunction(
       () => !window.__game.stats().renderStats.terrain.grass.rebuild.pending,
     );

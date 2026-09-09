@@ -64,3 +64,25 @@ error; the test now checks the actual pixels supplied to the input system.
   shows a full horizon, so this capture does not establish combat visibility.
 - Independent code review found no actionable regressions after tracing the
   input, formation-order, camera, and shared consumers.
+
+## Follow-up verification review
+
+The production controls needed no further change. The browser helpers now read
+unit fields from the production layout instead of maintaining a second offset
+map. The drag-preview check verifies the current destination and orientation;
+an earlier point-order preview can no longer satisfy it merely by existing.
+
+| Test | Previous behavior | New behavior | Why |
+| --- | --- | --- | --- |
+| `battle-terrain-controls`: drag preview | Any non-null preview passed, including the preceding point-order preview. | The preview must occupy the drag destination and have its requested axis. | Distinguishes the current formation drag from stale feedback. **strengthened** |
+| Unit-info browser readers | Copied or literal buffer indices. | Consume the production field map. | Keeps the same behavioral assertions without a parallel layout contract. **unchanged behavior** |
+| `battle-camera-approach`: image scope | Included a HUD whose tray repaint differed between repeated captures, even with no active animations; battlefield pixels matched. | Captures the camera view without the HUD. | Keeps this gate about framing; the controls flow separately verifies formation feedback. **baseline updated** |
+
+The stronger preview assertion passed against the live game and failed when
+its drag press/release were deliberately suppressed, leaving the earlier point
+preview visible. All 422 web tests and typecheck passed. Independent review
+found no production correctness regression; the follow-up changes only test
+readers, assertions, the camera capture, and this report.
+The camera-only snapshot then repeated against the live build with zero pixel
+differences. The HUD remains visible in the game; only this framing capture
+excludes it.

@@ -1,10 +1,6 @@
-export const UNIT_INFO = {
-  x: 0,
-  y: 1,
-  targetX: 10,
-  targetY: 11,
-  hasTarget: 12,
-};
+import { UNIT_INFO } from "../../packages/game-renderer/src/battle/unitInfoLayout.ts";
+
+export { UNIT_INFO };
 
 export async function unitScreen(page, unit) {
   return page.evaluate(

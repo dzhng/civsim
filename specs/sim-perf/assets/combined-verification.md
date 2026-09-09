@@ -14,3 +14,13 @@ These results establish correctness of the integrated changes. They do not
 establish the native budget or worker performance verdict; those measurements
 remain separate. Full command output is retained locally in
 `throwaway/sim-perf/workspace-combined.log`.
+
+## Single-body friend shortcut
+
+The full workspace suite was rerun after integrating the single-body friend
+shortcut (`ec32c09c`). It completed successfully on 2026-09-09: the same
+70 groups, 363 passed, zero failed and 12 ignored. No test expectation moved.
+The rebuilt wasm timeline also remains byte-identical, as recorded in the
+visual comparison. The command output is retained locally in
+`throwaway/sim-perf/workspace-friends.log`. This run covers the serial
+implementation; the isolated parallel trials have separate verification.

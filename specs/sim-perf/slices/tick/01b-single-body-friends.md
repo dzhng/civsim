@@ -24,6 +24,7 @@ retains every sample summary and load observation.
 The code is retained. Golden, existing friend-recording tests, duel hashes
 and the 9,000-tick AI hash pass; independent static review found no defects.
 The rebuilt-wasm timeline is byte-identical to the original reference;
-see [visual evidence](../../assets/visual-comparison.md). Integrated workspace
-verification is still running. No other targeting prototype ships and no
-stored state is added.
+see [visual evidence](../../assets/visual-comparison.md). The integrated
+[workspace verification](../../assets/combined-verification.md) passes all
+363 tests with the same 12 ignored. No other targeting prototype ships and
+no stored state is added.

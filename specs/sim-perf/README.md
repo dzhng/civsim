@@ -25,9 +25,9 @@ workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
 is byte-identical. The worker branch is closed by an early feasibility
 no-go; the hash export remains, and no worker seam ships.
 
-**Current pickup:** finish the current serial verification while independent
-native-parallel weapon-repel and whole-unit steering experiments implement
-in isolated worktrees. Then serialize their comparisons under David's
+**Current pickup:** serial integration verification and both isolated
+native-parallel identity matrices pass. Compare weapon repel first, then
+whole-unit steering, in exclusive timing lanes under David's
 load-under-10 precondition, integrate only demonstrated gains, and complete
 the scaled sweep and budget gate. The single-body friend change saved about
 0.94 ms; the developed budget remains near 39 ms against 25 ms. Sleeping is
@@ -74,7 +74,7 @@ Tick track
 - [x] weapon-repel gate — shipped on main 2026-09-08 as an exact per-unit-extent cull (`2e0e4a7c`)
 - [x] `tick/01` immutable projection metadata reuse; shared-neighborhood caches tried and rejected ([slices/tick/01-contact-neighborhood.md](slices/tick/01-contact-neighborhood.md))
 - [x] `tick/02` scratch-buffer reuse ([slices/tick/02-scratch-buffers.md](slices/tick/02-scratch-buffers.md))
-- [ ] `tick/01b` single-body friend shortcut retained; final workspace verification running ([slice](slices/tick/01b-single-body-friends.md))
+- [x] `tick/01b` single-body friend shortcut retained and verified ([slice](slices/tick/01b-single-body-friends.md))
 - [ ] `tick/03` BUDGET CHECKPOINT — decide the rest with David ([slices/tick/03-budget-checkpoint.md](slices/tick/03-budget-checkpoint.md))
 - [ ] `tick/04` deterministic idle sleeping — deferred while engaged-contact cost dominates ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))
 - [ ] `tick/05` deterministic in-tick parallelism — last lever ([slices/tick/05-parallelism.md](slices/tick/05-parallelism.md))

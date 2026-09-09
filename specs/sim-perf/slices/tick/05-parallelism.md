@@ -29,6 +29,19 @@ conflicts.
 
 ## Verification
 
+This slice owns the final native build configuration and the standing
+`scripts/test-perf` integration. The experimental `parallel` feature is
+currently optional and native-only; the standing script still measures
+serial code. A feature-enabled timing result alone cannot make that gate
+green. Retain a parallel configuration only after measured gain, wire the
+standing gate to the actual shipped configuration, and remove unused Rayon
+configuration if neither trial is retained.
+
+Weapon-repel search and whole-unit steering are the first independent
+trials. Their identity checks may run concurrently, but performance
+comparisons use an exclusive lane. Projection is a conditional follow-up,
+not an implementation commitment before those measurements.
+
 - **State hash bit-identical to the SERIAL build** across the three oracles
   AND across thread counts (1, 2, 8) — the strongest oracle in the spec.
 - Full workspace suite; ledger rows at 1/2/8 threads; the budget gate.

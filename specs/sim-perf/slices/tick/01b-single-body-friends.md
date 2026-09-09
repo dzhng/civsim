@@ -23,5 +23,7 @@ retains every sample summary and load observation.
 
 The code is retained. Golden, existing friend-recording tests, duel hashes
 and the 9,000-tick AI hash pass; independent static review found no defects.
-Integrated workspace and rebuilt-wasm verification remain pending for this
-last change. No other targeting prototype ships and no stored state is added.
+The rebuilt-wasm timeline is byte-identical to the original reference;
+see [visual evidence](../../assets/visual-comparison.md). Integrated workspace
+verification is still running. No other targeting prototype ships and no
+stored state is added.

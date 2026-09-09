@@ -74,8 +74,9 @@ Tick track
 - [x] weapon-repel gate — shipped on main 2026-09-08 as an exact per-unit-extent cull (`2e0e4a7c`)
 - [x] `tick/01` immutable projection metadata reuse; shared-neighborhood caches tried and rejected ([slices/tick/01-contact-neighborhood.md](slices/tick/01-contact-neighborhood.md))
 - [x] `tick/02` scratch-buffer reuse ([slices/tick/02-scratch-buffers.md](slices/tick/02-scratch-buffers.md))
+- [ ] `tick/01b` single-body friend shortcut retained; final workspace verification running ([slice](slices/tick/01b-single-body-friends.md))
 - [ ] `tick/03` BUDGET CHECKPOINT — decide the rest with David ([slices/tick/03-budget-checkpoint.md](slices/tick/03-budget-checkpoint.md))
-- [ ] `tick/04` deterministic idle sleeping — behavior track ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))
+- [ ] `tick/04` deterministic idle sleeping — deferred while engaged-contact cost dominates ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))
 - [ ] `tick/05` deterministic in-tick parallelism — last lever ([slices/tick/05-parallelism.md](slices/tick/05-parallelism.md))
 
 Worker track
@@ -159,8 +160,10 @@ every tick slice must reproduce).
 Tick track (locked by David, 2026-07-02, do not re-litigate): **≤ 25 ms per
 tick at 30k fighting**, native release, on the implementing machine; 60k is
 measured and trended, not gated. The 2026-09-08 idle tick at 15.5k is 6.6 ms
-natively (was 20 ms); the fighting tick at 30k has not been re-measured
-since July's 50 ms and is the first number tick/00 produces.
+natively (was 20 ms). The developed fighting window remains near 39 ms
+after the retained pure reductions; the current evidence is in the
+[budget checkpoint](assets/checkpoint-budget.md) and
+[qualifying friend comparison](assets/friend-trial-under10.txt).
 
 Worker track keep/drop table (from the three drafts, strictest of each
 pair; re-based on the clean machine's own baseline rows):
@@ -188,16 +191,18 @@ is worth having regardless).
 
 ```
 TICK (crates/sim)                          WORKER (web)
-tick/00 profiler + budget gate             worker/00 measure ── KILL #1
-   ├─ tick/01 contact                         │
-   └─ tick/02 scratch (parallel)           worker/01 read seam (in-process)
-            │                                 │
-       integrate both                     worker/02 command seam + harness
-   │                                          │
-tick/03 BUDGET CHECKPOINT ── David         worker/03 campaign handoff as JSON
-   │                                          │
-tick/04 idle sleeping (behavior track)     worker/04 cutover ── KILL #2
-tick/05 parallelism (last lever)           worker/05 proof + gate + verdict
+tick/00 profiler + budget gate             worker/00 early feasibility no-go
+   ├─ tick/01 contact                     worker/01–05 closed, not attempted
+   └─ tick/02 scratch
+            │
+       tick/01b friend shortcut
+            │
+tick/03 budget checkpoint + scaled sweep
+   ├─ tick/05a parallel weapon-repel trial
+   └─ tick/05b parallel whole-unit steering trial
+            │
+       exclusive comparisons → integrate retained gains → budget gate
+tick/04 sleeping deferred; remaining levers depend on measured deficit
 ```
 
 The tracks are independent until close. The worker track is the physical
@@ -215,7 +220,10 @@ body projection in `separation/walls.rs` ~21%, weapon-repel ~13% once
 engaged. Those three are tick/01's targets and they match July's ranking
 (`assets/investigation-2026-07.md`, recommendations 2 and 3).
 
-## The worker seam (one owner)
+## Conditional worker design (branch closed)
+
+The following design applies only if the worker branch is reopened. It is
+not shipped or queued work; the early no-go retains only the hash export.
 
 New directory `web/src/battle/sim/` owns "how the main thread reads and
 commands the sim". After worker/04 nothing in `web/src` imports `Game`
@@ -251,6 +259,9 @@ renders from one acquired frame. The harness table (what `freezeAtTick`,
 campaign handoff become) lives in the worker slices.
 
 ## Decisions taken (David overrides any line)
+
+Worker-specific decisions below describe that conditional design. They do
+not create implementation obligations after the early no-go.
 
 - Shared-memory wasm is out: nightly `-Zbuild-std`, threads glue, and it
   still needs a publication protocol because pointers move on

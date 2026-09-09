@@ -105,3 +105,51 @@ building a branch that cannot satisfy them. This is an early planning no-go,
 not a claim that the full worker/00 or worker/04 gates ran and failed.
 **Confidence:** medium; changing the frame contract could make the measured
 30 Hz worker worthwhile, but only the load threshold was revised by David.
+
+### Keep native threading optional during the experiments
+
+**When:** tick/05 experiment setup.
+**Choice:** A native developer currently enables `parallel` to test multiple
+CPU threads; an ordinary build and every browser build still use serial
+execution. For example, installing Rayon, the thread-pool library, does not
+silently change the browser toolchain or the standing serial benchmark.
+The alternative was to make threading the default before proving a benefit.
+**Gap:** The plan named native Rayon first but did not define how an
+unaccepted trial enters the build.
+**Reach:** tick/05 must resolve the final shipping configuration and make
+the standing performance script measure it. If the trials are rejected,
+the unused feature and dependency must disappear.
+**Verdict:** Sound as temporary experiment isolation, with final acceptance
+explicitly owned by tick/05. **Confidence:** medium.
+
+### Try the two smaller independent loops before parallel projection
+
+**When:** tick/03 choice of next lever.
+**Choice:** Test weapon-repel searches and whole-unit steering separately
+before changing the wall solver. A unit can move its own soldiers in their
+original order while another unit does the same; a wall pair can write into
+both participants and needs a more complex ordered merge. The alternative
+was to introduce that merge before knowing whether simpler loops justify
+the threading machinery.
+**Gap:** The plan required deterministic parallelism but did not specify
+which independent loops should establish its first measured benefit.
+**Reach:** The two trials have separate identity and timing verdicts;
+projection remains conditional on the resulting deficit and measured gain.
+**Verdict:** Sound: starts with smaller ownership boundaries while retaining
+the full budget requirement. **Confidence:** medium.
+
+### Skip duplicate lookup for a soldier represented by one body
+
+**When:** tick/01b.
+**Choice:** When recording a nearby foot soldier, append it without searching
+for an earlier record of the same owner. The grid visits each bucket once,
+and that soldier contributes one body, so an earlier copy cannot exist.
+A mounted soldier contributes multiple bodies and still uses the original
+lookup and replacement rules. The alternative was to search the growing
+friend list even when the data producer guarantees uniqueness.
+**Gap:** The contact slice did not identify this exact reduction; the
+operation count exposed repeated duplicate searches after the cache trials.
+**Reach:** The shortcut depends on single-body ownership and unique bucket
+visits. Future body representations must preserve that distinction.
+**Verdict:** Sound: removes impossible-case work without remembered state
+or a different friend order. **Confidence:** high.

@@ -48,6 +48,27 @@ not an implementation commitment before those measurements.
 - If hash identity to serial proves unreachable for a subsystem, that
   subsystem stays serial — record it; do not relax the oracle.
 
+## Boundary for any follow-up
+
+Prefer projection over a whole-pass targeting snapshot if the first trials
+leave a deficit. Within each projection pass, body geometry is fixed until
+all corrections apply. Compute individual pair corrections concurrently,
+then replay the original `+=` and `-=` operations with their already-rounded
+operands in the original body/bucket/body order. Per-thread soldier totals
+would change floating-point addition order.
+Bound temporary pair storage by batches; a full buffer must continue the
+remaining work without dropping pairs. Measure pair volume before selecting
+the storage limit, and keep the original pass/rebuild boundaries.
+
+Targeting lacks that snapshot boundary. Earlier attackers update the
+`fighting` flags later searches read, and an impale immediately moves its
+victim before a later attacker obtains its query position. The target's
+current soldier position also differs from the frozen body-grid position.
+Freezing these values is a behavior change, not an exact parallel pass.
+Keeping each attacker serial and parallelizing its inner scan would add
+thousands of scheduling barriers per tick. Those dependencies make projection
+the smaller candidate; no targeting snapshot or invalidation cache is planned.
+
 ## Must stay green
 
 Everything, at every thread count.

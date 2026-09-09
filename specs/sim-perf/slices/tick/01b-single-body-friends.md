@@ -23,7 +23,8 @@ hide which change paid for itself.
 
 Current trial: golden and the existing friend-recording test pass; the
 duel/sandbox combined hash remains `8d21ca62c2a920c4`. Independent static
-review found no defects. The long AI oracle is running. The first timing
+review found no defects. The long AI oracle also matches through 9,000 ticks,
+ending at `dda9a54e95963dbd`. The first timing
 comparison was stopped when the unchanged control took 88.422 ms under
 load, versus about 39 ms in the earlier gate. That partial run is invalid
 for judging the candidate, which remains uncommitted in its worktree.

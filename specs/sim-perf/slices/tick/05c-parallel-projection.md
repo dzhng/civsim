@@ -1,5 +1,10 @@
 # tick/05c — Exact parallel projection trial
 
+**Closed without integration, 2026-09-09:** David accepts 35 ms and limits
+further work to simple changes. This experiment is outside the retained
+scope. The design below is historical, not queued implementation.
+
+
 ## Contract and status
 
 Reduce the wall solver's measured cost without changing a single pair's

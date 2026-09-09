@@ -25,24 +25,20 @@ workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
 is byte-identical. The worker branch is closed by an early feasibility
 no-go; the hash export remains, and no worker seam ships.
 
-**Current pickup:** the first repel and steering trials preserve identity and
-improve developed combat, but both were rejected for small-battle scheduling
-overhead. Their coarser scheduling revisions are running fresh identity
-checks in isolated worktrees. Projection's bounded replay trial passes its
-identity, overflow and 30k/60k sizing checks; its timing is still pending.
-When all CPU checks finish, compare revised repel and steering (overhead
-first), then projection, in exclusive lanes under David's load-under-10
-precondition. Integrate only demonstrated gains, then complete the scaled
-sweep and standing budget gate. No parallel code is retained yet.
+**Current pickup:** David accepts 35 ms as sufficient (2026-09-09).
+The revised weapon-repel candidate measures 34.896 ms in developed combat,
+with small-battle and idle overhead resolved. Retain that small change;
+finish integration verification, the scaled telemetry sweep and cleanup.
+Do not pursue more speed through larger architecture changes.
 
-The single-body friend change saved about 0.94 ms; the developed budget
-remains near 39 ms against 25 ms. Sleeping is not selected while
-engaged-contact work dominates. The worker track has an [early feasibility no-go](assets/worker-verdict.md)
-against the unchanged final frame targets; its six transport measurements
-and the original renderer gate completed under load 10.
-The first-contact window is a small skirmish; developed combat must also
-meet the native budget. Worker production refactoring would require reopening
-the final frame-target decision; the measured empty-page cadence is 16.7 ms.
+**Complexity limit:** simple changes only. A passing result is a stopping
+point for optimization, not permission to spend complexity for headroom.
+Keep physics and hashes unchanged. No sleeping, whole-unit steering
+refactor, bounded projection replay, new targeting caches or lower sim rate
+in this run. Steering and projection remain unshipped experiments and must
+be discarded. Their correctness does not justify their maintenance cost.
+Worker closure remains the recorded early feasibility no-go; this native
+budget revision does not change browser frame/latency requirements.
 
 **Evidence:** [native baseline](assets/tick00-native-2026-09-09.md),
 [developed-window verification](assets/developed-window.md),
@@ -82,9 +78,9 @@ Tick track
 - [x] `tick/02` scratch-buffer reuse ([slices/tick/02-scratch-buffers.md](slices/tick/02-scratch-buffers.md))
 - [x] `tick/01b` single-body friend shortcut retained and verified ([slice](slices/tick/01b-single-body-friends.md))
 - [ ] `tick/03` BUDGET CHECKPOINT — decide the rest with David ([slices/tick/03-budget-checkpoint.md](slices/tick/03-budget-checkpoint.md))
-- [ ] `tick/04` deterministic idle sleeping — deferred while engaged-contact cost dominates ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))
-- [ ] `tick/05` deterministic in-tick parallelism — last lever ([slices/tick/05-parallelism.md](slices/tick/05-parallelism.md))
-- [ ] `tick/05c` bounded exact projection trial — implementation may proceed while earlier comparisons run; builds wait for the CPU lane ([slice](slices/tick/05c-parallel-projection.md))
+- [x] `tick/04` idle sleeping — not attempted; closed under the simple-changes limit ([slices/tick/04-idle-sleeping.md](slices/tick/04-idle-sleeping.md))
+- [ ] `tick/05` retain revised weapon repel only; integration verification pending ([slices/tick/05-parallelism.md](slices/tick/05-parallelism.md))
+- [x] `tick/05c` projection experiment — closed without integration under the complexity limit ([slice](slices/tick/05c-parallel-projection.md))
 
 Worker track
 - [x] `worker/00` measured; early planning no-go under final frame targets, not full transport acceptance ([verdict](assets/worker-verdict.md))
@@ -164,11 +160,12 @@ every tick slice must reproduce).
 
 ## Budget and thresholds
 
-Tick track (locked by David, 2026-07-02, do not re-litigate): **≤ 25 ms per
+Tick track (revised explicitly by David, 2026-09-09): **≤ 35 ms per
 tick at 30k fighting**, native release, on the implementing machine; 60k is
 measured and trended, not gated. The 2026-09-08 idle tick at 15.5k is 6.6 ms
 natively (was 20 ms). The developed fighting window remains near 39 ms
-after the retained pure reductions; the current evidence is in the
+after the serial reductions. Revised weapon repel reaches 34.896 ms and meets
+the revised target. Historical evidence under the former 25 ms target is in the
 [budget checkpoint](assets/checkpoint-budget.md) and
 [qualifying friend comparison](assets/friend-trial-under10.txt).
 
@@ -205,12 +202,8 @@ tick/00 profiler + budget gate             worker/00 early feasibility no-go
        tick/01b friend shortcut
             │
 tick/03 budget checkpoint + scaled sweep
-   ├─ tick/05a parallel weapon-repel trial
-   └─ tick/05b parallel whole-unit steering trial
-            │
-       exclusive comparisons → integrate retained gains → budget gate
-       tick/05c bounded projection trial if the budget remains red
-tick/04 sleeping deferred; remaining levers depend on measured deficit
+   └─ tick/05a revised weapon repel → integration checks → close
+       tick/04, tick/05b and tick/05c closed without implementation/integration
 ```
 
 The tracks are independent until close. The worker track is the physical
@@ -286,8 +279,8 @@ not create implementation obligations after the early no-go.
 - The worker pauses on `visibilitychange`, matching today's rAF stop.
 - No compat, no migrations, no dual modes past a slice boundary except the
   in-process adapter between worker/01 and 04, which 04 deletes.
-- Tick-track ordering is pure-perf first, behavior track only if the
-  budget is not met purely or as headroom afterwards (July interview).
+- Current scope: accept 35 ms; simple exact changes only. No behavior
+  track or complex headroom work after the revised target is met.
 
 ## Firewalls
 

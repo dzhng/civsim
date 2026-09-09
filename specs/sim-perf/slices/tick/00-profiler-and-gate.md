@@ -28,7 +28,7 @@ debt-ledger split into `steer/`, `separation/` and `combat/`.
    the state hash always.
 3. **Standing budget gate**: `scripts/test-perf`, sibling of
    `scripts/test-mechanics`, runs the 30k fighting fixture in release and
-   fails when median ms/tick > 25; prints the 60k number and the
+   fails when median ms/tick > 35; prints the 60k number and the
    30k → 60k ratio as telemetry (no gate).
 
 ## Verification
@@ -50,8 +50,8 @@ Everything; this slice measures and changes nothing.
 
 ## Feedback that would change this slice
 
-If David re-opens the 25 ms budget (the July interview locked it), the
-gate's threshold moves; nothing else here does.
+David revised the budget from 25 ms to 35 ms on 2026-09-09.
+The threshold changes; fixture coverage and identity requirements remain.
 
 ## Measurement contract
 

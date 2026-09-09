@@ -1,5 +1,10 @@
 # tick/04 — Deterministic sleeping for settled idle units (BEHAVIOR track)
 
+**Closed without integration, 2026-09-09:** David accepts 35 ms and limits
+further work to simple changes. This experiment is outside the retained
+scope. The design below is historical, not queued implementation.
+
+
 ## Contract unlocked
 
 Fully settled, far-from-threat units stop paying per-tick steering and

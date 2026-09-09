@@ -35,7 +35,7 @@ subsequent passes; the final audit reconciles them with the shipped state.
 **Choice:** The budget now checks two phases of the same battle. The first
 begins after initial contact, as planned. The second waits until at least
 tick 1500, when thousands of men are fighting and over 30,000 remain alive.
-Both must meet 25 ms per tick, and the later window must finish with at least
+Both must meet the current 35 ms budget (revised by David on 2026-09-09), and the later window must finish with at least
 30,000 living soldiers. Otherwise, a fast opening skirmish—or a cheap late
 battle after most men have died—could be mistaken for success at 30k scale.
 **Gap:** The spec defined when first contact occurs but did not establish that

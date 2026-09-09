@@ -240,11 +240,11 @@ fn main() {
         let thirty = fighting(30_500, 0);
         let developed = fighting(30_500, 1_500);
         let sixty = fighting(60_000, 0);
-        let passes = thirty.median_ms <= 25.0
-            && developed.median_ms <= 25.0
+        let passes = thirty.median_ms <= 35.0
+            && developed.median_ms <= 35.0
             && developed.min_alive >= 30_000;
         println!(
-            "early 30k -> 60k ratio {:.3}; early/developed 30k budget 25 ms (developed min alive {}): {}",
+            "early 30k -> 60k ratio {:.3}; early/developed 30k budget 35 ms (developed min alive {}): {}",
             sixty.median_ms / thirty.median_ms,
             developed.min_alive,
             if passes { "PASS" } else { "FAIL" }

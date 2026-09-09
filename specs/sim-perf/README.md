@@ -25,14 +25,12 @@ workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
 is byte-identical. The worker branch is closed by an early feasibility
 no-go; the hash export remains, and no worker seam ships.
 
-**Current pickup:** finish the native comparison under David's revised
-load-under-10 precondition, complete the scaled sweep and decide the remaining
-native work. The integrated gate is red at
-39.006 ms in developed combat; targeting is the largest stage. The
-[single-body friend-recording trial](slices/tick/01b-single-body-friends.md)
-preserved all hashes but was removed after its timing comparison became
-inconclusive. Its saved binary is being compared again now that measurement
-conditions qualify. The worker track has an [early feasibility no-go](assets/worker-verdict.md)
+**Current pickup:** finish integrated verification of the
+[single-body friend-recording change](slices/tick/01b-single-body-friends.md),
+then complete the scaled sweep and decide the remaining native work under
+David's load-under-10 precondition. The change preserves all hashes and
+improved developed-window cost by about 0.94 ms in the qualifying comparison;
+the 25 ms gate remains unmet. The worker track has an [early feasibility no-go](assets/worker-verdict.md)
 against the unchanged final frame targets; its six transport measurements
 and the original renderer gate completed under load 10.
 The first-contact window is a small skirmish; developed combat must also

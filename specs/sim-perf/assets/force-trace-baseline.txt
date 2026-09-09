@@ -1,0 +1,23 @@
+   Compiling contract v0.1.0 (/Users/david/dev/game-sim-perf-trace-baseline/crates/contract)
+   Compiling sim v0.1.0 (/Users/david/dev/game-sim-perf-trace-baseline/crates/sim)
+    Finished `test` profile [optimized + debuginfo] target(s) in 3.08s
+     Running tests/force_trace.rs (/Users/david/dev/game-sim-perf-tick/target/debug/deps/force_trace-c5fc55931e29dda1)
+
+running 1 test
+test force_trace_smoke_covers_expected_channels ... FAILED
+
+failures:
+
+---- force_trace_smoke_covers_expected_channels stdout ----
+
+thread 'force_trace_smoke_covers_expected_channels' (40731409) panicked at crates/sim/tests/force_trace.rs:161:9:
+missing force channel CorridorClamp
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    force_trace_smoke_covers_expected_channels
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.23s
+
+error: test failed, to rerun pass `-p sim --test force_trace`

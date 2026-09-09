@@ -24,3 +24,13 @@ The rebuilt wasm timeline also remains byte-identical, as recorded in the
 visual comparison. The command output is retained locally in
 `throwaway/sim-perf/workspace-friends.log`. This run covers the serial
 implementation; the isolated parallel trials have separate verification.
+
+## Feature-specific baseline failure
+
+`force_trace_smoke_covers_expected_channels` fails with
+`missing force channel CorridorClamp` on the original pre-task commit
+`2bef8193`, reproduced with the unchanged test and `force-trace` enabled.
+The [raw result](force-trace-baseline.txt) distinguishes this existing
+fixture failure from a regression in any retained optimization. Its
+expectation remains unchanged. The steering displacement-conservation check
+and direct full-trace identity comparisons are separate evidence.

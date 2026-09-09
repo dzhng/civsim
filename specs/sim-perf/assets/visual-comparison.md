@@ -37,3 +37,9 @@ again match the original bytes; all 18 reference pixel counts match, with
 the same exit 16 and no re-bless. The served-build file fingerprint is
 `f053961a7aa63fd09334d8e82debbf5ac016655ff0adeec9d24025d24e4dd91d`.
 The original timeline therefore also represents this later capture.
+
+The final retained weapon-repel change (`e303d8f8`) was also rebuilt to wasm
+and captured with the same command. Its whole GIF, all 16 actual PNGs and
+all existing-reference difference counts match the preceding capture exactly.
+It resolves in the same 18 frames with the same exit 16. No baseline was
+changed. This verifies the serial wasm path of the retained native feature.

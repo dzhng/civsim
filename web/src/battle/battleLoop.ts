@@ -1,3 +1,5 @@
+import { awaitRendererReady } from "../shared/rendererReady";
+import { mountBattleLoading } from "./battleLoading";
 import { SimClock } from "../shared/simClock";
 import { mountBattleHud, type BattleHudHandle, type BattleHudState } from "../ui/hud/BattleHud";
 import { createHudStore } from "../ui/hudStore";
@@ -32,6 +34,20 @@ export function enterBattleScene(
     signal,
     stride: STRIDE,
   } = world;
+  window.__ready = false;
+  const loading = mountBattleLoading(cfg.onExit, signal);
+  let rendererReady = false;
+  let battleReady = false;
+  let preparingFrame = false;
+  awaitRendererReady(
+    renderer.ready,
+    canvas,
+    () => {
+      if (!signal.aborted) rendererReady = true;
+    },
+    signal,
+    loading.remove,
+  );
   const wasm = cfg.wasm;
   const unitInfo = world.unitInfo;
   const applyBattleCameraRig = cameraRig.apply;
@@ -119,6 +135,8 @@ export function enterBattleScene(
   let hudTimer = 0;
 
   const frame = (now: number) => {
+    // Asset/GPU preparation must not spend simulation time behind the loading screen.
+    if (!rendererReady) return;
     const frameDt = Math.min((now - lastFrame) / 1000, 0.25);
     lastFrame = now;
     fpsAvg += (1 / Math.max(frameDt, 1e-4) - fpsAvg) * 0.05;
@@ -130,6 +148,12 @@ export function enterBattleScene(
     battleAudio.update(camera, frameDt, now / 1000);
     audioUpdateMsAvg += (performance.now() - audioUpdateStart - audioUpdateMsAvg) * 0.05;
 
+    if (!battleReady) {
+      const paused = clock.paused;
+      clock.paused = true;
+      clock.advance(now);
+      clock.paused = paused;
+    }
     const ticks = clock.advance(now);
     if (ticks > 0) {
       const t0 = performance.now();
@@ -146,6 +170,20 @@ export function enterBattleScene(
     }
 
     crowd.draw(simTick, clock.frozen, clock.alpha, frameDt, input.selected);
+    if (!preparingFrame) {
+      preparingFrame = true;
+      awaitRendererReady(
+        renderer.settlePresentedFrame(),
+        canvas,
+        () => {
+          battleReady = true;
+          window.__ready = true;
+          loading.remove();
+        },
+        signal,
+        loading.remove,
+      );
+    }
     renderer.drawTacticalLines(
       orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
       camera,
@@ -192,7 +230,6 @@ export function enterBattleScene(
   installBattleDebugApi({
     audio: battleAudio,
     camera,
-    canvas,
     game,
     generatedVista: generatedVistaForDebug,
     metrics: () => ({

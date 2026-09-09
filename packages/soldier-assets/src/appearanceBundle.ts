@@ -56,15 +56,20 @@ function assetReader() {
     return cache.get(url)! as Promise<T>;
   };
   const bytes = (url: string) => {
-    if (!binaries.has(url))
+    // The baker names images by their full SHA-256. Copies in separate
+    // appearance directories share bytes, but ordinary URLs keep URL identity.
+    const parsed = new URL(url);
+    const digest = parsed.pathname.match(/\/images\/([a-f0-9]{64}\.(?:png|jpg))$/)?.[1];
+    const key = digest && !parsed.search ? `${parsed.origin}/images/${digest}` : url;
+    if (!binaries.has(key))
       binaries.set(
-        url,
+        key,
         fetch(url).then(async (response) => {
           if (!response.ok) throw new Error(`appearance image ${url}: HTTP ${response.status}`);
           return new Uint8Array(await response.arrayBuffer());
         }),
       );
-    return binaries.get(url)!;
+    return binaries.get(key)!;
   };
   return {
     json,

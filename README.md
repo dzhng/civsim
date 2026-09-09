@@ -50,6 +50,26 @@ stored as a freestanding scalar — so it can't drift from what's on screen.
 The [authored battle model rationale](specs/done/battle-model-quality/README.md)
 records the local Blender authoring and production-rendered review boundaries.
 
+## Navigation and loading
+
+Battle links describe a starting setup, not a saved moment in a running fight.
+The shell uses ordinary document navigation so browser history and reload own
+scene lifetimes; the setup is encoded in the URL before launching. Route boot
+lives in [web/src/main.ts](web/src/main.ts), with setup parsing beside the battle
+catalog. Campaign encounters remain part of their owning campaign session.
+
+A battle does not spend simulation time while assets and the first rendered
+frame are being prepared. The scene owns its loading cover and readiness;
+leaving it also cancels its pending UI callbacks. Loading errors use the same
+fatal-error surface as renderer startup errors.
+
+Appearance directories are content-versioned and safe to cache immutably.
+The catalog must revalidate so a new deployment can select new versions.
+Within one catalog load, texture filenames emitted by the baker contain their
+full content hash, allowing identical atlases in different appearance directories
+to share one download. Ordinary image URLs retain their own identity. GPU
+resources still belong to each renderer and are prepared again after navigation.
+
 ## Formatting
 
 Two formatters, one per language. Rust uses the standard workspace formatter;

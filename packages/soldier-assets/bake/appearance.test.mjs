@@ -249,7 +249,9 @@ for (let vertex = 0; vertex < remapped["tier-0.mesh.json"].materialIds.length; v
 }
 
 let currentFiles;
+const imageRequests = [];
 const server = createServer((request, response) => {
+  if (/\/images\//.test(request.url)) imageRequests.push(request.url);
   const file = currentFiles[decodeURIComponent(request.url.slice(1))];
   if (file == null) return response.writeHead(404).end();
   response.writeHead(200, {
@@ -375,6 +377,25 @@ try {
       reload[0].animation,
       catalog[0].animation,
       "reload starts a new resource generation",
+    );
+    // Separate appearance directories embed the same content-addressed atlas.
+    for (const [path, value] of Object.entries(currentFiles)) currentFiles[`copy/${path}`] = value;
+    currentFiles["catalog.json"] = {
+      appearances: { 0: "appearance.json", 1: "copy/appearance.json" },
+    };
+    imageRequests.length = 0;
+    const duplicated = await loadAppearanceCatalog(catalogUrl);
+    for (const channel of Object.keys(duplicated[0].surface.textures)) {
+      const original = duplicated[0].surface.textures[channel].image;
+      assert.deepEqual(duplicated[1].surface.textures[channel].image, original);
+    }
+    const imageNames = new Set(
+      Object.values(currentFiles["materials.json"].textures).map((t) => t.image),
+    );
+    assert.equal(
+      imageRequests.length,
+      imageNames.size,
+      "each hashed atlas downloads once across appearance directories",
     );
     currentFiles["animation.json"].data.pop();
     await assert.rejects(loadAppearanceCatalog(catalogUrl), /invalid samples or metadata/);

@@ -16,6 +16,8 @@ import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environm
 import { setActiveFactions } from "@packages/game-renderer/src/battle/factionColors";
 import { generatedBattleMapEntry } from "@packages/game-renderer/src/battle/mapCatalog";
 
+import { quickBattleUrl, readQuickBattleUrl } from "./battle/quickBattleUrl";
+
 const params = new URLSearchParams(location.search);
 let wasm: InitOutput;
 let gpuStatus: GpuSupportState | null = null;
@@ -25,9 +27,9 @@ if (location.pathname.startsWith("/renderer")) {
   await mountRendererLab(location.pathname);
 } else {
   gpuStatus = await checkGpuSupport({ forceUnsupported: params.get("gpu") === "off" });
-  publishAppShellStats();
   wasm = await init();
   await main();
+  publishAppShellStats();
 }
 
 async function main() {
@@ -77,7 +79,7 @@ async function main() {
           kind,
           wasmMapId: kind === "mapA" ? 0 : kind === "mapB" ? 1 : undefined,
           generatedMap,
-          onExit: () => switchScene(menu),
+          onExit: () => location.assign("/"),
           onLaunch: launchBattle,
         });
       })(),
@@ -121,8 +123,8 @@ async function main() {
         wasmMapId: generatedEntry?.wasmMapId ?? cfg.mapId,
         environment,
         generatedMap,
-        restart: () => launchQuickBattle(cfg),
-        onExit: () => switchScene(menu),
+        restart: () => location.reload(),
+        onExit: () => location.assign(quickBattleUrl("/battle", cfg)),
         onLaunch: launchBattle,
       }),
     );
@@ -136,6 +138,7 @@ async function main() {
       name: string;
       cost: number;
     }>;
+    probe.free();
     return specs.map((s) => ({ id: s.id, name: s.name, cost: s.cost }));
   })();
 
@@ -154,7 +157,7 @@ async function main() {
       campaign,
       data,
       mapJson,
-      onExit: () => switchScene(menu),
+      onExit: () => location.assign("/"),
       onBattle: (game, done) => {
         setActiveFactions();
         switchScene(
@@ -175,11 +178,25 @@ async function main() {
     switchScene(scene);
   }
 
+  const routeConfig = readQuickBattleUrl(params, quickBattleClasses);
+  const battleSetup =
+    location.pathname === "/battle" || (location.pathname === "/battle/run" && !routeConfig);
+  if (location.pathname === "/battle/run" && !routeConfig)
+    history.replaceState(null, "", "/battle");
   const menu = new MenuScene({
-    onCustomBattle: launchQuickBattle,
+    battleSetup,
+    initialConfig: routeConfig ?? undefined,
+    setupError:
+      params.has("setup") && !routeConfig
+        ? "This battle link is invalid. Choose your armies to start a new battle."
+        : undefined,
+    onCustomBattle: (cfg) => {
+      history.replaceState(null, "", quickBattleUrl("/battle", cfg));
+      location.assign(quickBattleUrl("/battle/run", cfg));
+    },
     classSpecs: quickBattleClasses,
-    onNewCampaign: () => void launchCampaign(false),
-    onLoadCampaign: () => void launchCampaign(true),
+    onNewCampaign: () => location.assign("/campaign"),
+    onLoadCampaign: () => location.assign("/campaign?load=1"),
     hasSave: () => readCampaignSave() !== null,
     gpuStatus: gpuStatus!,
   });
@@ -187,8 +204,9 @@ async function main() {
   // ?battle=duel&a=0&b=6&ai=on, ?battle=5v5, ?map=A|B boot straight into the
   // battle (deep links and the verify harness); a bare URL opens the menu.
   const sandbox = params.get("battle");
-  const wantsCampaign = params.has("campaign");
+  const wantsCampaign = params.has("campaign") || location.pathname === "/campaign";
   const wantsBattle =
+    location.pathname === "/battle/run" ||
     sandbox === "duel" ||
     sandbox === "5v5" ||
     sandbox === "surround" ||
@@ -196,12 +214,14 @@ async function main() {
     params.has("map") ||
     params.has("battle");
   if (!gpuStatus!.ok && (wantsCampaign || wantsBattle)) switchScene(menu);
+  else if (location.pathname === "/battle/run" && routeConfig) launchQuickBattle(routeConfig);
+  else if (battleSetup) switchScene(menu);
   else if (params.get("campaign") === "test") void launchCampaign(false, await buildTestCampaign());
   else if (params.get("campaign") === "handoff")
     void launchCampaign(false, await buildHandoffCampaign());
   else if (params.get("campaign") === "alignment")
     void launchCampaign(false, await buildAlignmentCampaign());
-  else if (wantsCampaign) void launchCampaign(false);
+  else if (wantsCampaign) void launchCampaign(params.get("load") === "1");
   else if (sandbox === "duel" || sandbox === "5v5" || sandbox === "surround" || sandbox === "flank")
     launchBattle(sandbox);
   else if (params.has("map") || params.has("battle")) {

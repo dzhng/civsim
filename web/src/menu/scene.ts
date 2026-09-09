@@ -9,6 +9,9 @@ import { Menu } from "../ui/menu/Menu";
 import type { QuickBattleClassSpec, QuickBattleConfig } from "../battle/quickBattleCatalog";
 
 export interface MenuConfig {
+  battleSetup?: boolean;
+  initialConfig?: QuickBattleConfig;
+  setupError?: string;
   /** Launch a configured custom battle (map + two armies). */
   onCustomBattle: (cfg: QuickBattleConfig) => void;
   /** Canonical class rows (id/name/cost) for the custom-battle army builders. */
@@ -38,6 +41,11 @@ export class MenuScene implements Scene {
     flushSync(() =>
       this.reactRoot!.render(
         createElement(Menu, {
+          battleSetup: this.cfg.battleSetup ?? false,
+          initialConfig: this.cfg.initialConfig,
+          setupError: this.cfg.setupError,
+          onOpenBattle: () => location.assign("/battle"),
+          onCloseBattle: () => location.assign("/"),
           gpuStatus: this.cfg.gpuStatus,
           hasSave: this.cfg.hasSave(),
           classes: this.cfg.classSpecs,

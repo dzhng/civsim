@@ -10,7 +10,6 @@ import {
 } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import type { Game, InitOutput } from "../wasm/game_wasm.js";
 import type { Camera } from "../shared/camera";
-import { awaitRendererReady } from "../shared/rendererReady";
 import type { BattleRenderer } from "./renderer";
 import type { BattleAmbientAudio } from "./battleAudio";
 import type { SimClock } from "../shared/simClock";
@@ -42,7 +41,6 @@ interface DebugOwners {
 export function installBattleDebugApi({
   audio,
   camera,
-  canvas,
   game,
   generatedVista,
   metrics,
@@ -54,7 +52,6 @@ export function installBattleDebugApi({
 }: {
   audio: BattleAmbientAudio;
   camera: Camera;
-  canvas: HTMLCanvasElement;
   game: Game;
   generatedVista: BattleVistaGrid | null;
   metrics: () => {
@@ -173,9 +170,6 @@ export function installBattleDebugApi({
     },
   };
   window.__cam = camera;
-  awaitRendererReady(renderer.ready, canvas, () => {
-    window.__ready = true;
-  });
 }
 
 declare global {

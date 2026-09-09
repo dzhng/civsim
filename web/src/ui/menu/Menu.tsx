@@ -10,6 +10,11 @@ import { ArmyBuilder } from "./ArmyBuilder";
  * never per frame). */
 export interface MenuProps {
   gpuStatus: GpuSupportState;
+  battleSetup: boolean;
+  initialConfig?: QuickBattleConfig;
+  setupError?: string;
+  onOpenBattle: () => void;
+  onCloseBattle: () => void;
   hasSave: boolean;
   /** Class rows for the custom-battle army builder (now React). */
   classes: QuickBattleClassSpec[];
@@ -32,14 +37,13 @@ export function Menu(props: MenuProps) {
   const ok = gpuStatus.ok;
   const msg = gpuStatus.message;
 
-  const [qbOpen, setQbOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Escape closes the custom battle modal and the field manual.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      setQbOpen(false);
+      if (props.battleSetup) props.onCloseBattle();
       setSettingsOpen(false);
       props.onHideManual();
     };
@@ -87,7 +91,7 @@ export function Menu(props: MenuProps) {
             id="menu-quick-battle"
             disabled={!ok}
             title={disabledTitle}
-            onClick={() => ok && setQbOpen(true)}
+            onClick={() => ok && props.onOpenBattle()}
           >
             Custom Battle <small>pick a map, build two armies</small>
           </button>
@@ -107,11 +111,17 @@ export function Menu(props: MenuProps) {
           OUTSIDE #menu-ui so the `#menu-ui button` rule doesn't bloat the army
           builder's .qb-step/.qb-template buttons, exactly as when it was a
           body-level element. */}
+      {props.setupError && (
+        <p role="alert" className="battle-setup-error">
+          {props.setupError}
+        </p>
+      )}
       <ArmyBuilder
-        open={qbOpen}
+        open={props.battleSetup}
+        initialConfig={props.initialConfig}
         classes={props.classes}
         onLaunch={props.onCustomBattle}
-        onClose={() => setQbOpen(false)}
+        onClose={props.onCloseBattle}
       />
       <GraphicsSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>

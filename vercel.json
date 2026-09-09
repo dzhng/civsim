@@ -17,6 +17,29 @@
           "value": "require-corp"
         }
       ]
+    },
+    {
+      "source": "/assets/soldiers/appearances/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/battle",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/battle/run",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/campaign",
+      "destination": "/index.html"
     }
   ]
 }

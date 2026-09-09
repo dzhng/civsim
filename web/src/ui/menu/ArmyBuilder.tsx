@@ -36,7 +36,18 @@ import {
 /** Both sides default to the Balanced Host so launching is one click away —
  * same default as the old vanilla builder. (Catalog-bound, so it lives here
  * rather than in the node-tested pure state module.) */
-function initialState(): ArmyBuilderState {
+function initialState(config?: QuickBattleConfig): ArmyBuilderState {
+  if (config)
+    return {
+      mapId: config.mapId,
+      generatedSeed: config.generatedSeed ?? "0",
+      environment: config.environment,
+      armies: config.teams.map((picks) => new Map(picks.map((p) => [p.classId, p.count]))) as [
+        Army,
+        Army,
+      ],
+      factions: config.factions ?? [...DEFAULT_BATTLE_FACTIONS],
+    };
   const balanced = QUICK_BATTLE_TEMPLATES[0];
   const make = (): Army => new Map(balanced.units.map((u) => [u.classId, u.count] as const));
   return {
@@ -50,6 +61,7 @@ function initialState(): ArmyBuilderState {
 
 interface ArmyBuilderProps {
   open: boolean;
+  initialConfig?: QuickBattleConfig;
   classes: QuickBattleClassSpec[];
   onLaunch: (cfg: QuickBattleConfig) => void;
   onClose: () => void;
@@ -58,14 +70,8 @@ interface ArmyBuilderProps {
 /** Custom-battle setup. The #quick-battle-modal bronze CSS in index.html still
  * styles this React DOM; state stays in the pure reducer so army picks and
  * faction choices remain testable without the browser. */
-export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderProps) {
-  const [state, dispatch] = useReducer(armyBuilderReducer, undefined, initialState);
-  useEffect(() => {
-    if (!open) return;
-    dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID });
-    dispatch({ kind: "environment", environment: DEFAULT_BATTLE_ENVIRONMENT });
-    dispatch({ kind: "rerollGeneratedSeed" });
-  }, [open]);
+export function ArmyBuilder({ open, initialConfig, classes, onLaunch, onClose }: ArmyBuilderProps) {
+  const [state, dispatch] = useReducer(armyBuilderReducer, initialConfig, initialState);
   const costOf: ClassCost = (classId) => classes.find((c) => c.id === classId)?.cost ?? 0;
   const validations = state.armies.map((army) =>
     validateQuickBattleArmy(pickArmy(army), costOf),
@@ -74,7 +80,6 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
 
   const launch = () => {
     if (!allValid) return;
-    onClose();
     onLaunch(armyConfig(state));
   };
 

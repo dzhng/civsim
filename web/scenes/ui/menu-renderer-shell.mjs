@@ -294,11 +294,8 @@ export async function run(ctx) {
   );
   await page.click("#gfx-back");
   await page.click("#cmp-menu-exit");
-  await page.waitForFunction(
-    () => getComputedStyle(document.getElementById("menu-ui")).display === "flex",
-    undefined,
-    { timeout: 12000 },
-  );
+  await page.waitForURL((url) => url.pathname === "/");
+  await page.locator("#menu-ui").waitFor();
   const returned = await page.evaluate(() => ({
     menu: getComputedStyle(document.getElementById("menu-ui")).display,
     shell: window.__appShellStats,
@@ -388,13 +385,10 @@ async function runUnsupportedFixture(ctx) {
 async function returnBattleToMenu(page) {
   await page.click("#btn-menu");
   await page.click("#pause-exit");
-  await page.waitForFunction(
-    () =>
-      window.__ready === false &&
-      getComputedStyle(document.getElementById("menu-ui")).display === "flex",
-    undefined,
-    { timeout: 12000 },
-  );
+  await page.waitForURL("**/battle?*");
+  await page.click("#qb-back");
+  await page.waitForURL((url) => url.pathname === "/");
+  await page.locator("#menu-manual").waitFor();
 }
 
 async function waitForRendererBattleUpload(page) {

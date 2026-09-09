@@ -332,3 +332,85 @@
     0 0 0 1px rgba(182, 142, 80, 0.65),
     0 9px 24px rgba(0, 0, 0, 0.68);
 }
+
+#battle-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, #392b1e, #14100d 75%);
+  color: var(--bronze-ink);
+  text-align: center;
+  pointer-events: auto;
+}
+#battle-loading section {
+  box-sizing: border-box;
+  width: min(580px, calc(100vw - 48px));
+  padding: 36px;
+  border-width: 5px;
+}
+#battle-loading h1 {
+  font:
+    30px/1.2 Georgia,
+    serif;
+  color: var(--bronze-ink-bright);
+}
+#battle-loading p {
+  line-height: 1.6;
+}
+.battle-loading-eyebrow {
+  letter-spacing: 3px;
+  font-size: 12px;
+}
+.battle-loading-hint {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.battle-loading-progress {
+  width: 70%;
+  height: 6px;
+  margin: 24px auto;
+  overflow: hidden;
+  background: var(--well-bg);
+  border: 1px solid #b58949;
+}
+.battle-loading-progress::after {
+  content: "";
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: #d7ac61;
+  animation: battle-loading-pulse 1.6s ease-in-out infinite alternate;
+}
+@keyframes battle-loading-pulse {
+  to {
+    transform: translateX(185%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle-loading-progress::after {
+    animation: none;
+  }
+}
+#battle-loading button {
+  margin-top: 14px;
+  padding: 9px 22px;
+  color: var(--bronze-ink-bright);
+  background: var(--well-bg);
+  border: 1px solid #b58949;
+  cursor: pointer;
+  font: inherit;
+}
+.battle-setup-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 12px;
+  margin: 0;
+  text-align: center;
+  background: var(--well-bg);
+  color: var(--bronze-ink-bright);
+}

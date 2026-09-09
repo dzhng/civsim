@@ -6,12 +6,12 @@ resolved small-battle overhead. Retain its shared search kernel, coarse
 scheduling and original serial force-application order.
 
 Whole-unit steering and bounded projection replay are closed experiments.
-They do not ship. Remove their isolated source changes after preserving the
+They do not ship. Their isolated source changes have been discarded after preserving the
 verdict; no further implementation or timing is required for them.
 
 Finish the retained pass's integration checks and native build contract.
-The verified performance result used eight Rayon threads; the standing
-performance command must select the measured configuration explicitly.
+The verified performance result used eight Rayon threads. The standing
+performance command explicitly enables `parallel` and selects eight threads.
 Keep browser builds serial. Do not introduce a new pool manager, automatic
 tuning or additional execution modes to chase headroom.
 

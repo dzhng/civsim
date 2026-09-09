@@ -2,4 +2,6 @@
 # Uninstrumented release budget at first contact and developed melee; 60k is telemetry.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-exec cargo run --release -p sim --bin profile_tick -- gate
+# Match the accepted native measurement; wasm continues to use serial execution.
+export RAYON_NUM_THREADS=8
+exec cargo run --release -p sim --features parallel --bin profile_tick -- gate

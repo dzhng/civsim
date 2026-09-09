@@ -106,37 +106,21 @@ not a claim that the full worker/00 or worker/04 gates ran and failed.
 **Confidence:** medium; changing the frame contract could make the measured
 30 Hz worker worthwhile, but only the load threshold was revised by David.
 
-### Keep native threading optional during the experiments
+### Keep native threading optional and benchmark eight workers
 
-**When:** tick/05 experiment setup.
-**Choice:** A native developer currently enables `parallel` to test multiple
-CPU threads; an ordinary build and every browser build still use serial
-execution. For example, installing Rayon, the thread-pool library, does not
-silently change the browser toolchain or the standing serial benchmark.
-The alternative was to make threading the default before proving a benefit.
-**Gap:** The plan named native Rayon first but did not define how an
-unaccepted trial enters the build.
-**Reach:** tick/05 must resolve the final shipping configuration and make
-the standing performance script measure it. If the trials are rejected,
-the unused feature and dependency must disappear.
-**Verdict:** Sound as temporary experiment isolation, with final acceptance
-explicitly owned by tick/05. **Confidence:** medium.
-
-### Try the two smaller independent loops before parallel projection
-
-**When:** tick/03 choice of next lever.
-**Choice:** Test weapon-repel searches and whole-unit steering separately
-before changing the wall solver. A unit can move its own soldiers in their
-original order while another unit does the same; a wall pair can write into
-both participants and needs a more complex ordered merge. The alternative
-was to introduce that merge before knowing whether simpler loops justify
-the threading machinery.
-**Gap:** The plan required deterministic parallelism but did not specify
-which independent loops should establish its first measured benefit.
-**Reach:** The two trials have separate identity and timing verdicts;
-projection remains conditional on the resulting deficit and measured gain.
-**Verdict:** Sound: starts with smaller ownership boundaries while retaining
-the full budget requirement. **Confidence:** medium.
+**When:** retained weapon-repel integration.
+**Choice:** Native callers explicitly enable `parallel`; ordinary and browser
+builds remain serial. The performance command enables the feature and sets
+eight workers, matching the accepted measurement. For example, running the
+benchmark does not imply that the browser gained threads or a new toolchain.
+Rayon owns its normal reusable global pool; no pool manager is added.
+**Gap:** The plan named Rayon but did not specify its final build or benchmark
+configuration. Unconfigured Rayon would use this machine's 18 logical CPUs,
+which is a different configuration from the accepted measurement.
+**Reach:** The optional native feature, dependency and result vector are the
+retained maintenance surfaces. Browser performance remains a separate result.
+**Verdict:** Sound: makes the measured configuration explicit and avoids new
+runtime machinery. **Confidence:** medium.
 
 ### Skip duplicate lookup for a soldier represented by one body
 
@@ -153,3 +137,41 @@ operation count exposed repeated duplicate searches after the cache trials.
 visits. Future body representations must preserve that distinction.
 **Verdict:** Sound: removes impossible-case work without remembered state
 or a different friend order. **Confidence:** high.
+
+### Batch enough search work to avoid scheduling overhead
+
+**When:** weapon-repel scheduling revision.
+**Choice:** Each parallel search task receives at least 1024 bodies before
+Rayon divides it further. A small duel consequently stays together; a large
+army offers multiple substantial tasks. Both call the same search code and
+apply the resulting forces in the original serial order. The alternative
+split tiny tasks whose scheduling cost exceeded their useful work.
+**Gap:** The plan did not select task size.
+**Reach:** This is a performance choice, not a physics cutoff. Retain it until
+a real workload shows a problem; no automatic tuning is introduced.
+**Verdict:** Sound: resolves observed small-battle overhead with one library
+setting. **Confidence:** medium.
+
+### Buffer only search results and preserve serial force arithmetic
+
+**When:** weapon-repel integration.
+**Choice:** Each body owns one reusable slot containing its chosen neighbor
+and penetration. Searches may finish in any order; forces are then calculated
+and added in body order. Two soldiers pushing the same opponent therefore
+keep precisely the original floating-point operations. The alternative of
+summing worker-local forces would change rounding order.
+**Gap:** The plan did not specify how much work to stage.
+**Reach:** One result vector is retained; no new physics state or RNG stream
+exists. Serial and parallel searches share one closure in their existing owner.
+**Verdict:** Sound: minimal staged data with one formula owner.
+**Confidence:** high.
+
+### Stop when geometry proves every search empty
+
+**When:** weapon-repel scheduling revision.
+**Choice:** If the existing unit extents show no possible enemy search, return
+before scheduling bodies or writing empty results. All those searches would
+return no neighbor, so force and activation outputs remain unchanged.
+**Gap:** The experiment exposed overhead despite the existing per-body skip.
+**Reach:** Reuses the geometric guarantee; adds no distance threshold or mode.
+**Verdict:** Sound: removes work with no possible effect. **Confidence:** high.

@@ -27,7 +27,7 @@ no-go; the hash export remains, and no worker seam ships.
 
 **Current pickup:** David accepts 35 ms as sufficient (2026-09-09).
 The revised weapon-repel candidate measures 34.896 ms in developed combat,
-with small-battle and idle overhead resolved. Retain that small change;
+with small-battle and idle overhead resolved. That small change is integrated;
 finish integration verification, the scaled telemetry sweep and cleanup.
 Do not pursue more speed through larger architecture changes.
 
@@ -35,8 +35,7 @@ Do not pursue more speed through larger architecture changes.
 point for optimization, not permission to spend complexity for headroom.
 Keep physics and hashes unchanged. No sleeping, whole-unit steering
 refactor, bounded projection replay, new targeting caches or lower sim rate
-in this run. Steering and projection remain unshipped experiments and must
-be discarded. Their correctness does not justify their maintenance cost.
+in this run. Steering and projection were discarded without integration. Their correctness does not justify their maintenance cost.
 Worker closure remains the recorded early feasibility no-go; this native
 budget revision does not change browser frame/latency requirements.
 

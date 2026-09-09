@@ -43,3 +43,10 @@ Reopening the worker track requires an explicit frame-target or harness
 decision and a valid snapshot-age measurement. No threshold was silently
 relaxed to keep the prototype. Existing renderer verification is reported
 separately; this no-go does not declare that gate passed.
+
+The subsequent unchanged `perf:30k` renderer gate exited zero, with all
+checks passing on the hardware adapter. Median GPU frame times were
+13.95 ms at the mid stop and 11.69 ms at the vista stop; movement and zoom
+checks also passed. [Complete output](renderer-under10.txt) records the
+scope. This ran on the original-simulation worker checkout and establishes
+that renderer baseline, not a worker cutover result.

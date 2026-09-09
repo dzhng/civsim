@@ -25,13 +25,16 @@ workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
 is byte-identical. `worker/00` has a
 matching cross-thread hash, but no admissible quiet-machine timing yet.
 
-**Current pickup:** obtain a usable measurement window, complete the scaled
-sweep and decide the remaining native work. The integrated gate is red at
+**Current pickup:** finish the native comparison under David's revised
+load-under-10 precondition, complete the scaled sweep and decide the remaining
+native work. The integrated gate is red at
 39.006 ms in developed combat; targeting is the largest stage. The
 [single-body friend-recording trial](slices/tick/01b-single-body-friends.md)
 preserved all hashes but was removed after its timing comparison became
-inconclusive. All task-owned CPU jobs are stopped; repeating loaded trials
-cannot resolve the next performance decision.
+inconclusive. Its saved binary is being compared again now that measurement
+conditions qualify. The worker track has an [early feasibility no-go](assets/worker-verdict.md)
+against the unchanged final frame targets; its six transport measurements
+and the original renderer gate completed under load 10.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
 when a quiet timing lane is available; worker production refactoring starts
@@ -82,12 +85,12 @@ Tick track
 - [ ] `tick/05` deterministic in-tick parallelism — last lever ([slices/tick/05-parallelism.md](slices/tick/05-parallelism.md))
 
 Worker track
-- [ ] `worker/00` measure — KILL #1 ([slices/worker/00-measure.md](slices/worker/00-measure.md))
-- [ ] `worker/01` read seam in-process ([slices/worker/01-read-seam.md](slices/worker/01-read-seam.md))
-- [ ] `worker/02` command seam, async-correct harness ([slices/worker/02-command-seam.md](slices/worker/02-command-seam.md))
-- [ ] `worker/03` campaign handoff as JSON ([slices/worker/03-campaign-handoff.md](slices/worker/03-campaign-handoff.md))
-- [ ] `worker/04` cutover — KILL #2 ([slices/worker/04-worker-cutover.md](slices/worker/04-worker-cutover.md))
-- [ ] `worker/05` proof, standing gate, keep/drop ([slices/worker/05-proof-and-gate.md](slices/worker/05-proof-and-gate.md))
+- [x] `worker/00` measured; early planning no-go under final frame targets, not full transport acceptance ([verdict](assets/worker-verdict.md))
+- [x] `worker/01` read seam — not attempted after no-go
+- [x] `worker/02` command seam — not attempted after no-go
+- [x] `worker/03` JSON handoff — not attempted after no-go
+- [x] `worker/04` cutover — not attempted after no-go
+- [x] `worker/05` end-to-end proof — not attempted after no-go
 - [ ] close-spec when both tracks have a verdict
 
 **Instruction to the next agent:** update this section before ending your

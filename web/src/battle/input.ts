@@ -18,7 +18,7 @@ export interface OrderSink {
     double: boolean,
     alt: boolean,
   ): void;
-  /** Alt + right-drag: move to (x, y) and end facing `facing` (the drag arrow). */
+  /** Right-drag: move to (x, y) and end facing `facing` (the drag arrow). */
   orderFacing(units: number[], x: number, y: number, facing: number, queued: boolean): void;
   togglePace(units: number[]): void;
   reform(units: number[]): void;
@@ -36,7 +36,7 @@ export class Input {
   mouseCss: [number, number] = [-1, -1];
   /** World-space translation of an in-progress drag-move of the selection. */
   dragDelta: [number, number] | null = null;
-  /** In-progress Alt + right-drag: press point + current cursor (world). */
+  /** In-progress Right-drag: press point + current cursor (world). */
   rightDrag: { x: number; y: number; facing: number } | null = null;
   private readonly cameraKeys: ReturnType<typeof createCameraKeyController>;
 
@@ -56,12 +56,7 @@ export class Input {
       );
     };
     let lDown: [number, number] | null = null;
-    let rDown: {
-      start: [number, number];
-      last: [number, number];
-      rotating: boolean;
-      facing: boolean;
-    } | null = null;
+    let rDown: { start: [number, number]; dragged: boolean } | null = null;
     let lastRightUp = 0;
 
     let dragMoving = false;
@@ -84,9 +79,7 @@ export class Input {
         if (e.button === 2)
           rDown = {
             start: [e.clientX, e.clientY],
-            last: [e.clientX, e.clientY],
-            rotating: false,
-            facing: e.altKey && this.selected.length > 0,
+            dragged: false,
           };
       },
       { signal },
@@ -106,26 +99,19 @@ export class Input {
         }
         if (rDown) {
           const moved = Math.hypot(e.clientX - rDown.start[0], e.clientY - rDown.start[1]);
-          if (rDown.facing) {
-            if (moved > DRAG_PX) {
-              const start = pickGround(...rDown.start);
-              const end = pickGround(e.clientX, e.clientY);
-              this.rightDrag =
-                start && end
-                  ? {
-                      x: start[0],
-                      y: start[1],
-                      facing: Math.atan2(end[1] - start[1], end[0] - start[0]),
-                    }
-                  : null;
-            } else this.rightDrag = null;
-          } else if (rDown.rotating || moved > DRAG_PX) {
-            rDown.rotating = true;
-            camera.yawAboutEye(-(e.clientX - rDown.last[0]) * 0.006);
-            camera.pitchAboutEye((e.clientY - rDown.last[1]) * 0.004);
-            rDown.last = [e.clientX, e.clientY];
-          }
+          if (moved > DRAG_PX) rDown.dragged = true;
+          const start = pickGround(...rDown.start);
+          const end = pickGround(e.clientX, e.clientY);
+          this.rightDrag =
+            this.selected.length > 0 && moved > DRAG_PX && start && end
+              ? {
+                  x: start[0],
+                  y: start[1],
+                  facing: Math.atan2(end[1] - start[1], end[0] - start[0]),
+                }
+              : null;
         }
+
         if (lDown) {
           const moved = Math.hypot(e.clientX - lDown[0], e.clientY - lDown[1]);
           if (dragMoving) {
@@ -181,13 +167,13 @@ export class Input {
           rDown = null;
           const drag = this.rightDrag;
           this.rightDrag = null;
-          if (this.selected.length === 0 || gesture.rotating) return;
+          if (this.selected.length === 0) return;
           const moved = Math.hypot(e.clientX - sx, e.clientY - sy);
           if (moved > DRAG_PX && drag) {
             // Drag arrow: go to the press point, face the cursor direction.
             sink.orderFacing(this.selected, drag.x, drag.y, drag.facing, e.shiftKey);
           } else {
-            if (moved > DRAG_PX) return;
+            if (gesture.dragged || moved > DRAG_PX) return;
             const point = pickGround(e.clientX, e.clientY);
             if (!point) return;
             const [bx, by] = point;
@@ -233,9 +219,8 @@ export class Input {
         yaw: (delta) => camera.yawAboutEye(delta),
         pitchOrZoom: (delta) => camera.pitchAboutEye(delta),
         zoomAt: (px, py, factor) => {
-          const wheelDelta = Math.log(factor) / -Math.log(1.0015);
-          camera.zoomAt(px, py, factor, onZoomChange);
-          camera.pitchBias *= Math.pow(0.9985, Math.abs(wheelDelta));
+          // Twice the shared wheel travel for battle inspection.
+          camera.zoomAt(px, py, factor * factor, onZoomChange);
         },
         panSpeed: () => camera.panSpeed(),
       },

@@ -41,11 +41,15 @@ strip carries its material attributes into the outer band.
 Battle's automatic tilt follows physical viewing distance and approaches the
 horizon only near the ground. Manual look preserves the eye position, viewing
 distance, and lens above uneven terrain. Its look target may leave the map;
-clamping that target would move the eye during a head turn. Right-drag and
+clamping that target would move the eye during a head turn. Middle-drag and
 Q/E/Z/X use this same operation. Right-click issues a ground order, and
-Alt-right-drag gives a facing order.
+right-drag previews a formation destination and facing.
 
-Wheel zoom brings the elevated look target back toward terrain as the remaining
+After manual look, wheel zoom preserves the chosen heading and horizontal
+target. A near-horizon cursor ray can intersect very distant ground; anchoring
+to that hit would turn a small zoom into a large sideways move. Automatic
+tactical views still support cursor-anchored zoom. Wheel zoom brings the
+elevated look target back toward terrain as the remaining
 zoom distance closes. Retaining that altitude after a high head turn would
 strand even the closest camera view far above the soldiers.
 
@@ -132,3 +136,6 @@ the same pass sorts props against the campaign ground or the battle ground.
 The [terrain and controls verification report](../web/reports/battle-terrain-controls.md)
 records the reported-seed checks, review decisions, and remaining pixel-repeat
 limitation.
+
+The [camera input report](../web/reports/battle-camera-input.md) records the
+current mouse bindings, zoom-transition regression, and approach-angle checks.

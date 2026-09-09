@@ -351,9 +351,13 @@ export class Camera {
     this.clampView();
   }
 
-  /** Zoom keeping the world point under the cursor fixed. */
+  /** Tactical zoom anchors the cursor; free-look zoom keeps its chosen target.
+   * A near-horizon cursor ray can hit kilometres away, so re-anchoring it after
+   * a head turn would translate a small zoom into a large sideways jump. */
   zoomAt(px: number, py: number, factor: number, afterZoom?: () => void) {
-    const before = this.screenToWorld(px, py);
+    const center = this.viewCenter();
+    const pitch = this.pitch;
+    const before = this.freeLook ? null : this.screenToWorld(px, py);
     const distance = this.rig().distance;
     // Wheel input controls physical distance; multiplying the authored rig dial
     // spends most input on its flat overview, then races through the close vista.
@@ -366,10 +370,17 @@ export class Camera {
       this.lookElevation *= (nextDistance - near) / (distance - near);
     }
     afterZoom?.();
-    const after = this.screenToWorld(px, py);
-    if (before && after) {
-      this.x += before[0] - after[0];
-      this.y += before[1] - after[1];
+    if (this.freeLook) {
+      this.pitchBias = this.rig().pitch - pitch;
+      const nextCenter = this.viewCenter();
+      this.x += center[0] - nextCenter[0];
+      this.y += center[1] - nextCenter[1];
+    } else if (before) {
+      const after = this.screenToWorld(px, py);
+      if (after) {
+        this.x += before[0] - after[0];
+        this.y += before[1] - after[1];
+      }
     }
     this.clampView();
   }

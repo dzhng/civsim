@@ -1,5 +1,9 @@
 # Battle terrain and controls
 
+This report records the initial terrain and controls repair. The subsequent
+[camera input report](battle-camera-input.md) covers the revised mouse bindings
+and approach tuning.
+
 The reported generated seed, **455085311**, exposed three separate problems:
 clicks intersected a flat plane below the visible ground; the destination HUD
 kept showing an active order while its replacement waited for command delay;

@@ -55,27 +55,86 @@ export async function run(ctx) {
       );
     }
     const pose = () => page.evaluate(() => window.__game.cameraSurfaceDebug());
+    const formation = await page.evaluate(() => {
+      const c = window.__cam,
+        g = window.__game,
+        u = g.unitInfo(4);
+      const points = [
+        [u[0], u[1] + 80],
+        [u[0] + 30, u[1] + 80],
+      ];
+      const screen = points.map((p) => c.worldToScreen(...p, g.heightAt(...p)).map(Math.round));
+      const hits = screen.map((p) =>
+        c.screenToWorld(p[0] * devicePixelRatio, p[1] * devicePixelRatio),
+      );
+      return {
+        world: hits[0],
+        screen,
+        facing: Math.atan2(hits[1][1] - hits[0][1], hits[1][0] - hits[0][0]),
+      };
+    });
+    const formationCamera = await pose();
+    await page.mouse.move(...formation.screen[0]);
+    await page.mouse.down({ button: "right" });
+    await page.mouse.move(...formation.screen[1], { steps: 6 });
+    await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
+    ctx.check(
+      "right-drag displays the formation preview",
+      !!(await page.evaluate(() => window.__game.previewDebug(4))),
+    );
+    await page.mouse.up({ button: "right" });
+    await page.evaluate(() => window.__game.freezeAtTickWithEffects(window.__game.tickCount()));
+    const formationOrder = await page.evaluate(() => Array.from(window.__game.unitInfo(4)));
+    ctx.check(
+      "right-drag places the formation and faces along the drag",
+      Math.hypot(formationOrder[10] - formation.world[0], formationOrder[11] - formation.world[1]) <
+        1 &&
+        formationOrder[23] === 1 &&
+        Math.abs(formationOrder[22] - formation.facing) < 0.001,
+      JSON.stringify(formationOrder),
+    );
+    ctx.check(
+      "right-drag leaves the camera stationary",
+      JSON.stringify((await pose()).camera3d) === JSON.stringify(formationCamera.camera3d),
+    );
     const before = await pose();
     const targetBefore = await page.evaluate(() =>
       Array.from(window.__game.unitInfo(4)).slice(10, 13),
     );
     await page.mouse.move(800, 400);
-    await page.mouse.down({ button: "right" });
+    await page.mouse.down({ button: "middle" });
     await page.mouse.move(920, 460, { steps: 8 });
-    await page.mouse.up({ button: "right" });
+    await page.mouse.up({ button: "middle" });
     const after = await pose();
     const targetAfter = await page.evaluate(() =>
       Array.from(window.__game.unitInfo(4)).slice(10, 13),
     );
     const drift = Math.hypot(...after.eye.map((x, i) => x - before.eye[i]));
     ctx.check(
-      "right-drag rotates at a fixed eye with a unit selected",
+      "middle-drag rotates at a fixed eye with a unit selected",
       drift < 0.001 && Math.abs(after.camera3d.yaw - before.camera3d.yaw) > 0.5,
       JSON.stringify({ drift, before: before.camera3d, after: after.camera3d }),
     );
     ctx.check(
-      "right-drag does not replace the selected unit's order",
+      "middle-drag does not replace the selected unit's order",
       JSON.stringify(targetBefore) === JSON.stringify(targetAfter),
+    );
+    const zoomStart = await pose();
+    await page.mouse.move(1100, 250);
+    await page.mouse.wheel(0, -120);
+    await page.waitForFunction(
+      (d) => window.__cam.params().distance < d,
+      zoomStart.camera3d.distance,
+    );
+    const zoomEnd = await pose();
+    const zoomTravel = zoomStart.camera3d.distance - zoomEnd.camera3d.distance;
+    const eyeTravel = Math.hypot(...zoomEnd.eye.map((v, i) => v - zoomStart.eye[i]));
+    ctx.check(
+      "wheel after middle-look keeps heading and avoids a sideways jump",
+      eyeTravel < zoomTravel * 2 + 0.5 &&
+        Math.abs(zoomEnd.camera3d.pitch - zoomStart.camera3d.pitch) < 1e-8 &&
+        zoomEnd.camera3d.yaw === zoomStart.camera3d.yaw,
+      JSON.stringify({ zoomTravel, eyeTravel }),
     );
     for (const key of ["q", "e", "z", "x"]) {
       const before = await pose();
@@ -128,8 +187,11 @@ export async function run(ctx) {
       });
     });
     ctx.check(
-      "automatic tilt waits until physically close to the ground",
-      tilt[0].camera3d.pitch > 1.2 && tilt[1].camera3d.pitch > 1.2 && tilt[3].camera3d.pitch < 0.5,
+      "automatic tilt opens earlier during the approach while retaining the overview",
+      tilt[0].camera3d.pitch > 1.2 &&
+        tilt[1].camera3d.pitch < 1.25 &&
+        tilt[2].camera3d.pitch < 0.9 &&
+        tilt[3].camera3d.pitch < 0.5,
       JSON.stringify(
         tilt.map((s) => ({
           distance: s.camera3d.distance,

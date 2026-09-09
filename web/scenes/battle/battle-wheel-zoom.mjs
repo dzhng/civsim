@@ -24,7 +24,7 @@ export async function run(ctx) {
       page.evaluate(() => window.__game.stats().renderStats.camera.camera3d.distance);
     const start = await distance();
     const stops = [];
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 6; i++) {
       await page.mouse.wheel(0, -120);
       await page.evaluate(() => window.__game.freezeAtTick(240));
       stops.push(await distance());

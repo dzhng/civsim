@@ -147,15 +147,17 @@ test("campaign zoom rig pitch/distance fall and fovY rises monotonically", () =>
   }
 });
 
-test("battle auto tilt stays tactical until the camera is physically close", () => {
+test("battle auto tilt reveals the horizon earlier while preserving the overview", () => {
   for (const field of [bounds, { width: 2400, height: 1600 }]) {
     for (let zoom = range.min; zoom < range.max; zoom += 0.002) {
       const rig = battleCameraRig(zoom, range, field);
-      if (rig.distance >= 100)
+      if (rig.distance >= 200)
         assert.ok(rig.pitch >= 1.2, `distance ${rig.distance}: prematurely tilted to ${rig.pitch}`);
+      if (rig.distance >= 90 && rig.distance <= 110)
+        assert.ok(rig.pitch < 1.25, "the approach must start opening toward the horizon by 100m");
       if (rig.pitch < 0.5)
         assert.ok(
-          rig.distance < 25,
+          rig.distance < 35,
           `horizon-like pitch ${rig.pitch} while still ${rig.distance}m away`,
         );
     }

@@ -71,7 +71,7 @@ const BATTLE_CURVE: RigCurve = {
   overZoomMinFactor: 0.35,
   maxForwardFraction: 0.3,
   easeBias: 20,
-  tiltStartMeters: 100,
+  tiltStartMeters: 200,
 };
 
 // Campaign: a strategic chart. Flatter (stays near-top-down longer via easeBias),

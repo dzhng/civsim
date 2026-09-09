@@ -25,12 +25,12 @@ workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
 is byte-identical. `worker/00` has a
 matching cross-thread hash, but no admissible quiet-machine timing yet.
 
-**Current pickup:** profile the native change and run the budget checkpoint.
-Correctness and timing
-checks remain coordinated so measurements do not include other jobs.
-The integrated gate is red at 39.006 ms in developed combat. Targeting is
-the largest stage; [a single-body friend-recording trial](slices/tick/01b-single-body-friends.md)
-tests one exact reduction before broader concurrency or behavior work.
+**Current pickup:** finish identity and fair timing checks for
+[the single-body friend-recording trial](slices/tick/01b-single-body-friends.md).
+The integrated gate is red at 39.006 ms in developed combat; targeting is
+the largest stage. The trial stays isolated until it demonstrates a gain.
+Then complete the scaled sweep and decide the remaining native work.
+Correctness jobs and timing runs stay separate.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
 when a quiet timing lane is available; worker production refactoring starts
@@ -45,6 +45,8 @@ waits while the native verification jobs run.
 [contact trials](assets/tick01-native-2026-09-09.md),
 [scratch identity checks](assets/tick02-verification.md),
 [combined verification](assets/combined-verification.md),
+[budget and stage profile](assets/checkpoint-budget.md),
+[operation counts](assets/operation-counts.md),
 [browser hash identity](assets/worker-state-hash.md),
 [pending browser measurements](assets/worker-00-provisional.md),
 [original visual reference](assets/visual-baseline.md),

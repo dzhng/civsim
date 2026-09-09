@@ -20,3 +20,10 @@ checks follow before completion; a prototype is not a shipped result.
 The axis-distance and deferred-bearing ideas remain unimplemented. Their
 operation counts do not establish a speedup, and expanding the trial would
 hide which change paid for itself.
+
+Current trial: golden and the existing friend-recording test pass; the
+duel/sandbox combined hash remains `8d21ca62c2a920c4`. Independent static
+review found no defects. The long AI oracle is running. The first timing
+comparison was stopped when the unchanged control took 88.422 ms under
+load, versus about 39 ms in the earlier gate. That partial run is invalid
+for judging the candidate, which remains uncommitted in its worktree.

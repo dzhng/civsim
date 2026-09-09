@@ -81,8 +81,8 @@ runtime machinery. **Confidence:** medium.
 ### Batch enough search work to avoid scheduling overhead
 
 **When:** weapon-repel scheduling revision.
-**Choice:** Each parallel search task receives at least 1024 bodies before
-Rayon divides it further. A small duel consequently stays together; a large
+**Choice:** Rayon does not split search chunks below 1024 bodies; smaller
+battles stay in one chunk. A small duel consequently stays together; a large
 army offers multiple substantial tasks. Both call the same search code and
 apply the resulting forces in the original serial order. The alternative
 split tiny tasks whose scheduling cost exceeded their useful work.

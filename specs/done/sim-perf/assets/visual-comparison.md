@@ -43,3 +43,7 @@ and captured with the same command. Its whole GIF, all 16 actual PNGs and
 all existing-reference difference counts match the preceding capture exactly.
 It resolves in the same 18 frames with the same exit 16. No baseline was
 changed. This verifies the serial wasm path of the retained native feature.
+The [final comparison record](visual-final-comparison.json) preserves its
+build fingerprint, frame fingerprints, full capture log and the successful
+whole-GIF comparison performed before restoring the generated tracked output.
+The identical archived reference retains the matched GIF bytes.

@@ -14,6 +14,8 @@ pub(super) struct Scratch {
     ext_lo: Vec<Vec2>,
     ext_hi: Vec<Vec2>,
     unit_scans: Vec<bool>,
+    #[cfg(all(feature = "parallel", not(target_arch = "wasm32")))]
+    nearest: Vec<Option<(usize, f32)>>,
 }
 
 pub(super) struct WeaponRepelCtx<'a> {
@@ -88,6 +90,8 @@ where
             ext_lo,
             ext_hi,
             unit_scans,
+            #[cfg(all(feature = "parallel", not(target_arch = "wasm32")))]
+            nearest,
         } = scratch;
         unit_aim.clear();
         unit_aim.extend(units.iter().map(|u| dir(u.facing)));
@@ -120,23 +124,26 @@ where
                         && ext_hi[ui].y >= ext_lo[uj].y - window
                 })
         }));
-        for bi in 0..nb {
+        if !unit_scans.iter().any(|&scan| scan) {
+            return;
+        }
+        let find_nearest = |bi: usize| {
             let j = body_owner[bi] as usize;
             let uj = soldier_unit[j] as usize;
             if !unit_scans[uj] {
-                continue;
+                return None;
             }
             // A trampler rides THROUGH contact — it holds no line and repels
             // no one (the trample bleed, not a repel, spends its charge).
             if units[uj].tramples() {
-                continue;
+                return None;
             }
             // The weapon IN HAND sets the reach (a pike on its side-sword
             // pushes close, not at pike length).
             let held = cur_weapon[j] as usize;
             let weapons = units[uj].stats.weapons;
             if held >= weapons.len() {
-                continue;
+                return None;
             }
             // A BRACED weapon pushes from its points (its reach); everything
             // else pushes from the BODY (an arm's length is a body's length —
@@ -260,7 +267,32 @@ where
                     }
                 }
             }
-            if near_i != usize::MAX {
+            (near_i != usize::MAX).then_some((near_i, near_pen))
+        };
+        #[cfg(all(feature = "parallel", not(target_arch = "wasm32")))]
+        {
+            use rayon::prelude::*;
+            nearest.resize(nb, None);
+            // Searches only read geometry. Indexed slots preserve body order;
+            // the force additions below must remain in their serial order.
+            nearest
+                .par_iter_mut()
+                // Tiny searches can cost more to schedule than to execute.
+                .with_min_len(1024)
+                .enumerate()
+                .for_each(|(bi, result)| {
+                    *result = find_nearest(bi);
+                });
+        }
+        for bi in 0..nb {
+            #[cfg(all(feature = "parallel", not(target_arch = "wasm32")))]
+            let found = nearest[bi];
+            #[cfg(not(all(feature = "parallel", not(target_arch = "wasm32"))))]
+            let found = find_nearest(bi);
+            if let Some((near_i, near_pen)) = found {
+                let j = body_owner[bi] as usize;
+                let uj = soldier_unit[j] as usize;
+                let aim = unit_aim[uj];
                 // The weapon's points are a leveled body: the SAME two-way,
                 // mass-shared separation the bodies use (above), just acting at
                 // REACH instead of body radius. Newton's third law — the pike

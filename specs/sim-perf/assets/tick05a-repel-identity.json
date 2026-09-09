@@ -1,0 +1,129 @@
+{
+  "sourceBase": "a95d426e",
+  "scope": "weapon-repel read-only search only; force additions serial",
+  "defaultGolden": "pass",
+  "parallelGoldenThreadCounts": [
+    1,
+    2,
+    8
+  ],
+  "wasmParallelFeatureCheck": "pass; serial cfg path",
+  "independentReview": "Revised Codex uncommitted review: no actionable defects; default/8thread golden and wasm check also passed",
+  "timingStatus": "NOT ACCEPTANCE: correctness runs concurrent with parent CPU tests",
+  "identity": [
+    {
+      "threads": 1,
+      "golden": "0x68f4569d1cc8116f",
+      "duelsCombined": "0x8d21ca62c2a920c4",
+      "duelsHashCount": 230,
+      "aiFinal": "0xdda9a54e95963dbd",
+      "aiCheckpointCount": 19,
+      "developedWindow": [
+        1500,
+        1800
+      ],
+      "developedHashes": [
+        "0x080c80b28e8ae3db",
+        "0x080c80b28e8ae3db"
+      ]
+    },
+    {
+      "threads": 2,
+      "golden": "0x68f4569d1cc8116f",
+      "duelsCombined": "0x8d21ca62c2a920c4",
+      "duelsHashCount": 230,
+      "aiFinal": "0xdda9a54e95963dbd",
+      "aiCheckpointCount": 19,
+      "developedWindow": [
+        1500,
+        1800
+      ],
+      "developedHashes": [
+        "0x080c80b28e8ae3db",
+        "0x080c80b28e8ae3db"
+      ]
+    },
+    {
+      "threads": 8,
+      "golden": "0x68f4569d1cc8116f",
+      "duelsCombined": "0x8d21ca62c2a920c4",
+      "duelsHashCount": 230,
+      "aiFinal": "0xdda9a54e95963dbd",
+      "aiCheckpointCount": 19,
+      "developedWindow": [
+        1500,
+        1800
+      ],
+      "developedHashes": [
+        "0x080c80b28e8ae3db",
+        "0x080c80b28e8ae3db"
+      ]
+    }
+  ],
+  "revision": "no-work exit and minimum Rayon split length1024",
+  "checks": [
+    {
+      "threads": 1,
+      "fixture": "duels",
+      "exit": 0,
+      "path": "throwaway/revised-duels-1.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 1,
+      "fixture": "ai",
+      "exit": 0,
+      "path": "throwaway/revised-ai-1.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 1,
+      "fixture": "developed",
+      "exit": 0,
+      "path": "throwaway/revised-developed-1.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 2,
+      "fixture": "duels",
+      "exit": 0,
+      "path": "throwaway/revised-duels-2.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 2,
+      "fixture": "ai",
+      "exit": 0,
+      "path": "throwaway/revised-ai-2.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 2,
+      "fixture": "developed",
+      "exit": 0,
+      "path": "throwaway/revised-developed-2.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 8,
+      "fixture": "duels",
+      "exit": 0,
+      "path": "throwaway/revised-duels-8.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 8,
+      "fixture": "ai",
+      "exit": 0,
+      "path": "throwaway/revised-ai-8.log",
+      "hashesMatch": true
+    },
+    {
+      "threads": 8,
+      "fixture": "developed",
+      "exit": 0,
+      "path": "throwaway/revised-developed-8.log",
+      "hashesMatch": true
+    }
+  ]
+}

@@ -21,3 +21,5 @@ web/shots-spike/
 # scene:renderer writes a per-run JSON summary here; regenerated every run,
 # never committed. The tracked README + *.example.json baseline stay.
 web/reports/rendering/scenario-runs/
+.vercel/
+.env.local

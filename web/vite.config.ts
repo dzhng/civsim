@@ -23,6 +23,17 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: [
+      // The renderer lab is a development surface and must not be resolved or bundled by Vercel.
+      ...(process.env.VERCEL
+        ? [
+            {
+              find: /^\.\.\/\.\.\/apps\/renderer-lab\/src\/router$/,
+              replacement: fileURLToPath(
+                new URL("./src/rendererLabUnavailable.ts", import.meta.url),
+              ),
+            },
+          ]
+        : []),
       {
         find: /^@packages\//,
         replacement: fileURLToPath(new URL("../packages/", import.meta.url)),

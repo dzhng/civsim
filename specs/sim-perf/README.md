@@ -22,8 +22,8 @@ contact pass now reuses immutable projection metadata; its experimental
 caches were rejected for lack of a demonstrated developed-combat gain. Scratch
 reuse is integrated and reproduces the original identity oracles. Combined
 workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
-is byte-identical. `worker/00` has a
-matching cross-thread hash, but no admissible quiet-machine timing yet.
+is byte-identical. The worker branch is closed by an early feasibility
+no-go; the hash export remains, and no worker seam ships.
 
 **Current pickup:** finish the native comparison under David's revised
 load-under-10 precondition, complete the scaled sweep and decide the remaining
@@ -35,14 +35,9 @@ inconclusive. Its saved binary is being compared again now that measurement
 conditions qualify. The worker track has an [early feasibility no-go](assets/worker-verdict.md)
 against the unchanged final frame targets; its six transport measurements
 and the original renderer gate completed under load 10.
-The first-contact window is a small skirmish; check a developed fight before
-concluding the broad budget is met. Worker measurements proceed independently
-when a quiet timing lane is available; worker production refactoring starts
-only after a keep verdict. Its later 12–14 ms frame gates are under review
-because an empty-page diagnostic shows a 16.7 ms cadence; thresholds remain
-unchanged pending an explicit decision. David requested finishing other work
-first and checking for a quiet window afterward; do not repeat acquisition
-waits while the native verification jobs run.
+The first-contact window is a small skirmish; developed combat must also
+meet the native budget. Worker production refactoring would require reopening
+the final frame-target decision; the measured empty-page cadence is 16.7 ms.
 
 **Evidence:** [native baseline](assets/tick00-native-2026-09-09.md),
 [developed-window verification](assets/developed-window.md),
@@ -52,7 +47,7 @@ waits while the native verification jobs run.
 [budget and stage profile](assets/checkpoint-budget.md),
 [operation counts](assets/operation-counts.md),
 [browser hash identity](assets/worker-state-hash.md),
-[pending browser measurements](assets/worker-00-provisional.md),
+[worker measurements and verdict](assets/worker-verdict.md),
 [original visual reference](assets/visual-baseline.md),
 [combined visual identity](assets/visual-comparison.md),
 [acceptance changes](assets/acceptance-changes.md), and

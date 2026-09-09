@@ -25,6 +25,16 @@ visual comparison. The command output is retained locally in
 `throwaway/sim-perf/workspace-friends.log`. This run covers the serial
 implementation; the isolated parallel trials have separate verification.
 
+## Final retained integration
+
+`cargo test --workspace --features sim/parallel` completed successfully after
+the retained weapon-repel integration: 70 groups, 363 passed, zero failed,
+and the same 12 ignored tests. This includes mechanics, balance and scenario
+coverage. The final source also rebuilt to wasm and preserved the complete
+reference timeline. No simulation expectation or unit statistic changed.
+The full command output is retained locally in
+`throwaway/sim-perf/workspace-final.log`.
+
 ## Feature-specific baseline failure
 
 `force_trace_smoke_covers_expected_channels` fails with

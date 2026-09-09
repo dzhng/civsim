@@ -19,7 +19,8 @@ folder holds a one-line redirect until close-spec.
 tests and preserved the original timeline. Revised native weapon repel is
 now integrated; its 1/2/8-thread identity checks and independent review pass,
 and the final rebuilt-wasm timeline is byte-identical. The final integrated
-workspace suite is running. Its measured 34.896 ms developed tick meets
+workspace suite passes all 363 tests with zero failures and 12 ignored.
+Its measured 34.896 ms developed tick meets
 David's revised 35 ms acceptance; final standing-gate and scaled telemetry
 remain to be recorded. Older red results used the former 25 ms target.
 The worker branch is closed by an early feasibility no-go; the hash export

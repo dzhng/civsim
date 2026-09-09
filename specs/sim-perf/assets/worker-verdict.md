@@ -7,6 +7,9 @@ flags, produced an empty-page median of 16.7 ms across 300 frame intervals.
 The worker matrix independently reproduced that cadence. See
 [cadence samples](worker-cadence-under10.json) and
 [complete matrix data](worker-matrix-under10.json).
+The [captured production frame](worker-measurement-frame.png) records the
+paused renderer and expanded deployment at the measurement camera. It was
+visually inspected; this is a transport workload, not a developed-combat scene.
 
 The existing final 15.5k requirements demand a 12 ms median and reject
 anything above 14 ms. This harness cannot satisfy them even without game

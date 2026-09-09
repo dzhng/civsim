@@ -649,10 +649,9 @@ function buildVistaGroundMesh(
   const tint = new Float32Array(band.w * band.h);
   const surfaceColor = new Float32Array(band.w * band.h * 3);
   const zAt = (i: number, j: number): number => {
-    const x = band.ox + i * band.cell;
     const y = band.oy + j * band.cell;
     const baseZ = band.height[j * band.w + i] ?? 0;
-    return baseZ + northSouthSink(band, x, y);
+    return baseZ + northSouthSink(y);
   };
   let v = 0;
   let tv = 0;

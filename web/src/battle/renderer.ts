@@ -304,15 +304,11 @@ export class BattleRenderer {
    *  camera/anchor contract; soldier seating still uses the playable terrain
    *  sampler inside PhotorealBattleWorld. */
   heightAt(x: number, y: number): number {
-    return this.surfaceHeightAt(x, y);
+    return this.world?.surfaceHeightAt(x, y) ?? 0;
   }
 
   raycastGround(ray: WorldRay): [number, number, number] | null {
     return this.world?.raycastGround(ray) ?? null;
-  }
-
-  surfaceHeightAt(x: number, y: number): number {
-    return this.world?.surfaceHeightAt(x, y) ?? 0;
   }
 
   debugSoldierAnim(index: number) {

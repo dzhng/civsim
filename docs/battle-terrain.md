@@ -15,12 +15,11 @@ untouched. The day height becomes a *mechanic* (high-ground bonus, vision,
 ballistics) is the day that test re-pins; until then, relief and passability are
 independent (a map that wants impassable high ground must also paint speed 0).
 
-The renderer never stores its own heightmap. `terrain/heightField.ts` is a typed
-*view* — `TerrainHeightField` + `terrainHeightAt`, a bilinear edge-clamped
-sampler that mirrors `Terrain::height_at` so the renderer and the sim agree on
-where the ground is. Campaign relief (`web/src/campaign/terrain.ts`) speaks the
-same sampler shape so both surfaces, and later vision/projectiles, read one
-contract. Mouse picking has a stricter requirement: it must intersect the
+The [shared height sampler](../packages/game-renderer/src/terrain/heightField.ts)
+reads canonical terrain with bilinear, edge-clamped interpolation. Generated
+vista detail is derived from that source and corrected where adjacent bands
+meet; it is not independently authored ground. Campaign relief uses the same
+sampler contract. Mouse picking has a stricter requirement: it must intersect the
 triangles actually displayed, including mesh decimation and the joins between
 terrain rings. Battle builds one spatial index from those meshes and uses it
 for the camera's surface queries. A ray into open sky has no ground target.
@@ -45,6 +44,10 @@ distance, and lens above uneven terrain. Its look target may leave the map;
 clamping that target would move the eye during a head turn. Right-drag and
 Q/E/Z/X use this same operation. Right-click issues a ground order, and
 Alt-right-drag gives a facing order.
+
+Wheel zoom brings the elevated look target back toward terrain as the remaining
+zoom distance closes. Retaining that altitude after a high head turn would
+strand even the closest camera view far above the soldiers.
 
 Destination previews show the latest accepted command immediately, including
 one still waiting for the simulation's command delay. The preview is feedback
@@ -125,3 +128,7 @@ the same pass sorts props against the campaign ground or the battle ground.
 - The visual gates that prove all of it are the `battle-terrain-*` scenes under
   `web/scenes/battle/`; the snapshot discipline they obey is
   [`web/shots/README.md`](../web/shots/README.md).
+
+The [terrain and controls verification report](../web/reports/battle-terrain-controls.md)
+records the reported-seed checks, review decisions, and remaining pixel-repeat
+limitation.

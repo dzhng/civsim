@@ -46,16 +46,12 @@ export function vistaBandHeightAt(band: BattleVistaBand, x: number, y: number): 
   const ty = gy - y0;
   const top = lerpNumber(band.height[y0 * band.w + x0], band.height[y0 * band.w + x1], tx);
   const bot = lerpNumber(band.height[y1 * band.w + x0], band.height[y1 * band.w + x1], tx);
-  return lerpNumber(top, bot, ty) + northSouthSink(band, x, y);
+  return lerpNumber(top, bot, ty) + northSouthSink(y);
 }
 
-export function northSouthSink(band: BattleVistaBand, _x: number, y: number): number {
-  // ONE world-space ramp shared by every band: per-band ramps restarted at
-  // zero at each band boundary, so the farFog floor stepped 7.5 m above the
-  // sunken vista edge - a lit stepped wall that rendered as the white
-  // horizon band (compose rounds 1-2). Anchor on the band's inner edge only
-  // for the RAMP START of the innermost band; the domain end is the world
-  // sink horizon shared by all bands.
+export function northSouthSink(y: number): number {
+  // All bands share one world-space ramp so their lowered edges meet without
+  // a height step that catches light along the horizon.
   const SINK_START_Y = 820;
   const SINK_END_Y = 2800;
   const t = Math.max(0, Math.abs(y) - SINK_START_Y) / Math.max(1, SINK_END_Y - SINK_START_Y);
@@ -71,9 +67,8 @@ function lerpNumber(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-/** The generated vista predates playable edits such as shoreline carving.
- * Join each band to the surface actually inside it, easing the height
- * correction away over its existing ten-cell detail transition. */
+/** Adjacent bands use different detail profiles. Match the final inner surface
+ * and ease the correction away through the outer band's detail transition. */
 export function joinVistaSurface(
   vista: BattleVistaGrid,
   field: TerrainHeightField,

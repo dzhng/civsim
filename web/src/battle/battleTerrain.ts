@@ -14,17 +14,6 @@ import type { Game } from "../wasm/game_wasm.js";
 import type { BattleAudioWaterSurface } from "./battleAudio";
 import type { BattleWorld, GeneratedBattleMapDescriptor } from "./battleWorld";
 
-type VistaExportGame = Game & {
-  generated_vista_band_count(): number;
-  generated_vista_band_width(band: number): number;
-  generated_vista_band_height(band: number): number;
-  generated_vista_band_cell(band: number): number;
-  generated_vista_band_origin_x(band: number): number;
-  generated_vista_band_origin_y(band: number): number;
-  generated_vista_band_height_ptr(band: number): number;
-  generated_vista_band_water_ptr(band: number): number;
-};
-
 export interface BattleTerrain {
   generatedVista: BattleVistaGrid | null;
   grid: BattleTerrainGrid;
@@ -52,7 +41,9 @@ export function buildBattleTerrain(world: BattleWorld): BattleTerrain {
   };
   refreshStatic();
 
-  const generatedVista = cfg.generatedMap ? readGeneratedVistaGrid(world, cfg.generatedMap) : null;
+  const generatedVista = cfg.generatedMap
+    ? readGeneratedVistaGrid(game, world.memory, cfg.generatedMap)
+    : null;
   const grid = readBattleTerrainGrid(game, world.memory);
   const reliefScale = cfg.generatedMap?.reliefScale ?? BATTLE_RELIEF_EXAGGERATION;
   const heightForRenderer =
@@ -136,13 +127,13 @@ function scaleHeightForRenderer(height: Float32Array, reliefScale: number): Floa
   return out;
 }
 
-function readGeneratedVistaGrid(
-  world: BattleWorld,
-  descriptor: GeneratedBattleMapDescriptor,
+export function readGeneratedVistaGrid(
+  game: Game,
+  memory: WebAssembly.Memory,
+  descriptor: Pick<GeneratedBattleMapDescriptor, "vista">,
 ): BattleVistaGrid | null {
   const vista = descriptor.vista;
   if (!vista?.bands?.length) return null;
-  const game = world.game as VistaExportGame;
   const count = Math.min(game.generated_vista_band_count(), vista.bands.length);
   const bands: BattleVistaGrid["bands"] = [];
   for (let index = 0; index < count; index++) {
@@ -154,9 +145,7 @@ function readGeneratedVistaGrid(
     const originY = game.generated_vista_band_origin_y(index);
     const pointer = game.generated_vista_band_height_ptr(index);
     if (!meta || width <= 0 || height <= 0 || pointer === 0) continue;
-    const heights = new Float32Array(
-      new Float32Array(world.memory.buffer, pointer, width * height),
-    );
+    const heights = new Float32Array(new Float32Array(memory.buffer, pointer, width * height));
     bands.push({
       name: meta.name,
       w: width,
@@ -170,11 +159,7 @@ function readGeneratedVistaGrid(
       outerHalfH: meta.outerHalfH,
       height: heights,
       water: new Float32Array(
-        new Float32Array(
-          world.memory.buffer,
-          game.generated_vista_band_water_ptr(index),
-          width * height,
-        ),
+        new Float32Array(memory.buffer, game.generated_vista_band_water_ptr(index), width * height),
       ),
     });
   }

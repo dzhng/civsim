@@ -35,7 +35,6 @@
 import * as THREE from "three/webgpu";
 import {
   PhotorealBattleWorld,
-  type BattleVistaGrid,
   type BattleTacticalLineFrame,
 } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import { postGradeUniformsFromParams } from "@packages/photoreal-renderer/src/post/postChain";
@@ -46,6 +45,7 @@ import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../../web/src/shared/camera";
 import { pushPie } from "../../../../web/src/shared/overlays";
+import { readGeneratedVistaGrid } from "../../../../web/src/battle/battleTerrain";
 import { BattleActionAdapter } from "../../../../web/src/battle/battleActionAdapter";
 import {
   ACTION_TICK_SECONDS,
@@ -251,7 +251,7 @@ export async function route(ctx: LabContext) {
         vista:
           edgeFixture || !generatedDescriptor
             ? null
-            : readGeneratedVistaGrid(wasm, game, generatedDescriptor),
+            : readGeneratedVistaGrid(game, wasm.memory, generatedDescriptor),
         lakeSurfaces: null,
       },
     );
@@ -584,66 +584,6 @@ function heightForPhotorealRoute(height: Float32Array, generatedMap: boolean): F
   const scale = 1 / BATTLE_RELIEF_EXAGGERATION;
   for (let i = 0; i < height.length; i++) out[i] = height[i] * scale;
   return out;
-}
-
-function readGeneratedVistaGrid(
-  wasm: { memory: WebAssembly.Memory },
-  game: {
-    generated_vista_band_count(): number;
-    generated_vista_band_width(band: number): number;
-    generated_vista_band_height(band: number): number;
-    generated_vista_band_cell(band: number): number;
-    generated_vista_band_origin_x(band: number): number;
-    generated_vista_band_origin_y(band: number): number;
-    generated_vista_band_height_ptr(band: number): number;
-    generated_vista_band_water_ptr(band: number): number;
-  },
-  descriptor: {
-    vista?: {
-      shape: string;
-      bands: Array<{
-        name: string;
-        innerHalfW: number;
-        innerHalfH: number;
-        outerHalfW: number;
-        outerHalfH: number;
-      }>;
-    } | null;
-  },
-): BattleVistaGrid | null {
-  const vista = descriptor.vista;
-  if (!vista?.bands?.length) return null;
-  const count = Math.min(game.generated_vista_band_count(), vista.bands.length);
-  const bands: BattleVistaGrid["bands"] = [];
-  for (let i = 0; i < count; i++) {
-    const meta = vista.bands[i];
-    const w = game.generated_vista_band_width(i);
-    const h = game.generated_vista_band_height(i);
-    const cell = game.generated_vista_band_cell(i);
-    const ox = game.generated_vista_band_origin_x(i);
-    const oy = game.generated_vista_band_origin_y(i);
-    // Ptr call last + immediate copy: it may regenerate the band and grow
-    // wasm memory, detaching earlier views (the game-wasm pointer rule).
-    const ptr = game.generated_vista_band_height_ptr(i);
-    if (!meta || w <= 0 || h <= 0 || ptr === 0) continue;
-    bands.push({
-      name: meta.name,
-      w,
-      h,
-      cell,
-      ox,
-      oy,
-      innerHalfW: meta.innerHalfW,
-      innerHalfH: meta.innerHalfH,
-      outerHalfW: meta.outerHalfW,
-      outerHalfH: meta.outerHalfH,
-      height: new Float32Array(new Float32Array(wasm.memory.buffer, ptr, w * h)),
-      water: new Float32Array(
-        new Float32Array(wasm.memory.buffer, game.generated_vista_band_water_ptr(i), w * h),
-      ),
-    });
-  }
-  return bands.length > 0 ? { shape: vista.shape, bands } : null;
 }
 
 // The production ?debug=blocks triangles (renderer.ts buildDebugBlockTriangles).

@@ -138,6 +138,31 @@ export async function run(ctx) {
         })),
       ),
     );
+    await page.evaluate(() => {
+      const c = window.__cam;
+      c.resetLook();
+      c.zoom = 3;
+      c.setViewCenter(0, 0);
+    });
+    await page.keyboard.down("x");
+    await page.waitForFunction(() => window.__cam.pitch < 0.3);
+    await page.keyboard.up("x");
+    const highLook = await pose();
+    await page.mouse.move(800, 450);
+    for (let i = 0; i < 60; i++) {
+      const distance = await page.evaluate(() => window.__cam.params().distance);
+      if (distance < 4) break;
+      await page.mouse.wheel(0, -1000);
+      // Wait for each input to land instead of letting Chromium coalesce a burst.
+      await page.waitForFunction((d) => window.__cam.params().distance < d, distance);
+    }
+    await page.waitForFunction(() => window.__cam.params().distance < 4);
+    const closeLook = await pose();
+    ctx.check(
+      "wheel zoom after high free-look reaches the ground again",
+      highLook.clearance > 500 && closeLook.clearance < 8,
+      JSON.stringify({ before: highLook.clearance, after: closeLook.clearance }),
+    );
   } finally {
     await page.close();
   }

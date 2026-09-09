@@ -232,3 +232,35 @@ function planeSurface(z: number, dx: number, dy: number): NonNullable<Camera["gr
     },
   };
 }
+
+test("wheel zoom returns an elevated free-look camera to a close ground view", () => {
+  const camera = makeCamera(-Math.PI / 2);
+  camera.zoom = 3;
+  camera.groundSurface = planeSurface(12, 0, 0);
+  camera.pitchAboutEye(-1.1);
+  const start = eyePosition(camera.params());
+  for (let i = 0; i < 100; i++) {
+    camera.zoomAt(600, 350, 1.08);
+    camera.pitchBias *= 0.8;
+  }
+  const end = eyePosition(camera.params());
+  assert.ok(start[2] > 500, "start from an elevated overview");
+  assert.ok(
+    end[2] - 12 < 6,
+    `zoom must reach the soldiers; eye stayed ${end[2] - 12}m above ground`,
+  );
+});
+
+test("a small outward zoom near the floor does not amplify a new head turn", () => {
+  const camera = makeCamera(-Math.PI / 2);
+  camera.groundSurface = planeSurface(12, 0, 0);
+  camera.zoomAt(600, 350, camera.params().distance / 3.51);
+  camera.pitchAboutEye(-1.1);
+  const start = eyePosition(camera.params());
+  camera.zoomAt(600, 350, 0.95);
+  const end = eyePosition(camera.params());
+  assert.ok(
+    Math.abs(end[2] - start[2]) < 1,
+    `small outward step must not launch the eye: ${start[2]} -> ${end[2]}`,
+  );
+});

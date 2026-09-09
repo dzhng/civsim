@@ -58,10 +58,13 @@ distance, and lens fixed. Automatic horizon tilt follows physical distance:
 | `battle-terrain-controls` | No end-to-end fixture for the reported map. | DPR2 ground clicks, immediate previews, right-drag/keyboard eye stability, sky-crossing selection, and physical tilt. | Exercises actual browser input against the supplied seed. **added** |
 | `battle-terrain-seams` | No close east/west regression for this map. | Two frozen terrain screenshots, with HUD hidden to exclude unrelated HUD raster differences. | Pins the mountain/coast joins at ground-level views. **added** |
 | `battleMinimap.test.ts` | Finite terrain misses removed the minimap camera outline. | Downward off-map rays retain a finite overview; sky rays and invalid orders remain rejected. | Keeps schematic minimap feedback independent of valid order targets. **added** |
+| `camera.test.ts`: wheel after elevated look | The new regression reached minimum zoom while the eye remained 437.82 m above flat ground. | Zoom reaches the close ground view without a camera reset. | Free-look elevation closes with remaining zoom distance. **moved** |
+| `camera.test.ts`: outward wheel near the floor | The first reconciliation candidate amplified a fresh head turn, raising the eye from 15.2 m to 123.32 m in one small outward step. | The same step changes eye height by less than 1 m. | Only inward travel reconciles target elevation. **moved** |
+| `battle-terrain-controls`: wheel after high free-look | The browser flow did not combine a high head turn with a full zoom-in. | Real keyboard look followed by wheel events must return the eye to ground level. | Covers the camera transition that independent review found. **added** |
 
 ## Verification
 
-- 418 web tests and TypeScript check passed; production web build passed.
+- 420 web tests and TypeScript check passed; production web build passed.
 - Game-WASM tests passed; generated terrain tests passed including the 64-seed sweep.
 - Hardware Chrome controls checks passed on the exact supplied setup at DPR2.
   Ground click errors were 0.14–0.54 m for integer browser pixel coordinates;
@@ -74,3 +77,15 @@ distance, and lens fixed. Automatic horizon tilt follows physical distance:
   tolerance was retained. These pixel gates remain red; visual inspection and
   the independent critique establish the geometry fix, not exact GPU raster
   reproducibility. No existing screenshot baseline was re-blessed.
+
+## Follow-up review
+
+The shape pass consolidated the game and renderer-lab vista readers, removed
+the handwritten copy of generated WASM method types, and collapsed a redundant
+height forwarding method. The code pass removed unused sink parameters and
+stale comments, then fixed the independently identified high-look-to-zoom
+regression and its near-floor outward-zoom edge case behind tests observed red
+and green. The documentation pass
+distinguishes source sampling from rendered-triangle picking and makes this
+evidence reachable from the root terrain guide. Terrain shape, movement rules,
+and screenshot tolerances are unchanged by this follow-up.

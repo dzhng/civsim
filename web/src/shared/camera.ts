@@ -21,8 +21,7 @@ import {
 // There is no separate 2.5D projection here — camera3d is the single owner.
 const MIN_PITCH = -Math.PI / 2 + 0.02; // free look can aim above the horizon
 const MAX_PITCH = Math.PI / 2 - 0.02; // just shy of straight-down top-down
-// 3.2m: above the ~0.9m blade canopy with margin - at 1.6m the closest zoom
-// put the eye INSIDE the grass (a horizontal blade-tunnel view).
+// Keep close formation views above standing soldiers and ground cover.
 const EYE_CLEARANCE = 3.2; // m above terrain at the eye's ground column
 const NEAR_PLANE = 1.0; // meters; reverse-Z + infinite far spends precision far out
 
@@ -45,7 +44,7 @@ export class Camera {
   pitchBias = 0;
   /** View rotation about the vertical, radians (Q/E and look-drag horizontal). */
   yaw = 0;
-  /** Hard view bounds (x0, y0, x1, y1). The look target is clamped inside them. */
+  /** Tactical target bounds (x0, y0, x1, y1); manual look may aim beyond them. */
   bounds: [number, number, number, number] | null = null;
 
   private zoomRange: CameraRigRange = { min: 0.4, max: 8 };
@@ -355,9 +354,17 @@ export class Camera {
   /** Zoom keeping the world point under the cursor fixed. */
   zoomAt(px: number, py: number, factor: number, afterZoom?: () => void) {
     const before = this.screenToWorld(px, py);
+    const distance = this.rig().distance;
     // Wheel input controls physical distance; multiplying the authored rig dial
     // spends most input on its flat overview, then races through the close vista.
-    this.zoom = this.zoomForDistance(this.rig().distance / factor);
+    this.zoom = this.zoomForDistance(distance / factor);
+    // Dolly the free-look target toward terrain with the remaining zoom travel.
+    // Keeping its altitude fixed strands horizon-facing views above the field.
+    const nextDistance = this.rig().distance;
+    if (nextDistance < distance) {
+      const near = battleCameraRig(this.maxZoom(), this.zoomRange, this.rigBounds).distance;
+      this.lookElevation *= (nextDistance - near) / (distance - near);
+    }
     afterZoom?.();
     const after = this.screenToWorld(px, py);
     if (before && after) {

@@ -1591,7 +1591,8 @@ function createBladeFieldMaterial(
       float(1.0).sub(smoothstep(transition.midTierEndM, transition.lowerFarWidthEndM, eyeDist)),
     );
     // Tall clumps widen too: a clump reads as one bright mass, not stripes.
-    const width = max(d1.x.mul(mix(0.85, 1.35, clamp(d2.w, 0.0, 1.0))), 0.018)
+    const width = d1.x
+      .mul(mix(0.85, 1.35, clamp(d2.w, 0.0, 1.0)))
       .mul(mix(transition.nearCoverageWidthScale, 1.0, farSoft))
       .mul(mix(1.0, transition.lowerFarWidthScale, lowerFarWidthBoost))
       .mul(mix(1.0, transition.farSoftWidthScale, farSoftShape))

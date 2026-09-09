@@ -97,3 +97,31 @@ entry is standalone.
 23. **Depth prepass ships default-OFF** (TBDR finding, entry in P3.2). *Sound.*
 24. **Palette P1**: trans/sheen/rakedDust/sunBleached re-authored under 1.0;
     fromAnchor pure; translucency strengths compensated. *Sound.*
+
+## Standing-soldier scale (2026-09-09)
+
+**When:** the user requested knee-height grass with much thinner blades after
+viewing the authored soldiers in production.
+
+**Choice:** the production profile owns the same blade width for the base field
+and its denser close-camera ring. Zooming closer can add samples without
+changing the plant's physical width, and switching quality no longer chooses a
+different base width. Keeping the separate ring width and quality overrides
+would leave several places able to undo the user's scale requirement.
+
+**Gap:** the user set the visual ceiling and blade character but did not choose
+how those dimensions should be shared across sampling paths. **Reach:** future
+density work must preserve the physical scale, while distant coverage proxies
+remain the existing LOD owner's responsibility. **Verdict:** sound, one owner
+for dimensions consumed by both production fields. **Confidence:** high.
+
+**Capture completion:** finishing a camera-ring sample changes the grass buffers
+and the base-field exclusion area. Waiting for the GPU queue alone could still
+leave the previous image on screen because the frozen-frame cache skipped the
+next draw. The battle world's explicit settle operation now renders the
+completed field before waiting for the GPU. The alternative was a screenshot
+delay or camera nudge that only happened to provoke another frame. **Gap:** the
+settle operation's previous implementation did not publish its completed data.
+**Reach:** frozen battle captures now observe completed grass consistently.
+**Verdict:** sound completion at the existing owner, rather than a timing
+workaround in each scene. **Confidence:** high.

@@ -80,9 +80,10 @@ const STANDARD_BLADE_FIELD_PROFILE = {
   minNormalZ: 0.45,
   lodNearRadiusM: 5,
   lodMidRadiusM: 20,
-  baseHeight: 1.25,
+  // Height jitter and clump shaping keep the tallest tips below a standing knee (~0.5 m).
+  baseHeight: 0.26,
   heightJitter: 0.62,
-  baseWidth: 0.08,
+  baseWidth: 0.004,
   widthJitter: 0.2,
   baseBend: 0.62,
   bendJitter: 0.45,
@@ -108,7 +109,6 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, BladeFieldProf
     minActiveRecords: 12000,
     closeDensityReferenceRecords: 9000,
     heightJitter: 0.5,
-    baseWidth: 0.09,
     widthJitter: 0.2,
     baseBend: 0.45,
     bendJitter: 0.35,
@@ -131,7 +131,6 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, BladeFieldProf
     maxRecords: 220000,
     minActiveRecords: 24000,
     closeDensityReferenceRecords: 15000,
-    baseWidth: 0.065,
     widthJitter: 0.16,
     tiers: [
       { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
@@ -147,7 +146,6 @@ const MEADOW_FOCUS_RING_RADIUS_M = 300;
 const MEADOW_FOCUS_RING_REBUILD_HYSTERESIS_M = 80;
 const MEADOW_FOCUS_RING_SNAP_CELL_M = 48;
 const MEADOW_FOCUS_RING_FIELD_CELL_M = 0.6;
-const MEADOW_FOCUS_RING_BASE_WIDTH_M = 0.055;
 const MEADOW_FOCUS_RING_MAX_RECORDS = 1_000_000;
 const MEADOW_FOCUS_RING_DEDUPE_MARGIN_M = 20;
 const MEADOW_RING_ZOOM_T = 0.62;
@@ -462,7 +460,6 @@ export class BattleGrassField {
     if (!this.terrainGrid) return "";
     const fieldCellSize =
       kind === "focus" ? MEADOW_FOCUS_RING_FIELD_CELL_M : STATIC_GRASS_FIELD_CELL_M;
-    const baseWidth = kind === "focus" ? MEADOW_FOCUS_RING_BASE_WIDTH_M : this.profile.baseWidth;
     return [
       kind,
       this.terrainGrid.w,
@@ -473,7 +470,7 @@ export class BattleGrassField {
       this.groundCover,
       this.profile.source,
       fieldCellSize,
-      baseWidth,
+      this.profile.baseWidth,
       focus.maxRecords,
       Math.round(focus.x),
       Math.round(focus.y),
@@ -540,7 +537,7 @@ export class BattleGrassField {
       lodMidRadius: this.profile.lodMidRadiusM / focus.radius,
       baseHeight: this.profile.baseHeight,
       heightJitter: this.profile.heightJitter,
-      baseWidth: MEADOW_FOCUS_RING_BASE_WIDTH_M,
+      baseWidth: this.profile.baseWidth,
       widthJitter: this.profile.widthJitter,
       baseBend: this.profile.baseBend,
       bendJitter: this.profile.bendJitter,

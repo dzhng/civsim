@@ -671,6 +671,8 @@ export class PhotorealBattleWorld {
   async settlePresentedFrame(): Promise<void> {
     if (this.cameraInitialized) this.updateGrass();
     this.grass.settle(this.world.renderer);
+    // Settling can replace grass buffers while the frozen-frame cache skips normal draws.
+    if (this.cameraInitialized) this.render();
     await this.world.settlePresentedFrame();
   }
 

@@ -50,6 +50,21 @@ features. Battle's *policy* over that stream (how dense a wood, how big a tree,
 edge-weighted scatter for gameplay clarity) lives in `battle/terrainScenery.ts`,
 seated through the height field; the meshes it places are the shared ones below.
 
+## Grass uses the soldiers' world scale
+
+Ordinary battle grass stays below a standing soldier's knees and has thin
+blades, so vegetation does not make human figures appear miniature or hide
+their equipment. Judge the complete blade after height variation and shader
+shaping, rather than the sampler's base height alone.
+
+The [production grass profile](../packages/photoreal-renderer/src/battle/battleGrassField.ts)
+owns blade dimensions for both the whole-map field and the camera's denser
+focus ring. Quality settings change sampling and geometry detail without
+substituting broad leaves. The shader preserves those widths instead of
+inflating thin blades to a visibility minimum.
+The [standing-soldier view](../web/scenes/battle/battle-grass-scale.mjs)
+guards the relationship at the close gameplay camera.
+
 ## Shared scenery props have one owner
 
 Trees, rocks, mountains, and carts are the same models whether they dress a

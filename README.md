@@ -445,7 +445,8 @@ mode is how a physics-pass speedup proves itself bit-identical in melee.
 
 The native fighting-tick budget is enforced by `scripts/test-perf`. Stage
 timers are opt-in diagnostics behind `sim`'s `perf_timing` feature; the budget
-uses the uninstrumented build. The [measurement contract and evidence](specs/sim-perf/README.md)
+uses an uninstrumented native build with `parallel` enabled and eight Rayon
+workers. Ordinary and wasm builds remain serial. The [measurement contract and evidence](specs/sim-perf/README.md)
 distinguish army size, actual combat participation, and machine variation.
 
 See `crates/sim/tests/README.md` for the sim test taxonomy and

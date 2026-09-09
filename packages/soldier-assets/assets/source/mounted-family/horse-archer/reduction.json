@@ -1,0 +1,20 @@
+{
+  "source": "/Users/david/dev/game-mounted-family-delivery/throwaway/mounted-family/complete-kit/horse-archer.blend",
+  "sourceSha256": "249406fcbbc351a0367ea6c29012a6c0e17bf537e1705ea85e7783fd3eca2602",
+  "tiers": [
+    {
+      "name": "mid",
+      "targetTriangles": 4000,
+      "sourceTriangles": 102880,
+      "triangles": 4208,
+      "glbSha256": "41085145f7e6e0bc6ad0ba049265eda91ec21b5894a3689808f8ea8f9e8a88cc"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 1200,
+      "sourceTriangles": 102880,
+      "triangles": 1626,
+      "glbSha256": "3850404ece76dec3f78347114870b5cdcfc9836bb0e5617e675ad6d988801f05"
+    }
+  ]
+}

@@ -1,0 +1,970 @@
+{
+  "checks": [
+    {
+      "name": "guarded-right candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5275/assets/soldiers/candidates/guarded-right/catalog.json\",\"assets\":[{\"id\":0,\"name\":\"guarded-right\",\"presentation\":null,\"bones\":26,\"triangles\":[127196,127196,127196],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"guarded-backward-walk\",\"duration\":1,\"loop\":true},{\"name\":\"guarded-left-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"guarded-right-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"idle\",\"duration\":6,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":6,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "name": "front: out-of-order absolute repeat",
+      "ok": true
+    },
+    {
+      "name": "front: right travel preserves facing",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-00: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-00: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-01: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-01: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-02: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-02: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-03: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-03: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-04: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-04: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-05: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-05: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-06: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-06: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-07: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-07: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-08: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-08: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-09: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-09: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-10: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-10: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-11: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-11: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-12: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-12: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-13: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-13: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-14: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-14: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-15: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-15: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-16: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-16: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-17: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-17: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-18: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-18: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-19: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-19: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-20: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-20: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-21: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-21: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-22: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-22: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-23: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-front-23: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-front-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "rear: out-of-order absolute repeat",
+      "ok": true
+    },
+    {
+      "name": "rear: right travel preserves facing",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-00: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-00: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-01: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-01: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-02: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-02: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-03: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-03: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-04: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-04: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-05: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-05: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-06: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-06: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-07: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-07: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-08: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-08: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-09: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-09: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-10: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-10: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-11: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-11: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-12: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-12: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-13: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-13: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-14: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-14: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-15: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-15: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-16: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-16: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-17: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-17: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-18: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-18: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-19: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-19: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-20: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-20: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-21: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-21: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-22: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-22: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-23: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-rear-23: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-rear-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "oblique: out-of-order absolute repeat",
+      "ok": true
+    },
+    {
+      "name": "oblique: right travel preserves facing",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-00: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-00: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-01: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-01: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-02: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-02: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-03: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-03: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-04: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-04: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-05: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-05: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-06: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-06: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-07: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-07: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-08: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-08: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-09: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-09: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-10: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-10: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-11: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-11: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-12: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-12: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-13: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-13: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-14: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-14: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-15: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-15: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-16: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-16: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-17: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-17: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-18: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-18: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-19: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-19: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-20: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-20: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-21: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-21: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-22: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-22: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-23: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/guarded-right/travel-oblique-23: production clip and phase",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/guarded-right/travel-oblique-23",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ],
+  "errors": []
+}

@@ -1,6 +1,8 @@
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { buildCrowdInstances, type CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+import { assertGameplayAppearances } from "../../../crowd-runtime/src/animationState";
+import type { SoldierPlayback } from "../../../crowd-runtime/src/actionTimeline";
 import {
   battleEnvironmentStats,
   resolveBattleEnvironment,
@@ -12,29 +14,23 @@ import type {
   BattleTerrainGrid,
 } from "../../../game-renderer/src/battle/terrainFeatures";
 import { battleMapByWasmId } from "../../../game-renderer/src/battle/mapCatalog";
-import { eyePosition } from "../../../renderer-core/src/camera3d";
+import { eyePosition, projectionFootprint } from "../../../renderer-core/src/camera3d";
 import {
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../game-renderer/src/terrain/heightField";
 import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
 import {
-  loadClassMeshes,
-  loadClassVats,
-  loadPlaceholderKit,
-  mountedClassesFromKit,
-} from "../../../soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshTiers } from "../../../soldier-assets/src/soldierMesh";
+  loadAppearanceCatalog,
+  type AppearanceBundle,
+} from "../../../soldier-assets/src/appearanceBundle";
 import { PhotorealWorld } from "../world";
 import { applyCivsimEnvironment } from "../environment";
 import { applyCamera3d } from "../cameraBridge";
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
 import { createBattleFrameUniforms, type BattleFrameUniforms } from "./battleTsl";
 import { BattleBackgroundQuads, RENDER_ORDER, type BattleVistaGrid } from "./terrainLayer";
-import {
-  createSeaDisplacementSource,
-  type BattleLakeSurfaceSpec,
-} from "./seaLayer";
+import { createSeaDisplacementSource, type BattleLakeSurfaceSpec } from "./seaLayer";
 import {
   createBladeFieldWindUniforms,
   createBladeFieldTransitionUniforms,
@@ -109,7 +105,7 @@ export class PhotorealBattleWorld {
   private readonly grass: BattleGrassField;
   private readonly terrainSurface: BattleTerrainSurface;
   private readonly scenery: PhotorealScenery;
-  private readonly crowd: PhotorealCrowd;
+  private crowd: PhotorealCrowd;
   private readonly shadowRig: SunShadowRig;
   private readonly groundCues: PhotorealLineLayer;
   private readonly selectionRings: PhotorealRingLayer;
@@ -119,9 +115,10 @@ export class PhotorealBattleWorld {
   private readonly markerLayer: PhotorealMarkerLayer;
   private readonly standardLayer: PhotorealStandardLayer;
   private readonly readoutLayer: PhotorealReadoutLayer;
-  private readonly mountedClasses: number[];
+  private mountedClasses: number[];
   private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
   private readonly post: BattlePostChain;
+  private disposed = false;
 
   private lakeSurfaces: BattleLakeSurfaceSpec[] = [];
 
@@ -139,6 +136,7 @@ export class PhotorealBattleWorld {
   private readonly wind: BladeFieldWindUniforms = createBladeFieldWindUniforms();
   private cameraInitialized = false;
   private instances: CrowdInstance[] = [];
+  private readonly instancePool: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private seating = { checked: 0, matches: true, span: 0 };
   private lastCamera: BattleCameraSnapshot = {
@@ -161,13 +159,14 @@ export class PhotorealBattleWorld {
     world: PhotorealWorld,
     environment: BattleEnvironment,
     sea: ReturnType<typeof createSeaDisplacementSource>,
-    meshes: ReturnType<typeof createPlaceholderSoldierMeshTiers>,
-    vats: Awaited<ReturnType<typeof loadClassVats>>,
-    kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
+    public soldierAssets: Record<number, AppearanceBundle>,
+    readonly soldierCatalogUrl: string,
     shadowMode: SunShadowMode,
     postEnabled: boolean,
     postGrade: Partial<BattlePostGradeUniforms> | null,
     grassProfile: BladeFieldProfile,
+    private readonly gameplay: boolean,
+    crowd: PhotorealCrowd,
   ) {
     this.world = world;
     this.environment = environment;
@@ -195,8 +194,10 @@ export class PhotorealBattleWorld {
     this.terrainSurface = new BattleTerrainSurface(scene);
     this.grass = new BattleGrassField(scene, grassProfile, this.grassTransition, this.wind);
     this.scenery = new PhotorealScenery(scene);
-    this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
-    this.mountedClasses = mountedClassesFromKit(kit);
+    this.crowd = crowd;
+    this.mountedClasses = Object.entries(soldierAssets)
+      .filter(([, bundle]) => bundle.manifest.mounted)
+      .map(([id]) => Number(id));
     this.groundCues = new PhotorealLineLayer(scene, 0.25, {
       alpha: 0.98, // the selection-ring weight — cues and rings are one style
       depthTest: true,
@@ -229,40 +230,92 @@ export class PhotorealBattleWorld {
       shadows?: string | null;
       post?: string | null;
       grassQuality?: BattleGrassQuality;
+      soldierCatalogUrl?: string;
+      /** Manual asset inspection does not require gameplay action bindings. */
+      gameplay?: boolean;
       postGrade?: Partial<BattlePostGradeUniforms> | null;
     } = {},
   ): Promise<PhotorealBattleWorld> {
     const environment = resolveBattleEnvironment(options.environment);
     const grassProfile = productionBladeFieldProfile(options.grassQuality);
-    const [world, kit] = await Promise.all([
-      PhotorealWorld.create(canvas, { antialias: false }),
-      loadPlaceholderKit(),
-    ]);
+    const soldierCatalogUrl = new URL(
+      options.soldierCatalogUrl ?? "/assets/soldiers/catalog.json",
+      window.location.href,
+    ).href;
+    const gameplay = options.gameplay ?? true;
+    const assets = await loadAppearanceCatalog(soldierCatalogUrl);
+    if (gameplay) assertGameplayAppearances(assets);
+    const world = await PhotorealWorld.create(canvas, { antialias: false });
+    let crowd: PhotorealCrowd;
+    try {
+      crowd = await PhotorealCrowd.create(world.renderer, world.scene, assets);
+    } catch (error) {
+      world.dispose();
+      throw error;
+    }
     const sea = createSeaDisplacementSource();
-    const vats = await loadClassVats(kit);
-    const classMeshes = await loadClassMeshes(kit);
-    const meshes = createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]);
-    classMeshes.forEach((mesh, classId) => {
-      if (mesh && meshes[classId]) meshes[classId] = meshes[classId].map(() => mesh);
-    });
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
     const postEnabled = options.post !== "off";
     return new PhotorealBattleWorld(
       world,
       environment,
       sea,
-      meshes,
-      vats,
-      kit,
+      assets,
+      soldierCatalogUrl,
       shadowMode,
       postEnabled,
       options.postGrade ?? null,
       grassProfile,
+      gameplay,
+      crowd,
     );
   }
 
   setTime(seconds: number): void {
     this.world.setTime(seconds);
+  }
+
+  /** Reload the production bundle after a local bake, retaining the last good crowd on load failure. */
+  async reloadSoldierAssets(activePose?: Pick<CrowdInstance, "classId" | "clip">): Promise<void> {
+    this.assertReloadable();
+    const assets = await loadAppearanceCatalog(this.soldierCatalogUrl);
+    this.assertReloadable();
+    const assertActivePose = () => {
+      if (
+        activePose &&
+        !assets[activePose.classId]?.animation.clips.some((clip) => clip.name === activePose.clip)
+      ) {
+        throw new Error(
+          `Reload does not contain active appearance ${activePose.classId} / clip ${activePose.clip}`,
+        );
+      }
+    };
+    assertActivePose();
+    if (this.gameplay) assertGameplayAppearances(assets);
+    const replacement = await PhotorealCrowd.create(
+      this.world.renderer,
+      this.world.scene,
+      assets,
+      () => this.assertReloadable(),
+    );
+    try {
+      this.assertReloadable();
+      // The author may select another valid old pose while GPU admission waits.
+      assertActivePose();
+    } catch (error) {
+      replacement.dispose();
+      throw error;
+    }
+    this.crowd.dispose();
+    this.crowd = replacement;
+    this.soldierAssets = assets;
+    this.mountedClasses = Object.entries(assets)
+      .filter(([, bundle]) => bundle.manifest.mounted)
+      .map(([id]) => Number(id));
+  }
+
+  private assertReloadable(): void {
+    if (this.disposed) throw new Error("Cannot reload soldiers into a disposed battle world");
   }
 
   setBloomEnabled(on: boolean): void {
@@ -364,36 +417,36 @@ export class PhotorealBattleWorld {
   draw(
     positions: Float32Array,
     facings: Float32Array,
-    frames: Float32Array,
+    playback: readonly SoldierPlayback[],
     alive: Float32Array,
     count: number,
     camera: BattleCameraSnapshot,
-    renderClass?: Uint8Array | number[] | null,
-    simTick?: number,
     frameDt = 0,
   ): void {
-    this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
-    this.setCamera(camera);
-    // Refreshes last frame's instance objects in place (see buildCrowdInstances).
-    buildCrowdInstances(
+    const built = buildCrowdInstances(
       {
         positions,
         facings,
-        frames,
+        playback,
         alive,
         soldierUnit: this.soldierUnit,
         unitTeam: this.unitTeam,
-        unitClass: this.unitClass,
-        renderClass: renderClass ?? undefined,
         mountedClasses: this.mountedClasses,
         terrainHeight: this.terrainSurface.heightSampler(),
-        simTick: simTick ?? 0,
         count,
       },
-      this.instances,
+      this.instancePool,
     );
+    this.drawInstances(built.instances, camera, frameDt);
+  }
+
+  /** Explicit poses and battle observations share the exact same production submission path. */
+  drawInstances(instances: CrowdInstance[], camera: BattleCameraSnapshot, frameDt = 0): void {
+    this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
+    this.setCamera(camera);
+    this.instances = instances;
     this.markers = [];
-    this.updateSeating(this.instances);
+    this.updateSeating(instances);
     this.updateGrass();
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);
@@ -401,7 +454,7 @@ export class PhotorealBattleWorld {
     this.markerLayer.upload(this.markers);
   }
 
-  debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {
+  debugSoldierAnim(index: number) {
     return this.crowd.debugSoldierAnim(index);
   }
 
@@ -515,13 +568,21 @@ export class PhotorealBattleWorld {
       this.camera.matrixWorldInverse,
     );
     view.setFromProjectionMatrix(mat, this.camera.coordinateSystem, this.camera.reversedDepth);
-    const shadowFrusta = this.shadowRig.cullingFrusta();
     return {
       camera: this.camera,
-      lodCamera: { x: this.lastCamera.x, y: this.lastCamera.y, zoom: this.lastCamera.zoom },
-      frusta: [view, ...shadowFrusta],
-      viewFrusta: 1,
-      shadowFrusta: shadowFrusta.length,
+      views: [
+        {
+          frustum: view,
+          projection: projectionFootprint(
+            this.camera.matrixWorldInverse.elements,
+            this.camera.projectionMatrix.elements,
+            this.world.renderer.domElement.height,
+            this.camera.near,
+          ),
+          shadow: false,
+        },
+        ...this.shadowRig.cullingViews(),
+      ],
     };
   }
 
@@ -614,6 +675,8 @@ export class PhotorealBattleWorld {
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     this.post.dispose();
     this.background.dispose();
     this.terrainSurface.dispose();

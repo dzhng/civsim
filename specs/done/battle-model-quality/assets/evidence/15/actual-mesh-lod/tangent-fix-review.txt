@@ -1,0 +1,7 @@
+- **P2 — Safeguard affects unmapped materials.** [blender-mesh-lods.py:27](/Users/david/dev/game-actual-mesh-lod/packages/soldier-assets/bake/blender-mesh-lods.py:27) flattens and potentially rejects degenerate frames on every face. Production permits these on materials without normal maps. Restrict repair and rejection to normal-mapped faces.
+
+- **P2 — Optional materials crash the test.** [mesh-lods.test.mjs:25](/Users/david/dev/game-actual-mesh-lod/packages/soldier-assets/bake/mesh-lods.test.mjs:25) dereferences a material unconditionally, although `bakeGltf` supports `materialIndex: null`. A valid default-material primitive now throws. Use optional access.
+
+- **P2 — Assertion misses invalid frames.** [mesh-lods.test.mjs:27](/Users/david/dev/game-actual-mesh-lod/packages/soldier-assets/bake/mesh-lods.test.mjs:27) accepts nonzero tangents parallel to normals and invalid handedness, both rejected by production. Assert the complete frame invariant.
+
+No source-mutation defect found. Static review only; no Blender/GPU execution or edits.

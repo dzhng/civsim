@@ -1,0 +1,191 @@
+{
+  "materials": [
+    {
+      "name": "heavy-skin",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.7599999904632568,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.18000000715255737,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-cloth",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9399999976158142,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.25,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-mail",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.7799999713897705,
+      "metallic": 1,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.5,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-leather",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.8199999928474426,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.2800000011920929,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-bronze",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.5699999928474426,
+      "metallic": 1,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.3199999928474426,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-shield-hide",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9599999785423279,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.6499999761581421,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-wood",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.8600000143051147,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.2800000011920929,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-iron",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 1,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.18000000715255737,
+      "occlusionStrength": 1
+    }
+  ],
+  "textures": {
+    "baseColor": {
+      "image": "images/882ebf7258a5b94d07f67f0d75d45f37fd3755c192ed7299369dbfcfcb06e9ff.png",
+      "mimeType": "image/png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      }
+    },
+    "normal": {
+      "image": "images/61bbe6ab951bc42b306453d3ae6c9741a5a858f8914d63b0b0b256fb4687b326.png",
+      "mimeType": "image/png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      }
+    },
+    "orm": {
+      "image": "images/305e93624f0c93fccf899c63d457b5c19fe1791cacc129f8af0003cbafb73aa7.png",
+      "mimeType": "image/png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      }
+    }
+  }
+}

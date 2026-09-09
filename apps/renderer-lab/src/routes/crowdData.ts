@@ -1,6 +1,12 @@
 import { buildCrowdInstances, generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 import { toCrowdBuildInputs } from "../labFixtures";
-import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, publish } from "../labShell";
+import {
+  type LabContext,
+  animateSkinned,
+  createConfiguredShell,
+  createSkinnedPipeline,
+  publish,
+} from "../labShell";
 
 export async function route(ctx: LabContext) {
   const count = Number(ctx.params.get("count") ?? 1000);
@@ -9,14 +15,14 @@ export async function route(ctx: LabContext) {
     y: -10,
     faction: 0,
     columns: 34,
-    frame: 1,
+    clip: "march",
   });
   const enemy = generatedFormation(count - player.length, {
     x: 18,
     y: 5,
     faction: 1,
     columns: 34,
-    frame: 1,
+    clip: "march",
   });
   const instances = player.concat(enemy);
   const shell = await createConfiguredShell(ctx.canvas, {
@@ -26,11 +32,12 @@ export async function route(ctx: LabContext) {
     pitch: 0.24,
     yaw: 0,
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const pipeline = await createSkinnedPipeline(shell);
   animateSkinned(shell, pipeline, () => instances);
   const built = buildCrowdInstances(toCrowdBuildInputs(instances));
   publish("crowd-data", true, {
     route: "crowd-data",
     stats: built.stats,
+    instances: built.instances.length,
   });
 }

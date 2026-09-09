@@ -1,0 +1,24 @@
+[
+  {
+    "arm": "A",
+    "checks": 389,
+    "images": 128,
+    "allImagesZeroPixels": true,
+    "traceControls": {
+      "start": "Exact complete trace equality with original full-frame capture",
+      "contact": "Exact complete trace equality with original full-frame capture"
+    },
+    "adapter": "swiftshader"
+  },
+  {
+    "arm": "B",
+    "checks": 389,
+    "images": 128,
+    "allImagesZeroPixels": true,
+    "traceControls": {
+      "start": "Exact complete trace equality with original full-frame capture",
+      "contact": "Exact complete trace equality with original full-frame capture"
+    },
+    "adapter": "swiftshader"
+  }
+]

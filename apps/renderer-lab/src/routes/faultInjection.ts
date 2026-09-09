@@ -59,10 +59,11 @@ export async function route(ctx: LabContext) {
   });
   shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 }, shell));
   const markers = generatedCrowd(18, -8, -4, 0).concat(generatedCrowd(18, 8, 2, 1));
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const pipeline = await createSkinnedPipeline(shell);
   pipeline.upload(markers);
   const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   const draw = (): FrameGraphCommands => ({
+    precompute: (encoder) => pipeline.precompute(encoder),
     passes: [
       labGroundFramePass(ground, "fault-injection-ground"),
       skinnedCrowdPass(pipeline, "fault-injection-crowd"),

@@ -1,0 +1,9 @@
+{
+  "before": "formation-harness process97357",
+  "after": "combined-helmet process34432",
+  "checkNamesIdentical": true,
+  "beforeCount": 644,
+  "afterCount": 644,
+  "poseViews": 316,
+  "snapshots": 12
+}

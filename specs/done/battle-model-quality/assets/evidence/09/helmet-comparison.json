@@ -1,0 +1,15 @@
+{
+  "names": [
+    "grip-axis",
+    "helmet-fit"
+  ],
+  "changed": 6996,
+  "total": 3276800,
+  "bounds": {
+    "x": 270,
+    "y": 90,
+    "width": 100,
+    "height": 120,
+    "scale": 4
+  }
+}

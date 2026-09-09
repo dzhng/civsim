@@ -1,0 +1,450 @@
+[
+  {
+    "name": "travel-run-side-00.png",
+    "x": 692,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-01.png",
+    "x": 670,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-02.png",
+    "x": 646,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-03.png",
+    "x": 627,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-04.png",
+    "x": 605,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-05.png",
+    "x": 587,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-06.png",
+    "x": 570,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-07.png",
+    "x": 547,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-08.png",
+    "x": 521,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-09.png",
+    "x": 495,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-10.png",
+    "x": 470,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-11.png",
+    "x": 452,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-12.png",
+    "x": 440,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-13.png",
+    "x": 426,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-14.png",
+    "x": 410,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-15.png",
+    "x": 390,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-16.png",
+    "x": 366,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-17.png",
+    "x": 343,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-18.png",
+    "x": 318,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-19.png",
+    "x": 296,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-20.png",
+    "x": 282,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-21.png",
+    "x": 267,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-22.png",
+    "x": 250,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-23.png",
+    "x": 228,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-24.png",
+    "x": 202,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-25.png",
+    "x": 175,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-26.png",
+    "x": 150,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-27.png",
+    "x": 128,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-28.png",
+    "x": 114,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-29.png",
+    "x": 99,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-30.png",
+    "x": 83,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-side-31.png",
+    "x": 63,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-00.png",
+    "x": 672,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-01.png",
+    "x": 645,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-02.png",
+    "x": 621,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-03.png",
+    "x": 601,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-04.png",
+    "x": 585,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-05.png",
+    "x": 571,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-06.png",
+    "x": 554,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-07.png",
+    "x": 533,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-08.png",
+    "x": 509,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-09.png",
+    "x": 484,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-10.png",
+    "x": 460,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-11.png",
+    "x": 440,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-12.png",
+    "x": 421,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-13.png",
+    "x": 407,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-14.png",
+    "x": 394,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-15.png",
+    "x": 376,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-16.png",
+    "x": 355,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-17.png",
+    "x": 336,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-18.png",
+    "x": 321,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-19.png",
+    "x": 305,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-20.png",
+    "x": 291,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-21.png",
+    "x": 279,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-22.png",
+    "x": 266,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-23.png",
+    "x": 249,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-24.png",
+    "x": 228,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-25.png",
+    "x": 209,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-26.png",
+    "x": 192,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-27.png",
+    "x": 176,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-28.png",
+    "x": 161,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-29.png",
+    "x": 145,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-30.png",
+    "x": 134,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  },
+  {
+    "name": "travel-run-oblique-31.png",
+    "x": 119,
+    "y": 150,
+    "width": 280,
+    "height": 320
+  }
+]

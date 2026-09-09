@@ -1,0 +1,29 @@
+The clearest problems are **framing, indistinct equipment attachments, and patterned shadows**. Actual missing limbs or detached equipment are not established by these views.
+
+**Image 1 — heavy soldier**
+
+- **High confidence:** The head presents a nearly featureless skin-colored surface beneath the helmet. Face direction is difficult to read; the image does not establish whether facial features are absent or simply hidden.
+- **High confidence:** The shield’s attachment is visually unclear. A short pale horizontal piece protrudes near the shield-side wrist/hip, without a readable hand–grip–shield connection. **Uncertain:** whether this is exposed hardware, a hand seen edge-on, or intersecting geometry.
+- **Medium confidence:** The sword hand reads as a block around the hilt, with an abrupt wrist transition. A convincing closed grip is not visible.
+- **High confidence:** The mail has a dense, repetitive speckled pattern that overwhelms the torso’s larger shapes. Shoulder, chest, and sleeve construction are difficult to distinguish.
+- **Medium confidence:** The long scabbard lies very close to the outer leg, making its separation and suspension hard to read. This suggests possible clipping but does not prove it.
+
+**Image 2 — phalanx soldier**
+
+- **High confidence:** The pole exits the top edge. Its upper endpoint cannot be inspected, despite substantial empty space elsewhere in the frame.
+- **High confidence:** The raised hand, shaft, neck, and shoulder converge into a congested silhouette. Neither the grip nor the clearance between weapon and body is clear.
+- **Medium confidence:** The bent arm looks bulky and sharply folded, with weak elbow/wrist definition. Foreshortening may explain some of this.
+- **High confidence:** The shield is visible beside the torso, but its supporting forearm, grip, or strap is not readable. **Uncertain:** those components may be correctly occluded.
+- **Medium confidence:** The dark hanging item between/beside the legs merges with their silhouette, making it difficult to distinguish equipment from anatomy.
+
+**Image 3 — formation**
+
+- **High confidence:** The soldiers repeat essentially the same stance, arm angles, shield orientation, and weapon position. This creates a conspicuous mannequin-like repetition.
+- **High confidence:** At this scale, heads and hands lose definition; swords become thin lines and shields become plain dark shapes. The formation is readable, but individual equipment construction is not.
+- **High confidence:** Shadows show visible stippling/striping and broad smeared edges. The repeated parallel shadows reinforce the mechanical appearance.
+
+**Across the captures**
+
+- **High confidence:** Framing is inefficient for model inspection. The first soldier occupies roughly 40% of frame height; the second body roughly 31%, while its weapon is clipped.
+- **Medium confidence:** Weak localized darkness beneath the sandals makes ground contact feel soft. I would not confidently call the models floating.
+- **Missing components:** No limb is clearly missing. Facial detail, shield fastenings, and finger articulation are **not discernible**, which is different from proving they are absent. The phalanx weapon’s upper end is outside the image, not demonstrably missing.

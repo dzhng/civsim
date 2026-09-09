@@ -1,0 +1,1433 @@
+{
+  "samples": 109,
+  "method": "Skinned actual hand-weighted mesh triangles versus actual rigid skinned pike shaft triangles; BVH intersections and vertex-to-shaft-surface distance at every quarter-frame. Not a palm target/frame-only check.",
+  "summary": {
+    "L": {
+      "minimumIntersectingTrianglePairs": 4,
+      "maximumNearestHandVertexToShaftSurfaceMeters": 0.0002405896520940587
+    },
+    "R": {
+      "minimumIntersectingTrianglePairs": 0,
+      "maximumNearestHandVertexToShaftSurfaceMeters": 0.00016297884576488286
+    }
+  },
+  "frames": [
+    {
+      "frame": 0.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010909003322012722
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290094936266541
+        }
+      }
+    },
+    {
+      "frame": 0.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 9.162072274193633e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.000162897864356637
+        }
+      }
+    },
+    {
+      "frame": 0.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 2.502525421732571e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016295065870508552
+        }
+      }
+    },
+    {
+      "frame": 0.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 8.315008017234504e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016293661610689014
+        }
+      }
+    },
+    {
+      "frame": 1.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00011044152051908895
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016287896141875535
+        }
+      }
+    },
+    {
+      "frame": 1.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010146212298423052
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629434700589627
+        }
+      }
+    },
+    {
+      "frame": 1.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001745872141327709
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016294194210786372
+        }
+      }
+    },
+    {
+      "frame": 1.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 16,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001009492261800915
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016286011668853462
+        }
+      }
+    },
+    {
+      "frame": 2.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001274318783544004
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016297884576488286
+        }
+      }
+    },
+    {
+      "frame": 2.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010599456436466426
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001628968311706558
+        }
+      }
+    },
+    {
+      "frame": 2.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 9.933812543749809e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290748317260295
+        }
+      }
+    },
+    {
+      "frame": 2.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010764219769043848
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289479390252382
+        }
+      }
+    },
+    {
+      "frame": 3.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013090507127344608
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629311009310186
+        }
+      }
+    },
+    {
+      "frame": 3.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 6.518638110719621e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001628903701202944
+        }
+      }
+    },
+    {
+      "frame": 3.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00011297960008960217
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016288604820147157
+        }
+      }
+    },
+    {
+      "frame": 3.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00011756949970731512
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016283482545986772
+        }
+      }
+    },
+    {
+      "frame": 4.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013116210175212473
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289106861222535
+        }
+      }
+    },
+    {
+      "frame": 4.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 1.4093387108005118e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016291355132125318
+        }
+      }
+    },
+    {
+      "frame": 4.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 2.250028046546504e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629155594855547
+        }
+      }
+    },
+    {
+      "frame": 4.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 1.8211090718978085e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290132771246135
+        }
+      }
+    },
+    {
+      "frame": 5.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001037522524711676
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016288184269797057
+        }
+      }
+    },
+    {
+      "frame": 5.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013929576380178332
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289223276544362
+        }
+      }
+    },
+    {
+      "frame": 5.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00021041084255557507
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629297767067328
+        }
+      }
+    },
+    {
+      "frame": 5.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 2.264767863380257e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016294575470965356
+        }
+      }
+    },
+    {
+      "frame": 6.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00014094955986365676
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016293340013362467
+        }
+      }
+    },
+    {
+      "frame": 6.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00018241343786939979
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016295438399538398
+        }
+      }
+    },
+    {
+      "frame": 6.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 23,
+          "nearestHandVertexToShaftSurfaceMeters": 8.838198846206069e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290269559249282
+        }
+      }
+    },
+    {
+      "frame": 6.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00021390759502537549
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016292660438921303
+        }
+      }
+    },
+    {
+      "frame": 7.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 7.682359864702448e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016293581575155258
+        }
+      }
+    },
+    {
+      "frame": 7.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00020817399490624666
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629259786568582
+        }
+      }
+    },
+    {
+      "frame": 7.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 23,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010937933257082477
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289956693071872
+        }
+      }
+    },
+    {
+      "frame": 7.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001939974317792803
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016291753854602575
+        }
+      }
+    },
+    {
+      "frame": 8.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 8.064126450335607e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629022735869512
+        }
+      }
+    },
+    {
+      "frame": 8.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 24,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00014057874795980752
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016287306789308786
+        }
+      }
+    },
+    {
+      "frame": 8.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 26,
+          "nearestHandVertexToShaftSurfaceMeters": 1.961088401003508e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 2.8363643650664017e-05
+        }
+      }
+    },
+    {
+      "frame": 8.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 23,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00015312855248339474
+        },
+        "R": {
+          "intersectingTrianglePairs": 5,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629166363272816
+        }
+      }
+    },
+    {
+      "frame": 9.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 8.099569095065817e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016292292275466025
+        }
+      }
+    },
+    {
+      "frame": 9.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 24,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00019117884221486747
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 2.2335256289807148e-05
+        }
+      }
+    },
+    {
+      "frame": 9.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 24,
+          "nearestHandVertexToShaftSurfaceMeters": 7.19379895599559e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 11,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00011840769730042666
+        }
+      }
+    },
+    {
+      "frame": 9.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00017664674669504166
+        },
+        "R": {
+          "intersectingTrianglePairs": 13,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00012461069854907691
+        }
+      }
+    },
+    {
+      "frame": 10.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 8.252245606854558e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 15,
+          "nearestHandVertexToShaftSurfaceMeters": 9.350408072350547e-05
+        }
+      }
+    },
+    {
+      "frame": 10.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 8.387232082895935e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 15,
+          "nearestHandVertexToShaftSurfaceMeters": 8.888987213140354e-05
+        }
+      }
+    },
+    {
+      "frame": 10.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013675012451130897
+        },
+        "R": {
+          "intersectingTrianglePairs": 17,
+          "nearestHandVertexToShaftSurfaceMeters": 8.423037070315331e-05
+        }
+      }
+    },
+    {
+      "frame": 10.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00014294574793893844
+        },
+        "R": {
+          "intersectingTrianglePairs": 17,
+          "nearestHandVertexToShaftSurfaceMeters": 7.939410716062412e-05
+        }
+      }
+    },
+    {
+      "frame": 11.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016307031910400838
+        },
+        "R": {
+          "intersectingTrianglePairs": 17,
+          "nearestHandVertexToShaftSurfaceMeters": 7.43944474379532e-05
+        }
+      }
+    },
+    {
+      "frame": 11.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 8.965049346443266e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 13,
+          "nearestHandVertexToShaftSurfaceMeters": 9.90355183603242e-05
+        }
+      }
+    },
+    {
+      "frame": 11.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00018587839440442622
+        },
+        "R": {
+          "intersectingTrianglePairs": 13,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00012107421935070306
+        }
+      }
+    },
+    {
+      "frame": 11.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010738002310972661
+        },
+        "R": {
+          "intersectingTrianglePairs": 13,
+          "nearestHandVertexToShaftSurfaceMeters": 5.536451863008551e-05
+        }
+      }
+    },
+    {
+      "frame": 12.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016076653264462948
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00015781985712237656
+        }
+      }
+    },
+    {
+      "frame": 12.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 24,
+          "nearestHandVertexToShaftSurfaceMeters": 6.168718391563743e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290060011669993
+        }
+      }
+    },
+    {
+      "frame": 12.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 32,
+          "nearestHandVertexToShaftSurfaceMeters": 1.8170097973779775e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 5,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016292913642246276
+        }
+      }
+    },
+    {
+      "frame": 12.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 24,
+          "nearestHandVertexToShaftSurfaceMeters": 3.9851180190453306e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010652259516064078
+        }
+      }
+    },
+    {
+      "frame": 13.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 8.139916462823749e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.000162963624461554
+        }
+      }
+    },
+    {
+      "frame": 13.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 6.686239066766575e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629393664188683
+        }
+      }
+    },
+    {
+      "frame": 13.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00015813912614248693
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289403720293194
+        }
+      }
+    },
+    {
+      "frame": 13.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016621600661892444
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016288615006487817
+        }
+      }
+    },
+    {
+      "frame": 14.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 12,
+          "nearestHandVertexToShaftSurfaceMeters": 7.735139661235735e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016293753287754953
+        }
+      }
+    },
+    {
+      "frame": 14.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013637702795676887
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629047328606248
+        }
+      }
+    },
+    {
+      "frame": 14.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 38,
+          "nearestHandVertexToShaftSurfaceMeters": 2.173253960791044e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001628942263778299
+        }
+      }
+    },
+    {
+      "frame": 14.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00011847956193378195
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289450286421925
+        }
+      }
+    },
+    {
+      "frame": 15.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00014621031004935503
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289076302200556
+        }
+      }
+    },
+    {
+      "frame": 15.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00012593570863828063
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016287830658257008
+        }
+      }
+    },
+    {
+      "frame": 15.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 49,
+          "nearestHandVertexToShaftSurfaceMeters": 3.964591996918898e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289313498418778
+        }
+      }
+    },
+    {
+      "frame": 15.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 23,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010585451673250645
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016293046064674854
+        }
+      }
+    },
+    {
+      "frame": 16.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013398956798482686
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001628909376449883
+        }
+      }
+    },
+    {
+      "frame": 16.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 1.3883481187804136e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290677012875676
+        }
+      }
+    },
+    {
+      "frame": 16.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 3.155477679683827e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016292749205604196
+        }
+      }
+    },
+    {
+      "frame": 16.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 6.933444751666684e-07
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289454651996493
+        }
+      }
+    },
+    {
+      "frame": 17.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010777658462757245
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290829807985574
+        }
+      }
+    },
+    {
+      "frame": 17.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010180903336731717
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.000162902579177171
+        }
+      }
+    },
+    {
+      "frame": 17.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 6,
+          "nearestHandVertexToShaftSurfaceMeters": 9.515038982499391e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629062317078933
+        }
+      }
+    },
+    {
+      "frame": 17.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 8.792767766863108e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016292506188619882
+        }
+      }
+    },
+    {
+      "frame": 18.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 8.013437764020637e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.000162951517268084
+        }
+      }
+    },
+    {
+      "frame": 18.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 4.456163151189685e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289111226797104
+        }
+      }
+    },
+    {
+      "frame": 18.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 2.9378867111518048e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629085891181603
+        }
+      }
+    },
+    {
+      "frame": 18.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 3.322772681713104e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290313214994967
+        }
+      }
+    },
+    {
+      "frame": 19.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 5.566596155404113e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629337784834206
+        }
+      }
+    },
+    {
+      "frame": 19.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 8.510479528922588e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629041216801852
+        }
+      }
+    },
+    {
+      "frame": 19.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 16,
+          "nearestHandVertexToShaftSurfaceMeters": 2.854572630894836e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016287033213302493
+        }
+      }
+    },
+    {
+      "frame": 19.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 9.031921217683703e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001628952450118959
+        }
+      }
+    },
+    {
+      "frame": 20.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 7.191206532297656e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289767518173903
+        }
+      }
+    },
+    {
+      "frame": 20.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 17,
+          "nearestHandVertexToShaftSurfaceMeters": 2.985917126352433e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290578059852123
+        }
+      }
+    },
+    {
+      "frame": 20.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 1.64924276759848e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016295950626954436
+        }
+      }
+    },
+    {
+      "frame": 20.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 17,
+          "nearestHandVertexToShaftSurfaceMeters": 2.0116127416258678e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629361795494333
+        }
+      }
+    },
+    {
+      "frame": 21.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013224573922343552
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016291144129354507
+        }
+      }
+    },
+    {
+      "frame": 21.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 19,
+          "nearestHandVertexToShaftSurfaceMeters": 3.2774532883195207e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290947678498924
+        }
+      }
+    },
+    {
+      "frame": 21.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 21,
+          "nearestHandVertexToShaftSurfaceMeters": 4.0969960537040606e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001611484622117132
+        }
+      }
+    },
+    {
+      "frame": 21.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 17,
+          "nearestHandVertexToShaftSurfaceMeters": 4.907583206659183e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289459017571062
+        }
+      }
+    },
+    {
+      "frame": 22.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00019278330728411674
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289573977701366
+        }
+      }
+    },
+    {
+      "frame": 22.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 32,
+          "nearestHandVertexToShaftSurfaceMeters": 3.557741365511902e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00015707100101280957
+        }
+      }
+    },
+    {
+      "frame": 22.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 64,
+          "nearestHandVertexToShaftSurfaceMeters": 1.879334234899943e-07
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013980847143102437
+        }
+      }
+    },
+    {
+      "frame": 22.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 36,
+          "nearestHandVertexToShaftSurfaceMeters": 1.1703816653607646e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 5,
+          "nearestHandVertexToShaftSurfaceMeters": 8.895841892808676e-05
+        }
+      }
+    },
+    {
+      "frame": 23.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00018163773347623646
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00015404641453642398
+        }
+      }
+    },
+    {
+      "frame": 23.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 16,
+          "nearestHandVertexToShaftSurfaceMeters": 3.1187444164970657e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00010724630556069314
+        }
+      }
+    },
+    {
+      "frame": 23.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 17,
+          "nearestHandVertexToShaftSurfaceMeters": 1.9572207747842185e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00015656795585528016
+        }
+      }
+    },
+    {
+      "frame": 23.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 16,
+          "nearestHandVertexToShaftSurfaceMeters": 1.0224219295196235e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 13,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001372432743664831
+        }
+      }
+    },
+    {
+      "frame": 24.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00012620276538655162
+        },
+        "R": {
+          "intersectingTrianglePairs": 13,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00011632993118837476
+        }
+      }
+    },
+    {
+      "frame": 24.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 16,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001344890333712101
+        },
+        "R": {
+          "intersectingTrianglePairs": 13,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001375940628349781
+        }
+      }
+    },
+    {
+      "frame": 24.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 16,
+          "nearestHandVertexToShaftSurfaceMeters": 9.26367865758948e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 9.342459088657051e-05
+        }
+      }
+    },
+    {
+      "frame": 24.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 14,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00013255169324111193
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 8.458117372356355e-05
+        }
+      }
+    },
+    {
+      "frame": 25.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0002405896520940587
+        },
+        "R": {
+          "intersectingTrianglePairs": 7,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00014140848361421376
+        }
+      }
+    },
+    {
+      "frame": 25.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 28,
+          "nearestHandVertexToShaftSurfaceMeters": 7.971320883370936e-06
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016293376393150538
+        }
+      }
+    },
+    {
+      "frame": 25.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 41,
+          "nearestHandVertexToShaftSurfaceMeters": 1.2852493455284275e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016292768123093992
+        }
+      }
+    },
+    {
+      "frame": 25.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 30,
+          "nearestHandVertexToShaftSurfaceMeters": 3.308710438432172e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016291083011310548
+        }
+      }
+    },
+    {
+      "frame": 26.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 4,
+          "nearestHandVertexToShaftSurfaceMeters": 6.658173515461385e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016289034101646394
+        }
+      }
+    },
+    {
+      "frame": 26.25,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 39,
+          "nearestHandVertexToShaftSurfaceMeters": 3.402941729291342e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001628920726943761
+        }
+      }
+    },
+    {
+      "frame": 26.5,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 81,
+          "nearestHandVertexToShaftSurfaceMeters": 1.2915733350382652e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016290679923258722
+        }
+      }
+    },
+    {
+      "frame": 26.75,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 28,
+          "nearestHandVertexToShaftSurfaceMeters": 5.505509761860594e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.0001629282342037186
+        }
+      }
+    },
+    {
+      "frame": 27.0,
+      "hands": {
+        "L": {
+          "intersectingTrianglePairs": 10,
+          "nearestHandVertexToShaftSurfaceMeters": 8.829368744045496e-05
+        },
+        "R": {
+          "intersectingTrianglePairs": 0,
+          "nearestHandVertexToShaftSurfaceMeters": 0.00016293153748847544
+        }
+      }
+    }
+  ]
+}

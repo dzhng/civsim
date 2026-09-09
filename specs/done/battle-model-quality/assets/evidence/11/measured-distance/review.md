@@ -1,0 +1,126 @@
+# Engine-distance gait transport
+
+This bounded pass advances existing walk/run tracks from measured engine displacement. It does not establish live foot grounding, voluntary stepping, protected directional clips, or detailed-asset gameplay admission. Idle and combat retain authored time; simulation mechanics, timers, saves and source GLBs are unchanged.
+
+## Contract and choices audit
+
+- **Clip metadata owns travel calibration (sound, high confidence).** A one-cycle walk needs a distance as well as an imported duration. The existing bake override now carries `clipMetadata` (release markers and optional positive finite `strideMeters`), replacing `clipMarkers`, and writes the same value into source-rig and sampled-animation clips. The runtime validates their agreement. A second stride map or glTF-extras export was not built: neither should compete with the existing asset owner. Heavy metadata interprets the reviewed source motion without re-exporting its GLB. Its walk is 1.7 m/s × 0.9 s = 1.53 m; run is 3.23 m/s × 0.8 s = 2.584 m, matching the reviewed authoring recipe. The candidate remains manual-only.
+- **Nearest nominal gait (sound, medium confidence; reversible presentation choice).** If an order requests running but the soldier moves slowly, the measured speed selects walk. The crossover is the midpoint of the bound clips' nominal speeds (distance divided by duration), not an engine gait state or universal threshold. Equal-to-midpoint chooses walk; existing moving/rest hysteresis stays unchanged. Rapid crossings retain cycle phase. The unbuilt alternative is a richer calibrated gait blend or engine-owned gait classification, not order authority.
+- **Remove the obsolete internal order copy (sound, high confidence).** After gait selection stopped reading `ActionObservation.running`, its internal field and producer/test-only copies were removed rather than retained as unused compatibility. The actual engine `UNIT_INFO.running` remains unchanged; the production adapter consumer test still toggles it while verifying measured walking. Fixture-local booleans that prescribe measured speeds remain legitimate authoring inputs. This is not a simulation/save-schema migration.
+- **Synthetic rates prove transport only (sound, high confidence).** Placeholder leg rotations have no authored stance interval from which to derive a physical stride. Their generator explicitly declares nominal fixture rates of 1.7 m/s walk and 3.4 m/s run. These are not a grounding calibration. Replay fixtures now actually supply nominal measured speeds where they previously only toggled requested running; no blocky-model motion was polished.
+- **Observed intervals, not rendered sample calls (sound, high confidence).** At a new observation, distance is current measured speed × elapsed observation time. Fractional render samples extrapolate the latest rate without committing distance. An unchanged role, clip and phase rate retain the same track/arithmetical anchor: an identical constant-rate trajectory needs no fresh accumulation or allocation. A first known stand-to-gait interval counts; new appearance/reset has no prior interval and starts at zero. Leaving locomotion discards that local gait track; re-entry counts its new interval. Invalid negative/nonfinite speed contributes no travel and retains the existing gait. Signed direction does not reverse the forward clip.
+- **Interruption ownership stays layered (sound, high confidence).** A simultaneous speed correction and upper-body action freezes the entire previously presented composed source, preserving the upper mask exactly. The unmasked lower body uses the corrected distance phase, not an extra blend that hides correction. Full-body hit/death retain whole-pose interruption continuity. The old immutable history owns lazy capture; refreshing the working lane must not overwrite it.
+
+## Controls and focused verification
+
+The initial cadence/order/production-consumer tests were red against the original timeline: time phase advanced to .25 instead of measured .125, and requested running selected run despite measured walking speed. Restoring the mutable-history capture bug makes the composed-source tracer fail at local value 1.0466666666666666 versus 1.0373333333333334. The immutable-history fix passes.
+
+All ten changed generated JSON files match HEAD exactly after recursively removing `strideMeters`; no other mesh, rig, sample, timing or manifest value changed. No source GLB or Rust file changed.
+
+Focused commands (repository root):
+
+```sh
+(cd web && node_modules/.bin/vitest run tests/actionTimeline.test.ts tests/actionTimelineMounted.test.ts tests/battleActionAdapter.test.ts tests/battleModelReplay.test.ts tests/mountedTemporalFixture.test.ts tests/playbackPacking.test.ts tests/syntheticBudgetFixture.test.ts)
+node --test packages/soldier-assets/bake/*.test.mjs
+node packages/soldier-assets/bake/soldier-placeholders.mjs --check
+node packages/soldier-assets/bake/heavy-kit.mjs --check
+web/node_modules/.bin/tsc --noEmit -p web/tsconfig.json
+(cd web && node_modules/.bin/vitest run)
+```
+
+Focused Vitest plus `battleModelReplay.test.ts` and `mountedTemporalFixture.test.ts`: 7 files, 77 tests passed. Full web suite with its actual `vitest.config.ts`: 60 files, 342 tests passed. Asset bake: 13 files passed; both deterministic bake checks passed. Typecheck and changed-source lint pass. The real Game → BattleCrowd adapter → ActionTimeline → production pose consumer tracer uses engine positions, contrary ordered running, reversal, repeated ticks, and exact local-pose equality. It intentionally freezes render positions to isolate that contract.
+
+Independent bundled CLI review first identified two existing exact mounted/replay interruption tests failing by approximately 2e-16 after unnecessary stable-rate re-anchoring. Keeping the original track for unchanged role/clip/rate fixes both without changing their exact assertions. The second independent review reported no actionable regressions, with 76 focused tests and typecheck passing. Main-agent review independently found no remaining concrete code defect. A broader exploratory command incorrectly used the Vite-only config from repository root and encountered missing DOM/path and Node-test discovery errors; the canonical full web command above resolves that runner mistake, not a product change.
+
+The final independent source review, after removing the unused running observation, reported only `[P2] Update the replay baselines alongside the changed gait`: include the reviewed frames and pass the normal non-UPDATE gate. It found no further source defect. Its typecheck passed; independent tests were blocked by its sandbox/configuration loading, not reported as passing. The implementing agent's final canonical full suite remains 342/342 and both deterministic bake checks pass.
+
+## Change ledger
+
+| Test | Previous behavior | New behavior | Why |
+| --- | --- | --- | --- |
+| `actionTimeline`: cadence ramp | Fixed duration gives .25 after half a second | Measured half-speed interval gives .125, next interval totals .375 | Distance rather than wall time advances gait; moved. |
+| `actionTimeline`: measured crossover | Running order selects run at walking speed | Measured speeds select gait; phases 1/30 then .05 across rapid crossings | Bound nominal calibration selects gait; contrary engine-order coverage lives in the adapter consumer test after the unused observation field was removed; moved. |
+| `actionTimeline`: invalid speed | No distance-phase contract | NaN, infinity and negative values retain finite phase and gait | Invalid observations cannot poison state; moved. |
+| `actionTimeline`: equal travel/reversal | No displacement equivalence assertion | One metre over unequal times/directions gives phase .5 | Magnitude transport, not intent classification; moved. |
+| `actionTimeline`: extrapolation/pause/reset | Time-driven samples only | Extrapolation cannot double-count; same tick exact; rewind/reset zero | Observation boundary owns accumulation; moved. |
+| `actionTimeline`: gait entry | Destination starts at zero, then .25 | First observed interval starts .5, then .75; frozen prior rest unchanged | Do not drop known entry travel; moved. |
+| `actionTimelineMounted`: speed correction | No simultaneous speed/upper-entry tracer | Whole old composed source and upper mask exact; lower body equals corrected base | Mutable working history corrupted lazy capture; your-regression, fixed. |
+| Existing `battleModelReplay` mounted exit and `mountedTemporalFixture` boundary tests | Exact composed pose equality | Exact equality remains, without changing assertions | Stable-rate re-anchoring introduced ~2e-16 rounding; retain identical trajectory anchor; your-regression, fixed. |
+| `battleActionAdapter`: production distance | No adapter-to-rendered-pose distance tracer | Actual position increments including reversal determine phase, not running flag | Wires the real consumer; moved. |
+| Mounted timeline and playback-packing existing tests | Running flag alone requested gait changes; shared diagnostic gait aliases lacked travel metadata | Explicit measured speed 2 and calibrated distinct walk/run aliases; interruption/packing assertions unchanged | Keep fixtures meaningful under new contract; moved. |
+| Asset presentation tests | Release-only bake override | Combined metadata override; positive stride transport and invalid/nonloop rejection | Existing owner now admits calibrated travel; moved. |
+| Synthetic budget fixture tests | Tick 13 changed running intent at speed 1 | Tick 13 also supplies speed 2; budget assertions unchanged | Preserve intended diagnostic transition; moved. |
+| `mountedTemporalFixture`: explicit readback raster arithmetic | Source and readback oracle shared double-precision preposing | Default/source positions remain byte-exact to independent `poseSoldierMesh`; readback opt-in changes positions only, not normals/tangents or input assets | GPU readback needs matching vertex arithmetic to isolate matrix consumption; moved. Swapping the option into the source path makes this test red. |
+| Browser event 7/11 continuity | One changed pixel rejected despite exact CPU locals and repeat | Exact locals/repeats, bounded actual palettes and independent errors, equal tiers/corpse, and exact same-palette render-state proof required | Distinct numeric representations are not identical-input pixel repeats; moved. This case always runs the full proof and negative controls. |
+| Browser event 7/18 continuity | One changed pixel rejected | Same full numeric/render-state proof when raw pixels differ | Same independently diagnosed representation seam; moved. |
+| Browser event 41/14 continuity | One changed pixel rejected | Same full numeric/render-state proof when raw pixels differ | Same representation seam, diagnostic mounted rig; moved. |
+| Browser event 41/25 continuity | One changed pixel rejected | Same full numeric/render-state proof when raw pixels differ | Same representation seam during a base transition under overlay exit; moved. |
+| Browser measured-palette prepose oracle | Bone-first double-precision positions caused two edge pixels at 41/10 | Readback-only column-first Float32 positions; existing per-channel and independent matrix limits unchanged | Match the actual consumer arithmetic; source oracle remains independent; moved. |
+| Browser representation-proof negative controls | No such controls | Changed measured CPU locals, changed actual GPU matrix, independent matrix disagreement and actual changed facing must each be rejected; restored production pixels/state must match | Prove the new conjunction detects incorrect pose and render input; moved. |
+| Browser isolated event capture context | Raw frames inherited shadow LOD history; creating the oracle cleared it | One explicit scene comparison boundary clears visibility demand before both event sides and reference; continuous-history movement/pause controls unchanged | Measured raw shadow L2 versus reference/restored L1 caused 61,668 changed shadow pixels, maximum channel 17; your-regression in the new reference setup, fixed at its capture owner. This intentionally changes event shadows separately from gait phase. |
+
+No unit stats or simulation outcomes were re-pinned.
+
+## Browser gate: reviewed update and repeat accepted
+
+The unchanged action-replay inventory is **40 snapshots**: 39 temporal frames (three appearances × thirteen) plus controller. Initial no-UPDATE capture ran 545 checks and failed the expected old controller baseline plus five precision checks. A conventional UPDATE attempt with the final stable-track fix also ran 545 checks and retained the five precision failures: appearance 7 at interruption ticks 11/18 and diagnostic appearance 41 at ticks 14/25 each changed one pixel by one channel level; diagnostic 41/tick 10 differed from its measured-palette preposed oracle at two pixels with maximum channel difference 63. CPU exact interruption tests and GPU matrix error gates passed. Neither initial attempt was acceptance. Their UPDATE-generated PNGs were preserved under throwaway and the prior committed baselines restored, not blessed.
+
+The two diagnostic edge pixels are at (725,269) and (738,270), on the lower horizontal forearm silhouette. A 4× nearest-neighbour crop shows a one-pixel raster boundary difference, not a changed broad pose. CPU preposing transforms each influence and sums in double precision; the production shader sums weighted matrix columns first in Float32, then transforms the vertex. These are algebraically equal but not floating-point associative.
+
+The bounded diagnostic completed with no page errors. Its archived [measurements](diagnostic.json) show:
+
+- Appearance 7/tick 11: exact CPU locals and exact immediate repeats on each side. Six actual GPU matrix components differ, maximum 7.450580596923828e-8. The live before/after images differ in one channel of one pixel. Rendering both states with the **same measured GPU palette**, through the existing preposed oracle and with corpse presentation retained, produces exactly equal pixels. This isolates the observed event difference to numeric pose representation rather than frame-state instability.
+- Diagnostic 41/tick 10: a scratch-only column-first Float32 position calculation changes 1,080 components across three mesh tiers, maximum 2.384185791015625e-7 versus the existing double-precision prepose. That hypothesis-on oracle renders **exactly the same pixels as live GPU**, removing the two edge pixels. No production skinner, bake, matrix oracle, motion or timing was modified. This is evidence of arithmetic-order/precision sensitivity in the reference comparison, not permission to ignore silhouettes.
+- The existing double-precision readback oracle is pixel-exact at neighbouring ticks 9.75/10.25 and initial authored key 0. All four immediate-repeat controls are exact. Live and reference beauty tier L0 and shadow tier L1 agree throughout. GPU matrix errors are 1.1920928955078125e-7 through 2.3096799850463867e-7, inside the unchanged independent 1e-5 gate.
+
+Raw [initial](before-report.json) and [UPDATE](update-report.json) failed reports are retained. These diagnostic results classify the observed precision differences; they did not by themselves approve a revised metric, accept visible jumps, or replace the full standard repeat. The following correction was separately reviewed and approved.
+
+Approved bounded correction: the measured-palette scene oracle may reproduce the shader's column-first Float32 **positions**, while the independent source-rig oracle retains its original double-precision evaluation. On a differing event frame, acceptance requires exact fixture CPU locals, exact repeats of each side, actual before/after GPU palettes within the existing 1e-5 bound of each other **and** their independently evaluated matrices, and pixel-identical before/after render states using one retained measured palette with matching beauty/shadow tiers and corpse strength. There is no permitted changed-pixel count. Identical event pixels remain the fast path; expensive additional controls run only where representation differs. Baseline and standard-repeat assertions are unchanged. Production GPU code, simulation and animation poses are not altered to satisfy an oracle.
+
+The first corrected no-UPDATE run ([report](corrected-report.json), 598 checks) passed the numeric, exact-side-repeat, same-palette pixel and readback-arithmetic controls, but failed three new state/restoration checks plus the old controller baseline. The subsequent exclusive bounded [state probe](state-probe.json) measured beauty L0 and corpse strength zero everywhere, but raw shadow L2 versus oracle/restored L1. Restored pixels differed by 61,668, maximum channel 17: a real reference-context mismatch, not the one-channel pose representation seam. The existing oracle clears visibility history with `upload([])`; actual frames had inherited history from prior fixtures. A single scene-only `beginComparison` now reuses that existing reset **before each isolated event pair**, and the independent-reference boundary uses the same helper. No LOD is forced; projection policy selects the tier from the same empty history. Continuous-history movement and pause probes are unchanged. Event-shadow changes must be reviewed separately from measured gait-phase changes.
+
+An earlier state-probe launch overlapped a separately queued eight-shot smoke because release messages crossed; it was interrupted immediately and is not evidence. The archived state probe above is the fresh exclusive run, closed normally after its intentional bounded stop with no page errors.
+
+Fresh visual review used the bundled CLI outside this worktree (session `01a07cdd-e330-7c83-bc85-e0b833b4517c`; five actual image blocks verified in its transcript). It independently found a localized stepped-edge contour difference in the 4× crops, high confidence, with no substantial missing geometry. The interruption before/after frames showed no confidently visible pose, equipment, layering or lighting change; this is not a claim of pixel identity. The review explicitly did not choose either edge contour as the correct one. Main inspection agrees, and the diagnostic arithmetic control above supplies the cause evidence rather than relying on visual similarity alone.
+
+The final pre-update [reviewed capture](reviewed-report.json) completed all 618 checks and 40 snapshots with no page errors. Every numeric, repeat, restoration, LOD/corpse-state, negative-control and readback-oracle check passed; only the old controller baseline failed. The exact RGBA [changed-frame inventory](changed-frames.json) records 37 of 40 images changed. This supersedes the rejected UPDATE's earlier inventory, not its preserved failure evidence.
+
+Both the implementing agent and root inspected all 22 paired sheets (all 39 temporal frame pairs and the full controller pair). Fresh neutral CLI review `01a07d00-e2ab-7c23-8691-82716b489f8f` independently loaded all 22 images, verified from actual image blocks in its transcript. It found no A/B-specific missing geometry, lost equipment or subject clipping. Changes are visible gait pose/body-height differences, including mounted ticks 24/25; the controller's run phase changes from .077 to .628. Existing rigid block forms and the mounted terminal toppled configuration remain diagnostic-fixture limitations, not accepted character art or grounded gait. All reviewers agreed on that bounded verdict.
+
+The image change ledger has two causes: measured-distance phase changes alter sampled limbs/body height, while the explicit comparison boundary gives actual and independent reference the same shadow-history context. The latter also propagates into later corpse/terminal captures; it is not confined to event-frame shadows. Camera, appearance geometry, equipment, lighting policy and production LOD policy are unchanged. Root approved updating this reviewed frozen set, conditional on conventional UPDATE and a passing standard repeat; no baseline threshold changes are authorized.
+
+The approved conventional [UPDATE](accepted-update-report.json) and subsequent normal [standard repeat](accepted-repeat-report.json) both completed successfully: **618 scene checks plus the runner page-error check, 40 snapshots, zero failures/page errors**. Every repeat snapshot reports `0 px differ (0.0000%)`. Separately, all 40 baseline RGBA buffers written by UPDATE exactly equal the approved pre-update raw captures, with zero changed channels. Exactly 37 baseline files change versus HEAD. This resolves the final review's baseline P2 without threshold changes or manually promoting captured images. Exact same-side pixel controls and the independent 1e-5 matrix gate remain active.
+
+Reproduction (from `web`, with this worktree's Vite running at the target):
+
+```sh
+VERIFY_URL=http://127.0.0.1:5317 VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs battle-model-action-replay
+VERIFY_URL=http://127.0.0.1:5317 VERIFY_GPU=1 node scene.mjs battle-model-action-replay
+```
+
+## Acceptance limits and next pickup
+
+Live BattleCrowd root positions are smoothed while this adapter measures engine positions. The existing smoothing test demonstrates the gap: an engine jump of 1 m renders at .75 m, then .82 m at the next tick with no new engine movement. Root drift and idle/phase can therefore disagree on stopping. This pass does not change that position contract. Runtime acceptance must coordinate rendered root and phase while preserving simulation outputs, not blindly remove smoothing to satisfy a test.
+
+Neither `guardedFacing` nor absence of incapacitation proves self-propelled stepping.
+The [controlled observations](../drive-observation/review.md) show why neither
+pre-separation `kin_vx/y` nor subtracting carried momentum establishes leg drive:
+ordinary steering can overwrite the earlier momentum translation, while a disabled
+branch retains it. Final motion also includes pressure and terrain constraints.
+An observation must come from its actual owner when this distinction is needed.
+This pass proves phase transport even for external displacement, not that the
+chosen gait is appropriate during a shove. Protected selection remains subsequent.
+
+## Independent merged-tree validation
+
+Parent integration `0f8d77d8` preserves the current eight-clip heavy source and the
+integrated medium march. Heavy generated conflicts were resolved by rebuilding
+from that current source; source-rig and sampled-animation JSON remain exactly
+equal to the prior root after removing only the new stride metadata. No earlier
+seven-clip bundle replaced the reviewed backward action.
+
+The [merged raw report](merged-root.json) independently passes all 619 checks and
+40 snapshots, each at zero differing pixels, with no page errors. Parent also
+passes all 342 web tests, 13 bake tests, both deterministic bake checks and
+TypeScript checking. Parent reviewed all paired images and the final production
+diff; no extra tolerance or runtime fallback was introduced during integration.

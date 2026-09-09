@@ -1,0 +1,13 @@
+Info: 201 vertex weights limited
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+23:03:40 | INFO: Starting glTF 2.0 export
+23:03:40 | INFO: Extracting primitive: thorax-pelvis.001
+23:03:40 | INFO: Primitives created: 1
+23:03:40 | INFO: Finished glTF 2.0 export in 0.05659985542297363 s
+
+{'source': '/Users/david/dev/game-battle-model-quality/throwaway/anatomy-isolation-output/human-anatomy.blend', 'vertices': 170120, 'faces': 170118}
+{"actions": ["bend"], "foreignSceneUnchanged": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

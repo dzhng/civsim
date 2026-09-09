@@ -1,0 +1,113 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T03:08:47.923Z",
+  "target": "http://localhost:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "photoreal-substrate",
+      "file": "system/photoreal-substrate.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-pbr: identity fields assert the single owners",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\"}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-pbr: stats backed by renderer.info + timestamps",
+      "ok": true,
+      "detail": "{\"spheres\":49,\"drawCalls\":52,\"triangles\":148035,\"gpuTimeMs\":null,\"timeSeconds\":0.6,\"device\":\"google / swiftshader\",\"frames\":0,\"medianMs\":null,\"p95Ms\":null}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-pbr: canvas is non-blank",
+      "ok": true,
+      "detail": "{\"nonBlank\":519820,\"total\":519820,\"variance\":224.48902138348058}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-pbr: fixed setTime renders byte-identical frames",
+      "ok": true,
+      "detail": "{\"bytesA\":146125,\"bytesB\":146125}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "snapshot photoreal-pbr",
+      "ok": true,
+      "detail": "900 px differ (0.1731%)"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd mid: identity fields assert the single owners",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\"}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd mid: stats backed by renderer.info + timestamps",
+      "ok": true,
+      "detail": "{\"cameraPreset\":\"mid\",\"soldierRenderer\":\"production-crowd\",\"soldierAssets\":\"complete-catalog\",\"appearanceIds\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],\"crowd\":{\"instances\":30400,\"visible\":30400,\"culled\":0,\"drawCalls\":1,\"meshDrawCalls\":1,\"impostorDrawCalls\":0,\"meshVariants\":60,\"tierHistogram\":{\"l0\":30400,\"l1\":0,\"l2\":0,\"l3\":0},\"visibleTierHistogram\":{\"l0\":30400,\"l1\":0,\"l2\":0,\"l3\":0},\"culling\":{\"input\":30400,\"visible\":30400,\"culled\":0,\"viewFrusta\":0,\"shadowFrusta\":0},\"impostors\":{\"impostorInstances\":0,\"impostorDrawCalls\":0,\"appearances\":20},\"material\":{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}}}},\"soldiers\":30400,\"trees\":3000,\"grassBlades\":200000,\"drawCalls\":7,\"triangles\":6507811,\"gpuTimeMs\":null,\"timeSeconds\":0.6,\"device\":\"google / swiftshader\",\"frames\":0,\"medianMs\":null,\"p95Ms\":null}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd mid: canvas is non-blank",
+      "ok": true,
+      "detail": "{\"nonBlank\":519820,\"total\":519820,\"variance\":478.4592475872196}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd mid: fixed setTime renders byte-identical frames",
+      "ok": true,
+      "detail": "{\"bytesA\":629468,\"bytesB\":629468}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "snapshot photoreal-crowd-mid",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd vista: identity fields assert the single owners",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\"}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd vista: stats backed by renderer.info + timestamps",
+      "ok": true,
+      "detail": "{\"cameraPreset\":\"vista\",\"soldierRenderer\":\"production-crowd\",\"soldierAssets\":\"complete-catalog\",\"appearanceIds\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],\"crowd\":{\"instances\":30400,\"visible\":30400,\"culled\":0,\"drawCalls\":1,\"meshDrawCalls\":1,\"impostorDrawCalls\":0,\"meshVariants\":60,\"tierHistogram\":{\"l0\":30400,\"l1\":0,\"l2\":0,\"l3\":0},\"visibleTierHistogram\":{\"l0\":30400,\"l1\":0,\"l2\":0,\"l3\":0},\"culling\":{\"input\":30400,\"visible\":30400,\"culled\":0,\"viewFrusta\":0,\"shadowFrusta\":0},\"impostors\":{\"impostorInstances\":0,\"impostorDrawCalls\":0,\"appearances\":20},\"material\":{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}}}},\"soldiers\":30400,\"trees\":3000,\"grassBlades\":200000,\"drawCalls\":7,\"triangles\":6507811,\"gpuTimeMs\":null,\"timeSeconds\":0.6,\"device\":\"google / swiftshader\",\"frames\":0,\"medianMs\":null,\"p95Ms\":null}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd vista: canvas is non-blank",
+      "ok": true,
+      "detail": "{\"nonBlank\":519820,\"total\":519820,\"variance\":1672.400657220467}"
+    },
+    {
+      "scenario": "photoreal-substrate",
+      "name": "photoreal-crowd vista: fixed setTime renders byte-identical frames",
+      "ok": true,
+      "detail": "{\"bytesA\":594613,\"bytesB\":594613}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

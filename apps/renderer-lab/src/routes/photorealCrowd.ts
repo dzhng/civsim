@@ -1,35 +1,40 @@
-import * as THREE from 'three/webgpu';
+import * as THREE from "three/webgpu";
 
-import { attribute, cos, floor, fract, int, ivec2, mix, positionLocal, sin, textureLoad, transformNormalToView, varying, vec3, vec4 } from 'three/tsl';
+import { attribute, cos, mix, positionLocal, sin, varying, vec3, vec4 } from "three/tsl";
+import { PhotorealCrowd } from "@packages/photoreal-renderer/src/battle/crowdLayer";
+import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 
-import { PhotorealWorld } from '@packages/photoreal-renderer/src/world';
+import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 
-import { applyCamera3d } from '@packages/photoreal-renderer/src/cameraBridge';
+import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 
-import { applyCivsimEnvironment } from '@packages/photoreal-renderer/src/environment';
+import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 
-import { createPhotorealStatsPublisher } from '@packages/photoreal-renderer/src/stats';
+import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
 
-import { CIVSIM_ENVIRONMENTS } from '@packages/game-renderer/src/environment/environment';
+import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 
-import { loadPlaceholderVat } from '@packages/soldier-assets/src/placeholders';
-
-import { createPlaceholderSoldierMeshes } from '@packages/soldier-assets/src/soldierMesh';
-
-import { type VatBake } from '@packages/soldier-assets/src/schema';
-
-import { type PhotorealRouteContext, YAW, camera3dFor, canvasSize, startLoop } from "../labPhotoreal";
-
-
+import {
+  type PhotorealRouteContext,
+  YAW,
+  camera3dFor,
+  canvasSize,
+  startLoop,
+} from "../labPhotoreal";
 
 const CROWD_CAMERAS = {
   mid: { target: [0, 40, 0], distance: 380, pitch: 0.8, yaw: YAW, fovY: 0.68, near: 1, far: 8000 },
-  vista: { target: [0, 90, 0], distance: 210, pitch: 0.3, yaw: YAW, fovY: 0.83, near: 1, far: 8000 },
+  vista: {
+    target: [0, 90, 0],
+    distance: 210,
+    pitch: 0.3,
+    yaw: YAW,
+    fovY: 0.83,
+    near: 1,
+    far: 8000,
+  },
 } as const;
-
-const FACTION_BLUE: [number, number, number] = [0.20, 0.42, 0.88];
-
-const FACTION_RED: [number, number, number] = [0.84, 0.24, 0.20];
 
 // Deterministic LCG so fixed-time frames (and their snapshots) are stable.
 function makeRng(seed: number) {
@@ -44,128 +49,50 @@ function inFormation(x: number, y: number): boolean {
   return Math.abs(x) < 115 && (Math.abs(y - 70) < 55 || Math.abs(y + 70) < 55);
 }
 
-function buildSoldierGeometry(count: number): { geo: THREE.InstancedBufferGeometry; placed: number } {
-  const mesh = createPlaceholderSoldierMeshes(FACTION_BLUE)[0];
-  const geo = new THREE.InstancedBufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
-  geo.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(mesh.colors, 4));
-  geo.setAttribute('bone', new THREE.BufferAttribute(mesh.bones, 1));
-  geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
-
-  // Mark the authored upper sword-arm band so the faction tint replaces only it.
-  const vcount = mesh.positions.length / 3;
-  const accent = new Float32Array(vcount);
-  for (let i = 0; i < vcount; i++) {
-    const dr = Math.abs(mesh.colors[i * 4] - FACTION_BLUE[0]);
-    const dg = Math.abs(mesh.colors[i * 4 + 1] - FACTION_BLUE[1]);
-    const db = Math.abs(mesh.colors[i * 4 + 2] - FACTION_BLUE[2]);
-    accent[i] = dr + dg + db < 0.01 ? 1 : 0;
-  }
-  geo.setAttribute('accent', new THREE.BufferAttribute(accent, 1));
-
-  // Two formation blocks, 190 columns, spacing 1.15; block A (faction 0) at
-  // y=-70, block B (faction 1) at y=+70; recentered for reduced ?count= runs.
+function buildSoldiers(count: number, clip: string): CrowdInstance[] {
+  // Two blocks retain the original 190-column layout and deterministic phase spread.
   const half = Math.floor(count / 2);
   const cols = 190;
   const rows = Math.ceil(half / cols);
   const rowOff = (rows - 1) / 2;
   const rng = makeRng(20260702);
-  const pose = new Float32Array(count * 4); // worldX, worldY, facing, phase
-  const clip = new Float32Array(count * 3); // clipStart, clipFrames, faction
-  let placed = 0;
+  const instances: CrowdInstance[] = [];
   for (let block = 0; block < 2; block++) {
     const center = block === 0 ? -70 : 70;
-    const facing = block === 0 ? 0 : Math.PI; // mesh forward is +Y
+    // Production instances express world heading; mesh +Y corresponds to PI/2.
+    const facing = block === 0 ? Math.PI / 2 : -Math.PI / 2;
     const sign = block === 0 ? 1 : -1;
-    for (let i = 0; i < half && placed < count; i++) {
-      const col = i % cols;
-      const row = Math.floor(i / cols);
-      const o = placed * 4;
-      pose[o] = (col - 94.5) * 1.15;
-      pose[o + 1] = center + sign * (row - rowOff) * 1.15;
-      pose[o + 2] = facing;
-      pose[o + 3] = rng();
-      clip[placed * 3 + 2] = block;
-      placed += 1;
+    for (let i = 0; i < half && instances.length < count; i++) {
+      const col = i % cols,
+        row = Math.floor(i / cols);
+      const phase = rng();
+      instances.push({
+        x: (col - 94.5) * 1.15,
+        y: center + sign * (row - rowOff) * 1.15,
+        facing,
+        classId: 0,
+        faction: block === 0 ? 0 : 1,
+        alive: true,
+
+        clip,
+        phase,
+        seed: phase,
+        mounted: false,
+        lod: 0,
+        elevation: 0,
+      });
     }
   }
-  geo.setAttribute('iPose', new THREE.InstancedBufferAttribute(pose.subarray(0, placed * 4), 4));
-  geo.setAttribute('iClip', new THREE.InstancedBufferAttribute(clip.subarray(0, placed * 3), 3));
-  geo.instanceCount = placed;
-  return { geo, placed };
-}
-
-function buildSoldierMaterial(world: PhotorealWorld, vat: VatBake, geo: THREE.InstancedBufferGeometry) {
-  const vatTex = new THREE.DataTexture(new Float32Array(vat.data), vat.width, vat.height, THREE.RGBAFormat, THREE.FloatType);
-  vatTex.minFilter = THREE.NearestFilter;
-  vatTex.magFilter = THREE.NearestFilter;
-  vatTex.generateMipmaps = false;
-  vatTex.needsUpdate = true;
-
-  const clipDef = vat.clips.find((c) => c.name === 'march') ?? vat.clips[0];
-  const clipAttr = geo.getAttribute('iClip');
-  for (let i = 0; i < clipAttr.count; i++) {
-    clipAttr.setX(i, clipDef.start);
-    clipAttr.setY(i, clipDef.frames);
-  }
-  clipAttr.needsUpdate = true;
-  const cycleHz = vat.fps / clipDef.frames;
-
-  const material = new THREE.MeshStandardNodeMaterial({ roughness: 0.85, metalness: 0.0 });
-
-  // Explicit generics: @types/three widens the inferred node type to `string`
-  // otherwise, losing the swizzle/operator surface.
-  const iPose = attribute<'vec4'>('iPose', 'vec4');
-  const iClip = attribute<'vec3'>('iClip', 'vec3');
-  const bone = attribute<'float'>('bone', 'float');
-  const rawPos = attribute<'vec3'>('position', 'vec3');
-  const rawNrm = attribute<'vec3'>('normal', 'vec3');
-  const vcol = attribute<'vec4'>('color', 'vec4');
-  const accent = attribute<'float'>('accent', 'float');
-
-  const frame = iClip.x.add(floor(fract(iPose.w.add(world.uTime.mul(cycleHz))).mul(iClip.y.sub(1.0))));
-  const col = int(frame);
-  const row0 = int(bone).mul(4);
-  // 4 consecutive texel rows = the 4 columns of the bone's mat4 at this frame.
-  const c0 = textureLoad(vatTex, ivec2(col, row0));
-  const c1 = textureLoad(vatTex, ivec2(col, row0.add(1)));
-  const c2 = textureLoad(vatTex, ivec2(col, row0.add(2)));
-  const c3 = textureLoad(vatTex, ivec2(col, row0.add(3)));
-  const sp = c0.mul(rawPos.x).add(c1.mul(rawPos.y)).add(c2.mul(rawPos.z)).add(c3).xyz.toVar();
-  const sn = c0.mul(rawNrm.x).add(c1.mul(rawNrm.y)).add(c2.mul(rawNrm.z)).xyz.toVar();
-
-  const cf = cos(iPose.z);
-  const sf = sin(iPose.z);
-  material.positionNode = vec3(
-    sp.x.mul(cf).sub(sp.y.mul(sf)).add(iPose.x),
-    sp.x.mul(sf).add(sp.y.mul(cf)).add(iPose.y),
-    sp.z,
-  );
-  const worldNrm = vec3(
-    sn.x.mul(cf).sub(sn.y.mul(sf)),
-    sn.x.mul(sf).add(sn.y.mul(cf)),
-    sn.z,
-  );
-  // normalNode expects a VIEW-space normal (documented nowhere upstream):
-  // transformNormalToView in the vertex stage + varying() to interpolate it.
-  material.normalNode = varying(transformNormalToView(worldNrm)).normalize();
-
-  const tint = mix(vec3(...FACTION_BLUE), vec3(...FACTION_RED), iClip.z);
-  const armBand = mix(tint, vec3(0.42, 0.34, 0.26), 0.35);
-  material.colorNode = varying(vec4(mix(vcol.rgb, armBand, accent), 1.0));
-  return material;
+  return instances;
 }
 
 function buildGrass(world: PhotorealWorld, count: number): { mesh: THREE.Mesh; placed: number } {
   const geo = new THREE.InstancedBufferGeometry();
   // Tapered blade in the XZ plane, z-up: 0.08 wide at the root, 0.9 tall.
-  const positions = new Float32Array([
-    -0.04, 0, 0, 0.04, 0, 0, 0.012, 0, 0.9, -0.012, 0, 0.9,
-  ]);
+  const positions = new Float32Array([-0.04, 0, 0, 0.04, 0, 0, 0.012, 0, 0.9, -0.012, 0, 0.9]);
   const heights = new Float32Array([0, 0, 1, 1]);
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('bladeH', new THREE.BufferAttribute(heights, 1));
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute("bladeH", new THREE.BufferAttribute(heights, 1));
   geo.setIndex([0, 1, 2, 0, 2, 3]);
 
   const rng = makeRng(90210);
@@ -188,21 +115,24 @@ function buildGrass(world: PhotorealWorld, count: number): { mesh: THREE.Mesh; p
     cols[placed * 3 + 2] = 0.16 + rng() * 0.08;
     placed += 1;
   }
-  geo.setAttribute('gData', new THREE.InstancedBufferAttribute(data.subarray(0, placed * 4), 4));
-  geo.setAttribute('gCol', new THREE.InstancedBufferAttribute(cols.subarray(0, placed * 3), 3));
+  geo.setAttribute("gData", new THREE.InstancedBufferAttribute(data.subarray(0, placed * 4), 4));
+  geo.setAttribute("gCol", new THREE.InstancedBufferAttribute(cols.subarray(0, placed * 3), 3));
   geo.instanceCount = placed;
 
   // Unlit: bakes a root-shadow/sun-tip gradient instead of per-pixel lighting.
   const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
-  const gData = attribute<'vec4'>('gData', 'vec4');
-  const gCol = attribute<'vec3'>('gCol', 'vec3');
-  const hf = attribute<'float'>('bladeH', 'float');
+  const gData = attribute<"vec4">("gData", "vec4");
+  const gCol = attribute<"vec3">("gCol", "vec3");
+  const hf = attribute<"float">("bladeH", "float");
   const cy = cos(gData.z);
   const sy = sin(gData.z);
   const local = positionLocal.mul(gData.w);
   const rx = local.x.mul(cy).sub(local.y.mul(sy));
   const ry = local.x.mul(sy).add(local.y.mul(cy));
-  const sway = hf.mul(hf).mul(0.14).mul(sin(world.uTime.mul(1.6).add(gData.x.mul(0.3)).add(gData.y.mul(0.17))));
+  const sway = hf
+    .mul(hf)
+    .mul(0.14)
+    .mul(sin(world.uTime.mul(1.6).add(gData.x.mul(0.3)).add(gData.y.mul(0.17))));
   material.positionNode = vec3(gData.x.add(rx).add(sway), gData.y.add(ry), local.z);
   const lightFactor = mix(0.55, 1.05, hf);
   material.colorNode = varying(vec4(gCol.mul(lightFactor).mul(vec3(1.0, 0.97, 0.85)), 1.0));
@@ -215,11 +145,13 @@ function buildGrass(world: PhotorealWorld, count: number): { mesh: THREE.Mesh; p
 // Concatenate indexed position/normal geometries into one, painting each part a
 // flat vertex colour (a hand-rolled mergeGeometries — the three addon needs an
 // alias into web/node_modules and types of its own; two-part trees don't).
-function mergeColoredParts(parts: { geo: THREE.BufferGeometry; rgb: [number, number, number] }[]): THREE.BufferGeometry {
+function mergeColoredParts(
+  parts: { geo: THREE.BufferGeometry; rgb: [number, number, number] }[],
+): THREE.BufferGeometry {
   let vertexCount = 0;
   let indexCount = 0;
   for (const { geo } of parts) {
-    vertexCount += geo.getAttribute('position').count;
+    vertexCount += geo.getAttribute("position").count;
     indexCount += geo.getIndex()?.count ?? 0;
   }
   const positions = new Float32Array(vertexCount * 3);
@@ -229,8 +161,8 @@ function mergeColoredParts(parts: { geo: THREE.BufferGeometry; rgb: [number, num
   let vo = 0;
   let io = 0;
   for (const { geo, rgb } of parts) {
-    const pos = geo.getAttribute('position');
-    const nrm = geo.getAttribute('normal');
+    const pos = geo.getAttribute("position");
+    const nrm = geo.getAttribute("normal");
     const idx = geo.getIndex();
     positions.set(pos.array as Float32Array, vo * 3);
     normals.set(nrm.array as Float32Array, vo * 3);
@@ -242,33 +174,51 @@ function mergeColoredParts(parts: { geo: THREE.BufferGeometry; rgb: [number, num
     vo += pos.count;
   }
   const merged = new THREE.BufferGeometry();
-  merged.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  merged.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-  merged.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  merged.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  merged.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
+  merged.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   merged.setIndex(new THREE.BufferAttribute(indices, 1));
   return merged;
 }
 
-function treeGeometry(kind: 'conifer' | 'broadleaf'): THREE.BufferGeometry {
-  const trunkBrown: [number, number, number] = [0.30, 0.20, 0.11];
-  if (kind === 'conifer') {
+function treeGeometry(kind: "conifer" | "broadleaf"): THREE.BufferGeometry {
+  const trunkBrown: [number, number, number] = [0.3, 0.2, 0.11];
+  if (kind === "conifer") {
     return mergeColoredParts([
-      { geo: new THREE.ConeGeometry(1.7, 5.8, 8).rotateX(Math.PI / 2).translate(0, 0, 2.2 + 2.9), rgb: [0.12, 0.24, 0.11] },
-      { geo: new THREE.CylinderGeometry(0.30, 0.42, 2.4, 6).rotateX(Math.PI / 2).translate(0, 0, 1.2), rgb: trunkBrown },
+      {
+        geo: new THREE.ConeGeometry(1.7, 5.8, 8).rotateX(Math.PI / 2).translate(0, 0, 2.2 + 2.9),
+        rgb: [0.12, 0.24, 0.11],
+      },
+      {
+        geo: new THREE.CylinderGeometry(0.3, 0.42, 2.4, 6)
+          .rotateX(Math.PI / 2)
+          .translate(0, 0, 1.2),
+        rgb: trunkBrown,
+      },
     ]);
   }
   return mergeColoredParts([
-    { geo: new THREE.SphereGeometry(2.1, 10, 8).rotateX(Math.PI / 2).translate(0, 0, 4.4), rgb: [0.20, 0.32, 0.13] },
-    { geo: new THREE.CylinderGeometry(0.34, 0.48, 3.4, 6).rotateX(Math.PI / 2).translate(0, 0, 1.7), rgb: trunkBrown },
+    {
+      geo: new THREE.SphereGeometry(2.1, 10, 8).rotateX(Math.PI / 2).translate(0, 0, 4.4),
+      rgb: [0.2, 0.32, 0.13],
+    },
+    {
+      geo: new THREE.CylinderGeometry(0.34, 0.48, 3.4, 6).rotateX(Math.PI / 2).translate(0, 0, 1.7),
+      rgb: trunkBrown,
+    },
   ]);
 }
 
 function buildTrees(total: number): { meshes: THREE.InstancedMesh[]; placed: number } {
   const rng = makeRng(777001);
   const counts = [Math.round(total * 0.6), total - Math.round(total * 0.6)];
-  const kinds: ('conifer' | 'broadleaf')[] = ['conifer', 'broadleaf'];
+  const kinds: ("conifer" | "broadleaf")[] = ["conifer", "broadleaf"];
   const meshes: THREE.InstancedMesh[] = [];
-  const material = new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.95, metalness: 0.0 });
+  const material = new THREE.MeshStandardNodeMaterial({
+    vertexColors: true,
+    roughness: 0.95,
+    metalness: 0.0,
+  });
   const m4 = new THREE.Matrix4();
   const quat = new THREE.Quaternion();
   const zAxis = new THREE.Vector3(0, 0, 1);
@@ -298,12 +248,15 @@ function buildTrees(total: number): { meshes: THREE.InstancedMesh[]; placed: num
 }
 
 export async function route(ctx: PhotorealRouteContext) {
-  const soldierCount = Math.max(2, Number(ctx.params.get('count')) || 30400);
-  const grassCount = Math.max(0, Number(ctx.params.get('grass')) || 200000);
-  const treeCount = Math.max(0, Number(ctx.params.get('trees')) || 3000);
-  const camName = ctx.params.get('cam') === 'vista' ? 'vista' : 'mid';
+  const soldierCount = Math.max(2, Number(ctx.params.get("count")) || 30400);
+  const grassCount = Math.max(0, Number(ctx.params.get("grass")) || 200000);
+  const treeCount = Math.max(0, Number(ctx.params.get("trees")) || 3000);
+  const camName = ctx.params.get("cam") === "vista" ? "vista" : "mid";
 
-  const [world, vat] = await Promise.all([PhotorealWorld.create(ctx.canvas), loadPlaceholderVat()]);
+  const [world, assets] = await Promise.all([
+    PhotorealWorld.create(ctx.canvas),
+    loadAppearanceCatalog(new URL("/assets/soldiers/catalog.json", location.href).href),
+  ]);
   const { width, height } = canvasSize(ctx.canvas);
   world.resize(width, height, Math.min(window.devicePixelRatio, 2));
   const camera = new THREE.PerspectiveCamera();
@@ -312,15 +265,21 @@ export async function route(ctx: PhotorealRouteContext) {
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(1200, 1500),
-    new THREE.MeshStandardNodeMaterial({ color: new THREE.Color(0.42, 0.44, 0.26), roughness: 1.0, metalness: 0.0 }),
+    new THREE.MeshStandardNodeMaterial({
+      color: new THREE.Color(0.42, 0.44, 0.26),
+      roughness: 1.0,
+      metalness: 0.0,
+    }),
   );
   ground.position.set(0, 450, 0);
   world.scene.add(ground);
 
-  const { geo: soldierGeo, placed: soldiers } = buildSoldierGeometry(soldierCount);
-  const soldierMesh = new THREE.Mesh(soldierGeo, buildSoldierMaterial(world, vat, soldierGeo));
-  soldierMesh.frustumCulled = false;
-  world.scene.add(soldierMesh);
+  const walkClip = assets[0].manifest.presentation!.actions.walk!.clip;
+  const instances = buildSoldiers(soldierCount, walkClip);
+  const soldiers = instances.length;
+  const crowd = await PhotorealCrowd.create(world.renderer, world.scene, assets);
+  const march = assets[0].animation.clips.find((clip) => clip.name === walkClip);
+  if (!march || march.duration <= 0) throw new Error("Crowd fixture requires a timed march clip");
 
   const { mesh: grassMesh, placed: grassBlades } = buildGrass(world, grassCount);
   world.scene.add(grassMesh);
@@ -328,13 +287,21 @@ export async function route(ctx: PhotorealRouteContext) {
   const { meshes: treeMeshes, placed: trees } = buildTrees(treeCount);
   for (const tree of treeMeshes) world.scene.add(tree);
 
-  const publish = createPhotorealStatsPublisher(world, 'photoreal-crowd', () => ({
+  const publish = createPhotorealStatsPublisher(world, "photoreal-crowd", () => ({
     cameraPreset: camName,
+    soldierRenderer: "production-crowd",
+    soldierAssets: "complete-catalog",
+    appearanceIds: Object.keys(assets).map(Number),
+    crowd: crowd.stats(),
     soldiers,
     trees,
     grassBlades,
   }));
   startLoop(world, ctx.params, (now) => {
+    for (const instance of instances)
+      instance.phase = (instance.seed + world.uTime.value / march.duration) % 1;
+    // Full-detail submission preserves this substrate benchmark's workload; production owns the skin/material path.
+    crowd.upload(instances);
     world.render(camera);
     const s = publish(now);
     ctx.status.innerHTML = `<table>
@@ -344,8 +311,8 @@ export async function route(ctx: PhotorealRouteContext) {
       <tr><td>soldiers</td><td>${soldiers}</td></tr>
       <tr><td>grass blades</td><td>${grassBlades}</td></tr>
       <tr><td>trees</td><td>${trees}</td></tr>
-      <tr><td>median ms</td><td>${s.stats.medianMs?.toFixed(2) ?? 'warmup'}</td></tr>
-      <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? 'pending'}</td></tr>
+      <tr><td>median ms</td><td>${s.stats.medianMs?.toFixed(2) ?? "warmup"}</td></tr>
+      <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? "pending"}</td></tr>
     </table>`;
   });
 }

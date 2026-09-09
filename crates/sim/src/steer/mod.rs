@@ -63,6 +63,8 @@ pub(crate) const SLOT_TERRAIN_CHECK_DIST: f32 = 3.0;
 /// Per-soldier steering and measurement. Returns one `UnitMeasure` per unit;
 /// the caller returns that storage after consuming the measurements.
 pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
+    sim.guarded_facings.fill(0);
+    sim.motor_capable.fill(false);
     perf_scope!(_timer, "steer precompute_unit");
     let mut unit_pre = std::mem::take(&mut sim.steer_scratch.unit_pre);
     unit_pre.resize_with(sim.units.len(), UnitPre::default);
@@ -93,6 +95,8 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
         front_clear,
         awareness,
         facings,
+        guarded_facings,
+        motor_capable,
         soldier_slot,
         fidget_offset,
         terrain,
@@ -174,6 +178,7 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
                     cy: &mut cy,
                     opp_press: &mut opp_press,
                     engaged_count: &mut engaged,
+                    motor_capable: &mut motor_capable[i],
                 },
                 &mut tracer,
             )
@@ -342,6 +347,7 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
                     press_y,
                     awareness,
                     facings,
+                    guarded_facings,
                     terrain,
                     mounted,
                     target,

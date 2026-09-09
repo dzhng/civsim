@@ -12,9 +12,12 @@ import { BattleAmbientAudio } from "./battleAudio";
 import type { CameraRigRange } from "./cameraRig";
 import { BattleRenderer } from "./renderer";
 import { installViewportGate } from "./viewportGate";
+import { createBattleViews } from "./battleViews";
+import { ACTION_TICK_SECONDS } from "@packages/crowd-runtime/src/actionTimeline";
 
 export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB" | "gen";
-export const BATTLE_TICK_DT = 1 / 30;
+export const BATTLE_TICK_DT = ACTION_TICK_SECONDS;
+export const BATTLE_MAX_TICKS_PER_FRAME = 4;
 
 export interface GeneratedBattleMapDescriptor {
   seed: number | string;
@@ -237,7 +240,7 @@ export class BattleCameraRig {
   }
 }
 
-export interface BattleWorld {
+export interface BattleWorld extends ReturnType<typeof createBattleViews> {
   cfg: BattleConfig;
   game: Game;
   memory: WebAssembly.Memory;
@@ -249,9 +252,6 @@ export interface BattleWorld {
   audio: BattleAmbientAudio;
   signal: AbortSignal;
   stride: number;
-  positions(): Float32Array;
-  facings(): Float32Array;
-  unitInfo(): Float32Array;
 }
 
 let sharedRenderer: BattleRenderer | null = null;
@@ -313,15 +313,7 @@ export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): 
     audio,
     signal: abortController.signal,
     stride,
-    positions: () =>
-      new Float32Array(wasm.memory.buffer, game.positions_ptr(), game.soldier_count() * 2),
-    facings: () => new Float32Array(wasm.memory.buffer, game.facings_ptr(), game.soldier_count()),
-    unitInfo: () =>
-      new Float32Array(
-        wasm.memory.buffer,
-        game.unit_info_ptr(),
-        game.unit_count() * game.unit_info_stride(),
-      ),
+    ...createBattleViews(game, wasm.memory),
   };
   world.cameraRig.frameArmies(game, world.unitInfo, stride);
   return world;

@@ -1,0 +1,151 @@
+{
+  "root": "/Users/david/dev/game-battle-model-quality",
+  "head": "1ba33789cedb2b8c97abc20b4f258b639b0519eb",
+  "mapping": "A=HEAD baseline; B=current root PNG",
+  "rows": [
+    {
+      "name": "temporal-4-37.25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 102325,
+      "changedRatio": 0.1391684574164241,
+      "maxChannelDelta": 128,
+      "bounds": [
+        366,
+        196,
+        969,
+        715
+      ],
+      "aSha256": "b1f1cd0b2b5ebb73b89698739fe54a40812695617bc5aa185426172b3e25879a",
+      "bSha256": "0c6943c483f6f538d934aa2a5e0cbd3f5bee3ff1da42e5498b01cdd887959ce8"
+    },
+    {
+      "name": "temporal-4-39.5",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 115124,
+      "changedRatio": 0.15657590512199765,
+      "maxChannelDelta": 93,
+      "bounds": [
+        336,
+        220,
+        969,
+        757
+      ],
+      "aSha256": "0de08bafdd4c07bc90f4298e0392fd6485a75b39847469371288e2b3250316b7",
+      "bSha256": "8fe5893013985906fb6c9c066bb780830ee03a16a701506b495d3de6dd140596"
+    },
+    {
+      "name": "temporal-4-72",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 44264,
+      "changedRatio": 0.06020183336506814,
+      "maxChannelDelta": 90,
+      "bounds": [
+        337,
+        403,
+        712,
+        717
+      ],
+      "aSha256": "e73f26dda7823dacb6869477911535b51979f71a9b5dba3d146f0f3a06ddc9de",
+      "bSha256": "c644ebe2e43af3ea71a27c110d8b55b0cc4f2c626490b9022b201943eb4779e8"
+    },
+    {
+      "name": "temporal-7-37.25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 173560,
+      "changedRatio": 0.2360525528384517,
+      "maxChannelDelta": 128,
+      "bounds": [
+        328,
+        102,
+        969,
+        757
+      ],
+      "aSha256": "a5c1a979e04e3070f659c1a3fdb91c57cde5e551a6e3de77d6dad6c26ede6d9d",
+      "bSha256": "bd4e7bc399d960845f8b6634b89187d83585bab253fe41989f26188f039037d2"
+    },
+    {
+      "name": "temporal-7-39.5",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 188909,
+      "changedRatio": 0.25692816146669206,
+      "maxChannelDelta": 94,
+      "bounds": [
+        312,
+        131,
+        969,
+        757
+      ],
+      "aSha256": "c0a0f976a95b31f1162350c83752ca94410c9496c82ef13678cc169a60d87500",
+      "bSha256": "6d381e784b467386e5c57e04a3bf2cc1829ade1546747930bd230e81d65f131c"
+    },
+    {
+      "name": "temporal-7-72",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 119371,
+      "changedRatio": 0.16235209313712157,
+      "maxChannelDelta": 90,
+      "bounds": [
+        295,
+        269,
+        965,
+        736
+      ],
+      "aSha256": "c0d340ba6ab2fa49e0c390c61f8944c2652f425ea3f34097b1d7b26aa74d7675",
+      "bSha256": "20ea7c3c5ec8d1913010e2f7aabe94d40f09344fc21cc7d4cf8cfc9b574c5a91"
+    },
+    {
+      "name": "temporal-41-37.25",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 171426,
+      "changedRatio": 0.167408203125,
+      "maxChannelDelta": 86,
+      "bounds": [
+        549,
+        178,
+        1279,
+        799
+      ],
+      "aSha256": "e1bad9bf3fd039eccbafcc4b0f0de62bcd73abb299bf0d4cc1261b0f9cea39b7",
+      "bSha256": "0d9109284b66bae0932cbdb871fccc9ba493f0229dc98acdd5a2aa27b77d8a0c"
+    },
+    {
+      "name": "temporal-41-39.5",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 186509,
+      "changedRatio": 0.1821376953125,
+      "maxChannelDelta": 88,
+      "bounds": [
+        544,
+        181,
+        1279,
+        799
+      ],
+      "aSha256": "5e85b2d6232d3f6b6d9ca59cc09845bbdae64e37d72b1bffe813222acd7f310c",
+      "bSha256": "27fb5bfdc5d140ac25f5f14478855aa9010461031536a02899af25c56b152d31"
+    },
+    {
+      "name": "temporal-41-75",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 187166,
+      "changedRatio": 0.182779296875,
+      "maxChannelDelta": 83,
+      "bounds": [
+        544,
+        179,
+        1279,
+        799
+      ],
+      "aSha256": "18a16d16437c60f01888c3651e4667e2f844c42bc49fd065d34c35365905be3f",
+      "bSha256": "9a22cf8336dc739fe3fe5ac4c031858b2fe494d87873865aaa2310ec2886c203"
+    }
+  ]
+}

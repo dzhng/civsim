@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/medium-infantry/medium-infantry.blend",
+  "sourceSha256": "6cb754d4b8cad20dbabf22f27b1cb53a23d73b14b6c2d827c406fb8375c71264",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 127196,
+      "triangles": 7958,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "3e5de999f83ea7877f93cf4a73016e604cc7a62baa91eb30b03b77fea05b4d35"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 127196,
+      "triangles": 982,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "7bb29233d20a8764c7abe0bfe416942b13b0d4572c83589594672786cc534f95"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 127196,
+      "triangles": 782,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "2fc046e36290cb23acaeb847ffa2e801b094c421a9403adecbf184356b62be9a"
+    }
+  ]
+}

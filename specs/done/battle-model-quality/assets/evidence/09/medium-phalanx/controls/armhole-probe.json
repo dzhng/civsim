@@ -1,0 +1,1343 @@
+{
+  "source_sha256": "04b5a92f31f838f920ebab73f2b487c8d0797ee5a3ae7064316817a314845fa5",
+  "source_path": "/Users/david/dev/game-medium-phalanx/packages/soldier-assets/assets/source/medium-phalanx/medium-phalanx.blend",
+  "outer_boundary_loops": [
+    {
+      "indices": [
+        0,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        1,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        2,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        3,
+        214,
+        215,
+        216,
+        217,
+        218,
+        219,
+        220,
+        4,
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        5,
+        256,
+        257,
+        258,
+        259,
+        260,
+        261,
+        262,
+        6,
+        277,
+        278,
+        279,
+        280,
+        281,
+        282,
+        283,
+        7,
+        298,
+        299,
+        300,
+        301,
+        302,
+        303,
+        304,
+        8,
+        319,
+        320,
+        321,
+        322,
+        323,
+        324,
+        325,
+        9,
+        340,
+        341,
+        342,
+        343,
+        344,
+        345,
+        346,
+        10,
+        361,
+        362,
+        363,
+        364,
+        365,
+        366,
+        367,
+        11,
+        382,
+        383,
+        384,
+        385,
+        386,
+        387,
+        388,
+        12,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        13,
+        424,
+        425,
+        426,
+        427,
+        428,
+        429,
+        430,
+        14,
+        445,
+        446,
+        447,
+        448,
+        449,
+        450,
+        451,
+        15,
+        472,
+        471,
+        470,
+        469,
+        468,
+        467,
+        466
+      ],
+      "center": [
+        1.1641532182693481e-09,
+        0.004999992437660694,
+        0.7299999594688416
+      ],
+      "vertices": 128,
+      "length": 1.2508606569282412
+    },
+    {
+      "indices": [
+        80,
+        1166,
+        1167,
+        1168,
+        1169,
+        1170,
+        1171,
+        1172,
+        81,
+        1376,
+        1377,
+        1378,
+        1379,
+        1380,
+        1381,
+        1382,
+        97,
+        1558,
+        1559,
+        1560,
+        1561,
+        1562,
+        1563,
+        1564,
+        113,
+        1753,
+        1752,
+        1751,
+        1750,
+        1749,
+        1748,
+        1747,
+        112,
+        1978,
+        1979,
+        1980,
+        1981,
+        1982,
+        1983,
+        1984,
+        127,
+        1732,
+        1731,
+        1730,
+        1729,
+        1728,
+        1727,
+        1726,
+        111,
+        1550,
+        1549,
+        1548,
+        1547,
+        1546,
+        1545,
+        1544,
+        95,
+        1375,
+        1374,
+        1373,
+        1372,
+        1371,
+        1370,
+        1369
+      ],
+      "center": [
+        0.1578141450881958,
+        0.0029913662001490593,
+        1.3906688690185547
+      ],
+      "vertices": 64,
+      "length": 0.6723634253651588
+    },
+    {
+      "indices": [
+        87,
+        1264,
+        1265,
+        1266,
+        1267,
+        1268,
+        1269,
+        1270,
+        88,
+        1278,
+        1279,
+        1280,
+        1281,
+        1282,
+        1283,
+        1284,
+        89,
+        1467,
+        1468,
+        1469,
+        1470,
+        1471,
+        1472,
+        1473,
+        105,
+        1649,
+        1650,
+        1651,
+        1652,
+        1653,
+        1654,
+        1655,
+        121,
+        1879,
+        1878,
+        1877,
+        1876,
+        1875,
+        1874,
+        1873,
+        120,
+        1858,
+        1857,
+        1856,
+        1855,
+        1854,
+        1853,
+        1852,
+        119,
+        1641,
+        1640,
+        1639,
+        1638,
+        1637,
+        1636,
+        1635,
+        103,
+        1459,
+        1458,
+        1457,
+        1456,
+        1455,
+        1454,
+        1453
+      ],
+      "center": [
+        -0.1578204482793808,
+        0.002994104754179716,
+        1.3906736373901367
+      ],
+      "vertices": 64,
+      "length": 0.6726846173318518
+    },
+    {
+      "indices": [
+        128,
+        1761,
+        1762,
+        1763,
+        1764,
+        1765,
+        1766,
+        1767,
+        129,
+        1775,
+        1776,
+        1777,
+        1778,
+        1779,
+        1780,
+        1781,
+        130,
+        1789,
+        1790,
+        1791,
+        1792,
+        1793,
+        1794,
+        1795,
+        131,
+        1803,
+        1804,
+        1805,
+        1806,
+        1807,
+        1808,
+        1809,
+        132,
+        1817,
+        1818,
+        1819,
+        1820,
+        1821,
+        1822,
+        1823,
+        133,
+        1831,
+        1832,
+        1833,
+        1834,
+        1835,
+        1836,
+        1837,
+        134,
+        1845,
+        1846,
+        1847,
+        1848,
+        1849,
+        1850,
+        1851,
+        135,
+        1866,
+        1867,
+        1868,
+        1869,
+        1870,
+        1871,
+        1872,
+        136,
+        1887,
+        1888,
+        1889,
+        1890,
+        1891,
+        1892,
+        1893,
+        137,
+        1901,
+        1902,
+        1903,
+        1904,
+        1905,
+        1906,
+        1907,
+        138,
+        1915,
+        1916,
+        1917,
+        1918,
+        1919,
+        1920,
+        1921,
+        139,
+        1929,
+        1930,
+        1931,
+        1932,
+        1933,
+        1934,
+        1935,
+        140,
+        1943,
+        1944,
+        1945,
+        1946,
+        1947,
+        1948,
+        1949,
+        141,
+        1957,
+        1958,
+        1959,
+        1960,
+        1961,
+        1962,
+        1963,
+        142,
+        1971,
+        1972,
+        1973,
+        1974,
+        1975,
+        1976,
+        1977,
+        143,
+        1991,
+        1990,
+        1989,
+        1988,
+        1987,
+        1986,
+        1985
+      ],
+      "center": [
+        -2.3283064365386963e-10,
+        0.005000006873160601,
+        1.529999017715454
+      ],
+      "vertices": 128,
+      "length": 0.46536323230369886
+    }
+  ],
+  "poses": {
+    "carry": {
+      "Scabbard suspension 0": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Scabbard suspension 1": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Tunic": {
+        "body_crossings": 30,
+        "outward_covered": 21,
+        "examples": [
+          [
+            0.09822555631399155,
+            -0.12353156507015228,
+            1.3326376676559448
+          ],
+          [
+            0.09917813539505005,
+            -0.12264744192361832,
+            1.3300116062164307
+          ],
+          [
+            0.10267606377601624,
+            -0.11953343451023102,
+            1.3222616910934448
+          ]
+        ]
+      },
+      "Waist belt": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Cloth armhole binding.L": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Cloth armhole binding.R": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather cuirass": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather shoulder fastening.1": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather shoulder fastening.-1": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 00": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 01": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 02": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 03": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 04": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 05": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 06": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 07": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 08": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 09": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 10": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 11": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 12": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 13": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 14": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 15": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Sheathed sword grip": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Sheathed sword pommel": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Sheathed sword guard": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Pike shaft": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Pike iron socket": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Pike spearhead": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Pike butt": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Small round shield": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Shield forearm band": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Shield band attachment": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Shield forearm band.001": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Shield band attachment.001": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "suspension_belt": {
+        "Scabbard suspension 0": {
+          "triangle_crossings": 0,
+          "contact_bounds": [],
+          "root_nearest_min": 0.000992812099866569,
+          "root_nearest_max": 0.007777533493936062
+        },
+        "Scabbard suspension 1": {
+          "triangle_crossings": 0,
+          "contact_bounds": [],
+          "root_nearest_min": 0.0003381020505912602,
+          "root_nearest_max": 0.008014408871531487
+        }
+      },
+      "leather_cloth_crossings": {
+        "Scabbard suspension 0": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Scabbard suspension 1": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Waist belt": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather cuirass": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 00": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 01": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 02": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 03": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 04": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 05": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 06": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 07": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 08": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 09": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 10": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 11": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 12": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 13": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 14": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 15": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        }
+      },
+      "armhole_boundaries": [
+        [
+          {
+            "index": 95,
+            "signed": 0.0017856951235444285,
+            "rest": [
+              0.18096202611923218,
+              -0.044644322246313095,
+              1.2916667461395264
+            ],
+            "posed": [
+              0.10512847453355789,
+              -0.11955206096172333,
+              1.3190412521362305
+            ]
+          },
+          {
+            "index": 1545,
+            "signed": 0.0020572885623550974,
+            "rest": [
+              0.17616567015647888,
+              -0.06056135520339012,
+              1.3115366697311401
+            ],
+            "posed": [
+              0.09507838636636734,
+              -0.12849211692810059,
+              1.3427859544754028
+            ]
+          },
+          {
+            "index": 1544,
+            "signed": 0.002235322132037254,
+            "rest": [
+              0.17863906919956207,
+              -0.053643640130758286,
+              1.3007521629333496
+            ],
+            "posed": [
+              0.0999179556965828,
+              -0.12480470538139343,
+              1.330024242401123
+            ]
+          },
+          {
+            "index": 1375,
+            "signed": 0.0024483399392920546,
+            "rest": [
+              0.18317076563835144,
+              -0.039424046874046326,
+              1.284515142440796
+            ],
+            "posed": [
+              0.10841600596904755,
+              -0.11656732857227325,
+              1.3110837936401367
+            ]
+          }
+        ],
+        [
+          {
+            "index": 89,
+            "signed": 0.0042716508649043305,
+            "rest": [
+              -0.18096202611923218,
+              -0.04398861154913902,
+              1.2916667461395264
+            ],
+            "posed": [
+              -0.1894179731607437,
+              0.030150655657052994,
+              1.3064852952957153
+            ]
+          },
+          {
+            "index": 1467,
+            "signed": 0.0060287655105639715,
+            "rest": [
+              -0.17863906919956207,
+              -0.05350172147154808,
+              1.3007521629333496
+            ],
+            "posed": [
+              -0.18808981776237488,
+              0.024189870804548264,
+              1.3161665201187134
+            ]
+          },
+          {
+            "index": 1471,
+            "signed": 0.0061643184162676334,
+            "rest": [
+              -0.16731519997119904,
+              -0.07439368963241577,
+              1.3507651090621948
+            ],
+            "posed": [
+              -0.1755223274230957,
+              0.021146684885025024,
+              1.361976146697998
+            ]
+          },
+          {
+            "index": 1468,
+            "signed": 0.006433802023821045,
+            "rest": [
+              -0.17616567015647888,
+              -0.06057095155119896,
+              1.3115366697311401
+            ],
+            "posed": [
+              -0.18597820401191711,
+              0.02115624025464058,
+              1.3273088932037354
+            ]
+          }
+        ]
+      ]
+    },
+    "rest": {
+      "Scabbard suspension 0": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Scabbard suspension 1": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Tunic": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Waist belt": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Cloth armhole binding.L": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Cloth armhole binding.R": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather cuirass": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather shoulder fastening.1": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather shoulder fastening.-1": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 00": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 01": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 02": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 03": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 04": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 05": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 06": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 07": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 08": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 09": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 10": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 11": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 12": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 13": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 14": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Leather hanging panel 15": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Sheathed sword grip": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Sheathed sword pommel": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Sheathed sword guard": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Pike shaft": {
+        "body_crossings": 246,
+        "outward_covered": 0,
+        "examples": [
+          [
+            0.07437455654144287,
+            -0.04825481399893761,
+            0.4380820393562317
+          ],
+          [
+            0.07155472040176392,
+            -0.044690947979688644,
+            0.43910497426986694
+          ],
+          [
+            0.16412943601608276,
+            -0.04467635974287987,
+            0.3697207570075989
+          ]
+        ]
+      },
+      "Pike iron socket": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Pike spearhead": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Pike butt": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Small round shield": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Shield forearm band": {
+        "body_crossings": 94,
+        "outward_covered": 0,
+        "examples": [
+          [
+            0.4311715364456177,
+            -0.05930693820118904,
+            1.0553721189498901
+          ],
+          [
+            0.43117836117744446,
+            -0.0592857263982296,
+            1.0553220510482788
+          ],
+          [
+            0.4311946630477905,
+            -0.059281133115291595,
+            1.0552992820739746
+          ]
+        ]
+      },
+      "Shield band attachment": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Shield forearm band.001": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "Shield band attachment.001": {
+        "body_crossings": 0,
+        "outward_covered": 0,
+        "examples": []
+      },
+      "suspension_belt": {
+        "Scabbard suspension 0": {
+          "triangle_crossings": 0,
+          "contact_bounds": [],
+          "root_nearest_min": 0.000992812099866569,
+          "root_nearest_max": 0.007777533493936062
+        },
+        "Scabbard suspension 1": {
+          "triangle_crossings": 0,
+          "contact_bounds": [],
+          "root_nearest_min": 0.0003381020505912602,
+          "root_nearest_max": 0.008014408871531487
+        }
+      },
+      "leather_cloth_crossings": {
+        "Scabbard suspension 0": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Scabbard suspension 1": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Waist belt": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather cuirass": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 00": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 01": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 02": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 03": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 04": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 05": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 06": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 07": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 08": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 09": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 10": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 11": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 12": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 13": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 14": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        },
+        "Leather hanging panel 15": {
+          "count": 0,
+          "examples": [],
+          "bounds": []
+        }
+      },
+      "armhole_boundaries": [
+        [
+          {
+            "index": 95,
+            "signed": 0.00355354041676037,
+            "rest": [
+              0.18096202611923218,
+              -0.044644322246313095,
+              1.2916667461395264
+            ],
+            "posed": [
+              0.1809619814157486,
+              -0.04464433342218399,
+              1.2916667461395264
+            ]
+          },
+          {
+            "index": 1544,
+            "signed": 0.0045321739235077985,
+            "rest": [
+              0.17863906919956207,
+              -0.053643640130758286,
+              1.3007521629333496
+            ],
+            "posed": [
+              0.1786390244960785,
+              -0.05364365130662918,
+              1.3007521629333496
+            ]
+          },
+          {
+            "index": 1375,
+            "signed": 0.005083781143184751,
+            "rest": [
+              0.18317076563835144,
+              -0.039424046874046326,
+              1.284515142440796
+            ],
+            "posed": [
+              0.18317072093486786,
+              -0.03942405804991722,
+              1.284515142440796
+            ]
+          },
+          {
+            "index": 1545,
+            "signed": 0.005102867500681896,
+            "rest": [
+              0.17616567015647888,
+              -0.06056135520339012,
+              1.3115366697311401
+            ],
+            "posed": [
+              0.1761656254529953,
+              -0.06056136637926102,
+              1.3115366697311401
+            ]
+          }
+        ],
+        [
+          {
+            "index": 89,
+            "signed": 0.003305440375697799,
+            "rest": [
+              -0.18096202611923218,
+              -0.04398861154913902,
+              1.2916667461395264
+            ],
+            "posed": [
+              -0.1809619814157486,
+              -0.04398862272500992,
+              1.2916667461395264
+            ]
+          },
+          {
+            "index": 1467,
+            "signed": 0.004824171861400828,
+            "rest": [
+              -0.17863906919956207,
+              -0.05350172147154808,
+              1.3007521629333496
+            ],
+            "posed": [
+              -0.1786390244960785,
+              -0.053501732647418976,
+              1.3007521629333496
+            ]
+          },
+          {
+            "index": 1284,
+            "signed": 0.005231286078924313,
+            "rest": [
+              -0.18317075073719025,
+              -0.03942404314875603,
+              1.2845150232315063
+            ],
+            "posed": [
+              -0.18317070603370667,
+              -0.03942405432462692,
+              1.2845150232315063
+            ]
+          },
+          {
+            "index": 1468,
+            "signed": 0.005413585138740018,
+            "rest": [
+              -0.17616567015647888,
+              -0.06057095155119896,
+              1.3115366697311401
+            ],
+            "posed": [
+              -0.1761656403541565,
+              -0.060570962727069855,
+              1.3115366697311401
+            ]
+          }
+        ]
+      ]
+    }
+  },
+  "pike_gear_crossings": {
+    "Scabbard": 0,
+    "Scabbard fitting mouth": 0,
+    "Scabbard fitting upper band": 0,
+    "Scabbard fitting lower band": 0,
+    "Scabbard fitting chape": 0,
+    "Scabbard suspension 0": 0,
+    "Scabbard suspension 1": 0,
+    "Sheathed sword grip": 0,
+    "Sheathed sword pommel": 0,
+    "Sheathed sword guard": 0,
+    "Small round shield": 0,
+    "Shield forearm band": 0,
+    "Shield band attachment": 0,
+    "Shield forearm band.001": 0,
+    "Shield band attachment.001": 0
+  }
+}

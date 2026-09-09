@@ -1,20 +1,32 @@
 import { world3dToScreen } from "@packages/renderer-core/src/cameraUniform";
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
-import { SHOCK_CAV_SIDEARM_CLASS } from "@packages/soldier-assets/src/soldierMesh";
+import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../../web/src/battle/classData";
-import { type LabContext, LabGroundPass, chartCameraSnapshot, createConfiguredShell, createSkinnedPipeline, labGroundFramePass, publish, reportTable } from "../labShell";
+import {
+  type LabContext,
+  LabGroundPass,
+  chartCameraSnapshot,
+  createConfiguredShell,
+  createSkinnedPipeline,
+  labGroundFramePass,
+  publish,
+  reportTable,
+} from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
+  const sidearmAppearance = APPEARANCE_DESCRIPTORS.findIndex(
+    (descriptor) =>
+      descriptor.selection.unitClass === UNIT_CLASS_BY_KEY[UnitClass.ShockCavalry] &&
+      descriptor.selection.state === "sidearm",
+  );
   // Oblique review pitch: camera3d vertical scale is sin(pitch), so a
   // near-top-down 0.18 collapses soldiers to a few pixels. sin(1.1) ≈ 0.89
   // keeps the full silhouette legible.
   const camera = { x: 0, y: 0, zoom: 92, pitch: 1.1, yaw: 0 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   const frontClass = UNIT_CLASS_BY_KEY[UnitClass.HeavySword];
-  const rearClass = SHOCK_CAV_SIDEARM_CLASS;
+  const rearClass = sidearmAppearance;
   const frontY = -0.03;
   const rearY = 0.03;
   const instances: CrowdInstance[] = [
@@ -25,7 +37,7 @@ export async function route(ctx: LabContext) {
       classId: frontClass,
       faction: 0,
       alive: true,
-      frame: 1,
+
       clip: "idle",
       phase: 0.15,
       seed: 11,
@@ -39,7 +51,7 @@ export async function route(ctx: LabContext) {
       classId: rearClass,
       faction: 1,
       alive: true,
-      frame: 1,
+
       clip: "idle",
       phase: 0.15,
       seed: 22,
@@ -47,9 +59,13 @@ export async function route(ctx: LabContext) {
       lod: 0,
     },
   ];
-  pipeline.upload(instances, { forcedClip: "idle", phaseOffset: 0, size: 1.35 });
+  pipeline.upload(
+    instances.map((instance) => ({ ...instance, clip: "idle" })),
+    { size: 1.35 },
+  );
   const ground = new LabGroundPass(shell, [-4, -3, 8, 6]);
   shell.drawFrame({
+    precompute: (encoder) => pipeline.precompute(encoder),
     clear: { r: 0.7, g: 0.78, b: 0.62, a: 1 },
     passes: [
       labGroundFramePass(ground, "skinned-depth-ground"),

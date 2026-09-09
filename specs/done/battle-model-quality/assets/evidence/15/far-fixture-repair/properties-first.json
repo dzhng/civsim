@@ -1,0 +1,264 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-08T09:07:13.244Z",
+  "target": "http://localhost:5475",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-far-properties",
+      "file": "models/battle-model-far-properties.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "current catalog has twenty complete property atlases",
+      "ok": true,
+      "detail": "{\"startupMs\":1463,\"resources\":[{\"allocatedBytes\":11796456,\"bakeMs\":18.34500002861023,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":6.985000014305115,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":6.5950000286102295,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":5.325000047683716,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":5.365000009536743,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":6.254999995231628,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":5.049999952316284,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":5.269999980926514,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.550000071525574,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":5.009999990463257,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":5.134999990463257,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.850000023841858,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.894999980926514,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.954999923706055,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":2.0800000429153442,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.5950000286102295,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.8450000286102295,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":5.165000081062317,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.725000023841858,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.9299999475479126,\"drawCalls\":2}]}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "allocation includes three mip chains and depth",
+      "ok": true,
+      "detail": "{\"residentBytes\":235929120,\"replacementPeakBytes\":471858240}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "full catalog replacement releases previous GPU textures",
+      "ok": true,
+      "detail": "{\"result\":{\"ok\":true,\"error\":null},\"reloadMs\":4147.485000014305,\"beforeTextures\":101,\"replacementPeakTextures\":182,\"afterTextures\":101}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2031.2949999570847,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/matte-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: ordinary blue and seed do not become faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":698.8700000047684,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/matte-far",
+      "ok": false,
+      "detail": "12344 px differ (1.2055%) — see shots/diff/battle/far-properties/matte-far.png"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: ordinary blue and seed do not become faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":979.3499999046326,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/smooth-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":775.5299999713898,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/smooth-far",
+      "ok": false,
+      "detail": "12354 px differ (1.2064%) — see shots/diff/battle/far-properties/smooth-far.png"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":998.2450000047684,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/metal-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":707.5099999904633,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/metal-far",
+      "ok": false,
+      "detail": "12348 px differ (1.2059%) — see shots/diff/battle/far-properties/metal-far.png"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-blue-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":980.8949999809265,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/mask-blue-far",
+      "ok": false,
+      "detail": "12350 px differ (1.2061%) — see shots/diff/battle/far-properties/mask-blue-far.png"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-blue-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-red-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":993.710000038147,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/mask-red-far",
+      "ok": false,
+      "detail": "12348 px differ (1.2059%) — see shots/diff/battle/far-properties/mask-red-far.png"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-red-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "flat-normal-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":977.414999961853,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/flat-normal-far",
+      "ok": false,
+      "detail": "12340 px differ (1.2051%) — see shots/diff/battle/far-properties/flat-normal-far.png"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "flat-normal-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "near: same blue color responds to smooth",
+      "ok": true,
+      "detail": "6246"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "near: same blue color responds to metal",
+      "ok": true,
+      "detail": "7440"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: same blue color responds to smooth",
+      "ok": true,
+      "detail": "6861"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: same blue color responds to metal",
+      "ok": true,
+      "detail": "8243"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: explicit mask changes faction",
+      "ok": true,
+      "detail": "8243"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: authored per-pixel normals affect lighting",
+      "ok": true,
+      "detail": "7716"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-far-properties: snapshot battle/far-properties/matte-far",
+    "battle-model-far-properties: snapshot battle/far-properties/smooth-far",
+    "battle-model-far-properties: snapshot battle/far-properties/metal-far",
+    "battle-model-far-properties: snapshot battle/far-properties/mask-blue-far",
+    "battle-model-far-properties: snapshot battle/far-properties/mask-red-far",
+    "battle-model-far-properties: snapshot battle/far-properties/flat-normal-far"
+  ],
+  "pageErrors": []
+}

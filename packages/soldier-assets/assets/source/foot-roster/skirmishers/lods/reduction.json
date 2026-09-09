@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-battle-model-quality/packages/soldier-assets/assets/source/foot-roster/skirmishers/skirmishers.blend",
+  "sourceSha256": "b985bb7f0e133fb8d74a2a570381baf7c282b50e12f1448c230a5b2013bb055e",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 94612,
+      "triangles": 7972,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "444bfb5d41240de13d3ef8c297302b618ad63a68297d41cfe6aa042082ffa0b3"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 94612,
+      "triangles": 980,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "7cdb6f304556ca2a1611e7bf5ac2d377a756bda59ae2d11f4d07b1b3d36da70c"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 94612,
+      "triangles": 786,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "fe234dd282e7a05d24def17b9a3ed2b0deed71fe856047af0b59fd9660348b1d"
+    }
+  ]
+}

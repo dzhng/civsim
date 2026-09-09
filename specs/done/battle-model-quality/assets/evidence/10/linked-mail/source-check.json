@@ -1,0 +1,44 @@
+{
+  "meshAttributesIdentical": {
+    "positions": true,
+    "normals": true,
+    "colors": true,
+    "joints": true,
+    "weights": true,
+    "uvs": true,
+    "tangents": false,
+    "materialIds": true,
+    "factionMasks": true,
+    "indices": true,
+    "indexFormat": true
+  },
+  "tangentChanges": 5,
+  "tangentMaxDelta": 0.00010001659393310547,
+  "clayGeometry": {
+    "positions": true,
+    "normals": true,
+    "uvs": true,
+    "joints": true,
+    "weights": true,
+    "indices": true
+  },
+  "nonMailMaterialsIdentical": true,
+  "frames": {
+    "animation.json": true,
+    "skeleton.json": true
+  },
+  "maps": {
+    "baseColor": {
+      "changedPixels": 524288,
+      "changedOutsideMailTile": 0
+    },
+    "normal": {
+      "changedPixels": 524278,
+      "changedOutsideMailTile": 0
+    },
+    "orm": {
+      "changedPixels": 524288,
+      "changedOutsideMailTile": 0
+    }
+  }
+}

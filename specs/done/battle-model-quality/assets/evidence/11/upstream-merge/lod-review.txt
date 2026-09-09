@@ -1,0 +1,2532 @@
+2026-09-08T08:15:06.230873Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T08:15:06.230930Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+OpenAI Codex v0.153.4
+--------
+workdir: /Users/david/dev/game-battle-model-quality
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a08015-c7dc-7c53-8424-ab9304f6a86a
+--------
+user
+<task>Read-only merge-conflict review of ONLY packages/crowd-runtime/src/lod.ts, packages/photoreal-renderer/src/battle/crowdLod.ts, packages/photoreal-renderer/src/battle/crowdLayer.ts, web/tests/photorealCrowdLod.test.ts, apps/renderer-lab/src/routes/lod.ts, apps/renderer-lab/src/routes/lodTiers.ts. Compare current files to HEAD and origin/main: reconcile incoming typed storage reuse with projected main/shadow independent audience semantics. Review active-prefix history, buffer lifetime, bounds, near-plane and consumer calls. No edits, no GPU, no broad repository audit. Other merge files are being handled independently.</task><output_contract>Only actionable defects with exact pointers; otherwise concise no findings. Distinguish numerical tests from browser proof. Follow code-review.</output_contract>
+2026-09-08T08:15:06.890372Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T08:15:06.890401Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+exec
+/bin/zsh -lc 'git status --short; cat AGENTS.md; cat .agents/skills/code-review/SKILL.md; cat .agents/skills/renderer/SKILL.md' in /Users/david/dev/game-battle-model-quality
+2026-09-08T08:15:16.393996Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-3681fdce-2c84-4964-a089-cc35c8e8d976"
+ succeeded in 0ms:
+A  .conductor/settings.toml
+M  README.md
+UU apps/renderer-lab/src/routes/lod.ts
+UU apps/renderer-lab/src/routes/lodTiers.ts
+A  crates/sim/src/bin/profile_tick.rs
+M  crates/sim/src/combat/targeting.rs
+M  crates/sim/src/separation/weapon_repel.rs
+M  crates/sim/src/sim.rs
+M  crates/sim/src/steer/mod.rs
+M  crates/sim/src/steer/precompute.rs
+M  crates/sim/src/steer/weave.rs
+M  crates/sim/src/unit.rs
+M  crates/sim/tests/golden.rs
+MM packages/crowd-runtime/src/instanceData.ts
+UU packages/crowd-runtime/src/lod.ts
+MM packages/photoreal-renderer/src/battle/battleWorld.ts
+UU packages/photoreal-renderer/src/battle/crowdLayer.ts
+UU packages/photoreal-renderer/src/battle/crowdLod.ts
+MM packages/photoreal-renderer/src/battle/impostorLayer.ts
+A  packages/photoreal-renderer/src/battle/impostorTile.ts
+ M specs/battle-model-quality/README.md
+M  web/package.json
+A  web/scenes/battle/battle-cpu-profile.mjs
+MM web/tests/animationState.test.ts
+A  web/tests/impostorTile.test.ts
+UU web/tests/photorealCrowdLod.test.ts
+?? web/public/assets/soldiers/candidates/both-hands-carry/
+?? web/public/assets/soldiers/candidates/carry-forward-run/
+?? web/public/assets/soldiers/candidates/carry-loaded-trunk/
+?? web/public/assets/soldiers/candidates/heavy-run-trunk/
+?? web/public/assets/soldiers/candidates/shield-side-carry/
+?? web/public/assets/soldiers/candidates/sword-handedness-upper-roll/
+?? web/public/assets/soldiers/candidates/sword-handedness/
+cat: AGENTS.md: No such file or directory
+---
+name: code-review
+description: Review changed code for naming, stale references, unnecessary complexity, and comment quality. Use after completing implementation work, before committing, or when the user asks to review or audit code. Enforces at review time the authoring rules of [write-tests](../write-tests/SKILL.md) and [tweak-mechanics](../tweak-mechanics/SKILL.md).
+allowed-tools: Read Grep Glob Bash
+---
+
+# Code Review
+
+Review the diff or specified files against these principles.
+
+## 1. Names must reflect current reality
+
+- Variable and function names should describe what they ARE, not what they used to be.
+- If the underlying mechanism changed (e.g. grid lookup → spatial hash), all related names must update.
+- Ask: would a new reader be confused by this name?
+
+## 2. No stale references
+
+- After refactoring, grep for references to the old approach — dead detection logic, abandoned feature flags, comments mentioning removed code.
+- If something was tried and reverted, remove ALL traces. The codebase should look like the current approach was always the plan.
+
+## 3. Simplify detection and guard logic
+
+- A gate like "can this feature run" should check the ONE thing that actually matters.
+- Don't chain fallback detections when one check covers it.
+
+## 4. Comments document WHY, not WHAT HAPPENED
+
+- **Keep:** non-obvious technical discoveries, platform quirks, "if you remove this, X breaks because Y."
+  - Good: `// anchor is front-center; offset half-depth back along facing`
+  - Good: `// separation must run after slot-seek or columns collapse during wheels`
+- **Remove:** narrative of what was tried, what was abandoned, what was renamed.
+  - Bad: `// We changed this from a force to a velocity clamp to fix jitter`
+  - Bad: `// Previously this was called slot_drift but we renamed it`
+- **Remove:** comments that just restate what the code does without adding reasoning.
+- **One explanation, one location.** When the same fact (a field's units, an invariant, a tri-state's semantics) is documented at three call sites, pick the single best one — usually where the value is declared or applied — and delete the other copies. Transparent forwarders don't need to re-document what they pass through.
+- Often no comment is needed at all.
+
+## 5. Respect the sim/shell boundary
+
+- `crates/sim` is pure simulation logic with no wasm dependencies — it must stay natively testable. Anything wasm-bindgen lives in `crates/sim-wasm`; anything rendering/UI lives in `web`.
+- The wasm boundary is rare small calls in (orders) and zero-copy bulk reads out. Don't add chatty per-frame calls or copy buffers across the boundary when a pointer view works.
+- Cohesion (and similar derived quantities) is **measured** from physical soldier state, never stored as a freestanding scalar. Flag any change that caches a derived stat in a way that can drift from what's on screen.
+
+## 6. No intermediary artifacts
+
+- After iterating through multiple approaches, audit for logic that only existed as a stepping stone.
+- If a workaround was added for approach A and you switched to approach B, remove the workaround even if it's harmless.
+- The code should read as if written from scratch by someone who already knew the right answer.
+
+## 7. Tighten guarantees after changes
+
+- When a change makes something guaranteed (e.g. a field is now always set, a vec is never empty, a function always returns), audit downstream code that still guards against the old "maybe" state.
+- Redundant `Option` handling, fallback defaults, and `if (x)` guards on values that can no longer be absent are misleading — they imply a possibility that doesn't exist.
+- Prefer `const` over `let` in TS; prefer non-`mut` bindings in Rust when reassignment is no longer needed.
+- **Never suppress a signal — fix the root cause.** `_` prefix on unused params, `#[allow(...)]`, `// @ts-ignore`, `as any` — these all hide real issues. If a parameter is unused, DELETE it and cascade the removal to every caller. If a type doesn't match, fix the type. Run the checker, fix every error, repeat. Mechanical changes across many files is exactly what an agent excels at — there is no "too many callers."
+
+## 8. When changes are tangled, start clean
+
+- If a file has been through 3+ rounds of conflicting edits, `git restore` it and re-apply only what's needed.
+- Don't try to surgically fix a mess — starting clean is faster and less error-prone.
+
+## 9. Tests must verify actual values, not just counts
+
+- When testing formation math, ordering, or idempotent operations, assert on the **resulting state**, not just a length or a survivor count.
+- Count alone doesn't prove the logic worked — a broken controller could reach the right casualty number through the wrong behavior.
+- Pattern: assert both the aggregate (count, cohesion band) AND a representative concrete value (a slot position, a facing, who won and where they ended up).
+
+## 10. No thin wrappers or re-export-only modules
+
+- If a module only forwards another crate's or package's functions or types, delete it and import the original directly.
+- Do not preserve local compatibility shims for scaffold code or unshipped work. Replace the scaffold outright.
+- Re-export barrels are not useful unless they define a real public boundary with project-specific semantics (`sim-wasm` is such a boundary; a TS file that only does `export * from` is not).
+- Prefer using the upstream API name directly over inventing local aliases.
+
+## 11. Extract only around real ownership boundaries
+
+- Do not split files just to reduce line count. A new file should own a coherent responsibility that a reader can name (movement, morale, missiles — like the existing `crates/sim` modules).
+- Extract modules when they concentrate related policy, state transitions, or domain-specific behavior.
+- Avoid moving one-off helper functions into a new file if the caller still needs to understand all the details to use them.
+- If extraction increases total indirection without clarifying ownership, keep the code local.
+
+## 12. Tests do not justify keeping unused production code
+
+- If a production function has no production callers, it is dead. Tests that exercise it in isolation do not make it live.
+- Delete the function **and** the test in the same change. If the behavior the test was checking is still important, it is now an invariant of _some other_ production function — move the assertion there.
+- Pattern: search every caller before deletion. If the only references are tests, both can go.
+
+## 13. Decouple tests from implementation — drive the system end-to-end
+
+The most valuable test suite is the one most decoupled from the implementation it covers. A test that pokes at internals freezes the internals; a test that drives the public surface frees you to refactor everything underneath. (This is the review-time check of [write-tests](../write-tests/SKILL.md)'s authoring rules — same principle, applied to a diff.)
+
+- **Prefer the outermost entry point that still gives a fast, deterministic signal.** For sim behavior, that's scenario tests in `crates/sim/tests` that construct a battle, step it, and assert on outcomes. For anything the player sees or does (rendering, input, HUD, performance), that's the Playwright harness `web/scene.mjs` driving the real page.
+- **Test behavior, not structure.** Assert on observable outcomes — final positions, casualties, morale states, rendered frames, screenshots. Do not assert on which internal functions ran, in what order, with which intermediate shapes.
+- **A passing test should mean a real battle behaves correctly.** Common smells: hand-constructing internal state that the order pipeline would have built, stepping a subsystem in isolation when the bug only manifests with the other subsystems running.
+- **Harnesses must wire the system the way production wires it.** If a bug was only visible in the browser, the scenario harness skipped something the real loop sets — fix the harness so the next regression in the same shape is caught by `cargo test -p sim`, not by playing the game.
+- **Coupled tests are a refactor tax.** When renaming an internal function breaks dozens of tests without changing any battle-visible behavior, the suite is testing the wrong layer.
+- **Reserve unit tests for genuinely tricky pure logic** — formation slot math, wheeling geometry, pathfinding, morale state machines. Everything else earns more value as a scenario test.
+
+## 14. Keep the sim deterministic
+
+- The sim must be reproducible: same orders, same seed → same battle. This is what makes golden tests (`crates/sim/tests/golden.rs`) and scenario tests trustworthy.
+- No `HashMap`/`HashSet` iteration order feeding into sim state, no wall-clock time, no unseeded randomness, no float operations that vary by platform when avoidable.
+- Anything nondeterministic (timing, viewport, animation phase) belongs in the web shell, not in `crates/sim`.
+- If a change touches sim stepping order or float math, run the golden tests and say so in the review.
+
+## 15. Reuse existing types — derive, don't redeclare
+
+- If a type already exists upstream, use it directly. Don't redeclare its shape inline, even partially.
+- In TS, derive variants with utility types: `Pick`, `Omit`, `Partial`, `Parameters`, `ReturnType`, indexed access (`T['field']`). In Rust, reuse the existing struct/enum or wrap it — don't mirror its fields in a second struct that must be kept in sync by hand.
+- Why it matters: redeclared shapes drift. They miss new fields, hide which named type you mean behind a structural literal grep can't find, and force callers to update both sides on every change.
+- The wasm boundary is the highest-risk drift zone in this repo: the unit-info buffer layout is defined by the Rust packing order and consumed in TS via numeric offsets (`info[u * STRIDE + 6]`). Any field-index literal in TS must trace back to one named source of truth, not be re-derived by counting in each file.
+
+## 16. Leave the codebase cleaner than you found it
+
+- Every change is a chance to delete duplication, not just an excuse to add more. When you touch a file, audit the surrounding code for things that were already wrong — and if your change is in the same neighborhood, fix them in the same turn.
+- **No parallel literal sets.** Before adding a new enum, lookup table, or list of magic values, grep the repo for the same set. The classic shape here: a Rust enum (`UnitClass`, order kinds, terrain kinds) crossing the wasm boundary as raw ints, then re-enumerated in TS as bare numeric literals scattered across `main.ts`/`input.ts`/`renderer.ts`. Keep ONE named mapping on the TS side and derive everything from it.
+- This applies recursively. If your change touches the Rust enum, the wasm export, and two TS call sites, and the literals already drifted in three places, fix all of them — don't leave two clean and two stale.
+- "I'll do that in a follow-up" is how the codebase rots. The reviewer test: after your change, is there exactly ONE place a future contributor would look to add a new value?
+
+## 17. Formulas read the physical world — men, mass, measured motion
+
+Every formula in the sim takes physical inputs: **men, mass, measured
+motion** (the creed of [tweak-mechanics](../tweak-mechanics/SKILL.md), enforced
+here at review time). Never banners (unit counts), commanded state (orders, frame
+speed, pace), or classifier outputs (thresholded counts, flags). Each
+historical violation produced an effect wildly out of proportion to the
+field: a contact-direction count flash-routed healthy units 19x; a
+per-soldier mass term made five surviving horses as terrifying as a full
+wing; unit-counting contagion meant reorganizing the same men into more
+banners changed the army's morale economics.
+
+Flag in review:
+- Any term reading `frame_speed`, `pace`, or an order where the question
+  is what the bodies are DOING — use `mass_advance`, measured positions,
+  or per-soldier state.
+- Any per-unit loop weighting by unit COUNT or per-class constants where
+  the physical quantity is total living mass or men (`alive_count x
+  class mass`); ask the doubling test — double the men but keep the
+  banners: does the term respond?
+- Any discrete classification (sector groups, thresholds, booleans)
+  acting as a standalone drain/force. Classifications may GATE or
+  AMPLIFY a physical quantity, never be the quantity.
+- New scalar coefficients in a sum: check the operating MAGNITUDE of
+  each term side by side (a 0.012 on a count that steps by 1.0 dwarfs a
+  0.05 on a rate of magnitude 0.03).
+
+## 18. Units know only what they can see
+
+A unit's behavior may read of OTHER units only what a man on the field
+could observe: positions, measured motion (`frame_speed`,
+`mass_advance`, centroid), facing, formation extent, visible fighting,
+routing (men running away). Never another unit's private state: orders,
+`mode`, `charging`, `pursue`, internal clocks (`latch_timer`,
+`charge_time`), or reserves (`fatigue`, `morale`). Canonical violation:
+the kite band once read the enemy's `charging` flag — the screen fled a
+charge before the horses moved.
+
+Flag in review:
+- Any cross-unit read of `mode`, `charging`, `pursue`, `move_target`,
+  `fatigue`, `morale`, or a timer, in reflex/steering/combat code.
+  Self-reads are fine (a unit knows its own orders and its own legs).
+- The test: could a soldier standing there know this? Intent must be
+  inferred from motion, or not at all.
+- The AI commander counts as a PLAYER: it reads the field (and what the
+  HUD would show its side), never the opposing player's orders or unit
+  internals.
+
+## 19. Task-runner scripts: the parent runs everything, suffixes are the parts
+
+Package/task scripts follow one shape: a bare script (`build`, `test`, `fmt`)
+runs the COMPLETE job across every submodule it touches; a `:suffix`
+(`build:wasm`, `build:web`, `test:web`) runs one clearly-named part. A bare
+parent that quietly does only half the work is the trap — someone runs `build`,
+ships a stale artifact, and never learns the other stage existed (here `build`
+must run the Rust→wasm step *and* the web bundle, not just `vite build`).
+
+Flag in review:
+- A bare parent that runs a subset of its parts. Either it does everything, or
+  it isn't the parent — rename it to the part it actually runs.
+- Two script keys with identical bodies (the `scene`/`scenario` smell). This is
+  the parallel-literal-set bug of #16 in script form — pick the canonical name,
+  delete the alias.
+- An ambiguous stage name. If `build` could mean the native compile or the
+  bundle, it's underspecified; split into named parts and let the parent chain
+  them.
+- A named alias wrapping an already-short, already-clear native command
+  (`cargo fmt --all`) adds nothing but a place to drift; only wrap a stage when
+  the underlying command is long or non-obvious.
+
+## 20. A failing check can be a toolchain defect, not a code defect
+
+Before hand-writing a type, adding a cast, pinning a value, or restructuring code to make a checker (type-checker, compiler, linter, test runner, build) pass, confirm the failure is a CODE defect and not a toolchain/environment artifact. Patching code to satisfy a broken or mismatched tool is a workaround that masks the real problem — the never-suppress-a-signal rule, one level up.
+
+- **Reproduce under the exact toolchain that reports the failure** — the CI/deploy version and config, not just your local one. A green local check proves nothing if it ran a different version: a pinned prerelease, a preview build, or version drift between your machine and CI can pass locally and fail in CI on identical source (or the reverse).
+- **If the same source passes under the real/pinned tool, the code is correct** — the fix belongs in the toolchain (pin the version, fix the config), not the code. When the output is ambiguous, probe the tool directly — force it to print the value, type, or error it actually computed — instead of guessing at the cause.
+- **Keep local == CI.** Confirm the checks that gate merge/deploy run the same toolchain the deploy runs; version drift makes every green check suspect, and "it passed locally" stops being evidence the deploy will.
+
+## 21. Internal APIs carry no version or compat machinery
+
+- When we own both producer and consumer (our own apps, services, and functions), do not add `protocolVersion` fields, version negotiation, capability flags, or "in case the other side is older" branches. Deploying is the version.
+- The one real compat axis is fields, not versions — and it's an asymmetry, not a knob: parse **requests strictly** (reject unknown fields), parse **responses/events tolerantly** (ignore unknown fields). That lets the producer add fields without a lockstep consumer release, which covers the only skew we actually have (components that update on their own schedule).
+- Smells: a version literal in a wire schema that nothing reads; an `if (payload.v >= 2)` branch whose only caller is code we deploy ourselves; a strict parser on a response, which turns every additive server change into a breaking one.
+- Exception: a genuinely external API (consumers we cannot redeploy) versions at the route (`/v1/`), never per-field.
+
+## 22. Things that must agree need one owner
+
+- When two declarations must stay consistent but each can change alone, they drift. Give the shared decision one home and have each site compose from it — a parallel enum, picker list, or switch that restates a set living elsewhere is the common case (deriving the shape is rule 17; this is the wider rule for any values that must agree).
+- The harder half: where near-twins legitimately differ, justify the difference in the code. An undocumented divergence between otherwise-identical things is indistinguishable from a drift bug — a reader can't tell intent from oversight.
+
+## 23. Don't hoist a single-use value into a named const unless it earns the name
+
+- A `const` extracted to module scope but referenced exactly once adds indirection without payoff: the reader has to jump to the declaration to learn the value, and the name restates what an inline value + short comment would say anyway. Inline it at the one call site and let a comment carry the WHY.
+- A single-use named const IS justified when at least one of these holds:
+  - It's **configuration that changes often** or that an operator/reader is expected to tune (timeouts/limits grouped as knobs, feature thresholds, retry budgets that get adjusted).
+  - It **sits next to related consts** and gains meaning from the cluster (a block of `*_TIMEOUT_MS`, a table of limits, sibling enum members) — the grouping is the documentation.
+  - Declaring it independently is **structurally meaningful**: it's exported as part of a module's public surface, referenced by a type, or co-located with the data/file it parameterizes so a future second caller finds it.
+- Otherwise inline. The reviewer test: if the name only exists to label a literal used once, and it neither changes often nor lives beside kin, it's noise — fold it into the call site with a comment explaining the value.
+- Bad: `const STOP_SESSION_CONNECT_TIMEOUT_MS = 5_000` declared on its own, used in exactly one `runAction({ connectTimeoutMs: STOP_SESSION_CONNECT_TIMEOUT_MS })`.
+- Good: `connectTimeoutMs: 5_000, // 5s: a cold sandbox must not hang on the 60s default connect` at the call site.
+
+## 24. Batch loops isolate per-item failures — one bad item never starves the rest
+
+- Any loop over independent work items (sweep, cron batch, queue drain, fleet pass, fanout) must catch per item and continue — collect failures into the result (a `failed` list) or log them. An uncaught per-item throw aborts the pass, and because the runner (cron, scheduler, sync rail) re-selects the same ordered set next tick, a deterministically-failing item becomes a permanent head-of-line blocker: everything behind it re-queues forever while metrics show the job "retrying".
+- In transactional contexts (e.g. a database mutation that processes a page and advances a cursor) the failure is worse: the uncaught throw also rolls back the cursor/progress writes, so the same page re-runs forever. A caught error keeps the transaction alive — but the failed item's own pre-throw writes persist, so catch at item boundaries whose writes are idempotent or safe to re-run.
+- Early-exit on failure is only correct when the failure is provably batch-wide (the shared downstream is unreachable), never for item-specific errors. If the pass's caller needs failure visibility, catch-record-continue and rethrow the first error after the pass completes.
+- Watch the ordering trap even with isolation: if successful items stay in the candidate set (e.g. re-snapshotting everything before the blocker each retry), the sweep also needs its selection to exclude already-done work.
+- Accepted shapes: per-item try/catch + `failed` in the result; `Promise.allSettled` keyed by item; catch-record-continue then rethrow-after-pass.
+- Bad: `for (const ws of candidates) { await archive(ws); await mark(ws) }` inside an hourly cron — one unreachable VM freezes every candidate behind it, forever.
+- Good: the same loop with the whole per-item body in try/catch pushing `{ workspaceId, error }` onto a `failed` array returned to the caller.
+
+## 25. Renaming what users see means sweeping what tests see
+
+- User-facing copy, accessible names, routes, and `data-*` attributes are load-bearing for test layers that do not run in your gates — live-staging harnesses, journey suites, external monitors. A rename that keeps every local gate green can silently break them hours later in someone else's session.
+- When a change renames visible copy or restructures a surface, repo-wide grep the OLD strings/selectors — explicitly including test-harness and e2e packages — and update every anchor in the same pass. The diff that renames is the diff that sweeps.
+- The reviewer test: pick a renamed string from the diff and grep the repo for it. Any surviving hit outside the diff is a break waiting for the next live run.
+- Structural beats copy: where a journey needs an anchor, prefer an owned `data-*` attribute on the surface over its display text — then product copy can change freely without touching tests. Flag journeys that anchor on copy when a structural attribute already exists.
+## Your task
+
+Review: $ARGUMENTS
+
+If no arguments given, review `git diff --staged` or `git diff` (unstaged changes).
+
+For each issue found, cite the file and line number. Group by category. End with a clean/not-clean verdict.
+
+When the review surfaces simplifications, apply them in the same turn instead of asking for confirmation. After applying, re-run the relevant checks — `cargo test -p sim`, `tsc --noEmit` in `web`, and `bun run --cwd web verify` if browser-visible behavior changed — then summarize what changed. Only stop to ask when a fix is genuinely ambiguous (e.g. two valid interpretations with different downstream impact).
+---
+name: renderer
+description: Build, debug, or review WebGPU renderer work — three.js/TSL scene layers, node materials, or raw WGSL passes and compute. Use when changing GPU resource layouts, render or compute passes, node materials, bind groups, buffers, shaders, frame orchestration, depth/overlay composition, capability handling, performance, or browser-verified renderer visuals.
+---
+
+# GPU renderer
+
+Use this for WebGPU renderer work where correctness depends on GPU resource
+ownership, pass orchestration, shader/material layout, depth semantics, or
+browser-verified output. Find the current owners in the codebase — projection,
+depth convention, environment presets — before changing anything; do not assume
+this skill knows today's module layout.
+
+## Workflow
+
+1. Inspect the existing device/shell, pass graph, bind group layouts, shader
+   contracts, and validation routes before adding a pipeline or buffer.
+2. Define resources first: buffers, textures, uniforms, storage layouts, bind
+   groups, ownership, update frequency, read/write access, and lifetime.
+3. Choose the phase deliberately:
+   - Use compute for parallel preparation, simulation, reductions, texture or
+     buffer transforms, and work-list construction.
+   - Use render passes for rasterized output.
+   - Use separate background, depth-tested world, transparent/effect, and UI
+     overlay phases when visibility semantics differ.
+4. Single-source shared contracts. Camera layouts, projection helpers, depth
+   modes, frame phases, semantic roles, vertex strides, and bind group schemas
+   should live in one canonical module/source and be imported by renderers,
+   shaders, and verifiers.
+5. Fight sediment. When a new requirement reveals that two passes own the same
+   concept (lighting environment, haze, material palette, terrain projection,
+   water mask), refactor to the shared primitive you would design from scratch.
+   Do not bolt an adapter or alias beside the old owner unless it is a tiny
+   temporary bridge with a named removal path.
+6. Validate in the browser. Run the narrowest scenario that exercises the
+   changed pass, open the produced PNG, and use `compare-screenshots` when a
+   visual before/after needs telemetry.
+
+## Rules
+
+- One projection owner, one depth convention, one environment owner — whatever
+  modules currently own them. A camera is posed through the shared camera
+  helper, never hand-rolled orbit math in a route or pass; a preset-dependent
+  material knob lives on the environment owner, never in a pass.
+- Prefer reverse-Z (near→1, far→0) on a float depth buffer for large outdoor
+  depth ranges; whichever convention is in force, it is engine-wide — depth
+  compare direction, clear value, and format move together or not at all.
+- Renderer library upgrades are their own reviewed change with the full suite
+  and perf gate as harness — never a ride-along on a feature commit.
+- WGSL uniforms and storage structs must respect alignment. Pack scalar fields
+  into obvious 16-byte slots when it reduces layout ambiguity.
+- Treat depth as an access contract, not a boolean. Use explicit modes such as
+  `read`, `read-write`, and `write`; make renderer stats and GPU pipeline state
+  speak the same language.
+- All pipelines in one render pass must be compatible with its attachments.
+  Adding a depth attachment is a pass-wide change: update every pipeline in the
+  pass, split the pass, or keep the pass depthless.
+- Type buckets are batching details, not visibility policy. Sorting by mesh
+  class, prop type, material, or instance bucket is valid only when the pass has
+  the correct depth semantics for the world it draws.
+- Do not mix alpha blending into depth-writing opaque geometry. Opaque/cutout
+  world objects can write depth; translucent decals, shadows, selection rings,
+  roads, and UI overlays need separate read-only depth or overlay phases.
+- Treat read-only world decals as a one-way boundary inside a frame. Once
+  ground cues, shadows, roads, or other `depth=read` world decals begin, no
+  later world pass should write depth; otherwise the frame is relying on
+  painter-order color overwrites instead of the depth buffer.
+- World-space ground cues are not HUD overlays. If a marker belongs on terrain,
+  submit it through the world camera and let real geometry occlude it; reserve
+  screen overlays for labels, HUD, minimaps, debug UI, and deliberately
+  non-world effects.
+- Selection, order, targeting, and path cues should be verified by their
+  semantic ground-cue/effect pass, not by an incidental terrain or mesh bucket.
+  A correct cue can be a read-only world decal or tactical line without being
+  part of the terrain geometry count.
+- Ground decals on raised or tilted terrain need the same surface height as the
+  world objects they mark. A selection ring, shadow, road, or footprint that
+  assumes flat `z=0` can disappear under the terrain or drift away from the
+  model even when its x/y coordinates are correct.
+- Continuous world paths should be continuous geometry. Do not create road,
+  rail, river, or path continuity by cutting endpoint gaps around occluders;
+  resample the path onto the canonical surface and let depth-tested world
+  objects occlude it.
+- Instanced world props need a base-elevation field when they live on raised
+  terrain. An instance layout that carries only x/y/scale can look fine on a
+  flat fixture while trees, rocks, crowds, or buildings float, sink, or lose
+  depth ordering on the real map.
+- Tilted world scenes need one canonical surface. If terrain, water, roads,
+  labels, props, or hit tests must stay geographically aligned while the camera
+  moves, project and draw them from the same 3D surface/height contract. A flat
+  textured underlay plus separate raised world objects will drift under
+  perspective even when the source coordinates are correct.
+- Geographic effects need a canonical mask/projection owner. Water glints,
+  coast foam, fog reveal, biome tints, and terrain overlays must sample or be
+  generated from the same world-space mask that owns the gameplay geography;
+  unmasked decorative quads/ellipses are only valid for non-geographic
+  atmosphere and must not independently decide where land or water exists.
+- Shared visual concepts are not pass-local knobs. If water, terrain, grass,
+  sky, soldiers, or props all need the same weather, haze, palette, or light,
+  make that a shared renderer contract and have every pass consume it. A wrapper
+  that preserves old duplicated constants is still a failed architecture unless
+  it is explicitly transitional and tracked.
+- Secondary world views need the same contract as the primary view. Minimap,
+  overview, reflection, shadow, and debug views should expose or consume
+  canonical world-space anchors instead of carrying private scale/offset math;
+  verifier tolerances should match the source grid resolution.
+- Nested objects must be proven with hostile-order fixtures. Submit an occluder
+  first, submit the nested/rear object later, then sample or crop pixels that
+  prove depth, not painter order, owns visibility.
+- Browser checks can pass while the canvas is visually wrong. Inspect actual
+  PNGs after WGSL, pipeline, camera, pass-order, depth, or blend changes, and
+  reject black frames, transparent canvases, flattened occlusion, or UI layered
+  over world geometry by accident.
+- A valid render is not necessarily a useful capture. Screenshot gates must
+  prove the intended subject is framed: derive camera targets from live
+  renderable bounds or explicit semantic anchors, and reject frames that show
+  mostly empty terrain, sky, water, or one flat colour while entity stats look
+  healthy.
+- Treat GPU renderer validation warnings as failed renders. A bad pipeline can leave
+  route stats and app hooks alive while command buffers are invalid and the
+  canvas is black. Capture console warnings and fix the root contract, commonly
+  vertex stride/attribute offsets, bind-group layout drift, attachment mismatch,
+  or a depth mode that no longer matches the pass.
+- WGSL `let` bindings are immutable. When staged shader values need overrides,
+  use `var`; reassigned `let` expressions can invalidate the pipeline and leave
+  JavaScript stats healthy while the actual canvas is black.
+- Expose pass-level stats for render-affecting modes and resource contracts.
+  If a shader path depends on a texture, mask, depth mode, or feature toggle,
+  the route stats should say which path is active and what resource dimensions
+  it consumed.
+- Keep scenario assertions derived from the same contracts as renderer code.
+  Hard-coded verifier copies of depth formats, phase names, role maps, or vertex
+  strides drift into false confidence.
+- Capability handling must match the product. An unsupported-GPU renderer path may
+  show a clear failure/fallback UI, but it must not silently route production
+  visuals through an unrelated renderer to hide missing GPU renderer behavior.
+- Spatial budgets must not erase geography. If a map renderer caps mountains,
+  forests, props, particles, or decals, reserve by canonical region/tile or
+  connected feature before global sorting; batching and top-N selection are
+  performance details, not permission to drop whole visible landforms.
+- Stats that count submitted instances are not proof that the GPU rendered
+  content. NaN instance fields, zero coverage, bad projection, or invalid
+  shader state can leave counts healthy while pixels are blank; pair stats with
+  crop/content probes for each visual class.
+
+## three.js WebGPU + TSL rules (when the scene layer is three.js)
+
+- **Reversed depth flips three's sorted render lists.** With a reversed depth
+  buffer, opaque/transparent sort order inverts silently — zero validation
+  errors, and a low-`renderOrder` backdrop can cover the whole world. After any
+  depth-convention or sort change, prove draw order empirically (hostile-order
+  fixture), and expect to own the sort comparators.
+- **A custom `positionNode` silently discards `instanceMatrix`.** Smell: every
+  instance renders at the origin or with one shared transform while counts look
+  healthy. Per-instance work must re-apply instancing explicitly.
+- **`normalNode` is view-space.** Lighting math that assumes world-space normals
+  reads plausibly wrong (moves with the camera); transform deliberately.
+- **`DoubleSide` flips shading normals on back faces — but only on the stock
+  normal path.** The flip is right for closed solids and wrong for thin lit
+  cards (foliage, grass, cloth), where the back of a brightly lit card renders
+  dark. Setting a custom `normalNode` bypasses the flip entirely: both faces
+  shade with the authored normal. Choose per material which behavior you are
+  getting — the smell is double-sided geometry whose two sides read as
+  different materials under one light, especially imported foliage assets
+  left on the stock normal path.
+- **The TSL `time` node is BANNED in renderer code** — it breaks byte-stable
+  snapshots. All animation keys off an owned, injectable time uniform plus
+  seeded RNG.
+- **No infinite-far perspective** — three NaNs at `far=Infinity`; use a large
+  finite far that converges on the infinite-limit matrix, and pin the
+  equivalence with a unit test.
+- **`renderer.info` resets every browser frame** via three's internal loop —
+  snapshot the counts at render time before publishing stats.
+- **Type packages widen TSL literals** (`attribute()` inferred as `string` drops
+  the whole swizzle/operator surface) — use explicit generics; if published types
+  don't cover a module, keep a *narrowed* local declaration, never `any`.
+- **Match sample count to the product.** Default MSAA washes out sub-pixel
+  detail (a distant crowd fades to mush); the antialias choice is a per-world
+  contract, not a default.
+- **Screen fog ranges are camera-distance ranges.** A haze stand-in tuned at
+  gameplay zoom fires at overview rig distances; range floors must clear the
+  rig's maximum eye distance.
+
+## Performance
+
+- **SwiftShader is the correctness proxy, never the perf oracle.** It renders
+  TSL/WebGPU (including reverse-Z, timestamps) faithfully but orders of
+  magnitude slower; perf gates run on hardware only, and the standing crowd
+  perf gate + frame-time ledger judge every renderer-affecting slice.
+- Exercise capabilities (GPU timer, MSAA, depth formats) in the production
+  shell shape, not only lab shells — a capability that only ever ran in a
+  simpler configuration can be invalid in the real one.
+- Prefer instancing, batching, storage buffers, indirect draws where useful, and
+  GPU-side phase preparation for scale.
+- **Per-instance frustum culling is not free on either substrate** — three
+  culls an instanced mesh as one bounding sphere; cull via CPU instance
+  compaction or GPU-driven culling, publish culled counts in stats, and once
+  shadow cascades exist cull against the union of view + cascade frusta or
+  shadows pop at the screen edge.
+- Avoid CPU readbacks in hot paths. Debug readbacks must be bounded, named, and
+  removable.
+- For iterative compute or simulation, split phases such as `state`, `apply`,
+  `integrate`, `constrain`, and `correct`; use ping-pong buffers/textures when
+  a pass reads previous state and writes next state.
+- For neighbor queries, crowds, particles, or tiled effects, prefer spatial
+  grids, tiles, or compacted work lists over O(n^2) scans.
+- Expose meaningful knobs and stats: workgroup size, instance counts, draw
+  counts, tile sizes, LOD thresholds, pass timings, and readback limits.
+
+## Visual Validation
+
+- Use the smallest route that exercises the changed visual surface, then open
+  the generated PNG yourself.
+- When a snapshot fails, inspect the actual candidate artifact, not the blessed
+  baseline path. Baselines prove what was accepted before; actual captures prove
+  what the current GPU code rendered.
+- For model sheets, contact sheets, animation GIFs, and timeline strips, inspect
+  every tile or frame class, not just one representative. A grid can pass while
+  repeated crops are consistently off-center, clipped, or aimed between the
+  models.
+- When a projection-sensitive scene is disputed, add a tiny synthetic alignment
+  fixture with known land/water/prop points and sample both semantic state and
+  rendered pixels across multiple cameras before debugging the full production
+  map or scene.
+- Frozen-frame caches must key every render-affecting snapshot toggle. If a
+  verifier intentionally preserves transient effects while the default freeze
+  hides them, compare same-tick hidden-vs-visible pixels so the cache cannot
+  silently reuse the wrong frame.
+- Crop and upscale suspect regions before diagnosing small geometry, labels,
+  sprites, flags, depth overlaps, or LOD artifacts.
+- For GPU-backed screen overlays, expose semantic anchors such as center, edge,
+  or baseline; do not tune visible spacing against the center of an atlas quad
+  when the requirement is about an icon edge, marker edge, or text baseline.
+- Screen-space text/icon arbitration belongs where measured overlay bounds
+  exist. If a GPU renderer label atlas pass owns text measurement, use that pass for
+  collision/culling policy and expose cull stats; do not scatter per-entity
+  offsets to paper over overlapping labels.
+- Use metrics as telemetry: pixel diffs, grayscale, edge maps, luminance, and
+  content counts can explain movement, but acceptance depends on named visual
+  requirements and human readability.
+- If a visual change is disputed or subtle, run `screenshot-critique` with an
+  unprimed second pass before accepting it.
+
+## Common Failure Smells
+
+- A pass reports one semantic role while its pipeline uses another depth or
+  blend state.
+- A background or overlay pass draws true 3D objects.
+- A flat background/underlay is expected to line up with 3D objects after camera
+  tilt, zoom, or perspective changes.
+- Route stats report healthy passes while console validation warns about an
+  invalid pipeline or command buffer.
+- A private shader camera/projection helper appears beside a shared one.
+- A verifier repeats renderer constants by hand.
+- A green scenario has no screenshot inspection.
+- A screenshot is mostly blank field, water, sky, or a flat colour while stats
+  report submitted entities; suspect camera framing, crop origin, projection,
+  or all-content-hidden CSS before chasing mesh generation.
+- A type bucket appears in top-level frame or graph ordering where a semantic
+  phase should be.
+- A visual fix changes camera, lighting, model geometry, and pass order at once,
+  leaving no clear cause for the result.
+- A camera is posed by hand-rolled orbit/projection math beside the shared
+  camera helper.
+- A snapshot gate flakes frame-to-frame — suspect an unowned time source (TSL
+  `time`, `performance.now`, unseeded RNG) before suspecting the GPU.
+
+exec
+/bin/zsh -lc 'find .. -name AGENTS.md -o -name AGENTS.override.md -o -name CLAUDE.md | head -70; git diff HEAD --stat -- packages/crowd-runtime/src/lod.ts packages/photoreal-renderer/src/battle/{crowdLod,crowdLayer}.ts web/tests/photorealCrowdLod.test.ts apps/renderer-lab/src/routes/{lod,lodTiers}.ts; cat packages/crowd-runtime/src/lod.ts' in /Users/david/dev/game-battle-model-quality
+exec
+/bin/zsh -lc 'for d in . packages packages/crowd-runtime packages/crowd-runtime/src packages/photoreal-renderer packages/photoreal-renderer/src packages/photoreal-renderer/src/battle web web/tests apps apps/renderer-lab apps/renderer-lab/src apps/renderer-lab/src/routes; do for f in AGENTS.override.md AGENTS.md CLAUDE.md; do test ! -f "$d/$f" || { echo ===$d/$f; cat "$d/$f"; }; done; done; cat packages/crowd-runtime/src/lod.ts' in /Users/david/dev/game-battle-model-quality
+2026-09-08T08:15:43.789405Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-67cd90ed-a34b-494f-b799-9fe5772b0f26"
+ succeeded in 0ms:
+import type { CrowdInstance } from "./instanceData";
+import { projectedSpanPixels, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
+
+export type LodLevel = 0 | 1 | 2 | 3;
+/** All mesh tiers cast; impostors do not. Planner and draw producer share this boundary. */
+export const COARSEST_SHADOW_LOD: LodLevel = 2;
+
+export interface LodPolicy {
+  l0Pixels: number;
+  l1Pixels: number;
+  l2Pixels: number;
+  minScreenPixels: number;
+}
+
+export interface LodAssignment {
+  level: LodLevel;
+  screenSize: number;
+}
+
+export interface LodCounts {
+  l0: number;
+  l1: number;
+  l2: number;
+  l3: number;
+}
+
+export const DEFAULT_LOD_POLICY: LodPolicy = {
+  l0Pixels: 18,
+  l1Pixels: 9,
+  l2Pixels: 4,
+  minScreenPixels: 2.25,
+};
+
+export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_POLICY): LodLevel {
+  const size = Math.max(screenSize, policy.minScreenPixels);
+  if (size >= policy.l0Pixels) return 0;
+  if (size >= policy.l1Pixels) return 1;
+  if (size >= policy.l2Pixels) return 2;
+  return 3;
+}
+
+export function instanceScreenSize(
+  instance: CrowdInstance,
+  projection: ProjectionFootprint,
+): number {
+  const span = 1.8 * (instance.mounted ? 1.45 : 1);
+  return projectedSpanPixels(
+    projection,
+    instance.x,
+    instance.y,
+    (instance.elevation ?? 0) + span / 2,
+    span,
+  );
+}
+
+// A level change only sticks once the size is past the boundary by `margin`, so
+// instances hovering on a threshold don't flip tier every frame.
+export function lodWithHysteresis(
+  prevLevel: LodLevel,
+  screenSize: number,
+  policy = DEFAULT_LOD_POLICY,
+  margin = 1.5,
+): LodLevel {
+  const raw = assignLodForScreenSize(screenSize, policy);
+  if (raw === prevLevel) return prevLevel;
+  const boundaryIndex = raw < prevLevel ? raw : raw - 1;
+  const boundary =
+    boundaryIndex === 0 ? policy.l0Pixels : boundaryIndex === 1 ? policy.l1Pixels : policy.l2Pixels;
+  if (raw < prevLevel) {
+    return screenSize >= boundary + margin ? raw : prevLevel;
+  }
+  return screenSize <= boundary - margin ? raw : prevLevel;
+}
+
+/** Each audience uses the same thresholds, but only shadow demand has a mesh floor. */
+export function assignLodForProjection(
+  pixels: number,
+  shadow: boolean,
+  prevLevel?: LodLevel,
+  policy = DEFAULT_LOD_POLICY,
+): LodAssignment {
+  const screenSize = Math.max(policy.minScreenPixels, pixels);
+  return { level: levelForProjection(pixels, shadow, prevLevel, policy), screenSize };
+}
+
+export function levelForProjection(
+  pixels: number,
+  shadow: boolean,
+  prevLevel?: LodLevel,
+  policy = DEFAULT_LOD_POLICY,
+): LodLevel {
+  const screenSize = Math.max(policy.minScreenPixels, pixels);
+  let level =
+    prevLevel === undefined
+      ? assignLodForScreenSize(screenSize, policy)
+      : lodWithHysteresis(prevLevel, screenSize, policy);
+  if (shadow && pixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
+  return level;
+}
+
+/** Caller-owned levels, using the same projected footprint as both render audiences. */
+export function assignCrowdLodLevels(
+  instances: readonly CrowdInstance[],
+  projection: ProjectionFootprint,
+  prevLevels: ArrayLike<number> | undefined,
+  out: Uint8Array,
+  policy = DEFAULT_LOD_POLICY,
+): void {
+  for (let i = 0; i < instances.length; i++)
+    out[i] = levelForProjection(
+      instanceScreenSize(instances[i], projection),
+      false,
+      prevLevels?.[i] as LodLevel | undefined,
+      policy,
+    );
+}
+
+export function assignCrowdLods(
+  instances: CrowdInstance[],
+  projection: ProjectionFootprint,
+  policy = DEFAULT_LOD_POLICY,
+  prevLevels?: ArrayLike<number>,
+): LodAssignment[] {
+  return instances.map((inst, i) => {
+    return assignLodForProjection(
+      instanceScreenSize(inst, projection),
+      false,
+      prevLevels?.[i] as LodLevel | undefined,
+      policy,
+    );
+  });
+}
+
+export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
+  // Plain counters, not a template-string key per instance: this runs over
+  // the whole crowd every frame.
+  let l0 = 0;
+  let l1 = 0;
+  let l2 = 0;
+  let l3 = 0;
+  for (let i = 0; i < count; i++) {
+    const level = levels[i];
+    if (level === 0) l0++;
+    else if (level === 1) l1++;
+    else if (level === 2) l2++;
+    else l3++;
+  }
+  return { l0, l1, l2, l3 };
+}
+
+2026-09-08T08:15:46.384513Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-84983c1e-1ed0-4c4a-bc17-5f8de9b070c9"
+ succeeded in 21235ms:
+../photoctl/AGENTS.md
+../photoctl/CLAUDE.md
+../crm.cli/node_modules/bun-types/CLAUDE.md
+../agentphone/AGENTS.md
+../agentphone/CLAUDE.md
+../duet-agent/node_modules/bun-types/CLAUDE.md
+../duet-agent/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/competitive-analyst/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/sales-coach/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/social-media-manager/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/people-researcher/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/data-analyst/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/brand-designer/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/website-builder/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/product-manager/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/seo-specialist/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/landing-page-builder/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/performance-marketer/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/support-agent/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/sales-development-rep/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/writer/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/account-researcher/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/hr-generalist/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/code-reviewer/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/community-manager/AGENTS.md
+../duet/packages/official-agents-seed/content/agents/operations-analyst/AGENTS.md
+../duet/AGENTS.md
+../duet/CLAUDE.md
+../chat-app/node_modules/expo-modules-jsi/CLAUDE.md
+../chat-app/node_modules/mixpanel-browser/src/flags/CLAUDE.md
+../chat-app/AGENTS.md
+../fly-escape/node_modules/.bun/bun-types@1.4.1/node_modules/bun-types/CLAUDE.md
+../duet-interview/scenarios/campaign-attribution/code/packages/official-agents-seed/content/agents/research-assistant/AGENTS.md
+../duet-interview/scenarios/campaign-attribution/code/packages/official-agents-seed/content/agents/data-analyst/AGENTS.md
+../duet-interview/scenarios/campaign-attribution/code/packages/official-agents-seed/content/agents/writing-editor/AGENTS.md
+../duet-interview/scenarios/campaign-attribution/code/AGENTS.md
+../duet-interview/scenarios/campaign-attribution/code/CLAUDE.md
+../agentlogs/node_modules/.bun/recharts@3.8.0+cc24ebc1a65b5eee/node_modules/recharts/AGENTS.md
+../agentlogs/node_modules/.bun/bun-types@1.3.10/node_modules/bun-types/CLAUDE.md
+../agentlogs/AGENTS.md
+../agentlogs/CLAUDE.md
+../factory/AGENTS.md
+../factory/CLAUDE.md
+ apps/renderer-lab/src/routes/lod.ts                |   9 +-
+ apps/renderer-lab/src/routes/lodTiers.ts           |   9 +-
+ packages/crowd-runtime/src/lod.ts                  |  48 +++++++-
+ .../photoreal-renderer/src/battle/crowdLayer.ts    |  41 ++++---
+ packages/photoreal-renderer/src/battle/crowdLod.ts |  53 +++++---
+ web/tests/photorealCrowdLod.test.ts                | 133 +++++++++++++++------
+ 6 files changed, 217 insertions(+), 76 deletions(-)
+import type { CrowdInstance } from "./instanceData";
+import { projectedSpanPixels, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
+
+export type LodLevel = 0 | 1 | 2 | 3;
+/** All mesh tiers cast; impostors do not. Planner and draw producer share this boundary. */
+export const COARSEST_SHADOW_LOD: LodLevel = 2;
+
+export interface LodPolicy {
+  l0Pixels: number;
+  l1Pixels: number;
+  l2Pixels: number;
+  minScreenPixels: number;
+}
+
+export interface LodAssignment {
+  level: LodLevel;
+  screenSize: number;
+}
+
+export interface LodCounts {
+  l0: number;
+  l1: number;
+  l2: number;
+  l3: number;
+}
+
+export const DEFAULT_LOD_POLICY: LodPolicy = {
+  l0Pixels: 18,
+  l1Pixels: 9,
+  l2Pixels: 4,
+  minScreenPixels: 2.25,
+};
+
+export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_POLICY): LodLevel {
+  const size = Math.max(screenSize, policy.minScreenPixels);
+  if (size >= policy.l0Pixels) return 0;
+  if (size >= policy.l1Pixels) return 1;
+  if (size >= policy.l2Pixels) return 2;
+  return 3;
+}
+
+export function instanceScreenSize(
+  instance: CrowdInstance,
+  projection: ProjectionFootprint,
+): number {
+  const span = 1.8 * (instance.mounted ? 1.45 : 1);
+  return projectedSpanPixels(
+    projection,
+    instance.x,
+    instance.y,
+    (instance.elevation ?? 0) + span / 2,
+    span,
+  );
+}
+
+// A level change only sticks once the size is past the boundary by `margin`, so
+// instances hovering on a threshold don't flip tier every frame.
+export function lodWithHysteresis(
+  prevLevel: LodLevel,
+  screenSize: number,
+  policy = DEFAULT_LOD_POLICY,
+  margin = 1.5,
+): LodLevel {
+  const raw = assignLodForScreenSize(screenSize, policy);
+  if (raw === prevLevel) return prevLevel;
+  const boundaryIndex = raw < prevLevel ? raw : raw - 1;
+  const boundary =
+    boundaryIndex === 0 ? policy.l0Pixels : boundaryIndex === 1 ? policy.l1Pixels : policy.l2Pixels;
+  if (raw < prevLevel) {
+    return screenSize >= boundary + margin ? raw : prevLevel;
+  }
+  return screenSize <= boundary - margin ? raw : prevLevel;
+}
+
+/** Each audience uses the same thresholds, but only shadow demand has a mesh floor. */
+export function assignLodForProjection(
+  pixels: number,
+  shadow: boolean,
+  prevLevel?: LodLevel,
+  policy = DEFAULT_LOD_POLICY,
+): LodAssignment {
+  const screenSize = Math.max(policy.minScreenPixels, pixels);
+  return { level: levelForProjection(pixels, shadow, prevLevel, policy), screenSize };
+}
+
+export function levelForProjection(
+  pixels: number,
+  shadow: boolean,
+  prevLevel?: LodLevel,
+  policy = DEFAULT_LOD_POLICY,
+): LodLevel {
+  const screenSize = Math.max(policy.minScreenPixels, pixels);
+  let level =
+    prevLevel === undefined
+      ? assignLodForScreenSize(screenSize, policy)
+      : lodWithHysteresis(prevLevel, screenSize, policy);
+  if (shadow && pixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
+  return level;
+}
+
+/** Caller-owned levels, using the same projected footprint as both render audiences. */
+export function assignCrowdLodLevels(
+  instances: readonly CrowdInstance[],
+  projection: ProjectionFootprint,
+  prevLevels: ArrayLike<number> | undefined,
+  out: Uint8Array,
+  policy = DEFAULT_LOD_POLICY,
+): void {
+  for (let i = 0; i < instances.length; i++)
+    out[i] = levelForProjection(
+      instanceScreenSize(instances[i], projection),
+      false,
+      prevLevels?.[i] as LodLevel | undefined,
+      policy,
+    );
+}
+
+export function assignCrowdLods(
+  instances: CrowdInstance[],
+  projection: ProjectionFootprint,
+  policy = DEFAULT_LOD_POLICY,
+  prevLevels?: ArrayLike<number>,
+): LodAssignment[] {
+  return instances.map((inst, i) => {
+    return assignLodForProjection(
+      instanceScreenSize(inst, projection),
+      false,
+      prevLevels?.[i] as LodLevel | undefined,
+      policy,
+    );
+  });
+}
+
+export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
+  // Plain counters, not a template-string key per instance: this runs over
+  // the whole crowd every frame.
+  let l0 = 0;
+  let l1 = 0;
+  let l2 = 0;
+  let l3 = 0;
+  for (let i = 0; i < count; i++) {
+    const level = levels[i];
+    if (level === 0) l0++;
+    else if (level === 1) l1++;
+    else if (level === 2) l2++;
+    else l3++;
+  }
+  return { l0, l1, l2, l3 };
+}
+
+exec
+/bin/zsh -lc 'git diff HEAD -- packages/crowd-runtime/src/lod.ts packages/photoreal-renderer/src/battle/crowdLod.ts; cat packages/photoreal-renderer/src/battle/crowdLod.ts' in /Users/david/dev/game-battle-model-quality
+ succeeded in 0ms:
+diff --git a/packages/crowd-runtime/src/lod.ts b/packages/crowd-runtime/src/lod.ts
+index 8eb3ffa2..087a3f31 100644
+--- a/packages/crowd-runtime/src/lod.ts
++++ b/packages/crowd-runtime/src/lod.ts
+@@ -79,13 +79,40 @@ export function assignLodForProjection(
+   prevLevel?: LodLevel,
+   policy = DEFAULT_LOD_POLICY,
+ ): LodAssignment {
++  const screenSize = Math.max(policy.minScreenPixels, pixels);
++  return { level: levelForProjection(pixels, shadow, prevLevel, policy), screenSize };
++}
++
++export function levelForProjection(
++  pixels: number,
++  shadow: boolean,
++  prevLevel?: LodLevel,
++  policy = DEFAULT_LOD_POLICY,
++): LodLevel {
+   const screenSize = Math.max(policy.minScreenPixels, pixels);
+   let level =
+     prevLevel === undefined
+       ? assignLodForScreenSize(screenSize, policy)
+       : lodWithHysteresis(prevLevel, screenSize, policy);
+   if (shadow && pixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
+-  return { level, screenSize };
++  return level;
++}
++
++/** Caller-owned levels, using the same projected footprint as both render audiences. */
++export function assignCrowdLodLevels(
++  instances: readonly CrowdInstance[],
++  projection: ProjectionFootprint,
++  prevLevels: ArrayLike<number> | undefined,
++  out: Uint8Array,
++  policy = DEFAULT_LOD_POLICY,
++): void {
++  for (let i = 0; i < instances.length; i++)
++    out[i] = levelForProjection(
++      instanceScreenSize(instances[i], projection),
++      false,
++      prevLevels?.[i] as LodLevel | undefined,
++      policy,
++    );
+ }
+ 
+ export function assignCrowdLods(
+@@ -104,8 +131,19 @@ export function assignCrowdLods(
+   });
+ }
+ 
+-export function countLods(assignments: LodAssignment[]): LodCounts {
+-  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+-  for (const a of assignments) counts[`l${a.level}` as keyof LodCounts]++;
+-  return counts;
++export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
++  // Plain counters, not a template-string key per instance: this runs over
++  // the whole crowd every frame.
++  let l0 = 0;
++  let l1 = 0;
++  let l2 = 0;
++  let l3 = 0;
++  for (let i = 0; i < count; i++) {
++    const level = levels[i];
++    if (level === 0) l0++;
++    else if (level === 1) l1++;
++    else if (level === 2) l2++;
++    else l3++;
++  }
++  return { l0, l1, l2, l3 };
+ }
+diff --git a/packages/photoreal-renderer/src/battle/crowdLod.ts b/packages/photoreal-renderer/src/battle/crowdLod.ts
+index 3b353849..f631c39c 100644
+--- a/packages/photoreal-renderer/src/battle/crowdLod.ts
++++ b/packages/photoreal-renderer/src/battle/crowdLod.ts
+@@ -1,11 +1,10 @@
+ import * as THREE from "three/webgpu";
+ import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+ import {
+-  assignLodForProjection,
++  levelForProjection,
+   DEFAULT_LOD_POLICY,
+   instanceScreenSize,
+   type LodLevel,
+-  type LodAssignment,
+   type LodCounts,
+ } from "../../../crowd-runtime/src/lod";
+ import { projectionDepth, type ProjectionFootprint } from "../../../renderer-core/src/camera3d";
+@@ -17,23 +16,46 @@ export interface CrowdProjectionView {
+   shadow: boolean;
+ }
+ 
++/** Capacity may exceed the current crowd; only the input-length prefix is valid. */
++export interface CrowdLodBuffers {
++  levels: Uint8Array;
++  shadowLevels: Uint8Array;
++  screenSizes: Float64Array;
++  shadowScreenSizes: Float64Array;
++  visibility: Uint8Array;
++}
++
++export function createCrowdLodBuffers(capacity: number): CrowdLodBuffers {
++  return {
++    levels: new Uint8Array(capacity),
++    shadowLevels: new Uint8Array(capacity),
++    screenSizes: new Float64Array(capacity),
++    shadowScreenSizes: new Float64Array(capacity),
++    visibility: new Uint8Array(capacity),
++  };
++}
++
+ /** Bounds select contributing views; only those actual projections demand detail. */
+ export function planPhotorealCrowdLods(
+-  instances: CrowdInstance[],
++  instances: readonly CrowdInstance[],
+   views: readonly CrowdProjectionView[],
+   assets: Record<number, { manifest: Pick<AppearanceBundle["manifest"], "bounds"> }>,
+   prevLevels?: ArrayLike<number>,
+   policy = DEFAULT_LOD_POLICY,
+   prevShadowLevels?: ArrayLike<number>,
++  out?: CrowdLodBuffers,
+ ) {
+   const sphere = new THREE.Sphere();
+-  const visibility = new Uint8Array(instances.length);
+-  const shadowAssignments: LodAssignment[] = [];
++  const buffers =
++    out && out.levels.length >= instances.length ? out : createCrowdLodBuffers(instances.length);
++  const { levels, shadowLevels, screenSizes, shadowScreenSizes, visibility } = buffers;
++  visibility.fill(0, 0, instances.length);
+   const shadowCounts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+   const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+   let viewVisible = 0,
+     shadowOnly = 0;
+-  const assignments = instances.map((inst, index) => {
++  for (let index = 0; index < instances.length; index++) {
++    const inst = instances[index];
+     const { center, radius } = assets[inst.classId].manifest.bounds;
+     const angle = inst.facing - Math.PI / 2;
+     const cosAngle = Math.cos(angle),
+@@ -64,27 +86,28 @@ export function planPhotorealCrowdLods(
+     }
+     if (visibility[index] & 1) viewVisible++;
+     else if (visibility[index] & 2) shadowOnly++;
+-    const shadowAssignment = assignLodForProjection(
++    const shadowLevel = levelForProjection(
+       shadowPixels,
+       true,
+       prevShadowLevels?.[index] as LodLevel | undefined,
+       policy,
+     );
+-    shadowAssignments.push(shadowAssignment);
+-    if (visibility[index] & 2) shadowCounts[`l${shadowAssignment.level}` as keyof LodCounts]++;
+-    const assignment = assignLodForProjection(
++    shadowLevels[index] = shadowLevel;
++    shadowScreenSizes[index] = Math.max(policy.minScreenPixels, shadowPixels);
++    if (visibility[index] & 2) shadowCounts[`l${shadowLevel}` as keyof LodCounts]++;
++    const level = levelForProjection(
+       viewPixels,
+       false,
+       prevLevels?.[index] as LodLevel | undefined,
+       policy,
+     );
+-    counts[`l${assignment.level}` as keyof LodCounts]++;
+-    return assignment;
+-  });
++    levels[index] = level;
++    screenSizes[index] = Math.max(policy.minScreenPixels, viewPixels);
++    counts[`l${level}` as keyof LodCounts]++;
++  }
+   return {
+-    assignments,
++    ...buffers,
+     counts,
+-    shadowAssignments,
+     shadowCounts,
+     visibility,
+     viewVisible,
+import * as THREE from "three/webgpu";
+import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+import {
+  levelForProjection,
+  DEFAULT_LOD_POLICY,
+  instanceScreenSize,
+  type LodLevel,
+  type LodCounts,
+} from "../../../crowd-runtime/src/lod";
+import { projectionDepth, type ProjectionFootprint } from "../../../renderer-core/src/camera3d";
+import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
+
+export interface CrowdProjectionView {
+  frustum: THREE.Frustum;
+  projection: ProjectionFootprint;
+  shadow: boolean;
+}
+
+/** Capacity may exceed the current crowd; only the input-length prefix is valid. */
+export interface CrowdLodBuffers {
+  levels: Uint8Array;
+  shadowLevels: Uint8Array;
+  screenSizes: Float64Array;
+  shadowScreenSizes: Float64Array;
+  visibility: Uint8Array;
+}
+
+export function createCrowdLodBuffers(capacity: number): CrowdLodBuffers {
+  return {
+    levels: new Uint8Array(capacity),
+    shadowLevels: new Uint8Array(capacity),
+    screenSizes: new Float64Array(capacity),
+    shadowScreenSizes: new Float64Array(capacity),
+    visibility: new Uint8Array(capacity),
+  };
+}
+
+/** Bounds select contributing views; only those actual projections demand detail. */
+export function planPhotorealCrowdLods(
+  instances: readonly CrowdInstance[],
+  views: readonly CrowdProjectionView[],
+  assets: Record<number, { manifest: Pick<AppearanceBundle["manifest"], "bounds"> }>,
+  prevLevels?: ArrayLike<number>,
+  policy = DEFAULT_LOD_POLICY,
+  prevShadowLevels?: ArrayLike<number>,
+  out?: CrowdLodBuffers,
+) {
+  const sphere = new THREE.Sphere();
+  const buffers =
+    out && out.levels.length >= instances.length ? out : createCrowdLodBuffers(instances.length);
+  const { levels, shadowLevels, screenSizes, shadowScreenSizes, visibility } = buffers;
+  visibility.fill(0, 0, instances.length);
+  const shadowCounts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+  let viewVisible = 0,
+    shadowOnly = 0;
+  for (let index = 0; index < instances.length; index++) {
+    const inst = instances[index];
+    const { center, radius } = assets[inst.classId].manifest.bounds;
+    const angle = inst.facing - Math.PI / 2;
+    const cosAngle = Math.cos(angle),
+      sinAngle = Math.sin(angle);
+    sphere.center.set(
+      inst.x + center[0] * cosAngle - center[1] * sinAngle,
+      inst.y + center[0] * sinAngle + center[1] * cosAngle,
+      (inst.elevation ?? 0) + center[2],
+    );
+    sphere.radius = radius;
+    let viewPixels = 0,
+      shadowPixels = 0;
+    for (const view of views) {
+      if (!view.frustum.intersectsSphere(sphere)) continue;
+      visibility[index] |= view.shadow ? 2 : 1;
+      const depth = projectionDepth(
+        view.projection,
+        sphere.center.x,
+        sphere.center.y,
+        sphere.center.z,
+      );
+      const pixels =
+        depth - radius <= view.projection.near
+          ? Infinity
+          : instanceScreenSize(inst, view.projection);
+      if (view.shadow) shadowPixels = Math.max(policy.minScreenPixels, shadowPixels, pixels);
+      else viewPixels = Math.max(viewPixels, pixels);
+    }
+    if (visibility[index] & 1) viewVisible++;
+    else if (visibility[index] & 2) shadowOnly++;
+    const shadowLevel = levelForProjection(
+      shadowPixels,
+      true,
+      prevShadowLevels?.[index] as LodLevel | undefined,
+      policy,
+    );
+    shadowLevels[index] = shadowLevel;
+    shadowScreenSizes[index] = Math.max(policy.minScreenPixels, shadowPixels);
+    if (visibility[index] & 2) shadowCounts[`l${shadowLevel}` as keyof LodCounts]++;
+    const level = levelForProjection(
+      viewPixels,
+      false,
+      prevLevels?.[index] as LodLevel | undefined,
+      policy,
+    );
+    levels[index] = level;
+    screenSizes[index] = Math.max(policy.minScreenPixels, viewPixels);
+    counts[`l${level}` as keyof LodCounts]++;
+  }
+  return {
+    ...buffers,
+    counts,
+    shadowCounts,
+    visibility,
+    viewVisible,
+    shadowOnly,
+  };
+}
+
+2026-09-08T08:15:52.104359Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-849934e7-fe7c-428f-b422-0011fc8ffc57"
+exec
+/bin/zsh -lc 'git diff HEAD -- packages/photoreal-renderer/src/battle/crowdLayer.ts apps/renderer-lab/src/routes/lod.ts apps/renderer-lab/src/routes/lodTiers.ts; git diff origin/main -- packages/crowd-runtime/src/lod.ts packages/photoreal-renderer/src/battle/crowdLod.ts' in /Users/david/dev/game-battle-model-quality
+ succeeded in 0ms:
+diff --git a/apps/renderer-lab/src/routes/lod.ts b/apps/renderer-lab/src/routes/lod.ts
+index 6ff2eb42..828001bb 100644
+--- a/apps/renderer-lab/src/routes/lod.ts
++++ b/apps/renderer-lab/src/routes/lod.ts
+@@ -1,5 +1,5 @@
+ import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
+-import { assignCrowdLods, countLods } from "@packages/crowd-runtime/src/lod";
++import { assignCrowdLodLevels, countLods } from "@packages/crowd-runtime/src/lod";
+ import {
+   chartCamera3d,
+   projectionFootprint,
+@@ -27,13 +27,16 @@ export async function route(ctx: LabContext) {
+   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 });
+   const height = shell.stats().height;
+   const camera = chartCamera3d({ x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 }, height);
+-  const lods = assignCrowdLods(
++  const lods = new Uint8Array(instances.length);
++  assignCrowdLodLevels(
+     instances,
+     projectionFootprint(viewMatrix(camera), projMatrix(camera), height, camera.near),
++    undefined,
++    lods,
+   );
+   const counts = countLods(lods);
+   const pipeline = await createSkinnedPipeline(shell);
+-  const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i].level }));
++  const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i] }));
+   animateSkinned(shell, pipeline, () => renderInstances);
+   ctx.status.innerHTML = reportTable({
+     route: "lod",
+diff --git a/apps/renderer-lab/src/routes/lodTiers.ts b/apps/renderer-lab/src/routes/lodTiers.ts
+index b4755888..4010f0f9 100644
+--- a/apps/renderer-lab/src/routes/lodTiers.ts
++++ b/apps/renderer-lab/src/routes/lodTiers.ts
+@@ -1,5 +1,5 @@
+ import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
+-import { assignCrowdLods, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
++import { assignCrowdLodLevels, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
+ import { projectionFootprint, viewMatrix, projMatrix } from "@packages/renderer-core/src/camera3d";
+ import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
+ import { crowdInstance } from "../labFixtures";
+@@ -47,10 +47,13 @@ export async function route(ctx: LabContext) {
+     ...crowdInstance(0, 0, 0, "idle"),
+     y: i * 30,
+   }));
+-  const probeLevels = assignCrowdLods(
++  const probeLevels = new Uint8Array(probe.length);
++  assignCrowdLodLevels(
+     probe,
+     projectionFootprint(viewMatrix(probeCamera), projMatrix(probeCamera), 800, probeCamera.near),
+-  ).map((a) => a.level);
++    undefined,
++    probeLevels,
++  );
+   const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
+   const tiersReached = new Set(probeLevels).size;
+ 
+diff --git a/packages/photoreal-renderer/src/battle/crowdLayer.ts b/packages/photoreal-renderer/src/battle/crowdLayer.ts
+index e0f9283a..b50e697d 100644
+--- a/packages/photoreal-renderer/src/battle/crowdLayer.ts
++++ b/packages/photoreal-renderer/src/battle/crowdLayer.ts
+@@ -29,7 +29,11 @@ import { decodeLocalSample, resolveLocalSample } from "../../../soldier-assets/s
+ import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose";
+ import { viewNormalNode } from "./battleTsl";
+ import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
+-import { planPhotorealCrowdLods, type CrowdProjectionView } from "./crowdLod";
++import {
++  createCrowdLodBuffers,
++  planPhotorealCrowdLods,
++  type CrowdProjectionView,
++} from "./crowdLod";
+ import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
+ import { RENDER_ORDER } from "./terrainLayer";
+ import { weightedPaletteColumns } from "./skinNodes";
+@@ -135,8 +139,10 @@ export class PhotorealCrowd {
+   private readonly surfaces = new Set<PreparedSoldierSurface>();
+   private instanceCount = 0;
+   private readonly materialIdentity = soldierMaterialIdentity();
+-  private readonly previousLevels: number[] = [];
+-  private readonly previousShadowLevels: number[] = [];
++  private lodBuffers = createCrowdLodBuffers(0);
++  private previousLodBuffers = createCrowdLodBuffers(0);
++  private previousLevels: Uint8Array = new Uint8Array(0);
++  private previousShadowLevels: Uint8Array = new Uint8Array(0);
+   private assignedCounts = emptyLodCounts();
+   private visibleCounts = emptyLodCounts();
+   private shadowCounts = emptyLodCounts();
+@@ -314,6 +320,11 @@ export class PhotorealCrowd {
+       }
+     }
+     for (const group of this.groups) group.pending.length = 0;
++    if (this.lodBuffers.levels.length < instances.length)
++      this.lodBuffers = createCrowdLodBuffers(
++        Math.max(instances.length, this.lodBuffers.levels.length * 2),
++      );
++    // Separate output keeps a failed plan from partly replacing the preceding history.
+     const plan = scope
+       ? planPhotorealCrowdLods(
+           instances,
+@@ -322,24 +333,22 @@ export class PhotorealCrowd {
+           this.previousLevels,
+           undefined,
+           this.previousShadowLevels,
++          this.lodBuffers,
+         )
+       : {
+-          assignments: instances.map(() => ({ level: 0 as const, screenSize: 999 })),
+-          shadowAssignments: [],
++          levels: this.lodBuffers.levels.fill(0, 0, instances.length),
++          shadowLevels: this.lodBuffers.shadowLevels,
+           shadowCounts: emptyLodCounts(),
+           counts: { l0: instances.length, l1: 0, l2: 0, l3: 0 },
+-          visibility: new Uint8Array(instances.length).fill(1),
++          visibility: this.lodBuffers.visibility.fill(1, 0, instances.length),
+           viewVisible: instances.length,
+           shadowOnly: 0,
+         };
+-    this.previousLevels.length = plan.assignments.length;
+-    this.previousShadowLevels.length = plan.shadowAssignments.length;
+-    for (let i = 0; i < plan.assignments.length; i++) {
+-      this.previousLevels[i] = plan.assignments[i].level;
+-    }
+-    for (let i = 0; i < plan.shadowAssignments.length; i++) {
+-      this.previousShadowLevels[i] = plan.shadowAssignments[i].level;
+-    }
++    this.previousLevels = plan.levels.subarray(0, instances.length);
++    this.previousShadowLevels = plan.shadowLevels.subarray(0, scope ? instances.length : 0);
++    const spare = this.previousLodBuffers;
++    this.previousLodBuffers = this.lodBuffers;
++    this.lodBuffers = spare;
+     this.assignedCounts = plan.counts;
+     this.visibleCounts = emptyLodCounts();
+     this.shadowCounts = plan.shadowCounts;
+@@ -358,7 +367,7 @@ export class PhotorealCrowd {
+     for (let i = 0; i < instances.length; i++) {
+       const inst = instances[i];
+       if (!this.assets[inst.classId]) throw new Error(`Missing appearance ${inst.classId}`);
+-      const level = plan.assignments[i]?.level ?? 0;
++      const level = plan.levels[i];
+       inst.lod = level;
+       if (!plan.visibility[i]) {
+         this.culling.culled++;
+@@ -374,7 +383,7 @@ export class PhotorealCrowd {
+         inst,
+         mainVisible && level !== 3 ? this.buckets[inst.classId].main[level] : undefined,
+         plan.visibility[i] & 2
+-          ? this.buckets[inst.classId].shadow[plan.shadowAssignments[i].level]
++          ? this.buckets[inst.classId].shadow[plan.shadowLevels[i]]
+           : undefined,
+       );
+     }
+diff --git a/packages/crowd-runtime/src/lod.ts b/packages/crowd-runtime/src/lod.ts
+index 622290db..087a3f31 100644
+--- a/packages/crowd-runtime/src/lod.ts
++++ b/packages/crowd-runtime/src/lod.ts
+@@ -1,6 +1,9 @@
+-import type { CrowdInstance } from './instanceData';
++import type { CrowdInstance } from "./instanceData";
++import { projectedSpanPixels, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
+ 
+ export type LodLevel = 0 | 1 | 2 | 3;
++/** All mesh tiers cast; impostors do not. Planner and draw producer share this boundary. */
++export const COARSEST_SHADOW_LOD: LodLevel = 2;
+ 
+ export interface LodPolicy {
+   l0Pixels: number;
+@@ -36,61 +39,96 @@ export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_
+   return 3;
+ }
+ 
+-export function assignCrowdLods(instances: CrowdInstance[], zoom: number, policy = DEFAULT_LOD_POLICY): LodAssignment[] {
+-  return instances.map((inst) => {
+-    // Every mounted class is taller on screen; drive the scale off the mount
+-    // flag, not a hardcoded class list.
+-    const mountedScale = inst.mounted ? 1.45 : 1;
+-    const screenSize = Math.max(policy.minScreenPixels, zoom * mountedScale * 1.8);
+-    return { level: assignLodForScreenSize(screenSize, policy), screenSize };
+-  });
+-}
+-
+-export interface LodCamera {
+-  x: number;
+-  y: number;
+-  zoom: number;
+-}
+-
+-/** Projected on-screen height of an instance: scales with zoom, falls with
+- *  distance from the camera focus, so near soldiers are L0 and far ones coarsen. */
+-export function instanceScreenSize(x: number, y: number, camera: LodCamera, mounted: boolean, policy = DEFAULT_LOD_POLICY): number {
+-  const dist = Math.hypot(x - camera.x, y - camera.y);
+-  const mountedScale = mounted ? 1.45 : 1;
+-  return Math.max(policy.minScreenPixels, (camera.zoom * 1.8 * mountedScale) / (1 + dist * 0.012));
++export function instanceScreenSize(
++  instance: CrowdInstance,
++  projection: ProjectionFootprint,
++): number {
++  const span = 1.8 * (instance.mounted ? 1.45 : 1);
++  return projectedSpanPixels(
++    projection,
++    instance.x,
++    instance.y,
++    (instance.elevation ?? 0) + span / 2,
++    span,
++  );
+ }
+ 
+ // A level change only sticks once the size is past the boundary by `margin`, so
+ // instances hovering on a threshold don't flip tier every frame.
+-export function lodWithHysteresis(prevLevel: LodLevel, screenSize: number, policy = DEFAULT_LOD_POLICY, margin = 1.5): LodLevel {
++export function lodWithHysteresis(
++  prevLevel: LodLevel,
++  screenSize: number,
++  policy = DEFAULT_LOD_POLICY,
++  margin = 1.5,
++): LodLevel {
+   const raw = assignLodForScreenSize(screenSize, policy);
+   if (raw === prevLevel) return prevLevel;
+-  const thresholds = [policy.l0Pixels, policy.l1Pixels, policy.l2Pixels];
++  const boundaryIndex = raw < prevLevel ? raw : raw - 1;
++  const boundary =
++    boundaryIndex === 0 ? policy.l0Pixels : boundaryIndex === 1 ? policy.l1Pixels : policy.l2Pixels;
+   if (raw < prevLevel) {
+-    const boundary = thresholds[raw] ?? thresholds[thresholds.length - 1];
+     return screenSize >= boundary + margin ? raw : prevLevel;
+   }
+-  const boundary = thresholds[raw - 1] ?? thresholds[thresholds.length - 1];
+   return screenSize <= boundary - margin ? raw : prevLevel;
+ }
+ 
+-/** Per-instance LOD by camera distance, written into `out` (one level per
+- *  instance), with hysteresis against `prevLevels` when given. The production
+- *  battle path calls this every frame, so it allocates nothing. */
++/** Each audience uses the same thresholds, but only shadow demand has a mesh floor. */
++export function assignLodForProjection(
++  pixels: number,
++  shadow: boolean,
++  prevLevel?: LodLevel,
++  policy = DEFAULT_LOD_POLICY,
++): LodAssignment {
++  const screenSize = Math.max(policy.minScreenPixels, pixels);
++  return { level: levelForProjection(pixels, shadow, prevLevel, policy), screenSize };
++}
++
++export function levelForProjection(
++  pixels: number,
++  shadow: boolean,
++  prevLevel?: LodLevel,
++  policy = DEFAULT_LOD_POLICY,
++): LodLevel {
++  const screenSize = Math.max(policy.minScreenPixels, pixels);
++  let level =
++    prevLevel === undefined
++      ? assignLodForScreenSize(screenSize, policy)
++      : lodWithHysteresis(prevLevel, screenSize, policy);
++  if (shadow && pixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
++  return level;
++}
++
++/** Caller-owned levels, using the same projected footprint as both render audiences. */
+ export function assignCrowdLodLevels(
+   instances: readonly CrowdInstance[],
+-  camera: LodCamera,
++  projection: ProjectionFootprint,
+   prevLevels: ArrayLike<number> | undefined,
+   out: Uint8Array,
+   policy = DEFAULT_LOD_POLICY,
+ ): void {
+-  for (let i = 0; i < instances.length; i++) {
+-    const inst = instances[i];
+-    const screenSize = instanceScreenSize(inst.x, inst.y, camera, inst.mounted, policy);
+-    out[i] = prevLevels
+-      ? lodWithHysteresis((prevLevels[i] ?? 0) as LodLevel, screenSize, policy)
+-      : assignLodForScreenSize(screenSize, policy);
+-  }
++  for (let i = 0; i < instances.length; i++)
++    out[i] = levelForProjection(
++      instanceScreenSize(instances[i], projection),
++      false,
++      prevLevels?.[i] as LodLevel | undefined,
++      policy,
++    );
++}
++
++export function assignCrowdLods(
++  instances: CrowdInstance[],
++  projection: ProjectionFootprint,
++  policy = DEFAULT_LOD_POLICY,
++  prevLevels?: ArrayLike<number>,
++): LodAssignment[] {
++  return instances.map((inst, i) => {
++    return assignLodForProjection(
++      instanceScreenSize(inst, projection),
++      false,
++      prevLevels?.[i] as LodLevel | undefined,
++      policy,
++    );
++  });
+ }
+ 
+ export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
+diff --git a/packages/photoreal-renderer/src/battle/crowdLod.ts b/packages/photoreal-renderer/src/battle/crowdLod.ts
+index 662f17eb..f631c39c 100644
+--- a/packages/photoreal-renderer/src/battle/crowdLod.ts
++++ b/packages/photoreal-renderer/src/battle/crowdLod.ts
+@@ -1,34 +1,116 @@
+-import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
++import * as THREE from "three/webgpu";
++import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+ import {
+-  assignCrowdLodLevels,
+-  countLods,
++  levelForProjection,
+   DEFAULT_LOD_POLICY,
+-  type LodCamera,
++  instanceScreenSize,
++  type LodLevel,
+   type LodCounts,
+-  type LodPolicy,
+-} from '../../../crowd-runtime/src/lod';
++} from "../../../crowd-runtime/src/lod";
++import { projectionDepth, type ProjectionFootprint } from "../../../renderer-core/src/camera3d";
++import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
+ 
+-interface PhotorealCrowdLodPlan {
+-  /** One tier per instance, valid for `instances.length` entries. */
++export interface CrowdProjectionView {
++  frustum: THREE.Frustum;
++  projection: ProjectionFootprint;
++  shadow: boolean;
++}
++
++/** Capacity may exceed the current crowd; only the input-length prefix is valid. */
++export interface CrowdLodBuffers {
+   levels: Uint8Array;
+-  counts: LodCounts;
+-  policy: LodPolicy;
++  shadowLevels: Uint8Array;
++  screenSizes: Float64Array;
++  shadowScreenSizes: Float64Array;
++  visibility: Uint8Array;
++}
++
++export function createCrowdLodBuffers(capacity: number): CrowdLodBuffers {
++  return {
++    levels: new Uint8Array(capacity),
++    shadowLevels: new Uint8Array(capacity),
++    screenSizes: new Float64Array(capacity),
++    shadowScreenSizes: new Float64Array(capacity),
++    visibility: new Uint8Array(capacity),
++  };
+ }
+ 
+-/** Tier every instance for this frame. `out` is reused when it is large
+- *  enough, so the per-frame plan allocates nothing once the crowd has grown. */
++/** Bounds select contributing views; only those actual projections demand detail. */
+ export function planPhotorealCrowdLods(
+   instances: readonly CrowdInstance[],
+-  camera: LodCamera,
++  views: readonly CrowdProjectionView[],
++  assets: Record<number, { manifest: Pick<AppearanceBundle["manifest"], "bounds"> }>,
+   prevLevels?: ArrayLike<number>,
+-  out?: Uint8Array,
+   policy = DEFAULT_LOD_POLICY,
+-): PhotorealCrowdLodPlan {
+-  const levels = out && out.length >= instances.length ? out : new Uint8Array(instances.length);
+-  assignCrowdLodLevels(instances, camera, prevLevels, levels, policy);
++  prevShadowLevels?: ArrayLike<number>,
++  out?: CrowdLodBuffers,
++) {
++  const sphere = new THREE.Sphere();
++  const buffers =
++    out && out.levels.length >= instances.length ? out : createCrowdLodBuffers(instances.length);
++  const { levels, shadowLevels, screenSizes, shadowScreenSizes, visibility } = buffers;
++  visibility.fill(0, 0, instances.length);
++  const shadowCounts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
++  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
++  let viewVisible = 0,
++    shadowOnly = 0;
++  for (let index = 0; index < instances.length; index++) {
++    const inst = instances[index];
++    const { center, radius } = assets[inst.classId].manifest.bounds;
++    const angle = inst.facing - Math.PI / 2;
++    const cosAngle = Math.cos(angle),
++      sinAngle = Math.sin(angle);
++    sphere.center.set(
++      inst.x + center[0] * cosAngle - center[1] * sinAngle,
++      inst.y + center[0] * sinAngle + center[1] * cosAngle,
++      (inst.elevation ?? 0) + center[2],
++    );
++    sphere.radius = radius;
++    let viewPixels = 0,
++      shadowPixels = 0;
++    for (const view of views) {
++      if (!view.frustum.intersectsSphere(sphere)) continue;
++      visibility[index] |= view.shadow ? 2 : 1;
++      const depth = projectionDepth(
++        view.projection,
++        sphere.center.x,
++        sphere.center.y,
++        sphere.center.z,
++      );
++      const pixels =
++        depth - radius <= view.projection.near
++          ? Infinity
++          : instanceScreenSize(inst, view.projection);
++      if (view.shadow) shadowPixels = Math.max(policy.minScreenPixels, shadowPixels, pixels);
++      else viewPixels = Math.max(viewPixels, pixels);
++    }
++    if (visibility[index] & 1) viewVisible++;
++    else if (visibility[index] & 2) shadowOnly++;
++    const shadowLevel = levelForProjection(
++      shadowPixels,
++      true,
++      prevShadowLevels?.[index] as LodLevel | undefined,
++      policy,
++    );
++    shadowLevels[index] = shadowLevel;
++    shadowScreenSizes[index] = Math.max(policy.minScreenPixels, shadowPixels);
++    if (visibility[index] & 2) shadowCounts[`l${shadowLevel}` as keyof LodCounts]++;
++    const level = levelForProjection(
++      viewPixels,
++      false,
++      prevLevels?.[index] as LodLevel | undefined,
++      policy,
++    );
++    levels[index] = level;
++    screenSizes[index] = Math.max(policy.minScreenPixels, viewPixels);
++    counts[`l${level}` as keyof LodCounts]++;
++  }
+   return {
+-    levels,
+-    counts: countLods(levels, instances.length),
+-    policy,
++    ...buffers,
++    counts,
++    shadowCounts,
++    visibility,
++    viewVisible,
++    shadowOnly,
+   };
+ }
+
+2026-09-08T08:16:00.707640Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-08be8194-b6e9-42b3-9249-17213282b0d3"
+exec
+/bin/zsh -lc "git diff HEAD -- web/tests/photorealCrowdLod.test.ts; sed -n '280,450p' packages/photoreal-renderer/src/battle/crowdLayer.ts; cat web/package.json | head -65; rg 'countLods\\(|assignCrowdLodLevels\\(|planPhotorealCrowdLods\\(' packages apps web/tests --glob '*.ts'" in /Users/david/dev/game-battle-model-quality
+ succeeded in 0ms:
+diff --git a/web/tests/photorealCrowdLod.test.ts b/web/tests/photorealCrowdLod.test.ts
+index 8dfb93fb..e5951731 100644
+--- a/web/tests/photorealCrowdLod.test.ts
++++ b/web/tests/photorealCrowdLod.test.ts
+@@ -7,6 +7,7 @@ import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/
+ import { assignLodForProjection, DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod";
+ import {
+   planPhotorealCrowdLods,
++  createCrowdLodBuffers,
+   type CrowdProjectionView,
+ } from "@packages/photoreal-renderer/src/battle/crowdLod";
+ import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
+@@ -78,6 +79,7 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+   const rows: unknown[] = [];
+   let mainHistory: number[] = [];
+   let shadowHistory: number[] = [];
++  const reusable = createCrowdLodBuffers(24);
+   for (const [frame, count] of [24, 24, 12, 0, 24, 24].entries()) {
+     const instances = Array.from({ length: count }, (_, i) => ({
+       ...body(i % 3 === 0 ? 0 : (i - 12) * 30, [-100, 0, 10, 150, 300, 1000][i % 6]),
+@@ -99,10 +101,26 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+       mainHistory,
+       policy,
+       shadowHistory,
++      reusable,
+     );
+-    rows.push(plan);
+-    mainHistory = plan.assignments.map((a) => a.level);
+-    shadowHistory = plan.shadowAssignments.map((a) => a.level);
++    // Preserve the pre-buffer serialized shape and exact golden, not typed-array JSON.
++    rows.push({
++      assignments: Array.from(plan.levels.slice(0, count), (level, i) => ({
++        level,
++        screenSize: plan.screenSizes[i],
++      })),
++      counts: plan.counts,
++      shadowAssignments: Array.from(plan.shadowLevels.slice(0, count), (level, i) => ({
++        level,
++        screenSize: plan.shadowScreenSizes[i],
++      })),
++      shadowCounts: plan.shadowCounts,
++      visibility: plan.visibility.slice(0, count),
++      viewVisible: plan.viewVisible,
++      shadowOnly: plan.shadowOnly,
++    });
++    mainHistory = Array.from(plan.levels.slice(0, count));
++    shadowHistory = Array.from(plan.shadowLevels.slice(0, count));
+   }
+   const serialized = JSON.stringify(rows, (_key, value) =>
+     typeof value === "number" && !Number.isFinite(value) ? String(value) : value,
+@@ -116,32 +134,26 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+ test("production LOD follows projected depth and exits L0 for the visible 150m mounted body", () => {
+   const instances = [10, 150, 300, 1000].map((y) => ({ ...body(0, y), mounted: true }));
+   const plan = planPhotorealCrowdLods(instances, [mainView()], assets);
+-  assert.deepEqual(
+-    plan.assignments.map((a) => a.level),
+-    [0, 1, 2, 3],
+-  );
++  assert.deepEqual(Array.from(plan.levels), [0, 1, 2, 3]);
+   assert.equal(plan.viewVisible, 4);
+   assert.equal(plan.shadowOnly, 0);
+-  assert.ok(plan.assignments[1].screenSize < 16.5);
+-  assert.equal(
+-    planPhotorealCrowdLods([instances[1]], [mainView()], assets, [0]).assignments[0].level,
+-    1,
+-  );
++  assert.ok(plan.screenSizes[1] < 16.5);
++  assert.equal(planPhotorealCrowdLods([instances[1]], [mainView()], assets, [0]).levels[0], 1);
+   assert.deepEqual(plan.counts, { l0: 1, l1: 1, l2: 1, l3: 1 });
+ });
+ 
+ test("unseen bodies make no view contribution while retaining the policy floor", () => {
+   const plan = planPhotorealCrowdLods([body(0, -100)], [mainView()], assets);
+   assert.equal(plan.visibility[0], 0);
+-  assert.equal(plan.assignments[0].screenSize, DEFAULT_LOD_POLICY.minScreenPixels);
+-  assert.equal(plan.assignments[0].level, 3);
++  assert.equal(plan.screenSizes[0], DEFAULT_LOD_POLICY.minScreenPixels);
++  assert.equal(plan.levels[0], 3);
+ });
+ 
+ test("a shadow caster does not replace the main view's distant impostor", () => {
+   const plan = planPhotorealCrowdLods([body(0, 1000)], [mainView(), shadowView()], assets);
+   assert.equal(plan.visibility[0], 3);
+-  assert.equal(plan.assignments[0].level, 3);
+-  assert.equal(plan.shadowAssignments[0].level, 2);
++  assert.equal(plan.levels[0], 3);
++  assert.equal(plan.shadowLevels[0], 2);
+   assert.deepEqual(plan.shadowCounts, { l0: 0, l1: 0, l2: 1, l3: 0 });
+ });
+ 
+@@ -151,10 +163,11 @@ test("isolated mounted oracle needs the same initial shadow history as productio
+   const views = [mainView(), shadowView(Math.hypot(128, 128) / 2 + 40)];
+   const retained = planPhotorealCrowdLods([instance], views, assets, [], undefined, [2]);
+   const fresh = planPhotorealCrowdLods([instance], views, assets, [], undefined, []);
+-  assert.ok(Math.abs(fresh.shadowAssignments[0].screenSize - 10.239241433693344) < 1e-10);
+-  assert.equal(retained.shadowAssignments[0].level, 2);
+-  assert.equal(fresh.shadowAssignments[0].level, 1);
+-  assert.deepEqual(retained.assignments, fresh.assignments);
++  assert.ok(Math.abs(fresh.shadowScreenSizes[0] - 10.239241433693344) < 1e-10);
++  assert.equal(retained.shadowLevels[0], 2);
++  assert.equal(fresh.shadowLevels[0], 1);
++  assert.deepEqual(retained.levels, fresh.levels);
++  assert.deepEqual(retained.screenSizes, fresh.screenSizes);
+ });
+ 
+ test("removing shadow views leaves the main representation and its hysteresis unchanged", () => {
+@@ -164,11 +177,12 @@ test("removing shadow views leaves the main representation and its hysteresis un
+     [instance],
+     [mainView()],
+     assets,
+-    [withShadow.assignments[0].level],
++    [withShadow.levels[0]],
+     undefined,
+-    [withShadow.shadowAssignments[0].level],
++    [withShadow.shadowLevels[0]],
+   );
+-  assert.deepEqual(withoutShadow.assignments, withShadow.assignments);
++  assert.deepEqual(withoutShadow.levels, withShadow.levels);
++  assert.deepEqual(withoutShadow.screenSizes, withShadow.screenSizes);
+   assert.equal(withoutShadow.visibility[0], 1);
+   assert.deepEqual(withoutShadow.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
+ });
+@@ -180,7 +194,7 @@ test("production size uses each body's actual terrain elevation", () => {
+     assets,
+   );
+   assert.deepEqual(Array.from(plan.visibility), [1, 1]);
+-  assert.ok(plan.assignments[1].screenSize > plan.assignments[0].screenSize);
++  assert.ok(plan.screenSizes[1] > plan.screenSizes[0]);
+ });
+ 
+ test("unchanged hysteresis applies to measured pixels and shadow casters remain meshes", () => {
+@@ -192,8 +206,8 @@ test("unchanged hysteresis applies to measured pixels and shadow casters remain
+   assert.equal(plan.visibility[0], 2);
+   assert.equal(plan.viewVisible, 0);
+   assert.equal(plan.shadowOnly, 1);
+-  assert.equal(plan.assignments[0].level, 3);
+-  assert.equal(plan.shadowAssignments[0].level, 2);
++  assert.equal(plan.levels[0], 3);
++  assert.equal(plan.shadowLevels[0], 2);
+ });
+ 
+ test("the production mesh selected for a shadow-only body really casts shadows", () => {
+@@ -203,7 +217,7 @@ test("the production mesh selected for a shadow-only body really casts shadows",
+   const meshes = geometries.map((geometry, lod) =>
+     createCrowdDrawMesh(0, lod, geometry, materials[lod], "shadow"),
+   );
+-  assert.equal(meshes[plan.shadowAssignments[0].level].castShadow, true);
++  assert.equal(meshes[plan.shadowLevels[0]].castShadow, true);
+   assert.deepEqual(
+     meshes.map((mesh) => mesh.castShadow),
+     [true, true, true],
+@@ -217,10 +231,10 @@ test("a finer shadow map changes only the shadow audience", () => {
+   const instance = body(0, 150);
+   const coarse = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
+   const fine = planPhotorealCrowdLods([instance], [mainView(), shadowView(20, 150)], assets);
+-  assert.equal(coarse.assignments[0].level, 1);
+-  assert.equal(fine.assignments[0].level, 1);
+-  assert.equal(coarse.shadowAssignments[0].level, 2);
+-  assert.equal(fine.shadowAssignments[0].level, 0);
++  assert.equal(coarse.levels[0], 1);
++  assert.equal(fine.levels[0], 1);
++  assert.equal(coarse.shadowLevels[0], 2);
++  assert.equal(fine.shadowLevels[0], 0);
+   assert.equal(fine.visibility[0], 3);
+ });
+ 
+@@ -280,8 +294,8 @@ test("near-plane bounds keep full detail and corpse shading never moves authored
+   const near = { ...body(0, -3), elevation: 2.3 };
+   const plan = planPhotorealCrowdLods([near], [view], assets);
+   assert.equal(plan.visibility[0], 1);
+-  assert.equal(plan.assignments[0].level, 0);
+-  assert.equal(plan.assignments[0].screenSize, Infinity);
++  assert.equal(plan.levels[0], 0);
++  assert.equal(plan.screenSizes[0], Infinity);
+   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.9 - 0.15);
+   const halfspace = {
+     ...view,
+@@ -309,5 +323,56 @@ test("near-plane bounds keep full detail and corpse shading never moves authored
+     [0, 0],
+     "Changing death shading weight must not rotate the authored bounding sphere into view",
+   );
+-  assert.deepEqual(admission.assignments[0], admission.assignments[1]);
++  assert.equal(admission.levels[0], admission.levels[1]);
++  assert.equal(admission.screenSizes[0], admission.screenSizes[1]);
++});
++
++test("projected LOD reuses both audience buffers and clears only the active visibility prefix", () => {
++  const instances = [body(0, 10), body(0, 150), body(0, 300), body(0, 1000)];
++  const out = createCrowdLodBuffers(8);
++  out.visibility.fill(255);
++  const first = planPhotorealCrowdLods(
++    instances,
++    [mainView(), shadowView()],
++    assets,
++    undefined,
++    undefined,
++    undefined,
++    out,
++  );
++  for (const key of [
++    "levels",
++    "shadowLevels",
++    "screenSizes",
++    "shadowScreenSizes",
++    "visibility",
++  ] as const)
++    assert.equal(first[key], out[key]);
++  assert.deepEqual(Array.from(first.levels.slice(0, 4)), [0, 1, 2, 3]);
++  assert.equal(first.counts.l0 + first.counts.l1 + first.counts.l2 + first.counts.l3, 4);
++  assert.equal(out.visibility[4], 255, "capacity tail is not an active soldier");
++  const priorMain = out.levels.slice(0, 4);
++  const priorShadow = out.shadowLevels.slice(0, 4);
++  const expected = planPhotorealCrowdLods(
++    instances.slice(0, 2),
++    [mainView()],
++    assets,
++    priorMain,
++    undefined,
++    priorShadow,
++  );
++  const reused = planPhotorealCrowdLods(
++    instances.slice(0, 2),
++    [mainView()],
++    assets,
++    out.levels.subarray(0, 4),
++    undefined,
++    out.shadowLevels.subarray(0, 4),
++    out,
++  );
++  assert.deepEqual(reused.levels.slice(0, 2), expected.levels);
++  assert.deepEqual(reused.shadowLevels.slice(0, 2), expected.shadowLevels);
++  assert.deepEqual(Array.from(reused.visibility.slice(0, 2)), [1, 1]);
++  assert.deepEqual(reused.counts, expected.counts);
++  assert.deepEqual(reused.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
+ });
+      for (const surface of this.surfaces) surface.dispose();
+      for (const layer of Object.values(this.impostors)) layer.dispose();
+      atlas?.dispose();
+      assertUsable?.();
+      throw error;
+    }
+  }
+
+  upload(instances: CrowdInstance[], scope?: CrowdVisibilityScope): void {
+    try {
+      this.uploadFrame(instances, scope);
+      this.uploadFailed = false;
+    } catch (error) {
+      // No frame may mix newly prepared rig groups with old or missing palettes.
+      // A later complete upload can recover; never hide the original error.
+      this.uploadFailed = true;
+      this.sourceInstances = [];
+      this.visibleCounts = emptyLodCounts();
+      this.shadowCounts = emptyLodCounts();
+      this.culling.visible = 0;
+      this.culling.viewVisible = 0;
+      this.culling.shadowOnly = 0;
+      for (const group of this.groups)
+        for (const bucket of group.buckets) {
+          bucket.mesh.visible = false;
+          bucket.geometry.instanceCount = 0;
+          bucket.count = 0;
+        }
+      for (const layer of Object.values(this.impostors)) layer.upload([]);
+      throw error;
+    }
+  }
+
+  private uploadFrame(instances: CrowdInstance[], scope?: CrowdVisibilityScope): void {
+    this.instanceCount = instances.length;
+    this.sourceInstances = instances;
+    for (const group of this.groups) {
+      for (const bucket of group.buckets) {
+        bucket.pending.length = 0;
+        bucket.paletteIndices.length = 0;
+      }
+    }
+    for (const group of this.groups) group.pending.length = 0;
+    if (this.lodBuffers.levels.length < instances.length)
+      this.lodBuffers = createCrowdLodBuffers(
+        Math.max(instances.length, this.lodBuffers.levels.length * 2),
+      );
+    // Separate output keeps a failed plan from partly replacing the preceding history.
+    const plan = scope
+      ? planPhotorealCrowdLods(
+          instances,
+          scope.views,
+          this.assets,
+          this.previousLevels,
+          undefined,
+          this.previousShadowLevels,
+          this.lodBuffers,
+        )
+      : {
+          levels: this.lodBuffers.levels.fill(0, 0, instances.length),
+          shadowLevels: this.lodBuffers.shadowLevels,
+          shadowCounts: emptyLodCounts(),
+          counts: { l0: instances.length, l1: 0, l2: 0, l3: 0 },
+          visibility: this.lodBuffers.visibility.fill(1, 0, instances.length),
+          viewVisible: instances.length,
+          shadowOnly: 0,
+        };
+    this.previousLevels = plan.levels.subarray(0, instances.length);
+    this.previousShadowLevels = plan.shadowLevels.subarray(0, scope ? instances.length : 0);
+    const spare = this.previousLodBuffers;
+    this.previousLodBuffers = this.lodBuffers;
+    this.lodBuffers = spare;
+    this.assignedCounts = plan.counts;
+    this.visibleCounts = emptyLodCounts();
+    this.shadowCounts = plan.shadowCounts;
+    this.culling = {
+      input: instances.length,
+      visible: 0,
+      culled: 0,
+      viewFrusta: scope?.views.filter((view) => !view.shadow).length ?? 0,
+      shadowFrusta: scope?.views.filter((view) => view.shadow).length ?? 0,
+      viewVisible: plan.viewVisible,
+      shadowOnly: plan.shadowOnly,
+    };
+    const impostors = Object.fromEntries(
+      Object.keys(this.assets).map((id) => [id, [] as CrowdInstance[]]),
+    );
+    for (let i = 0; i < instances.length; i++) {
+      const inst = instances[i];
+      if (!this.assets[inst.classId]) throw new Error(`Missing appearance ${inst.classId}`);
+      const level = plan.levels[i];
+      inst.lod = level;
+      if (!plan.visibility[i]) {
+        this.culling.culled++;
+        continue;
+      }
+      this.culling.visible++;
+      const mainVisible = (plan.visibility[i] & 1) !== 0;
+      if (mainVisible) {
+        this.visibleCounts[`l${level}` as keyof LodCounts]++;
+        if (level === 3) impostors[inst.classId].push(inst);
+      }
+      queueCrowdInstance(
+        inst,
+        mainVisible && level !== 3 ? this.buckets[inst.classId].main[level] : undefined,
+        plan.visibility[i] & 2
+          ? this.buckets[inst.classId].shadow[plan.shadowLevels[i]]
+          : undefined,
+      );
+    }
+    for (const group of this.groups) {
+      group.palette.upload(
+        group.pending.length,
+        (index) => group.pending[index].playback ?? group.pending[index],
+        (index) => group.palette.metadata.upperMaskOffsets.get(group.pending[index].classId)!,
+        (columns) => {
+          const replacements: THREE.MeshStandardNodeMaterial[] = [];
+          try {
+            for (const bucket of group.buckets)
+              replacements.push(
+                crowdMaterial(columns, group.palette.animation.bones, bucket.surface),
+              );
+          } catch (error) {
+            for (const material of replacements) material.dispose();
+            throw error;
+          }
+          for (const [index, bucket] of group.buckets.entries()) {
+            const previous = bucket.mesh.material as THREE.Material;
+            bucket.mesh.material = replacements[index];
+            previous.dispose();
+          }
+        },
+      );
+    }
+    for (const group of this.groups) {
+      for (const bucket of group.buckets) this.uploadBucket(bucket);
+    }
+    for (const [id, layer] of Object.entries(this.impostors)) {
+      layer.upload(impostors[id]);
+      if (scope) layer.setCamera(scope.camera);
+    }
+  }
+
+  debugSoldierAnim(index: number) {
+    const inst = this.sourceInstances[index];
+    if (!inst) return null;
+    return {
+      clip: inst.clip,
+      phase: inst.phase,
+      playback: inst.playback,
+      duration: this.assets[inst.classId].animation.clips.find((clip) => clip.name === inst.clip)!
+        .duration,
+    };
+  }
+
+  refreshCamera(camera: THREE.Camera): void {
+    for (const layer of Object.values(this.impostors)) layer.setCamera(camera);
+  }
+
+  private uploadBucket(bucket: ClassBucket): void {
+    const list = bucket.pending;
+    bucket.count = list.length;
+    bucket.mesh.visible = list.length > 0;
+    if (list.length === 0) {
+      bucket.geometry.instanceCount = 0;
+      return;
+    }
+    if (list.length > bucket.capacity) {
+      bucket.capacity = Math.max(list.length, bucket.capacity * 2, 256);
+      bucket.inst0 = new Float32Array(bucket.capacity * 4);
+      bucket.inst1 = new Float32Array(bucket.capacity * 4);
+{
+  "name": "battle-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --strictPort",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "format": "oxfmt --write --no-error-on-unmatched-pattern",
+    "format:check": "oxfmt --check --no-error-on-unmatched-pattern",
+    "test": "vitest run",
+    "build:wasm": "CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 RUSTFLAGS='-C target-feature=+simd128' wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
+    "scene": "node scene.mjs",
+    "scene:full": "node scene.mjs --full",
+    "scene:renderer": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-latest.json VERIFY_GPU=1 node scene.mjs renderer-lab-routes renderer-fault-injection renderer-capabilities image-texture pose-palette raw-pose-palette battle-model-palette battle-model-workbench battle-model-action-replay battle-model-reload-disposal blender-reference blender-production-candidates battle-model-far-bundles battle-model-far-properties battle-model-image-properties battle-model-normal-frame battle-model-material-swatches battle-model-far-admission battle-model-far-grounding per-class-animation soldier-materials mounted-units lod-tiers battle-elevation campaign-models full-game-rendering-performance battle-renderer-default battle-input battle-camera-zoom battle-3d-standards campaign-production campaign-handoff campaign-save-load campaign-visual campaign-map-alignment campaign-lod menu-renderer-shell menu-renderer-shell-visual shared-prop-models shared-standard-models battle-seating",
+    "scene:renderer:campaign": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-campaign-latest.json VERIFY_GPU=1 node scene.mjs campaign-production campaign-handoff campaign-save-load campaign-conquest campaign-reinforcements campaign-visual campaign-map-alignment campaign-lod",
+    "perf:renderer": "VERIFY_GPU=1 node scene.mjs full-game-rendering-performance",
+    "perf:renderer:hardware": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs full-game-rendering-performance",
+    "scene:lifecycle:hardware": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs renderer-lifecycle",
+    "perf:30k": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-perf-30k",
+    "shots:models": "bun run shots:models:soldiers && bun run shots:models:campaign && bun run shots:models:props && bun run shots:models:standards",
+    "shots:models:soldiers": "node shots/models/scripts/soldier-sheets.mjs",
+    "shots:models:campaign": "VERIFY_GPU=1 node scene.mjs campaign-models",
+    "shots:models:props": "VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-prop-models",
+    "shots:models:standards": "VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs shared-standard-models",
+    "shots:models:anim": "node shots/models/scripts/soldier-animation.mjs",
+    "shots:models:standards:anim": "VERIFY_GPU=1 node shots/models/scripts/standard-wave.mjs",
+    "bake:cards": "node shots/models/scripts/soldier-cards.mjs",
+    "verify": "VERIFY_GPU=1 node scene.mjs battle-renderer-default battle-smoke battle-lod battle-selection battle-3d-standards banner-gallery",
+    "verify:full": "VERIFY_GPU=1 node scene.mjs battle-renderer-default battle-smoke battle-lod battle-selection battle-3d-standards banner-gallery battle-cavalry-plow battle-ai",
+    "verify:campaign": "VERIFY_GPU=1 node scene.mjs campaign-lod campaign-map-alignment campaign-visual",
+    "probe:renderer": "node probe-renderer.mjs",
+    "bake:anim": "node ../packages/soldier-assets/bake/soldier-placeholders.mjs && node ../packages/soldier-assets/bake/blender-candidates.mjs && node ../packages/soldier-assets/bake/material-swatches.mjs",
+    "bake:test": "node ../packages/soldier-assets/bake/local-hierarchy.test.mjs && node ../packages/soldier-assets/bake/local-animation.test.mjs && node ../packages/soldier-assets/bake/local-pose.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/engine-basis.test.mjs && node ../packages/soldier-assets/bake/candidate-forward.test.mjs && node ../packages/soldier-assets/bake/posed-tangents.test.mjs && node ../packages/soldier-assets/bake/animated-bounds.test.mjs && node ../packages/soldier-assets/bake/appearance.test.mjs && node ../packages/soldier-assets/bake/appearance-materials.test.mjs && node ../packages/soldier-assets/bake/material-swatches.test.mjs && node ../packages/soldier-assets/bake/presentation.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node ../packages/soldier-assets/bake/soldier-placeholders.test.mjs && node ../packages/soldier-assets/bake/blender-candidates.mjs --check && node ../packages/soldier-assets/bake/material-swatches.mjs --check && node shots/models/scripts/soldier-cards.mjs --check"
+  },
+  "dependencies": {
+    "@radix-ui/react-tooltip": "^1.2.11",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^26.4.1",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.185.0",
+    "@vitejs/plugin-react": "^6.0.3",
+    "jsdom": "^25.0.1",
+    "node-web-audio-api": "^2.1.0",
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.72.0",
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.60.0",
+    "pngjs": "^7.0.0",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.9"
+  }
+}
+apps/renderer-lab/src/routes/lodTiers.ts:  assignCrowdLodLevels(
+apps/renderer-lab/src/routes/lod.ts:  assignCrowdLodLevels(
+apps/renderer-lab/src/routes/lod.ts:  const counts = countLods(lods);
+packages/crowd-runtime/src/lod.ts:export function assignCrowdLodLevels(
+packages/crowd-runtime/src/lod.ts:export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
+web/tests/photorealCrowdLod.test.ts:    const plan = planPhotorealCrowdLods(
+web/tests/photorealCrowdLod.test.ts:  const plan = planPhotorealCrowdLods(instances, [mainView()], assets);
+web/tests/photorealCrowdLod.test.ts:  assert.equal(planPhotorealCrowdLods([instances[1]], [mainView()], assets, [0]).levels[0], 1);
+web/tests/photorealCrowdLod.test.ts:  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView()], assets);
+web/tests/photorealCrowdLod.test.ts:  const plan = planPhotorealCrowdLods([body(0, 1000)], [mainView(), shadowView()], assets);
+web/tests/photorealCrowdLod.test.ts:  const retained = planPhotorealCrowdLods([instance], views, assets, [], undefined, [2]);
+web/tests/photorealCrowdLod.test.ts:  const fresh = planPhotorealCrowdLods([instance], views, assets, [], undefined, []);
+web/tests/photorealCrowdLod.test.ts:  const withShadow = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
+web/tests/photorealCrowdLod.test.ts:  const withoutShadow = planPhotorealCrowdLods(
+web/tests/photorealCrowdLod.test.ts:  const plan = planPhotorealCrowdLods(
+web/tests/photorealCrowdLod.test.ts:  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
+web/tests/photorealCrowdLod.test.ts:  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
+web/tests/photorealCrowdLod.test.ts:  const coarse = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
+web/tests/photorealCrowdLod.test.ts:  const fine = planPhotorealCrowdLods([instance], [mainView(), shadowView(20, 150)], assets);
+web/tests/photorealCrowdLod.test.ts:  const plan = planPhotorealCrowdLods([near], [view], assets);
+web/tests/photorealCrowdLod.test.ts:  const admission = planPhotorealCrowdLods([upright, fallen], [halfspace], assets);
+web/tests/photorealCrowdLod.test.ts:  const first = planPhotorealCrowdLods(
+web/tests/photorealCrowdLod.test.ts:  const expected = planPhotorealCrowdLods(
+web/tests/photorealCrowdLod.test.ts:  const reused = planPhotorealCrowdLods(
+packages/photoreal-renderer/src/battle/crowdLod.ts:export function planPhotorealCrowdLods(
+packages/photoreal-renderer/src/battle/crowdLayer.ts:      ? planPhotorealCrowdLods(
+
+2026-09-08T08:16:09.446859Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-c35ee0a0-e94d-453b-91bb-2d94f0cbd4a0"
+exec
+/bin/zsh -lc 'cat .agents/skills/write-tests/SKILL.md | head -100; cat apps/renderer-lab/src/routes/lodTiers.ts; git diff origin/main -- packages/photoreal-renderer/src/battle/crowdLayer.ts apps/renderer-lab/src/routes/lod.ts apps/renderer-lab/src/routes/lodTiers.ts web/tests/photorealCrowdLod.test.ts | head -180; ./node_modules/.bin/vitest run tests/photorealCrowdLod.test.ts' in /Users/david/dev/game-battle-model-quality/web
+2026-09-08T08:16:16.711605Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-04ca7cdd-7ded-4beb-9663-d356d65aaae8"
+ succeeded in 453ms:
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-model-quality/web
+
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  15:16:16
+   Duration  315ms (transform 114ms, setup 83ms, import 164ms, tests 6ms, environment 0ms)
+
+
+exec
+/bin/zsh -lc 'cat .agents/skills/write-tests/SKILL.md | head -95; cat apps/renderer-lab/src/routes/lodTiers.ts; git diff origin/main -- packages/photoreal-renderer/src/battle/crowdLayer.ts apps/renderer-lab/src/routes/lod.ts apps/renderer-lab/src/routes/lodTiers.ts web/tests/photorealCrowdLod.test.ts | head -160' in /Users/david/dev/game-battle-model-quality
+ succeeded in 0ms:
+---
+name: write-tests
+description: How to write and iterate on tests in this repo — one test at a time (tracer bullets), fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red or brittle test, reviewing a test diff, or verifying changes. Pairs with [debug](../debug/SKILL.md), [tweak-mechanics](../tweak-mechanics/SKILL.md), and [balance-unit](../balance-unit/SKILL.md) (the seed-set balance harness).
+---
+
+# Writing and iterating on tests in this repo
+
+A good test fails ONLY when real behavior breaks, and passes through every
+refactor, retune, or config change that preserves it. Most bad tests fail the
+opposite way: red on harmless changes, green while the real path is broken.
+Every rule below serves that one goal.
+
+## The loop: bottom-up buckets, cargo first, browser last
+
+Go BOTTOM-UP, and NEVER reach for the whole suite while iterating — it is 10+
+minutes (`scripts/danger-run-all-tests-super-slow`, named to scare you off it;
+run it only as a final last check before a push that could move everything).
+Each layer must be green before the next is worth running. The focused runners in
+`scripts/` glob the test files, so new ones are picked up automatically:
+
+1. **Mechanics first — the inner loop.** `scripts/test-mechanics` (the
+   `mechanics_*` physics invariants, ~tens of sec), or ONE binary while
+   diagnosing: `cargo test -p sim --test mechanics_melee <name> -- --nocapture`.
+   Print diagnostics in the assert (`"got {x:.1}m"`) so a red test IS the trace.
+   Use `--no-fail-fast` and read EVERY failure before fixing one — they often
+   share a single root cause.
+2. **Then scenarios**, once mechanics is green: `scripts/test-scenarios` (the
+   `scenario_*` behavioral contracts).
+3. **Then army, once everything under it is good**: `scripts/test-army` — the
+   heavy full-deployment AI battles (scale-swept). The capstone, not a loop.
+4. **Balance is its own on-demand bucket**: `scripts/test-balance` (minutes).
+   Run when re-deriving the economy or before a balance-touching push, never in
+   the iteration loop.
+5. **Browser LAST, only when cargo is green**: `node scene.mjs` from `web/`
+   (or `bun run verify`). It covers web-only glue: the wasm boundary, zero-copy
+   views, UI plumbing, render health, and the shot baselines — NOT sim behavior.
+   If a behavior matters it gets a Rust test, never a browser check.
+   - **REBUILD THE WASM FIRST if you touched any Rust** (`bun run build:wasm`
+     from `web/`). The verify harness loads the prebuilt wasm, NOT your live
+     source — skip the rebuild and you're testing a stale binary. This once let
+     a boot-crashing regression (a new class panicking `class_specs`) pass a
+     green `verify` and ship: the sim source had the class, the wasm didn't.
+6. **Check the exit code, not just the output.** A python heredoc that
+   prints "ok" then a cargo grep that prints nothing looks like success and
+   is a compile error. `echo rc=$?` after every suite run.
+
+## One test at a time (tracer bullets, not a batch)
+
+Write ONE test, drive it red→green, learn from it, then write the next — never
+a batch of tests up front. In this sim you do not yet KNOW what the physics
+does until you instrument it (see "Validate, don't assume" below), so a batch
+written against *imagined* behavior pins what you GUESSED, not what emerges —
+those tests pass when the mechanism breaks and fail when it's fine. Each green
+cycle tells you what the next test should actually assert.
+
+- **Write the assert FIRST so the target is concrete**, watch it go red on the
+  un-fixed sim, then make the physics earn green — a test you never saw fail is
+  decoration (see "Prove a regression test is really red"). For a physics
+  change, tweak-mechanics says the same: extend the `mechanics_*` test first.
+- **Assert observable physical behavior through the public API** (`spawn_class`,
+  public state polls, measured quantities like cohesion/centroid/pressure),
+  never an internal field or the shape of a formula. A test that asserts "the
+  line holds" survives a rewrite of HOW the holding force is computed; one that
+  reaches into the force term breaks on every refactor and pins implementation,
+  not behavior. This is also why browser tests never decide sim correctness —
+  the Rust layer reads the behavior directly.
+- **Don't anticipate future mechanics.** Minimal scenario for THIS claim; the
+  next cycle gets its own. Speculative tests for behavior you haven't built yet
+  go `#[ignore]` with a rationale, not green-by-accident.
+- **Assert nothing the compiler already guarantees.** A test that re-asserts a
+  type's shape (field exists, wrong argument rejected) can only fail if
+  rustc/tsc failed first. Spend the budget on behavior: rules, arithmetic,
+  branching, ordering, edge cases.
+- **Actual values, not collection sizes.** On dedup/normalize/idempotency
+  paths (mostly web state), `length == 1` passes even when normalization is
+  broken — also assert the stored value equals the expected canonical form.
+- **If the only callers of a function are its tests**, delete the function and
+  the tests together; coverage of dead code is negative value.
+
+## Scale: 1v1 before armies
+
+Verify behavior at the smallest scale that can show it, then ladder up:
+- **Two units, one mechanic** (most tests): one attacker, one target;
+  morale OFF (`no_morale()`) unless morale IS the subject.
+- **A few units** only when the mechanic is interaction (envelopment,
+  queueing at a gate, rout contagion).
+- **Full armies** only for integration (`ai_brings_a_battle_to_a_verdict`).
+Small tests run in milliseconds, fail with readable geometry, and don't
+entangle five mechanics in one assert.
+
+## Control your variables
+
+Every comparison test isolates ONE variable; everything else is pinned:
+- Comparing stances? `set_charge_enabled(false)` on both arms — bursts are
+  a different mechanic and they dominate outcomes.
+import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
+import { assignCrowdLodLevels, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
+import { projectionFootprint, viewMatrix, projMatrix } from "@packages/renderer-core/src/camera3d";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
+import { crowdInstance } from "../labFixtures";
+import {
+  type LabContext,
+  animateSkinned,
+  createConfiguredShell,
+  publish,
+  reportTable,
+} from "../labShell";
+
+export async function route(ctx: LabContext) {
+  const appearances = await loadAppearanceCatalog(
+    new URL("/assets/soldiers/catalog.json", location.href).href,
+  );
+  const shell = await createConfiguredShell(ctx.canvas, {
+    x: 0,
+    y: 0,
+    zoom: 40,
+    pitch: 0.18,
+    yaw: 0,
+  });
+  const pipeline = await SkinnedCrowdPipeline.create(shell, appearances);
+
+  // Three soldiers side by side, explicitly L0/L1/L2, so detail reduction is
+  // directly reviewable.
+  const lineup = [0, 1, 2].map((lod) => ({
+    ...crowdInstance((lod - 1) * 2.6, 0, 0, "at_ease"),
+    lod,
+  }));
+  const triCounts = appearances[0].tiers.map((mesh) => mesh.indices.length / 3);
+
+  // The distance algorithm: a line of instances receding from the camera focus
+  // must coarsen monotonically (near = L0, far = coarser).
+  const probeCamera = {
+    target: [0, 0, 0] as const,
+    distance: 10,
+    pitch: 0.24,
+    yaw: -Math.PI / 2,
+    fovY: 0.85,
+    aspect: 1.6,
+    near: 1,
+  };
+  const probe = Array.from({ length: 16 }, (_, i) => ({
+    ...crowdInstance(0, 0, 0, "idle"),
+    y: i * 30,
+  }));
+  const probeLevels = new Uint8Array(probe.length);
+  assignCrowdLodLevels(
+    probe,
+    projectionFootprint(viewMatrix(probeCamera), projMatrix(probeCamera), 800, probeCamera.near),
+    undefined,
+    probeLevels,
+  );
+  const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
+  const tiersReached = new Set(probeLevels).size;
+
+  // Hysteresis: within the deadband around the L0/L1 boundary (size 18), an
+  // instance keeps its previous tier instead of flipping every frame.
+  const heldL0 = lodWithHysteresis(0, 17.5);
+  const heldL1 = lodWithHysteresis(1, 18.5);
+
+  animateSkinned(shell, pipeline, () => lineup, { phaseSpeed: 0.5, size: 1.4 });
+  ctx.status.innerHTML = reportTable({
+    route: "lod-tiers",
+    "L0 / L1 / L2 triangles": triCounts.join(" / "),
+    "tiers reduce geometry": triCounts[0] > triCounts[1] && triCounts[1] > triCounts[2],
+    "distance bins coarsen": monotonic,
+    "probe levels": probeLevels.join(""),
+    "hysteresis holds at boundary": heldL0 === 0 && heldL1 === 1,
+  });
+  publish("lod-tiers", true, {
+    route: "lod-tiers",
+    triCounts,
+    reduces: triCounts[0] > triCounts[1] && triCounts[1] > triCounts[2],
+    probeLevels,
+    monotonic,
+    tiersReached,
+    hysteresis: { heldL0, heldL1 },
+    meshVariants: pipeline.stats().meshVariants,
+  });
+}
+diff --git a/apps/renderer-lab/src/routes/lod.ts b/apps/renderer-lab/src/routes/lod.ts
+index fc54f9b2..828001bb 100644
+--- a/apps/renderer-lab/src/routes/lod.ts
++++ b/apps/renderer-lab/src/routes/lod.ts
+@@ -1,6 +1,19 @@
+ import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
+-import { assignCrowdLods, countLods } from "@packages/crowd-runtime/src/lod";
+-import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, publish, reportTable } from "../labShell";
++import { assignCrowdLodLevels, countLods } from "@packages/crowd-runtime/src/lod";
++import {
++  chartCamera3d,
++  projectionFootprint,
++  viewMatrix,
++  projMatrix,
++} from "@packages/renderer-core/src/camera3d";
++import {
++  type LabContext,
++  animateSkinned,
++  createConfiguredShell,
++  createSkinnedPipeline,
++  publish,
++  reportTable,
++} from "../labShell";
+ 
+ export async function route(ctx: LabContext) {
+   const zoom = Number(ctx.params.get("zoom") ?? 5);
+@@ -9,13 +22,21 @@ export async function route(ctx: LabContext) {
+     y: -10,
+     faction: 0,
+     columns: 30,
+-    frame: 1,
+-  }).concat(generatedFormation(900, { x: 16, y: 4, faction: 1, columns: 30, frame: 1 }));
+-  const lods = assignCrowdLods(instances, zoom);
+-  const counts = countLods(lods.map((a) => a.level));
++    clip: "march",
++  }).concat(generatedFormation(900, { x: 16, y: 4, faction: 1, columns: 30, clip: "march" }));
+   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 });
+-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+-  const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i].level }));
++  const height = shell.stats().height;
++  const camera = chartCamera3d({ x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 }, height);
++  const lods = new Uint8Array(instances.length);
++  assignCrowdLodLevels(
++    instances,
++    projectionFootprint(viewMatrix(camera), projMatrix(camera), height, camera.near),
++    undefined,
++    lods,
++  );
++  const counts = countLods(lods);
++  const pipeline = await createSkinnedPipeline(shell);
++  const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i] }));
+   animateSkinned(shell, pipeline, () => renderInstances);
+   ctx.status.innerHTML = reportTable({
+     route: "lod",
+diff --git a/apps/renderer-lab/src/routes/lodTiers.ts b/apps/renderer-lab/src/routes/lodTiers.ts
+index 162d49f0..4010f0f9 100644
+--- a/apps/renderer-lab/src/routes/lodTiers.ts
++++ b/apps/renderer-lab/src/routes/lodTiers.ts
+@@ -1,13 +1,20 @@
+ import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
+ import { assignCrowdLodLevels, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
+-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
+-import { createPlaceholderSoldierMeshTiers } from "@packages/soldier-assets/src/soldierMesh";
++import { projectionFootprint, viewMatrix, projMatrix } from "@packages/renderer-core/src/camera3d";
++import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
+ import { crowdInstance } from "../labFixtures";
+-import { type LabContext, animateSkinned, createConfiguredShell, publish, reportTable } from "../labShell";
++import {
++  type LabContext,
++  animateSkinned,
++  createConfiguredShell,
++  publish,
++  reportTable,
++} from "../labShell";
+ 
+ export async function route(ctx: LabContext) {
+-  const vat = await loadPlaceholderVat();
+-  const tiers = createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]);
++  const appearances = await loadAppearanceCatalog(
++    new URL("/assets/soldiers/catalog.json", location.href).href,
++  );
+   const shell = await createConfiguredShell(ctx.canvas, {
+     x: 0,
+     y: 0,
+@@ -15,7 +22,7 @@ export async function route(ctx: LabContext) {
+     pitch: 0.18,
+     yaw: 0,
+   });
+-  const pipeline = new SkinnedCrowdPipeline(shell, tiers, vat);
++  const pipeline = await SkinnedCrowdPipeline.create(shell, appearances);
+ 
+   // Three soldiers side by side, explicitly L0/L1/L2, so detail reduction is
+   // directly reviewable.
+@@ -23,17 +30,30 @@ export async function route(ctx: LabContext) {
+     ...crowdInstance((lod - 1) * 2.6, 0, 0, "at_ease"),
+     lod,
+   }));
+-  const triCounts = [0, 1, 2].map((lod) => tiers[0][lod].indices.length / 3);
++  const triCounts = appearances[0].tiers.map((mesh) => mesh.indices.length / 3);
+ 
+   // The distance algorithm: a line of instances receding from the camera focus
+   // must coarsen monotonically (near = L0, far = coarser).
+-  const probeCamera = { x: 0, y: 0, zoom: 20 };
++  const probeCamera = {
++    target: [0, 0, 0] as const,
++    distance: 10,
++    pitch: 0.24,
++    yaw: -Math.PI / 2,
++    fovY: 0.85,
++    aspect: 1.6,
++    near: 1,
++  };
+   const probe = Array.from({ length: 16 }, (_, i) => ({
+     ...crowdInstance(0, 0, 0, "idle"),
+     y: i * 30,
+   }));
+   const probeLevels = new Uint8Array(probe.length);
+-  assignCrowdLodLevels(probe, probeCamera, undefined, probeLevels);
++  assignCrowdLodLevels(
++    probe,
++    projectionFootprint(viewMatrix(probeCamera), projMatrix(probeCamera), 800, probeCamera.near),
++    undefined,
++    probeLevels,
++  );
+   const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
+   const tiersReached = new Set(probeLevels).size;
+ 
+diff --git a/packages/photoreal-renderer/src/battle/crowdLayer.ts b/packages/photoreal-renderer/src/battle/crowdLayer.ts
+index 73198c84..b50e697d 100644
+--- a/packages/photoreal-renderer/src/battle/crowdLayer.ts
++++ b/packages/photoreal-renderer/src/battle/crowdLayer.ts
+@@ -1,33 +1,60 @@
+-// crowdLayer — the VAT crowd on the photoreal substrate: per-class meshes,
+-// shared VAT bake, corpse roll/desaturation, and faction accents. Soldiers use
++// crowdLayer — the skinned crowd on the photoreal substrate: per-class meshes,
++// shared computed joint palettes, corpse desaturation, and faction accents. Soldiers use
+ // a standard-material response with a NEUTRAL albedo; the sun + IBL light the
+ // skinned normals. The layer consumes the SAME buildCrowdInstances output and
+-// casts/receives REAL sun shadows; the shadow pass re-skins the same VAT
++// casts/receives REAL sun shadows; the shadow pass re-skins the same palette
+ // positionNode per cascade.
+-import * as THREE from 'three/webgpu';
++import * as THREE from "three/webgpu";
+ import {
+-  abs, attribute, clamp, dot, float, floor, fract, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
+-} from 'three/tsl';
+-import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
+-import type { LodCamera, LodCounts } from '../../../crowd-runtime/src/lod';
++  attribute,
++  clamp,
++  dot,
++  float,
++  uint,
++  mix,
++  normalize,
++  transformNormalToView,
++  varying,
++  vec3,
++  vec4,
++} from "three/tsl";
+
+2026-09-08T08:16:23.645195Z  WARN codex_analytics::reducer: dropping turn tool count update: missing turn state thread_id=01a08015-c7dc-7c53-8424-ab9304f6a86a turn_id=01a08015-c876-7012-aaf7-c028a50d25cf item_id="exec-3ce5d694-0d77-4e20-a1d6-45b82afb0706"
+codex
+No actionable merge defects found in the six scoped files against HEAD and origin/main. All 13 focused numerical tests passed; browser rendering and GPU behavior were not verified.
+No actionable merge defects found in the six scoped files against HEAD and origin/main. All 13 focused numerical tests passed; browser rendering and GPU behavior were not verified.

@@ -202,7 +202,9 @@ async function measureCampaign(ctx) {
     "perf campaign measures the normal raw-WebGPU campaign route",
     stats.renderer === "renderer-campaign" &&
       stats.cityEntities > 20 &&
-      stats.lineSegments > 1000 &&
+      // Roads are triangle meshes; line segments now describe only sea lanes.
+      stats.roadTriangles > 1000 &&
+      stats.lineSegments > 0 &&
       hasCampaignWorldDepthContract(stats) &&
       perfStatsOk(stats.performance),
     JSON.stringify({ frame, stats }),

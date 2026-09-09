@@ -46,18 +46,16 @@ import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../../web/src/shared/camera";
 import { pushPie } from "../../../../web/src/shared/overlays";
-import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../../web/src/battle/classData";
+import { BattleActionAdapter } from "../../../../web/src/battle/battleActionAdapter";
 import {
-  HEAVY_PHALANX_REST_CLASS,
-  HEAVY_PHALANX_SIDEARM_CLASS,
-  MEDIUM_PHALANX_REST_CLASS,
-  MEDIUM_PHALANX_SIDEARM_CLASS,
-  SHOCK_CAV_SIDEARM_CLASS,
-} from "@packages/soldier-assets/src/soldierMesh";
+  ACTION_TICK_SECONDS,
+  ActionTimeline,
+  type ActionObservation,
+} from "@packages/crowd-runtime/src/actionTimeline";
 import { createBattleGroundEdgeFixture } from "../battleGroundEdgeFixture";
 import type { LabContext } from "../labShell";
 
-const TICK_DT = 1 / 30;
+const TICK_DT = ACTION_TICK_SECONDS;
 
 export async function route(ctx: LabContext) {
   const params = ctx.params;
@@ -260,73 +258,12 @@ export async function route(ctx: LabContext) {
   }
   if (edgeFixture) addEdgeRuler(world.world.scene, edgeFixture.anchors.ruler);
 
-  // --- Pose computation: the scene.ts per-soldier frame/render-class port ---
-  const CLASS_SPECS = JSON.parse(game.class_specs()) as Array<{
-    weapons: Array<{ reach: number; arc: number; braced?: boolean; charge?: boolean }>;
-  }>;
-  const classBracedIdx = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => Boolean(w.braced)));
-  const classChargeIdx = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => Boolean(w.charge)));
-  const PHALANX_REST: Record<number, number> = {
-    [UNIT_CLASS_BY_KEY[UnitClass.HeavyPhalanx]]: HEAVY_PHALANX_REST_CLASS,
-    [UNIT_CLASS_BY_KEY[UnitClass.MediumPhalanx]]: MEDIUM_PHALANX_REST_CLASS,
-  };
-  const PHALANX_SIDEARM: Record<number, number> = {
-    [UNIT_CLASS_BY_KEY[UnitClass.HeavyPhalanx]]: HEAVY_PHALANX_SIDEARM_CLASS,
-    [UNIT_CLASS_BY_KEY[UnitClass.MediumPhalanx]]: MEDIUM_PHALANX_SIDEARM_CLASS,
-  };
+  const adapter = new BattleActionAdapter(game, wasm.memory);
+  let catalog = world.soldierAssets;
+  let timeline = new ActionTimeline(catalog);
+  let observations: readonly ActionObservation[] = [];
 
-  let frames = new Float32Array(0);
-  let aliveF32 = new Float32Array(0);
-  let renderClass = new Uint8Array(0);
-  let renderFacings = new Float32Array(0);
-
-  const computePose = (nowSeconds: number) => {
-    const n = game.soldier_count();
-    if (frames.length !== n) {
-      frames = new Float32Array(n);
-      aliveF32 = new Float32Array(n);
-      renderClass = new Uint8Array(n);
-      renderFacings = new Float32Array(n);
-    }
-    const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), n);
-    const fighting = new Uint8Array(wasm.memory.buffer, game.fighting_ptr(), n);
-    const switchCd = new Float32Array(wasm.memory.buffer, game.switch_cd_ptr(), n);
-    const sUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), n);
-    const curWeapon = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), n);
-    const rawFace = new Float32Array(wasm.memory.buffer, game.facings_ptr(), n);
-    const info = unitInfo();
-    const uc = game.unit_count();
-    const atEase = new Uint8Array(uc);
-    for (let u = 0; u < uc; u++) atEase[u] = info[u * STRIDE + UNIT_INFO.atEase] > 0.5 ? 1 : 0;
-    const t = nowSeconds;
-    for (let i = 0; i < n; i++) {
-      aliveF32[i] = a[i];
-      if (!a[i]) frames[i] = 4;
-      else if (switchCd[i] > 0) frames[i] = 5;
-      else if (fighting[i]) frames[i] = ((t * 2.5 + i * 0.7) | 0) % 2 ? 3 : i % 3 === 0 ? 10 : 0;
-      else frames[i] = atEase[sUnit[i]] ? 6 : 0; // standing armies: no run/march legs
-      renderFacings[i] = rawFace[i];
-      const cls = info[sUnit[i] * STRIDE + 13];
-      renderClass[i] = cls;
-      if (a[i]) {
-        const bi = classBracedIdx[cls] ?? -1;
-        if (bi >= 0) {
-          if (curWeapon[i] === bi) {
-            renderFacings[i] = info[sUnit[i] * STRIDE + 2];
-            if (frames[i] === 6) renderClass[i] = PHALANX_REST[cls] ?? renderClass[i];
-          } else {
-            frames[i] = 7;
-            renderClass[i] = PHALANX_SIDEARM[cls] ?? renderClass[i];
-          }
-        }
-        const ci = classChargeIdx[cls] ?? -1;
-        if (ci >= 0 && curWeapon[i] !== ci) renderClass[i] = SHOCK_CAV_SIDEARM_CLASS;
-      }
-    }
-  };
-
-  // Attack arcs (scene.ts drawTris port): each soldier mid-swing flashes his
-  // weapon's true envelope.
+  // This overlay shows engagement reach, not a fabricated strike or injury event.
   const attackArcs = (): Float32Array => {
     if (camera.zoom <= 2.5) return new Float32Array();
     const n = game.soldier_count();
@@ -340,13 +277,13 @@ export async function route(ctx: LabContext) {
     const tris: number[] = [];
     let budget = 900;
     for (let i = 0; i < n && budget > 0; i++) {
-      if (frames[i] !== 3) continue;
+      if (!observations[i]?.alive || !observations[i].fighting) continue;
       const x = pos[2 * i];
       const y = pos[2 * i + 1];
       if (x < wx0 || x > wx1 || y < wy0 || y > wy1) continue;
       const u = sUnit[i];
       const cls = info[u * STRIDE + UNIT_INFO.classId];
-      const w = CLASS_SPECS[cls]?.weapons[curWeapon[i]];
+      const w = adapter.classSpecs[cls]?.weapons[curWeapon[i]];
       if (!w) continue;
       const team = info[u * STRIDE + UNIT_INFO.team];
       const [r, g, b] = team === 0 ? [0.55, 0.85, 1.0] : [1.0, 0.72, 0.35];
@@ -568,12 +505,22 @@ export async function route(ctx: LabContext) {
     }
     last = now;
     camera.clampView(); // production scene.ts clamps every frame (panWorld)
-    computePose(seconds);
+    const replaced = catalog !== world.soldierAssets;
+    if (replaced) {
+      catalog = world.soldierAssets;
+      timeline = new ActionTimeline(catalog);
+    }
+    const adapted = adapter.read(simTick);
+    if (replaced || observations !== adapted.observations)
+      timeline.update(simTick, adapted.observations);
+    observations = adapted.observations;
+    const playback = timeline.sample(running ? simTick + accumulator / TICK_DT : simTick);
     const n = game.soldier_count();
     const positions = new Float32Array(wasm.memory.buffer, game.positions_ptr(), n * 2);
     const snapshot = cameraSnapshot();
     if (!isolationGrassVisible) world.setGrassVisible(false);
-    world.draw(positions, renderFacings, frames, aliveF32, n, snapshot, renderClass, simTick);
+    const alive = Float32Array.from(observations, (observation) => (observation.alive ? 1 : 0));
+    world.draw(positions, adapted.facings, playback, alive, n, snapshot);
     const arcs = attackArcs();
     world.drawTris(arcs.length > 0 ? arcs : fxArcs(), snapshot);
     if (debugBlocks) {

@@ -1,0 +1,5 @@
+- **[P2] New tests aren’t included in the standard test run** — [battleAnimGait.test.mjs:2](/Users/david/dev/game-mounted-family-delivery/web/tests/battleAnimGait.test.mjs:2). They use `node:test`, but Vitest includes only `tests/**/*.test.ts`, and no package script invokes this file. Convert them to the configured Vitest suite or wire an explicit Node test command into the standard runner.
+
+No correctness findings in the scene or diagnostic getter. Current ActionTimeline interval accounting and BattleCrowd frozen endpoints support same-tick motor-path/phase comparison. Asset lookup uses the default production catalog without requiring optional assets.
+
+Both tests pass when invoked directly. Review verdict: coverage wiring needs correction. GPU gate remains pending integration; no files modified.

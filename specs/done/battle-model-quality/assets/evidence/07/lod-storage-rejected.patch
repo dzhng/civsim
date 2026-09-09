@@ -1,0 +1,471 @@
+diff --git a/packages/crowd-runtime/src/lod.ts b/packages/crowd-runtime/src/lod.ts
+index 8eb3ffa2..a8176f21 100644
+--- a/packages/crowd-runtime/src/lod.ts
++++ b/packages/crowd-runtime/src/lod.ts
+@@ -74,6 +74,7 @@ export function lodWithHysteresis(
+
+ /** Each audience uses the same thresholds, but only shadow demand has a mesh floor. */
+ export function assignLodForProjection(
++  assignment: LodAssignment,
+   pixels: number,
+   shadow: boolean,
+   prevLevel?: LodLevel,
+@@ -85,7 +86,9 @@ export function assignLodForProjection(
+       ? assignLodForScreenSize(screenSize, policy)
+       : lodWithHysteresis(prevLevel, screenSize, policy);
+   if (shadow && pixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
+-  return { level, screenSize };
++  assignment.level = level;
++  assignment.screenSize = screenSize;
++  return assignment;
+ }
+
+ export function assignCrowdLods(
+@@ -96,6 +99,7 @@ export function assignCrowdLods(
+ ): LodAssignment[] {
+   return instances.map((inst, i) => {
+     return assignLodForProjection(
++      { level: 0, screenSize: 0 },
+       instanceScreenSize(inst, projection),
+       false,
+       prevLevels?.[i] as LodLevel | undefined,
+diff --git a/packages/photoreal-renderer/src/battle/crowdLayer.ts b/packages/photoreal-renderer/src/battle/crowdLayer.ts
+index 0631391a..159e7435 100644
+--- a/packages/photoreal-renderer/src/battle/crowdLayer.ts
++++ b/packages/photoreal-renderer/src/battle/crowdLayer.ts
+@@ -30,7 +30,7 @@ import { decodeLocalSample, resolveLocalSample } from "../../../soldier-assets/s
+ import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose";
+ import { viewNormalNode } from "./battleTsl";
+ import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
+-import { planPhotorealCrowdLods, type CrowdProjectionView } from "./crowdLod";
++import { createCrowdLodPlan, planPhotorealCrowdLods, type CrowdProjectionView } from "./crowdLod";
+ import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
+ import { RENDER_ORDER } from "./terrainLayer";
+ import { weightedPaletteColumns } from "./skinNodes";
+@@ -137,6 +137,7 @@ export class PhotorealCrowd {
+   private instanceCount = 0;
+   private readonly materialIdentity = soldierMaterialIdentity();
+   private readonly previousLevels: number[] = [];
++  private readonly lodPlan = createCrowdLodPlan();
+   private readonly previousShadowLevels: number[] = [];
+   private assignedCounts = emptyLodCounts();
+   private visibleCounts = emptyLodCounts();
+@@ -317,6 +318,7 @@ export class PhotorealCrowd {
+     for (const group of this.groups) group.pending.length = 0;
+     const plan = scope
+       ? planPhotorealCrowdLods(
++          this.lodPlan,
+           instances,
+           scope.views,
+           this.assets,
+@@ -325,6 +327,7 @@ export class PhotorealCrowd {
+           this.previousShadowLevels,
+         )
+       : {
++          count: instances.length,
+           assignments: instances.map(() => ({ level: 0 as const, screenSize: 999 })),
+           shadowAssignments: [],
+           shadowCounts: emptyLodCounts(),
+@@ -333,17 +336,18 @@ export class PhotorealCrowd {
+           viewVisible: instances.length,
+           shadowOnly: 0,
+         };
+-    this.previousLevels.length = plan.assignments.length;
+-    this.previousShadowLevels.length = plan.shadowAssignments.length;
+-    for (let i = 0; i < plan.assignments.length; i++) {
++    this.previousLevels.length = plan.count;
++    this.previousShadowLevels.length = scope ? plan.count : 0;
++    for (let i = 0; i < plan.count; i++) {
+       this.previousLevels[i] = plan.assignments[i].level;
+     }
+-    for (let i = 0; i < plan.shadowAssignments.length; i++) {
++    for (let i = 0; i < this.previousShadowLevels.length; i++) {
+       this.previousShadowLevels[i] = plan.shadowAssignments[i].level;
+     }
+-    this.assignedCounts = plan.counts;
++    // Published stats must not alias scratch that a later rejected plan can overwrite.
++    this.assignedCounts = { ...plan.counts };
+     this.visibleCounts = emptyLodCounts();
+-    this.shadowCounts = plan.shadowCounts;
++    this.shadowCounts = { ...plan.shadowCounts };
+     this.culling = {
+       input: instances.length,
+       visible: 0,
+diff --git a/packages/photoreal-renderer/src/battle/crowdLod.ts b/packages/photoreal-renderer/src/battle/crowdLod.ts
+index ea4aa532..c173767a 100644
+--- a/packages/photoreal-renderer/src/battle/crowdLod.ts
++++ b/packages/photoreal-renderer/src/battle/crowdLod.ts
+@@ -20,8 +20,23 @@ export interface CrowdProjectionView {
+   shadow: boolean;
+ }
+
++/** Caller-owned scratch: only [0, count) is active; the next plan overwrites it. */
++export function createCrowdLodPlan() {
++  return {
++    count: 0,
++    assignments: [] as LodAssignment[],
++    counts: { l0: 0, l1: 0, l2: 0, l3: 0 } as LodCounts,
++    shadowAssignments: [] as LodAssignment[],
++    shadowCounts: { l0: 0, l1: 0, l2: 0, l3: 0 } as LodCounts,
++    visibility: new Uint8Array(0),
++    viewVisible: 0,
++    shadowOnly: 0,
++  };
++}
++
+ /** Bounds select contributing views; only those actual projections demand detail. */
+ export function planPhotorealCrowdLods(
++  plan: ReturnType<typeof createCrowdLodPlan>,
+   instances: CrowdInstance[],
+   views: readonly CrowdProjectionView[],
+   assets: Record<number, { manifest: Pick<AppearanceBundle["manifest"], "bounds"> }>,
+@@ -30,13 +45,20 @@ export function planPhotorealCrowdLods(
+   prevShadowLevels?: ArrayLike<number>,
+ ) {
+   const sphere = new THREE.Sphere();
+-  const visibility = new Uint8Array(instances.length);
+-  const shadowAssignments: LodAssignment[] = [];
+-  const shadowCounts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+-  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
++  while (plan.assignments.length < instances.length) {
++    plan.assignments.push({ level: 0, screenSize: 0 });
++    plan.shadowAssignments.push({ level: 0, screenSize: 0 });
++  }
++  if (plan.visibility.length < instances.length) plan.visibility = new Uint8Array(instances.length);
++  plan.count = instances.length;
++  const { assignments, shadowAssignments, visibility, counts, shadowCounts } = plan;
++  counts.l0 = counts.l1 = counts.l2 = counts.l3 = 0;
++  shadowCounts.l0 = shadowCounts.l1 = shadowCounts.l2 = shadowCounts.l3 = 0;
++  visibility.fill(0, 0, plan.count);
+   let viewVisible = 0,
+     shadowOnly = 0;
+-  const assignments = instances.map((inst, index) => {
++  for (let index = 0; index < instances.length; index++) {
++    const inst = instances[index];
+     const { center, radius } = assets[inst.classId].manifest.bounds;
+     const angle = inst.facing - Math.PI / 2;
+     const variant = inst.deathVariant ?? 0;
+@@ -75,29 +97,23 @@ export function planPhotorealCrowdLods(
+     if (visibility[index] & 1) viewVisible++;
+     else if (visibility[index] & 2) shadowOnly++;
+     const shadowAssignment = assignLodForProjection(
++      shadowAssignments[index],
+       shadowPixels,
+       true,
+       prevShadowLevels?.[index] as LodLevel | undefined,
+       policy,
+     );
+-    shadowAssignments.push(shadowAssignment);
+     if (visibility[index] & 2) shadowCounts[`l${shadowAssignment.level}` as keyof LodCounts]++;
+     const assignment = assignLodForProjection(
++      assignments[index],
+       viewPixels,
+       false,
+       prevLevels?.[index] as LodLevel | undefined,
+       policy,
+     );
+     counts[`l${assignment.level}` as keyof LodCounts]++;
+-    return assignment;
+-  });
+-  return {
+-    assignments,
+-    counts,
+-    shadowAssignments,
+-    shadowCounts,
+-    visibility,
+-    viewVisible,
+-    shadowOnly,
+-  };
++  }
++  plan.viewVisible = viewVisible;
++  plan.shadowOnly = shadowOnly;
++  return plan;
+ }
+diff --git a/web/tests/photorealCrowdLod.test.ts b/web/tests/photorealCrowdLod.test.ts
+index b5a3f414..1f924558 100644
+--- a/web/tests/photorealCrowdLod.test.ts
++++ b/web/tests/photorealCrowdLod.test.ts
+@@ -6,6 +6,7 @@ import * as THREE from "three/webgpu";
+ import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
+ import { assignLodForProjection, DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod";
+ import {
++  createCrowdLodPlan,
+   planPhotorealCrowdLods,
+   type CrowdProjectionView,
+ } from "@packages/photoreal-renderer/src/battle/crowdLod";
+@@ -65,6 +66,64 @@ function shadowView(extent = 1000, y = 0) {
+   return projectionView(camera, 1024, true);
+ }
+
++test("LOD result storage is reused while changed views overwrite visibility and counts", () => {
++  const instances = [body(0, 150), body(0, -100)];
++  const storage = createCrowdLodPlan();
++  const first = planPhotorealCrowdLods(storage, instances, [mainView(), shadowView()], assets);
++  const assignments = first.assignments.slice();
++  const shadowAssignments = first.shadowAssignments.slice();
++  const visibility = first.visibility;
++  const next = planPhotorealCrowdLods(storage, instances, [], assets);
++  assert.equal(next, first);
++  assert.equal(next.visibility, visibility);
++  next.assignments.forEach((assignment, i) => assert.equal(assignment, assignments[i]));
++  next.shadowAssignments.forEach((assignment, i) => assert.equal(assignment, shadowAssignments[i]));
++  assert.deepEqual(Array.from(next.visibility), [0, 0]);
++  assert.deepEqual(next.counts, { l0: 0, l1: 0, l2: 0, l3: 2 });
++  assert.deepEqual(next.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
++});
++
++test("LOD scratch retains capacity through empty frames and overwrites reactivated slots", () => {
++  const storage = createCrowdLodPlan();
++  const original = [body(0, 10), body(0, 150), body(0, 1000)];
++  planPhotorealCrowdLods(storage, original, [mainView(), shadowView()], assets);
++  const assignments = storage.assignments.slice();
++  const shadowAssignments = storage.shadowAssignments.slice();
++  const visibility = storage.visibility;
++  for (const count of [1, 0, 3]) {
++    const instances = original.slice(0, count).map((instance) => ({ ...instance, y: -100 }));
++    const plan = planPhotorealCrowdLods(
++      storage,
++      instances,
++      [mainView()],
++      assets,
++      [],
++      undefined,
++      [],
++    );
++    assert.equal(plan.count, count);
++    assert.equal(plan.visibility, visibility);
++    assert.deepEqual(Array.from(plan.visibility.slice(0, count)), Array(count).fill(0));
++    assert.deepEqual(plan.counts, { l0: 0, l1: 0, l2: 0, l3: count });
++    assert.deepEqual(plan.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
++    for (let i = 0; i < count; i++) {
++      assert.equal(plan.assignments[i], assignments[i]);
++      assert.equal(plan.shadowAssignments[i], shadowAssignments[i]);
++      assert.deepEqual(plan.assignments[i], { level: 3, screenSize: 2.25 });
++      assert.deepEqual(plan.shadowAssignments[i], { level: 3, screenSize: 2.25 });
++    }
++  }
++  const grown = planPhotorealCrowdLods(storage, [...original, body(0, 300)], [mainView()], assets);
++  assert.equal(grown.count, 4);
++  assert.deepEqual(
++    grown.assignments.map((a) => a.level),
++    [0, 1, 3, 2],
++  );
++  assert.deepEqual(grown.counts, { l0: 1, l1: 1, l2: 1, l3: 1 });
++  assert.equal(grown.assignments[2], assignments[2]);
++  assert.notEqual(grown.visibility, visibility);
++});
++
+ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+   // Captured on 5657d660 before changing arithmetic/storage. This is an exactness
+   // pin, not an art-quality or performance gate. Fixed inputs include culled,
+@@ -76,6 +135,7 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+   };
+   const policy = { l0Pixels: 18, l1Pixels: 9, l2Pixels: 4, minScreenPixels: 2.25 };
+   const rows: unknown[] = [];
++  const storage = createCrowdLodPlan();
+   let mainHistory: number[] = [];
+   let shadowHistory: number[] = [];
+   for (const [frame, count] of [24, 24, 12, 0, 24, 24].entries()) {
+@@ -94,6 +154,7 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+           ? [mainView()]
+           : [mainView(), shadowView(1000), shadowView(130.50966799187808, frame * 10)];
+     const plan = planPhotorealCrowdLods(
++      storage,
+       instances,
+       views,
+       fixtureAssets,
+@@ -101,9 +162,19 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+       policy,
+       shadowHistory,
+     );
+-    rows.push(plan);
+-    mainHistory = plan.assignments.map((a) => a.level);
+-    shadowHistory = plan.shadowAssignments.map((a) => a.level);
++    rows.push(
++      structuredClone({
++        assignments: plan.assignments.slice(0, plan.count),
++        counts: plan.counts,
++        shadowAssignments: plan.shadowAssignments.slice(0, plan.count),
++        shadowCounts: plan.shadowCounts,
++        visibility: plan.visibility.slice(0, plan.count),
++        viewVisible: plan.viewVisible,
++        shadowOnly: plan.shadowOnly,
++      }),
++    );
++    mainHistory = plan.assignments.slice(0, plan.count).map((a) => a.level);
++    shadowHistory = plan.shadowAssignments.slice(0, plan.count).map((a) => a.level);
+   }
+   const serialized = JSON.stringify(rows, (_key, value) =>
+     typeof value === "number" && !Number.isFinite(value) ? String(value) : value,
+@@ -116,30 +187,36 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+
+ test("production LOD follows projected depth and exits L0 for the visible 150m mounted body", () => {
+   const instances = [10, 150, 300, 1000].map((y) => ({ ...body(0, y), mounted: true }));
+-  const plan = planPhotorealCrowdLods(instances, [mainView()], assets);
++  const plan = planPhotorealCrowdLods(createCrowdLodPlan(), instances, [mainView()], assets);
+   assert.deepEqual(
+-    plan.assignments.map((a) => a.level),
++    plan.assignments.slice(0, plan.count).map((a) => a.level),
+     [0, 1, 2, 3],
+   );
+   assert.equal(plan.viewVisible, 4);
+   assert.equal(plan.shadowOnly, 0);
+   assert.ok(plan.assignments[1].screenSize < 16.5);
+   assert.equal(
+-    planPhotorealCrowdLods([instances[1]], [mainView()], assets, [0]).assignments[0].level,
++    planPhotorealCrowdLods(createCrowdLodPlan(), [instances[1]], [mainView()], assets, [0])
++      .assignments[0].level,
+     1,
+   );
+   assert.deepEqual(plan.counts, { l0: 1, l1: 1, l2: 1, l3: 1 });
+ });
+
+ test("unseen bodies make no view contribution while retaining the policy floor", () => {
+-  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView()], assets);
++  const plan = planPhotorealCrowdLods(createCrowdLodPlan(), [body(0, -100)], [mainView()], assets);
+   assert.equal(plan.visibility[0], 0);
+   assert.equal(plan.assignments[0].screenSize, DEFAULT_LOD_POLICY.minScreenPixels);
+   assert.equal(plan.assignments[0].level, 3);
+ });
+
+ test("a shadow caster does not replace the main view's distant impostor", () => {
+-  const plan = planPhotorealCrowdLods([body(0, 1000)], [mainView(), shadowView()], assets);
++  const plan = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [body(0, 1000)],
++    [mainView(), shadowView()],
++    assets,
++  );
+   assert.equal(plan.visibility[0], 3);
+   assert.equal(plan.assignments[0].level, 3);
+   assert.equal(plan.shadowAssignments[0].level, 2);
+@@ -150,8 +227,24 @@ test("isolated mounted oracle needs the same initial shadow history as productio
+   const instance = { ...body(0, 0), mounted: true };
+   // Production workbench terrain is 128m square, with the existing 40m shadow margin.
+   const views = [mainView(), shadowView(Math.hypot(128, 128) / 2 + 40)];
+-  const retained = planPhotorealCrowdLods([instance], views, assets, [], undefined, [2]);
+-  const fresh = planPhotorealCrowdLods([instance], views, assets, [], undefined, []);
++  const retained = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [instance],
++    views,
++    assets,
++    [],
++    undefined,
++    [2],
++  );
++  const fresh = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [instance],
++    views,
++    assets,
++    [],
++    undefined,
++    [],
++  );
+   assert.ok(Math.abs(fresh.shadowAssignments[0].screenSize - 10.239241433693344) < 1e-10);
+   assert.equal(retained.shadowAssignments[0].level, 2);
+   assert.equal(fresh.shadowAssignments[0].level, 1);
+@@ -160,8 +253,14 @@ test("isolated mounted oracle needs the same initial shadow history as productio
+
+ test("removing shadow views leaves the main representation and its hysteresis unchanged", () => {
+   const instance = body(0, 1000);
+-  const withShadow = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
++  const withShadow = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [instance],
++    [mainView(), shadowView()],
++    assets,
++  );
+   const withoutShadow = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
+     [instance],
+     [mainView()],
+     assets,
+@@ -176,6 +275,7 @@ test("removing shadow views leaves the main representation and its hysteresis un
+
+ test("production size uses each body's actual terrain elevation", () => {
+   const plan = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
+     [body(0, 150), { ...body(0, 150), elevation: 20 }],
+     [mainView()],
+     assets,
+@@ -185,11 +285,16 @@ test("production size uses each body's actual terrain elevation", () => {
+ });
+
+ test("unchanged hysteresis applies to measured pixels and shadow casters remain meshes", () => {
+-  assert.equal(assignLodForProjection(17.5, false, 0).level, 0);
+-  assert.equal(assignLodForProjection(18.5, false, 1).level, 1);
+-  assert.equal(assignLodForProjection(16.49, false, 0).level, 1);
+-  assert.equal(assignLodForProjection(19.51, false, 1).level, 0);
+-  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
++  assert.equal(assignLodForProjection({ level: 0, screenSize: 0 }, 17.5, false, 0).level, 0);
++  assert.equal(assignLodForProjection({ level: 0, screenSize: 0 }, 18.5, false, 1).level, 1);
++  assert.equal(assignLodForProjection({ level: 0, screenSize: 0 }, 16.49, false, 0).level, 1);
++  assert.equal(assignLodForProjection({ level: 0, screenSize: 0 }, 19.51, false, 1).level, 0);
++  const plan = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [body(0, -100)],
++    [mainView(), shadowView()],
++    assets,
++  );
+   assert.equal(plan.visibility[0], 2);
+   assert.equal(plan.viewVisible, 0);
+   assert.equal(plan.shadowOnly, 1);
+@@ -198,7 +303,12 @@ test("unchanged hysteresis applies to measured pixels and shadow casters remain
+ });
+
+ test("the production mesh selected for a shadow-only body really casts shadows", () => {
+-  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
++  const plan = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [body(0, -100)],
++    [mainView(), shadowView()],
++    assets,
++  );
+   const geometries = Array.from({ length: 3 }, () => new THREE.InstancedBufferGeometry());
+   const materials = Array.from({ length: 3 }, () => new THREE.MeshStandardNodeMaterial());
+   const meshes = geometries.map((geometry, lod) =>
+@@ -216,8 +326,18 @@ test("the production mesh selected for a shadow-only body really casts shadows",
+
+ test("a finer shadow map changes only the shadow audience", () => {
+   const instance = body(0, 150);
+-  const coarse = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
+-  const fine = planPhotorealCrowdLods([instance], [mainView(), shadowView(20, 150)], assets);
++  const coarse = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [instance],
++    [mainView(), shadowView()],
++    assets,
++  );
++  const fine = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [instance],
++    [mainView(), shadowView(20, 150)],
++    assets,
++  );
+   assert.equal(coarse.assignments[0].level, 1);
+   assert.equal(fine.assignments[0].level, 1);
+   assert.equal(coarse.shadowAssignments[0].level, 2);
+@@ -279,7 +399,7 @@ test("actual single and cascade cameras see shadow meshes but the main camera ca
+ test("near-plane bounds keep full detail and corpse roll still controls view admission", () => {
+   const view = mainView();
+   const near = { ...body(0, -3), elevation: 2.3 };
+-  const plan = planPhotorealCrowdLods([near], [view], assets);
++  const plan = planPhotorealCrowdLods(createCrowdLodPlan(), [near], [view], assets);
+   assert.equal(plan.visibility[0], 1);
+   assert.equal(plan.assignments[0].level, 0);
+   assert.equal(plan.assignments[0].screenSize, Infinity);
+@@ -305,6 +425,11 @@ test("near-plane bounds keep full detail and corpse roll still controls view adm
+     ...upright,
+     playback: { ...upright.playback!, base: { ...upright.playback!.base, weight: 1 } },
+   };
+-  const rolled = planPhotorealCrowdLods([upright, fallen], [halfspace], assets);
++  const rolled = planPhotorealCrowdLods(
++    createCrowdLodPlan(),
++    [upright, fallen],
++    [halfspace],
++    assets,
++  );
+   assert.notEqual(rolled.visibility[0], rolled.visibility[1]);
+ });

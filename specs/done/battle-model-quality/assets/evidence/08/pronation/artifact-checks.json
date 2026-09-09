@@ -1,0 +1,56 @@
+{
+  "priorCommit": "1448dc956b5d201d060d5584c5ccae1fe78f225f",
+  "sourceHashes": {
+    "packages/soldier-assets/bake/blender-human-anatomy.py": "0c2e8dfb27464127ff3019723775a401a3091bb8cbdb76ba01544898a037bc93",
+    "packages/soldier-assets/assets/source/human-anatomy/human-anatomy.blend": "c4c53849519c65460e1461094cfad967c9ff271ee5c84aadcd1f6ed96767cf6a",
+    "packages/soldier-assets/assets/source/human-anatomy/human-anatomy.glb": "08ff82eb22dc708db16fb6abe907f29e44c73b74358d43f201557b0eb2b84445"
+  },
+  "bonesEqual": true,
+  "originalBendEqual": true,
+  "changedMeshFields": [
+    "tangents"
+  ],
+  "originalSheets": {
+    "close": {
+      "prior": "9d3166e4845eb6eeb5f8a5e81a124794c795df78da8b10477fa46ee81efc2688",
+      "current": "9d3166e4845eb6eeb5f8a5e81a124794c795df78da8b10477fa46ee81efc2688",
+      "equal": true
+    },
+    "gameplay-pitch": {
+      "prior": "8f4bbfa3bc76efa94d25fb927471c8e2c1d94bd63954e65c3f59534b501a07fc",
+      "current": "8f4bbfa3bc76efa94d25fb927471c8e2c1d94bd63954e65c3f59534b501a07fc",
+      "equal": true
+    },
+    "head-detail": {
+      "prior": "0491af7da6bb31541d7b3671a2bed3d2c0c43bd856ccbe41419d08cd2a2131f8",
+      "current": "0491af7da6bb31541d7b3671a2bed3d2c0c43bd856ccbe41419d08cd2a2131f8",
+      "equal": true
+    },
+    "hand-detail": {
+      "prior": "f8ee95a4a1105990491aae8555cc6ffab6bce0837d38f86af04dda90e0d9fdd5",
+      "current": "f8ee95a4a1105990491aae8555cc6ffab6bce0837d38f86af04dda90e0d9fdd5",
+      "equal": true
+    }
+  },
+  "wristVersusForearm": {
+    "crop": {
+      "x": 130,
+      "y": 130,
+      "width": 320,
+      "height": 320
+    },
+    "referenceRow": 1,
+    "candidateRow": 2,
+    "changedPixels": 23308
+  },
+  "heavyExport": {
+    "clips": [
+      "bend",
+      "bend-pronation",
+      "pronation"
+    ],
+    "bonesEqual": true,
+    "bendEqual": true,
+    "foreignActionExcluded": true
+  }
+}

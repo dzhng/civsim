@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-06T06:30:51.934Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "normal",
+  "results": [
+    {
+      "id": "normal",
+      "current": "throwaway/raw-normal-final/reference/normal.png",
+      "candidate": "throwaway/raw-normal-final/candidate/normal.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.00913,
+      "grayscale": {
+        "mae": 0.86068,
+        "rmse": 4.58252,
+        "diffRatio16": 0.02322,
+        "diffRatio32": 0.00998,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.01485
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.72228,
+        "terrainLikeRatioCandidate": 0.69567,
+        "avgLuminanceCurrent": 116.71,
+        "avgLuminanceCandidate": 115.94781,
+        "avgLuminanceDelta": -0.76219,
+        "edgeEnergyCurrent": 0.05656,
+        "edgeEnergyCandidate": 0.0564,
+        "edgeEnergyRatio": 0.99709,
+        "edgeDiffRatio32": 0.00519
+      },
+      "artifacts": {
+        "sideBySide": "comparison/normal-side-by-side.png",
+        "currentGray": "comparison/normal-current-gray.png",
+        "candidateGray": "comparison/normal-candidate-gray.png",
+        "absDiff": "comparison/normal-absdiff.png",
+        "pixelmatch": "comparison/normal-pixelmatch.png",
+        "currentEdges": "comparison/normal-current-edges.png",
+        "candidateEdges": "comparison/normal-candidate-edges.png",
+        "edgeDiff": "comparison/normal-edge-diff.png"
+      },
+      "worldCrop": {
+        "label": "posed body and shield",
+        "bounds": {
+          "x": 470,
+          "y": 260,
+          "width": 255,
+          "height": 490
+        },
+        "parityDistance": 0.07562,
+        "grayscale": {
+          "mae": 7.05352,
+          "rmse": 13.11857,
+          "diffRatio16": 0.19026,
+          "diffRatio32": 0.08176,
+          "diffRatio64": 0,
+          "pixelmatchRatio": 0.12168
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 0.95325,
+          "terrainLikeRatioCandidate": 0.7352,
+          "avgLuminanceCurrent": 152.18865,
+          "avgLuminanceCandidate": 145.9423,
+          "avgLuminanceDelta": -6.24634,
+          "edgeEnergyCurrent": 0.04975,
+          "edgeEnergyCandidate": 0.0484,
+          "edgeEnergyRatio": 0.97286,
+          "edgeDiffRatio32": 0.04252
+        },
+        "artifacts": {
+          "sideBySide": "comparison/normal-world-crop-side-by-side.png",
+          "currentGray": "comparison/normal-world-crop-current-gray.png",
+          "candidateGray": "comparison/normal-world-crop-candidate-gray.png",
+          "absDiff": "comparison/normal-world-crop-absdiff.png",
+          "pixelmatch": "comparison/normal-world-crop-pixelmatch.png",
+          "currentEdges": "comparison/normal-world-crop-current-edges.png",
+          "candidateEdges": "comparison/normal-world-crop-candidate-edges.png",
+          "edgeDiff": "comparison/normal-world-crop-edge-diff.png"
+        }
+      }
+    }
+  ]
+}

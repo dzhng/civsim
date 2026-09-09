@@ -1,0 +1,19 @@
+**B is less wrong and merits a bounded actual-speed film. A needs source revision first. Neither is yet convincingly a coordinated armored sword effort.** Confidence: moderate overall, high that B has more readable lower-body participation.
+
+I opened the two full opposing 06 images first, then both finish details, then all 12 chronological strips—72 panels—and four additional full-size windup/cut images. No project history, code edits, or GPU work.
+
+**They are comparable for pose judgment.** Framing, cameras, equipment, environment, and caption times match visibly. The nonuniform samples support comparison of posture and sequence progression; they cannot establish smoothness, acceleration, foot sliding, or convincing weight at actual speed.
+
+| Aspect | Visible comparison |
+|---|---|
+| **Anticipation** | A mostly raises its sword over an almost unchanged base. B adds a modest stance adjustment and a higher, more folded sword-arm preparation by **0.300 s**. B is better, but neither clearly communicates substantial loading through pelvis and torso before release. **Moderate confidence.** |
+| **Body support / transfer** | B advances the forward foot and brings the body farther toward it through **0.300–0.500 s**. A rotates its upper body and bends its knees without an equally clear redistribution of support; it reads more like an arm cut accompanied by a dip. **High confidence in the difference.** |
+| **Receiving leg** | At **0.500 s**, B has a clearer forward support leg beneath the forward-shifted body, with the rear leg trailing. A’s narrower, similarly bent legs make the finish look less decisively supported. B still does not demonstrate a convincing catch-and-settle from these samples alone. **Moderate confidence.** |
+| **Arm / sword path** | Both show a readable high preparation into a low finish. A finishes with the sword hand pulled behind the hip and the arm nearly straight, producing a strained backward-reaching silhouette. B keeps the hand nearer the hip with a bent elbow, a more plausible finish. However, B’s **0.367 s** raised elbow and sharply folded arm look cramped beside the chest and shield; this remains a concrete concern. **Moderate–high confidence.** |
+| **Recovery** | Both retain a very similar low-finish configuration across **0.500, 0.600, and 0.733 s**, despite genuine pose differences. B reconnects stance and guard more clearly by **1.050 s**; A’s recovery reads predominantly as bringing the sword back up. Whether the finish feels like controlled braking or a dead interval requires film. **Moderate confidence.** |
+| **Shield / gear connection** | Neither shows an unequivocally detached sword, shield, or scabbard. The finish details expose a blocky shield hand and horizontal attachment geometry: connection is suggested, but the grip is not anatomically persuasive. A’s sword hand crowds the scabbard mouth; B separates these better. Sword/shield overlap during the cut is suspicious but does **not** prove penetration from these views. **Moderate confidence; low on collision claims.** |
+| **Silhouettes** | The front view hides much of both actions behind the shield. B’s wider stance helps the effort read, while the opposing view reveals its improvement most clearly. Both still have a crowded sword-arm/chest silhouette during release, and a relatively quiet shield compared with the sword action. **High confidence.** |
+
+For **B**, film one complete cycle at intended speed from the opposing and oblique cameras, with a short guard lead-in and tail. The bounded questions are whether the forward foot actually receives the body, whether the cramped release unfolds coherently, and whether the low finish brakes and recovers naturally.
+
+For **A**, revise the visible loading/transfer and backward-reaching finish first. Its deficiencies are already present in the poses; timing alone would not resolve them.

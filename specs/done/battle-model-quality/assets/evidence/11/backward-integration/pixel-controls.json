@@ -1,0 +1,442 @@
+{
+  "runSheet": {
+    "width": 2560,
+    "height": 16000,
+    "changed": [
+      {
+        "x": 1549,
+        "y": 4107,
+        "before": [
+          43,
+          60,
+          74,
+          255
+        ],
+        "after": [
+          43,
+          60,
+          75,
+          255
+        ]
+      },
+      {
+        "x": 1551,
+        "y": 11787,
+        "before": [
+          78,
+          86,
+          81,
+          255
+        ],
+        "after": [
+          78,
+          86,
+          80,
+          255
+        ]
+      }
+    ]
+  },
+  "backward": [
+    {
+      "name": "backward-side-00.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-01.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-02.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-03.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-04.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-05.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-06.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-07.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-08.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-09.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-10.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-11.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-12.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-13.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-14.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-15.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-16.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-17.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-18.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-19.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-20.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-21.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-22.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-23.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-24.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-25.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-26.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-27.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-28.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-29.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-30.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-31.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-32.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-33.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-34.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-35.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-36.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-37.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-38.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-side-39.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-00.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-01.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-02.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-03.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-04.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-05.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-06.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-07.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-08.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-09.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-10.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-11.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-12.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-13.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-14.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-15.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-16.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-17.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-18.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-19.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-20.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-21.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-22.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-23.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-24.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-25.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-26.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-27.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-28.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-29.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-30.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-31.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-32.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-33.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-34.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-35.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-36.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-37.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-38.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    },
+    {
+      "name": "backward-oblique-39.png",
+      "identicalPng": true,
+      "changedPixels": 0
+    }
+  ]
+}

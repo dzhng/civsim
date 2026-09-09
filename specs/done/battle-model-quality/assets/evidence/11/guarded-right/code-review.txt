@@ -1,0 +1,4 @@
+Independent Codex review, session 01a07d66-35e2-76c2-92bc-d9326909053a,
+tool 54019 terminal 0. Scoped uncommitted heavy-motion recipe addition.
+
+No actionable defects found in the scoped addition after reviewing action ownership, repeat-authoring, export, and bake consumers. Python parsing and diff checks passed; existing authoring functions are unchanged. Blender execution, exported clip/geometry equivalence, and visual quality were not verified; no edits or GPU work performed.

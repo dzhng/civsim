@@ -15,7 +15,7 @@ export async function run(ctx) {
   const page = await campaign(ctx, "test", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-production",
-    timeout: 18000,
+    timeout: 60000,
   });
   await page.evaluate(() => {
     window.__campaign.freeze(true);

@@ -1,7 +1,7 @@
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
-import { snapCheck } from "./snapshot.mjs";
+import { snapCheck, snapshotFilters, snapshotSelected } from "./snapshot.mjs";
 import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from "./renderer-probe-lib.mjs";
 
 const TARGET = process.env.VERIFY_URL ?? "http://localhost:5173";
@@ -71,16 +71,11 @@ function matchesName(scene, names) {
 
 function matchesSnap(scene, filters) {
   if (filters.length === 0) return true;
-  return (scene.meta.snapshots ?? []).some((snap) =>
-    filters.some((filter) => snap.includes(filter)),
-  );
+  return (scene.meta.snapshots ?? []).some((snap) => snapshotSelected(snap, filters));
 }
 
 function selectScenes(all, { full, names, includeNames }) {
-  const snapFilters = (process.env.SNAP ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const snapFilters = snapshotFilters();
   let selected = all;
 
   if (includeNames) {
@@ -139,7 +134,7 @@ function createReporter() {
   };
 }
 
-async function runSelected(selected) {
+export async function runSelected(selected) {
   const gpuArgs =
     process.env.VERIFY_GPU === "1"
       ? process.env.VERIFY_GPU_ADAPTER === "hardware"
@@ -199,6 +194,16 @@ async function runSelected(selected) {
           false,
           error instanceof Error ? (error.stack ?? error.message) : String(error),
         );
+      } finally {
+        // This browser belongs to the run; scenes may create contexts directly
+        // or through newPage. Close both paths before the next independent scene.
+        const closed = await Promise.allSettled(
+          browser.contexts().map((context) => context.close()),
+        );
+        for (const result of closed) {
+          if (result.status === "rejected")
+            reporter.check(scene.meta.name, "scene contexts closed", false, String(result.reason));
+        }
       }
     }
     reporter.check(

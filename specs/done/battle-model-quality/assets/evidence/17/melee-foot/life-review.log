@@ -1,0 +1,79 @@
+Reading additional input from stdin...
+2026-09-08T11:40:11.339343Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T11:40:11.339387Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+OpenAI Codex v0.153.4
+--------
+workdir: /Users/david/dev/game-pike-family-delivery
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a080d1-8aba-7b43-9ebc-9d58e097f6b4
+--------
+user
+Bounded read-only review. Check only the optional per-pose alive flag in /Users/david/dev/game-pike-family-delivery/web/scenes/models/_candidate-sheet.mjs lines128-142 and death row in blender-melee-foot.mjs. Does it preserve camera/default behavior while allowing false? Then use view_image on the four current files /Users/david/dev/game-pike-family-delivery/web/shots/diff/shared/soldiers/melee-foot/{light-spear,longsword,heavy-spear,medium-spear}/equipment-actions-actual.png (expand brace names); inspect all bottom fallen rows for concrete visible body/equipment failures. Concise verdict. No edits, broad repo exploration or commands beyond these exact files.
+2026-09-08T11:40:12.190184Z  WARN codex_skills::interface: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-08T11:40:12.190223Z  WARN codex_skills::interface: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+codex
+I’ll check the two code sections and inspect the fallen rows in all four images, keeping the review read-only and limited to those files.
+exec
+/bin/zsh -lc "sed -n '128,142p' /Users/david/dev/game-pike-family-delivery/web/scenes/models/_candidate-sheet.mjs" in /Users/david/dev/game-pike-family-delivery
+ succeeded in 0ms:
+        height: crop.height * camera.poses.length,
+      });
+      let tile = 0;
+      for (const [stance, phase, clip = "bend", alive = camera.alive ?? true] of camera.poses) {
+        for (const [view, yaw] of bearings) {
+          const soldierCount = camera.formation ? 16 : 1;
+          const pose = {
+            classId: classes[0],
+            clip,
+            phase,
+            alive,
+            formation: camera.formation ?? false,
+            // Detail landmarks are authored in Blender's -Y-facing source space.
+            target: [-camera.target[0], -camera.target[1], camera.target[2]],
+            yaw: yaw + Math.PI,
+
+exec
+/bin/zsh -lc "rg -n -C 8 'death|fallen|alive' /Users/david/dev/game-pike-family-delivery/web/scenes/models/blender-melee-foot.mjs" in /Users/david/dev/game-pike-family-delivery
+ succeeded in 0ms:
+16-        ["front-right", 0.65],
+17-      ],
+18-      poses: [
+19-        ["ordinary carry", 0, actions.atEase.clip],
+20-        ["ready", 0, actions.ready.clip],
+21-        ["run", 0.3, actions.run.clip],
+22-        ["effort preparation", 0.18, actions.melee.clip],
+23-        ["effort drive", 0.46, actions.melee.clip],
+24:        ["fallen hold", 1, actions.death.clip, false],
+25-      ],
+26-    },
+27-  ];
+28-};
+29-
+30-export const meta = {
+31-  name: "blender-melee-foot",
+32-  kind: "visual",
+
+codex
+Code: **yes**. An omitted/`undefined` pose flag inherits `camera.alive ?? true`; explicit `false` survives and reaches `pose.alive`. The death row supplies `false`. Camera transforms and other defaults are unchanged.
+
+Inspected all eight bottom fallen views:
+
+- **Light, medium, heavy spear:** the bent weapon arm keeps the spear suspended above the fallen torso; shields remain tilted beside/across the body.
+- **Longsword:** the raised, bent arm similarly holds the sword above/across the corpse.
+
+The visible issue is an unsettled, rigid equipment pose. No clear missing/detached body parts or equipment are visible at this resolution.
+tokens used
+16,191
+Code: **yes**. An omitted/`undefined` pose flag inherits `camera.alive ?? true`; explicit `false` survives and reaches `pose.alive`. The death row supplies `false`. Camera transforms and other defaults are unchanged.
+
+Inspected all eight bottom fallen views:
+
+- **Light, medium, heavy spear:** the bent weapon arm keeps the spear suspended above the fallen torso; shields remain tilted beside/across the body.
+- **Longsword:** the raised, bent arm similarly holds the sword above/across the corpse.
+
+The visible issue is an unsettled, rigid equipment pose. No clear missing/detached body parts or equipment are visible at this resolution.

@@ -1,0 +1,1 @@
+{"tick":0,"soldier":0,"unit":0,"channel":"KnockbackMomentum","source":"combat.rs/strike;separation/bodies.rs/apply_momentum;steer/routing.rs/prepare_soldier","x":0.10000001,"y":0,"pre":null,"post":null,"meta":"carried_momentum_displacement"}

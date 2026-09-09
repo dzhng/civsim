@@ -1,0 +1,54 @@
+00:01.577  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/skirmishers/skirmishers.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+Warning: Library file, loading empty scene
+Reduced mesh: 2 degenerate smooth faces use face normals
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:04:57 | INFO: Starting glTF 2.0 export
+22:04:57 | INFO: Extracting primitive: Sandal sole.L.002
+22:04:57 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:57 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:57 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:57 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:57 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:57 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:57 | INFO: Primitives created: 6
+22:04:57 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:05:05 | INFO: Finished glTF 2.0 export in 8.17656397819519 s
+00:11.997  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/skirmishers/skirmishers.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+22:05:07 | INFO: Starting glTF 2.0 export
+22:05:07 | INFO: Extracting primitive: Sandal sole.L.002
+22:05:07 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:07 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:07 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:07 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:07 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:07 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:07 | INFO: Primitives created: 6
+22:05:07 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:05:15 | INFO: Finished glTF 2.0 export in 8.414170980453491 s
+00:22.360  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/skirmishers/skirmishers.blend"
+
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+22:05:17 | INFO: Starting glTF 2.0 export
+22:05:17 | INFO: Extracting primitive: Sandal sole.L.002
+22:05:17 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:17 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:17 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:17 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:17 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:05:18 | INFO: Primitives created: 5
+22:05:18 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:05:26 | INFO: Finished glTF 2.0 export in 9.24523401260376 s
+
+{"source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/skirmishers/skirmishers.blend", "sourceSha256": "b985bb7f0e133fb8d74a2a570381baf7c282b50e12f1448c230a5b2013bb055e", "tiers": [{"name": "near", "targetTriangles": 8000, "sourceTriangles": 94612, "triangles": 7972, "omittedBelowMetres": 0, "retainedIslandTriangleFloor": 12, "glbSha256": "444bfb5d41240de13d3ef8c297302b618ad63a68297d41cfe6aa042082ffa0b3"}, {"name": "mid", "targetTriangles": 1000, "sourceTriangles": 94612, "triangles": 980, "omittedBelowMetres": 0.03, "retainedIslandTriangleFloor": 8, "glbSha256": "7cdb6f304556ca2a1611e7bf5ac2d377a756bda59ae2d11f4d07b1b3d36da70c"}, {"name": "far", "targetTriangles": 800, "sourceTriangles": 94612, "triangles": 786, "omittedBelowMetres": 0.15, "retainedIslandTriangleFloor": 4, "glbSha256": "fe234dd282e7a05d24def17b9a3ed2b0deed71fe856047af0b59fd9660348b1d"}]}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

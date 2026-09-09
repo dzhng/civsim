@@ -1,0 +1,125 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T10:33:39.539Z",
+  "target": "http://127.0.0.1:5197",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-reload-disposal",
+      "file": "models/battle-model-reload-disposal.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: pending palette storage is released once",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: no later GPU preparation starts after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "pending replacement geometry is released",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: pending palette storage is released once",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: no later GPU preparation starts after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "catalog completion never prepares GPU resources after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: no later GPU preparation starts after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

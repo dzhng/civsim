@@ -1,0 +1,25 @@
+{
+  "geometryDifferences": [
+    {
+      "mesh": 0,
+      "primitive": 0,
+      "field": "TANGENT"
+    },
+    {
+      "mesh": 0,
+      "primitive": 1,
+      "field": "TANGENT"
+    },
+    {
+      "mesh": 0,
+      "primitive": 7,
+      "field": "TANGENT"
+    }
+  ],
+  "oldAnimationCount": 12,
+  "candidateAnimationCount": 13,
+  "exactMaterials": 8,
+  "exactTextures": 24,
+  "exactImages": 3,
+  "tangentPinning": false
+}

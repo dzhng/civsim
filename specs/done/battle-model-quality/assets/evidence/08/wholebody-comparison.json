@@ -1,0 +1,18 @@
+{
+  "close": {
+    "width": 2560,
+    "height": 1280,
+    "captionExcluded": true,
+    "totalPixels": 2918400,
+    "changedPixels": 132180,
+    "meanAbsoluteChannelDelta": 0.15547971491228071
+  },
+  "gameplay-pitch": {
+    "width": 2560,
+    "height": 1280,
+    "captionExcluded": true,
+    "totalPixels": 2918400,
+    "changedPixels": 55678,
+    "meanAbsoluteChannelDelta": 0.06625491136695906
+  }
+}

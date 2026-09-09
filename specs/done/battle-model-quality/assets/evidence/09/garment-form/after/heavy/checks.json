@@ -1,0 +1,2911 @@
+[
+  {
+    "name": "heavy-kit candidate is manually inspectable for its declared classes",
+    "ok": true,
+    "detail": "{\"catalog\":\"http://127.0.0.1:5201/assets/soldiers/candidates/heavy-kit/catalog.json\",\"assets\":[{\"id\":0,\"name\":\"heavy-kit\",\"presentation\":null,\"bones\":26,\"triangles\":[107668,107668,107668],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":1.2000000476837158,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+  },
+  {
+    "name": "close/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/close",
+    "ok": false,
+    "detail": "126329 px differ (3.8553%) — see shots/diff/garment-form/heavy/close.png"
+  },
+  {
+    "name": "gameplay-pitch/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/gameplay-pitch",
+    "ok": false,
+    "detail": "60342 px differ (1.8415%) — see shots/diff/garment-form/heavy/gameplay-pitch.png"
+  },
+  {
+    "name": "head-detail/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "head-detail/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "head-detail/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "head-detail/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/head-detail",
+    "ok": false,
+    "detail": "403487 px differ (24.6269%) — see shots/diff/garment-form/heavy/head-detail.png"
+  },
+  {
+    "name": "hand-detail/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "hand-detail/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "hand-detail/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "hand-detail/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/hand-detail",
+    "ok": false,
+    "detail": "293144 px differ (17.8921%) — see shots/diff/garment-form/heavy/hand-detail.png"
+  },
+  {
+    "name": "formation/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/ready/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/ready/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/walk/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/walk/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/walk/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/walk/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/walk/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/walk/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/walk/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/walk/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/run/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/run/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/run/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/run/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/run/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/run/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation/run/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation/run/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/formation",
+    "ok": false,
+    "detail": "234472 px differ (4.7703%) — see shots/diff/garment-form/heavy/formation.png"
+  },
+  {
+    "name": "formation-gameplay/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/ready/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/ready/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/walk/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/walk/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/walk/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/walk/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/walk/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/walk/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/walk/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/walk/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/run/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/run/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/run/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/run/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/run/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/run/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "formation-gameplay/run/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "formation-gameplay/run/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/formation-gameplay",
+    "ok": false,
+    "detail": "192793 px differ (3.9224%) — see shots/diff/garment-form/heavy/formation-gameplay.png"
+  },
+  {
+    "name": "garment-poses/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/ready/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/ready/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk first contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk first contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk first contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk first contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk first contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk first contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk first contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk first contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk opposite contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk opposite contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk opposite contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk opposite contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk opposite contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk opposite contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/walk opposite contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/walk opposite contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run first contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run first contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run first contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run first contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run first contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run first contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run first contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run first contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run opposite contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run opposite contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run opposite contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run opposite contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run opposite contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run opposite contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/run opposite contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/run opposite contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/deep bend/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/deep bend/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/deep bend/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/deep bend/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/deep bend/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/deep bend/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "garment-poses/deep bend/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "garment-poses/deep bend/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/garment-poses",
+    "ok": false,
+    "detail": "1431778 px differ (14.5648%) — see shots/diff/garment-form/heavy/garment-poses.png"
+  },
+  {
+    "name": "scabbard-poses/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/ready/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/ready/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk first contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk first contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk first contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk first contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk first contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk first contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk first contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk first contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/walk opposite contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run first contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run first contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run first contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run first contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run first contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run first contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run first contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run first contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/run opposite contact/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/deep bend/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/deep bend/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/deep bend/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/deep bend/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/deep bend/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/deep bend/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "scabbard-poses/deep bend/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "scabbard-poses/deep bend/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/scabbard-poses",
+    "ok": false,
+    "detail": "1857963 px differ (18.9002%) — see shots/diff/garment-form/heavy/scabbard-poses.png"
+  },
+  {
+    "name": "ready/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready/ready/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/ready",
+    "ok": false,
+    "detail": "64179 px differ (3.9172%) — see shots/diff/garment-form/heavy/ready.png"
+  },
+  {
+    "name": "ready-feet/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready-feet/ready/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready-feet/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready-feet/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/ready-feet",
+    "ok": false,
+    "detail": "15418 px differ (0.9410%) — see shots/diff/garment-form/heavy/ready-feet.png"
+  },
+  {
+    "name": "walk-frames/walk frame 0/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 0/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 0/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 0/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 0/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 0/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 0/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 0/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 1/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.037037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 1/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 1/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.037037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 1/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 1/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.037037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 1/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 1/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.037037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 1/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 2/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.07407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 2/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 2/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.07407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 2/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 2/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.07407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 2/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 2/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.07407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 2/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 3/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.1111111111111111,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 3/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 3/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.1111111111111111,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 3/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 3/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.1111111111111111,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 3/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 3/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.1111111111111111,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 3/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 4/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.14814814814814814,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 4/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 4/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.14814814814814814,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 4/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 4/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.14814814814814814,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 4/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 4/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.14814814814814814,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 4/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 5/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.18518518518518517,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 5/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 5/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.18518518518518517,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 5/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 5/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.18518518518518517,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 5/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 5/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.18518518518518517,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 5/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 6/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2222222222222222,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 6/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 6/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2222222222222222,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 6/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 6/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2222222222222222,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 6/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 6/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2222222222222222,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 6/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 7/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25925925925925924,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 7/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 7/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25925925925925924,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 7/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 7/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25925925925925924,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 7/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 7/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.25925925925925924,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 7/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 8/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2962962962962963,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 8/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 8/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2962962962962963,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 8/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 8/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2962962962962963,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 8/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 8/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.2962962962962963,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 8/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 9/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.3333333333333333,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 9/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 9/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.3333333333333333,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 9/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 9/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.3333333333333333,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 9/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 9/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.3333333333333333,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 9/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 10/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.37037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 10/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 10/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.37037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 10/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 10/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.37037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 10/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 10/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.37037037037037035,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 10/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 11/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4074074074074074,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 11/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 11/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4074074074074074,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 11/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 11/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4074074074074074,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 11/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 11/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4074074074074074,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 11/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 12/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4444444444444444,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 12/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 12/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4444444444444444,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 12/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 12/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4444444444444444,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 12/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 12/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4444444444444444,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 12/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 13/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.48148148148148145,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 13/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 13/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.48148148148148145,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 13/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 13/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.48148148148148145,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 13/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 13/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.48148148148148145,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 13/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 14/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5185185185185185,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 14/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 14/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5185185185185185,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 14/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 14/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5185185185185185,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 14/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 14/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5185185185185185,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 14/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 15/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5555555555555556,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 15/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 15/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5555555555555556,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 15/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 15/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5555555555555556,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 15/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 15/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5555555555555556,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 15/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 16/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5925925925925926,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 16/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 16/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5925925925925926,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 16/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 16/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5925925925925926,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 16/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 16/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.5925925925925926,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 16/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 17/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6296296296296297,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 17/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 17/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6296296296296297,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 17/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 17/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6296296296296297,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 17/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 17/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6296296296296297,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 17/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 18/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6666666666666666,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 18/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 18/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6666666666666666,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 18/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 18/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6666666666666666,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 18/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 18/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.6666666666666666,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 18/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 19/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7037037037037037,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 19/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 19/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7037037037037037,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 19/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 19/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7037037037037037,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 19/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 19/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7037037037037037,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 19/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 20/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 20/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 20/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 20/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 20/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 20/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 20/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7407407407407407,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 20/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 21/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7777777777777778,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 21/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 21/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7777777777777778,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 21/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 21/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7777777777777778,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 21/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 21/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7777777777777778,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 21/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 22/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8148148148148148,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 22/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 22/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8148148148148148,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 22/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 22/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8148148148148148,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 22/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 22/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8148148148148148,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 22/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 23/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8518518518518519,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 23/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 23/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8518518518518519,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 23/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 23/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8518518518518519,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 23/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 23/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8518518518518519,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 23/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 24/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8888888888888888,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 24/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 24/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8888888888888888,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 24/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 24/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8888888888888888,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 24/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 24/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.8888888888888888,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 24/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 25/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9259259259259259,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 25/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 25/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9259259259259259,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 25/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 25/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9259259259259259,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 25/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 25/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9259259259259259,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 25/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 26/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9629629629629629,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 26/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 26/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9629629629629629,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 26/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 26/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9629629629629629,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 26/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 26/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.9629629629629629,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 26/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 27/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":1,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 27/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 27/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":1,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 27/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 27/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":1,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 27/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "walk-frames/walk frame 27/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":1,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "walk-frames/walk frame 27/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/walk-frames",
+    "ok": false,
+    "detail": "1754623 px differ (3.8248%) — see shots/diff/garment-form/heavy/walk-frames.png"
+  },
+  {
+    "name": "run-frames/run frame 0/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 0/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 0/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 0/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 0/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 0/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 0/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 0/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 1/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.041666666666666664,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 1/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 1/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.041666666666666664,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 1/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 1/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.041666666666666664,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 1/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 1/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.041666666666666664,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 1/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 2/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.08333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 2/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 2/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.08333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 2/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 2/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.08333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 2/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 2/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.08333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 2/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 3/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.125,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 3/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 3/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.125,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 3/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 3/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.125,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 3/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 3/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.125,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 3/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 4/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.16666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 4/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 4/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.16666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 4/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 4/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.16666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 4/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 4/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.16666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 4/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 5/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.20833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 5/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 5/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.20833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 5/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 5/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.20833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 5/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 5/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.20833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 5/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 6/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 6/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 6/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 6/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 6/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 6/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 6/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.25,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 6/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 7/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.2916666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 7/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 7/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.2916666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 7/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 7/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.2916666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 7/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 7/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.2916666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 7/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 8/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.3333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 8/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 8/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.3333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 8/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 8/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.3333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 8/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 8/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.3333333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 8/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 9/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.375,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 9/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 9/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.375,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 9/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 9/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.375,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 9/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 9/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.375,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 9/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 10/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4166666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 10/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 10/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4166666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 10/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 10/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4166666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 10/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 10/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4166666666666667,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 10/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 11/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4583333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 11/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 11/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4583333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 11/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 11/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4583333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 11/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 11/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.4583333333333333,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 11/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 12/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 12/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 12/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 12/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 12/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 12/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 12/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 12/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 13/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5416666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 13/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 13/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5416666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 13/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 13/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5416666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 13/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 13/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5416666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 13/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 14/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 14/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 14/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 14/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 14/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 14/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 14/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.5833333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 14/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 15/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.625,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 15/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 15/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.625,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 15/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 15/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.625,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 15/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 15/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.625,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 15/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 16/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.6666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 16/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 16/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.6666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 16/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 16/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.6666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 16/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 16/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.6666666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 16/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 17/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7083333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 17/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 17/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7083333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 17/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 17/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7083333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 17/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 17/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7083333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 17/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 18/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.75,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 18/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 18/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.75,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 18/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 18/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.75,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 18/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 18/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.75,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 18/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 19/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7916666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 19/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 19/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7916666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 19/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 19/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7916666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 19/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 19/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.7916666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 19/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 20/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.8333333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 20/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 20/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.8333333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 20/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 20/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.8333333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 20/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 20/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.8333333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 20/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 21/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.875,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 21/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 21/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.875,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 21/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 21/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.875,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 21/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 21/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.875,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 21/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 22/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9166666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 22/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 22/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9166666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 22/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 22/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9166666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 22/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 22/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9166666666666666,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 22/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 23/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9583333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 23/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 23/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9583333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 23/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 23/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9583333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 23/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 23/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":0.9583333333333334,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 23/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 24/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 24/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 24/right side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 24/right side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 24/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 24/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "run-frames/run frame 24/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"run\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "run-frames/run frame 24/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot garment-form/heavy/run-frames",
+    "ok": false,
+    "detail": "1573457 px differ (3.8414%) — see shots/diff/garment-form/heavy/run-frames.png"
+  }
+]

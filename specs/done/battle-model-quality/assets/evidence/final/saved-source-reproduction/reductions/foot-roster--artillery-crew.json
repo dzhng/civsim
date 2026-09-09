@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/artillery-crew/artillery-crew.blend",
+  "sourceSha256": "fb6afe7a48051998fc9cfec3ce99e344f1452ec6f02ca1bb9428a77f445c227f",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 97420,
+      "triangles": 7968,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "08c3a03999b0e196c094e7f533b787e11d861aadecb88305cb1fbe318fa9c3e0"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 97420,
+      "triangles": 986,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "32d92c0c6dc8381be35249e95e15db14fe5e2a667860bcad31b78e502a525a2e"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 97420,
+      "triangles": 790,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "f598dad1080f94b43f81e13bda9a713b50a1aad4bbb7805bd78b003e47a6cce9"
+    }
+  ]
+}

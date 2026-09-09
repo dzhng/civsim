@@ -1,0 +1,428 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T08:07:03.419Z",
+  "target": "http://127.0.0.1:5191",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-action-replay",
+      "file": "models/battle-model-action-replay.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "each observed release enters its authored release phase",
+      "ok": true,
+      "detail": {
+        "first": {
+          "clip": "bow_release",
+          "phase": 0.7333333333333334,
+          "playback": {
+            "appearanceId": 4,
+            "base": {
+              "source": {
+                "kind": "frozen",
+                "locals": [
+                  0,
+                  0,
+                  0.95,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0.02,
+                  0.45,
+                  0,
+                  0,
+                  -0.09757178765657121,
+                  0.9952284894703834,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0,
+                  0.42,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  -0.33,
+                  0,
+                  0.14,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.33,
+                  0,
+                  0.14,
+                  0.2852676923049643,
+                  0,
+                  0,
+                  0.9584478826347316,
+                  1,
+                  1,
+                  1,
+                  -0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1
+                ]
+              },
+              "destination": {
+                "clip": "bow_release",
+                "phase": 0.7333333333333334
+              },
+              "weight": 0
+            }
+          },
+          "duration": 0.75
+        },
+        "repeat": {
+          "clip": "bow_release",
+          "phase": 0.7333333333333334,
+          "playback": {
+            "appearanceId": 4,
+            "base": {
+              "source": {
+                "kind": "frozen",
+                "locals": [
+                  0,
+                  0,
+                  0.95,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0.02,
+                  0.45,
+                  0,
+                  0,
+                  -0.03425629690781017,
+                  0.9994130808240222,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0,
+                  0.42,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  -0.33,
+                  0,
+                  0.14,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.33,
+                  0,
+                  0.14,
+                  -0.13516694208615626,
+                  0,
+                  0,
+                  0.9908228387391348,
+                  1,
+                  1,
+                  1,
+                  -0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1
+                ]
+              },
+              "destination": {
+                "clip": "bow_release",
+                "phase": 0.7333333333333334
+              },
+              "weight": 0
+            }
+          },
+          "duration": 0.75
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "health decrease selects a fresh hit",
+      "ok": true,
+      "detail": {
+        "clip": "hit_a",
+        "phase": 0,
+        "playback": {
+          "appearanceId": 4,
+          "base": {
+            "source": {
+              "kind": "frozen",
+              "locals": [
+                0,
+                0,
+                0.95,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0,
+                0.02,
+                0.45,
+                0,
+                0,
+                -0.07326762260964388,
+                0.9973123159156968,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0.42,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                -0.33,
+                0,
+                0.14,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0.33,
+                0,
+                0.14,
+                0.45097474357694023,
+                0,
+                0,
+                0.8925367110969235,
+                1,
+                1,
+                1,
+                -0.16,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0.16,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "destination": {
+              "clip": "hit_a",
+              "phase": 0
+            },
+            "weight": 0
+          }
+        },
+        "duration": 0.35
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "terminal death holds its final phase",
+      "ok": true,
+      "detail": {
+        "clip": "death_a",
+        "phase": 1,
+        "playback": {
+          "appearanceId": 4,
+          "base": {
+            "source": {
+              "kind": "clip",
+              "sample": {
+                "clip": "death_a",
+                "phase": 1
+              }
+            },
+            "destination": {
+              "clip": "death_a",
+              "phase": 1
+            },
+            "weight": 1
+          }
+        },
+        "duration": 0.9
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "backward seek replays intermediate observations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "frozen replay has deterministic pose state",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "explicit reset clears terminal history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "switching back to manual inspection clears replay tick",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "equipment replay uses the canonical sidearm appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "event picker seeks the real replay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "play and pause operate the replay clock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "mounted controller retains overlay while production reports the drawn base",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "footer reports submitted replay pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/controller",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "failed reload retains replay history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "successful reload resets replay against new bundles",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "valid manual-only reload exits replay successfully",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "manual-only appearance disables replay but keeps clip inspection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "source-generated applicability matrix is available",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

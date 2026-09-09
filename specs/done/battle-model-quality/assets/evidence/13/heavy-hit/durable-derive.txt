@@ -1,0 +1,1 @@
+Exact ready endpoints; both MP4s 30 frames / 30 fps / 1 second

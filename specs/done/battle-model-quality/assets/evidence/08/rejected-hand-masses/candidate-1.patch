@@ -1,0 +1,83 @@
+diff --git a/throwaway/mass-study-1/blender-human-anatomy.py b/throwaway/mass-study-1/candidate-source.py
+index 40fb3cf8..189ff870 100644
+--- a/throwaway/mass-study-1/blender-human-anatomy.py
++++ b/throwaway/mass-study-1/candidate-source.py
+@@ -147,11 +147,11 @@ def power_grip(body):
+             return delta.dot(along), delta.dot(across), delta.y
+         palm_sections = [
+             (point(.033, -.005, -.001), .041, .023),
+-            (point(.049, -.004, -.001), .042, .021),
+-            (point(.065, -.001, .001), .040, .021),
+-            (point(.079, 0, .003), .039, .019),
+-            (point(.092, -.002, .004), .034, .015),
+-            (point(.104, -.006, .003), .022, .012),
++            (point(.049, -.004, -.001), .041, .020),
++            (point(.065, -.001, .001), .037, .017),
++            (point(.079, 0, .003), .035, .015),
++            (point(.092, -.002, .004), .032, .013),
++            (point(.104, -.006, .003), .021, .011),
+             (point(.109, -.010, .002), .010, .007),
+         ]
+         palm = loft("grip-palm."+side, palm_sections, segments=24, across=across)
+@@ -164,9 +164,9 @@ def power_grip(body):
+                 angle = math.tau*j/24
+                 a, d = width*math.cos(angle), thickness*math.sin(angle)
+                 if d < 0:
+-                    pads = .009*math.exp(-((a+.025)/.014)**2)+.006*math.exp(-((a-.027)/.013)**2)
+-                    cup = .004*math.exp(-(a/.012)**2)
+-                    d += support*(cup-pads)*(-math.sin(angle))
++                    pads = .005*math.exp(-((a+.025)/.014)**2)+.0035*math.exp(-((a-.027)/.013)**2)
++                    cup = .0015*math.exp(-(a/.012)**2)
++                    d += support*(cup-pads)*math.sin(angle)**2
+                 palm.data.vertices[i*24+j].co = center+across*a+Vector((0, d, 0))
+         pieces = [palm]
+         def digit(name, sections, opposing=False):
+@@ -179,7 +179,7 @@ def power_grip(body):
+                     angle = math.tau*j/12
+                     # Fingers use rounded-rectangular cross-sections;
+                     # the thumb retains a softer oval cross-section.
+-                    exponent = 1 if opposing else .78
++                    exponent = 1 if opposing else .65
+                     c, s = math.cos(angle), math.sin(angle)
+                     obj.data.vertices[i*12+j].co = (
+                         center+width_axis*(width*math.copysign(abs(c)**exponent, c))
+@@ -191,25 +191,25 @@ def power_grip(body):
+                 (-.030, .108, 1, .086, -.053), (-.010, .111, 1.04, .080, -.048),
+                 (.010, .109, .96, .083, -.051), (.030, .114, .82, .098, -.060))):
+             digit(f"grip-finger-{index}.{side}", [
+-                (point(.086, a*.94, .003), .0110*scale, .0120),
+-                (point(knuckle, a, -.006 if index != 3 else -.010), .0100*scale, .0100),
+-                (point(.118, a, -.010), .0082*scale, .0080),
+-                (point(.125, a, -.021), .0092*scale, .0090),
+-                (point(.126, a, -.033), .0080*scale, .0080),
++                (point(.086, a*.94, .003), .0100*scale, .0110),
++                (point(knuckle, a, -.006 if index != 3 else -.010), .0093*scale, .0095),
++                (point(.118, a, -.010), .0074*scale, .0068),
++                (point(.125, a, (-.022, -.020, -.024, -.026)[index]), .0098*scale, .0090),
++                (point(.126, a, -.033), .0078*scale, .0072),
+                 (point(.120, a, -.047), .0070*scale, .0068),
+-                (point(.110, a, -.056), .0080*scale, .0088),
+-                (point(.099 if index != 3 else .107, a*.98, -.061), .0071*scale, .0070),
++                (point(.110, a, -.056), .0082*scale, .0088),
++                (point(.099 if index != 3 else .107, a*.98, -.061), .0066*scale, .0068),
+                 (point(tip_u+.004, a*.96, tip_d-.004), .0060*scale, .0060),
+                 (point(tip_u, a*.94, tip_d), .0025*scale, .0030),
+             ])
+         digit("grip-thumb."+side, [
+-            (point(.043, -.026, -.011), .016, .016),
+-            (point(.061, -.033, -.027), .013, .011),
+-            (point(.071, -.030, -.049), .010, .009),
+-            (point(.085, -.021, -.074), .010, .009),
+-            (point(.100, -.005, -.075), .009, .0075),
+-            (point(.111, .007, -.070), .0065, .0060),
+-            (point(.114, .011, -.066), .0035, .0035),
++            (point(.043, -.026, -.011), .014, .014),
++            (point(.061, -.033, -.027), .012, .010),
++            (point(.071, -.030, -.049), .009, .008),
++            (point(.085, -.021, -.073), .0085, .0080),
++            (point(.098, -.009, -.074), .0070, .0065),
++            (point(.105, -.005, -.071), .0050, .0045),
++            (point(.108, -.003, -.069), .0030, .0030),
+         ], opposing=True)
+         bpy.ops.object.select_all(action="DESELECT")
+         for obj in pieces:

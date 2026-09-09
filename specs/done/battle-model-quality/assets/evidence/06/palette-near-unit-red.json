@@ -1,0 +1,729 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T10:04:54.813Z",
+  "target": "http://127.0.0.1:5195",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "pose-palette",
+      "file": "system/pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "pose-palette",
+      "name": "trig operation residual diagnostic",
+      "ok": true,
+      "detail": {
+        "actual": [
+          0.6794812679290771,
+          0.8999856114387512,
+          0.9000000357627869,
+          0.15238483250141144
+        ],
+        "expected": [
+          0.6794406139429131,
+          0.899999977585686,
+          0.8999999950856703,
+          0.15240376595924635
+        ],
+        "residual": [
+          0.00004065398616404092,
+          -0.00001436614693473004,
+          4.067711656396966e-8,
+          -0.00001893345783490763
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "bounded Float32 sine approximation",
+      "ok": true,
+      "detail": {
+        "points": 1025,
+        "maxError": 1.505032258819483e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          3
+        ],
+        "names": [
+          "joint-0",
+          "joint-1",
+          "joint-2",
+          "joint-3"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 6
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.656612873077393e-10,
+        "geometryError": 1.1641532182693481e-10
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928977282585e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.25: GPU palette agrees with CPU composition",
+      "ok": false,
+      "detail": {
+        "matrixError": 0.00001576542854309082,
+        "geometryError": 0.000013470649719238281
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.75: GPU palette agrees with CPU composition",
+      "ok": false,
+      "detail": {
+        "matrixError": 0.000018194317817687988,
+        "geometryError": 0.00001043081283569336
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 8.940696716308594e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 1.4901161193847656e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.9802322387695312e-8,
+        "geometryError": 7.450580596923828e-9
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.470348358154297e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          8,
+          9,
+          10
+        ],
+        "names": [
+          "transformed-ancestor",
+          "deform-rig",
+          "root",
+          "horse-body",
+          "horse-back-leg",
+          "horse-front-leg",
+          "rider-pelvis",
+          "rider-legs",
+          "rider-spine",
+          "rider-arm",
+          "rider-head"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 6
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.4901161193847656e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 2.980232238769531e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.172325134277344e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.980232238769531e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 6.556510925292969e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 3.5762786865234375e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.086162567138672e-7,
+        "geometryError": 1.341104507446289e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539062e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "pose-palette: hostile-step/near-unit-0.25: GPU palette agrees with CPU composition",
+    "pose-palette: hostile-step/near-unit-0.75: GPU palette agrees with CPU composition"
+  ],
+  "pageErrors": []
+}

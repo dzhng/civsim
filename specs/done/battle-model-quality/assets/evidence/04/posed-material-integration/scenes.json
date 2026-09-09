@@ -1,0 +1,977 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T06:36:34.861Z",
+  "target": "http://localhost:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-image-properties",
+      "file": "models/battle-model-image-properties.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-normal-frame",
+      "file": "models/battle-model-normal-frame.mjs",
+      "kind": "flow",
+      "tier": "full"
+    },
+    {
+      "name": "soldier-materials",
+      "file": "system/soldier-materials.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/scalar: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/checker: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "snapshot battle/image-properties/checker-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/base: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/base-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/repeat: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/clamp: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/clamp-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/bottom-left-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/bottom-right-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/linear: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/linear-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/mr: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"orm\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/mr-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/ao: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"orm\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/ao-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/normal: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"normal\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: normal PNG transported",
+      "ok": true,
+      "detail": "[{\"channel\":\"normal\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/scalar: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/checker: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "snapshot battle/image-properties/checker-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/base: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/base-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/repeat: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/clamp: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/clamp-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/bottom-left-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/bottom-right-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/linear: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/linear-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/mr: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"orm\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/mr-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/ao: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"orm\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/ao-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far/normal: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":0,\"impostors\":1},\"images\":[{\"channel\":\"normal\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: normal PNG transported",
+      "ok": true,
+      "detail": "[{\"channel\":\"normal\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: base matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: clamp matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: linear matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: mr matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":0}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: ao matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":0}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: checker has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":7440,\"max\":158}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: base has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":7440,\"max\":150}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: mr has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":7440,\"max\":17}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: ao has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":7440,\"max\":35}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: normal has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":7440,\"max\":44}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: repeat uses wrapped first texel",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near: checker samples more than one UV texel",
+      "ok": true,
+      "detail": "[{\"changed\":5763,\"max\":154},{\"changed\":5943,\"max\":148},{\"changed\":5129,\"max\":151},{\"changed\":5485,\"max\":145}]"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: base matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":0}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: clamp matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":0}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: linear matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":0}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: mr matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":0}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: ao matches independent scalar oracle",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: checker has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":8243,\"max\":168}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: base has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":8243,\"max\":161}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: mr has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":8242,\"max\":23}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: ao has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":8243,\"max\":35}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: normal has a non-vacuous response",
+      "ok": true,
+      "detail": "{\"changed\":8243,\"max\":57}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: repeat uses wrapped first texel",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "far: checker samples more than one UV texel",
+      "ok": true,
+      "detail": "[{\"changed\":6379,\"max\":158},{\"changed\":6547,\"max\":158},{\"changed\":5865,\"max\":152},{\"changed\":6267,\"max\":155}]"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "rollback begins from admitted full catalog",
+      "ok": true,
+      "detail": "{\"ok\":true,\"error\":null}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "missing: reload error is explicit",
+      "ok": true,
+      "detail": "{\"result\":{\"ok\":false,\"error\":\"Error: appearance image http://localhost:5174/__soldier-image-probe.png: HTTP 404\"},\"retained\":true,\"live\":{\"textures\":102,\"nodes\":111,\"appearances\":20}}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "missing: last good pixels retained",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "missing: live resources and catalog retained",
+      "ok": true,
+      "detail": "{\"retainedIdentities\":true,\"before\":{\"textures\":102,\"nodes\":111,\"appearances\":20},\"after\":{\"textures\":102,\"nodes\":111,\"appearances\":20}}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "decode: reload error is explicit",
+      "ok": true,
+      "detail": "{\"result\":{\"ok\":false,\"error\":\"InvalidStateError: The source image could not be decoded.\"},\"retained\":true,\"live\":{\"textures\":102,\"nodes\":111,\"appearances\":20}}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "decode: last good pixels retained",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "decode: live resources and catalog retained",
+      "ok": true,
+      "detail": "{\"retainedIdentities\":true,\"before\":{\"textures\":102,\"nodes\":111,\"appearances\":20},\"after\":{\"textures\":102,\"nodes\":111,\"appearances\":20}}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "missing image has only its expected HTTP diagnostic",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "no unexpected GPU, Three or page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "bent-yawed/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999984151324,\"expected\":[0.34665009933119906,-0.33521907118454114,-0.8760490185759262],\"actual\":[0.34664787580038137,-0.3351668285547177,-0.8760698871891762]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985437662,\"expected\":[-0.8024510366259868,0.4070698046328183,-0.4363101052853102],\"actual\":[-0.8024455663195262,0.4070359345825979,-0.4363517629763925]},{\"pixel\":[324,156],\"texel\":2,\"dot\":0.9999999985804296,\"expected\":[-0.12239496190917398,-0.46324876930285974,-0.8777357523985437],\"actual\":[-0.12244779149481934,-0.46324361422158106,-0.8777311047473298]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999991735506,\"expected\":[-0.4557071828839214,0.26745661257354697,-0.8489981883718504],\"actual\":[-0.4556977540605105,0.2674955007371001,-0.8489909976139999]},{\"pixel\":[300,208],\"texel\":2,\"dot\":0.9999999993248244,\"expected\":[-0.3318478661894845,-0.4610085917969231,-0.8230115867926187],\"actual\":[-0.3318276330673191,-0.46103810226701464,-0.8230032139615072]}],\"minDot\":0.9999999984151324}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "bent-yawed/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999984151324,\"expected\":[0.34665009933119906,-0.33521907118454114,-0.8760490185759262],\"actual\":[0.34664787580038137,-0.3351668285547177,-0.8760698871891762]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985437662,\"expected\":[-0.8024510366259868,0.4070698046328183,-0.4363101052853102],\"actual\":[-0.8024455663195262,0.4070359345825979,-0.4363517629763925]},{\"pixel\":[324,156],\"texel\":2,\"dot\":0.9999999985804296,\"expected\":[-0.12239496190917398,-0.46324876930285974,-0.8777357523985437],\"actual\":[-0.12244779149481934,-0.46324361422158106,-0.8777311047473298]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999991735506,\"expected\":[-0.4557071828839214,0.26745661257354697,-0.8489981883718504],\"actual\":[-0.4556977540605105,0.2674955007371001,-0.8489909976139999]},{\"pixel\":[300,208],\"texel\":2,\"dot\":0.9999999993248244,\"expected\":[-0.3318478661894845,-0.4610085917969231,-0.8230115867926187],\"actual\":[-0.3318276330673191,-0.46103810226701464,-0.8230032139615072]}],\"minDot\":0.9999999984151324}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "bent-yawed/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[46,48],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[46,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[47,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[46,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[43,70],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]}],\"minDot\":0.9999879405229191}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "bent-yawed/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[46,48],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[46,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[47,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[46,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[43,70],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]}],\"minDot\":0.9999879405229191}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "mirrored-W/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999900801334,\"expected\":[0.39909022211992856,0.38373947344679493,-0.8327490685236716],\"actual\":[0.3990571301202137,0.38386915212802725,-0.8327051584713094]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999965000268,\"expected\":[0.41439811901497037,0.3263761973112023,-0.8495603432279155],\"actual\":[0.4143837758043775,0.326455240813971,-0.8495369692339467]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999976074394,\"expected\":[0.23853300731412688,0.6048529795679899,-0.7597729118160267],\"actual\":[0.23855697529677836,0.6048998685889005,-0.7597280556346349]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999991070374,\"expected\":[-0.6724467310393744,-0.5489138535854527,-0.49649670216067676],\"actual\":[-0.6724244246735982,-0.5489487558683263,-0.49648832466936965]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999991606741,\"expected\":[-0.3947644547009103,-0.21463950306699842,-0.8933593392514823],\"actual\":[-0.39476220818211455,-0.21459996166649933,-0.89336983128149]}],\"minDot\":0.9999999900801334}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "mirrored-W/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999900801334,\"expected\":[0.39909022211992856,0.38373947344679493,-0.8327490685236716],\"actual\":[0.3990571301202137,0.38386915212802725,-0.8327051584713094]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999965000268,\"expected\":[0.41439811901497037,0.3263761973112023,-0.8495603432279155],\"actual\":[0.4143837758043775,0.326455240813971,-0.8495369692339467]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999976074394,\"expected\":[0.23853300731412688,0.6048529795679899,-0.7597729118160267],\"actual\":[0.23855697529677836,0.6048998685889005,-0.7597280556346349]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999991070374,\"expected\":[-0.6724467310393744,-0.5489138535854527,-0.49649670216067676],\"actual\":[-0.6724244246735982,-0.5489487558683263,-0.49648832466936965]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999991606741,\"expected\":[-0.3947644547009103,-0.21463950306699842,-0.8933593392514823],\"actual\":[-0.39476220818211455,-0.21459996166649933,-0.89336983128149]}],\"minDot\":0.9999999900801334}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "mirrored-W/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[50,25],\"texel\":3,\"dot\":0.9999879172204604,\"expected\":[-0.49346207912640533,0.4787254567366373,-0.7261660371681833],\"actual\":[-0.4903695577884613,0.4825236448638459,-0.7257469455269226]},{\"pixel\":[46,48],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]},{\"pixel\":[46,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]},{\"pixel\":[47,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]},{\"pixel\":[46,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]}],\"minDot\":0.9999879172204604}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "mirrored-W/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[50,25],\"texel\":3,\"dot\":0.9999879172204604,\"expected\":[-0.49346207912640533,0.4787254567366373,-0.7261660371681833],\"actual\":[-0.4903695577884613,0.4825236448638459,-0.7257469455269226]},{\"pixel\":[46,48],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]},{\"pixel\":[46,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]},{\"pixel\":[47,61],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]},{\"pixel\":[46,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325045,-0.9253525721534791,-0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,-0.2480180414222829]}],\"minDot\":0.9999879172204604}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-two/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999956943815,\"expected\":[-0.6316888755265745,-0.22864442789394218,-0.7407367211965558],\"actual\":[-0.6316224938355735,-0.22869455834946034,-0.7407778508178253]},{\"pixel\":[324,156],\"texel\":2,\"dot\":0.999999997953317,\"expected\":[0.0967707921645836,-0.6733651950856492,-0.7329493351051659],\"actual\":[0.09670745599966675,-0.6733742446498705,-0.7329493806507302]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999982983407,\"expected\":[-0.6561439574949609,-0.20708045372044065,-0.7256671363164984],\"actual\":[-0.6561057477237247,-0.20711743546391426,-0.7256911297037765]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999984668776,\"expected\":[-0.7607025606457912,0.6231608858481387,-0.1816648688544364],\"actual\":[-0.760707383089219,0.623140100515923,-0.1817159663941432]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999986883636,\"expected\":[0.4711925741179043,-0.5716264218364493,-0.6717297015575544],\"actual\":[0.4711818470467614,-0.5715922440815824,-0.6717663087111343]}],\"minDot\":0.9999999956943815}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-two/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999956943815,\"expected\":[-0.6316888755265745,-0.22864442789394218,-0.7407367211965558],\"actual\":[-0.6316224938355735,-0.22869455834946034,-0.7407778508178253]},{\"pixel\":[324,156],\"texel\":2,\"dot\":0.999999997953317,\"expected\":[0.0967707921645836,-0.6733651950856492,-0.7329493351051659],\"actual\":[0.09670745599966675,-0.6733742446498705,-0.7329493806507302]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999982983407,\"expected\":[-0.6561439574949609,-0.20708045372044065,-0.7256671363164984],\"actual\":[-0.6561057477237247,-0.20711743546391426,-0.7256911297037765]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999984668776,\"expected\":[-0.7607025606457912,0.6231608858481387,-0.1816648688544364],\"actual\":[-0.760707383089219,0.623140100515923,-0.1817159663941432]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999986883636,\"expected\":[0.4711925741179043,-0.5716264218364493,-0.6717297015575544],\"actual\":[0.4711818470467614,-0.5715922440815824,-0.6717663087111343]}],\"minDot\":0.9999999956943815}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-two/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[59,47],\"texel\":2,\"dot\":0.999987431175183,\"expected\":[-0.41503739049345145,-0.7966724791339859,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[53,36],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345145,-0.796672479133986,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[58,39],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345145,-0.796672479133986,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[65,40],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345134,-0.796672479133986,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[56,41],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345145,-0.796672479133986,-0.4393824364752138],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]}],\"minDot\":0.999987431175183}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-two/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[59,47],\"texel\":2,\"dot\":0.999987431175183,\"expected\":[-0.41503739049345145,-0.7966724791339859,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[53,36],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345145,-0.796672479133986,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[58,39],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345145,-0.796672479133986,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[65,40],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345134,-0.796672479133986,-0.43938243647521374],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]},{\"pixel\":[56,41],\"texel\":2,\"dot\":0.9999874311751831,\"expected\":[-0.41503739049345145,-0.796672479133986,-0.4393824364752138],\"actual\":[-0.4118343800295356,-0.796213134723769,-0.44321223755559547]}],\"minDot\":0.999987431175183}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-zero/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974888003,\"expected\":[-0.1480209717022854,0.4878631920429079,-0.8602786163714731],\"actual\":[-0.14807039835137278,0.4879032484094943,-0.8602473930931316]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975391521,\"expected\":[0.05995061576175444,0.12932039767045683,-0.9897889464002624],\"actual\":[0.059962751663947385,0.12938881391407459,-0.989779269962145]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.999999998563307,\"expected\":[-0.6704749961210331,-0.04455185662620676,-0.7405932835555954],\"actual\":[-0.670454177554037,-0.04459857764206701,-0.7406093185159396]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991520075,\"expected\":[-0.12420447075654915,0.46852682757779046,-0.8746747174144095],\"actual\":[-0.12423283091610157,0.4685512867851511,-0.8746575875018467]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999992983888,\"expected\":[0.055629086042860286,0.09845912878985386,-0.9935850264290315],\"actual\":[0.05563664058141337,0.09849559591233081,-0.993580989054586]}],\"minDot\":0.9999999974888003}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-zero/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974888003,\"expected\":[-0.1480209717022854,0.4878631920429079,-0.8602786163714731],\"actual\":[-0.14807039835137278,0.4879032484094943,-0.8602473930931316]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975391521,\"expected\":[0.05995061576175444,0.12932039767045683,-0.9897889464002624],\"actual\":[0.059962751663947385,0.12938881391407459,-0.989779269962145]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.999999998563307,\"expected\":[-0.6704749961210331,-0.04455185662620676,-0.7405932835555954],\"actual\":[-0.670454177554037,-0.04459857764206701,-0.7406093185159396]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991520075,\"expected\":[-0.12420447075654915,0.46852682757779046,-0.8746747174144095],\"actual\":[-0.12423283091610157,0.4685512867851511,-0.8746575875018467]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999992983888,\"expected\":[0.055629086042860286,0.09845912878985386,-0.9935850264290315],\"actual\":[0.05563664058141337,0.09849559591233081,-0.993580989054586]}],\"minDot\":0.9999999974888003}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-zero/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[33,48],\"texel\":2,\"dot\":0.9999869674171993,\"expected\":[0.20315585562868602,0.9220937868387852,-0.32934897388193857],\"actual\":[0.199960027365481,0.9213844398213342,-0.3332667122758018]},{\"pixel\":[59,35],\"texel\":1,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266406e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[53,36],\"texel\":2,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[62,36],\"texel\":3,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[55,37],\"texel\":0,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266396e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]}],\"minDot\":0.9999869674171993}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "scale-zero/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[33,48],\"texel\":2,\"dot\":0.9999869674171993,\"expected\":[0.20315585562868602,0.9220937868387852,-0.32934897388193857],\"actual\":[0.199960027365481,0.9213844398213342,-0.3332667122758018]},{\"pixel\":[59,35],\"texel\":1,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266406e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[53,36],\"texel\":2,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[62,36],\"texel\":3,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[55,37],\"texel\":0,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266396e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]}],\"minDot\":0.9999869674171993}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "flat-map/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974735384,\"expected\":[-0.14309587129164464,0.48609209775152856,-0.8621125472482137],\"actual\":[-0.14314483962144461,0.4861330770674031,-0.8620813107072494]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975411185,\"expected\":[0.06339409346360068,0.1335966518718468,-0.9890061291632933],\"actual\":[0.06340634977841646,0.1336649688970044,-0.9889961126807021]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985615886,\"expected\":[-0.6681307889006415,-0.04011867568058519,-0.7429614665543849],\"actual\":[-0.6681099542316861,-0.04016536479206948,-0.7429776796968092]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991476334,\"expected\":[-0.11944301811985857,0.4663472155520319,-0.8765007929085323],\"actual\":[-0.11947106371136111,0.46637221466307877,-0.8764836691724102]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999992970683,\"expected\":[0.05902313810917816,0.1027988499915552,-0.9929494778729473],\"actual\":[0.05903088633356589,0.10283529038770998,-0.9929452439634066]}],\"minDot\":0.9999999974735384}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "flat-map/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974735384,\"expected\":[-0.14309587129164464,0.48609209775152856,-0.8621125472482137],\"actual\":[-0.14314483962144461,0.4861330770674031,-0.8620813107072494]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975411185,\"expected\":[0.06339409346360068,0.1335966518718468,-0.9890061291632933],\"actual\":[0.06340634977841646,0.1336649688970044,-0.9889961126807021]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985615886,\"expected\":[-0.6681307889006415,-0.04011867568058519,-0.7429614665543849],\"actual\":[-0.6681099542316861,-0.04016536479206948,-0.7429776796968092]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991476334,\"expected\":[-0.11944301811985857,0.4663472155520319,-0.8765007929085323],\"actual\":[-0.11947106371136111,0.46637221466307877,-0.8764836691724102]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999992970683,\"expected\":[0.05902313810917816,0.1027988499915552,-0.9929494778729473],\"actual\":[0.05903088633356589,0.10283529038770998,-0.9929452439634066]}],\"minDot\":0.9999999974735384}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "flat-map/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[50,25],\"texel\":3,\"dot\":0.999992209930288,\"expected\":[-0.3141669823537162,0.8759643842966407,-0.36604030466953613],\"actual\":[-0.3178573223686857,0.8750886776323075,-0.36494729605293547]},{\"pixel\":[55,25],\"texel\":3,\"dot\":0.9999932303540722,\"expected\":[-0.34399099529081384,0.8737928233902116,-0.3437387044698315],\"actual\":[-0.3415917287080315,0.8755742011711611,-0.3415917287080315]},{\"pixel\":[47,48],\"texel\":1,\"dot\":0.999993974921736,\"expected\":[0.21229203415350673,-0.9771984005346411,0.003921508320212722],\"actual\":[0.2156829576117004,-0.9764555717329713,0.003921508320212722]},{\"pixel\":[47,51],\"texel\":0,\"dot\":0.999993974921736,\"expected\":[0.21229203415350673,-0.9771984005346411,0.003921508320212722],\"actual\":[0.2156829576117004,-0.9764555717329713,0.003921508320212722]},{\"pixel\":[43,57],\"texel\":1,\"dot\":0.999993974921736,\"expected\":[0.21229203415350673,-0.9771984005346411,0.003921508320212722],\"actual\":[0.2156829576117004,-0.9764555717329713,0.003921508320212722]}],\"minDot\":0.999992209930288}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "flat-map/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[50,25],\"texel\":3,\"dot\":0.999992209930288,\"expected\":[-0.3141669823537162,0.8759643842966407,-0.36604030466953613],\"actual\":[-0.3178573223686857,0.8750886776323075,-0.36494729605293547]},{\"pixel\":[55,25],\"texel\":3,\"dot\":0.9999932303540722,\"expected\":[-0.34399099529081384,0.8737928233902116,-0.3437387044698315],\"actual\":[-0.3415917287080315,0.8755742011711611,-0.3415917287080315]},{\"pixel\":[47,48],\"texel\":1,\"dot\":0.999993974921736,\"expected\":[0.21229203415350673,-0.9771984005346411,0.003921508320212722],\"actual\":[0.2156829576117004,-0.9764555717329713,0.003921508320212722]},{\"pixel\":[47,51],\"texel\":0,\"dot\":0.999993974921736,\"expected\":[0.21229203415350673,-0.9771984005346411,0.003921508320212722],\"actual\":[0.2156829576117004,-0.9764555717329713,0.003921508320212722]},{\"pixel\":[43,57],\"texel\":1,\"dot\":0.999993974921736,\"expected\":[0.21229203415350673,-0.9771984005346411,0.003921508320212722],\"actual\":[0.2156829576117004,-0.9764555717329713,0.003921508320212722]}],\"minDot\":0.999992209930288}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "negative-Z-zero-scale/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974917446,\"expected\":[0.1480209717022854,-0.4878631920429079,0.8602786163714731],\"actual\":[0.14807034005354838,-0.4879032527155732,0.8602474006854015]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975309892,\"expected\":[-0.059950615761754485,-0.12932039767045686,0.9897889464002624],\"actual\":[-0.05996275073906056,-0.12938893112762753,0.9897792546954373]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985635923,\"expected\":[0.6704749961210332,0.044551856626206754,0.7405932835555955],\"actual\":[0.6704541807695035,0.04459857389106224,0.7406093158309428]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991513363,\"expected\":[0.1242044707565491,-0.4685268275777905,0.8746747174144095],\"actual\":[0.12423288312410649,-0.46855125888830657,0.8746575950306813]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999993001087,\"expected\":[-0.05562908604286027,-0.09845912878985388,0.9935850264290315],\"actual\":[-0.05563670032818301,-0.09849553655930574,0.9935809915927774]}],\"minDot\":0.9999999974917446}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "negative-Z-zero-scale/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974917446,\"expected\":[0.1480209717022854,-0.4878631920429079,0.8602786163714731],\"actual\":[0.14807034005354838,-0.4879032527155732,0.8602474006854015]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975309892,\"expected\":[-0.059950615761754485,-0.12932039767045686,0.9897889464002624],\"actual\":[-0.05996275073906056,-0.12938893112762753,0.9897792546954373]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985635923,\"expected\":[0.6704749961210332,0.044551856626206754,0.7405932835555955],\"actual\":[0.6704541807695035,0.04459857389106224,0.7406093158309428]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991513363,\"expected\":[0.1242044707565491,-0.4685268275777905,0.8746747174144095],\"actual\":[0.12423288312410649,-0.46855125888830657,0.8746575950306813]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999993001087,\"expected\":[-0.05562908604286027,-0.09845912878985388,0.9935850264290315],\"actual\":[-0.05563670032818301,-0.09849553655930574,0.9935809915927774]}],\"minDot\":0.9999999974917446}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "negative-Z-zero-scale/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[33,48],\"texel\":2,\"dot\":0.9999869674171988,\"expected\":[-0.20315585562868596,-0.922093786838785,0.32934897388193857],\"actual\":[-0.199960027365481,-0.9213844398213342,0.3332667122758017]},{\"pixel\":[41,26],\"texel\":3,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]},{\"pixel\":[45,27],\"texel\":0,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]},{\"pixel\":[41,30],\"texel\":1,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]},{\"pixel\":[37,32],\"texel\":2,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]}],\"minDot\":0.9999869674171988}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "negative-Z-zero-scale/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[33,48],\"texel\":2,\"dot\":0.9999869674171988,\"expected\":[-0.20315585562868596,-0.922093786838785,0.32934897388193857],\"actual\":[-0.199960027365481,-0.9213844398213342,0.3332667122758017]},{\"pixel\":[41,26],\"texel\":3,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]},{\"pixel\":[45,27],\"texel\":0,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]},{\"pixel\":[41,30],\"texel\":1,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]},{\"pixel\":[37,32],\"texel\":2,\"dot\":0.9999909000622306,\"expected\":[-0.32404300161226873,0.9460423527020929,0],\"actual\":[-0.32562543195272925,0.9454907120555152,0.003923197975334074]}],\"minDot\":0.9999869674171988}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "decoded-zero-linear/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":170,\"unstableFootprints\":7,\"texels\":[0],\"worst\":[{\"pixel\":[304,232],\"texel\":0,\"dot\":0.9999961439599067,\"expected\":[-0.7344787791628158,0.5059408125512048,-0.45228842252983487],\"actual\":[-0.7341030420389011,0.5080539892499627,-0.45052621197487513]},{\"pixel\":[300,236],\"texel\":0,\"dot\":0.9999979423931229,\"expected\":[0.14520142096299646,0.8602877791677048,-0.48869365083355154],\"actual\":[0.14527702471157464,0.8612775885383023,-0.4869245337550771]},{\"pixel\":[304,228],\"texel\":0,\"dot\":0.9999994912999275,\"expected\":[-0.7413815571724374,0.2604661163740301,-0.6184745660943562],\"actual\":[-0.7414668784543811,0.2613513464795587,-0.6179986584519724]},{\"pixel\":[300,228],\"texel\":0,\"dot\":0.9999999165861675,\"expected\":[0.08985494500385947,0.35200361521915907,-0.9316756644514202],\"actual\":[0.08990716201393831,0.35238084305110534,-0.9315280155041993]},{\"pixel\":[340,152],\"texel\":0,\"dot\":0.9999999251065996,\"expected\":[-0.5208873891872944,0.036457851252936824,-0.8528465001790551],\"actual\":[-0.5211706121358978,0.036649465278642525,-0.852665238965846]}],\"minDot\":0.9999961439599067}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "decoded-zero-linear/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":170,\"unstableFootprints\":7,\"texels\":[0],\"worst\":[{\"pixel\":[304,232],\"texel\":0,\"dot\":0.9999961439599067,\"expected\":[-0.7344787791628158,0.5059408125512048,-0.45228842252983487],\"actual\":[-0.7341030420389011,0.5080539892499627,-0.45052621197487513]},{\"pixel\":[300,236],\"texel\":0,\"dot\":0.9999979423931229,\"expected\":[0.14520142096299646,0.8602877791677048,-0.48869365083355154],\"actual\":[0.14527702471157464,0.8612775885383023,-0.4869245337550771]},{\"pixel\":[304,228],\"texel\":0,\"dot\":0.9999994912999275,\"expected\":[-0.7413815571724374,0.2604661163740301,-0.6184745660943562],\"actual\":[-0.7414668784543811,0.2613513464795587,-0.6179986584519724]},{\"pixel\":[300,228],\"texel\":0,\"dot\":0.9999999165861675,\"expected\":[0.08985494500385947,0.35200361521915907,-0.9316756644514202],\"actual\":[0.08990716201393831,0.35238084305110534,-0.9315280155041993]},{\"pixel\":[340,152],\"texel\":0,\"dot\":0.9999999251065996,\"expected\":[-0.5208873891872944,0.036457851252936824,-0.8528465001790551],\"actual\":[-0.5211706121358978,0.036649465278642525,-0.852665238965846]}],\"minDot\":0.9999961439599067}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "decoded-zero-linear/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":560,\"unstableFootprints\":73,\"texels\":[0],\"worst\":[{\"pixel\":[34,61],\"texel\":0,\"dot\":0.9999697074153002,\"expected\":[0.2743690123442925,0.8090400459004901,0.5197844256944897],\"actual\":[0.27837572437155195,0.8116024640128349,0.513622815389765]},{\"pixel\":[33,60],\"texel\":0,\"dot\":0.9999720342480337,\"expected\":[0.27673072549419137,0.8956920883780507,0.3480744006450702],\"actual\":[0.278375724371552,0.8978597307195131,0.3411082819764088]},{\"pixel\":[33,61],\"texel\":0,\"dot\":0.9999781112191843,\"expected\":[0.2711112944610231,0.7712677943985079,0.5758859742512656],\"actual\":[0.2714873756814923,0.7751161305688983,0.5705169488958897]},{\"pixel\":[34,53],\"texel\":0,\"dot\":0.9999832587133707,\"expected\":[0.21083440911636558,0.9335156796097571,-0.2899953928173453],\"actual\":[0.20747016976764687,0.9355730297069361,-0.2857607998686458]},{\"pixel\":[40,12],\"texel\":0,\"dot\":0.9999846216542477,\"expected\":[0,0,1],\"actual\":[0.003921508320212722,0.003921508320212722,0.9999846216542477]}],\"minDot\":0.9999697074153002}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "decoded-zero-linear/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":560,\"unstableFootprints\":73,\"texels\":[0],\"worst\":[{\"pixel\":[34,61],\"texel\":0,\"dot\":0.9999697074153002,\"expected\":[0.2743690123442925,0.8090400459004901,0.5197844256944897],\"actual\":[0.27837572437155195,0.8116024640128349,0.513622815389765]},{\"pixel\":[33,60],\"texel\":0,\"dot\":0.9999720342480337,\"expected\":[0.27673072549419137,0.8956920883780507,0.3480744006450702],\"actual\":[0.278375724371552,0.8978597307195131,0.3411082819764088]},{\"pixel\":[33,61],\"texel\":0,\"dot\":0.9999781112191843,\"expected\":[0.2711112944610231,0.7712677943985079,0.5758859742512656],\"actual\":[0.2714873756814923,0.7751161305688983,0.5705169488958897]},{\"pixel\":[34,53],\"texel\":0,\"dot\":0.9999832587133707,\"expected\":[0.21083440911636558,0.9335156796097571,-0.2899953928173453],\"actual\":[0.20747016976764687,0.9355730297069361,-0.2857607998686458]},{\"pixel\":[40,12],\"texel\":0,\"dot\":0.9999846216542477,\"expected\":[0,0,1],\"actual\":[0.003921508320212722,0.003921508320212722,0.9999846216542477]}],\"minDot\":0.9999697074153002}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "large-finite-scale/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999848629502,\"expected\":[-0.6877353355557225,-0.6758821665667323,-0.26495925185793734],\"actual\":[-0.6876118629812008,-0.6759776326202235,-0.2650361599568641]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999943104713,\"expected\":[-0.7376593561707303,-0.6331727751974139,-0.2344161065340627],\"actual\":[-0.7375883796059858,-0.6332391873275572,-0.234460047562375]},{\"pixel\":[324,156],\"texel\":2,\"dot\":0.999999997455669,\"expected\":[0.4750373045728869,-0.849987284789631,-0.22773048755069536],\"actual\":[0.4749745311435914,-0.8500200237713934,-0.22773922357074425]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.999999998210057,\"expected\":[0.552790649885233,-0.829942431736014,-0.07495370173362804],\"actual\":[0.5527674844634933,-0.8299529687275585,-0.07500785172376268]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999983233898,\"expected\":[-0.44103916103489726,0.8266168704678906,0.3495554432296897],\"actual\":[-0.4410616274246872,0.8266270375845024,0.349503049411241]}],\"minDot\":0.9999999848629502}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "large-finite-scale/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999848629502,\"expected\":[-0.6877353355557225,-0.6758821665667323,-0.26495925185793734],\"actual\":[-0.6876118629812008,-0.6759776326202235,-0.2650361599568641]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999943104713,\"expected\":[-0.7376593561707303,-0.6331727751974139,-0.2344161065340627],\"actual\":[-0.7375883796059858,-0.6332391873275572,-0.234460047562375]},{\"pixel\":[324,156],\"texel\":2,\"dot\":0.999999997455669,\"expected\":[0.4750373045728869,-0.849987284789631,-0.22773048755069536],\"actual\":[0.4749745311435914,-0.8500200237713934,-0.22773922357074425]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.999999998210057,\"expected\":[0.552790649885233,-0.829942431736014,-0.07495370173362804],\"actual\":[0.5527674844634933,-0.8299529687275585,-0.07500785172376268]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999983233898,\"expected\":[-0.44103916103489726,0.8266168704678906,0.3495554432296897],\"actual\":[-0.4410616274246872,0.8266270375845024,0.349503049411241]}],\"minDot\":0.9999999848629502}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "large-finite-scale/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[41,26],\"texel\":3,\"dot\":0.9999909680065824,\"expected\":[-0.4151567782463969,-0.1422015073409766,0.8985675159864317],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[35,28],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097664,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[45,29],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097667,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[35,36],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097664,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[45,37],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097664,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]}],\"minDot\":0.9999909680065824}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "large-finite-scale/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[41,26],\"texel\":3,\"dot\":0.9999909680065824,\"expected\":[-0.4151567782463969,-0.1422015073409766,0.8985675159864317],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[35,28],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097664,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[45,29],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097667,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[35,36],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097664,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]},{\"pixel\":[45,37],\"texel\":3,\"dot\":0.9999909680065826,\"expected\":[-0.4151567782463969,-0.14220150734097664,0.8985675159864318],\"actual\":[-0.4123676060173507,-0.14531048973944743,0.8993541121711742]}],\"minDot\":0.9999909680065824}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "unmapped-slot/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974888003,\"expected\":[-0.1480209717022854,0.4878631920429079,-0.8602786163714731],\"actual\":[-0.14807039835137278,0.4879032484094943,-0.8602473930931316]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975397289,\"expected\":[0.059950615761754485,0.12932039767045686,-0.9897889464002624],\"actual\":[0.059962748126418434,0.12938880628072452,-0.9897792711743244]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985633072,\"expected\":[-0.6704749961210332,-0.044551856626206754,-0.7405932835555955],\"actual\":[-0.670454177554037,-0.04459857764206701,-0.7406093185159396]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991520075,\"expected\":[-0.1242044707565491,0.4685268275777905,-0.8746747174144095],\"actual\":[-0.12423283091610157,0.4685512867851511,-0.8746575875018467]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999992983888,\"expected\":[0.05562908604286027,0.09845912878985388,-0.9935850264290315],\"actual\":[0.05563664058141337,0.09849559591233081,-0.993580989054586]}],\"minDot\":0.9999999974888003}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "unmapped-slot/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":56,\"unstableFootprints\":121,\"texels\":[1,2,0,3],\"worst\":[{\"pixel\":[344,160],\"texel\":2,\"dot\":0.9999999974888003,\"expected\":[-0.1480209717022854,0.4878631920429079,-0.8602786163714731],\"actual\":[-0.14807039835137278,0.4879032484094943,-0.8602473930931316]},{\"pixel\":[296,220],\"texel\":2,\"dot\":0.9999999975397289,\"expected\":[0.059950615761754485,0.12932039767045686,-0.9897889464002624],\"actual\":[0.059962748126418434,0.12938880628072452,-0.9897792711743244]},{\"pixel\":[300,204],\"texel\":3,\"dot\":0.9999999985633072,\"expected\":[-0.6704749961210332,-0.044551856626206754,-0.7405932835555955],\"actual\":[-0.670454177554037,-0.04459857764206701,-0.7406093185159396]},{\"pixel\":[344,168],\"texel\":2,\"dot\":0.9999999991520075,\"expected\":[-0.1242044707565491,0.4685268275777905,-0.8746747174144095],\"actual\":[-0.12423283091610157,0.4685512867851511,-0.8746575875018467]},{\"pixel\":[296,212],\"texel\":1,\"dot\":0.9999999992983888,\"expected\":[0.05562908604286027,0.09845912878985388,-0.9935850264290315],\"actual\":[0.05563664058141337,0.09849559591233081,-0.993580989054586]}],\"minDot\":0.9999999974888003}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "unmapped-slot/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[33,48],\"texel\":2,\"dot\":0.999986967417199,\"expected\":[0.20315585562868596,0.922093786838785,-0.32934897388193857],\"actual\":[0.199960027365481,0.9213844398213342,-0.3332667122758018]},{\"pixel\":[64,34],\"texel\":3,\"dot\":0.9999908999379495,\"expected\":[0.3240429940023552,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[56,41],\"texel\":2,\"dot\":0.9999908999379495,\"expected\":[0.3240429940023551,-0.9460423553086769,-2.8242418692266396e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[54,44],\"texel\":2,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[63,44],\"texel\":3,\"dot\":0.9999908999379495,\"expected\":[0.3240429940023551,-0.9460423553086769,-2.8242418692266396e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]}],\"minDot\":0.999986967417199}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "unmapped-slot/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[33,48],\"texel\":2,\"dot\":0.999986967417199,\"expected\":[0.20315585562868596,0.922093786838785,-0.32934897388193857],\"actual\":[0.199960027365481,0.9213844398213342,-0.3332667122758018]},{\"pixel\":[64,34],\"texel\":3,\"dot\":0.9999908999379495,\"expected\":[0.3240429940023552,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[56,41],\"texel\":2,\"dot\":0.9999908999379495,\"expected\":[0.3240429940023551,-0.9460423553086769,-2.8242418692266396e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[54,44],\"texel\":2,\"dot\":0.9999908999379495,\"expected\":[0.32404299400235514,-0.9460423553086769,-2.8242418692266402e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]},{\"pixel\":[63,44],\"texel\":3,\"dot\":0.9999908999379495,\"expected\":[0.3240429940023551,-0.9460423553086769,-2.8242418692266396e-8],\"actual\":[0.32562543195272925,-0.9454907120555152,0.003923197975334074]}],\"minDot\":0.999986967417199}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "corpse-roll/near: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":52,\"unstableFootprints\":130,\"texels\":[2,0,3,1],\"worst\":[{\"pixel\":[332,152],\"texel\":0,\"dot\":0.9999999859291204,\"expected\":[0.22479527704818267,-0.42838071392915233,-0.8751897207750904],\"actual\":[0.22463189860628566,-0.4284021721865809,-0.875221165760035]},{\"pixel\":[296,216],\"texel\":3,\"dot\":0.9999999910318449,\"expected\":[0.7429649401007207,0.6447552422725116,-0.1797046892633788],\"actual\":[0.7430207749708467,0.6447236555607541,-0.17958712627051104]},{\"pixel\":[328,156],\"texel\":3,\"dot\":0.999999991533933,\"expected\":[-0.6148476655823188,0.6103743452522397,-0.4994051529428513],\"actual\":[-0.6148411471588139,0.6104605039050411,-0.4993078578717114]},{\"pixel\":[304,216],\"texel\":3,\"dot\":0.9999999937474139,\"expected\":[-0.7920946127619632,0.5486129860030917,-0.2676002915212293],\"actual\":[-0.7921188780175897,0.5486304972246899,-0.2674925430795115]},{\"pixel\":[340,152],\"texel\":0,\"dot\":0.9999999965471792,\"expected\":[0.007998667141761777,0.2425332711993264,-0.9701101142062736],\"actual\":[0.007932424223355107,0.24258207290335598,-0.9700984561124978]}],\"minDot\":0.9999999859291204}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "corpse-roll/near: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":52,\"unstableFootprints\":130,\"texels\":[2,0,3,1],\"worst\":[{\"pixel\":[332,152],\"texel\":0,\"dot\":0.9999999859291204,\"expected\":[0.22479527704818267,-0.42838071392915233,-0.8751897207750904],\"actual\":[0.22463189860628566,-0.4284021721865809,-0.875221165760035]},{\"pixel\":[296,216],\"texel\":3,\"dot\":0.9999999910318449,\"expected\":[0.7429649401007207,0.6447552422725116,-0.1797046892633788],\"actual\":[0.7430207749708467,0.6447236555607541,-0.17958712627051104]},{\"pixel\":[328,156],\"texel\":3,\"dot\":0.999999991533933,\"expected\":[-0.6148476655823188,0.6103743452522397,-0.4994051529428513],\"actual\":[-0.6148411471588139,0.6104605039050411,-0.4993078578717114]},{\"pixel\":[304,216],\"texel\":3,\"dot\":0.9999999937474139,\"expected\":[-0.7920946127619632,0.5486129860030917,-0.2676002915212293],\"actual\":[-0.7921188780175897,0.5486304972246899,-0.2674925430795115]},{\"pixel\":[340,152],\"texel\":0,\"dot\":0.9999999965471792,\"expected\":[0.007998667141761777,0.2425332711993264,-0.9701101142062736],\"actual\":[0.007932424223355107,0.24258207290335598,-0.9700984561124978]}],\"minDot\":0.9999999859291204}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "corpse-roll/far: Blender human samples map interiors",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[47,48],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.29016886303250433,-0.9253525721534792,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[43,57],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.29016886303250433,-0.9253525721534792,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[46,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325044,-0.9253525721534791,0.243976736873342],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[47,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325043,-0.9253525721534792,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[43,70],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325044,-0.9253525721534791,0.243976736873342],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]}],\"minDot\":0.9999879405229191}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "corpse-roll/far: production directions match independent posed frame",
+      "ok": true,
+      "detail": "{\"sampleCount\":123,\"unstableFootprints\":510,\"texels\":[2,1,3,0],\"worst\":[{\"pixel\":[47,48],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.29016886303250433,-0.9253525721534792,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[43,57],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.29016886303250433,-0.9253525721534792,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[46,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325044,-0.9253525721534791,0.243976736873342],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[47,62],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325043,-0.9253525721534792,0.24397673687334204],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]},{\"pixel\":[43,70],\"texel\":1,\"dot\":0.9999879405229191,\"expected\":[-0.2901688630325044,-0.9253525721534791,0.243976736873342],\"actual\":[-0.28738598450518493,-0.9251466624481981,0.2480180414222829]}],\"minDot\":0.9999879405229191}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "collapsed-T-front: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,1],\"expected\":[0,-2.220446049250313e-16,1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "collapsed-T-back: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,-1],\"expected\":[0,2.220446049250313e-16,-1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "collapsed-N-front: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,1],\"expected\":[0,-2.220446049250313e-16,1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "collapsed-N-back: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,-1],\"expected\":[0,2.220446049250313e-16,-1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "residual-N-front: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,1],\"expected\":[0,-2.220446049250313e-16,1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "residual-N-back: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,-1],\"expected\":[0,2.220446049250313e-16,-1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "residual-T-front: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,1],\"expected\":[0,-2.220446049250313e-16,1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "battle-model-normal-frame",
+      "name": "residual-T-back: finite authored geometric fallback",
+      "ok": true,
+      "detail": "{\"actual\":[0,0,-1],\"expected\":[0,2.220446049250313e-16,-1],\"dot\":1,\"coverage\":1}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw collapsed normal uses authored front face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero-scale collapsed normal keeps finite front face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw collapsed normal uses authored back face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[175,188,214],\"expected\":[175,188,214]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero-scale collapsed normal keeps finite back face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[175,188,214],\"expected\":[175,188,214]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw collapsed tangent uses the geometric normal",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero decoded normal uses the geometric normal",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero normal scale preserves negative authored Z",
+      "ok": true,
+      "detail": "{\"actual\":[175,188,214],\"expected\":[175,188,214]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-authored",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "material table permutation and matching ID remap preserve exact pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-blue",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "soldier-materials: body and shield do not carry faction tint",
+      "ok": true,
+      "detail": "{\"bodyBlue\":[61.52141858839972,85.81656184486373,144.75230607966458],\"bodyRed\":[62.81470999301188,85.49238294898672,143.6546820405311],\"bodyFactionDiff\":1.7269838288355308,\"shieldBlue\":[135.71136691591238,144.13974157155977,91.45838252656435],\"shieldRed\":[135.71136691591238,144.13974157155977,91.45838252656435],\"shieldFactionDiff\":0}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "soldier-materials: only a tiny armband-sized region changes by faction",
+      "ok": true,
+      "detail": "{\"changedPixels\":898,\"changedShare\":0.00378,\"totalPixels\":237350}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "explicit mask disabled: ordinary blue is identical for both factions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "seed cannot change uniform surface color",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "unlit front plane receives fill but no directional specular",
+      "ok": true,
+      "detail": "{\"unlitFace\":[55.71458333333333,68.125,90.99166666666666],\"unlitFaceWithoutKey\":[55.71458333333333,68.125,90.99166666666666]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-metal",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "same-color roughness changes rendered response with faction tint disabled",
+      "ok": true,
+      "detail": "{\"changed\":51669,\"total\":237350,\"share\":0.21769117337265642}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "same-color metallic changes rendered response with faction tint disabled",
+      "ok": true,
+      "detail": "{\"changed\":51669,\"total\":237350,\"share\":0.21769117337265642}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw base texture matches linear scalar oracle (one sRGB decode)",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "MR-only map ignores unrelated red occlusion channel",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw MR G/B match independent scalar factors",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "occlusion-only map ignores unrelated G/B channels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "zero occlusion strength preserves unoccluded scalar image",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "authored occlusion strength changes visible surfaces",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-posed-normal",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "posed normal directions change the real raw lighting",
+      "ok": true,
+      "detail": "{\"changed\":38953,\"total\":237350,\"share\":0.1641162839688224}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "normal image retains complete authored-size mip chain",
+      "ok": true,
+      "detail": "[{\"channel\":\"normal\",\"width\":4,\"height\":2,\"mipLevels\":3}]"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "zero authored normal scale removes XY response",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "negative normal scale reverses XY without reversing Z",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "finite extreme normal scale approaches the same tangent-plane direction without overflow",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "mirrored UV handedness reverses mapped Y exactly once",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "weighted bent tangent frame matches independently preposed CPU attributes",
+      "ok": true,
+      "detail": "0 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "instance yaw rotates mapped tangent frame with the posed normal",
+      "ok": true,
+      "detail": "{\"maximum\":115,\"interiorMaximum\":1,\"interiorWorst\":{\"x\":597,\"y\":236,\"a\":[90,103,131],\"b\":[90,103,130]},\"changed\":13,\"mean\":0.001179174713706716}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "corpse roll rotates the mapped tangent frame",
+      "ok": true,
+      "detail": "{\"maximum\":109,\"interiorMaximum\":3,\"interiorWorst\":{\"x\":593,\"y\":389,\"a\":[150,149,156],\"b\":[153,152,158]},\"changed\":74,\"mean\":0.004675896961619019}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "mapped shield normal drives diffuse/specular/rim together",
+      "ok": true,
+      "detail": "0 maximum interior byte error against CPU normal override"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "non-mip source sampler allocates only level zero",
+      "ok": true,
+      "detail": "[{\"channel\":\"baseColor\",\"width\":4,\"height\":2,\"mipLevels\":1}]"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "textured material slots retain one draw for this appearance",
+      "ok": true,
+      "detail": "{\"plain\":1,\"textured\":1}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "asymmetric filtered texture follows UV0 without flip/rotation",
+      "ok": true,
+      "detail": "1 maximum byte error against vertex gradient"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-blender-checker",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

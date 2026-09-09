@@ -1,245 +1,71 @@
-// Animation review: films each soldier animation (walk, run, attack, hit, die)
-// as a looping GIF so the motion can be eyeballed frame by frame — the manual
-// check the user asked for. Boots the WebGPU skinned-soldier lab route (one
-// soldier on a flat field, no sim) and samples deterministic phases, then
-// encodes the frames with the dependency-free _gif.mjs encoder into
-// web/shots/models/shared/soldiers/anim/<id>-<class>-<anim>.gif.
-//
-//   node shots/models/scripts/soldier-animation.mjs                 # the representative class set, all anims
-//   ONLY=3 node shots/models/scripts/soldier-animation.mjs          # just the phalanx
-//   ANGLE=front node shots/models/scripts/soldier-animation.mjs     # face the camera (default: 3/4 hero view)
-import { chromium } from "playwright";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+// Exact authored phase sheets are the gate; GIFs are quantized, player-timed review derivatives.
+// ONLY=0,3 selects appearances. ANGLE=front chooses the opposing front view.
+import { mkdir, writeFile } from "node:fs/promises";
+import { snapCheck, snapshotSelected } from "../../../snapshot.mjs";
 import { encodeGif, pngToRGBA } from "../../_gif.mjs";
-import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from "../../../renderer-probe-lib.mjs";
-import { PNG } from "pngjs";
+import {
+  artifactStem,
+  montage,
+  openSoldierCapture,
+  roleClip,
+  selectedAppearances,
+  motionSamples,
+} from "./_soldier-capture.mjs";
 
-const TARGET = process.env.VERIFY_URL ?? "http://localhost:5173";
-const LAB_PANEL_W = 360;
-const LAB_HEADER_H = 42;
-const TW = 360,
-  TH = 360,
-  // Hero 3/4 view. Lab pitch is measured from straight-down; this predates the
-  // eye-pivot camera rework only in spirit — the value is calibrated for the
-  // current convention (~35° above the ground).
-  PITCH = 0.95;
-const here = path.dirname(fileURLToPath(import.meta.url));
-const WEB_ROOT = path.join(here, "..", "..", "..");
-const OUT = path.join(here, "..", "shared", "soldiers", "anim");
-fs.mkdirSync(OUT, { recursive: true });
-
-const NAMES = [
-  "heavy-sword",
-  "light-spear",
-  "longsword",
-  "phalanx",
-  "archers",
-  "skirmishers",
-  "shock-cav",
-  "horse-archers",
-  "artillery",
-  "peasant",
-  "light-sword",
-  "heavy-spear",
-  "medium-infantry",
-  "medium-spear",
-  "medium-phalanx",
-  "shock-cav-sidearm",
-  "heavy-phalanx-rest",
-  "medium-phalanx-rest",
-  "heavy-phalanx-sidearm",
-  "medium-phalanx-sidearm",
-];
-const classId = (name) => {
-  const id = NAMES.indexOf(name);
-  if (id < 0) throw new Error(`unknown soldier class ${name}`);
-  return id;
-};
-const CLASS_H = [
-  2.0, 2.6, 2.1, 3.2, 2.0, 2.3, 3.4, 2.6, 1.7, 1.9, 1.9, 2.75, 1.9, 2.75, 3.1, 3.4, 3.2, 3.2, 3.2,
-  3.2,
-];
-const REVIEW_H = [...CLASS_H];
-REVIEW_H[classId("phalanx")] = 2.55;
-REVIEW_H[classId("shock-cav")] = 3.15;
-REVIEW_H[classId("horse-archers")] = 3.0;
-const FRONT = -Math.PI / 2;
-const facing = process.env.ANGLE === "front" ? FRONT : FRONT + Math.PI / 5;
-
-// Each animation is a list of {frame, dt} steps (sim-frame value + clock advance
-// in seconds) and a GIF delay. Walk/run/hit toggle discrete poses; attack uses
-// a review-only windup frame (11) before the real strike frame (3); die holds
-// the fallen frame and lets the renderer's death blend ease the collapse.
-const STAND = { frame: 0, dt: 0.04 };
-const ANIMS = {
-  walk: {
-    delay: 24,
-    steps: [
-      { frame: 1, dt: 0.25 },
-      { frame: 2, dt: 0.25 },
-    ],
-  },
-  run: {
-    delay: 14,
-    steps: [
-      { frame: 8, dt: 0.14 },
-      { frame: 9, dt: 0.14 },
-    ],
-  },
-  attack: {
-    delay: 12,
-    steps: [STAND, { frame: 11, dt: 0.12 }, { frame: 3, dt: 0.1 }, { frame: 3, dt: 0.08 }, STAND],
-  },
-  shoot: {
-    delay: 12,
-    steps: [STAND, { frame: 12, dt: 0.12 }, { frame: 12, dt: 0.18 }, { frame: 12, dt: 0.1 }, STAND],
-  },
-  hit: { delay: 16, steps: [STAND, { frame: 10, dt: 0.1 }, { frame: 10, dt: 0.1 }, STAND, STAND] },
-  die: {
-    delay: 9,
-    steps: [STAND, STAND, ...Array.from({ length: 14 }, () => ({ frame: 4, dt: 0.05 }))],
-    once: true, // not a loop: a man dies once
-  },
-};
-
-const only = process.env.ONLY
-  ? process.env.ONLY.split(",").map(Number)
-  : [classId("heavy-sword"), classId("phalanx"), classId("archers"), classId("shock-cav")];
-
-const gpuArgs =
-  process.env.VERIFY_GPU === "1"
-    ? process.env.VERIFY_GPU_ADAPTER === "hardware"
-      ? GPU_HARDWARE_FLAGS
-      : GPU_SWIFTSHADER_FLAGS
-    : [];
-const launchOptions = { args: gpuArgs };
-if (process.env.VERIFY_HEADFUL === "1") launchOptions.headless = false;
-if (process.env.VERIFY_BROWSER_CHANNEL) launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
-const browser = await chromium.launch(launchOptions);
-const page = await browser.newPage({
-  viewport: { width: TW + LAB_PANEL_W, height: TH + LAB_HEADER_H },
-});
-const errs = [];
-page.on("pageerror", (e) => errs.push(e.message));
-page.on("console", (m) => {
-  if (m.type() === "error") errs.push(m.text());
-});
-
-for (const cls of only) {
-  const h = REVIEW_H[cls] ?? CLASS_H[cls] ?? 1.8;
-  const zoom = Math.max(48, Math.min(65, (0.46 * TH) / h));
-  const camX = -0.5 * h;
-  const camY = 0.135 * h;
-  for (const [name, anim] of Object.entries(ANIMS)) {
-    const frames = [];
-    // Two cycles for the looping anims so the GIF has a natural rhythm.
-    const reps = anim.once ? 1 : 2;
-    let phase = 0;
-    for (let r = 0; r < reps; r++) {
-      for (const s of anim.steps) {
-        const poseH = name === "die" ? h * 1.55 : h;
-        const poseZoom = Math.max(48, Math.min(65, (0.46 * TH) / poseH));
-        const poseCamY = camY;
-        phase = (phase + s.dt) % 1;
+const out = new URL("../shared/soldiers/anim/", import.meta.url);
+const capture = await openSoldierCapture();
+let failed = false;
+try {
+  await mkdir(out, { recursive: true });
+  for (const appearance of selectedAppearances()) {
+    const asset = capture.assets[appearance.id];
+    for (const [name, role] of [
+      ["walk", "walk"],
+      ["run", "run"],
+      ["attack", "melee"],
+      ["shoot", "release"],
+      ["hit", "hit"],
+      ["die", "death"],
+    ]) {
+      const stem = `${artifactStem(appearance)}-${name}${process.env.ANGLE === "front" ? "-front" : ""}`;
+      if (!snapshotSelected(`models/shared/soldiers/anim/${stem}`)) continue;
+      const clip = roleClip(asset, role, { optional: role === "release" || role === "melee" });
+      if (!clip) continue;
+      const samples = motionSamples(clip);
+      const frames = [];
+      for (const phase of samples.phases)
         frames.push(
-          pngToRGBA(
-            await captureSoldier(page, {
-              classId: cls,
-              clip: clipForAnimation(name),
-              phase,
-              frame: s.frame,
-              facing,
-              zoom: poseZoom,
-              camX,
-              camY: poseCamY,
-              pitch: PITCH,
-              yaw: -0.18,
-              size: cls === classId("shock-cav") ? 1.05 : 1.15,
-            }),
-          ),
+          await capture.capture(appearance, clip, phase, {
+            yaw: process.env.ANGLE === "front" ? Math.PI : Math.PI * 1.25,
+            pitch: 0.95,
+            alive: role !== "death",
+          }),
         );
-      }
-    }
-    const gif = encodeGif(frames, TW, TH, anim.delay, { loop: !anim.once });
-    const id = String(cls).padStart(2, "0");
-    const file = path.join(OUT, `${id}-${NAMES[cls]}-${name}.gif`);
-    fs.writeFileSync(file, gif);
-    console.log(
-      "wrote",
-      path.relative(WEB_ROOT, file),
-      `${frames.length}f ${(gif.length / 1024).toFixed(0)}kb`,
-    );
-  }
-}
-if (errs.length) console.log("page errors:", errs.slice(0, 6));
-await browser.close();
-
-function clipForAnimation(name) {
-  if (name === "attack") return "attack_a";
-  if (name === "shoot") return "shoot";
-  if (name === "hit") return "hit_a";
-  if (name === "die") return "death_a";
-  if (name === "run") return "run";
-  return "march";
-}
-
-async function captureSoldier(page, opts) {
-  const url = new URL(`${TARGET}/renderer/skinned-soldier`);
-  url.searchParams.set("class", String(opts.classId));
-  url.searchParams.set("clip", opts.clip);
-  url.searchParams.set("phase", String(opts.phase));
-  url.searchParams.set("frame", String(opts.frame));
-  url.searchParams.set("facing", String(opts.facing));
-  url.searchParams.set("x", String(opts.camX));
-  url.searchParams.set("y", String(opts.camY));
-  url.searchParams.set("zoom", String(opts.zoom));
-  url.searchParams.set("pitch", String(opts.pitch));
-  url.searchParams.set("yaw", String(opts.yaw));
-  url.searchParams.set("size", String(opts.size));
-  await page.goto(url.href, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(
-    ({ classId, clip, phase }) =>
-      window.__rendererLabReady === true &&
-      window.__rendererLabStats?.stats?.classId === classId &&
-      window.__rendererLabStats?.stats?.clip === clip &&
-      Math.abs((window.__rendererLabStats?.stats?.phase ?? -999) - phase) < 0.0001,
-    { classId: opts.classId, clip: opts.clip, phase: opts.phase },
-    { timeout: 18000 },
-  );
-  await page.waitForTimeout(80);
-  return cropPng(await canvasScreenshot(page), TW, TH);
-}
-
-async function canvasScreenshot(page) {
-  let lastError;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    await page.waitForSelector("#renderer-canvas", { state: "visible", timeout: 8000 });
-    try {
-      return await page.locator("#renderer-canvas").screenshot();
-    } catch (error) {
-      lastError = error;
-      await page.waitForTimeout(120);
+      let matched = true;
+      await snapCheck(
+        capture.page,
+        `models/shared/soldiers/anim/${stem}`,
+        (name, ok, detail) => {
+          console.log(ok ? "PASS" : "FAIL", name, detail);
+          matched &&= ok;
+          failed ||= !ok;
+        },
+        { shot: montage(frames, 8), threshold: 0, maxDiffRatio: 0 },
+      );
+      if (!matched) continue;
+      const rgba = frames.map(pngToRGBA);
+      const sequence = clip.loop
+        ? [...rgba, ...rgba]
+        : role === "death"
+          ? [...rgba, ...Array(Math.ceil(500 / samples.delay)).fill(rgba.at(-1))]
+          : rgba;
+      await writeFile(
+        new URL(`${stem}.gif`, out),
+        encodeGif(sequence, 360, 360, samples.delay, { loop: role !== "death" }),
+      );
     }
   }
-  throw lastError;
+} finally {
+  await capture.close();
 }
-
-function cropPng(buf, width, height, x = 0, y = 0) {
-  const img = PNG.sync.read(buf);
-  const sx = Math.max(0, Math.min(img.width - width, x));
-  const sy = Math.max(0, Math.min(img.height - height, y));
-  const out = new PNG({ width, height });
-  for (let yy = 0; yy < height; yy++) {
-    for (let xx = 0; xx < width; xx++) {
-      const si = ((sy + yy) * img.width + (sx + xx)) * 4;
-      const di = (yy * width + xx) * 4;
-      out.data[di] = img.data[si];
-      out.data[di + 1] = img.data[si + 1];
-      out.data[di + 2] = img.data[si + 2];
-      out.data[di + 3] = img.data[si + 3];
-    }
-  }
-  return PNG.sync.write(out);
-}
+if (failed) process.exitCode = 1;

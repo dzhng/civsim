@@ -1,68 +1,135 @@
 // @vitest-environment node
-import assert from "node:assert/strict";
-import { test } from "vitest";
+import { expect, test } from "vitest";
+import { readFile } from "node:fs/promises";
 import {
-  animationForFrame,
-  animationForSoldierFrame,
-  fightingFrameForTick,
-  MARCH_CYCLES_PER_SECOND,
+  assertGameplayAppearances,
   marchingStateForSpeed,
-  RUN_CYCLES_PER_SECOND,
-} from "@packages/crowd-runtime/src/animationState.ts";
-
-function phaseAdvance(from: number, to: number): number {
-  return (((to - from) % 1) + 1) % 1;
-}
-
-test("soldier gait animation phase advances at a readable cadence", () => {
-  const march0 = animationForFrame(1, 0, 0);
-  const marchQuarterSecond = animationForFrame(1, 7.5, 0);
-  const marchHalfSecond = animationForFrame(1, 15, 0);
-  const run0 = animationForFrame(8, 0, 0);
-  const runQuarterSecond = animationForFrame(8, 7.5, 0);
-
-  assert.equal(march0.clip, "march");
-  assert.equal(run0.clip, "run");
-  assert.equal(MARCH_CYCLES_PER_SECOND, 2.0);
-  assert.equal(RUN_CYCLES_PER_SECOND, 2.6);
-  assert.ok(
-    Math.abs(phaseAdvance(march0.phase, marchQuarterSecond.phase) - 0.5) < 1e-6,
-    `march phase advance after 250ms: ${phaseAdvance(march0.phase, marchQuarterSecond.phase)}`,
-  );
-  assert.ok(
-    phaseAdvance(march0.phase, marchHalfSecond.phase) < 1e-6,
-    `march phase advance after 500ms: ${phaseAdvance(march0.phase, marchHalfSecond.phase)}`,
-  );
-  assert.ok(
-    Math.abs(phaseAdvance(run0.phase, runQuarterSecond.phase) - 0.65) < 1e-6,
-    `run phase advance after 250ms: ${phaseAdvance(run0.phase, runQuarterSecond.phase)}`,
-  );
-});
+} from "@packages/crowd-runtime/src/animationState";
+import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
+import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
+import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
 
 test("marching speed state uses hysteresis instead of frame displacement flicker", () => {
-  assert.equal(marchingStateForSpeed(0.39, false), false);
-  assert.equal(marchingStateForSpeed(0.41, false), true);
-  assert.equal(marchingStateForSpeed(0.16, true), true);
-  assert.equal(marchingStateForSpeed(0.14, true), false);
+  expect(marchingStateForSpeed(0.39, false)).toBe(false);
+  expect(marchingStateForSpeed(0.41, false)).toBe(true);
+  expect(marchingStateForSpeed(0.16, true)).toBe(true);
+  expect(marchingStateForSpeed(0.14, true)).toBe(false);
 });
 
-test("soldiers in one gait pose keep a coherent readable phase", () => {
-  const phases = Array.from(
-    { length: 24 },
-    (_, soldierIndex) =>
-      animationForSoldierFrame(1, { soldierIndex, unitIndex: 0, simTick: 90 }).phase,
+test("submission preserves explicit terminal destination and opaque base/overlay payload", () => {
+  const playback: SoldierPlayback = {
+    appearanceId: 41,
+    base: {
+      source: { kind: "frozen", locals: Object.freeze([1, 2, 3]) },
+      destination: { clip: "death_a", phase: 1 },
+      weight: 0.3,
+    },
+    riderUpperBody: {
+      source: { kind: "clip", sample: { clip: "idle", phase: 0.2 } },
+      destination: { clip: "shoot", phase: 0.4 },
+      weight: 0.6,
+    },
+  };
+  const result = buildCrowdInstances({
+    positions: new Float32Array([2, 3]),
+    facings: new Float32Array([0.5]),
+    playback: [playback],
+    alive: new Uint8Array([0]),
+    soldierUnit: new Uint32Array([1]),
+    unitTeam: [0, 1],
+    mountedClasses: [41],
+    terrainHeight: (x, y) => x + y,
+  });
+  expect(result.instances[0]).toMatchObject({
+    classId: 41,
+    clip: "death_a",
+    phase: 1,
+    x: 2,
+    y: 3,
+    elevation: 5,
+    faction: 1,
+    mounted: true,
+    alive: false,
+    facing: 0.5,
+  });
+  expect(result.instances[0].playback).toBe(playback);
+  expect(result.stats).toEqual({ input: 1, written: 1, alive: 0, player: 0, enemy: 1 });
+  expect(() => buildCrowdInstances({ positions: new Float32Array(2), playback: [] })).toThrow(
+    "Playback count",
   );
-  const anchor = phases[0];
-  for (const phase of phases) {
-    const distance = Math.abs(phase - anchor);
-    assert.ok(Math.min(distance, 1 - distance) <= 0.05, `phase drift ${distance}`);
-  }
 });
 
-test("fighting pose cadence is sim-tick owned", () => {
-  const frame = fightingFrameForTick(42, 5);
+test("instance pool refresh replaces playback and defaults, truncates and regrows", () => {
+  const pose = (appearanceId: number): SoldierPlayback => ({
+    appearanceId,
+    base: {
+      source: { kind: "clip", sample: { clip: "idle", phase: 0 } },
+      destination: { clip: "walk", phase: 0.4 },
+      weight: 1,
+    },
+  });
+  const initial = buildCrowdInstances({
+    positions: new Float32Array([2, 3, 4, 5]),
+    playback: [pose(41), pose(41)],
+    alive: new Uint8Array([0, 0]),
+    unitTeam: [1],
+    mountedClasses: [41],
+    terrainHeight: () => 7,
+  }).instances;
+  const first = initial[0];
+  const replacement = pose(0);
+  const inputs = { positions: new Float32Array([8, 9]), playback: [replacement] };
+  const refreshed = buildCrowdInstances(inputs, initial);
+  expect(refreshed.instances).toBe(initial);
+  expect(refreshed.instances[0]).toBe(first);
+  expect(first.playback).toBe(replacement);
+  expect(refreshed).toEqual(buildCrowdInstances(inputs));
+  const empty = { positions: new Float32Array(), playback: [] };
+  expect(buildCrowdInstances(empty, initial).instances).toHaveLength(0);
+  expect(buildCrowdInstances(inputs, initial)).toEqual(buildCrowdInstances(inputs));
+});
 
-  assert.equal(fightingFrameForTick(42, 5), frame);
-  assert.equal(fightingFrameForTick(43, 5), frame);
-  assert.notEqual(fightingFrameForTick(54, 5), frame);
+test("all shipped gameplay action clips match their local rig, and mismatches fail before use", async () => {
+  const read = async (url: URL) => JSON.parse(await readFile(url, "utf8"));
+  const root = new URL("../public/assets/soldiers/catalog.json", import.meta.url);
+  const catalog = await read(root);
+  const appearances: Record<number, AppearanceBundle> = {};
+  for (const [id, path] of Object.entries(catalog.appearances)) {
+    const url = new URL(path as string, root);
+    const manifest = await read(url);
+    appearances[Number(id)] = {
+      manifest,
+      rig: await read(new URL(manifest.skeleton, url)),
+      animation: await read(new URL(manifest.animation, url)),
+    } as AppearanceBundle;
+  }
+  expect(() => assertGameplayAppearances(appearances)).not.toThrow();
+  const presentation = appearances[0].manifest.presentation;
+  appearances[0].manifest.presentation = null;
+  expect(() => assertGameplayAppearances(appearances)).toThrow("0 is manual-only");
+  appearances[0].manifest.presentation = presentation;
+  const original = appearances[0].rig.clips;
+  const name = appearances[0].manifest.presentation!.actions.ready!.clip;
+  appearances[0].rig.clips = original.filter((clip) => clip.name !== name);
+  expect(() => assertGameplayAppearances(appearances)).toThrow(
+    "missing or mismatched source/sampled",
+  );
+  for (const field of ["duration", "loop", "markers"] as const) {
+    appearances[0].rig.clips = original.map((clip) =>
+      clip.name !== name
+        ? clip
+        : {
+            ...clip,
+            [field]:
+              field === "duration"
+                ? clip.duration + 0.1
+                : field === "loop"
+                  ? !clip.loop
+                  : { release: 0.2 },
+          },
+    );
+    expect(() => assertGameplayAppearances(appearances)).toThrow(
+      "missing or mismatched source/sampled",
+    );
+  }
 });

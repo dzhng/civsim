@@ -1,0 +1,407 @@
+[
+  {
+    "name": "heavy-kit candidate is manually inspectable for its declared classes",
+    "ok": true,
+    "detail": "{\"catalog\":\"http://127.0.0.1:5193/assets/soldiers/candidates/heavy-kit/catalog.json\",\"assets\":[{\"id\":0,\"name\":\"heavy-kit\",\"presentation\":null,\"bones\":26,\"triangles\":[67024,67024,67024],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":1.2000000476837158,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":false},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+  },
+  {
+    "name": "close/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "close/deep bend/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "close/deep bend/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/close",
+    "ok": false,
+    "detail": "7724 px differ (0.2357%) — see shots/diff/footwear/close.png"
+  },
+  {
+    "name": "gameplay-pitch/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "gameplay-pitch/deep bend/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0.5,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "gameplay-pitch/deep bend/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/gameplay-pitch",
+    "ok": false,
+    "detail": "3311 px differ (0.1010%) — see shots/diff/footwear/gameplay-pitch.png"
+  },
+  {
+    "name": "head-detail/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "head-detail/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "head-detail/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "head-detail/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "head-detail/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/head-detail",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "hand-detail/neutral/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "hand-detail/neutral/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "hand-detail/neutral/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "hand-detail/neutral/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"bend\",\"phase\":0,\"duration\":2},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "hand-detail/neutral/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/hand-detail",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "ready-feet/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready-feet/ready/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready-feet/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready-feet/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready-feet/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/ready-feet",
+    "ok": false,
+    "detail": "83764 px differ (5.1125%) — see shots/diff/footwear/ready-feet.png"
+  },
+  {
+    "name": "ready/ready/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready/ready/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready/ready/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "ready/ready/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"ready\",\"phase\":0,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "ready/ready/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/ready",
+    "ok": false,
+    "detail": "4050 px differ (0.2472%) — see shots/diff/footwear/ready.png"
+  },
+  {
+    "name": "heel-lift/heel lift/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "heel-lift/heel lift/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "heel-lift/heel lift/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "heel-lift/heel lift/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "heel-lift/heel lift/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "heel-lift/heel lift/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "heel-lift/heel lift/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.4,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "heel-lift/heel lift/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/heel-lift",
+    "ok": false,
+    "detail": "202840 px differ (12.3804%) — see shots/diff/footwear/heel-lift.png"
+  },
+  {
+    "name": "swing/swing/front: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "swing/swing/front: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "swing/swing/side: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "swing/swing/side: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "swing/swing/rear: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "swing/swing/rear: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "swing/swing/three-quarter: production weighted pose submitted",
+    "ok": true,
+    "detail": "{\"sampled\":{\"clip\":\"walk\",\"phase\":0.7,\"duration\":0.8999999761581421},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":748480,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+  },
+  {
+    "name": "swing/swing/three-quarter: newly rendered frozen crop is byte-stable",
+    "ok": true
+  },
+  {
+    "name": "snapshot footwear/swing",
+    "ok": false,
+    "detail": "53386 px differ (3.2584%) — see shots/diff/footwear/swing.png"
+  }
+]

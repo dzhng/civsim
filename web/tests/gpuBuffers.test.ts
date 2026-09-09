@@ -10,6 +10,7 @@ import {
 
 interface RecordedBuffer {
   descriptor: GPUBufferDescriptor;
+  destroyed: number;
 }
 
 function recordingDevice() {
@@ -17,7 +18,13 @@ function recordingDevice() {
   const writes: Array<{ buffer: RecordedBuffer; data: Uint8Array }> = [];
   const device = {
     createBuffer(descriptor: GPUBufferDescriptor) {
-      const buffer = { descriptor };
+      const buffer = {
+        descriptor,
+        destroyed: 0,
+        destroy() {
+          this.destroyed++;
+        },
+      };
       buffers.push(buffer);
       return buffer;
     },
@@ -50,6 +57,17 @@ test("GrowableBuffer applies its floor, doubles, and reports reallocations", () 
   assert.equal(growable.write(new Uint8Array(300)), true);
   assert.equal(growable.capacityBytes, 512);
   assert.equal(recording.writes.length, 3);
+  assert.deepEqual(
+    recording.buffers.map((buffer) => buffer.destroyed),
+    [1, 1, 0],
+  );
+  growable.dispose();
+  growable.dispose();
+  assert.deepEqual(
+    recording.buffers.map((buffer) => buffer.destroyed),
+    [1, 1, 1],
+  );
+  assert.throws(() => growable.write(new Uint8Array(1)), /disposed/);
 });
 
 test("static vertex and index buffers upload data and pad uint16 indices to four bytes", () => {
@@ -63,4 +81,15 @@ test("static vertex and index buffers upload data and pad uint16 indices to four
   assert.equal((vertices as unknown as RecordedBuffer).descriptor.size, 12);
   assert.equal((indices as unknown as RecordedBuffer).descriptor.size, 8);
   assert.deepEqual(Array.from(recording.writes[1].data), [7, 0, 8, 0, 9, 0, 0, 0]);
+});
+
+test("uint32 indices preserve vertices beyond 65535 and upload only the supplied view", () => {
+  Object.assign(globalThis, { GPUBufferUsage: { COPY_DST: 1, INDEX: 2 } });
+  const recording = recordingDevice();
+  const source = new Uint32Array([99, 65536, 70000, 3, 88]);
+  const indices = makeIndexBuffer(recording.device, "large-mesh", source.subarray(1, 4));
+
+  assert.equal((indices as unknown as RecordedBuffer).descriptor.size, 12);
+  assert.deepEqual(Array.from(new Uint32Array(recording.writes[0].data.buffer)), [65536, 70000, 3]);
+  assert.deepEqual(Array.from(source), [99, 65536, 70000, 3, 88]);
 });

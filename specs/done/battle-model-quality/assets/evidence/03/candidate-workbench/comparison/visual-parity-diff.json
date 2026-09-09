@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-06T02:27:52.409Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 2,
+  "worstPair": "mounted",
+  "results": [
+    {
+      "id": "mounted",
+      "current": "specs/battle-model-quality/assets/evidence/03/candidate-workbench/reference/mounted.png",
+      "candidate": "specs/battle-model-quality/assets/evidence/03/candidate-workbench/production/mounted.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 3200
+      },
+      "parityDistance": 0.69286,
+      "grayscale": {
+        "mae": 68.24039,
+        "rmse": 70.02173,
+        "diffRatio16": 0.97861,
+        "diffRatio32": 0.95853,
+        "diffRatio64": 0.83018,
+        "pixelmatchRatio": 0.96533
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.05753,
+        "terrainLikeRatioCandidate": 0.97933,
+        "avgLuminanceCurrent": 70.02631,
+        "avgLuminanceCandidate": 135.69301,
+        "avgLuminanceDelta": 65.6667,
+        "edgeEnergyCurrent": 0.01673,
+        "edgeEnergyCandidate": 0.02747,
+        "edgeEnergyRatio": 1.64173,
+        "edgeDiffRatio32": 0.03504
+      },
+      "artifacts": {
+        "sideBySide": "comparison/mounted-side-by-side.png",
+        "currentGray": "comparison/mounted-current-gray.png",
+        "candidateGray": "comparison/mounted-candidate-gray.png",
+        "absDiff": "comparison/mounted-absdiff.png",
+        "pixelmatch": "comparison/mounted-pixelmatch.png",
+        "currentEdges": "comparison/mounted-current-edges.png",
+        "candidateEdges": "comparison/mounted-candidate-edges.png",
+        "edgeDiff": "comparison/mounted-edge-diff.png"
+      }
+    },
+    {
+      "id": "human",
+      "current": "specs/battle-model-quality/assets/evidence/03/candidate-workbench/reference/human.png",
+      "candidate": "specs/battle-model-quality/assets/evidence/03/candidate-workbench/production/human.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 1600
+      },
+      "parityDistance": 0.60934,
+      "grayscale": {
+        "mae": 69.68774,
+        "rmse": 70.96902,
+        "diffRatio16": 0.9806,
+        "diffRatio32": 0.97081,
+        "diffRatio64": 0.90135,
+        "pixelmatchRatio": 0.97755
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.04167,
+        "terrainLikeRatioCandidate": 0.98024,
+        "avgLuminanceCurrent": 68.66441,
+        "avgLuminanceCandidate": 136.11301,
+        "avgLuminanceDelta": 67.4486,
+        "edgeEnergyCurrent": 0.02085,
+        "edgeEnergyCandidate": 0.02244,
+        "edgeEnergyRatio": 1.07607,
+        "edgeDiffRatio32": 0.0372
+      },
+      "artifacts": {
+        "sideBySide": "comparison/human-side-by-side.png",
+        "currentGray": "comparison/human-current-gray.png",
+        "candidateGray": "comparison/human-candidate-gray.png",
+        "absDiff": "comparison/human-absdiff.png",
+        "pixelmatch": "comparison/human-pixelmatch.png",
+        "currentEdges": "comparison/human-current-edges.png",
+        "candidateEdges": "comparison/human-candidate-edges.png",
+        "edgeDiff": "comparison/human-edge-diff.png"
+      }
+    }
+  ]
+}

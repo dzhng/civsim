@@ -1,0 +1,474 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-08T10:17:53.317Z",
+  "target": "http://127.0.0.1:5488",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "heavy-kit",
+      "file": "models/heavy-kit.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "medium-phalanx",
+      "file": "models/medium-phalanx.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://127.0.0.1:5488/assets/soldiers/candidates/heavy-kit/catalog.json\",\"assets\":[{\"id\":0,\"name\":\"heavy-kit\",\"presentation\":{\"actions\":{\"atEase\":{\"clip\":\"idle\",\"layer\":\"fullBody\"},\"ready\":{\"clip\":\"ready\",\"layer\":\"fullBody\"},\"walk\":{\"clip\":\"walk\",\"layer\":\"fullBody\"},\"run\":{\"clip\":\"run\",\"layer\":\"fullBody\"},\"guardedBackwardWalk\":{\"clip\":\"guarded-backward-walk\",\"layer\":\"fullBody\"},\"guardedLeftWalk\":{\"clip\":\"guarded-left-walk\",\"layer\":\"fullBody\"},\"guardedRightWalk\":{\"clip\":\"guarded-right-walk\",\"layer\":\"fullBody\"},\"melee\":{\"clip\":\"sword-effort\",\"layer\":\"fullBody\"},\"hit\":{\"clip\":\"hit\",\"layer\":\"fullBody\"},\"death\":{\"clip\":\"death\",\"layer\":\"fullBody\"},\"release\":null,\"pikeReady\":null},\"riderUpperBodyJoints\":null},\"bones\":26,\"triangles\":[127196,4016,1328],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"death\",\"duration\":1.399999976158142,\"loop\":false},{\"name\":\"guarded-backward-walk\",\"duration\":1,\"loop\":true},{\"name\":\"guarded-left-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"guarded-right-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"hit\",\"duration\":0.6000000238418579,\"loop\":false},{\"name\":\"idle\",\"duration\":6,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":6,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"sword-effort\",\"duration\":1.2000000476837158,\"loop\":false},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier0: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier0/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier0/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier1: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier1/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier1: rendered context shrinks below quarter near dark area",
+      "ok": true,
+      "detail": "{\"near\":15772,\"context\":606}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier1/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier2: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier2/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier2: rendered context shrinks below quarter near dark area",
+      "ok": false,
+      "detail": "{\"near\":15772,\"context\":90158}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/ready/tier2/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier0: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier0/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier0/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier1: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier1/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier1: rendered context shrinks below quarter near dark area",
+      "ok": true,
+      "detail": "{\"near\":18131,\"context\":606}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier1/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier2: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier2/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier2: rendered context shrinks below quarter near dark area",
+      "ok": false,
+      "detail": "{\"near\":18131,\"context\":90157}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/sword-effort/tier2/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier0: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier0/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier0/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier1: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier1/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier1: rendered context shrinks below quarter near dark area",
+      "ok": true,
+      "detail": "{\"near\":10258,\"context\":600}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier1/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier2: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier2/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier2: rendered context shrinks below quarter near dark area",
+      "ok": false,
+      "detail": "{\"near\":10258,\"context\":90155}"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "heavy-kit/death/tier2/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "snapshot shared/soldiers/heavy-kit/mesh-lod-context",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "heavy-kit",
+      "name": "snapshot shared/soldiers/heavy-kit/mesh-lod-diagnostic",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://127.0.0.1:5488/assets/soldiers/candidates/medium-phalanx/catalog.json\",\"assets\":[{\"id\":14,\"name\":\"medium-phalanx\",\"presentation\":{\"riderUpperBodyJoints\":null,\"actions\":{\"ready\":{\"clip\":\"pike-ready\",\"layer\":\"fullBody\"},\"atEase\":{\"clip\":\"at-ease\",\"layer\":\"fullBody\"},\"walk\":{\"clip\":\"walk\",\"layer\":\"fullBody\"},\"run\":{\"clip\":\"run\",\"layer\":\"fullBody\"},\"guardedBackwardWalk\":{\"clip\":\"guarded-backward-walk\",\"layer\":\"fullBody\"},\"guardedLeftWalk\":{\"clip\":\"guarded-left-walk\",\"layer\":\"fullBody\"},\"guardedRightWalk\":{\"clip\":\"guarded-right-walk\",\"layer\":\"fullBody\"},\"melee\":{\"clip\":\"pike-thrust\",\"layer\":\"fullBody\"},\"release\":null,\"hit\":{\"clip\":\"hit\",\"layer\":\"fullBody\"},\"death\":{\"clip\":\"death\",\"layer\":\"fullBody\"},\"pikeReady\":{\"clip\":\"pike-ready\",\"layer\":\"fullBody\"}}},\"bones\":26,\"triangles\":[155190,4140,1610],\"clips\":[{\"name\":\"at-ease\",\"duration\":1,\"loop\":true},{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"death\",\"duration\":1.399999976158142,\"loop\":false},{\"name\":\"guarded-backward-walk\",\"duration\":1,\"loop\":true},{\"name\":\"guarded-left-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"guarded-right-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"hit\",\"duration\":0.6000000238418579,\"loop\":false},{\"name\":\"pike-carry\",\"duration\":1,\"loop\":true},{\"name\":\"pike-ready\",\"duration\":1,\"loop\":true},{\"name\":\"pike-thrust\",\"duration\":1.2999999523162842,\"loop\":false},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":1.2000000476837158,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier0: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier0/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier0/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier1: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier1/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier1: rendered context shrinks below quarter near dark area",
+      "ok": true,
+      "detail": "{\"near\":2831,\"context\":601}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier1/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier2: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier2/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier2: rendered context shrinks below quarter near dark area",
+      "ok": false,
+      "detail": "{\"near\":2831,\"context\":90160}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-ready/tier2/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier0: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier0/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier0/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier1: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier1/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier1: rendered context shrinks below quarter near dark area",
+      "ok": true,
+      "detail": "{\"near\":3105,\"context\":604}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier1/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier2: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier2/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier2: rendered context shrinks below quarter near dark area",
+      "ok": false,
+      "detail": "{\"near\":3105,\"context\":90156}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/pike-thrust/tier2/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier0: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier0/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier0/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier1: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier1/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier1: rendered context shrinks below quarter near dark area",
+      "ok": true,
+      "detail": "{\"near\":2653,\"context\":599}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier1/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier2: actual main tier admitted",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier2/view0: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier2: rendered context shrinks below quarter near dark area",
+      "ok": false,
+      "detail": "{\"near\":2653,\"context\":90156}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx/death/tier2/view1: frozen pixels exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/mesh-lod-context",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/mesh-lod-diagnostic",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "heavy-kit: heavy-kit/ready/tier2: rendered context shrinks below quarter near dark area",
+    "heavy-kit: heavy-kit/sword-effort/tier2: rendered context shrinks below quarter near dark area",
+    "heavy-kit: heavy-kit/death/tier2: rendered context shrinks below quarter near dark area",
+    "medium-phalanx: medium-phalanx/pike-ready/tier2: rendered context shrinks below quarter near dark area",
+    "medium-phalanx: medium-phalanx/pike-thrust/tier2: rendered context shrinks below quarter near dark area",
+    "medium-phalanx: medium-phalanx/death/tier2: rendered context shrinks below quarter near dark area"
+  ],
+  "pageErrors": []
+}

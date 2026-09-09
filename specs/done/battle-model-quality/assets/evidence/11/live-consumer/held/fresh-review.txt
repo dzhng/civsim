@@ -1,0 +1,8 @@
+**held-centroid-review — A/B indeterminate overall.** Inspected all six full images, then all six matching detail crops.
+
+- **Full images — high confidence:** Both show recognizable, complete diagnostic soldiers, readable standards and visible ground rings. Dense overlaps make individual swords, arms and rings difficult to assign, especially around the standard and lower center. No obvious missing body sections or gross layering failure.
+- **Detail crops — high confidence:** The banner and crossbar read clearly, but the cloth hides much of the soldier behind it. The long exposed pole reaches toward a foreground soldier’s shoulder; a definite hand gripping it is not readable. Attachment to a specific bearer remains visually ambiguous in both.
+- **Detail crops — medium confidence:** Adjacent rings intersect heavily beneath the standard and right-hand soldiers. Bodies generally occlude the rings plausibly, but identifying each soldier’s ground center is difficult. I cannot confidently label the small stance/ring offsets as incorrect.
+- **Across states — medium confidence:** The frozen A/B pair appears effectively equivalent. B’s restored view looks more closely matched to its fractional view; A retains small visible differences in stance and banner placement. That gives **B a slight edge for apparent restoration consistency**, without establishing better anatomical or ground alignment.
+
+Still images cannot establish sliding, jitter, interpolation correctness, or temporal root/pose synchronization. Occlusion also prevents confirming the hidden bearer’s complete geometry and grip.

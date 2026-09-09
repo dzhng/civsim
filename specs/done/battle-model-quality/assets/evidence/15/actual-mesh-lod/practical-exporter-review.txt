@@ -1,0 +1,5 @@
+No actionable correctness defects found in the current two-file diff.
+
+The added test checks detached-bead omission and exact preservation of the long thin weapon. Both files pass syntax checks. Runtime red/green remains unverified: headless Blender crashed during startup hardware detection before tests executed.
+
+No files edited; no visual acceptance claimed.

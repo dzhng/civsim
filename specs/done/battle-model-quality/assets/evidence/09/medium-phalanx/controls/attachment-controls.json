@@ -1,0 +1,18 @@
+{
+  "Scabbard suspension 0": {
+    "lower_vertices": 55,
+    "lower_exact": true,
+    "weights_exact": true,
+    "topology_exact": true,
+    "uvs_exact": true,
+    "maximum_wall_vector_error": 0.0
+  },
+  "Scabbard suspension 1": {
+    "lower_vertices": 70,
+    "lower_exact": true,
+    "weights_exact": true,
+    "topology_exact": true,
+    "uvs_exact": true,
+    "maximum_wall_vector_error": 0.0
+  }
+}

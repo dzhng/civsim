@@ -1,0 +1,285 @@
+{
+  "appearanceId": 15,
+  "name": "shock-cav-sidearm",
+  "key": "shock-cavalry-sidearm",
+  "sourceSha256": "d4871b10bd0f37edb0a218a2110edccd956652f40de898e8d5df5cb1b25a92b2",
+  "loader": "PASS",
+  "presentation": "exact current rosterRecipe",
+  "triangles": [
+    7914,
+    990,
+    762
+  ],
+  "priorTriangles": [
+    7914,
+    990,
+    762
+  ],
+  "rig": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "animationMetadata": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "animationData": {
+    "sameLength": true,
+    "length": 156228,
+    "changed": 0,
+    "maximumDifference": 0
+  },
+  "materials": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "textures": {
+    "orm": {
+      "metadata": {
+        "structuralDifferences": 0,
+        "changedNumbers": 0,
+        "maximumDifference": 0,
+        "examples": []
+      },
+      "beforeSha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1",
+      "afterSha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1",
+      "byteIdentical": true
+    },
+    "baseColor": {
+      "metadata": {
+        "structuralDifferences": 0,
+        "changedNumbers": 0,
+        "maximumDifference": 0,
+        "examples": []
+      },
+      "beforeSha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765",
+      "afterSha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765",
+      "byteIdentical": true
+    },
+    "normal": {
+      "metadata": {
+        "structuralDifferences": 0,
+        "changedNumbers": 0,
+        "maximumDifference": 0,
+        "examples": []
+      },
+      "beforeSha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb",
+      "afterSha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb",
+      "byteIdentical": true
+    }
+  },
+  "bounds": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "tiers": [
+    {
+      "tier": 0,
+      "freshGlbSha256": "df3b98e7f490879d40a5c21fbc22022d797dbbfd0184b0e3cafeefe90688241f",
+      "comparisons": {
+        "positions": {
+          "sameLength": true,
+          "length": 24630,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "normals": {
+          "sameLength": true,
+          "length": 24630,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "colors": {
+          "sameLength": true,
+          "length": 32840,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "joints": {
+          "sameLength": true,
+          "length": 32840,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "weights": {
+          "sameLength": true,
+          "length": 32840,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "uvs": {
+          "sameLength": true,
+          "length": 16420,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "tangents": {
+          "sameLength": true,
+          "length": 32840,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "materialIds": {
+          "sameLength": true,
+          "length": 8210,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "factionMasks": {
+          "sameLength": true,
+          "length": 8210,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "indices": {
+          "sameLength": true,
+          "length": 23742,
+          "changed": 0,
+          "maximumDifference": 0
+        }
+      }
+    },
+    {
+      "tier": 1,
+      "freshGlbSha256": "5a43851d5d2cfd8d3371dd2d31baca773837bed8abfe0b1ed120be7804b98144",
+      "comparisons": {
+        "positions": {
+          "sameLength": true,
+          "length": 5148,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "normals": {
+          "sameLength": true,
+          "length": 5148,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "colors": {
+          "sameLength": true,
+          "length": 6864,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "joints": {
+          "sameLength": true,
+          "length": 6864,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "weights": {
+          "sameLength": true,
+          "length": 6864,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "uvs": {
+          "sameLength": true,
+          "length": 3432,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "tangents": {
+          "sameLength": true,
+          "length": 6864,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "materialIds": {
+          "sameLength": true,
+          "length": 1716,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "factionMasks": {
+          "sameLength": true,
+          "length": 1716,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "indices": {
+          "sameLength": true,
+          "length": 2970,
+          "changed": 0,
+          "maximumDifference": 0
+        }
+      }
+    },
+    {
+      "tier": 2,
+      "freshGlbSha256": "c98a15ab73c5d191db56da660e062c8d47b899e25c17ef616be3ea169007a1bd",
+      "comparisons": {
+        "positions": {
+          "sameLength": true,
+          "length": 4122,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "normals": {
+          "sameLength": true,
+          "length": 4122,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "colors": {
+          "sameLength": true,
+          "length": 5496,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "joints": {
+          "sameLength": true,
+          "length": 5496,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "weights": {
+          "sameLength": true,
+          "length": 5496,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "uvs": {
+          "sameLength": true,
+          "length": 2748,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "tangents": {
+          "sameLength": true,
+          "length": 5496,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "materialIds": {
+          "sameLength": true,
+          "length": 1374,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "factionMasks": {
+          "sameLength": true,
+          "length": 1374,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "indices": {
+          "sameLength": true,
+          "length": 2286,
+          "changed": 0,
+          "maximumDifference": 0
+        }
+      }
+    }
+  ],
+  "sourceHashUnchanged": true,
+  "productionCatalogSha256": "a5c782407b9077066d91a966ff42dda4e9540d53e6597738f6d27ed49c6b4b1e"
+}

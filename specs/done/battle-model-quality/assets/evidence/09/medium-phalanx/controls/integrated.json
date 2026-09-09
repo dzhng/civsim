@@ -1,0 +1,467 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-07T13:13:28.021Z",
+  "target": "http://localhost:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "medium-phalanx",
+      "file": "models/medium-phalanx.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5174/assets/soldiers/candidates/medium-phalanx/catalog.json\",\"assets\":[{\"id\":14,\"name\":\"medium-phalanx\",\"presentation\":null,\"bones\":26,\"triangles\":[155190,155190,155190],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"pike-carry\",\"duration\":1,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":1.2000000476837158,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/complete-pike",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/whole-soldier",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/armor",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/outer: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/outer: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/rear-hand",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/outer: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/outer: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/front-hand",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/both-hands",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/waist",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/formation-gameplay",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

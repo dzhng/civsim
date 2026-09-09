@@ -1,0 +1,61 @@
+00:01.626  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/shock-cavalry-sidearm.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:08:22 | INFO: Starting glTF 2.0 export
+22:08:22 | INFO: Extracting primitive: Sandal sole.L.001
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:22 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:23 | INFO: Primitives created: 13
+22:08:23 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:08:25 | INFO: Finished glTF 2.0 export in 2.89982008934021 s
+00:08.157  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/shock-cavalry-sidearm.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+22:08:28 | INFO: Starting glTF 2.0 export
+22:08:28 | INFO: Extracting primitive: Sandal sole.L.001
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:28 | INFO: Primitives created: 13
+22:08:28 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:08:31 | INFO: Finished glTF 2.0 export in 3.423326015472412 s
+00:14.330  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/shock-cavalry-sidearm.blend"
+
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+22:08:34 | INFO: Starting glTF 2.0 export
+22:08:34 | INFO: Extracting primitive: Sandal sole.L.001
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:34 | INFO: Primitives created: 13
+22:08:34 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:08:37 | INFO: Finished glTF 2.0 export in 3.7881741523742676 s
+
+{"source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/shock-cavalry-sidearm.blend", "sourceSha256": "d4871b10bd0f37edb0a218a2110edccd956652f40de898e8d5df5cb1b25a92b2", "tiers": [{"name": "near", "targetTriangles": 8000, "sourceTriangles": 132728, "triangles": 7914, "omittedBelowMetres": 0, "retainedIslandTriangleFloor": 12, "glbSha256": "df3b98e7f490879d40a5c21fbc22022d797dbbfd0184b0e3cafeefe90688241f"}, {"name": "mid", "targetTriangles": 1000, "sourceTriangles": 132728, "triangles": 990, "omittedBelowMetres": 0.03, "retainedIslandTriangleFloor": 8, "glbSha256": "5a43851d5d2cfd8d3371dd2d31baca773837bed8abfe0b1ed120be7804b98144"}, {"name": "far", "targetTriangles": 800, "sourceTriangles": 132728, "triangles": 762, "omittedBelowMetres": 0.15, "retainedIslandTriangleFloor": 4, "glbSha256": "c98a15ab73c5d191db56da660e062c8d47b899e25c17ef616be3ea169007a1bd"}]}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

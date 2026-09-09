@@ -1,0 +1,50 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-06T02:48:13.669Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "mid",
+  "results": [
+    {
+      "id": "mid",
+      "current": "specs/battle-model-quality/assets/evidence/03/prototype-cutover/reference/mid.png",
+      "candidate": "specs/battle-model-quality/assets/evidence/03/prototype-cutover/candidate/mid.png",
+      "dimensions": {
+        "width": 790,
+        "height": 658
+      },
+      "parityDistance": 0.29473,
+      "grayscale": {
+        "mae": 14.28514,
+        "rmse": 19.05517,
+        "diffRatio16": 0.23606,
+        "diffRatio32": 0.11154,
+        "diffRatio64": 0.00661,
+        "pixelmatchRatio": 0.18872
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.98035,
+        "terrainLikeRatioCandidate": 0.99328,
+        "avgLuminanceCurrent": 143.59354,
+        "avgLuminanceCandidate": 141.01834,
+        "avgLuminanceDelta": -2.5752,
+        "edgeEnergyCurrent": 0.09348,
+        "edgeEnergyCandidate": 0.17783,
+        "edgeEnergyRatio": 1.90245,
+        "edgeDiffRatio32": 0.27732
+      },
+      "artifacts": {
+        "sideBySide": "comparison/mid-side-by-side.png",
+        "currentGray": "comparison/mid-current-gray.png",
+        "candidateGray": "comparison/mid-candidate-gray.png",
+        "absDiff": "comparison/mid-absdiff.png",
+        "pixelmatch": "comparison/mid-pixelmatch.png",
+        "currentEdges": "comparison/mid-current-edges.png",
+        "candidateEdges": "comparison/mid-candidate-edges.png",
+        "edgeDiff": "comparison/mid-edge-diff.png"
+      }
+    }
+  ]
+}

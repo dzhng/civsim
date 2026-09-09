@@ -1,0 +1,125 @@
+{
+  "source_to_glb_max_vertex_error": 6.87619149175589e-06,
+  "glb_to_source_max_vertex_error": 6.87619149175589e-06,
+  "imported_vertices": 82270,
+  "imported_triangles": 127286,
+  "source_triangles": 127286,
+  "frame": 0,
+  "action": "run",
+  "source_bones": {
+    "thigh.L": [
+      0.09367251396179199,
+      0.018087126314640045,
+      0.7844691276550293
+    ],
+    "shin.L": [
+      0.11967151612043381,
+      -0.14554521441459656,
+      0.3907620906829834
+    ],
+    "foot.L": [
+      0.12265264242887497,
+      0.2642374634742737,
+      0.3614325225353241
+    ],
+    "thigh.R": [
+      -0.09393046796321869,
+      0.005875720642507076,
+      0.7844691276550293
+    ],
+    "shin.R": [
+      -0.1199299544095993,
+      -0.2979185879230499,
+      0.4853212535381317
+    ],
+    "foot.R": [
+      -0.12486014515161514,
+      -0.4387604594230652,
+      0.09940534830093384
+    ]
+  },
+  "imported_bones": {
+    "thigh.L": [
+      0.09367252886295319,
+      0.018087122589349747,
+      0.7844691276550293
+    ],
+    "shin.L": [
+      0.11967136710882187,
+      -0.14554403722286224,
+      0.3907622694969177
+    ],
+    "foot.L": [
+      0.12265320867300034,
+      0.26423439383506775,
+      0.36143285036087036
+    ],
+    "thigh.R": [
+      -0.09393046796321869,
+      0.005875716917216778,
+      0.7844690680503845
+    ],
+    "shin.R": [
+      -0.11992979049682617,
+      -0.2979166507720947,
+      0.4853214621543884
+    ],
+    "foot.R": [
+      -0.12486016750335693,
+      -0.43875741958618164,
+      0.09940603375434875
+    ]
+  },
+  "slots": [
+    "OBHumanAnatomy-Rig"
+  ],
+  "matrix": [
+    [
+      -1.0,
+      -1.5099580252808664e-07,
+      0.0,
+      0.0
+    ],
+    [
+      1.5099580252808664e-07,
+      -1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "imported_part_triangles": {
+    "Sandal sole.L": 428,
+    "Sandal strap 0.L": 1296,
+    "Sandal strap 1.L": 1296,
+    "Sandal heel sling.L": 1616,
+    "Sandal heel riser -1.L": 1936,
+    "Sandal heel riser 1.L": 1936,
+    "Sandal sole.R": 428,
+    "Sandal strap 0.R": 1296,
+    "Sandal strap 1.R": 1296,
+    "Sandal heel sling.R": 1616,
+    "Sandal heel riser -1.R": 1936,
+    "Sandal heel riser 1.R": 1936,
+    "Scabbard": 1664,
+    "Scabbard fitting mouth": 896,
+    "Scabbard fitting upper band": 896,
+    "Scabbard fitting lower band": 896,
+    "Scabbard fitting chape": 1152,
+    "Scabbard suspension 0": 416,
+    "Scabbard suspension 1": 416,
+    "HumanAnatomy-Deform": 49366
+  },
+  "exported_surface_overlaps": []
+}

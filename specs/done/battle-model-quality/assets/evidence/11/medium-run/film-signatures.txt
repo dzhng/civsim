@@ -1,0 +1,6 @@
+853a857206a732983e8ee46090ef8752b78ca9efe667b7c49e691e21299cdd87  packages/soldier-assets/assets/source/medium-phalanx/medium-phalanx.blend
+5dbaf26fcce511b69b7b21bb7ac34e9a6bf28622eeb29edceaf2f15fe2e3ae95  packages/soldier-assets/assets/source/medium-phalanx/medium-phalanx.glb
+a459d3e59949887094e96a534e6198957fc573d7be45b0aed32cb118627b4424  packages/soldier-assets/bake/blender-medium-motion.py
+bcbe2506d0593fb9f6de34bc766b6ad33839836f214bcda1a73bbf0ad1abb8ea  web/scenes/models/_medium-travel.mjs
+eac30c9d62f1fd3eae1faacdb5b08470b46bd363a4bcd80c80793a611a7a91c3  web/scenes/models/medium-phalanx.mjs
+8ab9bd8ea4cfd2d3de456bc0ca25d7f33a6f941d2b51babf0bfc493638e2a8a5  web/src/wasm/game_wasm_bg.wasm

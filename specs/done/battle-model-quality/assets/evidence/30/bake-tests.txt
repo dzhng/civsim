@@ -1,0 +1,161 @@
+$ bun run bake:roster:test && node ../packages/soldier-assets/bake/local-hierarchy.test.mjs && node ../packages/soldier-assets/bake/local-animation.test.mjs && node ../packages/soldier-assets/bake/local-pose.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/engine-basis.test.mjs && node ../packages/soldier-assets/bake/candidate-forward.test.mjs && node ../packages/soldier-assets/bake/posed-tangents.test.mjs && node ../packages/soldier-assets/bake/animated-bounds.test.mjs && node ../packages/soldier-assets/bake/appearance.test.mjs && node ../packages/soldier-assets/bake/appearance-materials.test.mjs && node ../packages/soldier-assets/bake/material-swatches.test.mjs && node ../packages/soldier-assets/bake/presentation.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node ../packages/soldier-assets/bake/soldier-placeholders.test.mjs && node ../packages/soldier-assets/bake/blender-candidates.mjs --check && node ../packages/soldier-assets/bake/material-swatches.mjs --check && node shots/models/scripts/soldier-cards.mjs --check
+$ node ../packages/soldier-assets/bake/roster.mjs --out ../packages/soldier-assets/assets --check && node ../packages/soldier-assets/bake/roster.mjs --out public/assets/soldiers --check && node ../packages/soldier-assets/bake/roster.test.mjs public/assets/soldiers
+(node:33076) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/appearance.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+heavy-sword: verified
+light-spear: verified
+longsword: verified
+phalanx: verified
+archers: verified
+skirmishers: verified
+shock-cav: verified
+horse-archers: verified
+artillery-crew: verified
+peasant: verified
+light-sword: verified
+heavy-spear: verified
+medium-infantry: verified
+medium-spear: verified
+medium-phalanx: verified
+shock-cav-sidearm: verified
+heavy-phalanx-rest: verified
+medium-phalanx-rest: verified
+heavy-phalanx-sidearm: verified
+medium-phalanx-sidearm: verified
+(node:33667) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/appearance.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+heavy-sword: verified
+light-spear: verified
+longsword: verified
+phalanx: verified
+archers: verified
+skirmishers: verified
+shock-cav: verified
+horse-archers: verified
+artillery-crew: verified
+peasant: verified
+light-sword: verified
+heavy-spear: verified
+medium-infantry: verified
+medium-spear: verified
+medium-phalanx: verified
+shock-cav-sidearm: verified
+heavy-phalanx-rest: verified
+medium-phalanx-rest: verified
+heavy-phalanx-sidearm: verified
+medium-phalanx-sidearm: verified
+(node:34152) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/appearance.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+heavy-sword: actual loader, authored source, roles and decreasing tiers pass
+light-spear: actual loader, authored source, roles and decreasing tiers pass
+longsword: actual loader, authored source, roles and decreasing tiers pass
+phalanx: actual loader, authored source, roles and decreasing tiers pass
+archers: actual loader, authored source, roles and decreasing tiers pass
+skirmishers: actual loader, authored source, roles and decreasing tiers pass
+shock-cav: actual loader, authored source, roles and decreasing tiers pass
+horse-archers: actual loader, authored source, roles and decreasing tiers pass
+artillery-crew: actual loader, authored source, roles and decreasing tiers pass
+peasant: actual loader, authored source, roles and decreasing tiers pass
+light-sword: actual loader, authored source, roles and decreasing tiers pass
+heavy-spear: actual loader, authored source, roles and decreasing tiers pass
+medium-infantry: actual loader, authored source, roles and decreasing tiers pass
+medium-spear: actual loader, authored source, roles and decreasing tiers pass
+medium-phalanx: actual loader, authored source, roles and decreasing tiers pass
+shock-cav-sidearm: actual loader, authored source, roles and decreasing tiers pass
+heavy-phalanx-rest: actual loader, authored source, roles and decreasing tiers pass
+medium-phalanx-rest: actual loader, authored source, roles and decreasing tiers pass
+heavy-phalanx-sidearm: actual loader, authored source, roles and decreasing tiers pass
+medium-phalanx-sidearm: actual loader, authored source, roles and decreasing tiers pass
+(node:34705) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+local-hierarchy.test.mjs: all assertions passed
+(node:34706) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"vertices":512253444,"maximumError":0.0000015568683012257785,"hostileError":7.03083780010854e-7,"mountedVertices":86400,"mountedMaximumError":2.388837865275353e-7,"storage":[{"appearances":["0"],"gpuPoseBytes":955968,"stepMaskBytes":1352,"cpuTimeBytes":6128},{"appearances":["1"],"gpuPoseBytes":882336,"stepMaskBytes":1352,"cpuTimeBytes":5656},{"appearances":["2"],"gpuPoseBytes":517920,"stepMaskBytes":1560,"cpuTimeBytes":3320},{"appearances":["3"],"gpuPoseBytes":517920,"stepMaskBytes":1560,"cpuTimeBytes":3320},{"appearances":["4"],"gpuPoseBytes":1101072,"stepMaskBytes":1624,"cpuTimeBytes":6328},{"appearances":["5"],"gpuPoseBytes":1063104,"stepMaskBytes":1568,"cpuTimeBytes":6328},{"appearances":["6"],"gpuPoseBytes":624912,"stepMaskBytes":1316,"cpuTimeBytes":2216},{"appearances":["7"],"gpuPoseBytes":724416,"stepMaskBytes":1568,"cpuTimeBytes":2464},{"appearances":["8"],"gpuPoseBytes":1101072,"stepMaskBytes":1624,"cpuTimeBytes":6328},{"appearances":["9"],"gpuPoseBytes":955968,"stepMaskBytes":1352,"cpuTimeBytes":6128},{"appearances":["10"],"gpuPoseBytes":955968,"stepMaskBytes":1352,"cpuTimeBytes":6128},{"appearances":["11"],"gpuPoseBytes":882336,"stepMaskBytes":1352,"cpuTimeBytes":5656},{"appearances":["12"],"gpuPoseBytes":955968,"stepMaskBytes":1352,"cpuTimeBytes":6128},{"appearances":["13"],"gpuPoseBytes":882336,"stepMaskBytes":1352,"cpuTimeBytes":5656},{"appearances":["14"],"gpuPoseBytes":517920,"stepMaskBytes":1560,"cpuTimeBytes":3320},{"appearances":["15"],"gpuPoseBytes":624912,"stepMaskBytes":1316,"cpuTimeBytes":2216},{"appearances":["16"],"gpuPoseBytes":517920,"stepMaskBytes":1560,"cpuTimeBytes":3320},{"appearances":["17"],"gpuPoseBytes":517920,"stepMaskBytes":1560,"cpuTimeBytes":3320},{"appearances":["18"],"gpuPoseBytes":955968,"stepMaskBytes":1352,"cpuTimeBytes":6128},{"appearances":["19"],"gpuPoseBytes":955968,"stepMaskBytes":1352,"cpuTimeBytes":6128},{"appearances":["40"],"gpuPoseBytes":12000,"stepMaskBytes":40,"cpuTimeBytes":200},{"appearances":["41"],"gpuPoseBytes":26400,"stepMaskBytes":88,"cpuTimeBytes":400},{"appearances":["42"],"gpuPoseBytes":4800,"stepMaskBytes":16,"cpuTimeBytes":200}]}
+(node:36909) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localPose.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"candidate":41,"samples":10,"vertices":8640,"maximumError":3.916562555692296e-7,"localBlending":true,"step":true,"shortestArc":true}
+(node:36910) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+human Blender surface parity: maximum error 4.192611799667609e-7m
+mounted Blender surface parity: maximum error 3.9850865112063657e-7m
+gltf.test.mjs: all glTF→local animation round-trip checks passed
+(node:36911) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+human: engine-basis 1824 surface points, maximum 4.310951554733886e-7m
+mounted: engine-basis 2304 surface points, maximum 3.658457085105113e-7m
+(node:36912) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36913) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+posed tangent source admission: valid bind, collapsed mapped sample rejected, unmapped sample retained
+(node:36914) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/skin.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"arcRadius":1.0000553131103516,"arcDistance":1,"maskedCases":200,"maximumFraction":0.43525523861530513,"sourceVertices":3304420,"sourceMaximumFraction":0.9520544716184725,"samplingIndependent":true}
+(node:36918) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"fixtures":[{"fixture":"human","samples":4,"checkedVertices":5472,"maximumError":3.909125147448636e-7},{"fixture":"mounted","samples":10,"checkedVertices":8640,"maximumError":3.615106059319868e-7}],"uint32Merge":true,"cli":true,"deterministic":true}
+(node:37073) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+appearance texture material transport passed
+(node:37078) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"samples":4,"checkedVertices":720,"maximumError":3.8015516667271555e-7,"minimumHeight":0.7100000381469727,"materialSlots":6,"imageChannels":3}
+(node:37079) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+presentation: complete roster applicability, variant selection, HTTP admission, source markers and no-op rejection passed
+(node:37087) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+placeholder soldier bake is deterministic
+(node:37104) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"appearances":20,"checkedVertices":2793456,"maximumRadiusFraction":0.9475137774661702,"deterministic":true}
+(node:37156) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Blender diagnostic candidates verified; production catalog unchanged
+(node:37157) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Six material swatches verified; production roster unchanged
+(node:37158) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/appearance.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-model-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Card manifests and served portraits agree

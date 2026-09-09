@@ -1,0 +1,15 @@
+**Functional concerns**
+
+- **Archers — high confidence:** “Ready” and “release” look effectively identical across all four views. There is no clear visual release cue in the drawing hand, string, or arrow. The stills do not communicate that a shot occurred.
+- **Archers — medium confidence:** The bow is readable, but the arrow and its connection to the drawing hand/string are difficult to resolve. The front view collapses the weapon into a vertical line across the face and torso; the side view does little to clarify the firing mechanism.
+- **Artillery crew — high confidence:** Ready, release, recovery, and recovered equipment repeat essentially the same horizontal staff pose. With no visible mechanism or meaningful action change, these frames do not communicate operating artillery.
+- **Skirmishers — medium confidence:** The javelin disappears at release and returns for recovered equipment, so equipment state changes are readable. However, the extended, empty hand has a weak throwing follow-through; the release resembles pointing more than a forceful throw.
+
+**Cosmetic/readability concerns**
+
+- **All units — high confidence:** Frontal melee poses send the sword down-left while the elbow projects sideways. This produces an awkward, weak attack silhouette; the side views make the blade easier to understand.
+- **Archers — high confidence:** In melee, the retained upright bow crosses the chest and crowds the sword arm, making the weapon switch visually muddled.
+- **Artillery crew — high confidence:** The staff points almost directly into the side-view camera and largely disappears through foreshortening. That view is poor evidence for checking grip or attachment.
+- **All units — medium confidence:** Broad shoulders, compact torsos, and thin exposed legs make the figures look top-heavy. Several bent-knee poses remain stiff through the hips and torso.
+
+**No clear failure visible:** Feet generally meet the ground plausibly, with supporting shadows. I do not see definite floating equipment or detached shields. Thin strings, arrows, and hand contacts are too small here to judge confidently.

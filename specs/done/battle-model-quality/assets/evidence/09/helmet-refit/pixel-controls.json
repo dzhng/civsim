@@ -1,0 +1,22 @@
+{
+  "head-detail": {
+    "pixels": 1638400,
+    "changed": 128745
+  },
+  "close": {
+    "pixels": 3276800,
+    "changed": 12223
+  },
+  "gameplay-pitch": {
+    "pixels": 3276800,
+    "changed": 11833
+  },
+  "ready": {
+    "pixels": 1638400,
+    "changed": 6010
+  },
+  "hand-detail": {
+    "pixels": 1638400,
+    "changed": 0
+  }
+}

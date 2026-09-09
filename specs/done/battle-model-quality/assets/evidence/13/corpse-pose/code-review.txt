@@ -1,0 +1,11 @@
+Independent Codex review 84422, terminal 0.
+Session 01a07f47-1780-7a91-8dfc-4fe888e47220.
+
+No actionable correctness or shape findings. Both shader paths preserve authored geometry, facing, elevation and scale; corpse strength retains shading/AO ownership, and timeline/sim behavior is unchanged. All 12 LOD tests passed; unverified risks remain GPU shader validation and pending pixel gates—visual acceptance is not claimed.
+
+Independent final-color-transfer review 53178, terminal 0.
+Session 01a07f53-6a3f-7930-8ba0-4647ae03c2e9.
+
+No actionable defects found in the shaders, bounds, or variant-metadata removal. Archived-image analysis showed one-byte transfer error, while CPU shading probes produced substantially larger errors for normals-only application of the former roll angles, supporting the two-byte gate rather than merely assuming its validity. The exact foreground-sampling oracle was not rerun; no browser/GPU execution or visual acceptance is claimed.
+
+Scope limitation: parent subsequently identified the stale temporal culling expectation in _temporal-replay.mjs. The first two reviews do not establish its correctness. Separate review 19207 (session 01a07f58-45bc-73a2-a324-4e3b99fd5f68) completed terminal 0 after repair; its exact final verdict is in temporal-review.txt. It finds no concrete defect and makes no execution claim.

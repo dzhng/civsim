@@ -1,0 +1,2030 @@
+[
+  {
+    "name": "a-before",
+    "failures": [
+      "battle-model-budget: close/steady/control: live cadence p95 <= 33ms",
+      "battle-model-budget: close/steady/timed: live cadence p95 <= 33ms",
+      "battle-model-budget: close/interruptions/control: live cadence p95 <= 33ms",
+      "battle-model-budget: close/interruptions/timed: live cadence p95 <= 33ms"
+    ],
+    "pageErrors": [],
+    "rows": [
+      {
+        "name": "close/steady/control: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 12.865000009536743,
+          "p95": 20.424999952316284
+        },
+        "rafMs": {
+          "median": 16.66500000000042,
+          "p95": 50
+        },
+        "gpuQueueMs": {
+          "median": null,
+          "p95": null
+        },
+        "samples": 180,
+        "gpuFrames": 0,
+        "uniqueGpuFrames": 0,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 127,
+        "stages": {
+          "observeMs": {
+            "median": 2.6100000143051147,
+            "p95": 5.989999890327454
+          },
+          "sampleMs": {
+            "median": 1.6150000095367432,
+            "p95": 2.6799999475479126
+          },
+          "buildMs": {
+            "median": 0.75,
+            "p95": 1.0850000381469727
+          },
+          "uploadMs": {
+            "median": 6.379999995231628,
+            "p95": 9.81499993801117
+          },
+          "renderSubmitMs": {
+            "median": 1.184999942779541,
+            "p95": 1.5149999856948853
+          }
+        }
+      },
+      {
+        "name": "close/steady/timed: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 13.384999990463257,
+          "p95": 20.4650000333786
+        },
+        "rafMs": {
+          "median": 16.670000000000073,
+          "p95": 33.335000000000946
+        },
+        "gpuQueueMs": {
+          "median": 23.611139,
+          "p95": 26.124434
+        },
+        "samples": 180,
+        "gpuFrames": 180,
+        "uniqueGpuFrames": 180,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 134,
+        "stages": {
+          "observeMs": {
+            "median": 2.609999895095825,
+            "p95": 5.649999976158142
+          },
+          "sampleMs": {
+            "median": 1.6950000524520874,
+            "p95": 2.7649999856948853
+          },
+          "buildMs": {
+            "median": 0.75,
+            "p95": 0.9850000143051147
+          },
+          "uploadMs": {
+            "median": 6.459999918937683,
+            "p95": 10.129999995231628
+          },
+          "renderSubmitMs": {
+            "median": 1.1649999618530273,
+            "p95": 1.340000033378601
+          }
+        }
+      },
+      {
+        "name": "close/interruptions/control: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 13.875,
+          "p95": 25.234999895095825
+        },
+        "rafMs": {
+          "median": 16.669999999998254,
+          "p95": 50
+        },
+        "gpuQueueMs": {
+          "median": null,
+          "p95": null
+        },
+        "samples": 180,
+        "gpuFrames": 0,
+        "uniqueGpuFrames": 0,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 127,
+        "stages": {
+          "observeMs": {
+            "median": 3.15500009059906,
+            "p95": 9.309999942779541
+          },
+          "sampleMs": {
+            "median": 2.1700000762939453,
+            "p95": 5.53000009059906
+          },
+          "buildMs": {
+            "median": 0.7799999713897705,
+            "p95": 1.0700000524520874
+          },
+          "uploadMs": {
+            "median": 6.909999966621399,
+            "p95": 11.429999947547913
+          },
+          "renderSubmitMs": {
+            "median": 1.0850000381469727,
+            "p95": 1.3650000095367432
+          }
+        }
+      },
+      {
+        "name": "close/interruptions/timed: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 15.175000071525574,
+          "p95": 26.664999961853027
+        },
+        "rafMs": {
+          "median": 16.67000000000189,
+          "p95": 33.335000000002765
+        },
+        "gpuQueueMs": {
+          "median": 23.668096,
+          "p95": 25.75669
+        },
+        "samples": 180,
+        "gpuFrames": 180,
+        "uniqueGpuFrames": 180,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 133,
+        "stages": {
+          "observeMs": {
+            "median": 3.365000009536743,
+            "p95": 9.375
+          },
+          "sampleMs": {
+            "median": 2.1449999809265137,
+            "p95": 4.754999995231628
+          },
+          "buildMs": {
+            "median": 0.7800000905990601,
+            "p95": 1
+          },
+          "uploadMs": {
+            "median": 7.5,
+            "p95": 12.110000014305115
+          },
+          "renderSubmitMs": {
+            "median": 1.084999918937683,
+            "p95": 1.309999942779541
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "b",
+    "failures": [
+      "battle-model-budget: close/steady/control: live cadence p95 <= 33ms",
+      "battle-model-budget: close/steady/timed: live cadence p95 <= 33ms",
+      "battle-model-budget: close/interruptions/control: live cadence p95 <= 33ms",
+      "battle-model-budget: close/interruptions/timed: live cadence p95 <= 33ms"
+    ],
+    "pageErrors": [],
+    "rows": [
+      {
+        "name": "close/steady/control: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 11.190000057220459,
+          "p95": 19.044999957084656
+        },
+        "rafMs": {
+          "median": 16.670000000000073,
+          "p95": 50
+        },
+        "gpuQueueMs": {
+          "median": null,
+          "p95": null
+        },
+        "samples": 180,
+        "gpuFrames": 0,
+        "uniqueGpuFrames": 0,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 127,
+        "stages": {
+          "observeMs": {
+            "median": 2.100000023841858,
+            "p95": 4.860000014305115
+          },
+          "sampleMs": {
+            "median": 0.625,
+            "p95": 1.5
+          },
+          "buildMs": {
+            "median": 0.7599999904632568,
+            "p95": 1.0549999475479126
+          },
+          "uploadMs": {
+            "median": 6.490000009536743,
+            "p95": 10.019999980926514
+          },
+          "renderSubmitMs": {
+            "median": 1.1399999856948853,
+            "p95": 1.399999976158142
+          }
+        }
+      },
+      {
+        "name": "close/steady/timed: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 11.104999899864197,
+          "p95": 16.294999957084656
+        },
+        "rafMs": {
+          "median": 16.670000000000073,
+          "p95": 33.335000000000946
+        },
+        "gpuQueueMs": {
+          "median": 23.434767,
+          "p95": 26.011063
+        },
+        "samples": 180,
+        "gpuFrames": 180,
+        "uniqueGpuFrames": 180,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 133,
+        "stages": {
+          "observeMs": {
+            "median": 2.1399999856948853,
+            "p95": 4.894999980926514
+          },
+          "sampleMs": {
+            "median": 0.5950000286102295,
+            "p95": 1.7950000762939453
+          },
+          "buildMs": {
+            "median": 0.7899999618530273,
+            "p95": 0.9449999332427979
+          },
+          "uploadMs": {
+            "median": 6.444999933242798,
+            "p95": 10.134999990463257
+          },
+          "renderSubmitMs": {
+            "median": 1.1100000143051147,
+            "p95": 1.2350000143051147
+          }
+        }
+      },
+      {
+        "name": "close/interruptions/control: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 15.670000076293945,
+          "p95": 28.649999976158142
+        },
+        "rafMs": {
+          "median": 16.670000000000073,
+          "p95": 49.99499999999898
+        },
+        "gpuQueueMs": {
+          "median": null,
+          "p95": null
+        },
+        "samples": 180,
+        "gpuFrames": 0,
+        "uniqueGpuFrames": 0,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 133,
+        "stages": {
+          "observeMs": {
+            "median": 3.884999990463257,
+            "p95": 10.964999914169312
+          },
+          "sampleMs": {
+            "median": 1.78000009059906,
+            "p95": 4.224999904632568
+          },
+          "buildMs": {
+            "median": 0.8600000143051147,
+            "p95": 1.3050000667572021
+          },
+          "uploadMs": {
+            "median": 8.235000014305115,
+            "p95": 14.139999985694885
+          },
+          "renderSubmitMs": {
+            "median": 1.25,
+            "p95": 1.6200000047683716
+          }
+        }
+      },
+      {
+        "name": "close/interruptions/timed: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 14.644999980926514,
+          "p95": 25.149999976158142
+        },
+        "rafMs": {
+          "median": 16.67000000000189,
+          "p95": 33.335000000002765
+        },
+        "gpuQueueMs": {
+          "median": 23.662847,
+          "p95": 25.622817
+        },
+        "samples": 180,
+        "gpuFrames": 180,
+        "uniqueGpuFrames": 180,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 133,
+        "stages": {
+          "observeMs": {
+            "median": 3.4850000143051147,
+            "p95": 9.714999914169312
+          },
+          "sampleMs": {
+            "median": 1.7400000095367432,
+            "p95": 3.8200000524520874
+          },
+          "buildMs": {
+            "median": 0.8200000524520874,
+            "p95": 1.0700000524520874
+          },
+          "uploadMs": {
+            "median": 7.639999985694885,
+            "p95": 12.850000023841858
+          },
+          "renderSubmitMs": {
+            "median": 1.119999885559082,
+            "p95": 1.2599999904632568
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "a-after",
+    "failures": [
+      "battle-model-budget: close/steady/control: live cadence p95 <= 33ms",
+      "battle-model-budget: close/steady/timed: live cadence p95 <= 33ms",
+      "battle-model-budget: close/interruptions/control: live cadence p95 <= 33ms",
+      "battle-model-budget: close/interruptions/timed: live cadence p95 <= 33ms"
+    ],
+    "pageErrors": [],
+    "rows": [
+      {
+        "name": "close/steady/control: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 12.56000006198883,
+          "p95": 22.014999985694885
+        },
+        "rafMs": {
+          "median": 16.66500000000042,
+          "p95": 33.335000000000036
+        },
+        "gpuQueueMs": {
+          "median": null,
+          "p95": null
+        },
+        "samples": 180,
+        "gpuFrames": 0,
+        "uniqueGpuFrames": 0,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 113,
+        "stages": {
+          "observeMs": {
+            "median": 2.384999990463257,
+            "p95": 5.495000004768372
+          },
+          "sampleMs": {
+            "median": 1.7450000047683716,
+            "p95": 2.634999990463257
+          },
+          "buildMs": {
+            "median": 0.75,
+            "p95": 0.9450000524520874
+          },
+          "uploadMs": {
+            "median": 6.580000042915344,
+            "p95": 11.539999961853027
+          },
+          "renderSubmitMs": {
+            "median": 1.1150000095367432,
+            "p95": 1.4950000047683716
+          }
+        }
+      },
+      {
+        "name": "close/steady/timed: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 14.65499997138977,
+          "p95": 23.2150000333786
+        },
+        "rafMs": {
+          "median": 16.670000000000073,
+          "p95": 33.335000000000946
+        },
+        "gpuQueueMs": {
+          "median": 20.804891,
+          "p95": 22.895484
+        },
+        "samples": 180,
+        "gpuFrames": 180,
+        "uniqueGpuFrames": 180,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 119,
+        "stages": {
+          "observeMs": {
+            "median": 2.7549999952316284,
+            "p95": 6.805000066757202
+          },
+          "sampleMs": {
+            "median": 1.834999918937683,
+            "p95": 2.9499999284744263
+          },
+          "buildMs": {
+            "median": 0.8600000143051147,
+            "p95": 1.100000023841858
+          },
+          "uploadMs": {
+            "median": 7.789999961853027,
+            "p95": 12.259999990463257
+          },
+          "renderSubmitMs": {
+            "median": 1.2899999618530273,
+            "p95": 1.5149999856948853
+          }
+        }
+      },
+      {
+        "name": "close/interruptions/control: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 15.944999933242798,
+          "p95": 28.920000076293945
+        },
+        "rafMs": {
+          "median": 16.665000000000873,
+          "p95": 33.335000000000946
+        },
+        "gpuQueueMs": {
+          "median": null,
+          "p95": null
+        },
+        "samples": 180,
+        "gpuFrames": 0,
+        "uniqueGpuFrames": 0,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 117,
+        "stages": {
+          "observeMs": {
+            "median": 3.7950000762939453,
+            "p95": 10.620000004768372
+          },
+          "sampleMs": {
+            "median": 2.399999976158142,
+            "p95": 5.400000095367432
+          },
+          "buildMs": {
+            "median": 0.8700000047683716,
+            "p95": 1.1349999904632568
+          },
+          "uploadMs": {
+            "median": 8.480000019073486,
+            "p95": 14.534999966621399
+          },
+          "renderSubmitMs": {
+            "median": 1.2400000095367432,
+            "p95": 1.5800000429153442
+          }
+        }
+      },
+      {
+        "name": "close/interruptions/timed: frame measurements",
+        "asset": {
+          "bones": 67,
+          "vertices": [
+            1800,
+            648,
+            288
+          ],
+          "triangles": [
+            2304,
+            576,
+            144
+          ],
+          "nonzeroInfluences": [
+            [
+              0,
+              0,
+              0,
+              0,
+              1800
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              648
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              288
+            ]
+          ],
+          "authoredSamples": [
+            {
+              "name": "gait",
+              "samples": 49
+            },
+            {
+              "name": "rider-action",
+              "samples": 49
+            },
+            {
+              "name": "fixture-walk",
+              "samples": 49
+            },
+            {
+              "name": "fixture-run",
+              "samples": 49
+            },
+            {
+              "name": "fixture-release",
+              "samples": 49
+            },
+            {
+              "name": "fixture-fullbody-terminal",
+              "samples": 49
+            }
+          ],
+          "animationBytes": 947112
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 22.857142857142858,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              2.368040807505029
+            ],
+            "distance": 3.5,
+            "pitch": 0.24,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.85,
+            "aspect": 1.7777777777777777,
+            "near": 1
+          }
+        },
+        "dimensions": [
+          5120,
+          2880
+        ],
+        "tierHistogram": {
+          "l0": 6113,
+          "l1": 0,
+          "l2": 0,
+          "l3": 23887
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 30000,
+          "l3": 0
+        },
+        "palette": [
+          {
+            "bones": 67,
+            "visible": 30000,
+            "capacity": 30000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 2,
+            "allocatedBytes": 131998368,
+            "uploadedBytes": 2400000,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "drawCalls": 1,
+        "textureSize": 1024,
+        "detail": {
+          "subdivisions": [
+            2,
+            1,
+            0
+          ],
+          "jointCopies": 8,
+          "influences": 4,
+          "keySubdivisions": 2
+        },
+        "cpuMs": {
+          "median": 17.600000023841858,
+          "p95": 29.975000023841858
+        },
+        "rafMs": {
+          "median": 16.669999999998254,
+          "p95": 33.33499999999913
+        },
+        "gpuQueueMs": {
+          "median": 21.040304,
+          "p95": 22.861859
+        },
+        "samples": 180,
+        "gpuFrames": 180,
+        "uniqueGpuFrames": 180,
+        "gpuFrameIdsMatchSamples": true,
+        "advancedTicks": 120,
+        "stages": {
+          "observeMs": {
+            "median": 4.045000076293945,
+            "p95": 10.794999957084656
+          },
+          "sampleMs": {
+            "median": 2.4499999284744263,
+            "p95": 4.875
+          },
+          "buildMs": {
+            "median": 0.9249999523162842,
+            "p95": 1.2599999904632568
+          },
+          "uploadMs": {
+            "median": 8.764999985694885,
+            "p95": 14.044999957084656
+          },
+          "renderSubmitMs": {
+            "median": 1.2549999952316284,
+            "p95": 1.6950000524520874
+          }
+        }
+      }
+    ]
+  }
+]

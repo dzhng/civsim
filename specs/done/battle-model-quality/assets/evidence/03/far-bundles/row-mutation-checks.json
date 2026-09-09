@@ -1,0 +1,172 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T02:43:36.941Z",
+  "target": "http://localhost:5178",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-far-bundles",
+      "file": "models/battle-model-far-bundles.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: pike remains on the mesh's right-hand side",
+      "ok": true,
+      "detail": "{\"polePixels\":177,\"centroidX\":669.3220338983051}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: pike remains on the mesh's right-hand side",
+      "ok": false,
+      "detail": "{\"polePixels\":199,\"centroidX\":621.4070351758794}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-far-diagnostic",
+      "ok": false,
+      "detail": "16900 px differ (1.6504%) — see shots/diff/battle/far-bundles/front-far-diagnostic.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-far-diagnostic",
+      "ok": false,
+      "detail": "11695 px differ (1.1421%) — see shots/diff/battle/far-bundles/side-far-diagnostic.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],\"count\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: catalog covers every current appearance",
+      "ok": true,
+      "detail": "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/roster-production-far",
+      "ok": false,
+      "detail": "996 px differ (0.0973%) — see shots/diff/battle/far-bundles/roster-production-far.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-far-bundles: front-far-diagnostic: pike remains on the mesh's right-hand side",
+    "battle-model-far-bundles: snapshot battle/far-bundles/front-far-diagnostic",
+    "battle-model-far-bundles: snapshot battle/far-bundles/side-far-diagnostic",
+    "battle-model-far-bundles: snapshot battle/far-bundles/roster-production-far"
+  ],
+  "pageErrors": []
+}

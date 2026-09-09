@@ -1,0 +1,49 @@
+{
+  "paths": [
+    "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb",
+    "throwaway/garment-composition/heavy-kit.glb"
+  ],
+  "sha256": [
+    "3c53bc08ba7d4e9f4066e89c23d0d383a03afb9dd945bf2c2375423b4f9431b7",
+    "a1d4e6c569fbf485c577fb568cf024fa984056aad98fb5442099ca0f33f15f5c"
+  ],
+  "rigExact": true,
+  "animationExact": true,
+  "changed": [
+    "heavy-cloth",
+    "heavy-mail"
+  ],
+  "retained": [
+    {
+      "name": "heavy-skin",
+      "tangentChanges": 7,
+      "maxTangentDelta": 0.00010001659393310547
+    },
+    {
+      "name": "heavy-leather",
+      "tangentChanges": 2,
+      "maxTangentDelta": 0.00010001659393310547
+    },
+    {
+      "name": "heavy-bronze",
+      "tangentChanges": 2,
+      "maxTangentDelta": 0.00010000169277191162
+    },
+    {
+      "name": "heavy-shield-hide",
+      "tangentChanges": 0,
+      "maxTangentDelta": 0
+    },
+    {
+      "name": "heavy-wood",
+      "tangentChanges": 0,
+      "maxTangentDelta": 0
+    },
+    {
+      "name": "heavy-iron",
+      "tangentChanges": 0,
+      "maxTangentDelta": 0
+    }
+  ],
+  "strictBundleFiles": 13
+}

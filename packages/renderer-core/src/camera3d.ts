@@ -9,9 +9,18 @@
 // WGSL `mat4x4<f32>` verbatim. Depth is reverse-Z in WebGPU clip space (near → 1,
 // far → 0).
 
-import { identity, invert, lookAt, multiply, perspectiveReverseZ, transformVec4, type Mat4, type Vec3 } from './mat4';
+import {
+  identity,
+  invert,
+  lookAt,
+  multiply,
+  perspectiveReverseZ,
+  transformVec4,
+  type Mat4,
+  type Vec3,
+} from "./mat4";
 
-export type { Mat4, Vec3 } from './mat4';
+export type { Mat4, Vec3 } from "./mat4";
 
 export interface Camera3DParams {
   /** Point the camera orbits and looks at, in world space (XY ground, +Z up). */
@@ -71,6 +80,53 @@ export function projectPoint(p: Camera3DParams, world: Vec3): { ndc: Vec3; clipW
   return { ndc: [clip[0] * inv, clip[1] * inv, clip[2] * inv], clipW: w };
 }
 
+/** Frame-owned projection scale: no matrices or vectors allocated per body. */
+export interface ProjectionFootprint {
+  view: ArrayLike<number>;
+  pixelsPerViewUnit: number;
+  perspective: boolean;
+  near: number;
+}
+
+export function projectionFootprint(
+  view: ArrayLike<number>,
+  projection: ArrayLike<number>,
+  viewportHeight: number,
+  near: number,
+): ProjectionFootprint {
+  return {
+    view,
+    pixelsPerViewUnit: (Math.abs(projection[5]) * viewportHeight) / 2,
+    perspective: projection[15] === 0,
+    near,
+  };
+}
+
+export function projectionDepth(
+  projection: ProjectionFootprint,
+  x: number,
+  y: number,
+  z: number,
+): number {
+  const m = projection.view;
+  return -(m[2] * x + m[6] * y + m[10] * z + m[14]);
+}
+
+/** Camera-facing span, stable at overhead views. Near-plane crossings demand
+ * full detail; wholly near/behind spans make no view contribution. */
+export function projectedSpanPixels(
+  projection: ProjectionFootprint,
+  x: number,
+  y: number,
+  z: number,
+  span: number,
+): number {
+  const depth = projectionDepth(projection, x, y, z);
+  if (depth + span / 2 <= projection.near) return 0;
+  if (depth - span / 2 <= projection.near) return Infinity;
+  return (span * projection.pixelsPerViewUnit) / (projection.perspective ? depth : 1);
+}
+
 // Unproject a full NDC point (x, y, z) to world, using a precomputed inverse
 // view-projection so callers casting many rays don't rebuild it.
 function worldFromNdc(inv: Mat4, ndcX: number, ndcY: number, ndcZ: number): Vec3 {
@@ -87,16 +143,25 @@ function worldFromNdc(inv: Mat4, ndcX: number, ndcY: number, ndcZ: number): Vec3
 function screenRay(p: Camera3DParams, ndcX: number, ndcY: number): { origin: Vec3; dir: Vec3 } {
   const eye = eyePosition(p);
   const near = worldFromNdc(invViewProj(p), ndcX, ndcY, 1); // reverse-Z: near plane = depth 1
-  let dx = near[0] - eye[0], dy = near[1] - eye[1], dz = near[2] - eye[2];
+  let dx = near[0] - eye[0],
+    dy = near[1] - eye[1],
+    dz = near[2] - eye[2];
   const l = Math.hypot(dx, dy, dz) || 1;
-  dx /= l; dy /= l; dz /= l;
+  dx /= l;
+  dy /= l;
+  dz /= l;
   return { origin: eye, dir: [dx, dy, dz] };
 }
 
 // Intersect the pixel ray with the horizontal plane z = planeZ — the picking
 // primitive (pick against the ground, or a unit's mean elevation). Returns null
 // when the ray is parallel to the plane or the hit is behind the eye.
-export function unprojectToPlaneZ(p: Camera3DParams, ndcX: number, ndcY: number, planeZ: number): Vec3 | null {
+export function unprojectToPlaneZ(
+  p: Camera3DParams,
+  ndcX: number,
+  ndcY: number,
+  planeZ: number,
+): Vec3 | null {
   const { origin, dir } = screenRay(p, ndcX, ndcY);
   if (Math.abs(dir[2]) < 1e-9) return null;
   const t = (planeZ - origin[2]) / dir[2];

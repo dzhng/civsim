@@ -1,0 +1,38 @@
+import bpy
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+output = Path(sys.argv[sys.argv.index('--') + 1])
+manifest = json.loads((output / 'manifest.json').read_text())
+rows = []
+for source in manifest['sources']:
+    path = output / 'checkout' / source['source']
+    bpy.ops.wm.open_mainfile(filepath=str(path))
+    matches = [(scene, scene.objects.get(source['body'])) for scene in bpy.data.scenes
+               if scene.objects.get(source['body'])]
+    if len(matches) != 1:
+        raise ValueError(f"{source['key']}: expected one {source['body']}; got {len(matches)}")
+    scene, body = matches[0]
+    arms = [modifier.object for modifier in body.modifiers if modifier.type == 'ARMATURE']
+    if len(arms) != 1 or arms[0] is None:
+        raise ValueError(f"{source['key']}: expected one armature")
+    bpy.context.window.scene = scene
+    body.data.calc_loop_triangles()
+    images = [{'name': image.name, 'packed': bool(image.packed_file or image.packed_files),
+               'source': image.source, 'filepath': image.filepath}
+              for image in bpy.data.images if image.source == 'FILE']
+    row = {'key': source['key'], 'scene': scene.name, 'body': body.name,
+           'vertices': len(body.data.vertices), 'triangles': len(body.data.loop_triangles),
+           'armature': arms[0].name, 'bones': len(arms[0].data.bones),
+           'nlaTracks': [track.name for track in arms[0].animation_data.nla_tracks],
+           'images': images,
+           'sourceSha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    if row['sourceSha256'] != source['sourceSha256']:
+        raise ValueError(f"{source['key']}: input changed")
+    if any(not image['packed'] for image in images):
+        raise ValueError(f"{source['key']}: unpacked image needs a tracked dependency audit")
+    rows.append(row)
+    print('SOURCE', json.dumps({key: value for key, value in row.items() if key != 'images'}), flush=True)
+(output / 'source-inventory.json').write_text(json.dumps({'blender': bpy.app.version_string, 'sources': rows}, indent=2) + '\n')

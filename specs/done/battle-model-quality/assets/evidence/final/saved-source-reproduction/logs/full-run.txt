@@ -1,0 +1,35 @@
+START light-spear 2026-09-08T15:03:42.502Z
+START longsword 2026-09-08T15:03:42.504Z
+FINISH longsword {"key":"longsword","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:04:12.542Z
+START phalanx 2026-09-08T15:04:12.542Z
+FINISH light-spear {"key":"light-spear","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:04:19.538Z
+START foot-roster--archers 2026-09-08T15:04:19.538Z
+FINISH phalanx {"key":"phalanx","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:04:53.595Z
+START foot-roster--skirmishers 2026-09-08T15:04:53.595Z
+FINISH foot-roster--archers {"key":"foot-roster--archers","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:05:06.531Z
+START shock-cavalry 2026-09-08T15:05:06.531Z
+FINISH shock-cavalry {"key":"shock-cavalry","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:05:30.072Z
+START horse-archer 2026-09-08T15:05:30.072Z
+FINISH foot-roster--skirmishers {"key":"foot-roster--skirmishers","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:05:35.089Z
+START foot-roster--artillery-crew 2026-09-08T15:05:35.089Z
+FINISH horse-archer {"key":"horse-archer","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:05:51.681Z
+START foot-roster--peasant 2026-09-08T15:05:51.681Z
+FINISH foot-roster--artillery-crew {"key":"foot-roster--artillery-crew","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:06:18.856Z
+START foot-roster--light-sword 2026-09-08T15:06:18.856Z
+FINISH foot-roster--peasant {"key":"foot-roster--peasant","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:06:29.379Z
+START heavy-spear 2026-09-08T15:06:29.379Z
+FINISH foot-roster--light-sword {"key":"foot-roster--light-sword","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:07:04.445Z
+START foot-roster--medium-infantry 2026-09-08T15:07:04.445Z
+FINISH heavy-spear {"key":"heavy-spear","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:07:24.936Z
+START medium-spear 2026-09-08T15:07:24.936Z
+FINISH foot-roster--medium-infantry {"key":"foot-roster--medium-infantry","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:07:57.423Z
+START medium-phalanx 2026-09-08T15:07:57.423Z
+FINISH medium-spear {"key":"medium-spear","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:08:17.169Z
+START shock-cavalry-sidearm 2026-09-08T15:08:17.170Z
+FINISH medium-phalanx {"key":"medium-phalanx","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:08:37.943Z
+START heavy-phalanx-sidearm 2026-09-08T15:08:37.943Z
+FINISH shock-cavalry-sidearm {"key":"shock-cavalry-sidearm","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:08:41.333Z
+START medium-phalanx-sidearm 2026-09-08T15:08:41.333Z
+FINISH heavy-phalanx-sidearm {"key":"heavy-phalanx-sidearm","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:09:31.318Z
+FINISH medium-phalanx-sidearm {"key":"medium-phalanx-sidearm","exported":{"exitCode":0,"signal":null},"verified":{"exitCode":0,"signal":null}} 2026-09-08T15:09:41.155Z
+COMPLETE 17 remaining sources, exit 0

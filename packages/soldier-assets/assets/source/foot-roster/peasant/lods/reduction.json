@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-battle-model-quality/packages/soldier-assets/assets/source/foot-roster/peasant/peasant.blend",
+  "sourceSha256": "f7c6ca9972dceb81efeb02c83e47fb041b41071e565328a3f40154ca965376ac",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 93232,
+      "triangles": 7976,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "a7fa9f7672b4784e7fd5618b1aef73dcf36b72241df0be582872dd5a90850522"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 93232,
+      "triangles": 980,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "9740e605d341b8ff85a5f5fcddd1244ca239ffe9bdff40427cb547a4644c743a"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 93232,
+      "triangles": 786,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "15be8e18b83f8ddf0620565e555a96677a24c3e6381cb28c5c18595a31a726dc"
+    }
+  ]
+}

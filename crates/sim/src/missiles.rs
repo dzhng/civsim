@@ -13,7 +13,7 @@ use crate::tunables::DT;
 use crate::unit::OrderMode;
 
 const GRAVITY: f32 = 9.81;
-const LOOSING_TTL: f32 = 0.75;
+pub const LOOSING_TTL: f32 = 0.75;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum MissileKind {

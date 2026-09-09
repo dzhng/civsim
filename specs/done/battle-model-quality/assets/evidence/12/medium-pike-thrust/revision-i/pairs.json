@@ -1,0 +1,54 @@
+{
+  "left": "H",
+  "right": "I",
+  "metrics": [
+    {
+      "name": "whole-left-10",
+      "changed": 0,
+      "width": 1024,
+      "height": 640
+    },
+    {
+      "name": "whole-left-11",
+      "changed": 39063,
+      "width": 1024,
+      "height": 640
+    },
+    {
+      "name": "whole-left-13",
+      "changed": 76618,
+      "width": 1024,
+      "height": 640
+    },
+    {
+      "name": "whole-left-17",
+      "changed": 67110,
+      "width": 1024,
+      "height": 640
+    },
+    {
+      "name": "whole-right-10",
+      "changed": 0,
+      "width": 1024,
+      "height": 640
+    },
+    {
+      "name": "whole-right-11",
+      "changed": 38785,
+      "width": 1024,
+      "height": 640
+    },
+    {
+      "name": "whole-right-13",
+      "changed": 59444,
+      "width": 1024,
+      "height": 640
+    },
+    {
+      "name": "whole-right-17",
+      "changed": 48600,
+      "width": 1024,
+      "height": 640
+    }
+  ]
+}

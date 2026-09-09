@@ -124,6 +124,7 @@ pub(super) struct PrepareSoldierArgs<'a> {
     pub(super) cy: &'a mut f32,
     pub(super) opp_press: &'a mut f32,
     pub(super) engaged_count: &'a mut usize,
+    pub(super) motor_capable: &'a mut bool,
 }
 
 pub(super) fn prepare_soldier(
@@ -156,6 +157,7 @@ pub(super) fn prepare_soldier(
         cy,
         opp_press,
         engaged_count,
+        motor_capable,
     } = args;
 
     if alive[i] == 0 {
@@ -216,6 +218,7 @@ pub(super) fn prepare_soldier(
         return None;
     }
 
+    *motor_capable = true;
     if route_soldier(
         RouteArgs {
             u,
@@ -260,4 +263,33 @@ pub(super) fn prepare_soldier(
         order_advancing,
         trampling,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::class::UnitClassId;
+
+    #[test]
+    fn expiring_bowled_body_has_no_qualified_travel_until_recovery_tick() {
+        let mut sim = Sim::new(
+            Tunables {
+                morale_enabled: false,
+                ..Tunables::default()
+            },
+            0x5150,
+        );
+        sim.spawn_class(Vec2::ZERO, 0.0, 1, UnitClassId::HeavySword, 0);
+        sim.spawn_class(Vec2::new(0.2, 0.0), 0.0, 1, UnitClassId::HeavySword, 0);
+        sim.trampled[0] = DT * 0.5;
+        sim.tick();
+        assert!(sim.trampled[0] <= 0.0);
+        assert_ne!(sim.positions[0], 0.0, "solver must transport disabled body");
+        assert_eq!(sim.motor_travel[0], [0.0; 3]);
+        sim.tick();
+        assert!(
+            sim.motor_travel[0][2] > 0.0,
+            "next enabled movement must count"
+        );
+    }
 }

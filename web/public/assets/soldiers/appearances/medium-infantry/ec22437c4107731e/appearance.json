@@ -1,0 +1,72 @@
+{
+  "name": "medium-infantry",
+  "mounted": false,
+  "presentation": {
+    "actions": {
+      "atEase": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "ready": {
+        "clip": "ready",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "walk",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "guardedBackwardWalk": {
+        "clip": "guarded-backward-walk",
+        "layer": "fullBody"
+      },
+      "guardedLeftWalk": {
+        "clip": "guarded-left-walk",
+        "layer": "fullBody"
+      },
+      "guardedRightWalk": {
+        "clip": "guarded-right-walk",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "sword-effort",
+        "layer": "fullBody"
+      },
+      "hit": {
+        "clip": "hit",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death",
+        "layer": "fullBody"
+      },
+      "release": null,
+      "pikeReady": null
+    },
+    "riderUpperBodyJoints": null
+  },
+  "skeleton": "skeleton.json",
+  "animation": "animation.json",
+  "materials": "materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "ready",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0,
+      0,
+      0
+    ],
+    "radius": 2.873556137084961
+  }
+}

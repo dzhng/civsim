@@ -1,0 +1,621 @@
+{
+  "strictRepeat": {
+    "generatedAt": "2026-09-06T09:47:16.540Z",
+    "adapter": "swiftshader",
+    "target": "http://127.0.0.1:5196",
+    "checksPassed": 89,
+    "scenarioChecks": {
+      "per-class-animation": 4,
+      "raw-pose-palette": 44,
+      "soldier-materials": 40,
+      "runner": 1
+    },
+    "failures": [],
+    "pageErrors": [],
+    "strictSnapshotPixelDifferences": {
+      "soldier-materials-authored": 0,
+      "soldier-materials-blue": 0,
+      "soldier-materials-metal": 0,
+      "soldier-materials-posed-normal": 0,
+      "soldier-materials-blender-checker": 0
+    },
+    "fullTypecheckPassed": true,
+    "focusedCpuTestsPassed": 16
+  },
+  "capture": {
+    "adapter": "swiftshader",
+    "target": "http://127.0.0.1:5196",
+    "generatedAt": "2026-09-06T09:34:15.550Z"
+  },
+  "poses": [
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3606
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3728
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3703
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3829
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4013
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4024
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw growth keeps three immutable snapshot sources resident",
+      "ok": true,
+      "detail": {
+        "instances": 3,
+        "residentSnapshots": 3,
+        "snapshotUploadBytes": 1440,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1440,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1440
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11614
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw shrink reuses the retained immutable source without upload",
+      "ok": true,
+      "detail": {
+        "instances": 1,
+        "residentSnapshots": 1,
+        "snapshotUploadBytes": 0,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1440,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1440
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3767
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11275
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3791
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose resource generations are released exactly once",
+      "ok": true,
+      "detail": {
+        "allocations": 331,
+        "allDestroyedOnce": true,
+        "errors": []
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose commands pass actual GPU validation",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "aliasNegative": [
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: visible weighted result matches CPU oracle",
+      "ok": false,
+      "detail": {
+        "pixelError": 250
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: depth matches CPU oracle",
+      "ok": false,
+      "detail": {
+        "depthError": 0.010738073848187923
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: visible weighted result matches CPU oracle",
+      "ok": false,
+      "detail": {
+        "pixelError": 250
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: depth matches CPU oracle",
+      "ok": false,
+      "detail": {
+        "depthError": 0.010736691765487194
+      }
+    }
+  ],
+  "materialChecks": [
+    {
+      "scenario": "soldier-materials",
+      "name": "raw collapsed normal uses authored front face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero-scale collapsed normal keeps finite front face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw collapsed normal uses authored back face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[175,188,214],\"expected\":[175,188,214]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero-scale collapsed normal keeps finite back face orientation",
+      "ok": true,
+      "detail": "{\"actual\":[175,188,214],\"expected\":[175,188,214]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw collapsed tangent uses the geometric normal",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero decoded normal uses the geometric normal",
+      "ok": true,
+      "detail": "{\"actual\":[173,159,135],\"expected\":[173,159,135]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw zero normal scale preserves negative authored Z",
+      "ok": true,
+      "detail": "{\"actual\":[175,188,214],\"expected\":[175,188,214]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "renamed navigation remains scroll-accessible through its final route",
+      "ok": true,
+      "detail": {
+        "overflow": "auto",
+        "reachedLast": true,
+        "scrollLeft": 1719
+      }
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-authored",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "material table permutation and matching ID remap preserve exact pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-blue",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "soldier-materials: body and shield do not carry faction tint",
+      "ok": true,
+      "detail": "{\"bodyBlue\":[61.52141858839972,85.81656184486373,144.75230607966458],\"bodyRed\":[62.81470999301188,85.49238294898672,143.6546820405311],\"bodyFactionDiff\":1.7269838288355308,\"shieldBlue\":[135.71136691591238,144.13974157155977,91.45838252656435],\"shieldRed\":[135.71136691591238,144.13974157155977,91.45838252656435],\"shieldFactionDiff\":0}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "soldier-materials: only a tiny armband-sized region changes by faction",
+      "ok": true,
+      "detail": "{\"changedPixels\":898,\"changedShare\":0.00378,\"totalPixels\":237350}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "explicit mask disabled: ordinary blue is identical for both factions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "seed cannot change uniform surface color",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "unlit front plane receives fill but no directional specular",
+      "ok": true,
+      "detail": "{\"unlitFace\":[55.71458333333333,68.125,90.99166666666666],\"unlitFaceWithoutKey\":[55.71458333333333,68.125,90.99166666666666]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-metal",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "same-color roughness changes rendered response with faction tint disabled",
+      "ok": true,
+      "detail": "{\"changed\":51669,\"total\":237350,\"share\":0.21769117337265642}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "same-color metallic changes rendered response with faction tint disabled",
+      "ok": true,
+      "detail": "{\"changed\":51669,\"total\":237350,\"share\":0.21769117337265642}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw base texture matches linear scalar oracle (one sRGB decode)",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "MR-only map ignores unrelated red occlusion channel",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw MR G/B match independent scalar factors",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "occlusion-only map ignores unrelated G/B channels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "zero occlusion strength preserves unoccluded scalar image",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "authored occlusion strength changes visible surfaces",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-posed-normal",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "posed normal directions change the real raw lighting",
+      "ok": true,
+      "detail": "{\"changed\":38953,\"total\":237350,\"share\":0.1641162839688224}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "normal image retains complete authored-size mip chain",
+      "ok": true,
+      "detail": "[{\"channel\":\"normal\",\"width\":4,\"height\":2,\"mipLevels\":3}]"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "zero authored normal scale removes XY response",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "negative normal scale reverses XY without reversing Z",
+      "ok": true,
+      "detail": "0 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "finite extreme normal scale approaches the same tangent-plane direction without overflow",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "mirrored UV handedness reverses mapped Y exactly once",
+      "ok": true,
+      "detail": "0 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "weighted bent tangent frame matches independently preposed CPU attributes",
+      "ok": true,
+      "detail": "0 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "instance yaw rotates mapped tangent frame with the posed normal",
+      "ok": true,
+      "detail": "{\"maximum\":115,\"interiorMaximum\":1,\"interiorWorst\":{\"x\":597,\"y\":236,\"a\":[90,103,131],\"b\":[90,103,130]},\"changed\":13,\"mean\":0.001177814650599788}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "corpse roll rotates the mapped tangent frame",
+      "ok": true,
+      "detail": "{\"maximum\":109,\"interiorMaximum\":3,\"interiorWorst\":{\"x\":593,\"y\":389,\"a\":[150,149,156],\"b\":[153,152,158]},\"changed\":74,\"mean\":0.004674536898512091}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "mapped shield normal drives diffuse/specular/rim together",
+      "ok": true,
+      "detail": "0 maximum interior byte error against CPU normal override"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "non-mip source sampler allocates only level zero",
+      "ok": true,
+      "detail": "[{\"channel\":\"baseColor\",\"width\":4,\"height\":2,\"mipLevels\":1}]"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "textured material slots retain one draw for this appearance",
+      "ok": true,
+      "detail": "{\"plain\":1,\"textured\":1}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "asymmetric filtered texture follows UV0 without flip/rotation",
+      "ok": true,
+      "detail": "1 maximum byte error against vertex gradient"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-blender-checker",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "priorBaselineDifference": {
+    "names": [
+      "authored",
+      "blue",
+      "metal",
+      "posed-normal",
+      "blender-checker"
+    ],
+    "changedBytePixelsInTop42Rows": 8372,
+    "changedPixelsBelowNav": 0,
+    "pixelmatchDifferentPixels": 5535
+  },
+  "limitations": [
+    "Raw opaque pass color/depth only; no articulated raw shadow pass exists.",
+    "Readback test retains a normally-discarded depth attachment; production policy unchanged.",
+    "Numerical diagnostic, not final art or performance acceptance."
+  ]
+}

@@ -1,0 +1,413 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T05:05:36.677Z",
+  "target": "http://127.0.0.1:5183",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "image-texture",
+      "file": "system/image-texture.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear caller retains image",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear dimensions and levels",
+      "ok": true,
+      "detail": "[8,4,4]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255,128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255],\"expected\":[128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255,128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[128,128,32,255,128,128,88,255],\"expected\":[128,128,32,255,128,128,88,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 3",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[128,128,60,255],\"expected\":[128,128,60,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb caller retains image",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[8,4,4]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255,188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255],\"expected\":[188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255,188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[188,146,32,255,188,146,140,255],\"expected\":[188,146,32,255,188,146,140,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 3",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[188,146,104,255],\"expected\":[188,146,104,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear caller retains image",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear dimensions and levels",
+      "ok": true,
+      "detail": "[5,3,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[102,107,32,255,102,107,121,255],\"expected\":[102,107,32,255,102,107,121,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":1,\"actual\":[102,107,76,255],\"expected\":[102,107,77,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb caller retains image",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[5,3,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[170,126,32,255,170,126,171,255],\"expected\":[170,126,32,255,170,126,171,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[170,126,127,255],\"expected\":[170,126,127,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear dimensions and levels",
+      "ok": true,
+      "detail": "[1,5,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255],\"expected\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,115,255,255,0,115,255,255],\"expected\":[0,115,255,255,0,115,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,115,255,255],\"expected\":[0,115,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[1,5,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255],\"expected\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,135,255,255,0,135,255,255],\"expected\":[0,135,255,255,0,135,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,135,255,255],\"expected\":[0,135,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear caller retains image",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear dimensions and levels",
+      "ok": true,
+      "detail": "[3,1,2]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[85,64,106,255],\"expected\":[85,64,106,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb caller retains image",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[3,1,2]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[156,64,158,255],\"expected\":[156,64,158,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 linear caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 linear dimensions and levels",
+      "ok": true,
+      "detail": "[1,1,1]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255],\"expected\":[0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 srgb caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[1,1,1]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255],\"expected\":[0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "linear ORM channels unchanged",
+      "ok": true,
+      "detail": "[32,64,192,255]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three linear closed-image sampling",
+      "ok": true,
+      "detail": "[0,64,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three sRGB decodes once",
+      "ok": true,
+      "detail": "[0,13,4]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three linear interpolation",
+      "ok": true,
+      "detail": "[128,64,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three repeat",
+      "ok": true,
+      "detail": "[0,64,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three clamp",
+      "ok": true,
+      "detail": "[255,64,255]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three nearest mip choice",
+      "ok": true,
+      "detail": "[128,128,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three mip interpolation",
+      "ok": true,
+      "detail": "[128,128,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three implicit mip selection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three reports GPU dimensions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three wrapper disposal leaves GPU allocation alive",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "synchronous upload rejects and caller retains bitmap",
+      "ok": true,
+      "detail": "\"Error: Image texture preparation failed: Error: injected copy failure\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "synchronous partial GPU allocation destroyed",
+      "ok": true,
+      "detail": "\"Destroyed texture [Texture \\\"image-texture\\\"] used in a submit.\\n - While [Failed to format error: \\\"calling %s.WriteTexture(%s, (%u bytes), %s, %s)\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "validation upload rejects and caller retains bitmap",
+      "ok": true,
+      "detail": "\"Error: Image texture preparation failed: Texture copy range (origin: [Origin3D x:2, y:0, z:0], copySize: [Extent3D width:2, height:2, depthOrArrayLayers:1]) touches outside of [Texture \\\"image-texture\\\"] mip level 0 size ([Extent3D width:2, height:2, depthOrArrayLayers:1]).\\n - While validating that the copy fits in the destination\\n - While validating CopyTextureForBrowser from [Texture (unlabeled 2x2 px, TextureFormat::BGRA8Unorm)] to [Texture \\\"image-texture\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "validation partial GPU allocation destroyed",
+      "ok": true,
+      "detail": "\"Destroyed texture [Texture \\\"image-texture\\\"] used in a submit.\\n - While [Failed to format error: \\\"calling %s.WriteTexture(%s, (%u bytes), %s, %s)\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "mip-validation upload rejects and caller retains bitmap",
+      "ok": true,
+      "detail": "\"Error: Image texture preparation failed: Attachment state of [RenderPipeline \\\"image-mip-area-mean\\\"] is not compatible with [RenderPassEncoder (unlabeled)].\\n[RenderPassEncoder (unlabeled)] expects an attachment state of { colorTargets: [0={format:TextureFormat::RGBA8UnormSrgb}], sampleCount: 1 }.\\n[RenderPipeline \\\"image-mip-area-mean\\\"] has an attachment state of { colorTargets: [0={format:TextureFormat::RGBA8Unorm}], sampleCount: 1 }.\\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([RenderPipeline \\\"image-mip-area-mean\\\"]).\\n - While finishing [CommandEncoder \\\"image-mip-chain\\\"].\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "mip-validation partial GPU allocation destroyed",
+      "ok": true,
+      "detail": "\"Destroyed texture [Texture \\\"image-texture\\\"] used in a submit.\\n - While [Failed to format error: \\\"calling %s.WriteTexture(%s, (%u bytes), %s, %s)\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "no GPU or Three warnings",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

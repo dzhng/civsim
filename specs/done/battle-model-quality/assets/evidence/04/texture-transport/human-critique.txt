@@ -1,0 +1,30 @@
+Camera, pose, geometry, and framing agree across the supplied pixels. Subject placement, joint angles, prop silhouettes, occlusion order, shadows, labels, and crop boundaries appear matched in all eight views. I see no confident rig or camera discrepancy.
+
+The consistent surface difference is the square fixture:
+
+- Image 1 uses a nearly uniform pale gray surface with subtly lighter top/edge faces.
+- Image 2 uses a dark blue-gray checker texture. Perspective compresses and skews the checks, especially in side views.
+- The enlarged crop confirms matching fixture silhouettes and attachment positions; the texture change does not reveal a geometry change.
+
+Per view:
+
+- Bend 0, front: Same horizontal arm and square placement. Image 1 is smooth gray; Image 2 has a roughly regular checker grid. The checker stops at the fixture boundary and does not visibly bleed onto the arm.
+- Bend 0, side: Same narrow, body-overlapping fixture. Image 1 reads as a plain blue-gray slab; Image 2 becomes compressed alternating vertical fragments. The pattern’s density and perspective make its edge look jagged, but there is no confident silhouette mismatch.
+
+- Bend 6, front: Same downward-right rotation, size, and arm-to-fixture junction. The enlarged crop shows matching outer corners and layering: the hand/connector remains behind the fixture in both. Image 2’s checks are strongly skewed by rotation and appear stair-stepped along diagonal edges.
+- Bend 6, side: Same placement in front of the lower torso/upper leg and the same tilt. Image 2 shows narrow, irregular checker columns because the visible face is foreshortened; this is a sampling/perspective artifact, not confidently different geometry.
+
+- Bend 12, front: Same hanging orientation and attachment. Image 1’s uniform value makes its edge and slight face shading subtle; Image 2 exposes a low-resolution grid with uneven apparent check widths near the boundaries. No gap, clipping, or detached connection is visible.
+- Bend 12, side: Same overlap against the body and same lower-right corner. The checker pattern is compressed into thin bands and visually competes with the silhouette. Any apparent serration is texture aliasing rather than a confirmed mesh change.
+
+- Bend 24, front: Same return to the horizontal pose and same square silhouette. Surface behavior matches bend 0: plain gray versus checkerboard, with slight perspective distortion of the checks.
+- Bend 24, side: Same near-edge-on overlap with the torso and arm. Image 2 again produces dense vertical checker fragments; the patterned face appears noisier and less planar, but its exterior boundary agrees with Image 1.
+
+Concrete artifact assessment:
+
+- High confidence: Image 2 has coarse, nearest-neighbor-like texture sampling, visible blockiness, and perspective-compressed checks.
+- High confidence: Rotated and edge-on checker boundaries look stair-stepped/jagged.
+- High confidence: The fixture correctly occludes the connector/arm at the attachment in both versions; no visible separation exists.
+- Medium confidence: Some checker rows/columns appear uneven at borders, consistent with UV edge truncation or low texture resolution.
+- Low confidence: Very thin edge slivers may carry or inherit portions of the checker texture, but the pixels are insufficient to distinguish deliberate multi-face mapping from filtering.
+- No confident evidence of texture bleeding onto the body, z-fighting, interpenetration, detached geometry, incorrect layering, or differing camera/rig state.

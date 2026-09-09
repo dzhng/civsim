@@ -43,12 +43,8 @@ import { campaignCameraRig, type CameraRigRange } from "../battle/cameraRig";
 import { chartCamera3d, type Camera3DParams } from "@packages/renderer-core/src/camera3d";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
-import {
-  loadPlaceholderKit,
-  loadPlaceholderVat,
-  mountedClassesFromKit,
-} from "@packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
+import { assertGameplayAppearances } from "@packages/crowd-runtime/src/animationState";
 import type { CampaignData } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";
@@ -151,7 +147,9 @@ export class CampaignRenderer {
   fixedTime: number | null = null;
 
   private passes: CampaignPasses | null = null;
+  private destroyed = false;
   private mountedClasses: number[] = [];
+  private soldierClips: Record<number, { walk: string; atEase: string }> = {};
   private surface: CampaignSurface;
   private staticLabels: CampaignLabel[] = [];
   private sceneryCandidates: CampaignSceneryInstance[] = [];
@@ -351,7 +349,14 @@ export class CampaignRenderer {
     const buildStart = performance.now();
     const animTime = this.fixedTime ?? performance.now() / 1000;
     const buildOpts = { ...opts, controlledStage: isControlledStage(this.data) };
-    const frame = buildEntityFrame(this.data, this.field, buildOpts, this.mountedClasses, animTime);
+    const frame = buildEntityFrame(
+      this.data,
+      this.field,
+      buildOpts,
+      this.mountedClasses,
+      animTime,
+      (id, marching) => this.soldierClips[id][marching ? "walk" : "atEase"],
+    );
     const buildEnd = performance.now();
     this.lastEntities = {
       cityEntities: frame.cityEntities,
@@ -360,7 +365,7 @@ export class CampaignRenderer {
     };
     const uploadStart = performance.now();
     // One clock drives every animated surface: crawling scenery, the subtle sea
-    // shimmer in mapPass (cam.time), and the soldier-crowd VAT phase. Frozen
+    // shimmer in mapPass (cam.time), and the soldier-crowd clip phase. Frozen
     // snapshots pin fixedTime = 0, so the sea's cam.time term is 0 and the map
     // stays byte-identical; runtime advances it live.
     const sceneryTime = animTime;
@@ -561,6 +566,7 @@ export class CampaignRenderer {
       },
     ];
     passes.shell.drawFrame({
+      precompute: (encoder) => passes.soldierCrowd.precompute(encoder),
       clear: { r: 0.06, g: 0.07, b: 0.075, a: 1 },
       passes: framePasses,
     });
@@ -609,9 +615,11 @@ export class CampaignRenderer {
   }
 
   destroy() {
+    this.destroyed = true;
     window.removeEventListener("resize", this.onResize);
     this.graphicsUnsubscribe?.();
     this.graphicsUnsubscribe = null;
+    this.passes?.soldierCrowd.dispose();
     this.passes?.shell.destroy();
     this.passes = null;
     publishStats(this.stats());
@@ -763,9 +771,41 @@ export class CampaignRenderer {
   }
 
   private async init(territory: Territory) {
+    const appearances = await loadAppearanceCatalog(
+      new URL("/assets/soldiers/catalog.json", location.href).href,
+    );
+    if (this.destroyed) return;
+    assertGameplayAppearances(appearances);
+    this.soldierClips = Object.fromEntries(
+      Object.entries(appearances).map(([id, asset]) => [
+        id,
+        {
+          walk: asset.manifest.presentation!.actions.walk!.clip,
+          atEase: asset.manifest.presentation!.actions.atEase!.clip,
+        },
+      ]),
+    );
     // One projector engine-wide: every pass projects through camera3d's viewProj
     // and depth-tests reverse-Z against the shell's depth32float world buffer.
     const shell = await createFrameShell(this.canvas, { sun: CAMPAIGN_ENVIRONMENT });
+    if (this.destroyed) {
+      shell.destroy();
+      return;
+    }
+    // Finish asynchronous preparation before allocating any synchronous passes.
+    // A teardown during decoding must not publish a resurrected campaign world.
+    let soldierCrowd: SkinnedCrowdPipeline;
+    try {
+      soldierCrowd = await SkinnedCrowdPipeline.create(shell, appearances);
+    } catch (error) {
+      shell.destroy();
+      throw error;
+    }
+    if (this.destroyed) {
+      soldierCrowd.dispose();
+      shell.destroy();
+      return;
+    }
     const controlledStage = isControlledStage(this.data);
     const map = new CampaignMapPass(
       shell,
@@ -815,18 +855,11 @@ export class CampaignRenderer {
     );
     const entities = new CampaignEntityPass(shell);
     const standards = new SharedStandardPass(shell);
-    // The shared skinned soldier renderer. Army stacks draw a small
-    // representative crowd through the SAME pipeline/meshes/VATs/shadow as
-    // battle (buildStackCrowd feeds it per stack); the entity pass now only draws
-    // city architecture, while standards are the shared 3D standard pass.
-    const soldierKit = await loadPlaceholderKit();
-    this.mountedClasses = mountedClassesFromKit(soldierKit);
-    const soldierCrowd = new SkinnedCrowdPipeline(
-      shell,
-      createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
-      await loadPlaceholderVat(),
-      soldierKit,
-    );
+    // Representative army figures consume the same appearance assets as battle,
+    // while campaign retains its raw-GPU world and grounding-shadow passes.
+    this.mountedClasses = Object.entries(appearances)
+      .filter(([, bundle]) => bundle.manifest.mounted)
+      .map(([id]) => Number(id));
     const soldierShadows = new SoldierShadowDecalPass(shell);
     const selection = new CampaignSelectionPass(shell);
     const labels = new CampaignLabelPass(shell);

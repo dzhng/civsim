@@ -1,0 +1,38 @@
+{
+  "scope": "Independent source/export geometry probe; browser acceptance is recorded separately",
+  "blender": "5.2.1 LTS 9e2066aef7ef",
+  "three": "0.185.1",
+  "method": "Unmodified GLTFLoader.parseAsync, AnimationMixer with LoopOnce and clampWhenFinished, scene.updateMatrixWorld(true), SkinnedMesh.getVertexPosition(i).applyMatrix4(mesh.matrixWorld), compare every exported vertex through sourceVertexByGltfVertex to Blender evaluated surface positions. Node image decode was stubbed; this does not verify textures or rendered appearance.",
+  "composition": "Gait tracks exclude riderUpperBodyMask; rider-action tracks include it. Both play at the same explicit time, composing local tracks before hierarchy evaluation.",
+  "maximumErrorMetres": {
+    "human/bend-0": 2.557069288151304e-7,
+    "human/bend-6": 3.0642856538464646e-7,
+    "human/bend-12": 4.7143667161030507e-7,
+    "human/bend-24": 2.557069289615566e-7,
+    "mounted/gait-0": 2.3910839956121025e-7,
+    "mounted/gait-6": 3.641808346316912e-7,
+    "mounted/gait-12": 3.890676062300678e-7,
+    "mounted/gait-24": 2.2130990680441442e-7,
+    "mounted/rider-action-0": 2.1706180303772662e-7,
+    "mounted/rider-action-6": 2.787263976315979e-7,
+    "mounted/rider-action-12": 2.2035321409447837e-7,
+    "mounted/rider-action-24": 2.1706180303772662e-7,
+    "mounted/composed-6": 4.2151305196515436e-7,
+    "mounted/composed-12": 3.3846580581982796e-7
+  },
+  "rebuild": {
+    "method": "Two separate factory-startup script runs produced byte-identical GLBs and landmark JSON; .blend files preserve authored source but are not byte-hash repeatability gates",
+    "humanGlbSha256": "bcbcf04cda7a74fde87884a00f0839f248bdcd9c1077725b92fe97f195734490",
+    "mountedGlbSha256": "e4d86e39248cc9c857c9223f84a8c680415aaa862666ea63bfe6a43128872143",
+    "humanLandmarksSha256": "77a3894891cf78f146acc6beaad0dd0da8174a2963d6543c6880bb88cee90523",
+    "mountedLandmarksSha256": "3d6a0873ae85e69339dc447b96f420e61c4a92511f3033409660700ce70b5e2e"
+  },
+  "independentCodeReview": {
+    "command": "codex review --uncommitted",
+    "finding": "Claimed ancestor transform was applied twice to exported POSITION",
+    "disposition": "Dismissed after actual GLTFLoader evaluation: attached SkinnedMesh.bindMatrixInverse compensates mesh.matrixWorld. The review's manually transformed coordinate omitted this factor.",
+    "firstElbowRaw": [0.5656061768531799, 1.6400001049041748, 0.1883080005645752],
+    "firstElbowLoaderWorld": [0.5656061107697382, 1.6399999575895077, 0.18830805999491998]
+  },
+  "existingChecks": ["gltf.test.mjs passed", "vat.test.mjs passed"]
+}

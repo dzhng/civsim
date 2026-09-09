@@ -1,0 +1,20 @@
+{
+  "source": "/Users/david/dev/game-pike-family-delivery/packages/soldier-assets/assets/source/phalanx/phalanx.blend",
+  "sourceSha256": "b4ed9608c1c85528a4c2f6adbd6a8f0bbd475216ad3923cb69c8c5a21f13b47b",
+  "tiers": [
+    {
+      "name": "mid",
+      "targetTriangles": 4000,
+      "sourceTriangles": 151898,
+      "triangles": 4124,
+      "glbSha256": "ee711f56350945c2fc645bdbdc547a031798dea882b29f62c589cf9e5cda0e87"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 1200,
+      "sourceTriangles": 151898,
+      "triangles": 1476,
+      "glbSha256": "d8e312d885ed048766f83202cd0165420cca7b502873f2f480ae4cd6b86ebb54"
+    }
+  ]
+}

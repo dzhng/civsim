@@ -1,0 +1,20 @@
+{
+  "frozen": {
+    "file_sha256": "8e8929d51068411671f354621ad57b07d47d1c083f031d6793c5f605f28376d7",
+    "positions": "a2f1c8c456d16a3907a0a1a9c4514bac6476eef8f3588e1ae68fe0f283b60727",
+    "polygons": "dda11ea69c352802eea419d08f64ca8ccfadc8dd95102f3ff447248de1583344",
+    "weights": "e51ac78b6609c4763392e5e93fa4023666c4fe8c6c2ea655165cbf87b16cb3cf",
+    "bind": "9b572a6a72a65d57ebc20ef7406fdcc3b2d3553152a4d246d72e64e5a3549564",
+    "vertices": 25586,
+    "triangles": 51112
+  },
+  "motion": {
+    "file_sha256": "08d98fd6b3bf78c31e91157551a17d4f215d65c94d83c2aa866ed3149872966e",
+    "positions": "a2f1c8c456d16a3907a0a1a9c4514bac6476eef8f3588e1ae68fe0f283b60727",
+    "polygons": "dda11ea69c352802eea419d08f64ca8ccfadc8dd95102f3ff447248de1583344",
+    "weights": "e51ac78b6609c4763392e5e93fa4023666c4fe8c6c2ea655165cbf87b16cb3cf",
+    "bind": "9b572a6a72a65d57ebc20ef7406fdcc3b2d3553152a4d246d72e64e5a3549564",
+    "vertices": 25586,
+    "triangles": 51112
+  }
+}

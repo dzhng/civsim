@@ -1,0 +1,19 @@
+Inspected the complete sheet and all seven full-resolution rows individually.
+
+**The effort reads as a sword-arm action with modest body support, rather than a convincingly forceful whole-body strike.** No unmistakable equipment detachment or mesh penetration is visible.
+
+| Rows | Concrete observation | Confidence |
+|---|---|---|
+| 1–4, 0.300–0.700 s | The opposing view shows knee bend, torso rotation and a rear-heel lift, but the trunk remains quite upright. The front view’s hips and legs change little relative to the large sword-arm movement. The visible weight transfer undersells the effort. | Medium–high |
+| 2, 0.367 s | The raised sword shoulder and sharply bent arm form a cramped, angular shape beside the neck in the opposing view. It reads as a crowded joint pose rather than a clean shoulder-to-hand line. | Medium |
+| 3–4, 0.500–0.700 s | These are almost the same low-sword finishing pose. The sampled sequence offers little additional settling through the torso or knees over that interval. Whether this becomes a conspicuous hold requires motion evidence. | High for pose similarity |
+| 5, 0.900 s | The front-view sword becomes a tiny horizontal sliver beside the hand, weakening weapon readability. The opposing view shows the blade clearly: this is foreshortening, not a missing or broken blade. | High |
+| All | The front shield hides most chest, waist and shield-arm mechanics. The figure’s outer silhouette is complete, but this angle makes whole-body effort and shield attachment difficult to judge. | High |
+
+**Feet and connections:** No clear floating stance or buried foot is apparent. The raised rear heel at 0.500–0.700 s is compatible with toe support; soft ground shading prevents confirming exact contact. Sword grips remain visibly connected, and the scabbard stays at the hip. Shield attachment is mostly occluded.
+
+**Intersections:** The sword overlaps the shield in projection at 0.000, 0.367, 0.900 and 1.200 s. Those overlaps do **not** establish penetration. Likewise, the blade/face crowding at 0.300 s in the opposing view could simply place the weapon in front of the face. I cannot confidently confirm an intersection from these views.
+
+**Framing:** Every helmet, foot, shield and sword tip is inside its panel. The raised blade at 0.300 s approaches the title strip but remains clear. Generous empty ground makes the figure relatively small, reducing joint and contact readability.
+
+These stills support a restrained effort critique; they cannot establish continuous motion quality, foot sliding, or strike contact.

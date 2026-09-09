@@ -1,0 +1,3881 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-07T17:44:40.359Z",
+  "target": "http://localhost:5398",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "medium-phalanx",
+      "file": "models/medium-phalanx.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5398/assets/soldiers/candidates/medium-phalanx/catalog.json\",\"assets\":[{\"id\":14,\"name\":\"medium-phalanx\",\"presentation\":null,\"bones\":26,\"triangles\":[155190,155190,155190],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"pike-carry\",\"duration\":1,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":1.2000000476837158,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "complete-pike/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/complete-pike",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-soldier/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/whole-soldier",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "armor/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/armor",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/outer: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/outer: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-hand/two-hand carry/front-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/rear-hand",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/outer: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/outer: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-hand/two-hand carry/front-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/front-hand",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "both-hands/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/both-hands",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "waist/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/waist",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/oblique: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-carry\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":16,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":16,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":751080,\"uploadedBytes\":1280,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "formation-gameplay/two-hand carry/oblique: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/formation-gameplay",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-side: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-side: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-01: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-02: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-03: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-04: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-05: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-06: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-07: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-08: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-09: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-10: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-11: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-12: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-13: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-14: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-15: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-16: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-17: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-18: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-19: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-20: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-21: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-22: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-23: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-24: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-24",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-25: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-25",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-26: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-26",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-27: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-27: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-27",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-28: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-28: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-28",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-29: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-29: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-29",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-30: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-30: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-30",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-31: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-31: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-31",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-32: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-32: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-32",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-33: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-33: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-33",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-34: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-34: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-34",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-35: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-side-35: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-side-35",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-oblique: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-oblique: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-01: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-02: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-03: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-04: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-05: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-06: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-07: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-08: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-09: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-10: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-11: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-12: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-13: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-14: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-15: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-16: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-17: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-18: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-19: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-20: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-21: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-22: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-23: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-24: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-24",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-25: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-25",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-26: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-26",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-27: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-27: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-27",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-28: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-28: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-28",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-29: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-29: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-29",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-30: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-30: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-30",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-31: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-31: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-31",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-32: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-32: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-32",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-33: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-33: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-33",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-34: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-34: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-34",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-35: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-oblique-35: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-oblique-35",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-right: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "whole-right: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-01: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-02: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-03: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-04: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-05: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-06: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-07: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-08: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-09: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-10: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-11: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-12: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-13: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-14: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-15: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-16: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-17: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-18: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-19: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-20: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-21: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-22: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-23: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-24: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-24",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-25: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-25",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-26: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-26",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-27: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-27: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-27",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-28: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-28: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-28",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-29: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-29: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-29",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-30: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-30: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-30",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-31: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-31: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-31",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-32: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-32: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-32",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-33: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-33: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-33",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-34: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-34: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-34",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-35: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-whole-right-35: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-whole-right-35",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-side: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-side: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-01: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-02: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-03: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-04: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-05: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-06: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-07: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-08: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-09: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-10: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-11: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-12: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-13: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-14: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-15: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-16: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-17: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-18: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-19: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-20: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-21: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-22: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-23: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-24: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-24",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-25: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-25",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-26: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-26",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-27: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-27: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-27",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-28: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-28: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-28",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-29: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-29: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-29",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-30: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-30: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-30",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-31: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-31: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-31",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-32: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-32: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-32",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-33: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-33: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-33",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-34: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-34: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-34",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-35: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-side-35: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-side-35",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-oblique: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-oblique: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-01: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-02: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-03: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-04: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-05: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-06: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-07: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-08: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-09: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-10: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-11: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-12: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-13: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-14: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-15: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-16: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-17: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-18: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-19: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-20: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-21: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-22: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-23: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-24: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-24",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-25: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-25",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-26: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-26",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-27: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-27: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-27",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-28: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-28: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-28",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-29: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-29: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-29",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-30: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-30: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-30",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-31: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-31: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-31",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-32: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-32: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-32",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-33: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-33: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-33",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-34: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-34: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-34",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-35: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-pike-oblique-35: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-pike-oblique-35",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-whole: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-whole: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-front-whole-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-front-whole-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-front-whole-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-grip: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "front-grip: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-front-grip-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-front-grip-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-front-grip-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-grip: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "rear-grip: prescribed forward travel reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-rear-grip-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-rear-grip-00: manual walk reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-rear-grip-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-formation-0.9: frozen formation repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-formation-0.9",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/walk-formation-0.42: frozen formation repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/walk-formation-0.42",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

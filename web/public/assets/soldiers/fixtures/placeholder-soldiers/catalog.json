@@ -1,0 +1,24 @@
+{
+  "appearances": {
+    "0": "appearances/heavy-sword/appearance.json",
+    "1": "appearances/light-spear/appearance.json",
+    "2": "appearances/longsword/appearance.json",
+    "3": "appearances/phalanx/appearance.json",
+    "4": "appearances/archers/appearance.json",
+    "5": "appearances/skirmishers/appearance.json",
+    "6": "appearances/shock-cav/appearance.json",
+    "7": "appearances/horse-archers/appearance.json",
+    "8": "appearances/artillery-crew/appearance.json",
+    "9": "appearances/peasant/appearance.json",
+    "10": "appearances/light-sword/appearance.json",
+    "11": "appearances/heavy-spear/appearance.json",
+    "12": "appearances/medium-infantry/appearance.json",
+    "13": "appearances/medium-spear/appearance.json",
+    "14": "appearances/medium-phalanx/appearance.json",
+    "15": "appearances/shock-cav-sidearm/appearance.json",
+    "16": "appearances/heavy-phalanx-rest/appearance.json",
+    "17": "appearances/medium-phalanx-rest/appearance.json",
+    "18": "appearances/heavy-phalanx-sidearm/appearance.json",
+    "19": "appearances/medium-phalanx-sidearm/appearance.json"
+  }
+}

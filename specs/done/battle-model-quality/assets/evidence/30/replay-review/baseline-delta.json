@@ -1,0 +1,317 @@
+{
+  "note": "Corresponding semantic samples, not equal clip times: production assets and their event durations changed. Full original PNGs remain active baselines; GIFs are half-size review derivatives.",
+  "frames": [
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-motion-start",
+      "prior": "temporal-4-6",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 89294,
+      "maxChannel": 151
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-motion-quarter",
+      "prior": "temporal-4-6.25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 89546,
+      "maxChannel": 152
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-motion-half",
+      "prior": "temporal-4-6.5",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 89688,
+      "maxChannel": 150
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-event-release-11",
+      "prior": "temporal-4-event-11",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 91648,
+      "maxChannel": 144
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-event-release-14",
+      "prior": "temporal-4-event-14",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 106672,
+      "maxChannel": 152
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-event-release-15",
+      "prior": "temporal-4-event-15",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 106235,
+      "maxChannel": 151
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-event-release-18",
+      "prior": "temporal-4-event-18",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 110820,
+      "maxChannel": 155
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-event-release-exit",
+      "prior": "temporal-4-event-24",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 105730,
+      "maxChannel": 151
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-event-run-during-exit",
+      "prior": "temporal-4-event-25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 99968,
+      "maxChannel": 151
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-event-death",
+      "prior": "temporal-4-event-35",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 98280,
+      "maxChannel": 151
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-death-quarter",
+      "prior": "temporal-4-37.25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 96238,
+      "maxChannel": 140
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-death-blend-end",
+      "prior": "temporal-4-39.5",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 91356,
+      "maxChannel": 121
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-4-terminal",
+      "prior": "temporal-4-72",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 73552,
+      "maxChannel": 113
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-motion-start",
+      "prior": "temporal-7-6",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 235601,
+      "maxChannel": 164
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-motion-quarter",
+      "prior": "temporal-7-6.25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 235560,
+      "maxChannel": 159
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-motion-half",
+      "prior": "temporal-7-6.5",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 235537,
+      "maxChannel": 153
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-event-release-11",
+      "prior": "temporal-7-event-11",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 243085,
+      "maxChannel": 166
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-event-release-14",
+      "prior": "temporal-7-event-14",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 231481,
+      "maxChannel": 156
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-event-release-15",
+      "prior": "temporal-7-event-15",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 230572,
+      "maxChannel": 157
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-event-release-18",
+      "prior": "temporal-7-event-18",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 229342,
+      "maxChannel": 157
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-event-release-exit",
+      "prior": "temporal-7-event-24",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 234353,
+      "maxChannel": 143
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-event-run-during-exit",
+      "prior": "temporal-7-event-25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 233015,
+      "maxChannel": 140
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-event-death",
+      "prior": "temporal-7-event-35",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 228698,
+      "maxChannel": 151
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-death-quarter",
+      "prior": "temporal-7-37.25",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 228005,
+      "maxChannel": 134
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-death-blend-end",
+      "prior": "temporal-7-39.5",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 229934,
+      "maxChannel": 92
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-7-terminal",
+      "prior": "temporal-7-72",
+      "width": 970,
+      "height": 758,
+      "changedPixels": 141373,
+      "maxChannel": 100
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-motion-start",
+      "prior": "temporal-41-6",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 66229,
+      "maxChannel": 90
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-motion-quarter",
+      "prior": "temporal-41-6.25",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 66540,
+      "maxChannel": 89
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-motion-half",
+      "prior": "temporal-41-6.5",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 37397,
+      "maxChannel": 89
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-event-release-11",
+      "prior": "temporal-41-event-11",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 6331,
+      "maxChannel": 89
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-event-release-14",
+      "prior": "temporal-41-event-14",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 54612,
+      "maxChannel": 93
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-event-release-15",
+      "prior": "temporal-41-event-15",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 56573,
+      "maxChannel": 94
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-event-release-18",
+      "prior": "temporal-41-event-18",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 6311,
+      "maxChannel": 94
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-event-release-exit",
+      "prior": "temporal-41-event-24",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 10137,
+      "maxChannel": 89
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-event-run-during-exit",
+      "prior": "temporal-41-event-25",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 30474,
+      "maxChannel": 89
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-event-death",
+      "prior": "temporal-41-event-35",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 23509,
+      "maxChannel": 90
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-death-quarter",
+      "prior": "temporal-41-37.25",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 44647,
+      "maxChannel": 85
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-death-blend-end",
+      "prior": "temporal-41-39.5",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 0,
+      "maxChannel": 0
+    },
+    {
+      "name": "shared/soldiers/action-replay/temporal-41-terminal",
+      "prior": "temporal-41-75",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 0,
+      "maxChannel": 0
+    }
+  ]
+}

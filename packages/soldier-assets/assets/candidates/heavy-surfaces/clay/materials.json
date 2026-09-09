@@ -1,0 +1,93 @@
+{
+  "materials": [
+    {
+      "name": "clay-control-heavy-skin",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    },
+    {
+      "name": "clay-control-heavy-cloth",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    },
+    {
+      "name": "clay-control-heavy-mail",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    },
+    {
+      "name": "clay-control-heavy-leather",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    },
+    {
+      "name": "clay-control-heavy-bronze",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    },
+    {
+      "name": "clay-control-heavy-shield-hide",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    },
+    {
+      "name": "clay-control-heavy-wood",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    },
+    {
+      "name": "clay-control-heavy-iron",
+      "baseColor": [
+        0.46,
+        0.43,
+        0.39,
+        1
+      ],
+      "roughness": 0.82,
+      "metallic": 0
+    }
+  ],
+  "textures": {}
+}

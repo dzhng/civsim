@@ -7,12 +7,12 @@ touching before you delete or re-bless.
 
 ## Who owns which folder
 
-| Folder                                | Harness                                                    | Regen command (run from `web/`, dev server up)                                                                |
-| ------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chrome / WebGPU)                     | `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node scene.mjs --full` |
-| `vibe/`                               | `web/vibe/*.mjs` (melee/duel sim flip-books)               | `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node vibe/all.mjs`     |
-| `weave/`                              | `crates/sim/src/bin/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --bin weave_shots --features shots` (from repo root)                                        |
-| `diff/`                               | transient diff output, **gitignored**                      | n/a — safe to delete, never committed                                                                         |
+| Folder                                | Harness                                                    | Regen command (run from `web/`, dev server up)                                                            |
+| ------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chrome / WebGPU)                     | Select scenes with matching capture provenance; see below.                                                |
+| `vibe/`                               | `web/vibe/*.mjs` (melee/duel sim flip-books)               | `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node vibe/all.mjs` |
+| `weave/`                              | `crates/sim/src/bin/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --bin weave_shots --features shots` (from repo root)                                    |
+| `diff/`                               | transient diff output, **gitignored**                      | n/a — safe to delete, never committed                                                                     |
 
 `scene.mjs` routes a scene to a folder by its top-level directory under
 `scenes/` (`battle/ campaign/ ui/ models/`); anything else lands in `misc/`.
@@ -25,14 +25,22 @@ regenerate, what bites). For what a _vibe_ check is and why it films a timeline,
 see [`../vibe/README.md`](../vibe/README.md). For the scene catalog and the
 100%-coverage contract, read the scenes under `scenes/` and `specs/scenes.md`.
 
-## Regenerating everything from scratch
+## Regenerating a reviewed set
+
+Scene baselines do not all share one capture adapter. Select scenes by name
+(`node scene.mjs --list`) and preserve each set's browser and adapter provenance;
+there is no safe universal `UPDATE_SHOTS=1 node scene.mjs --full` invocation.
+The strict model scenes declare their SwiftShader requirement through
+[`_swiftshader-baseline.ts`](../scenes/models/_swiftshader-baseline.ts).
+An environment error is a failed verification, not permission to change the
+adapter or re-bless its pixels.
 
 ```bash
 # from web/ — pick a free port; multiple checkouts contend for 5173/5174
 bunx vite --port 5185 --strictPort &
 
-# 1. scene harness (campaign / ui / battle / models)
-VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node scene.mjs --full
+# 1. scene harness: pass the reviewed scene names and their capture environment
+# to scene.mjs; do not mix hardware and SwiftShader baselines in one update run.
 
 # 2. vibe melee flip-books
 VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node vibe/all.mjs
@@ -41,9 +49,8 @@ VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY
 cargo run -p sim --bin weave_shots --features shots
 ```
 
-Then `git status shots/` shows exactly what moved. Any shot that shows up as a
-**deletion** after a full regen is an orphan — its scene/scenario was removed —
-and should stay deleted.
+Then `git status shots/` shows exactly what moved. A missing capture from an
+unselected or failed scene is not evidence that its baseline is obsolete.
 
 ## Things that bite (learned the hard way)
 
@@ -62,9 +69,10 @@ and should stay deleted.
 - **Sub-percent raster wobble is expected.** Headless Chrome on hardware/Metal
   can move text edges and dense alpha-blended silhouettes by small amounts. The
   per-snap tolerance absorbs named raster noise, not unknown product drift.
-- **WebGPU adapter policy.** Installed Chrome in headless mode on hardware/Metal
-  is the canonical local baseline adapter. Bundled headless Chromium may not
-  boot WebGPU scenes on this Mac. Do not silently mix another adapter, browser
+- **WebGPU adapter policy.** Capture provenance belongs to the baseline family,
+  not the machine's default adapter. Hardware/Metal and bundled Chromium with
+  SwiftShader can differ in shadows even when model geometry is unchanged.
+  Do not silently mix another adapter, browser
   channel, or headful/headless mode into the baselines; if you must, record the
   provenance and prove determinism with a second no-update run.
 - **Free-port hygiene.** Vite servers from other checkouts linger on

@@ -1,0 +1,15 @@
+/Users/david/dev/game-head-form/packages/soldier-assets/bake/blender-human-anatomy.py:580: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material.use_nodes = True
+Info: 221 vertex weights limited
+{'grip_surface_vertices': 2039, 'rigid_tracking_max_metres': {'bend': 3.6863436927953305e-07, 'pronation': 3.7822705636945564e-07, 'bend-pronation': 3.488272401904948e-07}}
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+11:31:37 | INFO: Starting glTF 2.0 export
+11:31:37 | INFO: Extracting primitive: thorax-pelvis.001
+11:31:37 | INFO: Primitives created: 1
+11:31:37 | INFO: Finished glTF 2.0 export in 0.22516202926635742 s
+
+{'source': '/Users/david/dev/game-head-form/packages/soldier-assets/assets/source/human-anatomy/human-anatomy.blend', 'vertices': 178244, 'faces': 178242}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

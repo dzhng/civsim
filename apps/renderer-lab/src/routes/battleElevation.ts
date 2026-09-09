@@ -1,16 +1,19 @@
 import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
-import { type LabContext, createConfiguredShell, createSkinnedPipeline, publish, reportTable } from "../labShell";
+import {
+  type LabContext,
+  createConfiguredShell,
+  createSkinnedPipeline,
+  publish,
+  reportTable,
+} from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
   // A smooth ridge centered at x=0 — soldiers climb up and over it.
   const ridge = (x: number, _y: number) => 2.2 * Math.exp(-(x * x) / 36);
   const cols = 14;
   const rows = 3;
   const positions = new Float32Array(cols * rows * 2);
-  const unitClass: number[] = [];
   const soldierUnit = new Uint32Array(cols * rows);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -19,13 +22,18 @@ export async function route(ctx: LabContext) {
       positions[i * 2 + 1] = (r - (rows - 1) / 2) * 2.0;
     }
   }
-  unitClass.push(0);
   const built = buildCrowdInstances({
     positions,
     soldierUnit,
-    unitClass,
+    playback: Array.from({ length: cols * rows }, () => ({
+      appearanceId: 0,
+      base: {
+        source: { kind: "clip", sample: { clip: "march", phase: 0 } },
+        destination: { clip: "march", phase: 0 },
+        weight: 1,
+      },
+    })),
     terrainHeight: ridge,
-    simTick: 90,
   });
   const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
 
@@ -44,15 +52,23 @@ export async function route(ctx: LabContext) {
     pitch: 0.3,
     yaw: 0,
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   const shadows = new SoldierShadowDecalPass(shell);
 
   const start = performance.now();
   const tick = () => {
     const phaseOffset = ((performance.now() - start) / 1000) * 0.6;
-    pipeline.upload(instances, { forcedClip: "march", phaseOffset, size: 1 });
+    pipeline.upload(
+      instances.map((instance) => ({
+        ...instance,
+        clip: "march",
+        phase: (instance.phase + phaseOffset) % 1,
+      })),
+      { size: 1 },
+    );
     shadows.upload(instances);
     shell.drawFrame({
+      precompute: (encoder) => pipeline.precompute(encoder),
       passes: [
         {
           id: "elevation-crowd",

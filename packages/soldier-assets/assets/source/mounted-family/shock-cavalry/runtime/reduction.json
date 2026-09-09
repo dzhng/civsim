@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-mounted-family-delivery/packages/soldier-assets/assets/source/mounted-family/shock-cavalry.blend",
+  "sourceSha256": "7ec91a3be051cf1cf9c367a68033a1229b5d270495e19af2027deff27c0b0173",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 132432,
+      "triangles": 7920,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "4af30ab196720f6ae39f3a3d4fe37a23e08531b03086f14e31bf0f0bfd7145d0"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 132432,
+      "triangles": 986,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "4c6809e915d16005d70c70a07c651d8ea03534e65d8af980e323409cfc104d21"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 132432,
+      "triangles": 756,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "30a080d195e00f8d73575e1d4279c31cfc969f49ccf9413feedab4ed9a30dac0"
+    }
+  ]
+}

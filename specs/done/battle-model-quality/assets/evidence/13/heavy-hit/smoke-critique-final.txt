@@ -1,0 +1,20 @@
+Inspected the full sheet and all eight panels individually. **The sampled poses read as a small guard adjustment, with little convincing whole-body hit reaction.** Confidence: **high** for these images; they may omit a stronger transient between samples.
+
+| Phase | Front view | Rear view |
+|---|---|---|
+| **0** | Upright stance, nearly straight knees. Sword crosses the shield’s projected face, its tip near the boss. | Shoulders and belt approximately level; feet separated beneath the body. Sword hand and scabbard occupy a crowded area beside the right hip. |
+| **⅓** | Clearest change: shield rises toward the face and sword becomes steeper. Head/body displacement is small; legs retain essentially the same stance. | Slight upper-body settling is visible, but no clear pelvic turn, pronounced knee loading, or transfer onto one leg. |
+| **⅔** | Shield and sword move back toward their initial arrangement. Lower-body silhouette remains nearly unchanged. | Torso approaches its initial position. Little visible counter-motion or recovery through the hips and legs. |
+| **1** | Visually returns to the starting guard. | Visually returns to the starting stance. Endpoint agreement alone does not establish smooth recovery. |
+
+Concrete findings:
+
+- **Whole-body response is weak — high confidence.** Most readable change is in the equipment, with a small upper-body bob. There is no clear chain of recoil through shoulders, trunk, pelvis, and knees. Remaining upright suits a nonlethal reaction, but the sheet barely communicates an impact.
+- **Static support looks plausible; active weight absorption is unconvincing — medium-high confidence.** The body stays approximately over the space between the feet, without obvious tipping. However, the nearly straight legs and unchanged foot placement provide little evidence of bracing or absorbing force. A step is not inherently necessary.
+- **No obvious joint inversion; articulation is insufficiently exposed — medium confidence.** Visible knees and sword-side elbow do not show a clear impossible bend. The shield hides most of its supporting arm, while armor conceals the shoulder and hip transitions. Anatomical correctness cannot be established from those silhouettes.
+- **Sword purchase appears maintained — medium confidence.** The grip stays located in the right hand across all phases; no clear detached weapon is visible. Fingers, guard, and wrist are too crowded to verify a convincing grip or wrist alignment.
+- **Sword–shield clearance is questionable, not proven broken — high confidence in overlap, low confidence in penetration.** The blade projects across the shield face throughout, approaching the boss at phases 0 and 1 and extending above-left of it in the middle phases. It could pass in front of the shield; these views do not resolve that depth.
+- **Shield purchase cannot be verified — high confidence.** Neither view clearly exposes the hand/grip or forearm attachment. Its changing orientation therefore lacks a visible supporting arm mechanism.
+- **Scabbard attachment and hip clearance are ambiguous — medium confidence.** The scabbard remains beside the right thigh without obvious gross separation or leg penetration. Its upper end merges visually with the hand/belt area, obscuring suspension and possible hand–scabbard contact.
+
+**Still images cannot establish** impact timing, acceleration, recoil sharpness, continuous foot sliding, equipment lag, between-frame collisions, or recovery smoothness. These samples support a finding of **under-expressed reaction**, not a definitive finding that the animation has no recoil or that its equipment penetrates.

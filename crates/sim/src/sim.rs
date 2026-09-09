@@ -40,6 +40,13 @@ pub struct Sim {
     /// Interleaved soldier positions [x0, y0, x1, y1, ...].
     pub positions: Vec<f32>,
     pub facings: Vec<f32>,
+    /// Presentation-only output of the selected soldier-facing branch (0/1).
+    /// Cleared before steering; never consumed by gameplay decisions.
+    pub guarded_facings: Vec<u8>,
+    /// Presentation-only cumulative world X/Y travel and tick-path length (metres)
+    /// while ordinary or routing movement ran. Not voluntary propulsion or save state.
+    pub motor_travel: Vec<[f64; 3]>,
+    pub(crate) motor_capable: Vec<bool>,
     pub health: Vec<f32>,
     /// Collision/push mass per soldier (from class; bracing multiplies it).
     pub mass: Vec<f32>,
@@ -216,6 +223,9 @@ impl Sim {
             balance,
             positions: Vec::new(),
             facings: Vec::new(),
+            guarded_facings: Vec::new(),
+            motor_travel: Vec::new(),
+            motor_capable: Vec::new(),
             health: Vec::new(),
             mass: Vec::new(),
             radius: Vec::new(),
@@ -317,6 +327,11 @@ impl Sim {
         self.facings.len()
     }
 
+    /// Current steering-disabling state, without exposing its internal timers.
+    pub fn incapacitated(&self, soldier: usize) -> bool {
+        self.stun[soldier] > 0.0 || self.trampled[soldier] > 0.0
+    }
+
     /// Fingerprint of the physical state: where every man stands and faces,
     /// his health and life, each unit's frame, cohesion and stamina, and the
     /// missile-loose timers. Bit-exact, so two builds that agree on it after a
@@ -395,6 +410,7 @@ impl Sim {
         let map_mid_y = self.terrain.origin.y + 0.5 * self.terrain.h as f32 * self.terrain.cell;
         let home_dir_y = if anchor.y >= map_mid_y { 1.0 } else { -1.0 };
         let mut unit = Unit {
+            guarded_facing: false,
             class,
             render_look: look,
             stats,
@@ -479,6 +495,9 @@ impl Sim {
             self.positions.push(p.x);
             self.positions.push(p.y);
             self.facings.push(facing);
+            self.guarded_facings.push(0);
+            self.motor_travel.push([0.0; 3]);
+            self.motor_capable.push(false);
             self.health.push(stats.health);
             self.mass.push(stats.mass);
             self.radius.push(stats.soldier_radius);
@@ -953,6 +972,17 @@ impl Sim {
         self.run_morale(dt);
         self.steer_scratch.measures = measures;
 
+        // Final constrained travel counts only when this tick's movement branch
+        // ran; an expired end-of-tick stun timer cannot classify that interval.
+        for i in 0..n {
+            if self.motor_capable[i] {
+                let dx = self.positions[2 * i] as f64 - self.prev_positions[2 * i] as f64;
+                let dy = self.positions[2 * i + 1] as f64 - self.prev_positions[2 * i + 1] as f64;
+                self.motor_travel[i][0] += dx;
+                self.motor_travel[i][1] += dy;
+                self.motor_travel[i][2] += dx.hypot(dy);
+            }
+        }
         self.tick_count += 1;
     }
 

@@ -71,6 +71,21 @@ export async function run(ctx) {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "battle-perf-30k",
   });
+  const warnings = [];
+  const audioPolicyWarnings = [];
+  page.on("console", (message) => {
+    if (message.type() !== "warning") return;
+    const text = message.text();
+    // Direct URL launch has no user activation; Chrome blocks ambient audio.
+    // Retain that separate policy signal without hiding any renderer warning.
+    if (
+      text.startsWith(
+        "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page.",
+      )
+    )
+      audioPolicyWarnings.push(text);
+    else warnings.push(text);
+  });
   await page.goto(`${ctx.target}?map=gen&seed=7&ai=off`);
   await page.waitForFunction(
     () => {
@@ -383,6 +398,14 @@ export async function run(ctx) {
     );
   }
 
+  ctx.check(
+    "continuous rendering emits no non-audio-policy browser warnings",
+    warnings.length === 0,
+    {
+      warnings,
+      audioPolicyWarnings: audioPolicyWarnings.length,
+    },
+  );
   await page.close();
 }
 

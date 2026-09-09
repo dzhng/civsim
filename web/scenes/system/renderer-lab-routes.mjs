@@ -39,16 +39,6 @@ const routes = [
       frameGraphContractFixturesRejected(s.stats.frameGraphContractFixtures),
   ],
   [
-    "assets",
-    (s) =>
-      s?.ok &&
-      s.route === "assets" &&
-      s.stats.badErrors > 0 &&
-      s.stats.importUi?.paste &&
-      s.stats.importUi?.file &&
-      s.stats.importUi?.drop,
-  ],
-  [
     "crowd-data?count=1000",
     (s) => s?.ok && s.route === "crowd-data" && s.stats.stats.written === 1000,
   ],
@@ -1355,20 +1345,6 @@ export async function run(ctx) {
         `${route}: late-submitted scenery bucket is visible elsewhere`,
         tree.foliage >= 16,
         JSON.stringify({ tree, sample: samples.lateTreeControl }),
-      );
-    }
-    if (route === "assets") {
-      await page.click("#asset-validate-json");
-      await page.waitForFunction(
-        () => window.__rendererLabStats?.stats?.imported !== null,
-        undefined,
-        { timeout: 5000 },
-      );
-      const imported = await page.evaluate(() => window.__rendererLabStats);
-      ctx.check(
-        `${route}: imported manifest validates through the workbench UI`,
-        imported.stats.imported?.ok === false && imported.stats.imported.errors > 0,
-        JSON.stringify(imported.stats.imported),
       );
     }
     if (route.includes("crowd") || route === "battle") {

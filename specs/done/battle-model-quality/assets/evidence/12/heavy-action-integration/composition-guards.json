@@ -1,0 +1,22 @@
+[
+  {
+    "case": "missing action",
+    "rejected": "Donor must contain absent and one matching rig",
+    "noOutputWritten": true
+  },
+  {
+    "case": "existing action",
+    "rejected": "Refusing to replace existing action ready",
+    "noOutputWritten": true
+  },
+  {
+    "case": "duplicate request",
+    "rejected": "Refusing to replace existing action sword-effort",
+    "noOutputWritten": true
+  },
+  {
+    "case": "mismatched bind rig",
+    "rejected": "Donor rig does not match fitted source for sword-effort",
+    "noOutputWritten": true
+  }
+]

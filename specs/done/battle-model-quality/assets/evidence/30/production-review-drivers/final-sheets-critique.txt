@@ -1,0 +1,17 @@
+Inspected **all 20 sheets, 00–19: all 640 panels**, using native-resolution crops, including individual 360×360 rechecks. Rows **R1–R4** run top to bottom; bearings **B1–B8** run left to right.
+
+| Confidence / classification | Exact locations | Visible finding |
+|---|---|---|
+| **High — clothing clipping** | **01-light-spear, 04-archers, 05-skirmishers, 09-peasant, 10-light-sword:** R2–R4, B4–B5 | Skin-colored polygons break through the hip/rear of the skirt, above its hem. Clear recurring defect. |
+| **High — surface breakthrough** | **02-longsword:** R3 B4; **12-medium-infantry:** R3 B6–B7; **18-heavy-phalanx-sidearm:** R4 B4 | Angular slits/patches interrupt the clothing: diagonal marks across the longsword’s lower back, tears along medium infantry’s back/flank, and a dark patch through the phalanx tunic. Exact underlying geometry is uncertain. |
+| **High — localized rendering limitation** | **08-artillery:** R1–R4 B7 | Several metal surfaces become solid white rectangles with surrounding glare, obscuring their detail. Conspicuous overexposure; the machine remains recognizable. |
+| **High visibility, uncertain cause — bowstring discontinuity** | **04-archers:** R3 B3 | Upper and lower string segments are visible, but the middle span disappears against unobstructed background. Could be thin-line rendering rather than missing geometry. |
+| **Medium — uncertain intersections** | **06-shock-cav:** R2 B7; **08-artillery:** R4 B3 | Lance overlaps the horse’s neck; operator’s shin overlaps the wheel. These projections do **not** conclusively establish penetration. |
+
+Silhouette limitations:
+
+- **03-phalanx, 14-medium-phalanx, 16-heavy-phalanx-rest, 17-medium-phalanx-rest — R1–R4 B1–B8:** pikes read clearly, but the small soldier silhouettes lose armor/hand detail. Especially **R3 B1**, the foreshortened pike merges with the body.
+- **02-longsword — R2–R3 B2–B3:** the broad blade becomes a hairline edge, weakening weapon recognition.
+- **07-horse-archers — R1–R2 B1/B5:** bow, hands, and rider overlap heavily; the mounted silhouette reads better than its weapon.
+
+**No empty panels, missing whole models, frame-edge model/weapon clipping, or catastrophic geometry artifacts found.** **05-skirmishers, R3 B1–B8** has no held javelin; this is visible equipment absence, but static imagery cannot establish it as a bug.

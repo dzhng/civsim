@@ -1,0 +1,16 @@
+Clear defects:
+
+- **High confidence — `08-artillery.png`:** Severe framing failure. Oversized geometry fills the card and clips through the top and bottom edges; the complete artillery silhouette is unreadable. Dark background and small blue slivers along the left/lower geometry also visibly break consistency with the other cards.
+- **High confidence — `16-heavy-phalanx-rest.png`, `17-medium-phalanx-rest.png`:** Upright spear shafts exit the top edge around x=116; spearheads are outside the image.
+
+Readability / cosmetic limitations:
+
+- **High confidence — all 19 non-artillery cards:** Subjects occupy a small central area with substantial empty ground. At 200×184, faces, hand positions, and short weapons are difficult to distinguish.
+- **High confidence — `00-heavy-sword.png`, `10-light-sword.png`, `12-medium-infantry.png`:** Front shields obscure most torso detail; swords are barely legible beside the lower-left shield edges. These cards have very similar silhouettes.
+- **Medium confidence — `04-archers.png`, `07-horse-archers.png`:** Bow shapes are hard to resolve. The foot archer’s vertical equipment overlaps the body; the mounted archer’s equipment blends into the rider/horse on the right. This is poor equipment readability, not confirmed missing equipment.
+- **Medium confidence — `06-shock-cav.png`, `07-horse-archers.png`, `15-shock-cav-sidearm.png`:** Frontal horse poses compress riders, tack, and overlapping legs into narrow silhouettes, weakening identification.
+- **High confidence — `15-shock-cav-sidearm.png`, `18-heavy-phalanx-sidearm.png`, `19-medium-phalanx-sidearm.png`:** Sidearms are too small or obscured near the hands/hips to read clearly.
+
+No clearly missing soldier or horse models, or definite layering defects, were visible.
+
+**Images inspected:** `web/shots/models/cards/portraits.png` and every PNG in `packages/soldier-assets/assets/cards/`: `00-heavy-sword`, `01-light-spear`, `02-longsword`, `03-phalanx`, `04-archers`, `05-skirmishers`, `06-shock-cav`, `07-horse-archers`, `08-artillery`, `09-peasant`, `10-light-sword`, `11-heavy-spear`, `12-medium-infantry`, `13-medium-spear`, `14-medium-phalanx`, `15-shock-cav-sidearm`, `16-heavy-phalanx-rest`, `17-medium-phalanx-rest`, `18-heavy-phalanx-sidearm`, `19-medium-phalanx-sidearm`.

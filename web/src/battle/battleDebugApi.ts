@@ -13,6 +13,8 @@ import type { Camera } from "../shared/camera";
 import { awaitRendererReady } from "../shared/rendererReady";
 import type { BattleRenderer } from "./renderer";
 import type { BattleAmbientAudio } from "./battleAudio";
+import type { SimClock } from "../shared/simClock";
+import { createBattleViews, MOTOR_TRAVEL } from "./battleViews";
 
 interface DebugOwners {
   advance(n: number): void;
@@ -55,7 +57,12 @@ export function installBattleDebugApi({
   canvas: HTMLCanvasElement;
   game: Game;
   generatedVista: BattleVistaGrid | null;
-  metrics: () => { tickMs: number; audioUpdateMs: number; fps: number };
+  metrics: () => {
+    tickMs: number;
+    audioUpdateMs: number;
+    fps: number;
+    clock: Pick<SimClock, "alpha" | "paused" | "frozen">;
+  };
   owners: DebugOwners;
   renderer: BattleRenderer;
   stride: number;
@@ -64,6 +71,7 @@ export function installBattleDebugApi({
 }): void {
   const positions = () =>
     new Float32Array(wasm.memory.buffer, game.positions_ptr(), game.soldier_count() * 2);
+  const views = createBattleViews(game, wasm.memory);
   window.__game = {
     stats: () => ({
       soldiers: game.soldier_count(),
@@ -130,6 +138,9 @@ export function installBattleDebugApi({
       return alive[i] ?? 0;
     },
     debugSoldierAnim: (i: number) => renderer.debugSoldierAnim(i),
+    soldierMotorPath: (i: number) =>
+      views.motorTravel()[i * MOTOR_TRAVEL.stride + MOTOR_TRAVEL.path],
+    reloadSoldierAssets: () => renderer.reloadSoldierAssets(),
     rendererMemoryInfo: () => ({
       ...renderer.memoryInfo(),
       wasmMemoryBytes: wasm.memory.buffer.byteLength,

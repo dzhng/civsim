@@ -1,0 +1,78 @@
+{
+  "name": "shock-cavalry-sidearm",
+  "mounted": true,
+  "presentation": {
+    "actions": {
+      "ready": {
+        "clip": "ready",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "walk",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "guardedBackwardWalk": null,
+      "guardedLeftWalk": null,
+      "guardedRightWalk": null,
+      "melee": {
+        "clip": "melee",
+        "layer": "riderUpperBody"
+      },
+      "release": null,
+      "hit": {
+        "clip": "hit",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death",
+        "layer": "fullBody"
+      },
+      "pikeReady": null
+    },
+    "riderUpperBodyJoints": [
+      "spine",
+      "chest",
+      "neck",
+      "head",
+      "clavicle.L",
+      "upper-arm.L",
+      "forearm.L",
+      "hand.L",
+      "elbow-volume.L",
+      "clavicle.R",
+      "upper-arm.R",
+      "forearm.R",
+      "hand.R",
+      "elbow-volume.R"
+    ]
+  },
+  "skeleton": "skeleton.json",
+  "animation": "animation.json",
+  "materials": "materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "ready",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0,
+      0,
+      0
+    ],
+    "radius": 3.5362558364868164
+  }
+}

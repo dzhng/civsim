@@ -64,6 +64,7 @@ pub fn generated_map_manifest(seed: u64) -> String {
 pub struct Game {
     battle: Battle,
     unit_info: Vec<f32>,
+    posture_info: Vec<u8>,
     generated_recipe: Option<MapRecipe>,
     generated_vista: Option<VistaGrid>,
 }
@@ -75,6 +76,7 @@ impl Game {
         Game {
             battle: Battle::from_sim(Sim::new(Tunables::default(), seed as u64)),
             unit_info: Vec::new(),
+            posture_info: Vec::new(),
             generated_recipe: None,
             generated_vista: None,
         }
@@ -88,6 +90,7 @@ impl Game {
         let mut g = Game {
             battle,
             unit_info: Vec::new(),
+            posture_info: Vec::new(),
             generated_recipe: None,
             generated_vista: None,
         };
@@ -474,14 +477,44 @@ impl Game {
         self.battle.sim.alive.as_ptr()
     }
 
+    /// Presentation observations, one byte per soldier: bit 0 incapacitated,
+    /// bit 1 guarded soldier-facing branch, bit 2 guarded unit-facing branch.
+    /// Routing remains in unit_info. These bits never drive the simulation.
+    pub fn posture_ptr(&self) -> *const u8 {
+        self.posture_info.as_ptr()
+    }
+
+    /// Three cumulative f64 metres per soldier: qualified world X, world Y,
+    /// and tick-path length. Ordinary/routing movement qualifies; disabled
+    /// transport does not. Reacquire after mutations that may grow the pool.
+    pub fn motor_travel_ptr(&self) -> *const f64 {
+        self.battle.sim.motor_travel.as_ptr().cast()
+    }
+
+    /// Current infantry/rider health, one value per soldier; not a hit event.
+    pub fn health_ptr(&self) -> *const f32 {
+        self.battle.sim.health.as_ptr()
+    }
+
+    /// Current mount health (zero for unmounted soldiers). Alive is authoritative
+    /// for death: a lethal mount injury need not reduce the rider's health.
+    pub fn mount_health_ptr(&self) -> *const f32 {
+        self.battle.sim.mount_health.as_ptr()
+    }
+
     /// 1 = actively trading blows (within weapon reach). Drives attack anims.
     pub fn fighting_ptr(&self) -> *const u8 {
         self.battle.sim.fighting.as_ptr()
     }
 
-    /// Per-soldier missile loosing countdown (>0 = draw/loose pose).
+    /// Seconds remaining after an emitted projectile, not a windup command.
     pub fn loosing_ptr(&self) -> *const f32 {
         self.battle.sim.loosing_ttl.as_ptr()
+    }
+
+    /// Duration backing the countdown, so readers can recover observed release age.
+    pub fn loosing_duration(&self) -> f32 {
+        sim::missiles::LOOSING_TTL
     }
 
     pub fn projectile_count(&self) -> u32 {
@@ -688,11 +721,19 @@ impl Game {
     // (UNIT_INFO) — extend both together.
     fn refresh_unit_info(&mut self) {
         self.unit_info.clear();
+        self.posture_info.resize(self.battle.sim.soldier_count(), 0);
         for u in &self.battle.sim.units {
             // Mean crowd pressure over living soldiers (the CRUSH readout).
             let mut press = 0.0f32;
             let mut np = 0u32;
             for i in u.start..u.start + u.count {
+                self.posture_info[i] = if self.battle.sim.alive[i] == 1 {
+                    (self.battle.sim.incapacitated(i) as u8)
+                        | (self.battle.sim.guarded_facings[i] << 1)
+                        | ((u.guarded_facing as u8) << 2)
+                } else {
+                    0
+                };
                 if self.battle.sim.alive[i] == 1 {
                     press += self.battle.sim.pressure[i];
                     np += 1;
@@ -843,5 +884,106 @@ fn generated_feature_summary_json(recipe: MapRecipe, terrain: &sim::Terrain) -> 
 impl Default for Game {
     fn default() -> Self {
         Self::new(0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn loosing_duration_reads_the_emission_constant_without_mutating_countdowns() {
+        let mut game = Game::new(7);
+        game.spawn_unit(0.0, 0.0, 0.0, 1, 1, 1.0, 1.0, 0, 0.5);
+        game.battle.sim.loosing_ttl[0] = 0.25;
+        assert_eq!(game.loosing_duration(), sim::missiles::LOOSING_TTL);
+        assert_eq!(game.battle.sim.loosing_ttl[0], 0.25);
+    }
+
+    #[test]
+    fn injury_pointers_read_the_simulation_pools_without_copying() {
+        let mut game = Game::new(7);
+        game.spawn_unit(0.0, 0.0, 0.0, 2, 2, 1.0, 1.0, 0, 0.5);
+        game.battle.sim.health.copy_from_slice(&[2.5, 1.25]);
+        game.battle.sim.mount_health.copy_from_slice(&[0.0, 4.5]);
+        assert_eq!(game.health_ptr(), game.battle.sim.health.as_ptr());
+        assert_eq!(
+            game.mount_health_ptr(),
+            game.battle.sim.mount_health.as_ptr()
+        );
+        // The owner remains alive, and no allocation occurs between acquiring
+        // these pointers and reading their initialized soldier-length slices.
+        unsafe {
+            assert_eq!(
+                std::slice::from_raw_parts(game.health_ptr(), 2),
+                &[2.5, 1.25]
+            );
+            assert_eq!(
+                std::slice::from_raw_parts(game.mount_health_ptr(), 2),
+                &[0.0, 4.5]
+            );
+        }
+    }
+
+    #[test]
+    fn posture_buffer_observes_current_incapacitation_and_initializes_new_soldiers() {
+        let mut game = Game::new(7);
+        game.spawn_unit(0.0, 0.0, 0.0, 1, 1, 1.0, 1.0, 0, 0.5);
+        assert_eq!(game.posture_info, [0]);
+        game.battle.sim.stun[0] = 1.0;
+        game.battle.sim.guarded_facings[0] = 1;
+        game.battle.sim.units[0].guarded_facing = true;
+        game.refresh_unit_info();
+        assert_eq!(game.posture_info, [7]);
+        assert_eq!(game.posture_ptr(), game.posture_info.as_ptr());
+        game.spawn_unit(10.0, 0.0, 0.0, 1, 1, 1.0, 1.0, 0, 0.5);
+        assert_eq!(game.posture_info, [7, 0]);
+        game.battle.sim.stun[0] = 0.0;
+        game.refresh_unit_info();
+        assert_eq!(game.posture_info, [6, 0]);
+        game.battle.sim.alive[0] = 0;
+        game.refresh_unit_info();
+        assert_eq!(game.posture_info, [0, 0]);
+    }
+
+    #[test]
+    fn bulk_travel_preserves_mixed_disabled_and_recovery_ticks_across_batches() {
+        fn game() -> Game {
+            let mut game = Game::new(0x5150);
+            game.battle.sim.tun.morale_enabled = false;
+            game.spawn_class(0.0, 0.0, 0.0, 1, 1, 0, 0);
+            game.spawn_class(0.2, 0.0, 0.0, 1, 1, 0, 0);
+            game.battle.sim.stun[0] = sim::DT * 0.5;
+            game
+        }
+        let mut stepped = game();
+        stepped.tick();
+        assert_eq!(
+            stepped.posture_info[0] & 1,
+            0,
+            "stun expired after movement skipped"
+        );
+        assert_eq!(stepped.battle.sim.motor_travel[0], [0.0; 3]);
+        let start = stepped.battle.sim.positions.clone();
+        stepped.tick();
+        let dx = stepped.battle.sim.positions[0] as f64 - start[0] as f64;
+        let dy = stepped.battle.sim.positions[1] as f64 - start[1] as f64;
+        let mut batched = game();
+        batched.advance_ticks(2);
+        assert_eq!(batched.battle.sim.positions, stepped.battle.sim.positions);
+        // Reacquired view into the actual Sim-owned record; no allocation during read.
+        unsafe {
+            assert_eq!(
+                std::slice::from_raw_parts(batched.motor_travel_ptr(), 3),
+                &[dx, dy, dx.hypot(dy)]
+            );
+        }
+        let prior = batched.battle.sim.motor_travel[0];
+        batched.spawn_class(40.0, 0.0, 0.0, 1, 1, 0, 0);
+        unsafe {
+            let records = std::slice::from_raw_parts(batched.motor_travel_ptr(), 9);
+            assert_eq!(&records[..3], &prior);
+            assert_eq!(&records[6..], &[0.0; 3]);
+        }
     }
 }

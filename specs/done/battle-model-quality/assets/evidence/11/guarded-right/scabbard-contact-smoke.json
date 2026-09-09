@@ -1,0 +1,71 @@
+{
+  "samples": 9,
+  "pairs": [
+    [
+      "Scabbard",
+      "HumanAnatomy-Deform"
+    ],
+    [
+      "Scabbard",
+      "Tunic"
+    ],
+    [
+      "Scabbard",
+      "Mail shirt"
+    ],
+    [
+      "Scabbard",
+      "Sandal sole.L"
+    ],
+    [
+      "Scabbard",
+      "Sandal sole.R"
+    ]
+  ],
+  "failures": [
+    {
+      "frame": 0.0,
+      "parts": [
+        "Scabbard",
+        "Mail shirt"
+      ],
+      "overlaps": 46,
+      "targetBounds": [
+        [
+          -0.25609761476516724,
+          -0.22571305930614471
+        ],
+        [
+          0.026363573968410492,
+          0.05741751194000244
+        ],
+        [
+          0.6136077046394348,
+          0.6693823337554932
+        ]
+      ]
+    },
+    {
+      "frame": 18.0,
+      "parts": [
+        "Scabbard",
+        "Mail shirt"
+      ],
+      "overlaps": 46,
+      "targetBounds": [
+        [
+          -0.25609761476516724,
+          -0.22571305930614471
+        ],
+        [
+          0.026363573968410492,
+          0.05741751194000244
+        ],
+        [
+          0.6136077046394348,
+          0.6693823337554932
+        ]
+      ]
+    }
+  ]
+}

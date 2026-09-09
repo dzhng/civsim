@@ -1,0 +1,68 @@
+{
+  "name": "shock-cav-sidearm",
+  "mounted": true,
+  "presentation": {
+    "riderUpperBodyJoints": [
+      "spine",
+      "head",
+      "arm_l",
+      "arm_r"
+    ],
+    "actions": {
+      "ready": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at_ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "march",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "guardedBackwardWalk": null,
+      "guardedLeftWalk": null,
+      "guardedRightWalk": null,
+      "melee": {
+        "clip": "attack_a",
+        "layer": "riderUpperBody"
+      },
+      "release": null,
+      "hit": {
+        "clip": "hit_a",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death_a",
+        "layer": "fullBody"
+      },
+      "pikeReady": null
+    }
+  },
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.animation.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0,
+      0.09000000357627869,
+      0.6150000095367432
+    ],
+    "radius": 2.792778253555298
+  }
+}

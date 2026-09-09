@@ -1,0 +1,196 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T04:37:45.086Z",
+  "target": "http://localhost:5184",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-far-grounding",
+      "file": "models/battle-model-far-grounding.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.189999908208847],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":1,\"impostors\":0},\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-unshadowed: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.189999908208847],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":1,\"impostors\":0},\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-unshadowed: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/near-unshadowed",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-unshadowed: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-authored-ao: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.189999908208847],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":1,\"impostors\":0},\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-authored-ao: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/near-authored-ao",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-authored-ao: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":0.9,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.189999908208847],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":0,\"impostors\":1},\"selectedTile\":5,\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far",
+      "ok": false,
+      "detail": "1759 px differ (0.1718%) — see shots/diff/battle/far-grounding/far.png"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-half-properties: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":0.9,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.189999908208847],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":0,\"impostors\":1},\"selectedTile\":5,\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far-half-properties",
+      "ok": false,
+      "detail": "1758 px differ (0.1717%) — see shots/diff/battle/far-grounding/far-half-properties.png"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-half-properties: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-dead: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":0.9,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.189999908208847],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":0,\"impostors\":1},\"selectedTile\":5,\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-dead: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far-dead",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-dead: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "living interior material response matches",
+      "ok": false,
+      "detail": "{\"count\":3568,\"mean\":2.5538116591928253,\"max\":15,\"p99\":14}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "dead instances disable contact grounding",
+      "ok": true,
+      "detail": "{\"count\":3593,\"mean\":0.995825215697189,\"max\":1,\"p99\":1}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "normal and ORM precision do not cause stronger highlights",
+      "ok": true,
+      "detail": "{\"count\":4045,\"mean\":0.001977750309023486,\"max\":1,\"p99\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "living contact factor actually affects lower body",
+      "ok": false,
+      "detail": "{\"count\":4046,\"mean\":0,\"max\":0,\"p99\":0}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-far-grounding: snapshot battle/far-grounding/far",
+    "battle-model-far-grounding: snapshot battle/far-grounding/far-half-properties",
+    "battle-model-far-grounding: living interior material response matches",
+    "battle-model-far-grounding: living contact factor actually affects lower body"
+  ],
+  "pageErrors": []
+}

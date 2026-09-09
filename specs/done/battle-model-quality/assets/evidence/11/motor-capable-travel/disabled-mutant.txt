@@ -1,0 +1,31 @@
+   Compiling sim v0.1.0 (/Users/david/dev/game-motor-capable-travel/crates/sim)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.85s
+     Running tests/presentation_travel.rs (target/debug/deps/presentation_travel-5509e45fc151f0b8)
+
+running 5 tests
+
+thread 'routing_counts_but_disabled_cavalry_momentum_and_dead_bodies_do_not' (31600003) panicked at crates/sim/tests/presentation_travel.rs:55:5:
+assertion `left == right` failed
+  left: [0.10000000894069672, 0.0, 0.10000000894069672]
+ right: [0.0, 0.0, 0.0]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'qualified_travel_excludes_expiring_stun_but_counts_recovery_in_the_same_batch' (31600001) panicked at crates/sim/tests/presentation_travel.rs:20:5:
+assertion `left == right` failed: timer expiry must not relabel disabled transport
+  left: [-0.23897771537303925, -0.06534799188375473, 0.2477513037062704]
+ right: [0.0, 0.0, 0.0]
+test long_lived_counters_retain_small_enabled_steps ... ok
+test conscious_pressure_recovery_counts_final_solver_motion_not_drive ... ok
+test reversing_tick_paths_accumulate_without_net_cancellation_and_survive_growth ... ok
+test qualified_travel_excludes_expiring_stun_but_counts_recovery_in_the_same_batch ... FAILED
+test routing_counts_but_disabled_cavalry_momentum_and_dead_bodies_do_not ... FAILED
+
+failures:
+
+failures:
+    qualified_travel_excludes_expiring_stun_but_counts_recovery_in_the_same_batch
+    routing_counts_but_disabled_cavalry_momentum_and_dead_bodies_do_not
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p sim --test presentation_travel`

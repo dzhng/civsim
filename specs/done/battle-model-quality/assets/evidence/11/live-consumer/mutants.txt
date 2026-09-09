@@ -1,0 +1,163 @@
+mutant-future
+exit_code=1
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/battleCrowd.test.ts (8 tests | 1 failed | 7 skipped) 28ms
+   × live crowd uses one completed batch for root and measured gait at fractional time 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/battleCrowd.test.ts > live crowd uses one completed batch for root and measured gait at fractional time
+AssertionError: expected 0.08823529411764706 to be close to 0.06862745098039216, received difference is 0.0196078431372549, but expected 5e-13
+ ❯ tests/battleCrowd.test.ts:74:48
+     72|     const walk = bundle.animation.clips.find((clip) => clip.name === b…
+     73|     expect(frame[2][0].base.destination.clip).toBe(walk.name);
+     74|     expect(frame[2][0].base.destination.phase).toBeCloseTo(3.5 / 30 / …
+       |                                                ^
+     75|     expect(f.labels.at(-1)![0][0].x).toBe(frame[0][0]);
+     76|   } finally { f.game.free(); }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  13:59:25
+   Duration  424ms (transform 156ms, setup 84ms, import 214ms, tests 28ms, environment 0ms)
+
+
+mutant-metadata
+exit_code=1
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/battleCrowd.test.ts (8 tests | 1 failed | 7 skipped) 30ms
+   × attached standards, chips and attack arcs keep preceding life and weapon until the endpoint 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/battleCrowd.test.ts > attached standards, chips and attack arcs keep preceding life and weapon until the endpoint
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/battleCrowd.test.ts:96:27
+     94|     new Uint8Array(wasm.memory.buffer, f.game.cur_weapon_ptr(), 1)[0] …
+     95|     const delayed = f.draw(1, 0.25);
+     96|     expect(delayed[3][0]).toBe(1);
+       |                           ^
+     97|     expect(f.labels.at(-1)![0][0].x).toBe(1);
+     98|     expect(f.labels.at(-1)![1][0].chips.map((chip) => chip.text)).toCo…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  13:59:26
+   Duration  440ms (transform 156ms, setup 91ms, import 217ms, tests 30ms, environment 0ms)
+
+
+mutant-chips
+exit_code=1
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/battleCrowd.test.ts (8 tests | 1 failed | 7 skipped) 28ms
+   × attached standards, chips and attack arcs keep preceding life and weapon until the endpoint 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/battleCrowd.test.ts > attached standards, chips and attack arcs keep preceding life and weapon until the endpoint
+AssertionError: expected [ 'ROUT' ] to include 'ATK'
+ ❯ tests/battleCrowd.test.ts:98:67
+     96|     expect(delayed[3][0]).toBe(1);
+     97|     expect(f.labels.at(-1)![0][0].x).toBe(1);
+     98|     expect(f.labels.at(-1)![1][0].chips.map((chip) => chip.text)).toCo…
+       |                                                                   ^
+     99|     expect(f.labels.at(-1)![1][0].chips.map((chip) => chip.text)).not.…
+    100|     expect(f.arcs.at(-1)![0]).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  14:00:02
+   Duration  440ms (transform 153ms, setup 105ms, import 210ms, tests 28ms, environment 0ms)
+
+
+mutant-freeze
+exit_code=1
+
+ RUN  v4.1.9 /Users/david/dev/game-delayed-root-phase-policy/web
+
+ ❯ tests/battleCrowd.test.ts (8 tests | 1 failed | 7 skipped) 38ms
+   × real clock pause and freeze preserve the same delayed roots, facing and local pose 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/battleCrowd.test.ts > real clock pause and freeze preserve the same delayed roots, facing and local pose
+AssertionError: expected [ …(5) ] to deeply equal [ …(5) ]
+
+- Expected
++ Received
+
+@@ -1,20 +1,20 @@
+  [
+    Float32Array [
+-     0.01666666753590107,
++     0.03333333507180214,
+      0,
+    ],
+    Float32Array [
+-     3.1415927410125732,
++     -3.041592597961426,
+    ],
+    [
+      {
+        "appearanceId": 0,
+        "base": {
+          "destination": {
+            "clip": "march",
+-           "phase": 0.00980392156862745,
++           "phase": 0.0196078431372549,
+          },
+          "source": {
+            "kind": "frozen",
+            "locals": [
+              0,
+@@ -87,11 +87,11 @@
+              1,
+              1,
+              1,
+            ],
+          },
+-         "weight": 0.11111111111111112,
++         "weight": 0.22222222222222224,
+        },
+      },
+    ],
+    Float32Array [
+      1,
+
+ ❯ tests/battleCrowd.test.ts:158:22
+    156|     freeze.doFreeze(false);
+    157|     expect(clock.paused).toBe(true);
+    158|     expect(sample()).toEqual(delayed);
+       |                      ^
+    159|     // Same-tick caller mutation is not a newly observed endpoint.
+    160|     f.views.positions()[0] = 100;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  14:00:21
+   Duration  527ms (transform 195ms, setup 108ms, import 270ms, tests 38ms, environment 0ms)

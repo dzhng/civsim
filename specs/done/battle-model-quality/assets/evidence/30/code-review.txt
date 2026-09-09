@@ -1,0 +1,9 @@
+Clean within the requested scope: no concrete functional bugs or unjustified duplicate owners found.
+
+Confirmed in code:
+
+- Existing hashed bundles are verified, never overwritten by the roster baker.
+- The far-roster scene explicitly renders and settles before capture.
+- Legacy fixture tests resolve explicit fixture URLs.
+
+Validation passed: all 20 roster appearances, 28 focused tests, placeholder bake check, and TypeScript checking. Browser scenes were inspected but not rerun. No edits.

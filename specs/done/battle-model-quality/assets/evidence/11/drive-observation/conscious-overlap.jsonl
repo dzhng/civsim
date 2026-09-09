@@ -1,0 +1,8 @@
+{"tick":0,"soldier":0,"unit":0,"channel":"WeaveNet","source":"steer/weave.rs/compose_weave_and_corridor/weave_net","x":-0.045,"y":0,"pre":null,"post":null,"meta":"net_or_slot_fallback"}
+{"tick":0,"soldier":0,"unit":0,"channel":"SlotPull","source":"steer/weave.rs/compose_weave_and_corridor/slot_pull","x":-0.036000002,"y":0,"pre":null,"post":null,"meta":"slot_pull"}
+{"tick":0,"soldier":0,"unit":0,"channel":"SpeedCap","source":"steer/speed_caps.rs/drive_velocity/soldier_speed_cap","x":0.0076666623,"y":0,"pre":{"x":-0.081,"y":0},"post":{"x":-0.07333334,"y":0},"meta":"soldier_max_speed"}
+{"tick":0,"soldier":1,"unit":1,"channel":"Fidget","source":"steer/speed_caps.rs/drive_velocity/idle_fidget","x":0.005332739,"y":-0.0050386507,"pre":null,"post":null,"meta":"idle_fidget"}
+{"tick":0,"soldier":0,"unit":0,"channel":"BodySeparationNormal","source":"separation/bodies.rs/separate_pairs;separation/walls.rs/apply","x":-0.20061138,"y":0.0036273187,"pre":null,"post":null,"meta":"friendly_body_normal"}
+{"tick":0,"soldier":0,"unit":0,"channel":"BodySeparationFriendlySlide","source":"separation/bodies.rs/separate_pairs/friendly_slide","x":-0.0010881956,"y":-0.060183413,"pre":null,"post":null,"meta":"friendly_slide_component"}
+{"tick":0,"soldier":1,"unit":1,"channel":"BodySeparationNormal","source":"separation/bodies.rs/separate_pairs;separation/walls.rs/apply","x":0.20061138,"y":-0.0036273187,"pre":null,"post":null,"meta":"friendly_body_normal"}
+{"tick":0,"soldier":1,"unit":1,"channel":"BodySeparationFriendlySlide","source":"separation/bodies.rs/separate_pairs/friendly_slide","x":0.0010881956,"y":0.060183413,"pre":null,"post":null,"meta":"friendly_slide_component"}

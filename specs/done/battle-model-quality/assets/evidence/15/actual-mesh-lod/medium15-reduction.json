@@ -1,0 +1,20 @@
+{
+  "source": "/Users/david/dev/game-pike-family-delivery/throwaway/pike-family/complete15/medium-phalanx.blend",
+  "sourceSha256": "8580938b9a6f082f57218492071c4e95a426de60de8bd557f92742b54991735e",
+  "tiers": [
+    {
+      "name": "mid",
+      "targetTriangles": 4000,
+      "sourceTriangles": 155190,
+      "triangles": 4140,
+      "glbSha256": "d942995971f109d4a723042f0631b293c14060f7dadfdcc0ee20fb68531cdd3d"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 1200,
+      "sourceTriangles": 155190,
+      "triangles": 1610,
+      "glbSha256": "8b05c3e72b8de0d6427a686647a55242f9dd19d7b85c6ef4fe8eedf35ae3a2ab"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+Independent bundled Codex CLI source review, terminal0, session75664.
+Read-only; no browser, Blender or generated assets inspected.
+
+P2: Mounted actions restore elbow-volume.L/R from donor ready but then change
+forearms without updating their support bones. Recompute the existing fitted
+bisector rotations before inserting keys.
+
+P2: Stride distances are independently declared in mount_gait, action metadata
+and JS metadata. Give authoring/bake one owner; run support was not yet measured.
+
+P2: The death test compares phase3.5 with1, but the sampler clamps both to1.
+Compare distinct authored times in the settled interval and check nonloop
+metadata separately.
+
+All three findings accepted and corrected; see final-code-review.txt and review.md.
+Full raw review retained in isolated throwaway/mounted-family/code-review-raw.txt.

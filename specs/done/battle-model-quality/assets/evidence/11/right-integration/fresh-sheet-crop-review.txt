@@ -1,0 +1,8 @@
+Confirmed: viewed both `walk-pixel-before.png` and `walk-pixel-after.png`, plus the complete `guarded-right-hip-poses.png`, including all four rows.
+
+- **Before/after — high confidence:** Comparable framing, pose, lighting, and visible equipment. I see no obvious appearance deterioration or convincing improvement; neither is visibly less wrong. Both crop the title at the left and the soldier below the waist, preventing hip-attachment or foot-support assessment.
+- **Sheet, all rows — high confidence:** Armored soldier and shield-forward guard read clearly. Labels are readable and correctly separated from the figures; helmets, swords, scabbards, and feet remain inside each panel. No obvious framing or integration failure.
+- **Hip equipment, rows 1–4 — moderate confidence:** The scabbard visibly meets a belt/hanger region at the image-left hip in every row; no obvious floating attachment. Arm and tunic overlap obscure the precise connection. This sheet alone cannot establish whether the equipment is unchanged from the original.
+- **Step poses — moderate confidence:** Row 1 (0) has a wide stride; row 2 (0.25) narrows it; row 3 (0.5) brings the feet close together; row 4 (0.75) shifts the stance again. Rows 3–4 are less distinct, but visibly different. Feet appear near the ground, though soft shadows and featureless terrain make firm support uncertain.
+
+No full-motion or hidden-clearance conclusions.

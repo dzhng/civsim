@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-spear/medium-spear.blend",
+  "sourceSha256": "5f8ddf97979b1d029b5c8326cffe20dbc930589173ed4c368ad97378b6f89d71",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 127000,
+      "triangles": 7962,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "7ccdd6c027bc1690f073686720a91c7acc2ebc7968cbd5e9e81c74a0fb4e08f4"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 127000,
+      "triangles": 986,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "8adb01ae31958f369c53e721bfffdc4941fa175db445c5ee8338280814866396"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 127000,
+      "triangles": 788,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "5a9a19ebb00f513f22ae4cfe034381e2ef0065cd7fcc341d9b530f444600dfdc"
+    }
+  ]
+}

@@ -1,0 +1,1220 @@
+{
+  "errors": [],
+  "framing": {
+    "events": [
+      {
+        "tick": 0,
+        "label": "Ready"
+      },
+      {
+        "tick": 1,
+        "label": "Walk"
+      },
+      {
+        "tick": 4,
+        "label": "Run"
+      },
+      {
+        "tick": 10,
+        "label": "Release observed"
+      },
+      {
+        "tick": 11,
+        "label": "Release observed"
+      },
+      {
+        "tick": 14,
+        "label": "Release observed"
+      },
+      {
+        "tick": 15,
+        "label": "Release observed"
+      },
+      {
+        "tick": 18,
+        "label": "Release observed"
+      },
+      {
+        "tick": 23,
+        "label": "Walk during release"
+      },
+      {
+        "tick": 24,
+        "label": "Release exit"
+      },
+      {
+        "tick": 25,
+        "label": "Run during exit"
+      },
+      {
+        "tick": 29,
+        "label": "Exit converged"
+      },
+      {
+        "tick": 32,
+        "label": "Release reentry"
+      },
+      {
+        "tick": 35,
+        "label": "Composed death"
+      },
+      {
+        "tick": 72,
+        "label": "Terminal hold"
+      }
+    ],
+    "endTick": 72,
+    "snapshotLimit": 1120,
+    "framing": {
+      "pose": {
+        "classId": 7,
+        "clip": "idle",
+        "phase": 0,
+        "formation": false,
+        "yaw": 0.45,
+        "pitch": 1.15,
+        "zoom": 190,
+        "target": [
+          0,
+          0,
+          1
+        ]
+      },
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            1
+          ],
+          "distance": 7.069809076100015,
+          "pitch": 0.42079632679489665,
+          "yaw": -1.1207963267948966,
+          "fovY": 0.55,
+          "aspect": 1.279683377308707,
+          "near": 0.07069809076100016,
+          "far": 4000
+        }
+      },
+      "width": 970,
+      "height": 758
+    }
+  },
+  "matrix": {
+    "maximum": 7.450580596923828e-8,
+    "count": 6
+  },
+  "beforePalette": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9998118281364441,
+    0.019398782402276993,
+    0,
+    0,
+    -0.019398782402276993,
+    0.9998118281364441,
+    0,
+    0,
+    0.018428843468427658,
+    0.00017875432968139648,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9998118281364441,
+    0.019398782402276993,
+    0,
+    0,
+    -0.019398782402276993,
+    0.9998118281364441,
+    0,
+    0,
+    0.018428843468427658,
+    0.0001786947250366211,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9998118281364441,
+    0.019398782402276993,
+    0,
+    0,
+    -0.019398782402276993,
+    0.9998118281364441,
+    0,
+    0,
+    0.018428843468427658,
+    0.0001785755157470703,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9917709231376648,
+    0.12802539765834808,
+    0,
+    0,
+    -0.12802539765834808,
+    0.99177086353302,
+    0,
+    0,
+    0.18587464094161987,
+    0.010389328002929688,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9958232045173645,
+    -0.091302290558815,
+    0,
+    0,
+    0.0913022980093956,
+    0.9958232045173645,
+    0,
+    0,
+    -0.15197104215621948,
+    0.008535265922546387,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9721717834472656,
+    -0.23426911234855652,
+    0,
+    0,
+    0.23426911234855652,
+    0.9721717834472656,
+    0,
+    0,
+    -0.22255565226078033,
+    0.026436805725097656,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9623527526855469,
+    0.2718035876750946,
+    0,
+    0,
+    -0.2718035876750946,
+    0.9623527526855469,
+    0,
+    0,
+    0.2582134008407593,
+    0.035764873027801514,
+    1
+  ],
+  "afterPalette": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9998118281364441,
+    0.019398782402276993,
+    0,
+    0,
+    -0.019398782402276993,
+    0.9998118281364441,
+    0,
+    0,
+    0.018428843468427658,
+    0.00017875432968139648,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9998118281364441,
+    0.019398782402276993,
+    0,
+    0,
+    -0.019398782402276993,
+    0.9998118281364441,
+    0,
+    0,
+    0.018428843468427658,
+    0.0001786947250366211,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9998118281364441,
+    0.019398782402276993,
+    0,
+    0,
+    -0.019398782402276993,
+    0.9998118281364441,
+    0,
+    0,
+    0.018428843468427658,
+    0.0001785755157470703,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9917709231376648,
+    0.12802544236183167,
+    0,
+    0,
+    -0.12802544236183167,
+    0.99177086353302,
+    0,
+    0,
+    0.18587471544742584,
+    0.010389328002929688,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9958232045173645,
+    -0.0913022980093956,
+    0,
+    0,
+    0.0913023054599762,
+    0.9958232045173645,
+    0,
+    0,
+    -0.15197105705738068,
+    0.008535265922546387,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9721717834472656,
+    -0.23426911234855652,
+    0,
+    0,
+    0.23426911234855652,
+    0.9721717834472656,
+    0,
+    0,
+    -0.22255565226078033,
+    0.026436805725097656,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0.9623527526855469,
+    0.2718035876750946,
+    0,
+    0,
+    -0.2718035876750946,
+    0.9623527526855469,
+    0,
+    0,
+    0.2582134008407593,
+    0.035764873027801514,
+    1
+  ],
+  "render": {
+    "maximum": 1,
+    "count": 1
+  },
+  "repeatBefore": {
+    "maximum": 0,
+    "count": 0
+  },
+  "repeatAfter": {
+    "maximum": 0,
+    "count": 0
+  },
+  "samePaletteRender": {
+    "maximum": 0,
+    "count": 0
+  },
+  "states": {
+    "before": {
+      "matrixError": 7.450580596923828e-8,
+      "playback": {
+        "appearanceId": 7,
+        "base": {
+          "source": {
+            "kind": "clip",
+            "sample": {
+              "clip": "run",
+              "phase": 0.5102564102564102
+            }
+          },
+          "destination": {
+            "clip": "run",
+            "phase": 0.5102564102564102
+          },
+          "weight": 1
+        },
+        "riderUpperBody": {
+          "source": {
+            "kind": "frozen",
+            "locals": [
+              0,
+              0,
+              0.95,
+              0.0036999915578391123,
+              0,
+              0,
+              0.999993155007809,
+              1,
+              1,
+              1,
+              0,
+              0.02,
+              0.45,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0.42,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              -0.33,
+              0,
+              0.14,
+              0.18447074000890737,
+              0,
+              0,
+              0.9828380060216263,
+              1,
+              1,
+              1,
+              0.33,
+              0,
+              0.14,
+              -0.18447074000890737,
+              0,
+              0,
+              0.9828380060216263,
+              1,
+              1,
+              1,
+              -0.16,
+              0,
+              0,
+              -0.15266731491552205,
+              0,
+              0,
+              0.9882776385998444,
+              1,
+              1,
+              1,
+              0.16,
+              0,
+              0,
+              0.15266731491552205,
+              0,
+              0,
+              0.9882776385998444,
+              1,
+              1,
+              1
+            ]
+          },
+          "destination": {
+            "clip": "bow_release",
+            "phase": 0.7777777777777778
+          },
+          "weight": 0.22222222222222218
+        }
+      },
+      "snapshotBytes": 560,
+      "suppressed": 0,
+      "stats": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 1773792,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 124.78999996185303,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [],
+        "palettes": [
+          {
+            "bones": 7,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 149784,
+            "uploadedBytes": 416,
+            "snapshotUploadedBytes": 336
+          }
+        ],
+        "uploadFailed": false
+      },
+      "alive": true,
+      "workbenchFrame": 4
+    },
+    "after": {
+      "matrixError": 5.960464477539063e-8,
+      "playback": {
+        "appearanceId": 7,
+        "base": {
+          "source": {
+            "kind": "clip",
+            "sample": {
+              "clip": "run",
+              "phase": 0.5102564102564102
+            }
+          },
+          "destination": {
+            "clip": "run",
+            "phase": 0.5102564102564102
+          },
+          "weight": 1
+        },
+        "riderUpperBody": {
+          "source": {
+            "kind": "frozen",
+            "locals": [
+              0,
+              0,
+              0.95,
+              0.009699847888548944,
+              0,
+              0,
+              0.9999529553688707,
+              1,
+              1,
+              1,
+              0,
+              0.02,
+              0.45,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0.42,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              -0.33,
+              0,
+              0.14,
+              0.054461929618548025,
+              0,
+              0,
+              0.9985158477571723,
+              1,
+              1,
+              1,
+              0.33,
+              0,
+              0.14,
+              -0.055386457851163626,
+              0,
+              0,
+              0.998464992018599,
+              1,
+              1,
+              1,
+              -0.16,
+              0,
+              0,
+              -0.12758463932394912,
+              0,
+              0,
+              0.9918276865507324,
+              1,
+              1,
+              1,
+              0.16,
+              0,
+              0,
+              0.12758463932394912,
+              0,
+              0,
+              0.9918276865507325,
+              1,
+              1,
+              1
+            ]
+          },
+          "destination": {
+            "clip": "bow_release",
+            "phase": 0.7333333333333334
+          },
+          "weight": 0
+        }
+      },
+      "snapshotBytes": 560,
+      "suppressed": 0,
+      "stats": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 1773792,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 124.78999996185303,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [],
+        "palettes": [
+          {
+            "bones": 7,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 1,
+            "snapshotSlotHighWater": 1,
+            "allocatedBytes": 149784,
+            "uploadedBytes": 416,
+            "snapshotUploadedBytes": 336
+          }
+        ],
+        "uploadFailed": false
+      },
+      "alive": true,
+      "workbenchFrame": 4
+    }
+  },
+  "cpu": {
+    "exact": true,
+    "maximum": 0
+  },
+  "edgeHypothesis": {
+    "count": 1080,
+    "maximum": 2.384185791015625e-7,
+    "render": {
+      "maximum": 0,
+      "count": 0
+    },
+    "byTier": [
+      {
+        "tier": 0,
+        "count": 360,
+        "maximum": 2.384185791015625e-7
+      },
+      {
+        "tier": 1,
+        "count": 360,
+        "maximum": 2.384185791015625e-7
+      },
+      {
+        "tier": 2,
+        "count": 360,
+        "maximum": 2.384185791015625e-7
+      }
+    ]
+  },
+  "edgeControls": [
+    {
+      "tick": 0,
+      "matrixError": 1.1920928955078125e-7,
+      "playback": {
+        "appearanceId": 41,
+        "base": {
+          "source": {
+            "kind": "clip",
+            "sample": {
+              "clip": "gait",
+              "phase": 0
+            }
+          },
+          "destination": {
+            "clip": "gait",
+            "phase": 0
+          },
+          "weight": 1
+        }
+      },
+      "liveTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "oracleTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": [
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        }
+      ],
+      "repeat": {
+        "maximum": 0,
+        "count": 0
+      },
+      "render": {
+        "maximum": 0,
+        "count": 0
+      }
+    },
+    {
+      "tick": 9.75,
+      "matrixError": 1.9371509552001953e-7,
+      "playback": {
+        "appearanceId": 41,
+        "base": {
+          "source": {
+            "kind": "clip",
+            "sample": {
+              "clip": "fixture-run",
+              "phase": 0.325
+            }
+          },
+          "destination": {
+            "clip": "fixture-run",
+            "phase": 0.325
+          },
+          "weight": 1
+        }
+      },
+      "liveTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "oracleTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": [
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        }
+      ],
+      "repeat": {
+        "maximum": 0,
+        "count": 0
+      },
+      "render": {
+        "maximum": 0,
+        "count": 0
+      }
+    },
+    {
+      "tick": 10,
+      "matrixError": 1.7881393432617188e-7,
+      "playback": {
+        "appearanceId": 41,
+        "base": {
+          "source": {
+            "kind": "clip",
+            "sample": {
+              "clip": "fixture-run",
+              "phase": 0.3333333333333333
+            }
+          },
+          "destination": {
+            "clip": "fixture-run",
+            "phase": 0.3333333333333333
+          },
+          "weight": 1
+        },
+        "riderUpperBody": {
+          "source": {
+            "kind": "frozen",
+            "locals": [
+              0.3700000047683716,
+              -0.23000000417232513,
+              0.10999999940395355,
+              0,
+              0,
+              0.10480716079473495,
+              0.9944925904273987,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              -7.290724807234983e-9,
+              0,
+              0.9482842676808904,
+              5.338507591545749e-8,
+              0.7071067690849304,
+              -0.7071067690849304,
+              5.338507591545749e-8,
+              1,
+              1,
+              1,
+              -1.6596262216270197e-21,
+              -1.099120794378905e-14,
+              -0.47999998927116394,
+              4.1640387560541525e-8,
+              0.5515436586029245,
+              0.8341460259780029,
+              6.297626977274256e-8,
+              1,
+              1,
+              1,
+              1.6596262216270197e-21,
+              1.099120794378905e-14,
+              0.47999998927116394,
+              6.297626977274256e-8,
+              0.8341460259780029,
+              0.5515436586029245,
+              4.1640387560541525e-8,
+              1,
+              1,
+              1,
+              -4.529875141656703e-8,
+              -0.30000007152557373,
+              -4.81482486096809e-35,
+              -5.11944000898306e-8,
+              -0.678090373449903,
+              0.7349785339957658,
+              5.548933941291923e-8,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0,
+              1,
+              -7.549790126404332e-8,
+              -1.9560225997682864e-35,
+              0,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0.25,
+              0,
+              2.8698592549372254e-42,
+              -1.721331956618915e-21,
+              1,
+              0.9999999403953552,
+              0.9999999403953552,
+              1,
+              0.1600000113248825,
+              -1.894622755869448e-15,
+              0.3500000238418579,
+              -0.5,
+              0.5,
+              -0.5,
+              0.5,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0.4500000476837158,
+              0,
+              2.8698592549372254e-42,
+              0,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "destination": {
+            "clip": "fixture-release",
+            "phase": 0.8
+          },
+          "weight": 0
+        }
+      },
+      "liveTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "oracleTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": [
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        }
+      ],
+      "repeat": {
+        "maximum": 0,
+        "count": 0
+      },
+      "render": {
+        "maximum": 63,
+        "count": 6
+      }
+    },
+    {
+      "tick": 10.25,
+      "matrixError": 2.3096799850463867e-7,
+      "playback": {
+        "appearanceId": 41,
+        "base": {
+          "source": {
+            "kind": "clip",
+            "sample": {
+              "clip": "fixture-run",
+              "phase": 0.3416666666666667
+            }
+          },
+          "destination": {
+            "clip": "fixture-run",
+            "phase": 0.3416666666666667
+          },
+          "weight": 1
+        },
+        "riderUpperBody": {
+          "source": {
+            "kind": "frozen",
+            "locals": [
+              0.3700000047683716,
+              -0.23000000417232513,
+              0.10999999940395355,
+              0,
+              0,
+              0.10480716079473495,
+              0.9944925904273987,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              1,
+              1,
+              1,
+              -7.290724807234983e-9,
+              0,
+              0.9482842676808904,
+              5.338507591545749e-8,
+              0.7071067690849304,
+              -0.7071067690849304,
+              5.338507591545749e-8,
+              1,
+              1,
+              1,
+              -1.6596262216270197e-21,
+              -1.099120794378905e-14,
+              -0.47999998927116394,
+              4.1640387560541525e-8,
+              0.5515436586029245,
+              0.8341460259780029,
+              6.297626977274256e-8,
+              1,
+              1,
+              1,
+              1.6596262216270197e-21,
+              1.099120794378905e-14,
+              0.47999998927116394,
+              6.297626977274256e-8,
+              0.8341460259780029,
+              0.5515436586029245,
+              4.1640387560541525e-8,
+              1,
+              1,
+              1,
+              -4.529875141656703e-8,
+              -0.30000007152557373,
+              -4.81482486096809e-35,
+              -5.11944000898306e-8,
+              -0.678090373449903,
+              0.7349785339957658,
+              5.548933941291923e-8,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0,
+              1,
+              -7.549790126404332e-8,
+              -1.9560225997682864e-35,
+              0,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0.25,
+              0,
+              2.8698592549372254e-42,
+              -1.721331956618915e-21,
+              1,
+              0.9999999403953552,
+              0.9999999403953552,
+              1,
+              0.1600000113248825,
+              -1.894622755869448e-15,
+              0.3500000238418579,
+              -0.5,
+              0.5,
+              -0.5,
+              0.5,
+              1,
+              1,
+              1,
+              0,
+              0,
+              0.4500000476837158,
+              0,
+              2.8698592549372254e-42,
+              0,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "destination": {
+            "clip": "fixture-release",
+            "phase": 0.8083333333333333
+          },
+          "weight": 0.05555555555555573
+        }
+      },
+      "liveTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "oracleTiers": {
+        "l0": 1,
+        "l1": 0,
+        "l2": 0,
+        "l3": 0
+      },
+      "shadowTiers": [
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        }
+      ],
+      "repeat": {
+        "maximum": 0,
+        "count": 0
+      },
+      "render": {
+        "maximum": 0,
+        "count": 0
+      }
+    }
+  ]
+}

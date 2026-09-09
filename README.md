@@ -47,6 +47,9 @@ realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
 from physical soldier state (slot error vs. the intended formation), never
 stored as a freestanding scalar — so it can't drift from what's on screen.
 
+The [authored battle model rationale](specs/done/battle-model-quality/README.md)
+records the local Blender authoring and production-rendered review boundaries.
+
 ## Formatting
 
 Two formatters, one per language. Rust uses the standard workspace formatter;
@@ -72,8 +75,6 @@ The `web` app also carries a linter and tests alongside the formatter:
 bun run --cwd web lint           # oxlint (react/import/typescript/unicorn)
 bun run --cwd web typecheck      # tsc --noEmit
 bun run --cwd web test           # vitest (React overlay component tests)
-bun run --cwd web test:ui        # node --test (pure DOM-free .mjs suites)
-bun run --cwd web test:unit      # node --test (TypeScript seam suites in web/tests/)
 ```
 
 Keep broad formatting churn in its own commit, separate from mechanics,

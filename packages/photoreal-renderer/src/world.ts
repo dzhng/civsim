@@ -68,7 +68,6 @@ export class PhotorealWorld {
   sunLight: THREE.DirectionalLight | null = null;
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
-  private timestampBroken = false;
   private environmentDisposer: (() => void) | null = null;
   // Snapshotted at render(): three's internal animation loop calls
   // info.reset() every browser frame, so live info.render counts read 0
@@ -147,19 +146,28 @@ export class PhotorealWorld {
   }
 
   private pollGpuTime(): void {
-    if (this.timestampBroken) return;
+    // Pinned Three exposes this allocation gate; its published Backend type omits it.
+    const backend = this.renderer.backend as typeof this.renderer.backend & { trackTimestamp: boolean };
+    if (!backend.trackTimestamp) return;
+    const failed = () => {
+      backend.trackTimestamp = false;
+      this.gpuTimeMs = null;
+    };
     try {
-      void this.renderer
-        .resolveTimestampsAsync(THREE.TimestampQuery.RENDER)
+      // The independent pools must both drain, even though the standing metric
+      // deliberately reports render passes only (not a correlated frame total).
+      void Promise.all([
+        this.renderer.resolveTimestampsAsync(THREE.TimestampQuery.RENDER),
+        this.renderer.resolveTimestampsAsync(THREE.TimestampQuery.COMPUTE),
+      ])
         .then(() => {
+          if (!backend.trackTimestamp) return;
           const t = this.renderer.info.render.timestamp;
           if (typeof t === 'number' && t > 0) this.gpuTimeMs = t;
         })
-        .catch(() => {
-          this.timestampBroken = true;
-        });
+        .catch(failed);
     } catch {
-      this.timestampBroken = true;
+      failed();
     }
   }
 

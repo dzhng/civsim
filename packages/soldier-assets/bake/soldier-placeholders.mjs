@@ -1,14 +1,49 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { bakeRig, mat4FromTRS } from './vat.mjs';
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { bakeLocalAnimation, encodeLocalAnimation } from "../src/localAnimation.ts";
+import { mat4FromTRS } from "../src/localPose.ts";
+import { createPlaceholderSoldierMeshTiers, PLACEHOLDER_MATERIALS } from "../src/soldierMesh.ts";
+import { encodeSoldierMesh } from "../src/appearanceBundle.ts";
+import { deriveAnimatedBounds } from "./animated-bounds.mjs";
+import { APPEARANCE_DESCRIPTORS } from "../src/appearance.ts";
+import { assertAppearancePresentation, ACTION_ROLES } from "../src/presentation.ts";
+import { assertPresentationMotion } from "./presentation.mjs";
 
-const OUT = new URL('../assets/baked/human-placeholder.vat.json', import.meta.url);
-const KIT = new URL('../assets/kit.json', import.meta.url);
-const WEB_OUT = new URL('../../../web/public/assets/soldiers/baked/human-placeholder.vat.json', import.meta.url);
-const WEB_KIT = new URL('../../../web/public/assets/soldiers/kit.json', import.meta.url);
-const FPS = 12;
+const ASSET_ROOTS = [
+  new URL("../assets/fixtures/placeholder-soldiers/", import.meta.url),
+  new URL("../../../web/public/assets/soldiers/fixtures/placeholder-soldiers/", import.meta.url),
+];
+
+// Synthetic transport content belongs to explicit tests, never the live catalog.
+const descriptors = APPEARANCE_DESCRIPTORS.map((description) => {
+  const { weapon, mounted } = description.look;
+  const full = (clip) => ({ clip, layer: "fullBody" });
+  const action = (clip) => ({ clip, layer: mounted ? "riderUpperBody" : "fullBody" });
+  const release = { bow: "bow_release", javelin: "throw_release", artillery: "crew_release" }[
+    weapon
+  ];
+  return {
+    ...description,
+    presentation: {
+      riderUpperBodyJoints: mounted ? ["spine", "head", "arm_l", "arm_r"] : null,
+      actions: {
+        ready: full("idle"),
+        atEase: full("at_ease"),
+        walk: full("march"),
+        run: full("run"),
+        guardedBackwardWalk: null,
+        guardedLeftWalk: null,
+        guardedRightWalk: null,
+        melee: action("attack_a"),
+        release: release ? action(release) : null,
+        hit: full("hit_a"),
+        death: full("death_a"),
+        pikeReady: weapon === "pike" ? full("idle") : null,
+      },
+    },
+  };
+});
 
 const qx = (a) => [Math.sin(a / 2), 0, 0, Math.cos(a / 2)];
 const qy = (a) => [0, Math.sin(a / 2), 0, Math.cos(a / 2)];
@@ -26,22 +61,37 @@ function inverseBindTranslations(binds) {
 
 export function placeholderRig() {
   const binds = [
-    { name: 'hips', parent: -1, bind: { T: [0, 0, 0.95], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'spine', parent: 0, bind: { T: [0, 0.02, 0.45], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'head', parent: 1, bind: { T: [0, 0, 0.42], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'arm_l', parent: 1, bind: { T: [-0.33, 0, 0.14], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'arm_r', parent: 1, bind: { T: [0.33, 0, 0.14], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'leg_l', parent: 0, bind: { T: [-0.16, 0, 0.00], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'leg_r', parent: 0, bind: { T: [0.16, 0, 0.00], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: "hips", parent: -1, bind: { T: [0, 0, 0.95], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: "spine", parent: 0, bind: { T: [0, 0.02, 0.45], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: "head", parent: 1, bind: { T: [0, 0, 0.42], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: "arm_l", parent: 1, bind: { T: [-0.33, 0, 0.14], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: "arm_r", parent: 1, bind: { T: [0.33, 0, 0.14], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: "leg_l", parent: 0, bind: { T: [-0.16, 0, 0.0], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: "leg_r", parent: 0, bind: { T: [0.16, 0, 0.0], R: [0, 0, 0, 1], S: [1, 1, 1] } },
   ];
   const inverse = inverseBindTranslations(binds);
   const bones = binds.map((b, i) => ({ ...b, inverseBind: inverse[i] }));
   const loop = [0, 0.25, 0.5, 0.75, 1];
-  const swing = (amp, phase = 1) => loop.map((t) => qx(Math.sin((t * Math.PI * 2) + phase) * amp));
+  const swing = (amp, phase = 1) => loop.map((t) => qx(Math.sin(t * Math.PI * 2 + phase) * amp));
   const clips = [
-    { name: 'idle', duration: 1, tracks: { 1: { R: channel(loop, loop.map((t) => qy(Math.sin(t * Math.PI * 2) * 0.03))) } } },
     {
-      name: 'march', duration: 1, tracks: {
+      name: "idle",
+      duration: 1,
+      tracks: {
+        1: {
+          R: channel(
+            loop,
+            loop.map((t) => qy(Math.sin(t * Math.PI * 2) * 0.03)),
+          ),
+        },
+      },
+    },
+    {
+      name: "march",
+      duration: 1,
+      // Synthetic transport fixture rates, not physically grounded foot calibration.
+      strideMeters: 1.7,
+      tracks: {
         3: { R: channel(loop, swing(0.38, 0)) },
         4: { R: channel(loop, swing(0.38, Math.PI)) },
         5: { R: channel(loop, swing(0.26, Math.PI)) },
@@ -49,7 +99,10 @@ export function placeholderRig() {
       },
     },
     {
-      name: 'run', duration: 0.65, tracks: {
+      name: "run",
+      duration: 0.65,
+      strideMeters: 3.4 * 0.65,
+      tracks: {
         0: { R: channel([0, 0.5, 1], [qx(-0.1), qx(0.08), qx(-0.1)]) },
         3: { R: channel(loop, swing(0.46, 0)) },
         4: { R: channel(loop, swing(0.46, Math.PI)) },
@@ -58,146 +111,237 @@ export function placeholderRig() {
       },
     },
     {
-      name: 'attack_a', duration: 0.7, tracks: {
+      name: "attack_a",
+      duration: 0.7,
+      tracks: {
         1: { R: channel([0, 0.45, 1], [qz(0), qz(-0.22), qz(0.05)]) },
         4: { R: channel([0, 0.35, 0.7], [qx(-0.65), qx(1.2), qx(-0.25)]) },
       },
     },
     {
-      name: 'shoot', duration: 0.75, tracks: {
+      name: "shoot",
+      duration: 0.75,
+      tracks: {
         1: { R: channel([0, 0.55, 1], [qz(0.04), qz(-0.08), qz(0.02)]) },
         3: { R: channel([0, 0.55, 1], [qx(-0.75), qx(-1.18), qx(-0.78)]) },
         4: { R: channel([0, 0.55, 0.72, 1], [qx(-0.42), qx(1.08), qx(-0.2), qx(-0.42)]) },
       },
     },
-    { name: 'hit_a', duration: 0.35, tracks: { 1: { R: channel([0, 0.5, 1], [qx(0), qx(-0.45), qx(0.05)]) } } },
     {
-      name: 'death_a', duration: 0.9, tracks: {
-        0: { R: channel([0, 1], [qx(0), qx(1.35)]), T: channel([0, 1], [[0, 0, 0.95], [0, 0.18, 0.28]]) },
+      name: "hit_a",
+      duration: 0.35,
+      tracks: { 1: { R: channel([0, 0.5, 1], [qx(0), qx(-0.45), qx(0.05)]) } },
+    },
+    {
+      name: "death_a",
+      duration: 0.9,
+      tracks: {
+        0: {
+          R: channel([0, 1], [qx(0), qx(1.35)]),
+          T: channel(
+            [0, 1],
+            [
+              [0, 0, 0.95],
+              [0, 0.18, 0.28],
+            ],
+          ),
+        },
         1: { R: channel([0, 1], [qx(0), qx(0.5)]) },
       },
     },
-    { name: 'at_ease', duration: 1, tracks: { 3: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) }, 4: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) } } },
-  ];
-  return { bones, clips };
-}
-
-function kitJson(baked) {
-  const archetype = (name, armor, helmet, shield, weapon, mounted = false) => ({
-    name,
-    skeleton: 'human-placeholder',
-    mount: mounted ? 'horse-placeholder' : undefined,
-    pieces: [`body_${armor}`, `head_${helmet}`, shield === 'none' ? null : `shield_${shield}`, `weapon_${weapon}`].filter(Boolean),
-    material: armor,
-  });
-  return {
-    schema: 1,
-    provenance: 'Procedural placeholder kit generated by packages/soldier-assets/bake/soldier-placeholders.mjs; no third-party art.',
-    skeletons: {
-      'human-placeholder': {
-        bones: baked.bones,
-        boneOrder: ['hips', 'spine', 'head', 'arm_l', 'arm_r', 'leg_l', 'leg_r'],
-        rootBone: 'hips',
-        source: 'procedural-placeholder',
+    {
+      name: "at_ease",
+      duration: 1,
+      tracks: {
+        3: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) },
+        4: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) },
       },
-      'horse-placeholder': { bones: 1, boneOrder: ['root'], rootBone: 'root', source: 'procedural-placeholder-stub' },
     },
-    fps: FPS,
-    frameMap: {
-      0: 'idle', 1: 'march', 2: 'march', 3: 'attack_a', 4: 'death_a', 5: 'idle',
-      6: 'at_ease', 7: 'at_ease', 8: 'run', 9: 'run', 10: 'hit_a', 11: 'attack_a',
-      12: 'shoot',
+  ];
+  // Distinct diagnostic actions, not accepted character motion.
+  clips.push(
+    {
+      name: "bow_release",
+      duration: 0.75,
+      markers: { release: 0.55 / 0.75 },
+      tracks: {
+        3: { R: channel([0, 0.55, 0.75], [qx(-0.85), qx(-0.85), qx(-0.6)]) },
+        4: { R: channel([0, 0.55, 0.65, 0.75], [qx(-0.4), qx(1.05), qx(0.3), qx(-0.4)]) },
+      },
     },
-    clips: Object.fromEntries(baked.clips.map((c) => [c.name, { ...c, loop: ['idle', 'march', 'run', 'at_ease'].includes(c.name) }])),
-    archetypes: {
-      0: archetype('heavy-sword', 'heavy', 'crest', 'tall', 'sword'),
-      1: archetype('light-spear', 'light', 'cap', 'round', 'spear'),
-      2: archetype('longsword', 'medium', 'bronze', 'none', 'greatsword'),
-      3: archetype('phalanx', 'heavy', 'crest', 'small', 'pike'),
-      4: archetype('archers', 'cloth', 'hood', 'none', 'bow'),
-      5: archetype('skirmishers', 'light', 'bare', 'small', 'javelin'),
-      6: archetype('shock-cav', 'heavy', 'crest', 'round', 'lance', true),
-      7: archetype('horse-archers', 'light', 'cap', 'none', 'bow', true),
-      8: archetype('artillery-crew', 'cloth', 'cap', 'none', 'none'),
-      9: archetype('peasant', 'rag', 'bare', 'none', 'sword'),
-      10: archetype('light-sword', 'light', 'cap', 'round', 'sword'),
-      11: archetype('heavy-spear', 'heavy', 'crest', 'tall', 'spear'),
-      12: archetype('medium-infantry', 'medium', 'bronze', 'round', 'sword'),
-      13: archetype('medium-spear', 'medium', 'bronze', 'round', 'spear'),
-      14: archetype('medium-phalanx', 'medium', 'bronze', 'small', 'pike'),
-      15: archetype('shock-cav-sidearm', 'heavy', 'crest', 'round', 'lance_sidearm', true),
-      16: archetype('heavy-phalanx-rest', 'heavy', 'crest', 'small', 'pike_upright'),
-      17: archetype('medium-phalanx-rest', 'medium', 'bronze', 'small', 'pike_upright'),
-      18: archetype('heavy-phalanx-sidearm', 'heavy', 'crest', 'small', 'pike_sidearm'),
-      19: archetype('medium-phalanx-sidearm', 'medium', 'bronze', 'small', 'pike_sidearm'),
+    {
+      name: "throw_release",
+      duration: 0.7,
+      markers: { release: 0.4 / 0.7 },
+      tracks: {
+        1: { R: channel([0, 0.4, 0.7], [qz(-0.2), qz(0.25), qz(0)]) },
+        4: { R: channel([0, 0.3, 0.4, 0.7], [qx(-1.2), qx(-1.4), qx(0.8), qx(0)]) },
+      },
     },
-    materials: {
-      channels: ['albedo', 'normal', 'orm', 'factionMask'],
-      factionTint: 'replace armband pixels only; factionMask is not a body/shield tint',
-      compression: 'procedural-placeholder-uncompressed',
+    {
+      name: "crew_release",
+      duration: 0.8,
+      markers: { release: 0.5 },
+      tracks: {
+        1: { R: channel([0, 0.4, 0.8], [qx(0.15), qx(-0.18), qx(0.05)]) },
+        3: { R: channel([0, 0.4, 0.8], [qx(-0.6), qx(0.2), qx(-0.3)]) },
+        4: { R: channel([0, 0.4, 0.8], [qx(-0.6), qx(0.2), qx(-0.3)]) },
+      },
     },
-    vat: {
-      format: 'RGBA32F-json',
-      path: 'baked/human-placeholder.vat.json',
-      layout: 'pixel(x=globalFrame, y=bone*4+col) = joint matrix column',
-      sha256: hashFloats(baked.data),
-    },
+  );
+  return {
+    bones,
+    clips: clips.map((clip) => ({
+      ...clip,
+      loop: ["idle", "march", "run", "at_ease"].includes(clip.name),
+    })),
   };
-}
-
-function hashFloats(data) {
-  return createHash('sha256').update(Buffer.from(data.buffer, data.byteOffset, data.byteLength)).digest('hex');
 }
 
 function stableJson(value) {
-  return `${JSON.stringify(value, null, 2)}\n`;
+  return `${JSON.stringify(value, null, value.indexFormat ? undefined : 2)}\n`;
+}
+
+function completeBundleFiles(rig, animation) {
+  const files = {
+    "baked/human-placeholder.skeleton.json": {
+      ...rig,
+      bones: rig.bones.map((bone) => ({ ...bone, inverseBind: Array.from(bone.inverseBind) })),
+    },
+    "baked/placeholder.materials.json": { materials: PLACEHOLDER_MATERIALS, textures: {} },
+  };
+  const appearances = {};
+  const meshes = createPlaceholderSoldierMeshTiers();
+  for (const [id, archetype] of Object.entries(descriptors)) {
+    const path = `appearances/${archetype.name}`;
+    const tiers = meshes[Number(id)];
+    const tierPaths = tiers.map((mesh, lod) => {
+      const name = `tier-${lod}.mesh.json`;
+      files[`${path}/${name}`] = encodeSoldierMesh(mesh);
+      return name;
+    });
+    appearances[id] = `${path}/appearance.json`;
+    files[appearances[id]] = {
+      name: archetype.name,
+      mounted: archetype.look.mounted,
+      presentation: archetype.presentation,
+      skeleton: "../../baked/human-placeholder.skeleton.json",
+      animation: "../../baked/human-placeholder.animation.json",
+      materials: "../../baked/placeholder.materials.json",
+      tiers: tierPaths,
+      // Far atlases retain the complete equipment silhouette, not the coarse tier's omissions.
+      far: { mesh: tierPaths[0], clip: "idle", phase: 0 },
+      bounds: deriveAnimatedBounds(tiers, animation, PLACEHOLDER_MATERIALS, rig),
+    };
+    assertAppearancePresentation(archetype.presentation, rig, animation, archetype.look.mounted);
+    assertPresentationMotion(archetype.presentation, animation, rig);
+  }
+  files["catalog.json"] = { appearances };
+  files["review-matrix.json"] = {
+    acceptanceLedger: "specs/done/battle-model-quality/README.md",
+    source: {
+      geometry: "packages/soldier-assets/src/soldierMesh.ts",
+      rigAndClips: "packages/soldier-assets/bake/soldier-placeholders.mjs",
+    },
+    appearances: Object.fromEntries(
+      Object.entries(appearances).map(([id, path]) => {
+        const manifest = files[path];
+        return [
+          id,
+          {
+            name: manifest.name,
+            bundle: path,
+            selection: APPEARANCE_DESCRIPTORS[id].selection,
+            riderUpperBodyJoints: manifest.presentation.riderUpperBodyJoints,
+            actions: Object.fromEntries(
+              ACTION_ROLES.map((role) => {
+                const binding = manifest.presentation.actions[role];
+                const clip = binding && animation.clips.find((clip) => clip.name === binding.clip);
+                return [
+                  role,
+                  binding
+                    ? {
+                        ...binding,
+                        duration: clip.duration,
+                        loop: clip.loop,
+                        ...(clip.markers ? { markers: clip.markers } : {}),
+                        ...(clip.strideMeters !== undefined
+                          ? { strideMeters: clip.strideMeters }
+                          : {}),
+                      }
+                    : null,
+                ];
+              }),
+            ),
+          },
+        ];
+      }),
+    ),
+  };
+  return files;
 }
 
 export async function bakePlaceholder({ write = true } = {}) {
-  const baked = bakeRig(placeholderRig(), FPS);
-  const out = {
-    schema: 1,
-    skeleton: 'human-placeholder',
-    fps: FPS,
-    width: baked.width,
-    height: baked.height,
-    bones: baked.bones,
-    clips: baked.clips,
-    layout: 'RGBA32F, mat4 columns in rows bone*4..bone*4+3',
-    sha256: hashFloats(baked.data),
-    data: Array.from(baked.data, (v) => Number(v.toFixed(8))),
-  };
-  const kit = kitJson(baked);
+  const rig = placeholderRig();
+  const animation = bakeLocalAnimation(rig);
+  const out = encodeLocalAnimation(animation);
+  const files = completeBundleFiles(rig, animation);
+  files["baked/human-placeholder.animation.json"] = out;
   if (write) {
-    await mkdir(dirname(fileURLToPath(OUT)), { recursive: true });
-    await mkdir(dirname(fileURLToPath(WEB_OUT)), { recursive: true });
-    await writeFile(OUT, stableJson(out));
-    await writeFile(KIT, stableJson(kit));
-    await writeFile(WEB_OUT, stableJson(out));
-    await writeFile(WEB_KIT, stableJson(kit));
+    for (const root of ASSET_ROOTS) {
+      for (const [path, content] of Object.entries(files)) {
+        const url = new URL(path, root);
+        await mkdir(dirname(fileURLToPath(url)), { recursive: true });
+        await writeFile(url, stableJson(content));
+      }
+    }
   }
-  return { out, kit };
+  return { out, descriptors, files };
 }
 
-if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
-  const check = process.argv.includes('--check');
+if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").href) {
+  const check = process.argv.includes("--check");
   const next = await bakePlaceholder({ write: !check });
   if (check) {
-    const currentOut = JSON.parse(await readFile(OUT, 'utf8'));
-    const currentKit = JSON.parse(await readFile(KIT, 'utf8'));
-    const currentWebOut = JSON.parse(await readFile(WEB_OUT, 'utf8'));
-    const currentWebKit = JSON.parse(await readFile(WEB_KIT, 'utf8'));
-    const ok = stableJson(currentOut) === stableJson(next.out)
-      && stableJson(currentKit) === stableJson(next.kit)
-      && stableJson(currentWebOut) === stableJson(next.out)
-      && stableJson(currentWebKit) === stableJson(next.kit);
+    let ok = true;
+    for (const root of ASSET_ROOTS) {
+      const appearanceRoot = new URL("appearances/", root);
+      const entries = await readdir(appearanceRoot, { recursive: true, withFileTypes: true }).catch(
+        (error) => {
+          if (error.code !== "ENOENT") throw error;
+          return [];
+        },
+      );
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        const path = `${entry.parentPath}/${entry.name}`;
+        const relative = path.slice(fileURLToPath(root).length);
+        if (!(relative in next.files)) {
+          console.error(`obsolete generated asset: ${path}`);
+          ok = false;
+        }
+      }
+      for (const [path, content] of Object.entries(next.files)) {
+        const url = new URL(path, root);
+        const current = await readFile(url, "utf8").catch((error) => {
+          if (error.code !== "ENOENT") throw error;
+          return null;
+        });
+        if (current !== stableJson(content)) {
+          console.error(`stale or missing generated asset: ${fileURLToPath(url)}`);
+          ok = false;
+        }
+      }
+    }
     if (!ok) {
-      console.error('placeholder soldier bake is not up to date or not deterministic');
+      console.error("placeholder soldier bake is not up to date or not deterministic");
       process.exitCode = 1;
     } else {
-      console.log('placeholder soldier bake is deterministic');
+      console.log("placeholder soldier bake is deterministic");
     }
   } else {
-    console.log(`wrote ${fileURLToPath(KIT)} and ${fileURLToPath(OUT)}`);
+    console.log(
+      `wrote ${Object.keys(next.files).length} placeholder assets to package and web roots`,
+    );
   }
 }

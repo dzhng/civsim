@@ -1,0 +1,22 @@
+**All 24 panels pass framing:** heads, feet, wheels, and forward-beam tips stay within their panels, clear of labels. **The main issue is leg–wheel overlap obscuring the human’s stance**, especially from the side. No detached assembly component or definite body–machine intersection is demonstrated.
+
+Each cell below records inspection of that panel; columns follow the sheet left to right.
+
+| Pose row | Front | Side | Rear | Three-quarter |
+|---|---|---|---|---|
+| At ease | Complete silhouette; wheel crowds one ankle. | Legs overlap wheel faces; feet remain in frame. | One leg aligns with wheel/frame, weakening separation. | Connected beam and braced carriage read clearly; near wheel partly hides a lower leg. |
+| Ready | Both hands and held shaft readable; ankle/wheel overlap. | Bent legs merge visually with wheels; stance hard to resolve. | Held shaft partly hidden by torso; leg/wheel overlap. | Assembly readable; wheel obscures part of rearward leg/foot. |
+| Release | Complete framing; ankle/wheel overlap. | Legs and wheels overlap; independent footing unclear. | Torso occludes shaft center; wheel crowds leg. | Beam and braces connected visibly; rearward footing obscured. |
+| Recovery | Complete framing; ankle/wheel overlap persists. | Lower legs poorly separated from wheels. | Leg and wheel silhouettes coincide. | Assembly readable; wheel hides part of rearward lower leg. |
+| Recovered equipment | Complete framing; shaft and hands visible. | Wheel/leg overlap still limits stance reading. | Shaft center occluded by body; leg/wheel overlap. | Connected carriage visible; rearward foot partly obscured. |
+| Melee sidearm | Sidearm, arms, feet, and carriage contained. | Bent leg crosses wheel silhouette; footing ambiguous. | Raised arm/sidearm projects close to upper wooden fitting; no proven intersection. | Sidearm silhouette readable; lower leg still overlaps wheel. |
+
+**Whole-pose crop findings:**
+
+- **High confidence — framing passes.** Entire combined subject fits comfortably, including the forward tip, wheel bottoms, head, and visible sandal outlines.
+- **High confidence — body–machine readability issue.** The large foreground wheel hides much of the rearward shin and part of its sandal. The other leg is clearer. This demonstrates **projected overlap**, not penetration.
+- **Moderate confidence — assembly appears connected.** The long beam meets the upright/braced structure; diagonal braces connect toward the carriage, and the lower crosspiece spans between the wheel regions. No obvious floating wooden piece or open gap breaks the assembly.
+- **Moderate confidence — support details remain unresolved.** Wheel hubs/axle attachments and the obscured foot’s ground contact are not clear enough to certify mechanically correct support. Nothing visibly proves floating or unsupported geometry.
+- **High confidence — held shaft is separate from the machine.** It visibly reaches both hands above the beam; its separation does not indicate a detached machine component.
+
+The images support a complete, recognizable human and wooden artillery assembly together, with **partial occlusion preventing a fully readable stance**. No machinery-animation conclusion follows from these stills.

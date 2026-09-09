@@ -3,6 +3,13 @@
 Model shots are committed review artifacts for individual model families. Group
 by ownership first, then by model family, then by review mode.
 
+Soldier sheets, motion frames and portraits use the production model workbench
+through [the shared capture owner](scripts/_soldier-capture.mjs). The appearance
+catalog supplies equipment and action roles; a clip name is not a gameplay state.
+Full-kit sheets preserve long weapons in frame, while portraits frame the figure
+so a pike does not shrink its carrier into an unreadable card. Exact still frames
+are the regression evidence; GIFs are review derivatives, not separate proofs.
+
 Generators for this folder live in `scripts/`:
 
 - `scripts/soldier-sheets.mjs` writes `shared/soldiers/ingame/`.

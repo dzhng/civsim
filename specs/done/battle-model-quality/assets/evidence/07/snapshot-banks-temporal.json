@@ -1,0 +1,7560 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T17:41:43.752Z",
+  "target": "http://127.0.0.1:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-action-replay",
+      "file": "models/battle-model-action-replay.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "pose-palette",
+      "file": "system/pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    },
+    {
+      "name": "raw-pose-palette",
+      "file": "system/raw-pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "each observed release enters its authored release phase",
+      "ok": true,
+      "detail": {
+        "first": {
+          "clip": "bow_release",
+          "phase": 0.7333333333333334,
+          "playback": {
+            "appearanceId": 4,
+            "base": {
+              "source": {
+                "kind": "frozen",
+                "locals": [
+                  0,
+                  0,
+                  0.95,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0.02,
+                  0.45,
+                  0,
+                  0,
+                  -0.09757178765657121,
+                  0.9952284894703834,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0,
+                  0.42,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  -0.33,
+                  0,
+                  0.14,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.33,
+                  0,
+                  0.14,
+                  0.2852676923049643,
+                  0,
+                  0,
+                  0.9584478826347316,
+                  1,
+                  1,
+                  1,
+                  -0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1
+                ]
+              },
+              "destination": {
+                "clip": "bow_release",
+                "phase": 0.7333333333333334
+              },
+              "weight": 0
+            }
+          },
+          "duration": 0.75
+        },
+        "repeat": {
+          "clip": "bow_release",
+          "phase": 0.7333333333333334,
+          "playback": {
+            "appearanceId": 4,
+            "base": {
+              "source": {
+                "kind": "frozen",
+                "locals": [
+                  0,
+                  0,
+                  0.95,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0.02,
+                  0.45,
+                  0,
+                  0,
+                  -0.03425629690781017,
+                  0.9994130808240222,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0,
+                  0.42,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  -0.33,
+                  0,
+                  0.14,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.33,
+                  0,
+                  0.14,
+                  -0.13516694208615626,
+                  0,
+                  0,
+                  0.9908228387391348,
+                  1,
+                  1,
+                  1,
+                  -0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1
+                ]
+              },
+              "destination": {
+                "clip": "bow_release",
+                "phase": 0.7333333333333334
+              },
+              "weight": 0
+            }
+          },
+          "duration": 0.75
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "health decrease selects a fresh hit",
+      "ok": true,
+      "detail": {
+        "clip": "hit_a",
+        "phase": 0,
+        "playback": {
+          "appearanceId": 4,
+          "base": {
+            "source": {
+              "kind": "frozen",
+              "locals": [
+                0,
+                0,
+                0.95,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0,
+                0.02,
+                0.45,
+                0,
+                0,
+                -0.07326762260964388,
+                0.9973123159156968,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0.42,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                -0.33,
+                0,
+                0.14,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0.33,
+                0,
+                0.14,
+                0.45097474357694023,
+                0,
+                0,
+                0.8925367110969235,
+                1,
+                1,
+                1,
+                -0.16,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0.16,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "destination": {
+              "clip": "hit_a",
+              "phase": 0
+            },
+            "weight": 0
+          }
+        },
+        "duration": 0.35
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "terminal death holds its final phase",
+      "ok": true,
+      "detail": {
+        "clip": "death_a",
+        "phase": 1,
+        "playback": {
+          "appearanceId": 4,
+          "base": {
+            "source": {
+              "kind": "clip",
+              "sample": {
+                "clip": "death_a",
+                "phase": 1
+              }
+            },
+            "destination": {
+              "clip": "death_a",
+              "phase": 1
+            },
+            "weight": 1
+          }
+        },
+        "duration": 0.9
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "backward seek replays intermediate observations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "frozen replay has deterministic pose state",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "explicit reset clears terminal history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "switching back to manual inspection clears replay tick",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "equipment replay uses the canonical sidearm appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "event picker seeks the real replay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "play and pause operate the replay clock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "mounted controller submits an overlay and reports the base destination separately",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "replay controls and submitted status fit inside the captured viewport",
+      "ok": true,
+      "detail": "[{\"text\":\"Action replay\",\"top\":86,\"bottom\":104,\"left\":997,\"right\":1254},{\"text\":\"Synthetic inputs · real controller.Local poses blended on GPU.Base and masked rider action.\",\"top\":118,\"bottom\":181,\"left\":997,\"right\":1254},{\"text\":\"Replay the selected appearance\",\"top\":195,\"bottom\":216,\"left\":997,\"right\":1254},{\"text\":\"Play replay\",\"top\":234,\"bottom\":267,\"left\":997,\"right\":1088.953125},{\"text\":\"Reset replay\",\"top\":234,\"bottom\":267,\"left\":1093.953125,\"right\":1194.796875},{\"text\":\"Tick (0–240) 90\",\"top\":284,\"bottom\":321,\"left\":997,\"right\":1254},{\"text\":\"Jump to event 0: Ready15: Walk30: Run45: Melee effort60: Release observed90: Repeated release105: Health decreased150: Recover / walk165: Equipment unchanged195: Death240: Terminal hold\",\"top\":334,\"bottom\":386,\"left\":997,\"right\":1254},{\"text\":\"Now: Repeated release\\nNext: Health decreased\",\"top\":400,\"bottom\":442,\"left\":997,\"right\":1254},{\"text\":\"Base · appearance 7From: run · phase 0.077\\nTo: run · phase 0.077\\nBlend weight: 1.00\",\"top\":456,\"bottom\":548,\"left\":997,\"right\":1254},{\"text\":\"Rider upper bodyFrom: frozen local pose\\nTo: bow_release · phase 0.733\\nBlend weight: 0.00\",\"top\":556,\"bottom\":648,\"left\":997,\"right\":1254},{\"text\":\"Submitted base destinationrun · phase 0.077\",\"top\":656,\"bottom\":706,\"left\":997,\"right\":1254},{\"text\":\"Generated applicability matrix\",\"top\":714,\"bottom\":732,\"left\":997,\"right\":1213.203125},{\"text\":\"1 soldier · run 0.077 · golden\",\"top\":770,\"bottom\":788,\"left\":983,\"right\":1268}]"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "footer reports submitted replay pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/controller",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "failed reload retains replay history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "successful reload resets replay against new bundles",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "valid manual-only reload exits replay successfully",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "manual-only appearance disables replay but keeps clip inspection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "source-generated applicability matrix is available",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: fixed fixture framing",
+      "ok": true,
+      "detail": {
+        "pose": {
+          "classId": 4,
+          "clip": "idle",
+          "phase": 0,
+          "formation": false,
+          "yaw": 0.45,
+          "pitch": 1.15,
+          "zoom": 190,
+          "target": [
+            0,
+            0,
+            1
+          ]
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 190,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              1
+            ],
+            "distance": 7.069809076100015,
+            "pitch": 0.42079632679489665,
+            "yaw": -1.1207963267948966,
+            "fovY": 0.55,
+            "aspect": 1.279683377308707,
+            "near": 0.07069809076100016,
+            "far": 4000
+          }
+        },
+        "width": 970,
+        "height": 758
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: production frustum culling follows death blend",
+      "ok": true,
+      "detail": [
+        {
+          "weight": 0,
+          "visible": 1,
+          "expectedVisible": 1
+        },
+        {
+          "weight": 0.5,
+          "visible": 0,
+          "expectedVisible": 0
+        },
+        {
+          "weight": 1,
+          "visible": 0,
+          "expectedVisible": 0
+        }
+      ]
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: pre-control stationary frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: fixed background remains exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: frozen-GPU negative control catches non-articulation",
+      "ok": true,
+      "detail": {
+        "suppressed": 1,
+        "frozenChange": 0,
+        "frozenForeground": 0,
+        "movement": 13864,
+        "workbenchFrames": [
+          24,
+          24,
+          24
+        ],
+        "palettes": [
+          [
+            {
+              "bones": 7,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 149784,
+              "uploadedBytes": 416,
+              "snapshotUploadedBytes": 336
+            }
+          ],
+          [
+            {
+              "bones": 7,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 149784,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ],
+          [
+            {
+              "bones": 7,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 149784,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-6",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-6.25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-6.5",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.5: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/11/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/11: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/11/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/11: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/11: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-event-11",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-event-14",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/15/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/15: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/15/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/15: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/15: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-event-15",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/18/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/18: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/18/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/18: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/18: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-event-18",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/24/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/24: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/24/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/24: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/24: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-event-24",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-event-25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-event-35",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-37.25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/39.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/39.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-39.5",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-4-72",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/71/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/71: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: terminal rendered pose holds and snapshots retire",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: isolated comparison clears prior shadow demand",
+      "ok": true,
+      "detail": {
+        "before": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "after": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/0: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.555308699607849e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/6.25: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.960464477539063e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/10: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.960464477539063e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/14.5: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.960464477539063e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/25.5: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.4156103134155273e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/28.75: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.960464477539063e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/35: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.1920928955078125e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/37.25: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.341104507446289e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 1,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "4: captured snapshot inventory matches declaration",
+      "ok": true,
+      "detail": [
+        "shared/soldiers/action-replay/temporal-4-6",
+        "shared/soldiers/action-replay/temporal-4-6.25",
+        "shared/soldiers/action-replay/temporal-4-6.5",
+        "shared/soldiers/action-replay/temporal-4-event-11",
+        "shared/soldiers/action-replay/temporal-4-event-14",
+        "shared/soldiers/action-replay/temporal-4-event-15",
+        "shared/soldiers/action-replay/temporal-4-event-18",
+        "shared/soldiers/action-replay/temporal-4-event-24",
+        "shared/soldiers/action-replay/temporal-4-event-25",
+        "shared/soldiers/action-replay/temporal-4-event-35",
+        "shared/soldiers/action-replay/temporal-4-37.25",
+        "shared/soldiers/action-replay/temporal-4-39.5",
+        "shared/soldiers/action-replay/temporal-4-72"
+      ]
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: fixed fixture framing",
+      "ok": true,
+      "detail": {
+        "pose": {
+          "classId": 7,
+          "clip": "idle",
+          "phase": 0,
+          "formation": false,
+          "yaw": 0.45,
+          "pitch": 1.15,
+          "zoom": 190,
+          "target": [
+            0,
+            0,
+            1
+          ]
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 190,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              1
+            ],
+            "distance": 7.069809076100015,
+            "pitch": 0.42079632679489665,
+            "yaw": -1.1207963267948966,
+            "fovY": 0.55,
+            "aspect": 1.279683377308707,
+            "near": 0.07069809076100016,
+            "far": 4000
+          }
+        },
+        "width": 970,
+        "height": 758
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: production frustum culling follows death blend",
+      "ok": true,
+      "detail": [
+        {
+          "weight": 0,
+          "visible": 1,
+          "expectedVisible": 1
+        },
+        {
+          "weight": 0.5,
+          "visible": 0,
+          "expectedVisible": 0
+        },
+        {
+          "weight": 1,
+          "visible": 0,
+          "expectedVisible": 0
+        }
+      ]
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: pre-control stationary frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: fixed background remains exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: frozen-GPU negative control catches non-articulation",
+      "ok": true,
+      "detail": {
+        "suppressed": 1,
+        "frozenChange": 0,
+        "frozenForeground": 0,
+        "movement": 20984,
+        "workbenchFrames": [
+          25,
+          25,
+          25
+        ],
+        "palettes": [
+          [
+            {
+              "bones": 7,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 149784,
+              "uploadedBytes": 416,
+              "snapshotUploadedBytes": 336
+            }
+          ],
+          [
+            {
+              "bones": 7,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 149784,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ],
+          [
+            {
+              "bones": 7,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 149784,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-6",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-6.25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-6.5",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.5: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/11/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/11: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/11/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/11: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/11: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-event-11",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-event-14",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/15/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/15: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/15/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/15: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/15: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-event-15",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/18/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/18: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/18/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/18: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/18: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-event-18",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/24/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/24: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/24/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/24: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/24: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-event-24",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-event-25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-event-35",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-37.25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/39.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/39.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-39.5",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-7-72",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/71/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/71: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: terminal rendered pose holds and snapshots retire",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: isolated comparison clears prior shadow demand",
+      "ok": true,
+      "detail": {
+        "before": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "after": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/0: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.555308699607849e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/6.25: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 491,
+              "y": 396,
+              "a": [
+                108,
+                83,
+                70,
+                255
+              ],
+              "b": [
+                109,
+                83,
+                70,
+                255
+              ]
+            }
+          ]
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 491,
+              "y": 396,
+              "a": [
+                108,
+                83,
+                70,
+                255
+              ],
+              "b": [
+                109,
+                83,
+                70,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.960464477539063e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/10: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.960464477539063e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/14.5: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.1920928955078125e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/25.5: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.960464477539063e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1120
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/28.75: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 483,
+              "y": 219,
+              "a": [
+                138,
+                116,
+                71,
+                255
+              ],
+              "b": [
+                138,
+                116,
+                72,
+                255
+              ]
+            }
+          ]
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 483,
+              "y": 219,
+              "a": [
+                138,
+                116,
+                71,
+                255
+              ],
+              "b": [
+                138,
+                116,
+                72,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 3.345485311001539e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/35: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 556,
+              "y": 477,
+              "a": [
+                61,
+                54,
+                53,
+                255
+              ],
+              "b": [
+                61,
+                54,
+                54,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 9.499490261077881e-8
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 560
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/37.25: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.341104507446289e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 487,
+              "y": 453,
+              "a": [
+                80,
+                74,
+                76,
+                255
+              ],
+              "b": [
+                81,
+                74,
+                76,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7/72: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "7: captured snapshot inventory matches declaration",
+      "ok": true,
+      "detail": [
+        "shared/soldiers/action-replay/temporal-7-6",
+        "shared/soldiers/action-replay/temporal-7-6.25",
+        "shared/soldiers/action-replay/temporal-7-6.5",
+        "shared/soldiers/action-replay/temporal-7-event-11",
+        "shared/soldiers/action-replay/temporal-7-event-14",
+        "shared/soldiers/action-replay/temporal-7-event-15",
+        "shared/soldiers/action-replay/temporal-7-event-18",
+        "shared/soldiers/action-replay/temporal-7-event-24",
+        "shared/soldiers/action-replay/temporal-7-event-25",
+        "shared/soldiers/action-replay/temporal-7-event-35",
+        "shared/soldiers/action-replay/temporal-7-37.25",
+        "shared/soldiers/action-replay/temporal-7-39.5",
+        "shared/soldiers/action-replay/temporal-7-72"
+      ]
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: fixed fixture framing",
+      "ok": true,
+      "detail": {
+        "pose": {
+          "classId": 41,
+          "clip": "gait",
+          "phase": 0,
+          "formation": false,
+          "yaw": 0.45,
+          "pitch": 1.15,
+          "zoom": 190,
+          "target": [
+            0,
+            0,
+            1
+          ]
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 190,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              1
+            ],
+            "distance": 7.461539922005293,
+            "pitch": 0.42079632679489665,
+            "yaw": -1.1207963267948966,
+            "fovY": 0.55,
+            "aspect": 1.6,
+            "near": 0.07461539922005293,
+            "far": 4000
+          }
+        },
+        "width": 1280,
+        "height": 800
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: production frustum culling follows death blend",
+      "ok": true,
+      "detail": [
+        {
+          "weight": 0,
+          "visible": 1,
+          "expectedVisible": 1
+        },
+        {
+          "weight": 0.5,
+          "visible": 1,
+          "expectedVisible": 1
+        },
+        {
+          "weight": 1,
+          "visible": 0,
+          "expectedVisible": 0
+        }
+      ]
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: pre-control stationary frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: fixed background remains exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: frozen-GPU negative control catches non-articulation",
+      "ok": true,
+      "detail": {
+        "suppressed": 1,
+        "frozenChange": 0,
+        "frozenForeground": 0,
+        "movement": 3180,
+        "workbenchFrames": [
+          5,
+          5,
+          5
+        ],
+        "palettes": [
+          [
+            {
+              "bones": 11,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 282016,
+              "uploadedBytes": 608,
+              "snapshotUploadedBytes": 528
+            }
+          ],
+          [
+            {
+              "bones": 11,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 282016,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ],
+          [
+            {
+              "bones": 11,
+              "visible": 1,
+              "capacity": 256,
+              "snapshotCapacity": 2,
+              "snapshotBankCapacity": 1,
+              "residentSnapshots": 1,
+              "snapshotSlotHighWater": 1,
+              "allocatedBytes": 282016,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-6",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-6.25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-6.5",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5: paused frame is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.5: retained snapshots are not reuploaded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/11/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/11: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/11/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/11: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/11: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-event-11",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-event-14",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/15/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/15: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/15/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/15: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/15: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-event-15",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/18/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/18: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/18/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/18: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/18: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-event-18",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/24/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/24: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/24/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/24: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/24: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-event-24",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-event-25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35/before: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35/after: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: same-time displayed event continuity",
+      "ok": true,
+      "detail": {
+        "changedPixels": 0,
+        "maximumChannelError": 0,
+        "pixels": []
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-event-35",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-37.25",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/39.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/39.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-39.5",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/temporal-41-75",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/74/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/74: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: terminal rendered pose holds and snapshots retire",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: isolated comparison clears prior shadow demand",
+      "ok": true,
+      "detail": {
+        "before": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "after": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.1920928955078125e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/0: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 690,
+              "y": 191,
+              "a": [
+                159,
+                160,
+                158,
+                255
+              ],
+              "b": [
+                159,
+                160,
+                159,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 4.76837158203125e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/6.25: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 9,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 741,
+              "y": 351,
+              "a": [
+                146,
+                152,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 743,
+              "y": 351,
+              "a": [
+                146,
+                152,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 744,
+              "y": 352,
+              "a": [
+                146,
+                152,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 750,
+              "y": 353,
+              "a": [
+                146,
+                151,
+                157,
+                255
+              ],
+              "b": [
+                146,
+                151,
+                156,
+                255
+              ]
+            },
+            {
+              "x": 745,
+              "y": 354,
+              "a": [
+                146,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                151,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 749,
+              "y": 355,
+              "a": [
+                147,
+                152,
+                157,
+                255
+              ],
+              "b": [
+                148,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 737,
+              "y": 356,
+              "a": [
+                146,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                151,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 733,
+              "y": 361,
+              "a": [
+                146,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                145,
+                151,
+                156,
+                255
+              ]
+            },
+            {
+              "x": 736,
+              "y": 362,
+              "a": [
+                146,
+                152,
+                157,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                156,
+                255
+              ]
+            }
+          ]
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 10,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 741,
+              "y": 351,
+              "a": [
+                146,
+                152,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 743,
+              "y": 351,
+              "a": [
+                146,
+                152,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 744,
+              "y": 352,
+              "a": [
+                146,
+                152,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 750,
+              "y": 353,
+              "a": [
+                146,
+                151,
+                157,
+                255
+              ],
+              "b": [
+                146,
+                151,
+                156,
+                255
+              ]
+            },
+            {
+              "x": 745,
+              "y": 354,
+              "a": [
+                146,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                151,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 749,
+              "y": 355,
+              "a": [
+                147,
+                152,
+                157,
+                255
+              ],
+              "b": [
+                148,
+                152,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 737,
+              "y": 356,
+              "a": [
+                146,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                146,
+                151,
+                157,
+                255
+              ]
+            },
+            {
+              "x": 733,
+              "y": 361,
+              "a": [
+                146,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                145,
+                151,
+                156,
+                255
+              ]
+            },
+            {
+              "x": 736,
+              "y": 362,
+              "a": [
+                146,
+                152,
+                157,
+                255
+              ],
+              "b": [
+                146,
+                152,
+                156,
+                255
+              ]
+            },
+            {
+              "x": 730,
+              "y": 522,
+              "a": [
+                110,
+                122,
+                129,
+                255
+              ],
+              "b": [
+                110,
+                123,
+                129,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 2.2351741790771484e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/10: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 714,
+              "y": 592,
+              "a": [
+                106,
+                123,
+                129,
+                255
+              ],
+              "b": [
+                106,
+                122,
+                129,
+                255
+              ]
+            }
+          ]
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 2,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 696,
+              "y": 536,
+              "a": [
+                120,
+                126,
+                123,
+                255
+              ],
+              "b": [
+                120,
+                126,
+                122,
+                255
+              ]
+            },
+            {
+              "x": 714,
+              "y": 592,
+              "a": [
+                106,
+                123,
+                129,
+                255
+              ],
+              "b": [
+                106,
+                122,
+                129,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.4901161193847656e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/14.5: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 703,
+              "y": 404,
+              "a": [
+                144,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                145,
+                151,
+                156,
+                255
+              ]
+            }
+          ]
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 703,
+              "y": 404,
+              "a": [
+                144,
+                151,
+                156,
+                255
+              ],
+              "b": [
+                145,
+                151,
+                156,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 3.3527612686157227e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/25.5: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 2.682209014892578e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 1760
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/28.75: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 1,
+          "maximumChannelError": 1,
+          "pixels": [
+            {
+              "x": 675,
+              "y": 188,
+              "a": [
+                158,
+                160,
+                158,
+                255
+              ],
+              "b": [
+                159,
+                160,
+                158,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 2.384185791015625e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/35: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 5.364418029785156e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 880
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/37.25: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 2,
+          "maximumChannelError": 78,
+          "pixels": [
+            {
+              "x": 710,
+              "y": 258,
+              "a": [
+                205,
+                192,
+                160,
+                255
+              ],
+              "b": [
+                127,
+                138,
+                150,
+                255
+              ]
+            },
+            {
+              "x": 750,
+              "y": 357,
+              "a": [
+                143,
+                147,
+                152,
+                255
+              ],
+              "b": [
+                142,
+                147,
+                152,
+                255
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: actual GPU joint matrices match CPU",
+      "ok": true,
+      "detail": 1.1920928955078125e-7
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: numerical references select identical main and shadow tiers",
+      "ok": true,
+      "detail": {
+        "gpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "cpu": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        },
+        "readback": {
+          "main": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "shadow": {
+            "l0": 0,
+            "l1": 1,
+            "l2": 0,
+            "l3": 0
+          }
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: validated palette renders as CPU-preposed geometry",
+      "ok": true,
+      "detail": {
+        "renderError": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        },
+        "independentCpuImageTelemetry": {
+          "changedPixels": 0,
+          "maximumChannelError": 0,
+          "pixels": []
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75/sample: bounded controller snapshots",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41/75: bounded GPU snapshot residency",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "41: captured snapshot inventory matches declaration",
+      "ok": true,
+      "detail": [
+        "shared/soldiers/action-replay/temporal-41-6",
+        "shared/soldiers/action-replay/temporal-41-6.25",
+        "shared/soldiers/action-replay/temporal-41-6.5",
+        "shared/soldiers/action-replay/temporal-41-event-11",
+        "shared/soldiers/action-replay/temporal-41-event-14",
+        "shared/soldiers/action-replay/temporal-41-event-15",
+        "shared/soldiers/action-replay/temporal-41-event-18",
+        "shared/soldiers/action-replay/temporal-41-event-24",
+        "shared/soldiers/action-replay/temporal-41-event-25",
+        "shared/soldiers/action-replay/temporal-41-event-35",
+        "shared/soldiers/action-replay/temporal-41-37.25",
+        "shared/soldiers/action-replay/temporal-41-39.5",
+        "shared/soldiers/action-replay/temporal-41-75"
+      ]
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "trig operation residual diagnostic",
+      "ok": true,
+      "detail": {
+        "actual": [
+          0.6794812679290771,
+          0.8999856114387512,
+          0.9000000357627869,
+          0.15238483250141144
+        ],
+        "expected": [
+          0.6794406139429131,
+          0.899999977585686,
+          0.8999999950856703,
+          0.15240376595924635
+        ],
+        "residual": [
+          0.00004065398616404092,
+          -0.00001436614693473004,
+          4.067711656396966e-8,
+          -0.00001893345783490763
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "bounded Float32 sine approximation",
+      "ok": true,
+      "detail": {
+        "points": 1025,
+        "maxError": 1.505032258819483e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          3
+        ],
+        "names": [
+          "joint-0",
+          "joint-1",
+          "joint-2",
+          "joint-3"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.656612873077393e-10,
+        "geometryError": 1.1641532182693481e-10
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928977282585e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.25: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.75: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.6763806343078613e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-0-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-1-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 8.940696716308594e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-0-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-1-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.086162567138672e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-0-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 8.102506399154663e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-1-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.0978193283081055e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.470348358154297e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          8,
+          9,
+          10
+        ],
+        "names": [
+          "transformed-ancestor",
+          "deform-rig",
+          "root",
+          "horse-body",
+          "horse-back-leg",
+          "horse-front-leg",
+          "rider-pelvis",
+          "rider-legs",
+          "rider-spine",
+          "rider-arm",
+          "rider-head"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.4901161193847656e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-0-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.682209014892578e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-1-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 3.129243850708008e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539062e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 2.980232238769531e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-0-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 3.8743019104003906e-7,
+        "geometryError": 2.60770320892334e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-1-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.980232238769531e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 3.5762786865234375e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 6.556510925292969e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 3.5762786865234375e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-0-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-1-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 6.556510925292969e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3606
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3728
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 480,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3703
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3829
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4013
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 528,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4024
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 3,
+          "residentSnapshots": 3,
+          "snapshotUploadBytes": 1440,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw growth keeps three immutable snapshot sources resident",
+      "ok": true,
+      "detail": {
+        "instances": 3,
+        "residentSnapshots": 3,
+        "snapshotUploadBytes": 1440,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1920,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1920
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11614
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw shrink reuses the retained immutable source without upload",
+      "ok": true,
+      "detail": {
+        "instances": 1,
+        "residentSnapshots": 1,
+        "snapshotUploadBytes": 0,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1920,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1920
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3767
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 2,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11275
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3791
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose resource generations are released exactly once",
+      "ok": true,
+      "detail": {
+        "allocations": 381,
+        "allDestroyedOnce": true,
+        "errors": []
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose commands pass actual GPU validation",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

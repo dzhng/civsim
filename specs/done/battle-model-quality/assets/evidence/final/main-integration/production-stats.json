@@ -1,0 +1,1695 @@
+{
+  "errors": [],
+  "stats": {
+    "soldiers": 15560,
+    "units": 40,
+    "tickMs": 2.772437500655651,
+    "audioUpdateMs": 0.003933613756996498,
+    "fps": 104.44870618856869,
+    "clock": {
+      "alpha": 0.00009999999999887876,
+      "paused": true,
+      "frozen": true
+    },
+    "victor": -1,
+    "renderer": "gpu",
+    "renderStats": {
+      "renderer": "gpu",
+      "ready": true,
+      "substrate": "threejs-webgpu-tsl",
+      "projection": "camera3d",
+      "environment": "golden",
+      "width": 1600,
+      "height": 900,
+      "soldiers": 15560,
+      "expectedSoldiers": 15560,
+      "drawCalls": 51,
+      "triangles": 280566321,
+      "crowd": {
+        "instances": 15560,
+        "visible": 15560,
+        "culled": 0,
+        "drawCalls": 5,
+        "meshDrawCalls": 4,
+        "shadowMeshDrawCalls": 9,
+        "shadowGeometryBytes": 25155144,
+        "impostorDrawCalls": 1,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 15560,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 461,
+          "l1": 423,
+          "l2": 0,
+          "l3": 14676
+        },
+        "visibleTierHistogram": {
+          "l0": 461,
+          "l1": 423,
+          "l2": 0,
+          "l3": 35
+        },
+        "culling": {
+          "input": 15560,
+          "visible": 15560,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 919,
+          "shadowOnly": 14641
+        },
+        "impostors": {
+          "impostorInstances": 35,
+          "impostorDrawCalls": 1,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 519.78500020504,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": [
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "orm",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "baseColor",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          },
+          {
+            "channel": "normal",
+            "width": 2048,
+            "height": 2048,
+            "mipLevels": 12,
+            "bytes": 22369620
+          }
+        ],
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 5000,
+            "capacity": 5000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 9681688,
+            "uploadedBytes": 400000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 3000,
+            "capacity": 3000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 6120056,
+            "uploadedBytes": 240000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 700,
+            "capacity": 700,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1744648,
+            "uploadedBytes": 56000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 2100,
+            "capacity": 2100,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 5173168,
+            "uploadedBytes": 168000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 1400,
+            "capacity": 1400,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 3690176,
+            "uploadedBytes": 112000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 400,
+            "capacity": 512,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 2380808,
+            "uploadedBytes": 32000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 160,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 12800,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 800,
+            "capacity": 800,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 3104524,
+            "uploadedBytes": 64000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 2000,
+            "capacity": 2000,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 4011848,
+            "uploadedBytes": 160000,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "lod": {
+        "skinned": 884,
+        "impostors": 35
+      },
+      "markerLayer": "far-lod-impostor",
+      "device": "google / swiftshader",
+      "groundDetail": {
+        "earthEdges": {
+          "owner": "playable-ground",
+          "format": "rg8-unorm",
+          "width": 1200,
+          "height": 800,
+          "rangeMeters": 32,
+          "channels": [
+            "earth-union",
+            "road"
+          ],
+          "filters": [
+            "linear",
+            "linear"
+          ],
+          "textureResources": 1,
+          "vistaSamples": 0
+        }
+      },
+      "depth": {
+        "owner": "three-webgpu",
+        "reversed": true
+      },
+      "atmosphere": {
+        "sky": {
+          "owner": "skyModel",
+          "tier": "skyview-fragment-lut",
+          "lut": "384x192",
+          "turbidity": 2.9,
+          "overcast": 0
+        },
+        "aerial": {
+          "owner": "aerialPerspective",
+          "extinctionKm": [
+            0.0655,
+            0.1012,
+            0.1911
+          ],
+          "visibilityKm": 32.81,
+          "distanceScale": 4.6,
+          "clearRadiusM": 70,
+          "rangeFog": {
+            "nearM": 70,
+            "farM": 1700,
+            "power": 1.28,
+            "strength": 0.34
+          },
+          "sunMie": {
+            "tint": [
+              1,
+              0.8,
+              0.52
+            ],
+            "strength": 0.34,
+            "power": 3.4
+          },
+          "valleyMist": {
+            "color": [
+              0.84,
+              0.82,
+              0.72
+            ],
+            "heightBottomM": 8,
+            "heightTopM": 46,
+            "distanceStartM": 520,
+            "distanceFullM": 1600,
+            "colorStrength": 0.18,
+            "opacityBoost": 0.08
+          }
+        }
+      },
+      "shadows": {
+        "owner": "shadowRig",
+        "mode": "single",
+        "cascades": 1,
+        "mapSize": 1024,
+        "maxFar": 1500,
+        "radius": 1.252
+      },
+      "post": {
+        "owner": "battlePostChain",
+        "enabled": true,
+        "bloom": {
+          "enabled": true,
+          "strength": 0.085,
+          "radius": 0.56,
+          "threshold": 1.02,
+          "smoothWidth": 0.75,
+          "levels": 5
+        },
+        "grade": {
+          "placement": "pre-agx",
+          "preset": "golden",
+          "presetStrength": 1,
+          "uniforms": {
+            "strength": 1,
+            "saturationBoost": 1.15,
+            "contrast": 0.16,
+            "splitTone": 0.85,
+            "shadowLift": 1
+          }
+        },
+        "tonemap": "agx"
+      },
+      "sea": {
+        "source": "gerstner-tsl",
+        "tier": "gerstner-tsl",
+        "resolution": 1,
+        "cascades": 1,
+        "storageBytes": 0,
+        "surface": {
+          "owner": "skyModel-ibl-standard-pbr",
+          "skyReflection": "scene.environment:skyModel-lut",
+          "sunGlint": "mesh-standard-ggx",
+          "shallowAlbedo": [
+            0.22,
+            0.58,
+            0.6
+          ],
+          "deepAlbedo": [
+            0.025,
+            0.095,
+            0.22
+          ],
+          "foamAlbedo": [
+            0.92,
+            0.93,
+            0.94
+          ],
+          "sandTurbidityAlbedo": [
+            0.66,
+            0.58,
+            0.4
+          ],
+          "roughness": 0.105,
+          "foamRoughness": 0.78,
+          "normalDetail": {
+            "near": 0.84,
+            "far": 0.18,
+            "fadeStart": 720,
+            "fadeEnd": 2300
+          },
+          "foam": {
+            "heightStart": 0.28600000000000003,
+            "heightEnd": 0.8525000000000001,
+            "slopeStart": 0.12,
+            "slopeEnd": 0.58,
+            "speckleStart": 0.56,
+            "speckleEnd": 0.78,
+            "scale": 0.74
+          },
+          "shore": {
+            "ramp": {
+              "depthNear": 12,
+              "depthFar": 300,
+              "hazeNear": 520,
+              "hazeFar": 1900
+            },
+            "sandTurbidityDepthStart": 0.04,
+            "sandTurbidityDepthEnd": 0.26,
+            "heightfieldDatum": true,
+            "farExtent": 7200
+          },
+          "glint": {
+            "roughnessFloor": 0.105,
+            "normalDetailCeiling": 0.84,
+            "hotLumaThreshold": 246,
+            "hotFractionMax": 0.07,
+            "centerShareMin": 0.6
+          }
+        }
+      },
+      "camera": {
+        "x": -77.4000015258789,
+        "y": -557,
+        "zoom": 9.5,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            -77.4000015258789,
+            -557,
+            1.198293672192551
+          ],
+          "distance": 8.421052631578947,
+          "pitch": 0.24,
+          "yaw": 0,
+          "fovY": 0.85,
+          "aspect": 1.7777777777777777,
+          "near": 1
+        }
+      },
+      "seating": {
+        "checked": 15560,
+        "matches": true,
+        "span": 3.797
+      },
+      "terrain": {
+        "fixture": "sim-tint",
+        "layer": "photoreal-battle-ground",
+        "groundTriangles": 120000,
+        "vistaTriangles": 0,
+        "vista": null,
+        "sealedEdges": [
+          "west:cliff",
+          "east:ocean"
+        ],
+        "standards": [
+          {
+            "unitId": 0,
+            "x": -77.79132080078125,
+            "y": -557.38671875,
+            "z": 0
+          },
+          {
+            "unitId": 1,
+            "x": 77.0069351196289,
+            "y": -557.3867797851562,
+            "z": 0
+          },
+          {
+            "unitId": 2,
+            "x": -124.91284942626953,
+            "y": -603.8177490234375,
+            "z": 0
+          },
+          {
+            "unitId": 3,
+            "x": -62.349884033203125,
+            "y": -604.5001220703125,
+            "z": 0
+          },
+          {
+            "unitId": 4,
+            "x": -0.21250618994235992,
+            "y": -603.819091796875,
+            "z": 0
+          },
+          {
+            "unitId": 5,
+            "x": 62.350833892822266,
+            "y": -604.4999389648438,
+            "z": 0
+          },
+          {
+            "unitId": 6,
+            "x": 124.48777770996094,
+            "y": -603.8192749023438,
+            "z": 0
+          },
+          {
+            "unitId": 7,
+            "x": -193.02001953125,
+            "y": -657.9750366210938,
+            "z": 0
+          },
+          {
+            "unitId": 8,
+            "x": -108.56234741210938,
+            "y": -658.8189086914062,
+            "z": 0
+          },
+          {
+            "unitId": 9,
+            "x": -0.3681677281856537,
+            "y": -657.0877075195312,
+            "z": 0
+          },
+          {
+            "unitId": 10,
+            "x": 108.13789367675781,
+            "y": -658.8181762695312,
+            "z": 0
+          },
+          {
+            "unitId": 11,
+            "x": 192.3797149658203,
+            "y": -657.9769287109375,
+            "z": 0
+          },
+          {
+            "unitId": 12,
+            "x": -168.8951416015625,
+            "y": -711.9381103515625,
+            "z": 0
+          },
+          {
+            "unitId": 13,
+            "x": -60.11994934082031,
+            "y": -712.9766235351562,
+            "z": 0
+          },
+          {
+            "unitId": 14,
+            "x": 48.70585250854492,
+            "y": -711.9391479492188,
+            "z": 0
+          },
+          {
+            "unitId": 15,
+            "x": 168.30450439453125,
+            "y": -711.938232421875,
+            "z": 0
+          },
+          {
+            "unitId": 16,
+            "x": 0.0004148721636738628,
+            "y": -753.00244140625,
+            "z": 0
+          },
+          {
+            "unitId": 17,
+            "x": -299.9997863769531,
+            "y": -624.800048828125,
+            "z": 2.4668198760941906
+          },
+          {
+            "unitId": 18,
+            "x": 300.0016174316406,
+            "y": -624.7996215820312,
+            "z": 0
+          },
+          {
+            "unitId": 19,
+            "x": 340.0001220703125,
+            "y": -665.1995849609375,
+            "z": 0
+          },
+          {
+            "unitId": 20,
+            "x": 77.79302215576172,
+            "y": 557.3858642578125,
+            "z": 0
+          },
+          {
+            "unitId": 21,
+            "x": -77.0064697265625,
+            "y": 557.3860473632812,
+            "z": 0.1533543069833192
+          },
+          {
+            "unitId": 22,
+            "x": 124.91260528564453,
+            "y": 603.8194580078125,
+            "z": 0
+          },
+          {
+            "unitId": 23,
+            "x": 62.350345611572266,
+            "y": 604.5,
+            "z": 0
+          },
+          {
+            "unitId": 24,
+            "x": 0.21286575496196747,
+            "y": 603.8185424804688,
+            "z": 0
+          },
+          {
+            "unitId": 25,
+            "x": -62.34977340698242,
+            "y": 604.500244140625,
+            "z": 0
+          },
+          {
+            "unitId": 26,
+            "x": -124.48809814453125,
+            "y": 603.8185424804688,
+            "z": 0.05619977857976233
+          },
+          {
+            "unitId": 27,
+            "x": 193.02078247070312,
+            "y": 657.9755249023438,
+            "z": 0
+          },
+          {
+            "unitId": 28,
+            "x": 108.5628890991211,
+            "y": 658.8176879882812,
+            "z": 0
+          },
+          {
+            "unitId": 29,
+            "x": 0.36895009875297546,
+            "y": 657.088134765625,
+            "z": 0
+          },
+          {
+            "unitId": 30,
+            "x": -108.13782501220703,
+            "y": 658.8184204101562,
+            "z": 0
+          },
+          {
+            "unitId": 31,
+            "x": -192.37982177734375,
+            "y": 657.9757080078125,
+            "z": 0
+          },
+          {
+            "unitId": 32,
+            "x": 168.89401245117188,
+            "y": 711.9378662109375,
+            "z": 0
+          },
+          {
+            "unitId": 33,
+            "x": 60.12014389038086,
+            "y": 712.9757080078125,
+            "z": 0
+          },
+          {
+            "unitId": 34,
+            "x": -48.7050666809082,
+            "y": 711.9385986328125,
+            "z": 0
+          },
+          {
+            "unitId": 35,
+            "x": -168.3053436279297,
+            "y": 711.9400634765625,
+            "z": 0
+          },
+          {
+            "unitId": 36,
+            "x": 0.0011562108993530273,
+            "y": 753.000732421875,
+            "z": 0
+          },
+          {
+            "unitId": 37,
+            "x": 300.0006408691406,
+            "y": 624.79931640625,
+            "z": 0
+          },
+          {
+            "unitId": 38,
+            "x": -299.99945068359375,
+            "y": 624.801025390625,
+            "z": 0.0008225886988706556
+          },
+          {
+            "unitId": 39,
+            "x": -339.9999084472656,
+            "y": 665.2001342773438,
+            "z": 0
+          }
+        ],
+        "sea": {
+          "source": "gerstner-tsl",
+          "tier": "gerstner-tsl",
+          "resolution": 1,
+          "cascades": 1,
+          "storageBytes": 0,
+          "surface": {
+            "owner": "skyModel-ibl-standard-pbr",
+            "skyReflection": "scene.environment:skyModel-lut",
+            "sunGlint": "mesh-standard-ggx",
+            "shallowAlbedo": [
+              0.22,
+              0.58,
+              0.6
+            ],
+            "deepAlbedo": [
+              0.025,
+              0.095,
+              0.22
+            ],
+            "foamAlbedo": [
+              0.92,
+              0.93,
+              0.94
+            ],
+            "sandTurbidityAlbedo": [
+              0.66,
+              0.58,
+              0.4
+            ],
+            "roughness": 0.105,
+            "foamRoughness": 0.78,
+            "normalDetail": {
+              "near": 0.84,
+              "far": 0.18,
+              "fadeStart": 720,
+              "fadeEnd": 2300
+            },
+            "foam": {
+              "heightStart": 0.28600000000000003,
+              "heightEnd": 0.8525000000000001,
+              "slopeStart": 0.12,
+              "slopeEnd": 0.58,
+              "speckleStart": 0.56,
+              "speckleEnd": 0.78,
+              "scale": 0.74
+            },
+            "shore": {
+              "ramp": {
+                "depthNear": 12,
+                "depthFar": 300,
+                "hazeNear": 520,
+                "hazeFar": 1900
+              },
+              "sandTurbidityDepthStart": 0.04,
+              "sandTurbidityDepthEnd": 0.26,
+              "heightfieldDatum": true,
+              "farExtent": 7200
+            },
+            "glint": {
+              "roughnessFloor": 0.105,
+              "normalDetailCeiling": 0.84,
+              "hotLumaThreshold": 246,
+              "hotFractionMax": 0.07,
+              "centerShareMin": 0.6
+            }
+          },
+          "planes": 1,
+          "oceanPlanes": 1,
+          "lakePlanes": 0,
+          "lakeSurfaces": []
+        },
+        "groundCover": "green-grass",
+        "slopeBands": null,
+        "environment": {
+          "id": "golden-hour",
+          "source": "CIVSIM_ENVIRONMENTS.golden",
+          "sharedPreset": "golden",
+          "waterAlias": "CIVSIM_ENVIRONMENTS.golden",
+          "sunAzimuth": 3.1416,
+          "sunElevation": 0.35,
+          "keyColor": [
+            1,
+            0.88,
+            0.66
+          ],
+          "fillColor": [
+            0.42,
+            0.53,
+            0.72
+          ],
+          "hazeColor": [
+            0.86,
+            0.82,
+            0.68
+          ],
+          "exposure": 1.16
+        },
+        "scenery": 548,
+        "grass": {
+          "layer": "photoreal-blade-field",
+          "enabled": true,
+          "farTierVisible": true,
+          "routeCullMask": {
+            "enabled": false,
+            "center": [
+              0,
+              0
+            ],
+            "radiusSq": 0
+          },
+          "routeCullWedge": {
+            "enabled": false,
+            "forward": [
+              0,
+              1
+            ],
+            "side": [
+              1,
+              0
+            ],
+            "halfWidthSlope": 1,
+            "backMarginM": 0,
+            "farMarginM": 0
+          },
+          "packedUpload": {
+            "mode": "idle",
+            "targetFrames": 6,
+            "uploadedRecords": 1000000,
+            "totalRecords": 1000000
+          },
+          "depthPrepass": {
+            "enabled": false,
+            "tiers": [
+              "near",
+              "mid"
+            ],
+            "drawCalls": 0,
+            "renderOrder": -0.01,
+            "beautyDepth": "less-equal-read-write"
+          },
+          "packedStrideFloats": 16,
+          "packedBytesPerRecord": 64,
+          "recordCount": 1000000,
+          "drawCalls": 3,
+          "submittedTriangles": 2621300,
+          "submittedVertices": 3812280,
+          "tiers": {
+            "near": {
+              "lodTier": 0,
+              "segments": 15,
+              "minDistanceM": 0,
+              "maxDistanceM": 22,
+              "bladesPerRecord": 6,
+              "candidateRecords": 465,
+              "records": 465,
+              "droppedByThinning": 0,
+              "triangles": 83700,
+              "vertices": 89280
+            },
+            "mid": {
+              "lodTier": 1,
+              "segments": 6,
+              "minDistanceM": 22,
+              "maxDistanceM": 64,
+              "bladesPerRecord": 6,
+              "candidateRecords": 3475,
+              "records": 3475,
+              "droppedByThinning": 0,
+              "triangles": 250200,
+              "vertices": 291900
+            },
+            "far": {
+              "lodTier": 2,
+              "segments": 2,
+              "minDistanceM": 64,
+              "maxDistanceM": 1250,
+              "bladesPerRecord": 2,
+              "candidateRecords": 801315,
+              "records": 285925,
+              "droppedByThinning": 515390,
+              "triangles": 2287400,
+              "vertices": 3431100
+            }
+          },
+          "tierCountSource": "cpu-mirror-live-distance-hash-thinning",
+          "culledRecords": 194745,
+          "thinnedRecords": 515390,
+          "thinning": {
+            "enabled": true,
+            "densityLaw": "pen-1.5-power",
+            "densityReferenceM": 300,
+            "falloffPower": 1.5,
+            "hashSource": "record.bladeSeed fract(seed01 * 7.13)",
+            "survivorAlbedoBlend": 0.85
+          },
+          "farDensityProfile": {
+            "farGrassEndM": 1250,
+            "densityReferenceM": 300,
+            "falloffPower": 1.5,
+            "farSoftWidthScale": 3.1,
+            "edgeSinkStartM": 1120,
+            "bladesPerRecord": {
+              "near": 6,
+              "mid": 28,
+              "far": 2
+            },
+            "nearCoverageWidthScale": 1,
+            "midTierEndM": 64,
+            "lowerFarWidthScale": 1.35,
+            "lowerFarWidthEndM": 112
+          },
+          "transition": {
+            "denseBladeEndM": 22,
+            "farGrassStartM": 40,
+            "farGrassEndM": 1250,
+            "nearTierEndM": 22,
+            "midTierEndM": 64,
+            "farSoftWidthScale": 3,
+            "nearCoverageWidthScale": 1,
+            "lowerFarWidthScale": 1.35,
+            "lowerFarWidthEndM": 112,
+            "terrainDetailStrength": 1,
+            "edgeSinkStartM": 1120
+          },
+          "sourceStorageCore": {
+            "packedVec4PerBlade": 4,
+            "packedBytesPerBlade": 64,
+            "cpuRecordsOnly": true,
+            "cameraSnappedPlacement": true,
+            "voronoiClumpBlend": true,
+            "bezierBladeSpine": true,
+            "viewDependentThickness": true,
+            "distanceDesaturation": true,
+            "drawIndirect": true,
+            "visibleIndexBuffers": 3,
+            "runtimeComputeRoute": "active"
+          },
+          "wind": {
+            "source": "packages/game-renderer/src/battle/windSignal.ts",
+            "timeUniform": "PhotorealWorld.uTime -> updateWindUniforms",
+            "bandFunction": "sin-front cheap mirror of windBandAnalytic",
+            "bandWavelengthM": 64,
+            "modulationDepth": {
+              "trough": 0.3,
+              "crest": 1.8
+            },
+            "tipAmplitudeScaleM": 0.018
+          },
+          "palette": {
+            "source": "packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade",
+            "base": [
+              0.45237499999999997,
+              0.5588571428571429,
+              0.2326153846153846
+            ],
+            "low": [
+              0.5581249999999999,
+              0.6320000000000002,
+              0.21753846153846157
+            ],
+            "root": [
+              0.5405,
+              0.5942857142857144,
+              0.2692307692307692
+            ],
+            "mid": [
+              0.7085249999999998,
+              0.7337142857142858,
+              0.2853846153846154
+            ],
+            "upper": [
+              0.795475,
+              0.8034285714285715,
+              0.3230769230769231
+            ],
+            "tip": [
+              0.8683249999999999,
+              0.8445714285714288,
+              0.38984615384615384
+            ],
+            "trans": [
+              0.9411749999999999,
+              0.9348571428571429,
+              0.46415384615384614
+            ],
+            "sheen": [
+              0.8894749999999999,
+              0.8845714285714287,
+              0.616
+            ],
+            "dry": [
+              0.91415,
+              0.8,
+              0.38984615384615384
+            ],
+            "dryTipMix": 0.05,
+            "ringMeadow": [
+              0.564,
+              0.6285714285714287,
+              0.33384615384615385
+            ]
+          },
+          "recordHash": "dc514a92",
+          "productionSamplingProfile": {
+            "quality": "standard",
+            "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+            "seed": 1588011046,
+            "vistaVisibleRadiusM": 260,
+            "vistaTransitionDefaults": {
+              "edgeSinkStartM": 380,
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 480,
+              "farSoftWidthScale": 1.6
+            },
+            "closeVisibleRadiusM": 40,
+            "rebuildMarginM": 48,
+            "fieldCellSize": 0.42,
+            "snapCellSize": 48,
+            "clumpCellSize": 1.55,
+            "maxRecords": 160000,
+            "minActiveRecords": 18000,
+            "closeDensityReferenceRecords": 42000,
+            "closeDensityReferenceRadiusM": 64,
+            "lodStratifiedBudget": true,
+            "density": 1,
+            "jitter": 0.72,
+            "minNormalZ": 0.45,
+            "lodNearRadiusM": 5,
+            "lodMidRadiusM": 20,
+            "baseHeight": 1.25,
+            "heightJitter": 0.62,
+            "baseWidth": 0.08,
+            "widthJitter": 0.2,
+            "baseBend": 0.62,
+            "bendJitter": 0.45,
+            "tiers": [
+              {
+                "id": "near",
+                "lodTier": 0,
+                "segments": 15,
+                "minDistanceM": 0,
+                "maxDistanceM": 5
+              },
+              {
+                "id": "mid",
+                "lodTier": 1,
+                "segments": 6,
+                "minDistanceM": 5,
+                "maxDistanceM": 20
+              },
+              {
+                "id": "far",
+                "lodTier": 2,
+                "segments": 2,
+                "minDistanceM": 20,
+                "maxDistanceM": 480
+              }
+            ]
+          },
+          "transitionOwner": "battleGrassField.update",
+          "activeTransition": {
+            "denseBladeEndM": 22,
+            "farGrassStartM": 40,
+            "farGrassEndM": 1250,
+            "nearTierEndM": 22,
+            "midTierEndM": 64,
+            "farSoftWidthScale": 3,
+            "nearCoverageWidthScale": 1,
+            "lowerFarWidthScale": 1.35,
+            "lowerFarWidthEndM": 112,
+            "terrainDetailStrength": 1,
+            "edgeSinkStartM": 1120
+          },
+          "sample": {
+            "seed": 1588011046,
+            "snapX": 0,
+            "snapY": 0,
+            "snapCellSize": 48,
+            "fieldCellSize": 1.5,
+            "clumpCellSize": 1.55,
+            "minNormalZ": 0.45,
+            "lodNearRadius": 0.003466876226407682,
+            "lodMidRadius": 0.013867504905630728,
+            "lodStratifiedBudget": false,
+            "candidateCells": 2904244,
+            "acceptedRecords": 1000000,
+            "recordCapacity": 1000000,
+            "cappedRecords": 481632,
+            "outOfBoundsCells": 1197777,
+            "rejectedTintCells": 158808,
+            "rejectedSlopeCells": 0,
+            "rejectedDensityCells": 66027,
+            "openGrassCells": 981542,
+            "forestCells": 13592,
+            "roughCells": 4866,
+            "lodCandidateCounts": [
+              4,
+              81,
+              1393167
+            ],
+            "lodBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "lodDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "lodCounts": [
+              2,
+              52,
+              999946
+            ],
+            "packedStrideFloats": 16,
+            "packedStrideBytes": 64,
+            "packedBytes": 64000000
+          },
+          "rebuild": {
+            "strategy": "static-whole-map+camera-focus-ring",
+            "shaderCompileCount": 5,
+            "activeRecordBudget": 2000000,
+            "vistaRecordBudget": 160000,
+            "areaBudgetScale": 1,
+            "pending": true,
+            "rebuilds": 0,
+            "lastSampleMs": 599.675,
+            "lastSlices": 2,
+            "lastMaxSliceMs": 6.105
+          }
+        }
+      },
+      "tacticalLines": {
+        "groundCues": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "rings": {
+          "rings": 0
+        },
+        "effects": {
+          "vertices": 0,
+          "lineSegments": 0
+        }
+      },
+      "markers": {
+        "markers": 0
+      },
+      "standards": {
+        "standards": 40,
+        "selected": 0,
+        "tier": "battle-unit",
+        "layer": "photoreal-battle-3d-standards",
+        "waveContract": "PhotorealWorld.uTime + deterministic per-unit phase + strength",
+        "legibility": "measured cloth-width floor from battle scene standardScale",
+        "timeSeconds": 0
+      },
+      "readouts": {
+        "readouts": 1,
+        "chips": 1,
+        "anchors": [
+          {
+            "unitId": 0,
+            "x": -77.79132080078125,
+            "y": -557.38671875,
+            "z": 5.120000000000001
+          }
+        ],
+        "atlasWidth": 64,
+        "atlasHeight": 16,
+        "layer": "photoreal-battle-readout-glyph-atlas",
+        "depthPolicy": "depth-tested in-scene billboard; toneMapped=false (UI, ungraded); renderOrder after soldiers",
+        "orientation": "camera-facing basis from the active three camera"
+      },
+      "performance": {
+        "buildMs": 0,
+        "uploadMs": 0,
+        "drawMs": 0,
+        "frameCpuMs": 0,
+        "gpuTimeMs": 6643.096752000001
+      }
+    }
+  }
+}

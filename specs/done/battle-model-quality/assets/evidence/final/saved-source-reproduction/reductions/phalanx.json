@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/phalanx/phalanx.blend",
+  "sourceSha256": "1bbacf1f72a91a11bef2e9556dd3b1b77358a32b3f4a5eb75b9ae4686a960a6f",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 151898,
+      "triangles": 7984,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "b1f89c5bd41bc600f882ce1fc94e52ed452bbf31e3bb00bffa5a3628646e52ad"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 151898,
+      "triangles": 1078,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "c67a12b0efa2d8c62260423ae0a93f02f743d59668a0197ef5be30a46d721a1f"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 151898,
+      "triangles": 876,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "d12dcfce61d3ccf06f698797c01784ced2d3a91f0351aa388c16d4565cc32634"
+    }
+  ]
+}

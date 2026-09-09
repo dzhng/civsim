@@ -1,0 +1,77 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T05:38:35.208Z",
+  "target": "http://localhost:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-reload-disposal",
+      "file": "models/battle-model-reload-disposal.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "gpu: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "gpu: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "gpu: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "pending replacement geometry is released",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "catalog completion never prepares GPU resources after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

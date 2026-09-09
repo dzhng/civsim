@@ -103,3 +103,9 @@ Code entry points are [simulation](../../../crates/sim/src/sim.rs),
 [measurement harness](../../../crates/sim/src/bin/profile_tick.rs),
 [standing gate](../../../scripts/test-perf), and
 [wasm hash export](../../../crates/game-wasm/src/lib.rs).
+
+## Remaining model-rendering work
+
+The accepted [authored-model rendering follow-up](model-rendering-follow-up.md)
+remains separate from the completed simulation work. The model delivery does
+not establish that its 30k animation workload meets the existing frame-time gate.

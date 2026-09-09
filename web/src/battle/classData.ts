@@ -81,3 +81,42 @@ export function validateClassSpecCatalog(specs: readonly ClassCatalogSpec[]) {
     }
   }
 }
+
+export interface WeaponSpec {
+  name: string;
+  reach: number;
+  minRange: number;
+  arc: number;
+  interval: number;
+  damage: number;
+  braced: boolean;
+  charge: boolean;
+}
+
+export interface ClassSpec {
+  id: number;
+  key: UnitClassKey;
+  name: string;
+  cost: number;
+  mass: number;
+  radius: number;
+  brace: number;
+  block: number;
+  evade: number;
+  training: number;
+  paceMult: number;
+  drainMult: number;
+  health: number;
+  mountHealth: number;
+  mounted: boolean;
+  charges: boolean;
+  weapons: WeaponSpec[];
+  missile: {
+    name: string;
+    range: number;
+    interval: number;
+    ammo: number;
+    damage: number;
+    mobileFire: boolean;
+  } | null;
+}

@@ -1,17 +1,26 @@
-import { createFrameShell, type BackgroundRenderPass, type FrameGraphPass, type RawFrameShell } from "@packages/renderer-core/src/frameShell";
-import { PROJECTION_IDENTITY, type CameraSnapshot } from "@packages/renderer-core/src/cameraUniform";
+import {
+  createFrameShell,
+  type BackgroundRenderPass,
+  type FrameGraphPass,
+  type RawFrameShell,
+} from "@packages/renderer-core/src/frameShell";
+import {
+  PROJECTION_IDENTITY,
+  type CameraSnapshot,
+} from "@packages/renderer-core/src/cameraUniform";
 import { WORLD_CAMERA_WGSL } from "@packages/renderer-core/src/cameraWgsl";
 import { NOISE_WGSL } from "@packages/renderer-core/src/noiseWgsl";
 import { compileShader } from "@packages/renderer-core/src/compileShader";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { chartCamera3d, type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
-import { resolveBattleEnvironment, skinnedLightingForBattleEnvironment, type BattleEnvironment } from "@packages/game-renderer/src/environment/environment";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
 import {
-  CAMPAIGN_ENVIRONMENT,
-} from "@packages/game-renderer/src/campaign/environment";
+  resolveBattleEnvironment,
+  skinnedLightingForBattleEnvironment,
+  type BattleEnvironment,
+} from "@packages/game-renderer/src/environment/environment";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
+import { CAMPAIGN_ENVIRONMENT } from "@packages/game-renderer/src/campaign/environment";
 
 export type LabRoute = (ctx: LabContext) => Promise<void> | void;
 
@@ -47,25 +56,25 @@ interface LabGroundShaderStyle {
 }
 
 const LAB_GROUND_STYLE: LabGroundShaderStyle = {
-  oliveLow: 'vec3f(0.43, 0.56, 0.22)',
-  oliveHigh: 'vec3f(0.66, 0.69, 0.33)',
-  dry: 'vec3f(0.76, 0.67, 0.39)',
-  lightFleckLow: '0.884',
-  lightFleckHigh: '0.990',
-  darkFleckLow: '0.820',
-  darkFleckHigh: '0.982',
-  stoneFleckLow: '0.924',
-  stoneFleckHigh: '0.996',
-  speckleStrength: '0.315',
-  dryMixBase: '0.22',
-  trampleMix: '0.15',
-  stubbleColor: 'vec3f(0.53, 0.48, 0.25)',
-  stubbleStrength: '0.055',
-  darkFleckColor: 'vec3f(0.47, 0.43, 0.32)',
-  darkFleckStrength: '0.38',
-  stoneFleckStrength: '0.30',
-  dustStrength: '0.14',
-  aerialStrength: '0.22',
+  oliveLow: "vec3f(0.43, 0.56, 0.22)",
+  oliveHigh: "vec3f(0.66, 0.69, 0.33)",
+  dry: "vec3f(0.76, 0.67, 0.39)",
+  lightFleckLow: "0.884",
+  lightFleckHigh: "0.990",
+  darkFleckLow: "0.820",
+  darkFleckHigh: "0.982",
+  stoneFleckLow: "0.924",
+  stoneFleckHigh: "0.996",
+  speckleStrength: "0.315",
+  dryMixBase: "0.22",
+  trampleMix: "0.15",
+  stubbleColor: "vec3f(0.53, 0.48, 0.25)",
+  stubbleStrength: "0.055",
+  darkFleckColor: "vec3f(0.47, 0.43, 0.32)",
+  darkFleckStrength: "0.38",
+  stoneFleckStrength: "0.30",
+  dustStrength: "0.14",
+  aerialStrength: "0.22",
 };
 
 function labGroundWgsl(style: LabGroundShaderStyle) {
@@ -137,7 +146,10 @@ export class LabGroundPass {
   private readonly pipeline: GPURenderPipeline;
   private readonly vertexBuffer: GPUBuffer;
 
-  constructor(private readonly shell: RawFrameShell, rect: [number, number, number, number]) {
+  constructor(
+    private readonly shell: RawFrameShell,
+    rect: [number, number, number, number],
+  ) {
     const module = compileShader(shell.device, labGroundWgsl(LAB_GROUND_STYLE), "lab-ground");
     this.pipeline = shell.device.createRenderPipeline({
       label: "lab-ground-pipeline",
@@ -187,7 +199,11 @@ export function labGroundFramePass(ground: LabGroundPass, id: string): FrameGrap
   };
 }
 
-export function chartCameraSnapshot(spec: ChartCameraSpec, width: number, height: number): CameraSnapshot {
+export function chartCameraSnapshot(
+  spec: ChartCameraSpec,
+  width: number,
+  height: number,
+): CameraSnapshot {
   return {
     x: spec.x,
     y: spec.y,
@@ -231,15 +247,13 @@ export async function createCampaignShell(canvas: HTMLCanvasElement, camera: Cha
 
 export async function createSkinnedPipeline(
   shell: RawFrameShell,
-  accent: [number, number, number],
-  vat?: Awaited<ReturnType<typeof loadPlaceholderVat>>,
   environment = resolveBattleEnvironment("golden-hour"),
 ) {
-  return new SkinnedCrowdPipeline(
+  return SkinnedCrowdPipeline.create(
     shell,
-    createPlaceholderSoldierMeshes(accent),
-    vat ?? (await loadPlaceholderVat()),
-    undefined,
+    await loadAppearanceCatalog(
+      new URL("/assets/soldiers/fixtures/placeholder-soldiers/catalog.json", location.href).href,
+    ),
     {
       lighting: skinnedLightingForBattleEnvironment(environment),
     },
@@ -291,8 +305,25 @@ export function animateSkinned(
   const tick = () => {
     const phaseOffset =
       (opts.phaseOffset ?? 0) + ((performance.now() - start) / 1000) * (opts.phaseSpeed ?? 0);
-    pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset, size: opts.size });
+    const source = getInstances();
+    const instances =
+      opts.forcedClip || opts.phaseOffset !== undefined || opts.phaseSpeed
+        ? source.map((instance) => {
+            const clip = pipeline.classClip(instance.classId, opts.forcedClip ?? instance.clip);
+            const phase = instance.phase + phaseOffset;
+            return {
+              ...instance,
+              playback: undefined,
+              clip: clip.name,
+              // Only a running preview clock wraps. Explicit frozen phase one
+              // means the authored endpoint, including for looping clips.
+              phase: clip.loop && opts.phaseSpeed ? ((phase % 1) + 1) % 1 : phase,
+            };
+          })
+        : source;
+    pipeline.upload(instances, { size: opts.size });
     shell.drawFrame({
+      precompute: (encoder) => pipeline.precompute(encoder),
       passes: [
         labGroundFramePass(ground, "animated-skinned-ground"),
         {

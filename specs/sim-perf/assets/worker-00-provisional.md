@@ -1,5 +1,8 @@
 # Worker 00: PENDING — evidence, 2026-09-09 Bangkok
 
+Historical pre-retry record. The later [feasibility verdict](worker-verdict.md)
+supersedes this status after David revised the load threshold.
+
 **No keep/drop verdict.** The cross-thread hash check passes, but no browser
 performance sample meets the required quiet-machine precondition. Worker 01
 has not started and no threshold has changed.

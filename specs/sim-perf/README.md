@@ -15,15 +15,15 @@ folder holds a one-line redirect until close-spec.
 
 ## Next Agent Prompt
 
-**Status (2026-09-09):** `tick/00` implementation, identity checks and
-review are committed (`5461c235`); the integrated workspace suite passes.
-The budget gate is honestly red, with substantial machine variation. The
-contact pass now reuses immutable projection metadata; its experimental
-caches were rejected for lack of a demonstrated developed-combat gain. Scratch
-reuse is integrated and reproduces the original identity oracles. Combined
-workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
-is byte-identical. The worker branch is closed by an early feasibility
-no-go; the hash export remains, and no worker seam ships.
+**Status (2026-09-09):** The retained serial changes passed all 363 workspace
+tests and preserved the original timeline. Revised native weapon repel is
+now integrated; its 1/2/8-thread identity checks and independent review pass,
+and the final rebuilt-wasm timeline is byte-identical. The final integrated
+workspace suite is running. Its measured 34.896 ms developed tick meets
+David's revised 35 ms acceptance; final standing-gate and scaled telemetry
+remain to be recorded. Older red results used the former 25 ms target.
+The worker branch is closed by an early feasibility no-go; the hash export
+remains, and no worker seam ships.
 
 **Current pickup:** David accepts 35 ms as sufficient (2026-09-09).
 The revised weapon-repel candidate measures 34.896 ms in developed combat,

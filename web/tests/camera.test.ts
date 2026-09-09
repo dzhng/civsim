@@ -74,24 +74,22 @@ test("panWorld at the default north-up view maps to world east/north", () => {
   );
 });
 
-test("panSpeed slows monotonically as you zoom in, and caps past ~75% out", () => {
+test("panSpeed follows physical distance and caps across the wide overview", () => {
   const camera = makeCamera(0);
-  const range = { min: 0.4, max: 8 };
-  const speedAt = (zoom: number) => {
-    camera.zoom = zoom;
+  camera.zoom = 0.4;
+  const far = camera.params().distance;
+  const speedAtDistance = (distance: number) => {
+    camera.zoomAt(600, 350, camera.params().distance / distance);
     return camera.panSpeed();
   };
-  const zoomAtT = (t: number) => range.min + t * (range.max - range.min);
-  // Cap: everything further out than the sweet spot pans at the same speed.
-  const sweetSpot = speedAt(zoomAtT(0.25));
-  assert.equal(speedAt(range.min), sweetSpot, "fully zoomed out must hit the cap");
-  assert.equal(speedAt(zoomAtT(0.1)), sweetSpot, "past the sweet spot must hit the cap");
-  // Inside the cap, speed strictly decreases toward the close vista.
-  let prev = sweetSpot;
-  for (const t of [0.4, 0.6, 0.8, 1.0]) {
-    const s = speedAt(zoomAtT(t));
-    assert.ok(s < prev, `speed must fall as zoom rises: t=${t} gave ${s} >= ${prev}`);
-    prev = s;
+  const cap = speedAtDistance(far);
+  assert.equal(speedAtDistance(far * 0.95), cap);
+  assert.equal(speedAtDistance(far * 0.8), cap);
+  let previous = cap;
+  for (const fraction of [0.6, 0.4, 0.2, 0.02]) {
+    const speed = speedAtDistance(far * fraction);
+    assert.ok(speed < previous, `distance ${far * fraction}: pan speed ${speed} >= ${previous}`);
+    previous = speed;
   }
 });
 
@@ -182,4 +180,25 @@ test("wheel-zoom cannot bank dead travel past the rig's saturation point", () =>
     distOut > distIn + 1e-6,
     `one notch out must move the camera, got ${distIn} -> ${distOut}`,
   );
+});
+
+test("equal wheel steps change physical camera distance evenly across the zoom range", () => {
+  for (const zoom of [0.9, 4, 6.5, 7.5]) {
+    const camera = makeCamera(-Math.PI / 2);
+    camera.setRig({ min: 0.4, max: 8 }, { width: 1600, height: 2000 });
+    camera.zoom = zoom;
+    const before = camera.params().distance;
+    const panBefore = camera.panSpeed();
+    camera.zoomAt(600, 350, 1.08);
+    const after = camera.params().distance;
+    if (zoom === 0.9)
+      assert.ok(
+        camera.panSpeed() > panBefore * 0.9,
+        "a small distance change must not collapse pan speed",
+      );
+    assert.ok(
+      Math.abs(after / before - 1 / 1.08) < 1e-6,
+      `zoom ${zoom}: a wheel step must change distance immediately and proportionally; ${before} -> ${after}`,
+    );
+  }
 });

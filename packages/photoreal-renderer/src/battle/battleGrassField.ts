@@ -1,5 +1,12 @@
 import * as THREE from "three/webgpu";
-import { eyePosition, type Camera3DParams } from "../../../renderer-core/src/camera3d";
+import {
+  eyePosition,
+  viewMatrix,
+  projMatrix,
+  projectionFootprint,
+  projectedSpanPixels,
+  type Camera3DParams,
+} from "../../../renderer-core/src/camera3d";
 import {
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
   createGrassFieldSampler,
@@ -87,9 +94,10 @@ const STANDARD_BLADE_FIELD_PROFILE = {
   widthJitter: 0.2,
   baseBend: 0.62,
   bendJitter: 0.45,
+  // Knee-height blades need few curve segments; retain the midpoint for canopy coverage.
   tiers: [
-    { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
-    { id: "mid", lodTier: 1, segments: 6, minDistanceM: 5, maxDistanceM: 20 },
+    { id: "near", lodTier: 0, segments: 4, minDistanceM: 0, maxDistanceM: 5 },
+    { id: "mid", lodTier: 1, segments: 2, minDistanceM: 5, maxDistanceM: 20 },
     { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 480 },
   ],
 } as const satisfies BladeFieldProfile;
@@ -98,8 +106,7 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, BladeFieldProf
   low: {
     ...STANDARD_BLADE_FIELD_PROFILE,
     quality: "low",
-    source:
-      "GRASSFINE-L2D8 low profile: 160k budget, fine near blades, low-segment mid tier",
+    source: "GRASSFINE-L2D8 low profile: 160k budget, fine near blades, low-segment mid tier",
     vistaTransitionDefaults: {
       ...STANDARD_BLADE_FIELD_PROFILE.vistaTransitionDefaults,
       farSoftWidthScale: 2.3,
@@ -113,8 +120,8 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, BladeFieldProf
     baseBend: 0.45,
     bendJitter: 0.35,
     tiers: [
-      { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
-      { id: "mid", lodTier: 1, segments: 5, minDistanceM: 5, maxDistanceM: 20 },
+      { id: "near", lodTier: 0, segments: 3, minDistanceM: 0, maxDistanceM: 5 },
+      { id: "mid", lodTier: 1, segments: 2, minDistanceM: 5, maxDistanceM: 20 },
       { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 480 },
     ],
   },
@@ -148,11 +155,11 @@ const MEADOW_FOCUS_RING_SNAP_CELL_M = 48;
 const MEADOW_FOCUS_RING_FIELD_CELL_M = 0.6;
 const MEADOW_FOCUS_RING_MAX_RECORDS = 1_000_000;
 const MEADOW_FOCUS_RING_DEDUPE_MARGIN_M = 20;
-const MEADOW_RING_ZOOM_T = 0.62;
-const MEADOW_RING_RELEASE_ZOOM_T = 0.54;
+const MEADOW_RING_MIN_PIXELS = 1.5;
+const MEADOW_RING_RELEASE_PIXELS = 1;
 const GRASS_SAMPLE_SLICE_CELLS = 16384;
 const GRASS_SAMPLE_SLICE_BUDGET_MS = 4;
-const GRASS_ZOOM_CUTOFF_T = 0.5;
+const GRASS_MIN_PIXELS = 0.5;
 
 interface GrassSampleFocus {
   x: number;
@@ -196,12 +203,19 @@ export interface BattleGrassStats extends BladeFieldStats {
   activeTransition: BladeFieldTransitionProfile;
   sample: GrassFieldStats | null;
   rebuild: GrassRebuildStats;
+  detail: {
+    bladePixels: number;
+    baseMinPixels: number;
+    ringMinPixels: number;
+    ringReleasePixels: number;
+    focusRingActive: boolean;
+  };
 }
 
-export interface BattleGrassView {
+interface BattleGrassView {
   x: number;
   y: number;
-  zoomT: number;
+  bladePixels: number;
   eyeZ: number;
 }
 
@@ -222,7 +236,7 @@ export class BattleGrassField {
   private sampleTask: GrassSampleTask | null = null;
   private sampleStats: GrassFieldStats | null = null;
   private enabled = true;
-  private ringZoomEngaged = false;
+  private focusRingEngaged = false;
   private farEnabled = true;
   private activeTransition: BladeFieldTransitionProfile;
   private view: BattleGrassView | null = null;
@@ -282,7 +296,19 @@ export class BattleGrassField {
     this.ring.applyPackedRecords(new Float32Array(), false);
   }
 
-  update(view: BattleGrassView): void {
+  update(camera: Camera3DParams, viewportHeight: number): void {
+    const projection = projectionFootprint(
+      viewMatrix(camera),
+      projMatrix(camera),
+      viewportHeight,
+      camera.near,
+    );
+    const view: BattleGrassView = {
+      x: camera.target[0],
+      y: camera.target[1],
+      eyeZ: eyePosition(camera)[2],
+      bladePixels: projectedSpanPixels(projection, ...camera.target, this.profile.baseHeight),
+    };
     this.view = view;
     if (!this.enabled || !this.terrainGrid || !this.heightField) return;
     const visibleRadius = activeGrassVisibleRadiusM(this.profile, view.eyeZ);
@@ -293,7 +319,7 @@ export class BattleGrassField {
       ? (this.activeTransition.terrainDetailStrength ?? 1)
       : 0;
     this.ensureBaseRecords();
-    const focusRingActive = this.updateFocusRingZoomGate();
+    const focusRingActive = this.updateFocusRingDetailGate();
     this.rebuild.activeRecordBudget = focusRingActive
       ? STATIC_GRASS_MAX_RECORDS + MEADOW_FOCUS_RING_MAX_RECORDS
       : STATIC_GRASS_MAX_RECORDS;
@@ -329,12 +355,7 @@ export class BattleGrassField {
 
   prepareRender(renderer: THREE.WebGPURenderer, camera: Camera3DParams): void {
     const eye = eyePosition(camera);
-    this.update({
-      x: camera.target[0],
-      y: camera.target[1],
-      zoomT: this.view?.zoomT ?? 0,
-      eyeZ: eye[2],
-    });
+    this.update(camera, renderer.domElement.height);
     this.updateRoutingState();
     this.ring.setRouteCullWedge(
       this.ringVisibleNow()
@@ -389,6 +410,13 @@ export class BattleGrassField {
     return {
       ...mergeBladeFieldStats(this.base.stats(), this.ring.stats(), this.ringVisibleNow()),
       productionSamplingProfile: this.profile,
+      detail: {
+        bladePixels: this.view?.bladePixels ?? 0,
+        baseMinPixels: GRASS_MIN_PIXELS,
+        ringMinPixels: MEADOW_RING_MIN_PIXELS,
+        ringReleasePixels: MEADOW_RING_RELEASE_PIXELS,
+        focusRingActive: this.focusRingEngaged,
+      },
       transitionOwner: "battleGrassField.update",
       activeTransition: this.activeTransition,
       sample: this.sampleStats,
@@ -417,24 +445,24 @@ export class BattleGrassField {
   }
 
   private visibleNow(): boolean {
-    return this.enabled && (this.view?.zoomT ?? 0) >= GRASS_ZOOM_CUTOFF_T;
+    return this.enabled && (this.view?.bladePixels ?? 0) >= GRASS_MIN_PIXELS;
   }
 
   private ringVisibleNow(): boolean {
     return (
       this.visibleNow() &&
-      this.ringZoomEngaged &&
+      this.focusRingEngaged &&
       this.focusRecords !== null &&
       this.rebuild.activeFocus !== null
     );
   }
 
-  private updateFocusRingZoomGate(): boolean {
-    const zoomT = this.view?.zoomT ?? 0;
-    this.ringZoomEngaged = this.ringZoomEngaged
-      ? zoomT >= MEADOW_RING_RELEASE_ZOOM_T
-      : zoomT >= MEADOW_RING_ZOOM_T;
-    return this.ringZoomEngaged;
+  private updateFocusRingDetailGate(): boolean {
+    const pixels = this.view?.bladePixels ?? 0;
+    this.focusRingEngaged = this.focusRingEngaged
+      ? pixels >= MEADOW_RING_RELEASE_PIXELS
+      : pixels >= MEADOW_RING_MIN_PIXELS;
+    return this.focusRingEngaged;
   }
 
   private baseFocus(): GrassSampleFocus {
@@ -560,7 +588,7 @@ export class BattleGrassField {
   }
 
   private runSampleSlice(task: GrassSampleTask): void {
-    if (task !== this.sampleTask || !this.enabled || !this.ringZoomEngaged) return;
+    if (task !== this.sampleTask || !this.enabled || !this.focusRingEngaged) return;
     const sliceStarted = performance.now();
     let done = false;
     do {

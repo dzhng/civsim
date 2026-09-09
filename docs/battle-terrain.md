@@ -61,7 +61,11 @@ The [production grass profile](../packages/photoreal-renderer/src/battle/battleG
 owns blade dimensions for both the whole-map field and the camera's denser
 focus ring. Quality settings change sampling and geometry detail without
 substituting broad leaves. The shader preserves those widths instead of
-inflating thin blades to a visibility minimum.
+inflating thin blades to a visibility minimum. Geometry activation follows the
+blade's projected size, so an invisible blade does not become expensive merely
+because an input dial moved. The denser focus ring uses hysteresis around that
+same pixel-size measure. Tessellation preserves an interior vertex for canopy
+coverage; removing it changes the silhouette, not just curve smoothness.
 The [standing-soldier view](../web/scenes/battle/battle-grass-scale.mjs)
 guards the relationship at the close gameplay camera.
 

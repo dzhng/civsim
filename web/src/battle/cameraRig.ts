@@ -23,7 +23,7 @@ export interface CameraRigRange {
 // horizon instead of tilting in place).
 
 /** Camera3DParams-shaped subset produced by the zoom rig, plus the exported
- *  `zoomT` (grass density / haze depth read it). */
+ *  `zoomT` reported in camera diagnostics. */
 export interface ZoomCameraRig {
   /** Forward look-ahead offset from the view centre, world space (+Z up). */
   target: [number, number, number];

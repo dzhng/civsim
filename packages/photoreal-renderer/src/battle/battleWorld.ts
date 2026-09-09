@@ -553,12 +553,7 @@ export class PhotorealBattleWorld {
 
   private updateGrass(): void {
     const camera = this.lastCamera.camera3d;
-    this.grass.update({
-      x: camera.target[0],
-      y: camera.target[1],
-      zoomT: this.lastCamera.zoomT,
-      eyeZ: eyePosition(camera)[2],
-    });
+    this.grass.update(camera, this.world.renderer.domElement.height);
   }
 
   private crowdVisibilityScope(): CrowdVisibilityScope {

@@ -77,7 +77,10 @@ export class Camera {
    *  but capped at the ~75%-out sweet spot — the full overview raced. */
   panSpeed() {
     const { min, max } = this.zoomRange;
-    const z = Math.max(this.zoom, min + 0.25 * (max - min));
+    const far = battleCameraRig(min, this.zoomRange, this.rigBounds).distance;
+    const near = battleCameraRig(this.maxZoom(), this.zoomRange, this.rigBounds).distance;
+    const closeness = Math.max(0, Math.min(1, (far - this.rig().distance) / (far - near)));
+    const z = min + Math.max(0.25, closeness) * (max - min);
     const t = Math.max(0, Math.min(1, (z - min) / Math.max(1e-6, max - min)));
     return (600 / z) * (12 - 11.5 * t);
   }
@@ -131,7 +134,7 @@ export class Camera {
   private zoomForDistance(distance: number): number {
     const dist = (z: number) => battleCameraRig(z, this.zoomRange, this.rigBounds).distance;
     let lo = this.zoomRange.min;
-    let hi = this.zoomRange.max;
+    let hi = this.maxZoom();
     const reachable = Math.max(dist(hi), Math.min(dist(lo), distance));
     if (Math.abs(dist(this.zoom) - reachable) < 1e-3) return this.zoom;
     if (reachable >= dist(lo)) return lo;
@@ -314,7 +317,9 @@ export class Camera {
   /** Zoom keeping the world point under the cursor fixed. */
   zoomAt(px: number, py: number, factor: number, afterZoom?: () => void) {
     const [wx, wy] = this.screenToWorld(px, py);
-    this.zoom = Math.min(this.maxZoom(), Math.max(this.zoomRange.min, this.zoom * factor));
+    // Wheel input controls physical distance; multiplying the authored rig dial
+    // spends most input on its flat overview, then races through the close vista.
+    this.zoom = this.zoomForDistance(this.rig().distance / factor);
     afterZoom?.();
     const [nx, ny] = this.screenToWorld(px, py);
     this.x += wx - nx;

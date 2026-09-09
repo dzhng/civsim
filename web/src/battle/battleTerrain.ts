@@ -22,6 +22,7 @@ type VistaExportGame = Game & {
   generated_vista_band_origin_x(band: number): number;
   generated_vista_band_origin_y(band: number): number;
   generated_vista_band_height_ptr(band: number): number;
+  generated_vista_band_water_ptr(band: number): number;
 };
 
 export interface BattleTerrain {
@@ -168,6 +169,13 @@ function readGeneratedVistaGrid(
       outerHalfW: meta.outerHalfW,
       outerHalfH: meta.outerHalfH,
       height: heights,
+      water: new Float32Array(
+        new Float32Array(
+          world.memory.buffer,
+          game.generated_vista_band_water_ptr(index),
+          width * height,
+        ),
+      ),
     });
   }
   return bands.length > 0 ? { shape: vista.shape, bands } : null;

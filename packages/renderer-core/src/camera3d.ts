@@ -140,7 +140,12 @@ function worldFromNdc(inv: Mat4, ndcX: number, ndcY: number, ndcZ: number): Vec3
 // pixel. Anchoring at the eye (rather than differencing near/far NDC points)
 // keeps this well-defined for an infinite far plane, where the far-plane
 // unprojection is a point at infinity.
-function screenRay(p: Camera3DParams, ndcX: number, ndcY: number): { origin: Vec3; dir: Vec3 } {
+export interface WorldRay {
+  origin: Vec3;
+  dir: Vec3;
+}
+
+export function screenRay(p: Camera3DParams, ndcX: number, ndcY: number): WorldRay {
   const eye = eyePosition(p);
   const near = worldFromNdc(invViewProj(p), ndcX, ndcY, 1); // reverse-Z: near plane = depth 1
   let dx = near[0] - eye[0],

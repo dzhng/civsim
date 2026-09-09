@@ -174,11 +174,11 @@ export function createBattleHudBridge(
       if (view.input.selected.length === 1) cardUnit = view.input.selected[0];
       else if (view.input.selected.length === 0 && view.input.mouseCss[0] >= 0) {
         const dpr = window.devicePixelRatio || 1;
-        const [x, y] = camera.screenToWorld(
+        const hit = camera.screenToWorld(
           view.input.mouseCss[0] * dpr,
           view.input.mouseCss[1] * dpr,
         );
-        cardUnit = game.pick_unit(x, y, 25);
+        cardUnit = hit ? game.pick_unit(...hit, 25) : -1;
       }
       if (cardUnit >= 0) unit = buildHudUnit(view.classSpecs, view.world, cardUnit);
       const roster = unit

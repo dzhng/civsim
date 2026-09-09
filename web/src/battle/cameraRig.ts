@@ -54,6 +54,8 @@ interface RigCurve {
   /** >1 keeps the framing near-top-down for more of the zoom range before it
    *  drops into the oblique vista (campaign stays a flat chart longer). */
   easeBias: number;
+  /** Battle's tilt transition starts only within this physical distance. */
+  tiltStartMeters?: number;
 }
 
 // Battle: a genuine near-top-down tactical read through most of the range,
@@ -69,6 +71,7 @@ const BATTLE_CURVE: RigCurve = {
   overZoomMinFactor: 0.35,
   maxForwardFraction: 0.3,
   easeBias: 20,
+  tiltStartMeters: 100,
 };
 
 // Campaign: a strategic chart. Flatter (stays near-top-down longer via easeBias),
@@ -136,9 +139,9 @@ function rigForZoom(
   const min = Math.max(0.0001, Math.min(zoomRange.min, zoomRange.max));
   const max = Math.max(min + 0.0001, Math.max(zoomRange.min, zoomRange.max));
   const zoomT = clamp01((zoom - min) / (max - min));
-  // One eased parameter drives every axis, so pitch/fovY/distance/target move
-  // together and each stays monotonic in zoom. `easeBias` shapes how long the
-  // framing lingers near top-down before committing to the vista.
+  // Distance retains the authored dial; wheel input inverts this curve.
+  // Battle framing follows physical proximity so map size cannot make the
+  // camera look at the horizon while it is still hundreds of meters away.
   const eased = Math.pow(smoothstep(0, 1, zoomT), curve.easeBias);
   const fieldReach = Math.max(1, Math.min(bounds.width, bounds.height));
   const closeDistance = Math.min(
@@ -152,12 +155,20 @@ function rigForZoom(
     : closeDistance;
   const distance = Math.max(minCloseDistance, baseDistance * overZoomScale);
   const closeForward = Math.min(fieldReach * curve.maxForwardFraction, closeDistance * 1.25);
-  const forward = lerp(0, closeForward, eased);
+  const framing = curve.tiltStartMeters
+    ? 1 -
+      smoothstep(
+        Math.log(closeDistance),
+        Math.log(Math.max(closeDistance + 1, curve.tiltStartMeters)),
+        Math.log(distance),
+      )
+    : eased;
+  const forward = lerp(0, closeForward, framing);
   return {
     target: [-forward, 0, 0],
     distance,
-    pitch: lerp(curve.topDownPitch, curve.vistaPitch, eased),
-    fovY: lerp(curve.topDownFovY, curve.vistaFovY, eased),
+    pitch: lerp(curve.topDownPitch, curve.vistaPitch, framing),
+    fovY: lerp(curve.topDownFovY, curve.vistaFovY, framing),
     zoomT,
   };
 }

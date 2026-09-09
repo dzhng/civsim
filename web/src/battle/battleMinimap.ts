@@ -2,6 +2,17 @@ import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 import type { Game } from "../wasm/game_wasm.js";
 import type { Camera } from "../shared/camera";
+import { unprojectToPlaneZ } from "@packages/renderer-core/src/camera3d";
+
+/** The minimap is a planar overview: extend downward corner rays beyond the
+ * finite mesh, then clip that overview to its rectangle. This fallback is
+ * presentation-only and must never be used as an order destination. */
+export function minimapViewBounds(camera: Camera, width: number, height: number) {
+  const params = camera.params();
+  const a = camera.screenToWorld(0, 0) ?? unprojectToPlaneZ(params, -1, 1, 0);
+  const b = camera.screenToWorld(width, height) ?? unprojectToPlaneZ(params, 1, -1, 0);
+  return a && b ? [a, b] : null;
+}
 
 export interface BattleMinimap {
   drawMinimap(): void;
@@ -94,18 +105,20 @@ export function createBattleMinimap({
               : "#e0604f";
         g.fillRect(mx - 1.5, my - 1.5, 3, 3);
       }
-      const [ax, ay] = camera.screenToWorld(0, 0);
-      const [bx, by] = camera.screenToWorld(canvas.width, canvas.height);
+      const footprint = minimapViewBounds(camera, canvas.width, canvas.height);
+      if (!footprint) return;
+      const [a, b] = footprint;
+      const [ax, ay] = a;
+      const [bx, by] = b;
       const [m0x, m0y] = worldToMini(ax, ay);
       const [m1x, m1y] = worldToMini(bx, by);
       g.strokeStyle = "rgba(255,255,255,0.8)";
       g.lineWidth = 1;
-      g.strokeRect(
-        Math.min(m0x, m1x),
-        Math.min(m0y, m1y),
-        Math.abs(m1x - m0x),
-        Math.abs(m1y - m0y),
-      );
+      const left = Math.max(0.5, Math.min(m0x, m1x));
+      const top = Math.max(0.5, Math.min(m0y, m1y));
+      const right = Math.min(minimap.width - 0.5, Math.max(m0x, m1x));
+      const bottom = Math.min(minimap.height - 0.5, Math.max(m0y, m1y));
+      if (right > left && bottom > top) g.strokeRect(left, top, right - left, bottom - top);
     },
     terrainDebug() {
       const { w, h, cell, ox, oy, tint } = terrain;

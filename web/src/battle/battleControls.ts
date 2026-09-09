@@ -90,7 +90,7 @@ export function createBattleControls(
   };
 
   const sink = {
-    unitsInRect: (x0: number, y0: number, x1: number, y1: number) => {
+    unitsInScreenRect: (x0: number, y0: number, x1: number, y1: number) => {
       const info = world.unitInfo();
       const units: number[] = [];
       for (let unit = 0; unit < game.unit_count(); unit++) {
@@ -99,7 +99,11 @@ export function createBattleControls(
           info[unit * stride + UNIT_INFO.alive] === 0
         )
           continue;
-        const [x, y] = unitCenter(unit);
+        const [wx, wy] = unitCenter(unit);
+        const [sx, sy] = camera.worldToScreen(wx, wy, world.renderer.heightAt(wx, wy));
+        const rect = canvas.getBoundingClientRect();
+        const x = sx + rect.left,
+          y = sy + rect.top;
         if (x >= x0 && x <= x1 && y >= y0 && y <= y1) units.push(unit);
       }
       return units;

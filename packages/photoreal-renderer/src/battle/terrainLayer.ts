@@ -33,7 +33,8 @@ import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battl
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { GROUND_COVER_COLOR, MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
-import { smoothstep } from "../../../renderer-core/src/math";
+import { northSouthSink, type BattleVistaBand } from "./vistaSurface";
+import { joinTerrainMeshEdges } from "./terrainSeam";
 import {
   fbmN,
   hashN,
@@ -133,46 +134,6 @@ interface TerrainMaterialOptions {
 }
 
 type PhotorealGroundMesh = Omit<PhotorealBattleGroundMesh, "earthDistance">;
-
-interface BattleVistaBand {
-  name: "vista" | "farFog" | string;
-  w: number;
-  h: number;
-  cell: number;
-  /** First vertex-sample world coordinate, not a cell-corner origin. */
-  ox: number;
-  oy: number;
-  /** Renderer cuts this inner rect out of the full band to avoid z-fighting. */
-  innerHalfW: number;
-  innerHalfH: number;
-  outerHalfW: number;
-  outerHalfH: number;
-  height: Float32Array;
-}
-
-export interface BattleVistaGrid {
-  shape: string;
-  bands: BattleVistaBand[];
-}
-
-export function vistaSurfaceHeightAt(vista: BattleVistaGrid, x: number, y: number): number | null {
-  const band = vista.bands.find(
-    (b) => Math.abs(x) <= b.outerHalfW + b.cell && Math.abs(y) <= b.outerHalfH + b.cell,
-  );
-  if (!band) return null;
-  if (Math.abs(x) < band.innerHalfW && Math.abs(y) < band.innerHalfH) return null;
-  const gx = clampNumber((x - band.ox) / band.cell, 0, band.w - 1);
-  const gy = clampNumber((y - band.oy) / band.cell, 0, band.h - 1);
-  const x0 = Math.floor(gx);
-  const y0 = Math.floor(gy);
-  const x1 = Math.min(x0 + 1, band.w - 1);
-  const y1 = Math.min(y0 + 1, band.h - 1);
-  const tx = gx - x0;
-  const ty = gy - y0;
-  const top = lerpNumber(band.height[y0 * band.w + x0], band.height[y0 * band.w + x1], tx);
-  const bot = lerpNumber(band.height[y1 * band.w + x0], band.height[y1 * band.w + x1], tx);
-  return lerpNumber(top, bot, ty) + northSouthSink(band, x, y);
-}
 
 function normalZForSlope(slope: number): number {
   return 1 / Math.sqrt(1 + slope * slope);
@@ -654,6 +615,7 @@ export function createVistaMesh(
   band: BattleVistaBand,
   cover: BattleGroundCover,
   options: TerrainMaterialOptions = {},
+  innerMesh?: THREE.Mesh,
 ): THREE.Mesh | null {
   const mesh = buildVistaGroundMesh(band, cover);
   if (mesh.indices.length === 0) return null;
@@ -662,6 +624,15 @@ export function createVistaMesh(
     vistaBand: band.name,
     earthDistance: undefined,
   });
+  if (innerMesh) {
+    const hole: [number, number, number, number] = [
+      band.ox + Math.floor((-band.innerHalfW - band.ox) / band.cell) * band.cell,
+      band.oy + Math.floor((-band.innerHalfH - band.oy) / band.cell) * band.cell,
+      band.ox + Math.ceil((band.innerHalfW - band.ox) / band.cell) * band.cell,
+      band.oy + Math.ceil((band.innerHalfH - band.oy) / band.cell) * band.cell,
+    ];
+    joinTerrainMeshEdges(vista.geometry, innerMesh.geometry, hole);
+  }
   vista.name = `battle-vista-${band.name}`;
   vista.castShadow = false;
   vista.receiveShadow = false;
@@ -719,7 +690,7 @@ function buildVistaGroundMesh(
       verts[v++] = base[0];
       verts[v++] = base[1];
       verts[v++] = base[2];
-      verts[v++] = 0;
+      verts[v++] = band.water[j * band.w + i];
       surfaceColor[tv * 3] = base[0];
       surfaceColor[tv * 3 + 1] = base[1];
       surfaceColor[tv * 3 + 2] = base[2];
@@ -731,7 +702,13 @@ function buildVistaGroundMesh(
     for (let i = 0; i < band.w - 1; i++) {
       const cx = band.ox + (i + 0.5) * band.cell;
       const cy = band.oy + (j + 0.5) * band.cell;
-      if (Math.abs(cx) < band.innerHalfW && Math.abs(cy) < band.innerHalfH) continue;
+      // Keep the ring wholly outside the preceding tile. The seam strip
+      // bridges the sub-cell gap where the two resolutions do not align.
+      if (
+        Math.abs(cx) < band.innerHalfW + band.cell / 2 &&
+        Math.abs(cy) < band.innerHalfH + band.cell / 2
+      )
+        continue;
       const a = j * band.w + i;
       const b = a + 1;
       const c = a + band.w;
@@ -746,28 +723,6 @@ function buildVistaGroundMesh(
     indices: new Uint32Array(indices),
     triangles: indices.length / 3,
   };
-}
-
-function northSouthSink(band: BattleVistaBand, _x: number, y: number): number {
-  // ONE world-space ramp shared by every band: per-band ramps restarted at
-  // zero at each band boundary, so the farFog floor stepped 7.5 m above the
-  // sunken vista edge - a lit stepped wall that rendered as the white
-  // horizon band (compose rounds 1-2). Anchor on the band's inner edge only
-  // for the RAMP START of the innermost band; the domain end is the world
-  // sink horizon shared by all bands.
-  const SINK_START_Y = 820;
-  const SINK_END_Y = 2800;
-  const t = Math.max(0, Math.abs(y) - SINK_START_Y) / Math.max(1, SINK_END_Y - SINK_START_Y);
-  const s = smoothstep(0.15, 1.0, t);
-  return -7.5 * s;
-}
-
-function clampNumber(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
-}
-
-function lerpNumber(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 function frontSideIndexBuffer(indices: Uint32Array): Uint32Array {

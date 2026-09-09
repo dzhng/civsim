@@ -407,6 +407,12 @@ impl Game {
             .map_or(std::ptr::null(), |b| b.heights.as_ptr())
     }
 
+    pub fn generated_vista_band_water_ptr(&mut self, band: u32) -> *const f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band)
+            .map_or(std::ptr::null(), |b| b.water.as_ptr())
+    }
+
     pub fn terrain_w(&self) -> u32 {
         self.battle.sim.terrain.w as u32
     }
@@ -740,6 +746,9 @@ impl Game {
                 }
             }
             let mean_pressure = press / np.max(1) as f32;
+            // HUD destination acknowledges the newest accepted command even
+            // while low cohesion delays replacing the unit's active target.
+            let destination = u.pending_target.or(u.move_target);
             self.unit_info.extend_from_slice(&[
                 u.anchor.x,
                 u.anchor.y,
@@ -757,9 +766,9 @@ impl Game {
                 } else {
                     1.0
                 },
-                u.move_target.map_or(0.0, |t| t.x),
-                u.move_target.map_or(0.0, |t| t.y),
-                if u.move_target.is_some() { 1.0 } else { 0.0 },
+                destination.map_or(0.0, |t| t.x),
+                destination.map_or(0.0, |t| t.y),
+                if destination.is_some() { 1.0 } else { 0.0 },
                 u.class as u32 as f32,
                 if u.pending_total > 0.0 && u.pending_target.is_some() {
                     (u.pending_timer / u.pending_total).clamp(0.0, 1.0)
@@ -890,6 +899,25 @@ impl Default for Game {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn order_preview_shows_latest_destination_while_command_is_transmitting() {
+        let mut game = Game::new(7);
+        game.spawn_unit(0.0, 0.0, 0.0, 1, 1, 1.0, 1.0, 0, 0.5);
+        let old = Vec2::new(20.0, 0.0);
+        let requested = Vec2::new(60.0, 10.0);
+        game.battle.sim.set_move_order(0, old);
+        game.battle.sim.units[0].cohesion = 0.1;
+        game.battle.sim.set_move_order(0, requested);
+        assert_eq!(game.battle.sim.units[0].move_target, Some(old));
+        assert_eq!(game.battle.sim.units[0].pending_target, Some(requested));
+        game.refresh_unit_info();
+        assert_eq!(
+            &game.unit_info[10..13],
+            &[60.0, 10.0, 1.0],
+            "destination preview must acknowledge the new click before the old order stops"
+        );
+    }
 
     #[test]
     fn loosing_duration_reads_the_emission_constant_without_mutating_countdowns() {

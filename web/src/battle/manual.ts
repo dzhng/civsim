@@ -15,7 +15,7 @@ physically stops horseflesh.</em></p>
 <tr><td>left-drag FROM a selected unit</td><td><b>drag-move</b>: carry the whole selection somewhere, facing preserved — destination ghosts preview while you drag</td></tr>
 <tr><td>right-click ground</td><td>group move: each cluster keeps formation, the selection turns to face the move direction; <b>double right-click = run</b></td></tr>
 <tr><td>right-click enemy</td><td>attack. A multi-unit selection approaches IN FORMATION and breaks to individual charges at ~150m</td></tr>
-<tr><td>right-click + DRAG</td><td>move to the press point and <b>end facing the drag direction</b> — destination ghosts preview live while held, then fade after release</td></tr>
+<tr><td>alt + right-drag</td><td>move to the press point and <b>end facing the drag direction</b> — destination ghosts preview live while held, then fade after release</td></tr>
 <tr><td>shift + any order</td><td><b>QUEUE</b> it: runs after everything already underway completes — chain waypoints, then an attack, then a withdrawal</td></tr>
 <tr><td>alt + right-click</td><td><b>DISENGAGE</b> move: turn and run at full pace, answering nothing — fast but backs exposed</td></tr>
 <tr><td>R</td><td>walk-run</td></tr>
@@ -24,7 +24,8 @@ physically stops horseflesh.</em></p>
 <tr><td>P, 1, 3</td><td>pause, 1x, 3x speed</td></tr>
 <tr><td>hold Space</td><td>show anchors, paths, latch targets</td></tr>
 <tr><td>WASD / arrows / screen edge</td><td>pan the camera (always relative to the way you're facing); wheel zooms</td></tr>
-<tr><td>Q / E / middle-drag</td><td><b>rotate &amp; tilt</b> the camera (Total War): Q/E spin around the field, middle-drag spins (left/right) and tilts to a low side-on angle (up/down); <b>Backspace</b> re-levels</td></tr>
+<tr><td>right-drag / middle-drag</td><td><b>look around</b> from the camera’s current position, with or without a selection; release without giving an order</td></tr>
+<tr><td>Q / E, Z / X</td><td>look left/right and down/up from the camera’s current position; <b>Backspace / Home</b> resets the view direction and automatic tilt</td></tr>
 <tr><td>hover a unit</td><td>its stat card shows (yours or the enemy's) when nothing is selected; a selection pins its own card</td></tr>
 </table>
 

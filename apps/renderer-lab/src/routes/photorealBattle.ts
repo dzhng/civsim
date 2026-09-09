@@ -272,8 +272,11 @@ export async function route(ctx: LabContext) {
     const curWeapon = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), n);
     const sUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), n);
     const info = unitInfo();
-    const [wx0, wy1] = camera.screenToWorld(0, 0);
-    const [wx1, wy0] = camera.screenToWorld(ctx.canvas.width, ctx.canvas.height);
+    const [wx0, wy1] = camera.screenToWorld(0, 0) ?? [-Infinity, Infinity];
+    const [wx1, wy0] = camera.screenToWorld(ctx.canvas.width, ctx.canvas.height) ?? [
+      Infinity,
+      -Infinity,
+    ];
     const tris: number[] = [];
     let budget = 900;
     for (let i = 0; i < n && budget > 0; i++) {
@@ -593,6 +596,7 @@ function readGeneratedVistaGrid(
     generated_vista_band_origin_x(band: number): number;
     generated_vista_band_origin_y(band: number): number;
     generated_vista_band_height_ptr(band: number): number;
+    generated_vista_band_water_ptr(band: number): number;
   },
   descriptor: {
     vista?: {
@@ -634,6 +638,9 @@ function readGeneratedVistaGrid(
       outerHalfW: meta.outerHalfW,
       outerHalfH: meta.outerHalfH,
       height: new Float32Array(new Float32Array(wasm.memory.buffer, ptr, w * h)),
+      water: new Float32Array(
+        new Float32Array(wasm.memory.buffer, game.generated_vista_band_water_ptr(i), w * h),
+      ),
     });
   }
   return bands.length > 0 ? { shape: vista.shape, bands } : null;

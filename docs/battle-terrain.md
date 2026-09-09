@@ -20,7 +20,36 @@ The renderer never stores its own heightmap. `terrain/heightField.ts` is a typed
 sampler that mirrors `Terrain::height_at` so the renderer and the sim agree on
 where the ground is. Campaign relief (`web/src/campaign/terrain.ts`) speaks the
 same sampler shape so both surfaces, and later vision/projectiles, read one
-contract.
+contract. Mouse picking has a stricter requirement: it must intersect the
+triangles actually displayed, including mesh decimation and the joins between
+terrain rings. Battle builds one spatial index from those meshes and uses it
+for the camera's surface queries. A ray into open sky has no ground target.
+
+## A coastline continues beyond the playable rectangle
+
+Generated water reaches share their shoreline sampler between playable terrain
+and distant bands. The land descends toward the bay, and the bay widens into
+the distance; a cropped water mask must not leave mountains suspended above
+its outer edge. Relief can change without changing movement masks or tint.
+
+The renderer joins adjacent meshes using both edges' vertices. Merely matching
+height samples leaves cracks when one grid skips vertices or ends at cell
+centres. Height correction follows the final inner surface, while the joining
+strip carries its material attributes into the outer band.
+
+## Looking around turns at the eye
+
+Battle's automatic tilt follows physical viewing distance and approaches the
+horizon only near the ground. Manual look preserves the eye position, viewing
+distance, and lens above uneven terrain. Its look target may leave the map;
+clamping that target would move the eye during a head turn. Right-drag and
+Q/E/Z/X use this same operation. Right-click issues a ground order, and
+Alt-right-drag gives a facing order.
+
+Destination previews show the latest accepted command immediately, including
+one still waiting for the simulation's command delay. The preview is feedback
+about intent; it must not briefly show the previous destination as a second
+order.
 
 ## One height field seats everything — the seating invariant
 

@@ -8,30 +8,42 @@ import {
   eyePosition,
   projectPoint,
   unprojectToPlaneZ,
+  screenRay,
+  type WorldRay,
   type Camera3DParams,
 } from "@packages/renderer-core/src/camera3d";
 
 // Battle camera, Total War style. World units are meters, XY is the ground plane
 // and +Z is up. This is a thin owner over the real 3D perspective camera
 // (camera3d): the zoom curve (battleCameraRig) maps `zoom` → distance/pitch/fovY,
-// and every screen↔world mapping is a real ray-cast against the ground plane
-// (z = 0) so picking and DOM overlays agree with the GPU frame to the pixel.
+// and screen↔world picking casts against the rendered terrain so raised
+// ground, unit selection, and orders agree with the visible frame.
 // There is no separate 2.5D projection here — camera3d is the single owner.
-const MIN_PITCH = 0.12; // near ground-level vista floor (radians off the ground)
+const MIN_PITCH = -Math.PI / 2 + 0.02; // free look can aim above the horizon
 const MAX_PITCH = Math.PI / 2 - 0.02; // just shy of straight-down top-down
 // 3.2m: above the ~0.9m blade canopy with margin - at 1.6m the closest zoom
 // put the eye INSIDE the grass (a horizontal blade-tunnel view).
 const EYE_CLEARANCE = 3.2; // m above terrain at the eye's ground column
 const NEAR_PLANE = 1.0; // meters; reverse-Z + infinite far spends precision far out
 
+interface CameraPose {
+  x: number;
+  y: number;
+  zoom: number;
+  yaw: number;
+  pitchBias: number;
+  lookElevation: number;
+  freeLook: boolean;
+}
+
 export class Camera {
   x = 0;
   y = 0;
   zoom = 4;
-  /** User tilt bias added to the zoom-driven auto pitch (middle-drag vertical,
+  /** User tilt bias added to the zoom-driven auto pitch (look-drag vertical,
    *  Z/X). Positive = a lower, more side-on angle (smaller camera3d pitch). */
   pitchBias = 0;
-  /** View rotation about the vertical, radians (Q/E and middle-drag horizontal). */
+  /** View rotation about the vertical, radians (Q/E and look-drag horizontal). */
   yaw = 0;
   /** Hard view bounds (x0, y0, x1, y1). The look target is clamped inside them. */
   bounds: [number, number, number, number] | null = null;
@@ -42,11 +54,17 @@ export class Camera {
    *  terrain and the eye keeps a clearance above it — the soldier-eye zoom
    *  floor cannot dive under a hill, and WASD panning auto-raises because
    *  params() resamples every frame. Null = legacy flat z = 0. */
-  groundHeight: ((x: number, y: number) => number) | null = null;
+  groundSurface: {
+    heightAt(x: number, y: number): number;
+    raycast(ray: WorldRay): [number, number, number] | null;
+  } | null = null;
 
   // Explicit field (not a constructor parameter property) so node's strip-only
   // TS loader can run this file in unit tests.
   private canvas: HTMLCanvasElement;
+  /** Manual look lifts the target off terrain so rotating cannot move the eye. */
+  private lookElevation = 0;
+  private freeLook = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -90,40 +108,51 @@ export class Camera {
     return this.effectivePitch(this.rig());
   }
 
-  /** Rotate the view about the EYE (David 2026-07-07): the camera stays at the
-   *  same point in space and the view ray re-aims, swinging the ground look
-   *  target around it — turning your head, never orbiting the target. Pitch
-   *  and rig distance are untouched, so this is exact. */
+  /** Turn at the current eye, keeping distance and lens unchanged. */
   yawAboutEye(delta: number) {
-    const rig = this.rig();
-    const reach = rig.distance * Math.cos(this.effectivePitch(rig));
-    const [tx, ty] = this.viewCenter();
-    const ex = tx + reach * Math.cos(this.yaw);
-    const ey = ty + reach * Math.sin(this.yaw);
-    this.yaw += delta;
-    this.setViewCenter(ex - reach * Math.cos(this.yaw), ey - reach * Math.sin(this.yaw));
+    this.lookAboutEye(delta, 0);
   }
 
-  /** Tilt the view about the EYE (middle-drag vertical, Z/X — same head-turn
-   *  contract as `yawAboutEye`). The zoom rig pins eye→target distance to
-   *  zoom, and tilting a fixed eye changes how far the view ray reaches the
-   *  ground, so holding the eye means re-deriving zoom from the new ray
-   *  length and folding the rest of the tilt into `pitchBias`. Positive delta
-   *  looks down (toward top-down), negative toward the horizon. */
+  /** Positive delta looks down; negative looks toward/above the horizon. */
   pitchAboutEye(delta: number) {
-    const params = this.params();
-    const eye = eyePosition(params);
-    const pitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, params.pitch + delta));
-    const height = eye[2] - params.target[2];
-    if (height <= 0.1) return;
-    const distance = height / Math.sin(pitch);
-    this.zoom = this.zoomForDistance(distance);
-    const rig = this.rig();
-    // Bounded so the bias can't accumulate far past what effectivePitch can
-    // express, which would go dead: tilting back would spend invisible travel.
-    this.pitchBias = Math.max(-0.45, Math.min(1.0, rig.pitch - pitch));
-    const reach = distance * Math.cos(pitch);
-    this.setViewCenter(eye[0] - reach * Math.cos(this.yaw), eye[1] - reach * Math.sin(this.yaw));
+    this.lookAboutEye(0, delta);
+  }
+
+  private lookAboutEye(yawDelta: number, pitchDelta: number) {
+    const before = this.params();
+    const eye = eyePosition(before);
+    const pitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, before.pitch + pitchDelta));
+    this.yaw += yawDelta;
+    this.pitchBias = this.rig().pitch - pitch;
+    const reach = before.distance * Math.cos(pitch);
+    const tx = eye[0] - reach * Math.cos(this.yaw);
+    const ty = eye[1] - reach * Math.sin(this.yaw);
+    const tz = eye[2] - before.distance * Math.sin(pitch);
+    this.setViewCenter(tx, ty);
+    this.lookElevation = tz - (this.groundSurface?.heightAt(tx, ty) ?? 0);
+    this.freeLook = true;
+  }
+
+  capturePose(): CameraPose {
+    const { x, y, zoom, yaw, pitchBias, lookElevation, freeLook } = this;
+    return { x, y, zoom, yaw, pitchBias, lookElevation, freeLook };
+  }
+
+  restorePose(pose: CameraPose) {
+    this.x = pose.x;
+    this.y = pose.y;
+    this.zoom = pose.zoom;
+    this.yaw = pose.yaw;
+    this.pitchBias = pose.pitchBias;
+    this.lookElevation = pose.lookElevation;
+    this.freeLook = pose.freeLook;
+  }
+
+  resetLook() {
+    this.yaw = -Math.PI / 2;
+    this.pitchBias = 0;
+    this.lookElevation = 0;
+    this.freeLook = false;
   }
 
   /** Invert the rig's zoom→distance curve (monotonically decreasing) so a
@@ -170,14 +199,14 @@ export class Camera {
     return { right: [-s, c], up: [-c, -s] };
   }
 
-  /** The world-space parameters of the real perspective camera this frame. The
-   *  screen-centre ground hit is exactly `target.xy` (the target sits on z = 0). */
+  /** The rendered pose. Automatic framing targets terrain; manual look may
+   * aim above or below it while keeping the eye stationary. */
   params(): Camera3DParams {
     const rig = this.rig();
     const [ox, oy] = this.rotate(rig.target[0], rig.target[1]);
     const tx = this.x + ox;
     const ty = this.y + oy;
-    let tz = this.groundHeight ? this.groundHeight(tx, ty) : 0;
+    let tz = (this.groundSurface?.heightAt(tx, ty) ?? 0) + this.lookElevation;
     const mk = (z: number): Camera3DParams => ({
       target: [tx, ty, z],
       distance: rig.distance,
@@ -187,7 +216,7 @@ export class Camera {
       aspect: this.canvas.width / Math.max(1, this.canvas.height),
       near: NEAR_PLANE,
     });
-    if (this.groundHeight) {
+    if (this.groundSurface) {
       // Eye clearance along the WHOLE sight line, not just the eye's ground
       // column: zooming toward a slope can put intervening higher ground
       // between eye and target - the near plane clips into the hill and the
@@ -196,21 +225,24 @@ export class Camera {
       // under the sight line never nudges the framing. Raising target.z
       // raises the eye 1:1, so one closed-form lift covers it.
       const eye = eyePosition(mk(tz));
-      let worst = this.groundHeight(eye[0], eye[1]) + EYE_CLEARANCE - eye[2];
+      let worst = this.groundSurface.heightAt(eye[0], eye[1]) + EYE_CLEARANCE - eye[2];
       const RAY_MARGIN = 1.5;
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 1; !this.freeLook && i <= 4; i++) {
         const t = i / 6;
         const sx = eye[0] + (tx - eye[0]) * t;
         const sy = eye[1] + (ty - eye[1]) * t;
         const rayZ = eye[2] + (tz - eye[2]) * t;
-        worst = Math.max(worst, (this.groundHeight(sx, sy) + RAY_MARGIN - rayZ) * (1 - t));
+        worst = Math.max(
+          worst,
+          (this.groundSurface.heightAt(sx, sy) + RAY_MARGIN - rayZ) * (1 - t),
+        );
       }
       if (worst > 0) tz += worst;
     }
     return mk(tz);
   }
 
-  /** The ground point at screen centre (the camera's look target). */
+  /** The look target in world XY (not necessarily a ground intersection). */
   viewCenter(): [number, number] {
     const rig = this.rig();
     const [ox, oy] = this.rotate(rig.target[0], rig.target[1]);
@@ -218,6 +250,8 @@ export class Camera {
   }
 
   setViewCenter(wx: number, wy: number) {
+    this.lookElevation = 0;
+    this.freeLook = false;
     const rig = this.rig();
     const [ox, oy] = this.rotate(rig.target[0], rig.target[1]);
     this.x = wx - ox;
@@ -258,7 +292,7 @@ export class Camera {
    *  horizon, so panning stays free and only the look target is clamped to bounds. */
   clampView() {
     this.zoom = Math.min(this.maxZoom(), Math.max(this.zoomRange.min, this.zoom));
-    if (!this.bounds) return;
+    if (!this.bounds || this.freeLook) return;
     const [x0, y0, x1, y1] = this.bounds;
     // Only the near-top-down overview centres the field; the vista pans freely.
     const overview = this.pitch >= 1.0;
@@ -283,25 +317,29 @@ export class Camera {
     ];
   }
 
-  /** Canvas device-pixel coords (y down) to world coords on the ground plane
-   *  (z = 0): the real picking ray → ground-plane intersection. */
-  screenToWorld(px: number, py: number): [number, number] {
+  /** Device-pixel coordinates to the nearest visible terrain point.
+   * A sky ray has no destination; callers must not invent one. */
+  screenToWorld(px: number, py: number): [number, number] | null {
     const ndcX = (px / Math.max(1, this.canvas.width)) * 2 - 1;
     const ndcY = 1 - (py / Math.max(1, this.canvas.height)) * 2;
-    const hit = unprojectToPlaneZ(this.params(), ndcX, ndcY, 0);
-    if (!hit) return this.viewCenter();
+    const params = this.params();
+    const hit = this.groundSurface
+      ? this.groundSurface.raycast(screenRay(params, ndcX, ndcY))
+      : unprojectToPlaneZ(params, ndcX, ndcY, 0);
+    if (!hit) return null;
     return [hit[0], hit[1]];
   }
 
-  /** Pan by a device-pixel screen delta (middle/right drag): keep the world under
+  /** Pan by a device-pixel screen delta: keep the world under
    *  the cursor tracking the cursor by differencing two ground ray-casts. */
   panPixels(dx: number, dy: number) {
     const cx = this.canvas.width / 2;
     const cy = this.canvas.height / 2;
-    const [ax, ay] = this.screenToWorld(cx, cy);
-    const [bx, by] = this.screenToWorld(cx + dx, cy + dy);
-    this.x += ax - bx;
-    this.y += ay - by;
+    const a = this.screenToWorld(cx, cy);
+    const b = this.screenToWorld(cx + dx, cy + dy);
+    if (!a || !b) return;
+    this.x += a[0] - b[0];
+    this.y += a[1] - b[1];
     this.clampView();
   }
 
@@ -316,14 +354,16 @@ export class Camera {
 
   /** Zoom keeping the world point under the cursor fixed. */
   zoomAt(px: number, py: number, factor: number, afterZoom?: () => void) {
-    const [wx, wy] = this.screenToWorld(px, py);
+    const before = this.screenToWorld(px, py);
     // Wheel input controls physical distance; multiplying the authored rig dial
     // spends most input on its flat overview, then races through the close vista.
     this.zoom = this.zoomForDistance(this.rig().distance / factor);
     afterZoom?.();
-    const [nx, ny] = this.screenToWorld(px, py);
-    this.x += wx - nx;
-    this.y += wy - ny;
+    const after = this.screenToWorld(px, py);
+    if (before && after) {
+      this.x += before[0] - after[0];
+      this.y += before[1] - after[1];
+    }
     this.clampView();
   }
 }

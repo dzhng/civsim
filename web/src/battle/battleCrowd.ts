@@ -182,8 +182,11 @@ export class BattleCrowd {
     const currentWeapon = this.weapons;
     const soldierUnit = this.units;
     const info = this.unitInfo;
-    const [worldX0, worldY1] = camera.screenToWorld(0, 0);
-    const [worldX1, worldY0] = camera.screenToWorld(canvas.width, canvas.height);
+    const [worldX0, worldY1] = camera.screenToWorld(0, 0) ?? [-Infinity, Infinity];
+    const [worldX1, worldY0] = camera.screenToWorld(canvas.width, canvas.height) ?? [
+      Infinity,
+      -Infinity,
+    ];
     let budget = 900;
     for (let soldier = 0; soldier < this.alive.length && budget > 0; soldier++) {
       if (!this.alive[soldier] || !this.fighting[soldier]) continue;

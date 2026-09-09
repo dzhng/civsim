@@ -81,6 +81,7 @@ pub struct VistaBand {
     pub outer_half_w: f32,
     pub outer_half_h: f32,
     pub heights: Vec<f32>,
+    pub water: Vec<f32>,
 }
 
 #[derive(Clone, Debug)]
@@ -170,8 +171,8 @@ pub fn generate(recipe: &MapRecipe) -> Terrain {
 
 /// Render-only generated-map vista data: two aligned vertex-sample grids.
 /// `vista` covers the 2x tile at 16 m; `farFog` covers the ~3.5x fog runway at
-/// 64 m and cuts out the 2x tile in the renderer. Both are heights only and
-/// stay out of `terrain_hash`.
+/// 64 m and cuts out the 2x tile in the renderer. Height and water coverage
+/// continue the playable coastline; these render-only bands stay out of `terrain_hash`.
 pub fn generate_vista_grid(recipe: &MapRecipe) -> VistaGrid {
     assert!(recipe.half_w > 0.0, "generated map half_w must be positive");
     assert!(recipe.half_h > 0.0, "generated map half_h must be positive");
@@ -247,6 +248,8 @@ fn generate_vista_band(
     fully_band_limited: bool,
 ) -> VistaBand {
     let mut heights = vec![0.0; spec.w * spec.h];
+    let mut water = vec![0.0; spec.w * spec.h];
+    let edge_surface = edges::EdgeSurface::new(recipe);
     for cy in 0..spec.h {
         for cx in 0..spec.w {
             let p = Vec2::new(
@@ -261,7 +264,10 @@ fn generate_vista_band(
                 let outward = distance_outside_rect(p, recipe.half_w, recipe.half_h);
                 smoothstep(0.0, spec.cell * 10.0, outward)
             };
-            heights[cy * spec.w + cx] = fine + (limited - fine) * blend;
+            let (height, is_water) =
+                edge_surface.height_and_water(p, fine + (limited - fine) * blend);
+            heights[cy * spec.w + cx] = height;
+            water[cy * spec.w + cx] = if is_water { 1.0 } else { 0.0 };
         }
     }
     VistaBand {
@@ -275,6 +281,7 @@ fn generate_vista_band(
         outer_half_w: spec.outer_half_w,
         outer_half_h: spec.outer_half_h,
         heights,
+        water,
     }
 }
 

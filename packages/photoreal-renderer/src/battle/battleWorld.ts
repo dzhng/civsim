@@ -1,3 +1,4 @@
+import type { WorldRay } from "../../../renderer-core/src/camera3d";
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { buildCrowdInstances, type CrowdInstance } from "../../../crowd-runtime/src/instanceData";
@@ -29,7 +30,8 @@ import { applyCivsimEnvironment } from "../environment";
 import { applyCamera3d } from "../cameraBridge";
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
 import { createBattleFrameUniforms, type BattleFrameUniforms } from "./battleTsl";
-import { BattleBackgroundQuads, RENDER_ORDER, type BattleVistaGrid } from "./terrainLayer";
+import { BattleBackgroundQuads, RENDER_ORDER } from "./terrainLayer";
+import type { BattleVistaGrid } from "./vistaSurface";
 import { createSeaDisplacementSource, type BattleLakeSurfaceSpec } from "./seaLayer";
 import {
   createBladeFieldWindUniforms,
@@ -70,8 +72,8 @@ import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardL
 import { BattlePostChain } from "../post/postChain";
 import type { BattlePostGradeUniforms } from "../post/postChain";
 
-export type { BattleVistaGrid } from "./terrainLayer";
-export { vistaSurfaceHeightAt } from "./terrainLayer";
+export type { BattleVistaGrid } from "./vistaSurface";
+export { vistaSurfaceHeightAt } from "./vistaSurface";
 export type { BattleLakeSurfaceSpec } from "./seaLayer";
 
 export interface BattleCameraSnapshot {
@@ -410,8 +412,12 @@ export class PhotorealBattleWorld {
     return this.terrainSurface.heightAt(x, y);
   }
 
+  raycastGround(ray: WorldRay): [number, number, number] | null {
+    return this.terrainSurface.raycast(ray);
+  }
+
   surfaceHeightAt(x: number, y: number): number {
-    return this.heightAt(x, y);
+    return this.terrainSurface.surfaceHeightAt(x, y);
   }
 
   draw(

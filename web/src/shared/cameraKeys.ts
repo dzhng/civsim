@@ -8,7 +8,13 @@ export interface CameraKeyTarget {
 
 export function createCameraKeyController(
   target: CameraKeyTarget,
-  opts: { canvas: HTMLCanvasElement; edgePx?: number; sprint?: number; enabled?: () => boolean },
+  opts: {
+    canvas: HTMLCanvasElement;
+    edgePx?: number;
+    sprint?: number;
+    enabled?: () => boolean;
+    edgeEnabled?: () => boolean;
+  },
 ): { update(dt: number): void; dispose(): void } {
   const edgePx = opts.edgePx ?? 14;
   const sprintMultiplier = opts.sprint ?? 3;
@@ -54,7 +60,7 @@ export function createCameraKeyController(
       let dy =
         (held.has("w") || held.has("arrowup") ? speed : 0) -
         (held.has("s") || held.has("arrowdown") ? speed : 0);
-      if (mouseX >= 0 && mouseY >= 0) {
+      if (mouseX >= 0 && mouseY >= 0 && (opts.edgeEnabled?.() ?? true)) {
         if (mouseX < edgePx) dx -= speed;
         if (mouseX > window.innerWidth - edgePx) dx += speed;
         if (mouseY < edgePx) dy += speed;

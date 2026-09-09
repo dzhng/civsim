@@ -73,15 +73,20 @@ test("battle zoom rig pitch/distance fall and fovY rises monotonically in zoom",
   }
 });
 
-test("battle zoom rig is continuous across the range (no jumps)", () => {
-  let prev = battleCameraRig(1, range, bounds);
-  for (let z = 1; z <= 9; z += 0.25) {
-    const cur = battleCameraRig(z, range, bounds);
-    const pitchLimit = z >= 7.5 ? 0.22 : 0.1;
-    const fovLimit = z >= 7.5 ? 0.08 : 0.05;
-    assert.ok(Math.abs(cur.pitch - prev.pitch) < pitchLimit, `pitch step at ${z}`);
-    assert.ok(Math.abs(cur.fovY - prev.fovY) < fovLimit, `fovY step at ${z}`);
-    prev = cur;
+test("battle zoom rig is continuous through physical wheel steps", () => {
+  let previous = battleCameraRig(range.min, range, bounds);
+  for (let distance = previous.distance * 0.99; distance >= 10; distance *= 0.99) {
+    let lo = range.min,
+      hi = range.max;
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (battleCameraRig(mid, range, bounds).distance > distance) lo = mid;
+      else hi = mid;
+    }
+    const current = battleCameraRig((lo + hi) / 2, range, bounds);
+    assert.ok(Math.abs(current.pitch - previous.pitch) < 0.02, `pitch step at ${distance}m`);
+    assert.ok(Math.abs(current.fovY - previous.fovY) < 0.01, `lens step at ${distance}m`);
+    previous = current;
   }
 });
 
@@ -139,5 +144,20 @@ test("campaign zoom rig pitch/distance fall and fovY rises monotonically", () =>
     assert.ok(stops[i].pitch <= stops[i - 1].pitch, `pitch ${i}`);
     assert.ok(stops[i].fovY >= stops[i - 1].fovY, `fovY ${i}`);
     assert.ok(stops[i].distance <= stops[i - 1].distance, `distance ${i}`);
+  }
+});
+
+test("battle auto tilt stays tactical until the camera is physically close", () => {
+  for (const field of [bounds, { width: 2400, height: 1600 }]) {
+    for (let zoom = range.min; zoom < range.max; zoom += 0.002) {
+      const rig = battleCameraRig(zoom, range, field);
+      if (rig.distance >= 100)
+        assert.ok(rig.pitch >= 1.2, `distance ${rig.distance}: prematurely tilted to ${rig.pitch}`);
+      if (rig.pitch < 0.5)
+        assert.ok(
+          rig.distance < 25,
+          `horizon-like pitch ${rig.pitch} while still ${rig.distance}m away`,
+        );
+    }
   }
 });

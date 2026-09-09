@@ -92,10 +92,7 @@ export class BattleCameraRig {
   private reviewRestore: {
     bounds: { width: number; height: number };
     range: CameraRigRange;
-    zoom: number;
-    pitchBias: number;
-    yaw: number;
-    center: [number, number];
+    pose: ReturnType<Camera["capturePose"]>;
   } | null = null;
 
   constructor(
@@ -160,10 +157,7 @@ export class BattleCameraRig {
       this.reviewRestore = {
         bounds: { ...this.bounds },
         range: { ...this.range },
-        zoom: this.camera.zoom,
-        pitchBias: this.camera.pitchBias,
-        yaw: this.camera.yaw + Math.PI / 2,
-        center: this.camera.viewCenter(),
+        pose: this.camera.capturePose(),
       };
     }
     this.camera.yaw = -Math.PI / 2;
@@ -187,7 +181,8 @@ export class BattleCameraRig {
       this.bounds = { width: spanX, height: spanY };
       this.apply();
       this.camera.zoom = 2.5;
-      this.camera.pitchBias = 1.35 - (opts.pitch ?? 1.15);
+      this.camera.pitchBias = 0;
+      this.camera.pitchBias = this.camera.pitch - (opts.pitch ?? 1.15);
       this.camera.setViewCenter(centerX, centerY);
     };
     const samplePoints: [number, number][] = [
@@ -231,10 +226,7 @@ export class BattleCameraRig {
     this.range = restored ? { ...restored.range } : { ...this.mapRange };
     this.apply();
     if (restored) {
-      this.camera.zoom = restored.zoom;
-      this.camera.pitchBias = restored.pitchBias;
-      this.camera.yaw = restored.yaw;
-      this.camera.setViewCenter(restored.center[0], restored.center[1]);
+      this.camera.restorePose(restored.pose);
     }
     this.reviewRestore = null;
   }
@@ -297,7 +289,10 @@ export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): 
     audio.dispose();
   });
   audio.resume();
-  camera.groundHeight = (x, y) => renderer.heightAt(x, y);
+  camera.groundSurface = {
+    heightAt: (x, y) => renderer.heightAt(x, y),
+    raycast: (ray) => renderer.raycastGround(ray),
+  };
   renderer.resize();
 
   const stride = game.unit_info_stride();

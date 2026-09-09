@@ -162,10 +162,11 @@ export function installBattleDebugApi({
       };
     },
     setCamera: (x: number, y: number, zoom: number, yaw = camera.yaw, pitch = camera.pitch) => {
-      camera.setViewCenter(x, y);
       camera.zoom = zoom;
       camera.yaw = yaw;
-      camera.pitchBias = 1.35 - pitch;
+      camera.pitchBias = 0;
+      camera.pitchBias = camera.pitch - pitch;
+      camera.setViewCenter(x, y);
       camera.clampView();
     },
   };

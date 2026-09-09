@@ -13,6 +13,7 @@ export const UNIT_INFO = {
   total: 7,
   stamina: 8,
   running: 9,
+  /** Latest accepted destination, including a command still transmitting. */
   targetX: 10,
   targetY: 11,
   hasTarget: 12,
@@ -66,5 +67,8 @@ export function currentUnitFiles(info: ArrayLike<number>, offset: number): numbe
 export function currentUnitRanks(info: ArrayLike<number>, offset: number): number {
   const exported = Math.floor(info[offset + UNIT_INFO.currentRanks] || 0);
   if (exported > 0) return exported;
-  return Math.max(1, Math.ceil((info[offset + UNIT_INFO.alive] || 0) / currentUnitFiles(info, offset)));
+  return Math.max(
+    1,
+    Math.ceil((info[offset + UNIT_INFO.alive] || 0) / currentUnitFiles(info, offset)),
+  );
 }

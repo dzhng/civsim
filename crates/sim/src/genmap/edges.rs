@@ -8,10 +8,10 @@
 //! explains the block.
 
 use super::{
-    noise::{hash01, mix64},
+    noise::{hash01, mix64, smoothstep},
     MapRecipe,
 };
-use crate::terrain::Terrain;
+use crate::{math::Vec2, terrain::Terrain};
 pub use contract::{EdgeSealRecipe, EdgeSealWeights};
 use serde::{Deserialize, Serialize};
 
@@ -23,6 +23,7 @@ const FOREST_FOOT_OUTER_X: f32 = 760.0;
 const WATER_REACH_MIN_M: f32 = 220.0;
 const WATER_REACH_EXTRA_M: f32 = 88.0;
 const WATER_LEVEL_M: f32 = -5.5;
+const COAST_SLOPE_M: f32 = 250.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -150,34 +151,86 @@ fn paint_forest_belt(recipe: &MapRecipe, t: &mut Terrain, side: EdgeSide) {
     }
 }
 
+/// One coast surface for the playable tile and every surrounding vista band.
+/// The bay widens offshore; its landward slope reaches sea level continuously.
+struct WaterReach {
+    recipe: MapRecipe,
+    side: EdgeSide,
+    segment: SealSegment,
+}
+
+impl WaterReach {
+    fn new(recipe: &MapRecipe, side: EdgeSide) -> Self {
+        Self {
+            recipe: *recipe,
+            side,
+            segment: segment(recipe, side, EdgeSealKind::WaterReach, 0.72),
+        }
+    }
+
+    fn sample(&self, p: Vec2, height: f32) -> (f32, bool) {
+        if !on_side(self.side, p.x) {
+            return (height, false);
+        }
+        let offshore = (p.x.abs() - self.recipe.half_w).max(0.0);
+        let segment = SealSegment {
+            y0: self.segment.y0 - offshore * 0.25,
+            y1: self.segment.y1 + offshore * 0.25,
+        };
+        let cy = ((p.y + self.recipe.half_h) / self.recipe.cell - 0.5)
+            .round()
+            .max(0.0) as usize;
+        let reach = (WATER_REACH_MIN_M
+            + WATER_REACH_EXTRA_M * value_noise_1d(self.recipe.seed, self.side, cy))
+            * segment.end_taper(p.y, 180.0);
+        let edge_distance = self.recipe.half_w - p.x.abs();
+        let coast_distance = (reach - edge_distance)
+            .min(p.y - segment.y0)
+            .min(segment.y1 - p.y);
+        let water = coast_distance >= 0.0 && reach >= self.recipe.cell;
+        let blend = smoothstep(-COAST_SLOPE_M, 0.0, coast_distance);
+        (height + (height.min(WATER_LEVEL_M) - height) * blend, water)
+    }
+}
+
+pub struct EdgeSurface {
+    west: Option<WaterReach>,
+    east: Option<WaterReach>,
+}
+
+impl EdgeSurface {
+    pub fn new(recipe: &MapRecipe) -> Self {
+        let kinds = composition(recipe);
+        Self {
+            west: (kinds.west == EdgeSealKind::WaterReach)
+                .then(|| WaterReach::new(recipe, EdgeSide::West)),
+            east: (kinds.east == EdgeSealKind::WaterReach)
+                .then(|| WaterReach::new(recipe, EdgeSide::East)),
+        }
+    }
+
+    pub fn height_and_water(&self, p: Vec2, height: f32) -> (f32, bool) {
+        let coast = if p.x < 0.0 { &self.west } else { &self.east };
+        coast
+            .as_ref()
+            .map_or((height, false), |coast| coast.sample(p, height))
+    }
+}
+
 fn paint_water_reach(recipe: &MapRecipe, t: &mut Terrain, side: EdgeSide) {
-    let segment = segment(recipe, side, EdgeSealKind::WaterReach, 0.72);
+    let coast = WaterReach::new(recipe, side);
     for cy in 0..t.h {
         let y = cell_y(t, cy);
-        if !segment.contains(y) {
-            continue;
-        }
-        let end_taper = segment.end_taper(y, 180.0);
-        let reach = (WATER_REACH_MIN_M
-            + WATER_REACH_EXTRA_M * value_noise_1d(recipe.seed, side, cy))
-            * end_taper;
-        if reach < t.cell {
-            continue;
-        }
         for cx in 0..t.w {
             let x = cell_x(t, cx);
-            let edge_dist = match side {
-                EdgeSide::West => x - t.origin.x,
-                EdgeSide::East => t.origin.x + t.w as f32 * t.cell - x,
-            };
-            if edge_dist < 0.0 || edge_dist > reach || !on_side(side, x) {
-                continue;
-            }
             let i = cy * t.w + cx;
-            t.speed[i] = 0.0;
-            t.rough[i] = 0.0;
-            t.tint[i] = TINT_WATER;
-            t.height[i] = t.height[i].min(WATER_LEVEL_M);
+            let (height, water) = coast.sample(Vec2::new(x, y), t.height[i]);
+            t.height[i] = height;
+            if water {
+                t.speed[i] = 0.0;
+                t.rough[i] = 0.0;
+                t.tint[i] = TINT_WATER;
+            }
         }
     }
 }

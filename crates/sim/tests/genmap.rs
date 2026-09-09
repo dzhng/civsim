@@ -10,7 +10,7 @@ use sim::genmap::{
     drainage_report, field_texture, generate, generate_vista_grid, landform, passability,
     recipe_class, terrain_hash, MapRecipe, RecipeClass,
 };
-use sim::{build_map, MapId};
+use sim::{build_map, MapId, Vec2};
 use std::collections::HashSet;
 
 const GENERATED_SEED7_HASH: u64 = 0x9053a4fa78867b91;
@@ -24,7 +24,7 @@ const CURATED_GENERATED_SEEDS: &[(u64, &str, RecipeClass, EdgeSealKind, EdgeSeal
         RecipeClass::FullFeatured,
         EdgeSealKind::CliffRun,
         EdgeSealKind::WaterReach,
-        0xe28cbaf0d2e6e796,
+        0x35787940547b4e73,
     ),
     (
         7,
@@ -343,12 +343,26 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
             connected_width >= 700.0,
             "seed {seed} connected frontage width {connected_width:.1}m"
         );
-        assert!(
-            flank.0 >= 200.0 && flank.1 <= 280.0,
-            "seed {seed} flank peak range {:.2}..{:.2}m",
-            flank.0,
-            flank.1
-        );
+        for (side, kind, peak) in [
+            (
+                "west",
+                composition.west,
+                height_range(&t, |x, _| x < -850.0).1,
+            ),
+            (
+                "east",
+                composition.east,
+                height_range(&t, |x, _| x > 850.0).1,
+            ),
+        ] {
+            assert!(peak <= 280.0, "seed {seed} {side} peak too high: {peak}");
+            if kind != EdgeSealKind::WaterReach {
+                assert!(
+                    peak >= 200.0,
+                    "seed {seed} {side} land flank lost its ridge: {peak}"
+                );
+            }
+        }
         assert!(
             vista.vista.0 >= 200.0 && vista.vista.1 <= 285.0,
             "seed {seed} vista peak range {:.2}..{:.2}m",
@@ -990,4 +1004,40 @@ fn derived_edge_roles(t: &sim::Terrain) -> EdgeRoles {
         west: side_role(t, true),
         east: side_role(t, false),
     }
+}
+
+#[test]
+fn reported_water_reach_continues_into_the_vista_without_a_hanging_ridge() {
+    let recipe = MapRecipe {
+        seed: 455085311,
+        ..MapRecipe::default()
+    };
+    let terrain = generate(&recipe);
+    let vista = generate_vista_grid(&recipe);
+    for band in &vista.bands {
+        let iy = ((0.0 - band.origin.y) / band.cell).round() as usize;
+        for ix in 0..band.w {
+            let x = band.origin.x + ix as f32 * band.cell;
+            if x < recipe.half_w || x > band.outer_half_w {
+                continue;
+            }
+            let z = band.heights[iy * band.w + ix];
+            assert!(
+                z <= 0.0,
+                "the bay must continue into {} at ({x},0), found mountain height {z}",
+                band.name
+            );
+        }
+    }
+    let mut max_drop = 0.0f32;
+    let mut previous = terrain.height_at(Vec2::new(700.0, 0.0));
+    for x in (704..1200).step_by(4) {
+        let z = terrain.height_at(Vec2::new(x as f32, 0.0));
+        max_drop = max_drop.max((z - previous).abs());
+        previous = z;
+    }
+    assert!(
+        max_drop < 20.0,
+        "shore must descend through slopes, not a single-cell cut: {max_drop}m drop"
+    );
 }

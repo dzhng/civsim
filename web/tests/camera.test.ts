@@ -110,9 +110,7 @@ test("yawAboutEye holds the eye fixed at any yaw", () => {
 });
 
 test("pitchAboutEye holds the eye fixed and tilts the view", () => {
-  // zoom 7 sits where the rig's zoom→distance curve has headroom both ways;
-  // at the curve's flat zoomed-out ceiling the eye instead dollies along the
-  // aim ray (the rig cannot reach past its max distance) — pinned below.
+  // The same fixed-eye contract holds in both directions at arbitrary yaws.
   for (const yaw of YAWS) {
     for (const delta of [0.12, -0.3]) {
       const camera = makeCamera(yaw);
@@ -134,34 +132,16 @@ test("pitchAboutEye holds the eye fixed and tilts the view", () => {
   }
 });
 
-test("pitchAboutEye at the rig's distance ceiling degrades to a dolly along the aim ray", () => {
-  // Zoomed far out the rig already sits at max distance, so tilting toward
-  // the horizon cannot hold the eye. It must still tilt by the full delta,
-  // keep the zoom dial where it was, and move the eye ONLY along the new
-  // view direction (a slight dolly-in, never a sideways orbit swing).
+test("pitchAboutEye at the distance ceiling still turns at a fixed eye", () => {
   const camera = makeCamera(0.7);
   camera.zoom = 3;
-  const pitchBefore = camera.pitch;
   const before = eyePosition(camera.params());
+  const pitchBefore = camera.pitch;
   camera.pitchAboutEye(-0.3);
-  const params = camera.params();
-  const after = eyePosition(params);
-  assert.ok(Math.abs(camera.pitch - pitchBefore + 0.3) < 1e-3, "must tilt by the full delta");
-  assert.ok(Math.abs(camera.zoom - 3) < 1e-9, "zoom dial must not slide on the flat curve");
-  const move = [after[0] - before[0], after[1] - before[1], after[2] - before[2]];
-  const view = [
-    params.target[0] - after[0],
-    params.target[1] - after[1],
-    params.target[2] - after[2],
-  ];
-  const viewLen = Math.hypot(...view);
-  const moveLen = Math.hypot(...move);
-  const along = (move[0] * view[0] + move[1] * view[1] + move[2] * view[2]) / viewLen;
-  assert.ok(moveLen > 1, "the ceiling case does move the eye (the rig cannot reach)");
-  assert.ok(
-    Math.abs(along - moveLen) < 0.01 * moveLen,
-    `eye movement must be along the view ray, along=${along} of ${moveLen}`,
-  );
+  const after = eyePosition(camera.params());
+  assert.ok(Math.hypot(...after.map((v, i) => v - before[i])) < 0.001);
+  assert.ok(Math.abs(camera.pitch - pitchBefore + 0.3) < 1e-6);
+  assert.equal(camera.zoom, 3);
 });
 
 test("wheel-zoom cannot bank dead travel past the rig's saturation point", () => {
@@ -202,3 +182,53 @@ test("equal wheel steps change physical camera distance evenly across the zoom r
     );
   }
 });
+
+test("ground picking hits the rendered elevated surface at a grazing angle", () => {
+  const camera = makeCamera(-Math.PI / 2);
+  camera.zoom = 7.9;
+  camera.groundSurface = planeSurface(12, 0.025, 0.01);
+  const world: [number, number, number] = [195, 180, camera.groundSurface.heightAt(195, 180)];
+  const { ndc } = projectPoint(camera.params(), world);
+  const hit = camera.screenToWorld((ndc[0] + 1) * 600, (1 - ndc[1]) * 350);
+  assert.ok(hit);
+  assert.ok(
+    Math.hypot(hit[0] - world[0], hit[1] - world[1]) < 0.1,
+    `surface picking must invert rendered projection, got ${hit} for ${world}`,
+  );
+});
+
+test("look rotation holds the eye fixed above uneven terrain without changing lens or zoom", () => {
+  for (const zoom of [3, 7, 7.9, 12]) {
+    const camera = makeCamera(0.7);
+    camera.zoom = zoom;
+    camera.groundSurface = planeSurface(20, 0.05, 0.025);
+    for (const [yaw, pitch] of [
+      [0.7, 0],
+      [0, -0.3],
+      [0, 0.4],
+    ]) {
+      const before = camera.params();
+      const eye = eyePosition(before);
+      if (yaw) camera.yawAboutEye(yaw);
+      if (pitch) camera.pitchAboutEye(pitch);
+      const after = camera.params();
+      const end = eyePosition(after);
+      assert.ok(
+        Math.hypot(...end.map((v, i) => v - eye[i])) < 0.001,
+        `zoom ${zoom} yaw ${yaw} pitch ${pitch}: eye moved from ${eye} to ${end}`,
+      );
+      assert.equal(after.fovY, before.fovY, "head turns must not change the lens");
+      assert.equal(camera.zoom, zoom, "head turns must not move the zoom dial");
+    }
+  }
+});
+
+function planeSurface(z: number, dx: number, dy: number): NonNullable<Camera["groundSurface"]> {
+  return {
+    heightAt: (x, y) => z + x * dx + y * dy,
+    raycast: ({ origin: o, dir: d }) => {
+      const t = (z + o[0] * dx + o[1] * dy - o[2]) / (d[2] - d[0] * dx - d[1] * dy);
+      return t >= 0 ? [o[0] + d[0] * t, o[1] + d[1] * t, o[2] + d[2] * t] : null;
+    },
+  };
+}

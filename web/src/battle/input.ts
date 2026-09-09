@@ -2,8 +2,8 @@ import type { Camera } from "../shared/camera";
 import { createCameraKeyController } from "../shared/cameraKeys";
 
 export interface OrderSink {
-  /** All player units whose centers fall in the world-space rect. */
-  unitsInRect(x0: number, y0: number, x1: number, y1: number): number[];
+  /** Player units whose projected centers fall in the viewport CSS-pixel rect. */
+  unitsInScreenRect(x0: number, y0: number, x1: number, y1: number): number[];
   /** Every living player unit (ctrl+A). */
   allUnits(): number[];
   pickUnit(x: number, y: number): number;
@@ -18,7 +18,7 @@ export interface OrderSink {
     double: boolean,
     alt: boolean,
   ): void;
-  /** Right-drag: move to (x, y) and end facing `facing` (the drag arrow). */
+  /** Alt + right-drag: move to (x, y) and end facing `facing` (the drag arrow). */
   orderFacing(units: number[], x: number, y: number, facing: number, queued: boolean): void;
   togglePace(units: number[]): void;
   reform(units: number[]): void;
@@ -36,7 +36,7 @@ export class Input {
   mouseCss: [number, number] = [-1, -1];
   /** World-space translation of an in-progress drag-move of the selection. */
   dragDelta: [number, number] | null = null;
-  /** In-progress right-drag: press point + current cursor (world). */
+  /** In-progress Alt + right-drag: press point + current cursor (world). */
   rightDrag: { x: number; y: number; facing: number } | null = null;
   private readonly cameraKeys: ReturnType<typeof createCameraKeyController>;
 
@@ -48,9 +48,20 @@ export class Input {
     signal: AbortSignal,
     onZoomChange: () => void = () => {},
   ) {
-    const dpr = () => window.devicePixelRatio || 1;
+    const pickGround = (x: number, y: number) => {
+      const rect = canvas.getBoundingClientRect();
+      return camera.screenToWorld(
+        ((x - rect.left) * canvas.width) / Math.max(1, rect.width),
+        ((y - rect.top) * canvas.height) / Math.max(1, rect.height),
+      );
+    };
     let lDown: [number, number] | null = null;
-    let rDown: [number, number] | null = null;
+    let rDown: {
+      start: [number, number];
+      last: [number, number];
+      rotating: boolean;
+      facing: boolean;
+    } | null = null;
     let lastRightUp = 0;
 
     let dragMoving = false;
@@ -66,16 +77,21 @@ export class Input {
           lDown = [e.clientX, e.clientY];
           // Starting the drag ON a selected unit grabs the whole selection
           // (Total War drag-move); anywhere else it is a selection box.
-          const [wx, wy] = camera.screenToWorld(e.clientX * dpr(), e.clientY * dpr());
-          const hit = sink.pickUnit(wx, wy);
+          const point = pickGround(e.clientX, e.clientY);
+          const hit = point ? sink.pickUnit(...point) : -1;
           dragMoving = hit >= 0 && this.selected.includes(hit);
         }
-        if (e.button === 2) rDown = [e.clientX, e.clientY];
+        if (e.button === 2)
+          rDown = {
+            start: [e.clientX, e.clientY],
+            last: [e.clientX, e.clientY],
+            rotating: false,
+            facing: e.altKey && this.selected.length > 0,
+          };
       },
       { signal },
     );
 
-    let rLast: [number, number] | null = null;
     window.addEventListener(
       "mousemove",
       (e) => {
@@ -88,28 +104,34 @@ export class Input {
           camera.pitchAboutEye((e.clientY - mDown[1]) * 0.004);
           mDown = [e.clientX, e.clientY];
         }
-        if (rDown && this.selected.length === 0) {
-          // No selection: the right button drags the camera itself.
-          if (rLast)
-            camera.panPixels((e.clientX - rLast[0]) * dpr(), (e.clientY - rLast[1]) * dpr());
-          rLast = [e.clientX, e.clientY];
-        }
         if (rDown) {
-          const moved = Math.hypot(e.clientX - rDown[0], e.clientY - rDown[1]);
-          if (moved > DRAG_PX && this.selected.length > 0) {
-            const [px, py] = camera.screenToWorld(rDown[0] * dpr(), rDown[1] * dpr());
-            const [cx, cy] = camera.screenToWorld(e.clientX * dpr(), e.clientY * dpr());
-            this.rightDrag = { x: px, y: py, facing: Math.atan2(cy - py, cx - px) };
-          } else {
-            this.rightDrag = null;
+          const moved = Math.hypot(e.clientX - rDown.start[0], e.clientY - rDown.start[1]);
+          if (rDown.facing) {
+            if (moved > DRAG_PX) {
+              const start = pickGround(...rDown.start);
+              const end = pickGround(e.clientX, e.clientY);
+              this.rightDrag =
+                start && end
+                  ? {
+                      x: start[0],
+                      y: start[1],
+                      facing: Math.atan2(end[1] - start[1], end[0] - start[0]),
+                    }
+                  : null;
+            } else this.rightDrag = null;
+          } else if (rDown.rotating || moved > DRAG_PX) {
+            rDown.rotating = true;
+            camera.yawAboutEye(-(e.clientX - rDown.last[0]) * 0.006);
+            camera.pitchAboutEye((e.clientY - rDown.last[1]) * 0.004);
+            rDown.last = [e.clientX, e.clientY];
           }
         }
         if (lDown) {
           const moved = Math.hypot(e.clientX - lDown[0], e.clientY - lDown[1]);
           if (dragMoving) {
-            const [ax, ay] = camera.screenToWorld(lDown[0] * dpr(), lDown[1] * dpr());
-            const [bx, by] = camera.screenToWorld(e.clientX * dpr(), e.clientY * dpr());
-            this.dragDelta = moved > DRAG_PX ? [bx - ax, by - ay] : null;
+            const a = pickGround(...lDown);
+            const b = pickGround(e.clientX, e.clientY);
+            this.dragDelta = moved > DRAG_PX && a && b ? [b[0] - a[0], b[1] - a[1]] : null;
           } else {
             this.box =
               moved > DRAG_PX ? { x0: lDown[0], y0: lDown[1], x1: e.clientX, y1: e.clientY } : null;
@@ -132,42 +154,43 @@ export class Input {
               this.dragDelta = null;
             } else {
               // A plain click on a selected unit: re-select just it.
-              const [wx, wy] = camera.screenToWorld(sx * dpr(), sy * dpr());
-              const u = sink.pickUnit(wx, wy);
+              const point = pickGround(sx, sy);
+              const u = point ? sink.pickUnit(...point) : -1;
               this.selected = u >= 0 ? [u] : [];
             }
             return;
           }
           if (this.box) {
-            const [ax, ay] = camera.screenToWorld(this.box.x0 * dpr(), this.box.y0 * dpr());
-            const [bx, by] = camera.screenToWorld(this.box.x1 * dpr(), this.box.y1 * dpr());
-            this.selected = sink.unitsInRect(
-              Math.min(ax, bx),
-              Math.min(ay, by),
-              Math.max(ax, bx),
-              Math.max(ay, by),
+            this.selected = sink.unitsInScreenRect(
+              Math.min(this.box.x0, this.box.x1),
+              Math.min(this.box.y0, this.box.y1),
+              Math.max(this.box.x0, this.box.x1),
+              Math.max(this.box.y0, this.box.y1),
             );
             this.box = null;
           } else {
-            const [wx, wy] = camera.screenToWorld(sx * dpr(), sy * dpr());
-            const u = sink.pickUnit(wx, wy);
+            const point = pickGround(sx, sy);
+            const u = point ? sink.pickUnit(...point) : -1;
             this.selected = u >= 0 ? [u] : [];
           }
         }
         if (e.button === 1) mDown = null;
         if (e.button === 2 && rDown) {
-          const [sx, sy] = rDown;
+          const gesture = rDown;
+          const [sx, sy] = gesture.start;
           rDown = null;
-          rLast = null;
           const drag = this.rightDrag;
           this.rightDrag = null;
-          if (this.selected.length === 0) return;
+          if (this.selected.length === 0 || gesture.rotating) return;
           const moved = Math.hypot(e.clientX - sx, e.clientY - sy);
           if (moved > DRAG_PX && drag) {
             // Drag arrow: go to the press point, face the cursor direction.
             sink.orderFacing(this.selected, drag.x, drag.y, drag.facing, e.shiftKey);
           } else {
-            const [bx, by] = camera.screenToWorld(e.clientX * dpr(), e.clientY * dpr());
+            if (moved > DRAG_PX) return;
+            const point = pickGround(e.clientX, e.clientY);
+            if (!point) return;
+            const [bx, by] = point;
             const now = performance.now();
             const double = now - lastRightUp < 350;
             lastRightUp = now;
@@ -190,8 +213,7 @@ export class Input {
         }
         // Camera reset (Total War: Backspace/Home re-level to the default north-up view).
         if (e.key === "Backspace" || e.key === "Home") {
-          camera.yaw = -Math.PI / 2;
-          camera.pitchBias = 0;
+          camera.resetLook();
           e.preventDefault();
           return;
         }
@@ -217,7 +239,7 @@ export class Input {
         },
         panSpeed: () => camera.panSpeed(),
       },
-      { canvas },
+      { canvas, edgeEnabled: () => !rDown && !mDown && !lDown },
     );
     signal.addEventListener("abort", () => this.cameraKeys.dispose());
   }

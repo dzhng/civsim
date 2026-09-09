@@ -1,3 +1,4 @@
+import type { WorldRay } from "@packages/renderer-core/src/camera3d";
 // Production policy above the photoreal world: frozen frames, debug mode, and CPU timing.
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
@@ -306,6 +307,10 @@ export class BattleRenderer {
     return this.surfaceHeightAt(x, y);
   }
 
+  raycastGround(ray: WorldRay): [number, number, number] | null {
+    return this.world?.raycastGround(ray) ?? null;
+  }
+
   surfaceHeightAt(x: number, y: number): number {
     return this.world?.surfaceHeightAt(x, y) ?? 0;
   }
@@ -461,16 +466,8 @@ function cameraSnapshot(camera: Camera): BattleCameraSnapshot {
 }
 
 function frozenFrameKey(camera: Camera, count: number) {
-  const [x, y] = camera.viewCenter();
-  return [
-    roundKey(x),
-    roundKey(y),
-    roundKey(camera.zoom),
-    roundKey(camera.pitch ?? 0),
-    roundKey(camera.yaw ?? 0),
-    roundKey(camera.zoomT ?? 0),
-    count,
-  ].join(":");
+  const p = camera.params();
+  return [...p.target, p.distance, p.pitch, p.yaw, p.fovY, p.aspect, count].map(roundKey).join(":");
 }
 
 function roundKey(value: number) {

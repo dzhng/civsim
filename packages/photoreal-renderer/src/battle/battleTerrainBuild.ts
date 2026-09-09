@@ -1,4 +1,6 @@
 import * as THREE from "three/webgpu";
+import { Octree } from "three/examples/jsm/math/Octree.js";
+import type { WorldRay } from "../../../renderer-core/src/camera3d";
 import { buildPhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
 import { buildBattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import { buildBattleTerrainPresentation } from "../../../game-renderer/src/battle/mapCatalog";
@@ -16,13 +18,8 @@ import {
   type TerrainHeightField,
 } from "../../../game-renderer/src/terrain/heightField";
 import type { BattleFrameUniforms } from "./battleTsl";
-import {
-  createGroundMesh,
-  createHorizonBlockerMesh,
-  createVistaMesh,
-  vistaSurfaceHeightAt,
-  type BattleVistaGrid,
-} from "./terrainLayer";
+import { createGroundMesh, createHorizonBlockerMesh, createVistaMesh } from "./terrainLayer";
+import { joinVistaSurface, vistaSurfaceHeightAt, type BattleVistaGrid } from "./vistaSurface";
 import {
   createLakePlaneMesh,
   createOceanPlaneMesh,
@@ -68,8 +65,12 @@ export class BattleTerrainSurface {
   groundTriangles = 0;
   vistaTriangles = 0;
   private field: TerrainHeightField | null = null;
+  private readonly picking = new Octree();
   private vista: BattleVistaGrid | null = null;
   private rect: [number, number, number, number] = [0, 0, 0, 0];
+  private readonly pickRay = new THREE.Ray();
+  private pickingBuildMs = 0;
+  private pickingTriangles = 0;
 
   constructor(private readonly scene: THREE.Scene) {}
 
@@ -87,6 +88,22 @@ export class BattleTerrainSurface {
     this.vista = build.vista;
     this.rect = build.rect;
     for (const mesh of this.meshes()) this.scene.add(mesh);
+    const pickRoot = new THREE.Group();
+    for (const mesh of [build.ground, ...build.vistaMeshes]) pickRoot.add(mesh.clone());
+    const start = performance.now();
+    this.picking.fromGraphNode(pickRoot);
+    this.pickingBuildMs = performance.now() - start;
+    this.pickingTriangles = [build.ground, ...build.vistaMeshes].reduce(
+      (sum, mesh) => sum + (mesh.geometry.index?.count ?? 0) / 3,
+      0,
+    );
+  }
+
+  raycast(ray: WorldRay): [number, number, number] | null {
+    this.pickRay.origin.fromArray(ray.origin);
+    this.pickRay.direction.fromArray(ray.dir);
+    const hit = this.picking.rayIntersect(this.pickRay);
+    return hit ? hit.position.toArray() : null;
   }
 
   heightAt(x: number, y: number): number {
@@ -95,6 +112,14 @@ export class BattleTerrainSurface {
     const [x0, y0, w, h] = this.rect;
     const inside = x >= x0 && x <= x0 + w && y >= y0 && y <= y0 + h;
     return inside ? (vista === null ? playable : Math.max(playable, vista)) : (vista ?? playable);
+  }
+
+  surfaceHeightAt(x: number, y: number): number {
+    // Camera clearance and pick anchors use the same triangles as ray picks.
+    const hit = this.raycast({ origin: [x, y, this.picking.bounds.max.z + 1], dir: [0, 0, -1] });
+    if (hit) return hit[2];
+    // Outside the rendered domain, continue the edge datum for camera travel.
+    return this.heightAt(x, y);
   }
 
   heightSampler(): ((x: number, y: number) => number) | undefined {
@@ -118,6 +143,11 @@ export class BattleTerrainSurface {
       layer: "photoreal-battle-ground" as const,
       groundTriangles: this.groundTriangles,
       vistaTriangles: this.vistaTriangles,
+      picking: {
+        source: "rendered-triangles",
+        triangles: this.pickingTriangles,
+        buildMs: this.pickingBuildMs,
+      },
       vista: input.vista
         ? {
             bands: input.vista.bands.map((band) => ({
@@ -156,6 +186,7 @@ export class BattleTerrainSurface {
   }
 
   private removeAndDispose(): void {
+    this.picking.clear();
     for (const mesh of this.meshes()) {
       this.scene.remove(mesh);
       disposeBattleTerrainMesh(mesh);
@@ -180,7 +211,7 @@ export class BattleTerrainSurface {
 
 /** Build one complete terrain presentation without mutating a scene or world. */
 export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrainBuild {
-  const { grid, cover, slopeBands, vista, lakeSurfaces, frame, grassTransition, sea } = input;
+  const { grid, cover, slopeBands, lakeSurfaces, frame, grassTransition, sea } = input;
   const field: TerrainHeightField = grid.height
     ? {
         w: grid.w,
@@ -202,6 +233,7 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
         units: "meters",
         verticalScale: 1,
       };
+  const vista = input.vista ? joinVistaSurface(input.vista, field) : null;
   const presentation = buildBattleTerrainPresentation(
     { id: "live", edges: deriveBattleEdgeRoles(grid), groundCover: cover },
     grid,
@@ -221,12 +253,20 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
   let vistaTriangles = 0;
   if (vista) {
     sealedEdges = ["generated:vista"];
+    let innerMesh = ground;
     for (const band of vista.bands) {
-      const mesh = createVistaMesh(frame, band, cover, {
-        slopeBands,
-        farGrass: grassTransition,
-      });
+      const mesh = createVistaMesh(
+        frame,
+        band,
+        cover,
+        {
+          slopeBands,
+          farGrass: grassTransition,
+        },
+        innerMesh,
+      );
       if (!mesh) continue;
+      innerMesh = mesh;
       vistaMeshes.push(mesh);
       vistaTriangles += (mesh.geometry.index?.count ?? 0) / 3;
     }

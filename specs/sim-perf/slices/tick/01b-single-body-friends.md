@@ -21,10 +21,21 @@ The axis-distance and deferred-bearing ideas remain unimplemented. Their
 operation counts do not establish a speedup, and expanding the trial would
 hide which change paid for itself.
 
-Current trial: golden and the existing friend-recording test pass; the
+Trial closed without shipping: golden and the existing friend-recording test pass; the
 duel/sandbox combined hash remains `8d21ca62c2a920c4`. Independent static
 review found no defects. The long AI oracle also matches through 9,000 ticks,
 ending at `dda9a54e95963dbd`. The first timing
 comparison was stopped when the unchanged control took 88.422 ms under
 load, versus about 39 ms in the earlier gate. That partial run is invalid
-for judging the candidate, which remains uncommitted in its worktree.
+for judging the candidate.
+
+A second bounded comparison also became contaminated. The baseline averaged
+90.588 ms; the first candidate averaged 99.371 ms, with a 42.539 ms per-tick
+standard deviation in its second repeat. Whole-process user CPU time was
+201.06 seconds versus 195.44 seconds, including identical preparation, but
+that small difference cannot establish a stable benefit under these conditions.
+Load reached 23.88 before the next candidate run. The remaining runs were
+stopped and the prototype removed. [Raw partial evidence](../../assets/friend-trial-inconclusive.txt)
+is retained; it proves neither a speedup nor a slowdown. Existing friend
+recording remains unchanged. A future trial requires usable measurement
+conditions before implementation effort is repeated.

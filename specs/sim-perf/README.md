@@ -25,12 +25,13 @@ workspace checks pass (363 passed, zero failures); the rebuilt battle timeline
 is byte-identical. `worker/00` has a
 matching cross-thread hash, but no admissible quiet-machine timing yet.
 
-**Current pickup:** finish identity and fair timing checks for
-[the single-body friend-recording trial](slices/tick/01b-single-body-friends.md).
-The integrated gate is red at 39.006 ms in developed combat; targeting is
-the largest stage. The trial stays isolated until it demonstrates a gain.
-Then complete the scaled sweep and decide the remaining native work.
-Correctness jobs and timing runs stay separate.
+**Current pickup:** obtain a usable measurement window, complete the scaled
+sweep and decide the remaining native work. The integrated gate is red at
+39.006 ms in developed combat; targeting is the largest stage. The
+[single-body friend-recording trial](slices/tick/01b-single-body-friends.md)
+preserved all hashes but was removed after its timing comparison became
+inconclusive. All task-owned CPU jobs are stopped; repeating loaded trials
+cannot resolve the next performance decision.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
 when a quiet timing lane is available; worker production refactoring starts

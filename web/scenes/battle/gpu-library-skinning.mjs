@@ -7,7 +7,11 @@ export const meta = {
   kind: "visual",
   world: "battle-5v5",
   tier: "full",
-  snapshots: ["gpu-library-battle-close", "gpu-library-campaign-close"],
+  snapshots: [
+    "gpu-library-battle-close",
+    "gpu-library-campaign-close",
+    "gpu-library-campaign-army",
+  ],
   describe: "Actual weighted soldier skinning in battle mesh/shadow and campaign raw pipelines.",
 };
 export async function run(ctx) {
@@ -74,5 +78,13 @@ export async function run(ctx) {
     JSON.stringify(raw),
   );
   await capture(map, "gpu-library-campaign-close");
+  await map.evaluate(() => {
+    const army = window.__campaign.armies().find((a) => a.mine);
+    window.__campaign.place(army.id, 1, 0, 4);
+    const moved = window.__campaign.armies().find((a) => a.id === army.id);
+    window.__campaign.cam(moved.x, moved.y, 18);
+  });
+  await map.waitForTimeout(500);
+  await capture(map, "gpu-library-campaign-army");
   await map.close();
 }

@@ -1,0 +1,462 @@
+{
+  "gpu-spike-native-smoke": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:15:31.203Z",
+    "gpuAdapter": "hardware",
+    "browserChannel": "chrome",
+    "checks": [
+      {
+        "scenario": "battle-renderer-default",
+        "name": "battle default renderer is the photoreal WebGPU world",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "renderer drew the full battle crowd",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "WebGPU battle terrain includes sim-sourced feature detail",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "WebGPU battle frame has visible terrain and crowd mass",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "frozen frame reuse retains the same submitted pose",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "frozen tick advance refreshes the submitted phase at the same camera",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "successful same-tick catalog reload replaces the submitted pose history",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "production campaign route is using the raw WebGPU adapter",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "post-cutover screenshot policy is WebGPU-only",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "campaign WebGPU frame has parchment, faction, atmosphere, and UI pixels",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "real canvas click selects the rendered WebGPU army marker",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "selected WebGPU army marker exposes the campaign selection color",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "real canvas click opens the normal city panel over WebGPU",
+        "ok": true
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-native-visual-hw": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:21:48.130Z",
+    "gpuAdapter": "hardware",
+    "browserChannel": "chrome",
+    "checks": [
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected battle kernel renders visible and shadow meshes",
+        "ok": true,
+        "detail": "{\"library\":\"native\",\"meshDrawCalls\":9,\"shadowMeshDrawCalls\":9,\"tiers\":{\"l0\":259,\"l1\":432,\"l2\":370,\"l3\":1779}}"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-battle-close",
+        "ok": true,
+        "detail": "baseline created"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected campaign kernel renders soldiers",
+        "ok": true
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-close",
+        "ok": true,
+        "detail": "baseline created"
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-native-visual": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:28:07.326Z",
+    "gpuAdapter": "hardware",
+    "browserChannel": "chrome",
+    "checks": [
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected battle kernel renders visible and shadow meshes",
+        "ok": true,
+        "detail": "{\"library\":\"native\",\"meshDrawCalls\":9,\"shadowMeshDrawCalls\":9,\"tiers\":{\"l0\":259,\"l1\":432,\"l2\":370,\"l3\":1779}}"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-battle-close",
+        "ok": true,
+        "detail": "6 px differ (0.0006%)"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected campaign kernel renders soldiers",
+        "ok": true
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-close",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-army",
+        "ok": true,
+        "detail": "baseline created"
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-typegpu-visual-software": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:27:15.997Z",
+    "gpuAdapter": "swiftshader",
+    "browserChannel": null,
+    "checks": [
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected battle kernel renders visible and shadow meshes",
+        "ok": true,
+        "detail": "{\"library\":\"typegpu\",\"meshDrawCalls\":9,\"shadowMeshDrawCalls\":9,\"tiers\":{\"l0\":259,\"l1\":432,\"l2\":370,\"l3\":1779}}"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-battle-close",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected campaign kernel renders soldiers",
+        "ok": true
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-close",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-typegpu-visual": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:28:17.471Z",
+    "gpuAdapter": "hardware",
+    "browserChannel": "chrome",
+    "checks": [
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected battle kernel renders visible and shadow meshes",
+        "ok": true,
+        "detail": "{\"library\":\"typegpu\",\"meshDrawCalls\":9,\"shadowMeshDrawCalls\":9,\"tiers\":{\"l0\":259,\"l1\":432,\"l2\":370,\"l3\":1779}}"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-battle-close",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected campaign kernel renders soldiers",
+        "ok": true
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-close",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-army",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-typegpu-smoke": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:19:34.776Z",
+    "gpuAdapter": "hardware",
+    "browserChannel": "chrome",
+    "checks": [
+      {
+        "scenario": "battle-renderer-default",
+        "name": "battle default renderer is the photoreal WebGPU world",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "renderer drew the full battle crowd",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "WebGPU battle terrain includes sim-sourced feature detail",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "WebGPU battle frame has visible terrain and crowd mass",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "frozen frame reuse retains the same submitted pose",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "frozen tick advance refreshes the submitted phase at the same camera",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "successful same-tick catalog reload replaces the submitted pose history",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "production campaign route is using the raw WebGPU adapter",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "post-cutover screenshot policy is WebGPU-only",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "campaign WebGPU frame has parchment, faction, atmosphere, and UI pixels",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "real canvas click selects the rendered WebGPU army marker",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "selected WebGPU army marker exposes the campaign selection color",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "real canvas click opens the normal city panel over WebGPU",
+        "ok": true
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-vgpu-smoke": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:20:54.723Z",
+    "gpuAdapter": "hardware",
+    "browserChannel": "chrome",
+    "checks": [
+      {
+        "scenario": "battle-renderer-default",
+        "name": "battle default renderer is the photoreal WebGPU world",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "renderer drew the full battle crowd",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "WebGPU battle terrain includes sim-sourced feature detail",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "WebGPU battle frame has visible terrain and crowd mass",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "frozen frame reuse retains the same submitted pose",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "frozen tick advance refreshes the submitted phase at the same camera",
+        "ok": true
+      },
+      {
+        "scenario": "battle-renderer-default",
+        "name": "successful same-tick catalog reload replaces the submitted pose history",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "production campaign route is using the raw WebGPU adapter",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "post-cutover screenshot policy is WebGPU-only",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "campaign WebGPU frame has parchment, faction, atmosphere, and UI pixels",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "real canvas click selects the rendered WebGPU army marker",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "selected WebGPU army marker exposes the campaign selection color",
+        "ok": true
+      },
+      {
+        "scenario": "campaign-production",
+        "name": "real canvas click opens the normal city panel over WebGPU",
+        "ok": true
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-vgpu-visual": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:28:25.695Z",
+    "gpuAdapter": "hardware",
+    "browserChannel": "chrome",
+    "checks": [
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected battle kernel renders visible and shadow meshes",
+        "ok": true,
+        "detail": "{\"library\":\"vgpu\",\"meshDrawCalls\":9,\"shadowMeshDrawCalls\":9,\"tiers\":{\"l0\":259,\"l1\":432,\"l2\":370,\"l3\":1779}}"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-battle-close",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "selected campaign kernel renders soldiers",
+        "ok": true
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-close",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "snapshot gpu-library-campaign-army",
+        "ok": true,
+        "detail": "0 px differ (0.0000%)"
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  },
+  "gpu-spike-vgpu-visual-software": {
+    "status": "fail",
+    "generatedAt": "2026-09-10T03:28:17.440Z",
+    "gpuAdapter": "swiftshader",
+    "browserChannel": null,
+    "checks": [
+      {
+        "scenario": "gpu-library-skinning",
+        "name": "scene completed without throwing",
+        "ok": false,
+        "detail": "page.waitForFunction: Timeout 60000ms exceeded.\n    at Object.run (/Users/david/dev/game-gpu-spike/web/scenes/battle/gpu-library-skinning.mjs:34:14)\n    at async runSelected (/Users/david/dev/game-gpu-spike/web/scene.mjs:189:9)"
+      },
+      {
+        "scenario": "runner",
+        "name": "no page errors",
+        "ok": true
+      }
+    ],
+    "pageErrors": []
+  }
+}

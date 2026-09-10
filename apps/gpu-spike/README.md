@@ -1,3 +1,5 @@
+> Actual game-code ports and whole-game results now live in the [production study](../../specs/gpu-library-production-spike/README.md). Read that result before using this diagnostic study to choose a library.
+
 # TypeGPU / vgpu rendering spike
 
 > **Production integration in progress.** The results below are the initial

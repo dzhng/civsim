@@ -38,7 +38,7 @@ import {
 } from "./crowdLod";
 import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
 import { RENDER_ORDER } from "./terrainLayer";
-import { weightedPaletteColumns } from "./skinNodes";
+import { weightedSkinColumns, RENDERER_LIBRARY_ID } from "@renderer-library/skin";
 import { SoldierPosePalette, type PaletteColumns } from "./posePalette";
 import { soldierGeometry } from "./meshGeometry";
 import {
@@ -502,6 +502,7 @@ export class PhotorealCrowd {
       atlasBakeDrawCalls: far.reduce((sum, stats) => sum + stats.atlasMetrics.drawCalls, 0),
     };
     return {
+      skinningLibrary: RENDERER_LIBRARY_ID,
       instances: this.instanceCount,
       visible: this.culling.visible,
       culled: this.culling.culled,
@@ -555,7 +556,7 @@ function crowdMaterial(
   const inst1 = attribute<"vec4">("inst1", "vec4");
   const inst2 = attribute<"vec4">("inst2", "vec4");
 
-  const [c0, c1, c2, c3] = weightedPaletteColumns(palette, uint(inst1.y), bones);
+  const [c0, c1, c2, c3] = weightedSkinColumns(palette, uint(inst1.y), bones);
   const local = c0.mul(position.x).add(c1.mul(position.y)).add(c2.mul(position.z)).add(c3).toVar();
   const n = normalize(c0.mul(normal.x).add(c1.mul(normal.y)).add(c2.mul(normal.z)).xyz).toVar();
 

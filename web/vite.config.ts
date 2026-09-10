@@ -2,6 +2,13 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import typegpu from "unplugin-typegpu/vite";
+import wgsl from "@vgpu/wgsl/loader-vite";
+
+const rendererLibrary = process.env.RENDERER_LIBRARY ?? "native";
+if (!["native", "typegpu", "vgpu"].includes(rendererLibrary)) {
+  throw new Error(`Unknown RENDERER_LIBRARY: ${rendererLibrary}`);
+}
 
 // packages/* and apps/* are source-only directories outside this vite root, so
 // their bare `three` imports never reach web/node_modules by directory walk-up.
@@ -20,9 +27,34 @@ const isolationHeaders = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  cacheDir: `node_modules/.vite-${rendererLibrary}`,
+  plugins: [react(), tailwindcss(), typegpu(), wgsl()],
   resolve: {
     alias: [
+      {
+        find: "@renderer-library/skin",
+        replacement: fileURLToPath(
+          new URL(
+            `../packages/renderer-library-spike/src/${rendererLibrary}Skin.ts`,
+            import.meta.url,
+          ),
+        ),
+      },
+      // Source-only shader packages resolve their pinned dependencies through web/.
+      {
+        find: /^typegpu$/,
+        replacement: fileURLToPath(new URL("./node_modules/typegpu/index.js", import.meta.url)),
+      },
+      {
+        find: /^@typegpu\/three$/,
+        replacement: fileURLToPath(
+          new URL("./node_modules/@typegpu/three/index.mjs", import.meta.url),
+        ),
+      },
+      {
+        find: /^vgpu\/three$/,
+        replacement: fileURLToPath(new URL("./node_modules/vgpu/dist/three.js", import.meta.url)),
+      },
       // The renderer lab is a development surface and must not be resolved or bundled by Vercel.
       ...(process.env.VERCEL
         ? [

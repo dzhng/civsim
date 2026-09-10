@@ -16,8 +16,13 @@
       "three": ["./node_modules/@types/three/index.d.ts"],
       "three/webgpu": ["./node_modules/@types/three/build/three.webgpu.d.ts"],
       "three/tsl": ["./node_modules/@types/three/build/three.tsl.d.ts"],
-      "three/examples/jsm/*": ["./node_modules/@types/three/examples/jsm/*"]
+      "three/examples/jsm/*": ["./node_modules/@types/three/examples/jsm/*"],
+      "@renderer-library/skin": ["../packages/renderer-library-spike/src/nativeSkin.ts"],
+      "typegpu": ["./node_modules/typegpu/index.d.ts"],
+      "@typegpu/three": ["./node_modules/@typegpu/three/index.d.ts"],
+      "vgpu/three": ["./node_modules/vgpu/dist/three.d.ts"],
+      "@vgpu/wgsl": ["./node_modules/@vgpu/wgsl/dist/index.d.ts"]
     }
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "../packages/renderer-library-spike/src"]
 }

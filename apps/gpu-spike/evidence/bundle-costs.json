@@ -1,0 +1,62 @@
+{
+  "raw-shell/raw": {
+    "files": [
+      "assets/main-CJb_PHpH.js",
+      "assets/modulepreload-polyfill-Dezn_h7o.js",
+      "assets/preload-helper-vV_ZMNU1.js",
+      "assets/raw-CdACaqoU.js",
+      "assets/soldierShadowPass-D7CraiYL.js"
+    ],
+    "gzipBytes": 11492
+  },
+  "three/raw": {
+    "files": [
+      "assets/three-BY_rPx00.js",
+      "assets/modulepreload-polyfill-Dezn_h7o.js",
+      "assets/preload-helper-vV_ZMNU1.js"
+    ],
+    "gzipBytes": 235279
+  },
+  "raw-shell/typegpu": {
+    "files": [
+      "assets/main-CJb_PHpH.js",
+      "assets/modulepreload-polyfill-Dezn_h7o.js",
+      "assets/preload-helper-vV_ZMNU1.js",
+      "assets/typegpu-B8T-RcVs.js",
+      "assets/data-DJK_Xpck.js"
+    ],
+    "gzipBytes": 87259
+  },
+  "three/typegpu": {
+    "files": [
+      "assets/three-BY_rPx00.js",
+      "assets/modulepreload-polyfill-Dezn_h7o.js",
+      "assets/preload-helper-vV_ZMNU1.js",
+      "assets/typegpu-bridge-CwF9cuVy.js",
+      "assets/data-DJK_Xpck.js"
+    ],
+    "gzipBytes": 319901
+  },
+  "raw-shell/vgpu": {
+    "files": [
+      "assets/main-CJb_PHpH.js",
+      "assets/modulepreload-polyfill-Dezn_h7o.js",
+      "assets/preload-helper-vV_ZMNU1.js",
+      "assets/vgpu-CXKjBopl.js",
+      "assets/storage-H1UHWRTo.js",
+      "assets/uniforms-Cxv2wo_G.js",
+      "assets/soldierShadowPass-D7CraiYL.js"
+    ],
+    "gzipBytes": 55017
+  },
+  "three/vgpu": {
+    "files": [
+      "assets/three-BY_rPx00.js",
+      "assets/modulepreload-polyfill-Dezn_h7o.js",
+      "assets/preload-helper-vV_ZMNU1.js",
+      "assets/vgpu-bridge-BEN2Gg77.js",
+      "assets/storage-H1UHWRTo.js"
+    ],
+    "gzipBytes": 269826
+  }
+}

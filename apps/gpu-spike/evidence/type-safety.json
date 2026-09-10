@@ -1,0 +1,10 @@
+{
+  "typegpu": {
+    "exitCode": 2,
+    "diagnostics": "checks/typegpu-invalid.ts(6,41): error TS2353: Object literal may only specify known properties, and 'camTypo' does not exist in type 'ExtractBindGroupInputFromLayout<{ cam: { uniform: WgslStruct<{ time: F32; }>; }; }>'.\n"
+  },
+  "vgpu": {
+    "exitCode": 0,
+    "diagnostics": ""
+  }
+}

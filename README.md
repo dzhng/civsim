@@ -42,6 +42,9 @@ in TypeScript.
   addressable battle/campaign checks and screenshots; baselines are committed
   under `web/shots/` (see [Screenshot baselines](#screenshot-baselines)).
 
+The isolated [GPU library spike](apps/gpu-spike/README.md) compares shader sharing
+across the current battle and campaign substrates.
+
 Core design: the player issues *intent*; each unit's formation controller
 realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
 from physical soldier state (slot error vs. the intended formation), never

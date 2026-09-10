@@ -376,7 +376,7 @@ class RawFrameShellImpl implements RawFrameShell {
       });
     }
     this.gpuTimer?.recordResolve(encoder);
-    let commandBuffer: unknown;
+    let commandBuffer: ReturnType<GPUCommandEncoder['finish']>;
     try {
       commandBuffer = encoder.finish();
     } catch (error) {

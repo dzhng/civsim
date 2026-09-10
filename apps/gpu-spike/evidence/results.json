@@ -1,0 +1,715 @@
+{
+  "capturedAt": "2026-09-10T02:54:32.427Z",
+  "software": false,
+  "cases": [
+    {
+      "mode": "raw-msaa4",
+      "backend": "raw",
+      "details": {
+        "path": "production WGSL + production pipeline helper",
+        "cameraBytes": 192
+      },
+      "stats": {
+        "width": 900,
+        "height": 600,
+        "dpr": 1,
+        "frame": 1,
+        "device": "apple / metal-3",
+        "atmosphere": "aegean-sky-haze",
+        "cameraContract": "shared-world-camera-wgsl",
+        "projection": "camera3d-viewProj-reverse-z",
+        "phases": [
+          {
+            "kind": "background",
+            "label": "consumer-owned background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "fixture-world",
+              "shared-shadow"
+            ],
+            "passRoles": [
+              {
+                "id": "fixture-world",
+                "role": "world-opaque"
+              },
+              {
+                "id": "shared-shadow",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "fixture-world",
+                "mode": "read-write"
+              },
+              {
+                "id": "shared-shadow",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth32float-reverse-z-clear",
+            "loadOp": "load"
+          }
+        ],
+        "sampleCount": 4,
+        "gpuTimeMs": null,
+        "depth": {
+          "format": "depth32float",
+          "width": 900,
+          "height": 600,
+          "allocated": true
+        }
+      },
+      "disposal": {
+        "failures": []
+      }
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "details": {
+        "path": "TypeScript shader + typed camera + existing render pass",
+        "cameraBytes": 192,
+        "cameraByteParity": true
+      },
+      "stats": {
+        "width": 900,
+        "height": 600,
+        "dpr": 1,
+        "frame": 1,
+        "device": "apple / metal-3",
+        "atmosphere": "aegean-sky-haze",
+        "cameraContract": "shared-world-camera-wgsl",
+        "projection": "camera3d-viewProj-reverse-z",
+        "phases": [
+          {
+            "kind": "background",
+            "label": "consumer-owned background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "fixture-world",
+              "shared-shadow"
+            ],
+            "passRoles": [
+              {
+                "id": "fixture-world",
+                "role": "world-opaque"
+              },
+              {
+                "id": "shared-shadow",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "fixture-world",
+                "mode": "read-write"
+              },
+              {
+                "id": "shared-shadow",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth32float-reverse-z-clear",
+            "loadOp": "load"
+          }
+        ],
+        "sampleCount": 4,
+        "gpuTimeMs": null,
+        "depth": {
+          "format": "depth32float",
+          "width": 900,
+          "height": 600,
+          "allocated": true
+        }
+      },
+      "disposal": {
+        "failures": []
+      }
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "details": {
+        "path": "production WGSL + reflected uniforms + public render bundle",
+        "countChangesRerecordBundle": true,
+        "cameraBytes": 192,
+        "cameraByteParity": true,
+        "bindingTypoRuntimeError": "VGPUError: Binding 'camTypo' does not exist in 'vgpu-shadow'."
+      },
+      "stats": {
+        "width": 900,
+        "height": 600,
+        "dpr": 1,
+        "frame": 1,
+        "device": "apple / metal-3",
+        "atmosphere": "aegean-sky-haze",
+        "cameraContract": "shared-world-camera-wgsl",
+        "projection": "camera3d-viewProj-reverse-z",
+        "phases": [
+          {
+            "kind": "background",
+            "label": "consumer-owned background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "fixture-world",
+              "shared-shadow"
+            ],
+            "passRoles": [
+              {
+                "id": "fixture-world",
+                "role": "world-opaque"
+              },
+              {
+                "id": "shared-shadow",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "fixture-world",
+                "mode": "read-write"
+              },
+              {
+                "id": "shared-shadow",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth32float-reverse-z-clear",
+            "loadOp": "load"
+          }
+        ],
+        "sampleCount": 4,
+        "gpuTimeMs": null,
+        "depth": {
+          "format": "depth32float",
+          "width": 900,
+          "height": 600,
+          "allocated": true
+        }
+      },
+      "disposal": {
+        "failures": []
+      }
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "raw",
+      "details": {
+        "path": "production WGSL + production pipeline helper",
+        "cameraBytes": 192
+      },
+      "stats": {
+        "width": 900,
+        "height": 600,
+        "dpr": 1,
+        "frame": 1,
+        "device": "apple / metal-3",
+        "atmosphere": "aegean-sky-haze",
+        "cameraContract": "shared-world-camera-wgsl",
+        "projection": "camera3d-viewProj-reverse-z",
+        "phases": [
+          {
+            "kind": "background",
+            "label": "consumer-owned background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "fixture-world",
+              "shared-shadow"
+            ],
+            "passRoles": [
+              {
+                "id": "fixture-world",
+                "role": "world-opaque"
+              },
+              {
+                "id": "shared-shadow",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "fixture-world",
+                "mode": "read-write"
+              },
+              {
+                "id": "shared-shadow",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth32float-reverse-z-clear",
+            "loadOp": "load"
+          }
+        ],
+        "sampleCount": 1,
+        "gpuTimeMs": null,
+        "depth": {
+          "format": "depth32float",
+          "width": 900,
+          "height": 600,
+          "allocated": true
+        }
+      },
+      "disposal": {
+        "failures": []
+      }
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "details": {
+        "path": "TypeScript shader + typed camera + existing render pass",
+        "cameraBytes": 192,
+        "cameraByteParity": true
+      },
+      "stats": {
+        "width": 900,
+        "height": 600,
+        "dpr": 1,
+        "frame": 1,
+        "device": "apple / metal-3",
+        "atmosphere": "aegean-sky-haze",
+        "cameraContract": "shared-world-camera-wgsl",
+        "projection": "camera3d-viewProj-reverse-z",
+        "phases": [
+          {
+            "kind": "background",
+            "label": "consumer-owned background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "fixture-world",
+              "shared-shadow"
+            ],
+            "passRoles": [
+              {
+                "id": "fixture-world",
+                "role": "world-opaque"
+              },
+              {
+                "id": "shared-shadow",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "fixture-world",
+                "mode": "read-write"
+              },
+              {
+                "id": "shared-shadow",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth32float-reverse-z-clear",
+            "loadOp": "load"
+          }
+        ],
+        "sampleCount": 1,
+        "gpuTimeMs": null,
+        "depth": {
+          "format": "depth32float",
+          "width": 900,
+          "height": 600,
+          "allocated": true
+        }
+      },
+      "disposal": {
+        "failures": []
+      }
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "details": {
+        "path": "production WGSL + reflected uniforms + public render bundle",
+        "countChangesRerecordBundle": true,
+        "cameraBytes": 192,
+        "cameraByteParity": true,
+        "bindingTypoRuntimeError": "VGPUError: Binding 'camTypo' does not exist in 'vgpu-shadow'."
+      },
+      "stats": {
+        "width": 900,
+        "height": 600,
+        "dpr": 1,
+        "frame": 1,
+        "device": "apple / metal-3",
+        "atmosphere": "aegean-sky-haze",
+        "cameraContract": "shared-world-camera-wgsl",
+        "projection": "camera3d-viewProj-reverse-z",
+        "phases": [
+          {
+            "kind": "background",
+            "label": "consumer-owned background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "fixture-world",
+              "shared-shadow"
+            ],
+            "passRoles": [
+              {
+                "id": "fixture-world",
+                "role": "world-opaque"
+              },
+              {
+                "id": "shared-shadow",
+                "role": "world-decal"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "fixture-world",
+                "mode": "read-write"
+              },
+              {
+                "id": "shared-shadow",
+                "mode": "read"
+              }
+            ],
+            "depth": "depth32float-reverse-z-clear",
+            "loadOp": "load"
+          }
+        ],
+        "sampleCount": 1,
+        "gpuTimeMs": null,
+        "depth": {
+          "format": "depth32float",
+          "width": 900,
+          "height": 600,
+          "allocated": true
+        }
+      },
+      "disposal": {
+        "failures": []
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "state": "initial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "state": "zero",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "state": "partial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "state": "restored",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "state": "moved",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "state": "resized",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "state": "initial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "state": "zero",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "state": "partial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "state": "restored",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "state": "moved",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "state": "resized",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "state": "initial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "state": "zero",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "state": "partial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "state": "restored",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "state": "moved",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "state": "resized",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "state": "initial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "state": "zero",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "state": "partial",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "state": "restored",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "state": "moved",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "state": "resized",
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    }
+  ],
+  "semanticChecks": [
+    {
+      "mode": "raw-msaa4",
+      "backend": "raw",
+      "darkened": 14401,
+      "occluderPixels": 11937,
+      "changedOccluderPixels": 108
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "typegpu",
+      "darkened": 14401,
+      "occluderPixels": 11937,
+      "changedOccluderPixels": 108
+    },
+    {
+      "mode": "raw-msaa4",
+      "backend": "vgpu",
+      "darkened": 14401,
+      "occluderPixels": 11937,
+      "changedOccluderPixels": 108
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "raw",
+      "darkened": 20630,
+      "occluderPixels": 11052,
+      "changedOccluderPixels": 39
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "typegpu",
+      "darkened": 20630,
+      "occluderPixels": 11052,
+      "changedOccluderPixels": 39
+    },
+    {
+      "mode": "raw-msaa1",
+      "backend": "vgpu",
+      "darkened": 20630,
+      "occluderPixels": 11052,
+      "changedOccluderPixels": 39
+    }
+  ],
+  "passed": true
+}

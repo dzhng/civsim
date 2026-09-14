@@ -81,18 +81,28 @@ export function buildCampaignLandscape(
       gy - iy,
     );
   };
+  const reliefHeight = (x: number, y: number) => {
+    const envelope = Math.max(0, sample(source.height, 1, 0, x, y) - 2.2);
+    const wx = x + (noise(x / 75, y / 75) - 0.5) * 30;
+    const wy = y + (noise(x / 75 + 13, y / 75 + 7) - 0.5) * 30;
+    const ridge = (scale: number) => {
+      const n = 2 * noise(wx / scale, wy / scale) - 1;
+      return Math.max(0, 1 - Math.sqrt(n * n + 0.0025));
+    };
+    const folds =
+      0.24 +
+      0.52 * ridge(60) ** 2 +
+      0.18 * ridge(28) ** 2 +
+      0.06 * ridge(13) * (1 - smoothstep(3, 8, cell));
+    const foothill = 0.5 + noise(x / 18, y / 18) * 1.1;
+    return foothill + envelope * 2.5 * folds;
+  };
   for (let j = 0; j < paddedSize; j++)
     for (let i = 0; i < paddedSize; i++) {
       const k = j * paddedSize + i,
         [x, y] = world(i, j);
-      const envelope = Math.max(0, sample(source.height, 1, 0, x, y) - 2.2);
-      const wx = x + (noise(x / 75, y / 75) - 0.5) * 30;
-      const wy = y + (noise(x / 75 + 13, y / 75 + 7) - 0.5) * 30;
-      const ridge = (scale: number) => 1 - Math.abs(2 * noise(wx / scale, wy / scale) - 1);
-      const folds = 0.24 + 0.52 * ridge(60) ** 2 + 0.18 * ridge(28) ** 2 + 0.06 * ridge(13);
-      const foothill = 0.5 + noise(x / 18, y / 18) * 1.1;
-      heights[k] =
-        (foothill + envelope * 2.5 * folds) * land[k] * smoothstep(0, 6, coast.inlandAt(x, y));
+      const height = reliefHeight(x, y) * smoothstep(0, 16, coast.inlandAt(x, y));
+      heights[k] = land[k] ? height : 0;
     }
   const vertices = new Float32Array(size * size * 10);
   const surfaceColor = new Float32Array(size * size * 3),
@@ -175,6 +185,7 @@ export function buildCampaignLandscape(
 function mix(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
+
 function noise(x: number, y: number): number {
   const ix = Math.floor(x),
     iy = Math.floor(y),

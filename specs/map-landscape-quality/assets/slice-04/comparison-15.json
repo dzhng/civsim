@@ -1,0 +1,55 @@
+{
+  "note": "Distance from before, not an acceptance score. Same camera controls/ground-centering intent; target elevation follows geometry.",
+  "frames": [
+    {
+      "frame": "italy-regional",
+      "distance": 0.04734,
+      "pixelmatchRatio": 0.00475,
+      "edgeEnergyRatio": 0.81616
+    },
+    {
+      "frame": "italy-close",
+      "distance": 0.03619,
+      "pixelmatchRatio": 0.00225,
+      "edgeEnergyRatio": 0.8507
+    },
+    {
+      "frame": "fixture-close",
+      "distance": 0.03168,
+      "pixelmatchRatio": 0.00362,
+      "edgeEnergyRatio": 0.87462
+    },
+    {
+      "frame": "alps-close",
+      "distance": 0.03065,
+      "pixelmatchRatio": 0.01892,
+      "edgeEnergyRatio": 0.92829
+    },
+    {
+      "frame": "alps-regional",
+      "distance": 0.0285,
+      "pixelmatchRatio": 0.00962,
+      "edgeEnergyRatio": 0.9181
+    },
+    {
+      "frame": "fixture-regional",
+      "distance": 0.02785,
+      "pixelmatchRatio": 0.00446,
+      "edgeEnergyRatio": 0.89858
+    }
+  ],
+  "italyDarkPixelProxy": {
+    "bounds": [
+      650,
+      300,
+      1280,
+      800
+    ],
+    "luminanceBelow": 135,
+    "before": 82985,
+    "candidate14": 83389,
+    "candidate15": 80103,
+    "note": "Includes both surface shading and cast shadow; not a physical shadow mask."
+  },
+  "verdict": "Accepted as modest perimeter/serration cleanup. Larger geometric hierarchy remains open."
+}

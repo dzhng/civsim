@@ -35,3 +35,10 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: Changes to typography or UI hierarchy require a revised requirement; this slice preserves the established campaign interface.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+
+## Grounding evidence from the form pass
+
+A correct center anchor does not guarantee a seated city footprint. The actual largest normal city mesh extends 6.092 campaign render kilometres from its anchor; the smaller tier extends 5.109. The closest real city pairs are Perge/Attalea and Cyrene/Apollonia, so oversized flat pads also interact. These are exaggerated presentation units, not real geographic building sizes.
+
+The [401-site measurements](../assets/slice-04/README.md#deferred-local-foundations) preserve the old and retained-relief residuals, wet-foot samples and the rejected flat-foundation experiment. Flat cores eliminated detailed 2 km foot residuals but produced circular shelves/depressions in clay views; the 8 km experiment still left 373/401 nonflat. That implementation was rejected and its code removed. The retained relief still needs footprint grounding here. Keep node XY and water at zero, inspect actual model feet at final scale, and resolve the visible contact problem without punching circular holes through ranges. Use the measured close pairs and diagonal coast at Scodra as regression cases.

@@ -1,0 +1,26 @@
+{
+  "note": "Intentional geometry update; every resulting baseline repeated with zero RGBA changes.",
+  "existing": [
+    {
+      "snapshot": "landscape-alps",
+      "changedRgbaPixels": 938022
+    },
+    {
+      "snapshot": "landscape-italy",
+      "changedRgbaPixels": 485757
+    },
+    {
+      "snapshot": "landscape-surface",
+      "changedRgbaPixels": 437926
+    }
+  ],
+  "new": [
+    "mountains-alps-regional",
+    "mountains-alps-close",
+    "mountains-italy-regional",
+    "mountains-italy-close",
+    "mountains-fixture-regional",
+    "mountains-fixture-close",
+    "mountains-alps-coarse"
+  ]
+}

@@ -1,6 +1,6 @@
 # 04 — Connected mountain form and foothills
 
-Status: pending. Dependencies: [01](01-surface-contract.md), [03](03-bounded-terrain.md).
+Status: in progress. Dependencies: [01](01-surface-contract.md), [03](03-bounded-terrain.md).
 
 ## Contract and owner
 
@@ -10,13 +10,11 @@ Slice variable: **Geometry: silhouette, dominant ridges, valleys, and foothill d
 
 ## Work
 
-Compare the current warped-noise relief with a connected ridge hierarchy constrained by the source mountain mask. Give ranges dominant spines, secondary branches, broad faces, readable valleys and gentle feet. Use noise as subordinate detail rather than the entire structure. Replace the broad blur/height-envelope inheritance that destroys range structure. Keep existing city/road coordinates; local settlement seating constraints may shape the immediate ground but must not cut empty holes through whole ranges. Preserve existing geographic water channels; do not invent new major rivers from noise or add an erosion simulator by default. Retire the losing candidate code after its verdict.
+Preserve geographic range identity while improving dominant crests, secondary branches, readable valleys and gentle feet. Comparisons rejected the first source-mask and extracted-spine replacements, so a new algorithm is not a requirement in itself. Retain the existing geographic envelope until a replacement wins the visual comparison. Keep city/road coordinates and existing water channels; do not add an erosion simulator or use local settlement grading that creates circular craters. Retire losing candidate code after its verdict.
 
 ## Runnable checkpoint
 
-Planned landscape-mountains scene with neutral clay captures on a reference-inspired coastal ridge fixture, real Alps, and real Apennines at regional and close production pitch.
-
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+The [mountain scene](../../../web/scenes/campaign/landscape-mountains.mjs) isolates form with neutral clay views of a coastal ridge fixture, real Alps and real Apennines at regional and close production pitch. It also exposes coarse sampling separately from the detailed mesh. Natural regional scenes remain the shared-material integration guard.
 
 ## Verification and review
 
@@ -35,3 +33,10 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: A requested prominence/height change alters the profile. The agent can choose the profile from the reference without waiting for approval.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+
+## Independent form investigation
+
+The raw-mask and extracted-spine replacements were rejected by fresh visual comparisons: they created walls, fins and circular depressions while losing the starting relief's connected valleys and broad slopes. The implementation direction is therefore a smaller improvement to the existing geographic height envelope: sampling-safe crests, restrained fine detail, and a broader low coastal transition. No new range graph or source mask is retained. This replaces the initial assumption that a separate mask-driven ridge algorithm was necessary; the source geography and one geometry owner remain authoritative.
+
+Local foundation probes covered all 401 in-bounds settlements using the actual city meshes, but the candidate produced circular shelves in clay views. That implementation is deferred to slice12; existing source aprons and placement behavior remain authoritative in this pass. The detailed-grid result is distinct from coarse overview seating. Evidence, rejected paths, allocation boundaries and review results are in [the form investigation](../assets/slice-04/README.md). The independent pass accepts only a bounded perimeter/serration cleanup. The fresh reviewer explicitly leaves the larger valley/foothill character open; tiled-world integration and final verification remain pending.

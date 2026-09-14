@@ -30,8 +30,10 @@ export async function route(ctx: LabContext) {
   const center: [number, number] = [...preset.center];
   center[0] = numberParam(ctx.params, "x", center[0]);
   center[1] = numberParam(ctx.params, "y", center[1]);
+  const clay = ctx.params.get("clay") === "1";
+  const cell = numberParam(ctx.params, "cell", 2);
   const landscapes = (isFixture ? [-preset.radius, preset.radius] : [0]).map((offset) =>
-    buildCampaignLandscape(field, [center[0] + offset, center[1]], preset.radius),
+    buildCampaignLandscape(field, [center[0] + offset, center[1]], preset.radius, cell),
   );
   const surface = createSurfaceView(
     landscapes[0].surface,
@@ -57,13 +59,17 @@ export async function route(ctx: LabContext) {
         highlandCapMinM: 0,
       },
     });
+    if (clay) {
+      (ground.material as THREE.Material).dispose();
+      ground.material = new THREE.MeshStandardNodeMaterial({ color: 0x9c967f, roughness: 0.95 });
+    }
     ground.name = "campaign-continuous-landscape";
     ground.castShadow = true;
     world.scene.add(ground);
     return ground;
   });
   const scenery = new PhotorealScenery(world.scene);
-  scenery.upload(trees);
+  scenery.upload(clay ? [] : trees);
   const sun = world.sunLight!;
   sun.position.set(
     center[0] + env.sunDirection[0] * 500,
@@ -71,7 +77,7 @@ export async function route(ctx: LabContext) {
     env.sunDirection[2] * 500,
   );
   sun.target.position.set(center[0], center[1], 0);
-  sun.castShadow = true;
+  sun.castShadow = ctx.params.get("shadows") !== "0";
   sun.shadow.mapSize.set(1024, 1024);
   Object.assign(sun.shadow.camera, {
     left: -400,

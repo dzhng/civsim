@@ -1,0 +1,42 @@
+{
+  "note": "Distance from before, not an acceptance score. Same camera controls and ground-centering intent; target elevation follows geometry.",
+  "frames": [
+    {
+      "frame": "italy-regional",
+      "distance": 0.04115,
+      "pixelmatchRatio": 0.00511,
+      "edgeEnergyRatio": 0.83988
+    },
+    {
+      "frame": "italy-close",
+      "distance": 0.03036,
+      "pixelmatchRatio": 0.00304,
+      "edgeEnergyRatio": 0.87497
+    },
+    {
+      "frame": "fixture-close",
+      "distance": 0.02728,
+      "pixelmatchRatio": 0.0013,
+      "edgeEnergyRatio": 0.88555
+    },
+    {
+      "frame": "alps-close",
+      "distance": 0.02693,
+      "pixelmatchRatio": 0.01182,
+      "edgeEnergyRatio": 0.92994
+    },
+    {
+      "frame": "alps-regional",
+      "distance": 0.02541,
+      "pixelmatchRatio": 0.00786,
+      "edgeEnergyRatio": 0.93125
+    },
+    {
+      "frame": "fixture-regional",
+      "distance": 0.02017,
+      "pixelmatchRatio": 0.00068,
+      "edgeEnergyRatio": 0.91445
+    }
+  ],
+  "repeat": "six full frames: zero changed RGBA pixels"
+}

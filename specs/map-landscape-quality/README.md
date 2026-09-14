@@ -1,22 +1,22 @@
 # Shared landscape quality
 
-Status: implementation active; slices 01–02 complete, no production cutover yet. Updated: 2026-09-15.
+Status: implementation active; slices 01–03 complete, no production cutover yet. Updated: 2026-09-15.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Finish [03 — Bounded terrain residency and joins](slices/03-bounded-terrain.md) with real-geography traversal, total allocation accounting and hardware timing. The scheduler, source worker, joined presentation and campaign anchor fixture are verified checkpoints. Crown refinement and battle forest eligibility are integrated checkpoints; their remaining visual acceptance stays with 06/07. Slice 04 landform work continues independently in `/Users/david/dev/game-landscape-mountains`. Then parallelize shared material extraction (05), water boundaries (08), and campaign planting (07) as their inputs settle. Read [architecture](architecture.md) and [validation](validation.md). Update this prompt, the checklist and owning slice before ending a pass.
+Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. The bounded terrain foundation (01–03) is verified, including real geography, memory limits and hardware traversal. Integrate the minimal mountain cleanup from `/Users/david/dev/game-landscape-mountains` after its visual verdict, and crown candidate `144f6676` after merged regional checks. Shared material extraction (05) runs in `/Users/david/dev/game-landscape-materials`; root owns campaign planting (07), reusing the integrated battle scatter primitive. Then advance water boundaries (08) and real overlay inputs (11) along their implementation dependencies. Read [architecture](architecture.md) and [validation](validation.md). Update this prompt, the checklist and owning slice before ending a pass.
 
 The user has authorized implementation, renderer migration, refactoring and as many reversible spikes as useful. Make these decisions without permission questions. No compatibility backend or save migration is requested. Preserve gameplay and existing save formats; this is a presentation change. Human review is a chance to steer, not a wait for approval.
 
-Warnings: the regional spike remains below the visual bar and is not the production renderer. Crown checkpoints are not final forest acceptance. The merged code passes 461 tests and typecheck; joined presentation has 17 strictly identical RGBA captures; [presentation evidence](assets/slice-03/presentation.md) records the scope and remaining limits. Slice 02 has a ten-cycle Apple Metal lifecycle proof. Production retains inherited tolerant-baseline drift; do not call it exact. Whole-map budgets remain unverified. Rebuild the frozen preview before long hardware gates; its existing build predates current work. Preserve unrelated work and do not reset the worktree.
+Warnings: the regional spike remains below the visual bar and is not the production renderer. Crown checkpoints are not final forest acceptance. The merged code passes 464 tests and typecheck; joined presentation has 17 strictly identical RGBA captures; [presentation evidence](assets/slice-03/presentation.md) records the scope and remaining limits. Slice 02 has a ten-cycle Apple Metal lifecycle proof. Production retains inherited tolerant-baseline drift; do not call it exact. Terrain-only real-map traversal passes the selected hardware and allocation budgets; full UI/scenery acceptance remains in 15. Rebuild the frozen preview before long hardware gates; its existing build predates current work. Preserve unrelated work and do not reset the worktree.
 
 ### Global TODO
 
 - [x] [01 — World-stable surface and evidence](slices/01-surface-contract.md)
 - [x] [02 — One-world campaign composition proof](slices/02-campaign-composition-proof.md)
-- [ ] [03 — Bounded terrain residency and joins](slices/03-bounded-terrain.md)
+- [x] [03 — Bounded terrain residency and joins](slices/03-bounded-terrain.md)
 - [ ] [04 — Connected mountain form and foothills](slices/04-mountain-form.md)
 - [ ] [05 — Shared rock, scree and grass response](slices/05-terrain-material.md)
 - [ ] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)

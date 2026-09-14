@@ -2,14 +2,14 @@ import { expect, test } from "vitest";
 import * as THREE from "three/webgpu";
 import { buildCampaignLandscape } from "../../packages/game-renderer/src/terrain/campaignLandscape";
 import { coastalRidgeFixture } from "../../apps/renderer-lab/src/routes/landscapeFixtures";
-import { createBattleFrameUniforms } from "../../packages/photoreal-renderer/src/battle/battleTsl";
+import { createLandscapeFrameUniforms } from "../../packages/photoreal-renderer/src/landscape/shaderNodes";
 import { PhotorealTiledTerrain } from "../../packages/photoreal-renderer/src/campaign/tiledTerrain";
 
 test("unchanged edge uploads still account for the newly retained query revision", () => {
   const field = coastalRidgeFixture();
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8).surface;
   const scene = new THREE.Scene();
-  const terrain = new PhotorealTiledTerrain(scene, createBattleFrameUniforms(), coarse);
+  const terrain = new PhotorealTiledTerrain(scene, createLandscapeFrameUniforms(), coarse);
   const a = buildCampaignLandscape(field, [-96, -96], 32, 2).surface;
   const b = buildCampaignLandscape(field, [96, 96], 32, 2).surface;
   const install = (surface: typeof a, key: string) =>

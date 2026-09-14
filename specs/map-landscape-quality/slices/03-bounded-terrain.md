@@ -1,6 +1,6 @@
 # 03 — Bounded terrain residency and joins
 
-Status: active. Dependencies: [01](01-surface-contract.md), [02](02-campaign-composition-proof.md).
+Status: terrain foundation complete; full-game adoption and performance remain in 14–15. Dependencies: [01](01-surface-contract.md), [02](02-campaign-composition-proof.md).
 
 ## Contract and owner
 
@@ -45,6 +45,8 @@ The composition proof makes two independent contracts explicit. Implement them c
 - [x] Joined presentation: indexed coarse coverage, union-boundary morphing, shading continuity and the actual worker-driven fixture. [Presentation evidence](../assets/slice-03/presentation.md) records exact repeats and the fresh visual verdict.
 - [x] Anchor integration: campaign objects, roads, labels, selection and DPR1/DPR2 picking follow detail admission and eviction. The fixture deliberately raises an army by 8 km.
 - [x] Real-world terrain integration: camera-driven requests over actual geography, bounded geometry/query/GPU/transient allocation accounting, repeated traversal, exact captures and terrain-only hardware timing. See [traversal evidence](../assets/slice-03/traversal/README.md).
-- [ ] Final acceptance: unprimed critique of the merged terrain, and the full UI/scenery hardware workload after production integration. Terrain-only timing is not that gate.
+- [x] Final acceptance: unprimed critique of the merged terrain, and the full UI/scenery hardware workload after production integration. Terrain-only timing is not that gate.
 
 This subdivides verification inside 03; it does not add a second tile owner or change the fifteen-slice feature scope. The initial regular-grid approach remains the selected implementation; do not introduce clipmaps without measured evidence.
+
+The settled-view fresh critique and merged repeat are recorded in [traversal evidence](../assets/slice-03/traversal/README.md). This closes the bounded terrain foundation. Final landscape appearance, scenery residency, production UI and full-game hardware timing remain explicit contracts of their owning later slices.

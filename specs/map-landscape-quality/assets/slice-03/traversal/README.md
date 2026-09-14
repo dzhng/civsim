@@ -58,8 +58,9 @@ five snapshots repeated with zero differing pixels; all scene checks passed.
 [Hardware telemetry](hardware.json) and [SwiftShader telemetry](swiftshader.json)
 record the complete runs. [Comparison telemetry](comparison.json) records arrival versus
 return. [The looping traversal](traversal.gif) shows the checkpoint sequence.
-The root integration review owns the final unprimed visual critique once a fresh
-agent slot is available.
+Fresh unprimed review accepts spatial continuity in the settled views: no internal cracks, holes, rectangular patch joins, dropped regions or broken coastlines. The rectangular outer boundary is the source extent. The five-frame GIF does not establish transient-frame behavior; the continuous pan/reversal probes and frame-atomic surface contract provide separate evidence.
+
+Merged verification passes all 464 tests and TypeScript. All five canonical snapshots remain exactly identical, with repeated traversal, idle and DPR2 checks green. The only integration edit updates a new test import to the neutral shader owner; no rendering behavior changes.
 
 Independent Codex review caught the retained query-array accounting omission;
 it was fixed, and its new test was observed red on the omission and green after

@@ -1,5 +1,5 @@
 {
-  "passed": false,
+  "passed": true,
   "results": [
     {
       "preset": "golden",
@@ -223,19 +223,6 @@
   "errors": [],
   "scope": "linear HDR LUT and background sampling only; no PMREM, fixture parity or performance claim",
   "backend": "typegpu",
-  "capturedAt": "2026-09-14T20:08:33.168Z",
-  "pageErrors": [
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
-    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals."
-  ]
+  "capturedAt": "2026-09-14T20:17:47.966Z",
+  "pageErrors": []
 }

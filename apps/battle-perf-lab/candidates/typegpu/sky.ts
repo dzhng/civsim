@@ -42,22 +42,36 @@ export async function createTypegpuSky(device: GPUDevice, params: SkyModelParams
     .$uses({ lutView: lut.createView(), linearSampler: sampler, equirectUv, disc });
   // NodeMaterial.setup() applies max(output, 0) after colorNode. Preserve that
   // operation too: omitting it produces nonfinite lower-hemisphere texels.
+  const bakeColor = tgpu
+    .fn(
+      [d.vec2f],
+      d.vec4f,
+    )(`(uv: vec2f) -> vec4f {
+    return max(vec4f(radiance(direction(uv)), 1.0), vec4f(0.0));
+  }`)
+    .$uses({ radiance, direction });
+  const backgroundColor = tgpu
+    .fn(
+      [d.vec2f],
+      d.vec4f,
+    )(`(uv: vec2f) -> vec4f {
+    return max(vec4f(sample(rays.origin + rays.dx * uv.x + rays.dy * uv.y), 1.0), vec4f(0.0));
+  }`)
+    .$uses({ sample, rays: rays.as("uniform") });
   const bake = root.createRenderPipeline({
     vertex: common.fullScreenTriangle,
-    fragment: tgpu
-      .fragmentFn({ in: { uv: d.vec2f }, out: d.vec4f })(`{
-      return max(vec4f(radiance(direction(in.uv)), 1.0), vec4f(0.0));
-    }`)
-      .$uses({ radiance, direction }),
+    fragment: tgpu.fragmentFn({ in: { uv: d.vec2f }, out: d.vec4f })(({ uv }) => {
+      "use gpu";
+      return bakeColor(uv);
+    }),
     targets: { format: "rgba16float" },
   });
   const background = root.createRenderPipeline({
     vertex: common.fullScreenTriangle,
-    fragment: tgpu
-      .fragmentFn({ in: { uv: d.vec2f }, out: d.vec4f })(`{
-      return max(vec4f(sample(rays.origin + rays.dx * in.uv.x + rays.dy * in.uv.y), 1.0), vec4f(0.0));
-    }`)
-      .$uses({ sample, rays: rays.as("uniform") }),
+    fragment: tgpu.fragmentFn({ in: { uv: d.vec2f }, out: d.vec4f })(({ uv }) => {
+      "use gpu";
+      return backgroundColor(uv);
+    }),
     targets: { format: "rgba16float" },
   });
   try {

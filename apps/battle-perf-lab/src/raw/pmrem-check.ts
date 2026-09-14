@@ -8,6 +8,10 @@ import {
 } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import { decodeFloat16, readHdrTexture, compareHdr } from "../numericalReadback";
 import { createRawPmrem } from "./pmrem";
+import { createTypegpuPmrem } from "../../candidates/typegpu/pmrem";
+const backend = new URLSearchParams(location.search).get("backend") ?? "raw";
+if (!["raw", "typegpu"].includes(backend)) throw new Error("Unknown PMREM backend");
+const createPmrem = backend === "typegpu" ? createTypegpuPmrem : createRawPmrem;
 import { cubeUvWGSL } from "../shaders/pmrem";
 import { fullscreenWGSL } from "../shared/postShader";
 
@@ -174,7 +178,7 @@ async function run() {
         if (sameInput.maxAbs !== 0 || sameInput.nonfinite)
           throw new Error("Candidate LUT upload differs from reference texels");
         reference = generator.fromEquirectangular(sky.lut.texture);
-        candidate = await createRawPmrem(device, source);
+        candidate = await createPmrem(device, source);
         if (
           reference.width !== 336 ||
           reference.height !== 256 ||
@@ -280,6 +284,6 @@ async function run() {
     device.destroy();
   }
 }
-const report = await run();
+const report = { backend, ...(await run()) };
 document.querySelector("#result")!.textContent = JSON.stringify(report, null, 2);
-Object.assign(window, { __rawPmrem: report });
+Object.assign(window, { __pmrem: report });

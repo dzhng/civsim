@@ -1,6 +1,8 @@
 import { chromium } from "../../../../web/node_modules/playwright/index.mjs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { GPU_HARDWARE_FLAGS } from "../../../../web/renderer-probe-lib.mjs";
+const backend = process.env.PMREM_BACKEND ?? "raw";
+if (!["raw", "typegpu"].includes(backend)) throw new Error("Unknown PMREM backend");
 const browser = await chromium.launch({
   channel: "chrome",
   headless: true,
@@ -13,16 +15,21 @@ try {
   page.on("console", (m) => {
     if (["error", "warning"].includes(m.type())) pageErrors.push(m.text());
   });
-  await page.goto(process.env.PMREM_CHECK_URL ?? "http://localhost:5195/pmrem-check.html");
-  await page.waitForFunction(() => window.__rawPmrem !== undefined, null, { timeout: 120000 });
-  const result = await page.evaluate(() => window.__rawPmrem);
+  const url = new URL(process.env.PMREM_CHECK_URL ?? "http://localhost:5195/pmrem-check.html");
+  url.searchParams.set("backend", backend);
+  await page.goto(url.href);
+  await page.waitForFunction(() => window.__pmrem !== undefined, null, { timeout: 120000 });
+  const result = await page.evaluate(() => window.__pmrem);
   const report = {
     ...result,
     pageErrors,
     passed: result.passed && pageErrors.length === 0,
     capturedAt: new Date().toISOString(),
   };
-  const directory = new URL("../../../../specs/battle-performance/assets/02-raw/", import.meta.url);
+  const directory = new URL(
+    `../../../../specs/battle-performance/assets/02-${backend}/`,
+    import.meta.url,
+  );
   await mkdir(directory, { recursive: true });
   await writeFile(new URL("pmrem.json", directory), JSON.stringify(report, null, 2) + "\n");
   console.log(

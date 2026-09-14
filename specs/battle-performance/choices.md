@@ -1,5 +1,11 @@
 # Implementation choices
 
+## Provisional — backend comparison
+
+### TypeGPU atlas preparation uses its experimental command encoder
+
+The pinned TypeGPU API exposes typed render-pass viewport and scissor operations through its public experimental command encoder. The PMREM candidate uses that API to keep resource, pipeline and command ownership inside TypeGPU, rather than hiding a raw implementation behind its name. Numerical controls pass, but the API's stability remains a maintenance cost to weigh in the backend decision; this does not select TypeGPU for production.
+
 ## Sound — medium confidence
 
 ### Frame percentiles use nearest rank

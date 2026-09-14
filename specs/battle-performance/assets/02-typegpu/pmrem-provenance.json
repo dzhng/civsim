@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-09-14T20:36:52.031745+00:00",
+  "sourceRevision": "97d6652b82f0f31fbfbf414b463ebbd11cf7af2f",
+  "sourceFiles": {
+    "apps/battle-perf-lab/candidates/typegpu/pmrem.ts": "522db87f7470fc3935039fe272f43573b791e0188bad47bfcd6810b883418548",
+    "apps/battle-perf-lab/src/shaders/pmrem.ts": "23b717b4548fe2bf81f7cf4b5c2913c289db96fd49c309ab0b10d3c54a17a98c",
+    "apps/battle-perf-lab/src/raw/pmrem-check.ts": "737116b155644f7716486f72944cdc779a79ff0840f32203280ad114ef6116f3"
+  },
+  "versions": {
+    "typegpu": "0.12.5",
+    "three": "0.185.1"
+  },
+  "scope": "Numerical component parity; no full battle or performance claim",
+  "ownership": "Borrowed device/source; TypeGPU owns atlas, buffers, pipelines and preparation command encoding",
+  "apiDependency": "Public ~unstable.createCommandEncoder for typed viewport/scissor passes",
+  "validation": "Four presets, same independent Three control; raw rerun after shared function export refactor"
+}

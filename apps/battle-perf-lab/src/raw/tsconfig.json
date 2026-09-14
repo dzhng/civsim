@@ -7,7 +7,8 @@
       "three": ["../../../../web/node_modules/@types/three/index.d.ts"],
       "three/webgpu": ["../../../../web/node_modules/@types/three/build/three.webgpu.d.ts"],
       "three/tsl": ["../../../../web/node_modules/@types/three/build/three.tsl.d.ts"],
-      "three/examples/jsm/*": ["../../../../web/node_modules/@types/three/examples/jsm/*"]
+      "three/examples/jsm/*": ["../../../../web/node_modules/@types/three/examples/jsm/*"],
+      "typegpu": ["../../../../web/node_modules/typegpu/index.d.ts"]
     }
   },
   "include": ["./*.ts"]

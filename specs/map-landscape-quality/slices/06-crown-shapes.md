@@ -1,6 +1,6 @@
 # 06 — Tree crown representation and scale
 
-Status: pending. Dependencies: [01](01-surface-contract.md).
+Status: **06A implemented and verified; 06B close-foliage polish remains open.** Dependencies: [01](01-surface-contract.md).
 
 ## Contract and owner
 
@@ -35,3 +35,29 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: Preference for a more painted versus detailed crown changes its geometry/material profile, not ownership. Decide from the reference autonomously.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+
+## Implementation checkpoints
+
+**06A — accepted:** shared connected crown volumes, three world-stable variants,
+per-instance projected detail with hysteresis, stable coverage, matching visible
+and shadow cutouts, and bounded draw calls. Both map-pitch zoom/return sequences
+and the existing tree-family sheets repeat exactly. The generator and unused
+ellipsoid spike primitive are retired; the shared registry remains the owner.
+
+**06B — next:** the latest unprimed review accepts campaign use and the shown
+battle sizes, but reports thin fringe strips and remaining smooth interior
+patches at close zoom. Resolve those close-foliage artifacts before declaring
+all of slice 06 finished. Keep the accepted silhouette, coverage, draw budget,
+seed identity and shadow agreement intact.
+
+Evidence and the measured baseline ledger are in
+[the crown report](../assets/crowns/README.md). The separate-variant draw-call
+spike was rejected: instanced shape attributes restored the production battle
+from 74 draws to the same 54 as pristine HEAD. Full Vitest is 427 tests / 75
+files; typecheck and production build pass. The scoped 16 PNGs (20 capture calls,
+including returns) repeat with zero changed pixels on SwiftShader.
+
+The production default-battle marker/impostor assertion is a proven pristine
+failure and remains outside this slice. Unrelated stale non-tree baselines are
+preserved. The canonical campaign PNGs have been regenerated against the integrating worktree's current surface owner. [Merged integration evidence](../assets/crowns/integration/README.md) records exact repeats and the production campaign gate. Placement scale and forest coverage remain assigned to 07; whole-landscape shadow grounding remains assigned to 10.

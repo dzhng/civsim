@@ -1,7 +1,6 @@
 import { hash2 } from '../../../../renderer-core/src/math';
-// Procedural alpha-cutout atlas for tree foliage. Upstream ez-tree gets its
-// "many small leaves" look from alpha-tested cluster textures on each leaf
-// quad — an opaque quad can never read finer than its own silhouette. This
+// Procedural alpha-cutout atlas for tree foliage. Leaf cards carry a cluster
+// of small leaves rather than one opaque rectangular silhouette. This
 // atlas is generated in code (deterministic, no asset pipeline): a broadleaf
 // cluster tile and a pine needle-spray tile, alpha 0 between the leaves so the
 // cutout does the work. RGB is a luminance multiplier over the mesh's vertex
@@ -18,7 +17,8 @@ interface LeafAtlasRegion {
 interface LeafAtlas {
   width: number;
   height: number;
-  /** RGBA8, row-major from v=0. */
+  /** RGBA8, row-major from v=0. Transparent texels have black RGB; filtered
+   * samples must divide RGB by alpha before using it as a color multiplier. */
   rgba: Uint8Array;
   regions: { cluster: LeafAtlasRegion; needle: LeafAtlasRegion };
 }

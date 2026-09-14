@@ -1,3 +1,4 @@
+import { route as routeLandscapeTreeLod } from "./routes/landscapeTreeLod";
 import { gpuFailureMessage } from "@packages/renderer-core/src/device";
 import { route as routePhotorealCrowd } from "./routes/photorealCrowd";
 import { route as routePhotorealPbr } from "./routes/photorealPbr";
@@ -53,6 +54,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/battle": routeBattle,
   "/renderer/campaign-map": routeCampaignMap,
   "/renderer/campaign-composition": routeCampaignComposition,
+  "/renderer/landscape-tree-lod": routeLandscapeTreeLod,
   "/renderer/campaign-landscape": routeCampaignLandscape,
   "/renderer/landscape-surface": routeCampaignLandscape,
   "/renderer/terrain-water": routeTerrainWater,

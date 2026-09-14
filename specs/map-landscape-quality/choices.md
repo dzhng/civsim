@@ -12,3 +12,33 @@
 - **Cards anchor above the actual standard.** Placement derives from the shared standard tier's pole height and object scale; terrain occlusion still tests the body, so a flag tip behind a ridge does not make its hidden army label visible. A selected card may overlay map scenery, as other screen UI does. Slice 02.
 - **Authored model normals are authoritative.** The city/fixture model material transforms the shared models' authored normals into view space explicitly. This handles their mixed legacy winding without reversing exterior lighting or changing the source models for every consumer. Slice 02.
 - **Shutdown waits for outstanding timing readbacks.** The shared world releases its canvas immediately but destroys the renderer only after pending query reads settle. Original per-frame timing sampling is preserved; failures still disable further allocation and cannot be overwritten by older successful reads. Slice 02.
+
+## Crown representation decisions
+
+- **Sound, medium confidence:** Replace the recursive branch tree generator
+  with a shared crown surface and attached close leaf detail. Independent
+  near/far generators produced incompatible shapes; the same coverage floor
+  is simpler and fits the reference's broad canopy volumes. The unused
+  generator is deleted rather than retained as another appearance mode.
+- **Sound, high confidence:** Keep the dense crown at close range and add leaf
+  detail over it. Minification can remove small cutouts without hollowing out
+  the entire tree; shadows and visible geometry retain the same coverage.
+- **Sound, high confidence:** Normalize sampled atlas RGB by sampled alpha in
+  both renderer consumers. Black transparent texels otherwise produce a dark
+  line through filtering; this is the existing atlas's color contract.
+- **Sound, medium confidence:** Project normalized model height through the
+  active camera and use CSS pixels for tree detail selection. DPR changes do
+  not change an object's perceived size, and per-instance selection avoids
+  flipping a whole forest together.
+
+Variant count, thresholds, crown proportions and constructor details were
+explicitly delegated by the slice and are not additional architecture choices.
+
+- **Sound, high confidence:** Pack equal-topology variants into one instanced
+  geometry per family/detail. Separate variant meshes exceeded the existing
+  production draw budget; shape attributes preserve variety at the same draw
+  count as before.
+- **Sound, high confidence:** Use one cutout mask for visible and shadow passes.
+  The renderer's shadow override does not inherit opacity nodes, so opacity-only
+  fading left hidden cards casting shadows. The common mask follows the actual
+  shared renderer contract.

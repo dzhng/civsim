@@ -32,17 +32,17 @@ interface SceneryPropModel {
   /** Human label for review sheets. */
   label: string;
   family: SceneryPropFamily;
-  build: (detail?: TreeDetail) => MeshData;
+  build: (detail?: TreeDetail, variant?: number) => MeshData;
   /** Size a lone prop reads well at the campaign/battle pitch. */
   defaultScale: number;
 }
 
 export const SCENERY_PROP_MODELS: Record<SceneryPropId, SceneryPropModel> = {
-  conifer: { id: 'conifer', label: 'Conifer', family: 'tree', build: (detail) => buildTreeSpeciesMesh('conifer', detail), defaultScale: 4.1 },
-  broadleaf: { id: 'broadleaf', label: 'Broadleaf', family: 'tree', build: (detail) => buildTreeSpeciesMesh('broadleaf', detail), defaultScale: 4.1 },
-  ash: { id: 'ash', label: 'Ash', family: 'tree', build: (detail) => buildTreeSpeciesMesh('ash', detail), defaultScale: 4.1 },
-  aspen: { id: 'aspen', label: 'Aspen', family: 'tree', build: (detail) => buildTreeSpeciesMesh('aspen', detail), defaultScale: 4.1 },
-  bush: { id: 'bush', label: 'Bush', family: 'tree', build: (detail) => buildTreeSpeciesMesh('bush', detail), defaultScale: 3.0 },
+  conifer: { id: 'conifer', label: 'Conifer', family: 'tree', build: (detail, variant) => buildTreeSpeciesMesh('conifer', detail, variant), defaultScale: 4.1 },
+  broadleaf: { id: 'broadleaf', label: 'Broadleaf', family: 'tree', build: (detail, variant) => buildTreeSpeciesMesh('broadleaf', detail, variant), defaultScale: 4.1 },
+  ash: { id: 'ash', label: 'Ash', family: 'tree', build: (detail, variant) => buildTreeSpeciesMesh('ash', detail, variant), defaultScale: 4.1 },
+  aspen: { id: 'aspen', label: 'Aspen', family: 'tree', build: (detail, variant) => buildTreeSpeciesMesh('aspen', detail, variant), defaultScale: 4.1 },
+  bush: { id: 'bush', label: 'Bush', family: 'tree', build: (detail, variant) => buildTreeSpeciesMesh('bush', detail, variant), defaultScale: 3.0 },
   rock: { id: 'rock', label: 'Rock cluster', family: 'rock', build: buildRockMesh, defaultScale: 4.0 },
   mountain: { id: 'mountain', label: 'Mountain massif', family: 'mountain', build: buildMountainMesh, defaultScale: 4.6 },
   cart: { id: 'cart', label: 'Cart', family: 'cart', build: buildCartMesh, defaultScale: 3.4 },
@@ -82,6 +82,7 @@ interface PropReviewGroup {
 // Oblique review pitch: prop elevation is scaled by sin(pitch) under camera3d,
 // so the sheets read the props' height like the old full-z contact sheets.
 const TREE_CAMERA: PropReviewCamera = { x: 0, y: -0.3, zoom: 34, pitch: 1.0, yaw: 0 };
+const TREE_SINGLE_CAMERA: PropReviewCamera = { x: 0, y: -0.36, zoom: 45, pitch: 1.0, yaw: 0 };
 const SINGLE_CAMERA: PropReviewCamera = { x: 0, y: -0.36, zoom: 54, pitch: 1.0, yaw: 0 };
 const STONE_CAMERA: PropReviewCamera = { x: 0, y: -0.4, zoom: 40, pitch: 1.0, yaw: 0 };
 
@@ -102,31 +103,31 @@ export const PROP_REVIEW_GROUPS: PropReviewGroup[] = [
   {
     id: 'conifer',
     label: 'Conifer',
-    camera: SINGLE_CAMERA,
+    camera: TREE_SINGLE_CAMERA,
     props: [{ kind: 'conifer', x: 0.0, y: -0.55, size: 4.1, shade: 0.62 }],
   },
   {
     id: 'broadleaf',
     label: 'Broadleaf',
-    camera: SINGLE_CAMERA,
+    camera: TREE_SINGLE_CAMERA,
     props: [{ kind: 'broadleaf', x: 0.0, y: -0.55, size: 4.1, shade: 0.66 }],
   },
   {
     id: 'ash',
     label: 'Ash',
-    camera: SINGLE_CAMERA,
+    camera: TREE_SINGLE_CAMERA,
     props: [{ kind: 'ash', x: 0.0, y: -0.55, size: 4.1, shade: 0.6 }],
   },
   {
     id: 'aspen',
     label: 'Aspen',
-    camera: SINGLE_CAMERA,
+    camera: TREE_SINGLE_CAMERA,
     props: [{ kind: 'aspen', x: 0.0, y: -0.55, size: 4.1, shade: 0.6 }],
   },
   {
     id: 'bush',
     label: 'Bush',
-    camera: SINGLE_CAMERA,
+    camera: TREE_SINGLE_CAMERA,
     props: [
       { kind: 'bush', x: -1.4, y: -0.5, size: 3.0, shade: 0.6 },
       { kind: 'bush', x: 1.2, y: -0.7, size: 2.4, shade: 0.4, yaw: 2.1 },

@@ -62,7 +62,7 @@ export async function route(ctx: LabContext) {
     world.scene.add(ground);
     return ground;
   });
-  const scenery = new PhotorealScenery(world.scene, "canopy");
+  const scenery = new PhotorealScenery(world.scene);
   scenery.upload(trees);
   const sun = world.sunLight!;
   sun.position.set(
@@ -101,6 +101,7 @@ export async function route(ctx: LabContext) {
     pose.aspect = width / height;
     pose.target = [center[0], center[1], surface.sampleRendered(...center)!.position[2]];
     applyCamera3d(camera, pose);
+    scenery.prepareRender(camera, height);
     world.setTime(0);
     world.render(camera);
     const hit = surface.raycastRendered(screenRay(pose, 0, 0));

@@ -1,0 +1,38 @@
+[
+  {
+    "path": "web/shots/campaign/landscape-alps.png",
+    "pixels": 343785
+  },
+  {
+    "path": "web/shots/campaign/landscape-italy.png",
+    "pixels": 193285
+  },
+  {
+    "path": "web/shots/models/shared/props/ash.png",
+    "pixels": 620497
+  },
+  {
+    "path": "web/shots/models/shared/props/aspen.png",
+    "pixels": 616272
+  },
+  {
+    "path": "web/shots/models/shared/props/broadleaf.png",
+    "pixels": 613781
+  },
+  {
+    "path": "web/shots/models/shared/props/bush.png",
+    "pixels": 610560
+  },
+  {
+    "path": "web/shots/models/shared/props/conifer.png",
+    "pixels": 625986
+  },
+  {
+    "path": "web/shots/models/shared/props/tree-canopies.png",
+    "pixels": 79572
+  },
+  {
+    "path": "web/shots/models/shared/props/trees.png",
+    "pixels": 104814
+  }
+]

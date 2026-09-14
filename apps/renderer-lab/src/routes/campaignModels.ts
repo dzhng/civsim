@@ -830,9 +830,8 @@ function campaignModelShotHostileDepthSamples(canvas: HTMLCanvasElement, camera:
     bannerAnchor[1] - 0.088 * scale,
     5.15 * scale,
   ]);
-  // Sample the sunlit west side of the upper canopy — the ez-tree oak carries
-  // its leaf mass around the crown (mesh z ≈ 0.9-1.3), not at mid-trunk, and
-  // the cutout foliage only reads reliably where the crown is dense and lit.
+  // Sample the sunlit upper crown; a trunk-height sample cannot prove
+  // leaf color through the cutout foliage.
   const tree = projectNestedPoint(canvas, camera, [
     MODEL_SHOT_LATE_TREE.x - 0.25 * MODEL_SHOT_LATE_TREE.size,
     MODEL_SHOT_LATE_TREE.y,

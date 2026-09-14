@@ -1,0 +1,17 @@
+[
+  {
+    "name": "landscape-alps",
+    "changedPixels": 335821,
+    "totalPixels": 1024000
+  },
+  {
+    "name": "landscape-italy",
+    "changedPixels": 195630,
+    "totalPixels": 1024000
+  },
+  {
+    "name": "landscape-surface",
+    "changedPixels": 147942,
+    "totalPixels": 1024000
+  }
+]

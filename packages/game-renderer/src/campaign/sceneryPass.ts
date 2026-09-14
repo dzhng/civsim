@@ -74,7 +74,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let textured = in.uv.x >= 0.0;
   let texel = textureSample(leafTexture, leafSampler, max(in.uv, vec2f(0.0)));
   if (textured && texel.a < 0.5) { discard; }
-  let detail = select(vec3f(1.0), texel.rgb * ${LEAF_ATLAS_RGB_GAIN}, textured);
+  let detail = select(vec3f(1.0), texel.rgb / max(texel.a, 0.001) * ${LEAF_ATLAS_RGB_GAIN}, textured);
   let warmKey = vec3f(1.08, 1.00, 0.82);
   let coolFill = vec3f(0.72, 0.77, 0.82);
   let grade = mix(coolFill, warmKey, clamp((in.light - 0.48) / 0.66, 0.0, 1.0));

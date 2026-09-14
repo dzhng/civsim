@@ -548,6 +548,7 @@ export class PhotorealBattleWorld {
     this.markerLayer.setCameraBasis(this.camera);
     this.readoutLayer.setCameraBasis(this.camera);
     this.background.setStyle(this.lastCamera.zoom < 1.2 ? "wide-detail" : "default");
+    this.scenery.prepareRender(this.camera, this.world.renderer.domElement.clientHeight);
     this.world.render(this.camera);
   }
 

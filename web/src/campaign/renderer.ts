@@ -370,8 +370,8 @@ export class CampaignRenderer {
     // stays byte-identical; runtime advances it live.
     const sceneryTime = animTime;
     passes.shell.setTime(sceneryTime);
-    // View cull for the instanced props: the ez-tree meshes run thousands of
-    // triangles each, so offscreen forests must not reach the vertex shader.
+    // View cull for instanced props: offscreen forests must not reach
+    // the vertex shader.
     // Radial bound (screen diagonal in km, pitch-expanded) stays correct under
     // any camera yaw; the per-item margin covers footprint plus the screen
     // shift tall props get from elevation under tilt.

@@ -24,9 +24,6 @@ export const meta = {
 
 // Each prop family alone on neutral ground. Thresholds gate that the silhouette
 // actually renders (foliage/stone/wood), not merely that the frame is non-blank.
-// Tree floors sit at ~60% of what the ez-tree generated meshes measure: their
-// tapered cylindrical trunks keep wood-hue pixels below the box-like profile
-// trunks did, and the cypress conifer hides its trunk inside the foliage column.
 const CONTENT_REQUIREMENTS = {
   // Foliage floors sit at ~60% of what the alpha-cutout canopies measure:
   // cutout leaves show far fewer opaque pixels than solid quads did, and the
@@ -69,7 +66,7 @@ const gates = [
     id: "ash",
     label: "Ash Tree",
     criteria:
-      "Individual ash model reads as a tall shade tree: grey-brown trunk, visible limb skeleton, deep-green small-leaf canopy.",
+      "Individual ash model reads as a tall shade tree: grey-brown trunk and a deep-green layered crown.",
   },
   {
     id: "aspen",

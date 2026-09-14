@@ -159,6 +159,7 @@ export function configureSunShadows(
   // A non-default bit keeps Three from inheriting the main camera's mask.
   // Configure before CSM clones this camera; ordinary world casters stay on layer 0.
   shadow.camera.layers.enable(CROWD_SHADOW_LAYER);
+  shadow.camera.userData.battleShadowCamera = true;
   shadow.bias = SHADOW_BIAS;
   shadow.normalBias = SHADOW_NORMAL_BIAS;
   shadow.radius = radius;
@@ -239,6 +240,7 @@ function shadowViewsForCascadeLights(
     const cam = shadow?.camera;
     const lightTarget = light.target;
     if (!shadow || !cam || !lightTarget) continue;
+    cam.userData.battleShadowCamera = true;
     light.updateMatrixWorld(true);
     lightTarget.updateMatrixWorld(true);
     cam.position.setFromMatrixPosition(light.matrixWorld);

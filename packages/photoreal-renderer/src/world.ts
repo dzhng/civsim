@@ -8,6 +8,7 @@
 // setTime() + seeded RNG, so a fixed setTime renders byte-identical frames and
 // snapCheck baselines stay byte-stable.
 import * as THREE from 'three/webgpu';
+import { GpuTelemetry, timestampBackend } from './gpuTelemetry';
 import { uniform } from 'three/tsl';
 import type { CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
 
@@ -52,6 +53,7 @@ interface PhotorealWorldStats {
 export class PhotorealWorld {
   readonly renderer: THREE.WebGPURenderer;
   readonly scene: THREE.Scene;
+  readonly gpuTelemetry: GpuTelemetry;
   /** The one time uniform every animated TSL material in this world reads. */
   readonly uTime = uniform(0);
   /** Optional post-processing chain; when set, render() routes the
@@ -68,6 +70,7 @@ export class PhotorealWorld {
   sunLight: THREE.DirectionalLight | null = null;
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
+  private gpuPollPending = false;
   private environmentDisposer: (() => void) | null = null;
   // Snapshotted at render(): three's internal animation loop calls
   // info.reset() every browser frame, so live info.render counts read 0
@@ -78,6 +81,8 @@ export class PhotorealWorld {
   private constructor(renderer: THREE.WebGPURenderer, scene: THREE.Scene) {
     this.renderer = renderer;
     this.scene = scene;
+    this.gpuTelemetry = new GpuTelemetry(() => renderer.info.frame, scene);
+    renderer.inspector = this.gpuTelemetry;
   }
 
   static async create(canvas: HTMLCanvasElement, options: { antialias?: boolean } = {}): Promise<PhotorealWorld> {
@@ -138,8 +143,15 @@ export class PhotorealWorld {
   }
 
   render(camera: THREE.Camera): void {
-    if (this.post) this.post.render(this.scene, camera);
-    else this.renderer.render(this.scene, camera);
+    if (!this.gpuTelemetry.hasActiveSubmission) this.gpuTelemetry.beginSubmission(camera);
+    try {
+      this.gpuTelemetry.withScope("output", () => {
+        if (this.post) this.post.render(this.scene, camera);
+        else this.renderer.render(this.scene, camera);
+      });
+    } finally {
+      this.gpuTelemetry.endSubmission();
+    }
     this.lastDrawCalls = this.renderer.info.render.drawCalls;
     this.lastTriangles = this.renderer.info.render.triangles;
     this.pollGpuTime();
@@ -148,10 +160,17 @@ export class PhotorealWorld {
   private pollGpuTime(): void {
     // Pinned Three exposes this allocation gate; its published Backend type omits it.
     const backend = this.renderer.backend as typeof this.renderer.backend & { trackTimestamp: boolean };
-    if (!backend.trackTimestamp) return;
+    if (!backend.trackTimestamp) {
+      this.gpuTelemetry.resolve(timestampBackend(this.renderer), false);
+      return;
+    }
+    if (this.gpuPollPending) return;
+    this.gpuPollPending = true;
     const failed = () => {
       backend.trackTimestamp = false;
       this.gpuTimeMs = null;
+      this.gpuPollPending = false;
+      this.gpuTelemetry.resolve(timestampBackend(this.renderer), false);
     };
     try {
       // The independent pools must both drain, even though the standing metric
@@ -161,11 +180,13 @@ export class PhotorealWorld {
         this.renderer.resolveTimestampsAsync(THREE.TimestampQuery.COMPUTE),
       ])
         .then(() => {
+          this.gpuTelemetry.resolve(timestampBackend(this.renderer));
           if (!backend.trackTimestamp) return;
           const t = this.renderer.info.render.timestamp;
           if (typeof t === 'number' && t > 0) this.gpuTimeMs = t;
         })
-        .catch(failed);
+        .catch(failed)
+        .finally(() => { this.gpuPollPending = false; });
     } catch {
       failed();
     }

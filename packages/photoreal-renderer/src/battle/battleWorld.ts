@@ -448,6 +448,7 @@ export class PhotorealBattleWorld {
 
   /** Explicit poses and battle observations share the exact same production submission path. */
   drawInstances(instances: CrowdInstance[], camera: BattleCameraSnapshot, frameDt = 0): void {
+    this.world.gpuTelemetry.beginSubmission(this.camera, "battle-draw");
     this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
     this.setCamera(camera);
     this.instances = instances;
@@ -456,7 +457,9 @@ export class PhotorealBattleWorld {
     this.updateGrass();
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);
-    this.crowd.upload(this.instances, this.crowdVisibilityScope());
+    this.world.gpuTelemetry.withScope("pose", () =>
+      this.crowd.upload(this.instances, this.crowdVisibilityScope()),
+    );
     this.markerLayer.upload(this.markers);
   }
 
@@ -533,6 +536,7 @@ export class PhotorealBattleWorld {
   }
 
   render(): void {
+    if (!this.world.gpuTelemetry.hasActiveSubmission) this.world.gpuTelemetry.beginSubmission(this.camera);
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);
     if (this.world.sunLight) {
@@ -543,7 +547,9 @@ export class PhotorealBattleWorld {
       this.grass.setSunDirection(this.sunDirectionScratch);
     }
     updateWindUniforms(this.wind, this.world.time);
-    this.grass.prepareRender(this.world.renderer, this.lastCamera.camera3d);
+    this.world.gpuTelemetry.withScope("grass", () =>
+      this.grass.prepareRender(this.world.renderer, this.lastCamera.camera3d),
+    );
     this.crowd.refreshCamera(this.camera);
     this.markerLayer.setCameraBasis(this.camera);
     this.readoutLayer.setCameraBasis(this.camera);
@@ -663,10 +669,16 @@ export class PhotorealBattleWorld {
       markers: this.markerLayer.stats(),
       standards: { ...this.standardLayer.stats(), timeSeconds: this.world.time },
       readouts: this.readoutLayer.stats(),
+      gpuTelemetry: this.world.gpuTelemetry.snapshot(),
       performance: {
         gpuTimeMs: world.gpuTimeMs,
       },
     };
+  }
+
+  /** Capture alongside CPU frame metrics; asynchronous query results retain this identity. */
+  gpuSubmissionIdentity() {
+    return this.world.gpuTelemetry.latestSubmissionIdentity();
   }
 
   async settlePresentedFrame(): Promise<void> {

@@ -60,10 +60,14 @@ export function terrainHeightAt(field: TerrainHeightField, x: number, y: number)
 /** Unit surface normal at world (x,y), derived from the shared height sampler. */
 export function terrainNormalAt(field: TerrainHeightField, x: number, y: number, sampleDistance = field.cell): [number, number, number] {
   const d = Math.max(0.001, sampleDistance);
-  const dx = terrainHeightAt(field, x + d, y) - terrainHeightAt(field, x - d, y);
-  const dy = terrainHeightAt(field, x, y + d) - terrainHeightAt(field, x, y - d);
-  const nx = -dx / (2 * d);
-  const ny = -dy / (2 * d);
+  // At an edge, clamping samples shortens their separation. Dividing by 2d
+  // would flatten steep boundary cells and admit vegetation onto those faces.
+  const x0 = Math.max(field.ox + field.cell * 0.5, x - d);
+  const x1 = Math.min(field.ox + (field.w - 0.5) * field.cell, x + d);
+  const y0 = Math.max(field.oy + field.cell * 0.5, y - d);
+  const y1 = Math.min(field.oy + (field.h - 0.5) * field.cell, y + d);
+  const nx = x1 > x0 ? -(terrainHeightAt(field, x1, y) - terrainHeightAt(field, x0, y)) / (x1 - x0) : 0;
+  const ny = y1 > y0 ? -(terrainHeightAt(field, x, y1) - terrainHeightAt(field, x, y0)) / (y1 - y0) : 0;
   const nz = 1;
   const len = Math.hypot(nx, ny, nz) || 1;
   return [nx / len, ny / len, nz / len];

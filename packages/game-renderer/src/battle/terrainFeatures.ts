@@ -61,6 +61,8 @@ export interface BattleTerrainFeature {
   yaw: number;
   /** 0..1 fullness hint (clump area relative to its radius disc). */
   density: number;
+  /** Exact source cells for extracted forests; absent for explicitly authored disc features. */
+  cells?: readonly number[];
   /** The source tint byte, so a debug overlay can match the painted region. */
   tint: number;
 }
@@ -142,6 +144,7 @@ export function extractBattleTerrainFeatures(grid: BattleTerrainGrid, seed: numb
     stack.length = 0;
     stack.push(start);
     visited[start] = 1;
+    const cells: number[] = [];
     let area = 0;
     let sx = 0;
     let sy = 0;
@@ -149,6 +152,7 @@ export function extractBattleTerrainFeatures(grid: BattleTerrainGrid, seed: numb
       const i = stack.pop() as number;
       const cx = i % w;
       const cy = (i / w) | 0;
+      if (kind === 'forest') cells.push(i);
       area++;
       sx += cx;
       sy += cy;
@@ -164,7 +168,9 @@ export function extractBattleTerrainFeatures(grid: BattleTerrainGrid, seed: numb
     const yaw = hash01(seed ^ hashCoord(mx, my)) * Math.PI * 2;
     // Density: how disc-filling the clump is (1 = a solid disc of its radius).
     const density = Math.min(1, (area * cell * cell) / (Math.PI * radius * radius));
-    features.push({ kind, x: mx, y: my, radius, yaw, density, tint: tintByte });
+    features.push({ kind, x: mx, y: my, radius, yaw, density, tint: tintByte,
+      ...(kind === 'forest' ? { cells } : {}),
+    });
   }
   appendMicroRoughSamples(grid, seed, features);
   return features;

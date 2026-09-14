@@ -1,0 +1,40 @@
+{
+  "command": "VERIFY_URL=http://localhost:5190 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome bun run --cwd web scene battle-seating",
+  "sourceBase": "503be00e plus battle ecology worktree changes",
+  "baselineUpdates": false,
+  "pageErrors": false,
+  "passed": false,
+  "limitation": "Only existing baseline comparison was run; no same-hardware pristine seating control. Pixel differences cannot be attributed solely to ecology. Final scene visual acceptance remains pending.",
+  "frames": [
+    {
+      "map": "shore-and-crags",
+      "baselinePath": "web/shots/battle/seating/shore-and-crags.png",
+      "baselineCommit": "420516950c5adef625de7f50700702c6b1abdb76",
+      "differentPixels": 1017921,
+      "checkedSoldiers": 15560,
+      "allHeightsMatch": true,
+      "heightSpan": 4.083,
+      "soldierFraction": 0.2072
+    },
+    {
+      "map": "highland-vale",
+      "baselinePath": "web/shots/battle/seating/highland-vale.png",
+      "baselineCommit": "420516950c5adef625de7f50700702c6b1abdb76",
+      "differentPixels": 1017393,
+      "checkedSoldiers": 15560,
+      "allHeightsMatch": true,
+      "heightSpan": 3.902,
+      "soldierFraction": 0.2065
+    },
+    {
+      "map": "wooded-pass",
+      "baselinePath": "web/shots/battle/seating/wooded-pass.png",
+      "baselineCommit": "420516950c5adef625de7f50700702c6b1abdb76",
+      "differentPixels": 1008906,
+      "checkedSoldiers": 15560,
+      "allHeightsMatch": true,
+      "heightSpan": 4.022,
+      "soldierFraction": 0.2466
+    }
+  ]
+}

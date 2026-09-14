@@ -59,3 +59,15 @@ explicitly delegated by the slice and are not additional architecture choices.
 - **Sound, medium confidence — fixed coast sampling:** When zoom selects a coarser mesh, the shore should stay in the same place. Coast distance therefore uses a fixed 2 km world grid while terrain geometry can change spacing. A per-mesh distance transform changed beach and water signals at the same location. This adds bounded coast scratch independent of mesh spacing; the allocation estimate includes it. The plan required stable coast signals but did not choose their sampling owner.
 - **Sound, high confidence — interpolate the parent triangle:** When a fine tile meets coarse ground, its boundary follows the actual coarse triangle and vertex attributes, rather than independently resampling an analytic height. This makes shading and picking agree with the visible parent. Only the union's outer band blends; treating every tile edge independently would leave internal valleys. This settles the plan's delegated join implementation without adding a second surface owner.
 - **Sound, high confidence — exact means RGBA equality:** An edge pixel changing by one channel value must fail a zero-tolerance capture. The existing perceptual comparator could ignore it. Exact comparison now uses decoded pixel equality, while explicitly tolerant checks retain their existing behavior. This makes the test oracle match its stated contract; no product format or dependency changes.
+
+## Battle forest decisions
+
+- **Sound, high confidence (07 battle subpass):** Retain source-cell footprints
+  on extracted forest features. Centroid and equivalent-area radius discard
+  concavity and holes; re-reading the exact footprint preserves physical
+  clearings without a second gameplay reservation map. Authored features that
+  lack a footprint retain their explicit disc semantics.
+- **Sound, high confidence (07 battle subpass):** Keep the finite world lattice
+  in the CPU terrain owner while battle owns eligibility and cap policy.
+  Window origins and feature order cannot reseed a tree; random-priority
+  thinning avoids making the cap empty the last rows of a forest.

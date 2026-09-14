@@ -1,6 +1,6 @@
 # 07 — Forests, edges and intermediate ground detail
 
-Status: pending. Dependencies: [04](04-mountain-form.md), [05](05-terrain-material.md), [06](06-crown-shapes.md).
+Status: battle eligibility checkpoint integrated; campaign placement and composed visuals pending. Dependencies: [04](04-mountain-form.md), [05](05-terrain-material.md), [06](06-crown-shapes.md).
 
 ## Contract and owner
 
@@ -35,3 +35,26 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: A stronger preference for woodland density changes policy. Forest physics and strategic movement are not changed to match visual planting.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Battle eligibility checkpoint
+
+The battle subpass replaces the equivalent-area forest disc with each extracted
+forest's exact source-cell footprint. Explicitly authored features without a
+footprint retain their disc meaning. World-anchored lattice candidates share
+identity across windows and feature enumeration; the existing per-forest cap is
+selected by stable random priority rather than filling the first rows.
+
+Only forest tint cells admit trees. Existing water, roads, walls and gameplay
+clearings therefore remain exclusions without a second reservation map. The
+shared height sampler rejects steep surfaces; its normal helper now uses the
+actual one-sided sample separation at field edges, also correcting the same
+eligibility error for battle grass. No physical height, tint or gameplay rule
+is changed.
+
+The production placement control has 139 of 240 trees outside a concave forest
+before this subpass and 0 of 240 after. Seven CPU cases cover that reproduction,
+reserved cells, slopes, deterministic identity, explicit disc semantics, window
+overlap and boundary normals. See [battle ecology evidence](../assets/ecology/README.md).
+
+Whole-slice status remains **pending**: campaign distribution, production scale,
+intermediate vegetation detail and the composed visual acceptance still remain.

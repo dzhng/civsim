@@ -1,3 +1,4 @@
+import type { TreeDetail } from './sceneryPropModels';
 import type { MeshData } from './meshBuilder';
 import {
   buildCartMesh,
@@ -31,17 +32,17 @@ interface SceneryPropModel {
   /** Human label for review sheets. */
   label: string;
   family: SceneryPropFamily;
-  build: () => MeshData;
+  build: (detail?: TreeDetail) => MeshData;
   /** Size a lone prop reads well at the campaign/battle pitch. */
   defaultScale: number;
 }
 
 export const SCENERY_PROP_MODELS: Record<SceneryPropId, SceneryPropModel> = {
-  conifer: { id: 'conifer', label: 'Conifer', family: 'tree', build: () => buildTreeSpeciesMesh('conifer'), defaultScale: 4.1 },
-  broadleaf: { id: 'broadleaf', label: 'Broadleaf', family: 'tree', build: () => buildTreeSpeciesMesh('broadleaf'), defaultScale: 4.1 },
-  ash: { id: 'ash', label: 'Ash', family: 'tree', build: () => buildTreeSpeciesMesh('ash'), defaultScale: 4.1 },
-  aspen: { id: 'aspen', label: 'Aspen', family: 'tree', build: () => buildTreeSpeciesMesh('aspen'), defaultScale: 4.1 },
-  bush: { id: 'bush', label: 'Bush', family: 'tree', build: () => buildTreeSpeciesMesh('bush'), defaultScale: 3.0 },
+  conifer: { id: 'conifer', label: 'Conifer', family: 'tree', build: (detail) => buildTreeSpeciesMesh('conifer', detail), defaultScale: 4.1 },
+  broadleaf: { id: 'broadleaf', label: 'Broadleaf', family: 'tree', build: (detail) => buildTreeSpeciesMesh('broadleaf', detail), defaultScale: 4.1 },
+  ash: { id: 'ash', label: 'Ash', family: 'tree', build: (detail) => buildTreeSpeciesMesh('ash', detail), defaultScale: 4.1 },
+  aspen: { id: 'aspen', label: 'Aspen', family: 'tree', build: (detail) => buildTreeSpeciesMesh('aspen', detail), defaultScale: 4.1 },
+  bush: { id: 'bush', label: 'Bush', family: 'tree', build: (detail) => buildTreeSpeciesMesh('bush', detail), defaultScale: 3.0 },
   rock: { id: 'rock', label: 'Rock cluster', family: 'rock', build: buildRockMesh, defaultScale: 4.0 },
   mountain: { id: 'mountain', label: 'Mountain massif', family: 'mountain', build: buildMountainMesh, defaultScale: 4.6 },
   cart: { id: 'cart', label: 'Cart', family: 'cart', build: buildCartMesh, defaultScale: 3.4 },

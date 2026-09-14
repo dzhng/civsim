@@ -10,7 +10,7 @@ async function route(ctx: LabContext) {
   const group = PROP_REVIEW_GROUPS.find((g) => g.id === requested) ?? PROP_REVIEW_GROUPS[0];
   const camera = group.camera;
   const shell = await createCampaignShell(ctx.canvas, camera);
-  const scenery = new CampaignSceneryPass(shell);
+  const scenery = new CampaignSceneryPass(shell, ctx.params.get("detail") === "canopy" ? "canopy" : "leaves");
   const instances: CampaignSceneryInstance[] = group.props.map((prop) => ({
     x: prop.x,
     y: prop.y,

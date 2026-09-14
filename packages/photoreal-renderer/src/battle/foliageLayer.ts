@@ -1,6 +1,7 @@
 // foliageLayer — battle scenery on the photoreal substrate. Production grass
 // belongs to the blade-field layer. Scenery uses the CampaignSceneryPass pose
 // over the shared prop meshes (SCENERY_PROP_MODELS).
+import type { TreeDetail } from "../../../game-renderer/src/models/shared/sceneryPropModels";
 import * as THREE from "three/webgpu";
 import { attribute, clamp, float, mix, normalize, step, texture, varying, vec2, vec3, vec4 } from "three/tsl";
 import type { CampaignSceneryInstance } from "../../../game-renderer/src/campaign/sceneryPass";
@@ -34,10 +35,10 @@ export class PhotorealScenery {
   private readonly leafMap: THREE.DataTexture;
   private total = 0;
 
-  constructor(scene: THREE.Scene) {
+  constructor(scene: THREE.Scene, detail: TreeDetail = "leaves") {
     this.leafMap = leafAtlasTexture();
     for (const kind of SCENERY_KINDS) {
-      const model = SCENERY_PROP_MODELS[kind].build();
+      const model = SCENERY_PROP_MODELS[kind].build(detail);
       const opaque = new THREE.Mesh(
         sceneryGeometry(model.opaque.vertices, model.opaque.indices, model.opaque.uvs),
         sceneryMaterial(this.leafMap),

@@ -106,6 +106,31 @@ export class MeshBuilder {
     }
   }
 
+  /** A low-resolution crown volume with smooth normals; leaf coverage survives
+   * minification while the silhouette retains a few irregular facets. */
+  ellipsoid(center: [number, number, number], radius: [number, number, number], color: Rgb, seed: number) {
+    const rings = 5, sides = 10, start = this.opaqueVertices.length / 10;
+    for (let row = 0; row <= rings; row++) {
+      const theta = row * Math.PI / rings;
+      for (let col = 0; col <= sides; col++) {
+        const phi = col * Math.PI * 2 / sides;
+        const nx = Math.sin(theta) * Math.cos(phi), ny = Math.sin(theta) * Math.sin(phi), nz = Math.cos(theta);
+        const rough = 0.93 + hash2(seed + row, col % sides) * 0.14;
+        const length = Math.hypot(nx / radius[0], ny / radius[1], nz / radius[2]);
+        const tint = 0.92 + hash2(seed, col % sides + row * sides) * 0.12;
+        this.opaqueVertices.push(
+          center[0] + nx * radius[0] * rough, center[1] + ny * radius[1] * rough, center[2] + nz * radius[2] * rough,
+          nx / radius[0] / length, ny / radius[1] / length, nz / radius[2] / length,
+          color[0] * tint, color[1] * tint, color[2] * tint, 1,
+        );
+      }
+    }
+    for (let row = 0; row < rings; row++) for (let col = 0; col < sides; col++) {
+      const a = start + row * (sides + 1) + col, b = a + sides + 1;
+      this.opaqueIndices.push(a, b, a + 1, a + 1, b, b + 1);
+    }
+  }
+
   blob(center: [number, number, number], radius: [number, number, number], color: Rgb, seed: number) {
     const [cx, cy, cz] = center;
     const [rx, ry, rz] = radius;

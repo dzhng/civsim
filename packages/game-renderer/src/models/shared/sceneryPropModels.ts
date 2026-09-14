@@ -229,7 +229,33 @@ const TREE_SPECIES: Record<TreeSpeciesId, TreeSpecies> = {
   },
 };
 
-export function buildTreeSpeciesMesh(id: TreeSpeciesId): MeshData {
+export type TreeDetail = "leaves" | "canopy";
+
+export function buildTreeSpeciesMesh(id: TreeSpeciesId, detail: TreeDetail = "leaves"): MeshData {
   const species = TREE_SPECIES[id];
-  return buildEzTreeMesh(species);
+  if (detail === "leaves") return buildEzTreeMesh(species);
+  // At map scale alpha-tested leaf cards lose coverage. Crown volumes preserve
+  // the species palette and silhouette without drawing sub-pixel branches.
+  const builder = new MeshBuilder();
+  const h = species.height;
+  const color = species.palette.leafHigh;
+  builder.box([0, 0, h * 0.23], [0.09, 0.09, h * 0.46], species.palette.bark, 1);
+  if (id === "conifer") {
+    for (let tier = 0; tier < 3; tier++)
+      builder.cone([0, 0, h * (0.40 + tier * 0.19)], 0.44 - tier * 0.10, h * 0.48, 9, species.palette.leafLow, color, 41 + tier);
+  } else {
+    const wide = id === "aspen" ? 0.30 : id === "bush" ? 0.65 : 0.55;
+    builder.ellipsoid([0, 0, h * 0.69], [wide, wide, h * 0.30], color, 17);
+    for (let crown = 0; crown < 5; crown++) {
+      const a = crown * Math.PI * 2 / 5;
+      builder.ellipsoid(
+        [Math.cos(a) * wide * 0.60, Math.sin(a) * wide * 0.60, h * (0.54 + (crown % 3) * 0.075)],
+        [wide * 0.66, wide * 0.66, h * 0.23],
+        crown % 2 ? color : species.palette.leafLow,
+        31 + crown * 13,
+      );
+    }
+  }
+  builder.shadow(species.shadowRadius);
+  return builder.finish(`${id} canopy`);
 }

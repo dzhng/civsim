@@ -127,6 +127,8 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
 };
 
 interface TerrainMaterialOptions {
+  /** Material-detail frequency in native world units; geometry and masks stay unscaled. */
+  detailScale?: number;
   slopeBands?: BattleSlopeBands | null;
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
@@ -353,7 +355,8 @@ export function createGroundMesh(
   const surfaceColor = varying(attribute<"vec3">("gSurfaceColor", "vec3")).toVar();
   const water = varying(attribute<"float">("gWater", "float")).toVar();
   const tint = varying(attribute<"float">("gTint", "float")).toVar();
-  const world = varying(position.xy).toVar();
+  const surfaceWorld = varying(position.xy).toVar();
+  const world = options.detailScale ? surfaceWorld.mul(options.detailScale).toVar() : surfaceWorld;
   const rawWaterBlend = saturateN(water).toVar();
   const waterBlend = smoothstepN(0.08, 0.55, rawWaterBlend).toVar();
 
@@ -380,8 +383,8 @@ export function createGroundMesh(
     earthDistanceTexture.flipY = false;
     earthDistanceTexture.needsUpdate = true;
     const uv = vec2(
-      world.x.sub(sdf.ox).div(sdf.cell * sdf.width),
-      world.y.sub(sdf.oy).div(sdf.cell * sdf.height),
+      surfaceWorld.x.sub(sdf.ox).div(sdf.cell * sdf.width),
+      surfaceWorld.y.sub(sdf.oy).div(sdf.cell * sdf.height),
     ).toVar();
     const encoded = texture(earthDistanceTexture, clamp(uv, vec2(0), vec2(1))).toVar();
     const inBounds = step(0, uv.x).mul(step(uv.x, 1)).mul(step(0, uv.y)).mul(step(uv.y, 1));
@@ -524,7 +527,7 @@ export function createGroundMesh(
       0.95,
       fbmN(world.mul(vec2(0.32, 0.32)).add(warp.mul(0.35))),
     ).toVar();
-    const strataPhase = fract(position.z.mul(0.16).add(warp.mul(1.7))).toVar();
+    const strataPhase = fract(position.z.mul(0.16 * (options.detailScale ?? 1)).add(warp.mul(1.7))).toVar();
     const strata = smoothstepN(0.7, 0.98, abs(strataPhase.mul(2.0).sub(1.0)))
       .mul(smoothstepN(0.35, 0.75, fbmN(world.mul(0.021).add(vec2(11.0, 3.0)))))
       .toVar();
@@ -559,9 +562,12 @@ export function createGroundMesh(
 
   // Field water: the shared water surface blended by the box-filtered weight
   // (albedo + roughness — wet ground gets a real sun sheen).
-  const fieldWater = fieldWaterSurfaceNodes(frame, world, rawWaterBlend);
-  albedo = mix(albedo, fieldWater.albedo, waterBlend);
-  material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), 1.0);
+  const fieldWater = fieldWaterSurfaceNodes(frame, surfaceWorld, rawWaterBlend);
+  // Water is already linear; convert only the display-authored dry surface.
+  material.colorNode = vec4(
+    mix(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), fieldWater.albedo, waterBlend),
+    1.0,
+  );
   const dryRoughnessFloor = options.vistaBand
     ? options.vistaBand === "farFog"
       ? float(0.995)

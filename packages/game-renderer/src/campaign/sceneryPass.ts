@@ -1,3 +1,4 @@
+import type { TreeDetail } from "../models/shared/sceneryPropModels";
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from '../../../renderer-core/src/gpuBuffers';
@@ -101,7 +102,7 @@ export class CampaignSceneryPass {
   private leafBindGroupLayout: GPUBindGroupLayout;
   private buckets = new Map<SceneryPropId, SceneryBucket>();
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, detail: TreeDetail = "leaves") {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'scenery-mesh-wgsl', code: SCENERY_WGSL });
     this.leafBindGroupLayout = device.createBindGroupLayout({
@@ -115,7 +116,7 @@ export class CampaignSceneryPass {
     this.opaquePipeline = this.makePipeline(module, 'opaque');
     this.shadowPipeline = this.makePipeline(module, 'shadow');
     for (const id of SCENERY_PROP_IDS) {
-      const mesh = SCENERY_PROP_MODELS[id].build();
+      const mesh = SCENERY_PROP_MODELS[id].build(detail);
       this.buckets.set(id, {
         mesh,
         vertexBuffer: makeVertexBuffer(device, `campaign-${id}-vertices`, mesh.opaque.vertices),

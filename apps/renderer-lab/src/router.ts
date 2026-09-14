@@ -23,6 +23,8 @@ import { route as routeSkinnedCrowd } from "./routes/skinnedCrowd";
 import { route as routeSkinnedDepth } from "./routes/skinnedDepth";
 import { route as routeLod } from "./routes/lod";
 import { route as routeBattle } from "./routes/battle";
+import { route as routeTerrainWater } from "./routes/terrainWater";
+import { route as routeCampaignLandscape } from "./routes/campaignLandscape";
 import { route as routeCampaignMap } from "./routes/campaignMap";
 import { route as routeCampaignUi } from "./routes/campaignUi";
 import { route as routeCampaignModelShots } from "./routes/campaignModels";
@@ -49,6 +51,8 @@ const routes: Record<string, LabRoute> = {
   "/renderer/lod": routeLod,
   "/renderer/battle": routeBattle,
   "/renderer/campaign-map": routeCampaignMap,
+  "/renderer/campaign-landscape": routeCampaignLandscape,
+  "/renderer/terrain-water": routeTerrainWater,
   "/renderer/campaign-ui": routeCampaignUi,
   "/renderer/campaign-models": routeCampaignModelShots,
   "/renderer/shared-prop-models": routeSharedPropModelShots,

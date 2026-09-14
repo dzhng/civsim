@@ -33,7 +33,12 @@ import {
 } from "three/tsl";
 import type { Node } from "three/webgpu";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
-import { BETA_MIE_EXTINCTION, BETA_RAYLEIGH, mieScale, SkyModel } from "./skyModel";
+import { SkyModel } from "./skyModel";
+import {
+  BETA_MIE_EXTINCTION,
+  BETA_RAYLEIGH,
+  mieScale,
+} from "../../../game-renderer/src/environment/skyParameters";
 
 type Rgb = readonly [number, number, number];
 type Vec4Node = Node<"vec4">;

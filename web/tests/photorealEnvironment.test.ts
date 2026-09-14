@@ -5,14 +5,14 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment.ts";
-import { photorealEnvironment } from "@packages/photoreal-renderer/src/environment.ts";
+import { photorealEnvironment } from "@packages/game-renderer/src/environment/physicalEnvironment.ts";
 import {
   overcastFromTurbidity,
   lowSunAureoleStrength,
   mieScale,
   skyModelParams,
   transmittanceToSun,
-} from "@packages/photoreal-renderer/src/atmosphere/skyModel.ts";
+} from "@packages/game-renderer/src/environment/skyParameters.ts";
 import {
   AERIAL_DISTANCE_SCALE,
   aerialParams,

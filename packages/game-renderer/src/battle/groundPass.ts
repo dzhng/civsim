@@ -190,3 +190,14 @@ export function buildPhotorealBattleGroundMesh(
 function mix(a: Rgb, b: Rgb, t: number): Rgb {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 }
+
+/** Match the ground layer’s front-facing triangle winding. */
+export function frontSideGroundIndices(indices: Uint32Array): Uint32Array {
+  const out = new Uint32Array(indices.length);
+  for (let i = 0; i + 2 < indices.length; i += 3) {
+    out[i] = indices[i];
+    out[i + 1] = indices[i + 2];
+    out[i + 2] = indices[i + 1];
+  }
+  return out;
+}

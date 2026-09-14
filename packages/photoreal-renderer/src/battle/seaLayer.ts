@@ -40,17 +40,17 @@ import {
   type Vec3Node,
 } from "./battleTsl";
 
-// The neutral scattering colour the sea contributes beneath its sky reflection.
-// These are display-authored effective albedos: pale Aegean turquoise in the
-// shallows and a restrained deep-water blue offshore under the golden preset.
-const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.22, 0.58, 0.6];
-const WATER_DEEP_ALBEDO: [number, number, number] = [0.025, 0.095, 0.22];
-const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
-const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.4];
-// Calm water is glossy: the sun track is standard-material GGX specular from
-// the live environment sun; foam stays matte.
-const WATER_ROUGHNESS = 0.105;
-const WATER_FOAM_ROUGHNESS = 0.78;
+import {
+  WATER_SHALLOW_ALBEDO,
+  WATER_DEEP_ALBEDO,
+  WATER_FOAM_ALBEDO,
+  WATER_SAND_TURBIDITY_ALBEDO,
+  WATER_ROUGHNESS,
+  WATER_FOAM_ROUGHNESS,
+  LAKE_NORMAL_DETAIL_FADE_START,
+  LAKE_NORMAL_DETAIL_FADE_END,
+} from "../../../game-renderer/src/water/physicalWaterPolicy";
+
 // 12b trap: the sea looked right nearby but sparkled like aliasing in the
 // grazing upper band. Fade normal detail with distance from the battle focus;
 // aerial haze remains owned by scene.fogNode.
@@ -85,10 +85,6 @@ const LAKE_SWELL_SCALE = 0.035;
 // becalmed lake becomes a mirror and renders as a blown-white patch.
 const LAKE_NORMAL_STRENGTH = 0.42;
 const LAKE_NORMAL_DETAIL_FAR = 0.08;
-// Ripple normals must be GONE well before vista range: sun-glint facets
-// alias into blue/white cobblestone blobs at ~600m (compose rounds 1-2).
-const LAKE_NORMAL_DETAIL_FADE_START = 120;
-const LAKE_NORMAL_DETAIL_FADE_END = 420;
 const FIELD_WATER_DETAIL_FADE_START = LAKE_NORMAL_DETAIL_FADE_START;
 const FIELD_WATER_DETAIL_FADE_END = LAKE_NORMAL_DETAIL_FADE_END;
 const WATER_TINT = 1;

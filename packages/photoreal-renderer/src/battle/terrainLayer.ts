@@ -6,6 +6,8 @@
 // buildBattleHorizonLayout). Distance haze comes ONLY from the shared
 // aerial-perspective hook (scene.fogNode) — no material here adds
 // its own haze, ever.
+import { frontSideGroundIndices } from "../../../game-renderer/src/battle/groundPass";
+import { TURF_CONTRAST } from "../../../game-renderer/src/battle/groundMaterialPolicy";
 import * as THREE from "three/webgpu";
 import {
   abs,
@@ -59,7 +61,6 @@ import {
   turfEdgeCoverageNode,
   turfCanopyFromSignalsNode,
   turfCanopyNode,
-  TURF_CONTRAST,
 } from "./groundDetail";
 import { fieldWaterSurfaceNodes } from "./seaLayer";
 import type {
@@ -343,7 +344,7 @@ export function createGroundMesh(
   const earthDistance = options.earthDistance;
   const earthEdgesEnabled = earthDistance !== undefined;
   let earthDistanceTexture: THREE.DataTexture | null = null;
-  geo.setIndex(new THREE.BufferAttribute(frontSideIndexBuffer(mesh.indices), 1));
+  geo.setIndex(new THREE.BufferAttribute(frontSideGroundIndices(mesh.indices), 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
   const position = attribute<"vec3">("position", "vec3");
@@ -722,16 +723,6 @@ function buildVistaGroundMesh(
     indices: new Uint32Array(indices),
     triangles: indices.length / 3,
   };
-}
-
-function frontSideIndexBuffer(indices: Uint32Array): Uint32Array {
-  const out = new Uint32Array(indices.length);
-  for (let i = 0; i + 2 < indices.length; i += 3) {
-    out[i] = indices[i];
-    out[i + 1] = indices[i + 2];
-    out[i + 2] = indices[i + 1];
-  }
-  return out;
 }
 
 /** The sealed-edge blocker mesh (horizonPass port — cliffs/walls/aprons). */

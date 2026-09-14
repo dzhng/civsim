@@ -1,9 +1,9 @@
+import { TURF_CONTRAST } from "@packages/game-renderer/src/battle/groundMaterialPolicy";
 import { buildPhotorealBattleGroundMesh } from "@packages/game-renderer/src/battle/groundPass";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 import {
   coverEdgeCoverage,
   coverEdgeNoise,
-  TURF_CONTRAST,
 } from "@packages/photoreal-renderer/src/battle/groundDetail";
 
 export interface BattleGroundEdgeFixture {

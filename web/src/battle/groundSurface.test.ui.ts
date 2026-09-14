@@ -1,3 +1,4 @@
+import { TURF_CONTRAST } from "@packages/game-renderer/src/battle/groundMaterialPolicy";
 import { describe, expect, it } from "vitest";
 import {
   buildBattleGroundMesh,
@@ -7,7 +8,6 @@ import { isBattleRoadSurface } from "@packages/game-renderer/src/battle/photorea
 import {
   coverEdgeCoverage,
   mudInteriorCoverage,
-  TURF_CONTRAST,
 } from "@packages/photoreal-renderer/src/battle/groundDetail";
 
 describe("photoreal battle ground surfaces", () => {

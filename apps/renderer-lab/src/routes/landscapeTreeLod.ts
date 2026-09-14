@@ -2,7 +2,7 @@ import * as THREE from "three/webgpu";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
-import { PhotorealScenery } from "@packages/photoreal-renderer/src/battle/foliageLayer";
+import { PhotorealScenery } from "@packages/photoreal-renderer/src/landscape/sceneryLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
 import type { SceneryPropId } from "@packages/game-renderer/src/models/shared/sceneryPropRegistry";

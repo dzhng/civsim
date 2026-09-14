@@ -1,13 +1,14 @@
+import type { SceneryInstance } from "../terrain/scenery";
 import type { CampaignRenderData } from "../campaign/entityFrame";
-import type { CampaignSceneryInstance } from "../campaign/sceneryPass";
+
 import { hash2 } from "../../../renderer-core/src/math";
 
-export function testStageScenery(data: CampaignRenderData): CampaignSceneryInstance[] {
+export function testStageScenery(data: CampaignRenderData): SceneryInstance[] {
   const [x0, y0] = data.bgRect.min;
   const [x1, y1] = data.bgRect.max;
   const cx = (x0 + x1) * 0.5;
   const cy = (y0 + y1) * 0.5;
-  const items: CampaignSceneryInstance[] = [
+  const items: SceneryInstance[] = [
     { x: cx - 34, y: y1 - 5, size: 13.2, kind: "mountain" },
     { x: cx - 26, y: y1 - 2, size: 11.6, kind: "mountain" },
     { x: cx - 16, y: y1 - 6, size: 12.4, kind: "mountain" },

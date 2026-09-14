@@ -1,4 +1,4 @@
-import type { CampaignSceneryInstance, CampaignSceneryKind } from "./sceneryPass";
+import type { SceneryInstance } from "../terrain/scenery";
 import type {
   CampaignRenderData,
   CampaignSceneryReservation,
@@ -24,7 +24,7 @@ function sceneryFootprintOnLand(field: CampaignTerrainField, x: number, y: numbe
   return field.renderLandAt(x, y, size * 0.5);
 }
 
-export function tallySceneryCandidates(candidates: CampaignSceneryInstance[]) {
+export function tallySceneryCandidates(candidates: SceneryInstance[]) {
   const tally = { total: candidates.length, mountains: 0, trees: 0, rocks: 0 };
   for (const item of candidates) {
     if (item.kind === "mountain") tally.mountains++;
@@ -37,11 +37,11 @@ export function tallySceneryCandidates(candidates: CampaignSceneryInstance[]) {
 const SCENERY_VIEW_MARGIN_KM = 16;
 
 export function campaignScenery(
-  candidates: CampaignSceneryInstance[],
+  candidates: SceneryInstance[],
   reservations: CampaignSceneryReservation[] = [],
   scale = 1,
   view?: { x: number; y: number; radiusKm: number },
-): CampaignSceneryInstance[] {
+): SceneryInstance[] {
   const lodFiltered = candidates.filter((item) => {
     if (scale < sceneryMinScale(item)) return false;
     if (!view) return true;
@@ -56,12 +56,12 @@ export function buildCampaignSceneryCandidates(
   field: CampaignTerrainField,
   controlledStage: boolean,
   temperateYKm: number,
-): CampaignSceneryInstance[] {
+): SceneryInstance[] {
   if (data.map.attribution === "test")
     return clearCampaignStaticScenery(data, testStageScenery(data), controlledStage);
-  const mountains: ScoredCampaignSceneryInstance[] = [];
-  const trees: ScoredCampaignSceneryInstance[] = [];
-  const rocks: ScoredCampaignSceneryInstance[] = [];
+  const mountains: ScoredSceneryInstance[] = [];
+  const trees: ScoredSceneryInstance[] = [];
+  const rocks: ScoredSceneryInstance[] = [];
   for (let gy = 0; gy < field.h; gy++) {
     for (let gx = 0; gx < field.w; gx++) {
       const i = gy * field.w + gx;
@@ -185,7 +185,7 @@ export function buildCampaignSceneryCandidates(
 // Deterministic species pick per biome band: boreal forests run conifer-led
 // with pale aspen accents, temperate forests mix oak/ash/aspen over a conifer
 // minority — variety within one muted register, not a per-cell monoculture.
-function campaignTreeSpecies(roll: number, boreal: boolean): CampaignSceneryKind {
+function campaignTreeSpecies(roll: number, boreal: boolean): SceneryInstance["kind"] {
   if (boreal) {
     if (roll < 0.6) return "conifer";
     if (roll < 0.85) return "aspen";
@@ -197,7 +197,7 @@ function campaignTreeSpecies(roll: number, boreal: boolean): CampaignSceneryKind
   return "aspen";
 }
 
-type ScoredCampaignSceneryInstance = CampaignSceneryInstance & {
+type ScoredSceneryInstance = SceneryInstance & {
   score: number;
   gx: number;
   gy: number;
@@ -206,11 +206,11 @@ type ScoredCampaignSceneryInstance = CampaignSceneryInstance & {
 const CAMPAIGN_SCENERY_REGION_CELLS = 24;
 
 function selectRegionalScenery(
-  items: ScoredCampaignSceneryInstance[],
+  items: ScoredSceneryInstance[],
   limit: number,
-): CampaignSceneryInstance[] {
-  if (items.length <= limit) return items.map(toCampaignSceneryInstance);
-  const buckets = new Map<string, ScoredCampaignSceneryInstance[]>();
+): SceneryInstance[] {
+  if (items.length <= limit) return items.map(toSceneryInstance);
+  const buckets = new Map<string, ScoredSceneryInstance[]>();
   for (const item of items) {
     const key = `${Math.floor(item.gx / CAMPAIGN_SCENERY_REGION_CELLS)},${Math.floor(item.gy / CAMPAIGN_SCENERY_REGION_CELLS)}`;
     const bucket = buckets.get(key);
@@ -219,8 +219,8 @@ function selectRegionalScenery(
   }
   for (const bucket of buckets.values()) bucket.sort(compareSceneryScore);
 
-  const selected: ScoredCampaignSceneryInstance[] = [];
-  const selectedSet = new Set<ScoredCampaignSceneryInstance>();
+  const selected: ScoredSceneryInstance[] = [];
+  const selectedSet = new Set<ScoredSceneryInstance>();
   const regions = [...buckets.values()].sort((a, b) => b[0].score - a[0].score);
   const regionalReserve = Math.min(limit, Math.floor(limit * 0.32));
   const perRegionSeed = Math.max(1, Math.floor(regionalReserve / Math.max(1, regions.length)));
@@ -263,14 +263,14 @@ function selectRegionalScenery(
     }
   }
 
-  return selected.sort(compareSceneryScore).map(toCampaignSceneryInstance);
+  return selected.sort(compareSceneryScore).map(toSceneryInstance);
 }
 
-function compareSceneryScore(a: ScoredCampaignSceneryInstance, b: ScoredCampaignSceneryInstance) {
+function compareSceneryScore(a: ScoredSceneryInstance, b: ScoredSceneryInstance) {
   return b.score - a.score;
 }
 
-function toCampaignSceneryInstance(item: ScoredCampaignSceneryInstance): CampaignSceneryInstance {
+function toSceneryInstance(item: ScoredSceneryInstance): SceneryInstance {
   return {
     x: item.x,
     y: item.y,
@@ -285,7 +285,7 @@ function toCampaignSceneryInstance(item: ScoredCampaignSceneryInstance): Campaig
 
 function clearCampaignStaticScenery(
   data: CampaignRenderData,
-  items: CampaignSceneryInstance[],
+  items: SceneryInstance[],
   controlledStage: boolean,
 ) {
   const roadSegments = data.map.edges
@@ -318,7 +318,7 @@ function clearCampaignStaticScenery(
 }
 
 function clearCampaignDynamicScenery(
-  items: CampaignSceneryInstance[],
+  items: SceneryInstance[],
   reservations: CampaignSceneryReservation[],
 ) {
   if (reservations.length === 0) return items;
@@ -331,7 +331,7 @@ function clearCampaignDynamicScenery(
   });
 }
 
-function sceneryReservationRadius(item: CampaignSceneryInstance) {
+function sceneryReservationRadius(item: SceneryInstance) {
   if (item.kind === "mountain") return Math.max(4.8, item.size * 0.42);
   if (item.kind === "rock") return Math.max(2.8, item.size * 0.34);
   return Math.max(1.6, item.size * 0.24);
@@ -340,14 +340,14 @@ function sceneryReservationRadius(item: CampaignSceneryInstance) {
 // Only the candidate scenery (mountains/trees/rocks) flows through this LoD
 // filter. Carts are gated by their own scale check in campaignRoadCarts and
 // never reach here.
-function sceneryMinScale(item: CampaignSceneryInstance) {
+function sceneryMinScale(item: SceneryInstance) {
   if (item.kind === "mountain") return CAMPAIGN_MOUNTAIN_MIN_SCALE;
   if (item.kind === "rock") return CAMPAIGN_ROCK_MIN_SCALE;
   return CAMPAIGN_TREE_MIN_SCALE;
 }
 
 function citySceneryClearance(
-  item: CampaignSceneryInstance,
+  item: SceneryInstance,
   tier: number,
   controlledStage: boolean,
 ) {
@@ -359,7 +359,7 @@ function citySceneryClearance(
   return tier >= 3 ? 5.4 : 4.4;
 }
 
-function roadSceneryClearance(item: CampaignSceneryInstance, controlledStage: boolean) {
+function roadSceneryClearance(item: SceneryInstance, controlledStage: boolean) {
   const fixtureScale = controlledStage ? 1.36 : 1;
   const base = item.kind === "mountain" ? 8.6 : item.kind === "rock" ? 4.4 : 2.4;
   const sizeScale = item.kind === "mountain" ? 0.44 : item.kind === "rock" ? 0.34 : 0.22;

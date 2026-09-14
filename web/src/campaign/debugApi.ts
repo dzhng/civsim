@@ -1,4 +1,4 @@
-import type { CampaignSceneryInstance } from "@packages/game-renderer/src/campaign/sceneryPass";
+import type { SceneryInstance } from "../../../packages/game-renderer/src/terrain/scenery";
 import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import type { Territory } from "./territory";
 
@@ -32,7 +32,7 @@ export interface CampaignDebugApi {
   cellInfo(x: number, y: number): ReturnType<Territory["infoAt"]>;
   terrainAt(x: number, y: number): { land: boolean; height: number };
   renderLandAt(x: number, y: number, marginKm?: number): boolean;
-  sceneryCandidates(): CampaignSceneryInstance[];
+  sceneryCandidates(): SceneryInstance[];
   freeze(on?: boolean): void;
   terrStats(): { filled: number; total: number; labels: Territory["labels"] };
 }

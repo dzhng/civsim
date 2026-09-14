@@ -52,7 +52,7 @@ import {
   expandedBattleTerrainRect,
 } from "./battleTerrainBuild";
 import { updateWindUniforms } from "../../../game-renderer/src/battle/windSignal";
-import { PhotorealScenery } from "./foliageLayer";
+import { PhotorealScenery } from "../landscape/sceneryLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import {
   configureSunShadows,

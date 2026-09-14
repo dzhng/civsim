@@ -1,6 +1,7 @@
+import type { SceneryInstance } from "./scenery";
 import { buildCampaignCoast, campaignCoastSize } from "./campaignCoast";
 import type { CampaignTerrainField } from "../campaign/entityFrame";
-import type { CampaignSceneryInstance } from "../campaign/sceneryPass";
+
 import { createRenderedSurface, type LandscapeMesh } from "./surface";
 import { hash2, smoothstep } from "../../../renderer-core/src/math";
 
@@ -98,7 +99,7 @@ export function buildCampaignLandscape(
     tint = new Float32Array(size * size);
   const indices = new Uint32Array((size - 1) ** 2 * 6);
   const shoreDistance = new Float32Array(size * size);
-  const scenery: CampaignSceneryInstance[] = [];
+  const scenery: SceneryInstance[] = [];
   for (let j = 0; j < size; j++)
     for (let i = 0; i < size; i++) {
       const k = j * size + i,

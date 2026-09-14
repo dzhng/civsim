@@ -20,7 +20,7 @@ No new save version, campaign locale schema, battle recipe format, backend, pack
 | Water response | **Proposed:** `packages/photoreal-renderer/src/landscape/waterMaterial.ts`, extracted from `battle/seaLayer.ts` | Ocean, river, lake shape/displacement and world-scale shore ramps |
 | Material/cover profile | **Proposed:** `packages/game-renderer/src/terrain/materialProfile.ts` | Explicit detail wavelengths and cover mixtures for each scale |
 | Vegetation identities and meshes | Existing `models/shared/sceneryPropRegistry.ts` | Placement eligibility, density budgets, projected representation thresholds |
-| Shared scenery instances and drawing | **Proposed:** neutral scenery contract under `game-renderer/src/terrain/`; physical layer under `photoreal-renderer/src/landscape/` | Per-world visibility/reservations; no battle import from a campaign GPU pass |
+| Shared scenery instances and drawing | `game-renderer/src/terrain/scenery.ts`; `photoreal-renderer/src/landscape/sceneryLayer.ts` | Per-world visibility/reservations; no battle import from a campaign GPU pass |
 | Campaign tile residency | `photoreal-renderer/src/campaign/terrainTiles.ts` | Battle may reuse edge/mesh primitives; its existing playable/vista layout stays owned by battle |
 | Standards | Existing shared standard asset and `photoreal-renderer/src/landscape/standardLayer.ts` | Tier, grounded scale, livery and label policy |
 | Environment and color | Existing `game-renderer/src/environment/environment.ts` and `photoreal-renderer/src/environment.ts` | Preset, distance scaling, view-fitted shadow extent |

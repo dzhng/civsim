@@ -43,3 +43,5 @@ not claimed as ecology regressions or as proved pre-existing failures. Final
 composed visual acceptance remains pending with the rest of slice 07.
 
 Merged checkpoint at the current shared terrain/crown owner: all461 tests across81 files and TypeScript pass. A second independent Codex review found no actionable defects. Physical seating evidence remains the earlier hardware run above; final composed visual acceptance is still unverified and no battle baseline is repinned.
+
+[Shared scenery ownership](shared-owner.md) records the neutral instance and drawing contracts used by both map types.

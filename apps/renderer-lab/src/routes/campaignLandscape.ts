@@ -5,7 +5,7 @@ import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environ
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
-import { PhotorealScenery } from "@packages/photoreal-renderer/src/battle/foliageLayer";
+import { PhotorealScenery } from "@packages/photoreal-renderer/src/landscape/sceneryLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { buildCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignLandscape";
 import { createSurfaceView } from "@packages/game-renderer/src/terrain/surface";

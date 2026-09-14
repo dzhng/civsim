@@ -58,3 +58,9 @@ overlap and boundary normals. See [battle ecology evidence](../assets/ecology/RE
 
 Whole-slice status remains **pending**: campaign distribution, production scale,
 intermediate vegetation detail and the composed visual acceptance still remain.
+
+## Campaign implementation pickup
+
+The instance data and physical scenery layer now have neutral owners, with unchanged behavior. The existing `campaign/scenery.ts` already owns species mixing, regional budgets, static city/road clearances and dynamic reservations. Reuse those policies when replacing the embedded planting loop in `campaignLandscape.ts`; do not create another clearance implementation. Candidate positions must depend on a fixed world lattice, not terrain tessellation. Sample slope/water at the candidate location, and keep rendered seating tied to the presented surface.
+
+Global candidate generation, local presentation and terrain geometry are distinct responsibilities. Prefer the existing world candidate cache and view filtering where they fit. Remove the landscape builder's redundant planting path when its callers consume the shared campaign producer.

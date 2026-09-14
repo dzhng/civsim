@@ -1,9 +1,10 @@
+import type { SceneryInstance } from "../terrain/scenery";
 import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import type { CampaignMarker } from "@packages/game-renderer/src/campaign/mapPass";
 import { drawnRoadRuns } from "@packages/game-renderer/src/campaign/roadGeometry";
 import type { CampaignEntityInstance } from "./entityPass";
-import type { CampaignSceneryInstance } from "./sceneryPass";
+
 import type { CampaignSelectionInstance } from "./selectionPass";
 import { standardSeed, standardWindPhase } from "../models/shared/standardAsset";
 import type { StandardInstance } from "../models/shared/standardPass";
@@ -440,9 +441,9 @@ export function campaignRoadCarts(
   field: CampaignTerrainField,
   time: number,
   opts: CampaignFrameOptions,
-): CampaignSceneryInstance[] {
+): SceneryInstance[] {
   if (opts.cam.scale < CART_MIN_SCALE) return [];
-  const carts: CampaignSceneryInstance[] = [];
+  const carts: SceneryInstance[] = [];
   data.map.edges.forEach((edge, e) => {
     if (edge.kind !== "road" || !edge.via || edge.via.length < 2) return;
     // Ride the exact land runs the road pass draws (same smoothing, sampling,

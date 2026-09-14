@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SCENERY_PROP_MODELS } from "../../packages/game-renderer/src/models/shared/sceneryPropRegistry";
-import { PhotorealScenery } from "../../packages/photoreal-renderer/src/battle/foliageLayer";
+import { PhotorealScenery } from "../../packages/photoreal-renderer/src/landscape/sceneryLayer";
 import * as THREE from "three/webgpu";
 import { applyCamera3d } from "../../packages/photoreal-renderer/src/cameraBridge";
 import { chartCamera3d } from "../../packages/renderer-core/src/camera3d";

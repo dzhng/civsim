@@ -1,3 +1,4 @@
+import type { SceneryInstance } from "../terrain/scenery";
 import type { TreeDetail } from "../models/shared/sceneryPropModels";
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
@@ -6,20 +7,6 @@ import { cameraOnlyPipeline } from '../../../renderer-core/src/pipelineContracts
 import { buildLeafAtlas, LEAF_ATLAS_RGB_GAIN } from '../models/shared/leafAtlas';
 import type { MeshData } from '../models/shared/meshBuilder';
 import { SCENERY_PROP_IDS, SCENERY_PROP_MODELS, type SceneryPropId } from '../models/shared/sceneryPropRegistry';
-
-export type CampaignSceneryKind = SceneryPropId;
-
-export interface CampaignSceneryInstance {
-  x: number;
-  y: number;
-  z?: number;
-  size: number;
-  height?: number;
-  kind: CampaignSceneryKind;
-  shade?: number;
-  /** per-instance yaw (radians) so cloned meshes don't all face the same way */
-  yaw?: number;
-}
 
 const SCENERY_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -163,8 +150,8 @@ export class CampaignSceneryPass {
     });
   }
 
-  upload(instances: CampaignSceneryInstance[]) {
-    const grouped = new Map<SceneryPropId, CampaignSceneryInstance[]>();
+  upload(instances: SceneryInstance[]) {
+    const grouped = new Map<SceneryPropId, SceneryInstance[]>();
     for (const inst of instances) {
       const list = grouped.get(inst.kind);
       if (list) list.push(inst);
@@ -226,7 +213,7 @@ export class CampaignSceneryPass {
   }
 }
 
-function packInstances(instances: CampaignSceneryInstance[]) {
+function packInstances(instances: SceneryInstance[]) {
   const data = new Float32Array(instances.length * 8);
   for (let i = 0; i < instances.length; i++) {
     const inst = instances[i];

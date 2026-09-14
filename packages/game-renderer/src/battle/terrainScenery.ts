@@ -1,4 +1,4 @@
-import type { CampaignSceneryInstance } from "../campaign/sceneryPass";
+import type { SceneryInstance } from "../terrain/scenery";
 import { terrainHeightAt, terrainNormalAt, type TerrainHeightField } from "../terrain/heightField";
 import { terrainScatterCandidates } from "../terrain/scatter";
 import { hash2 } from "../../../renderer-core/src/math";
@@ -18,8 +18,8 @@ export function featuresToBattleScenery(
   field: TerrainHeightField,
   seed: number,
   grid?: BattleTerrainGrid,
-): CampaignSceneryInstance[] {
-  const out: CampaignSceneryInstance[] = [];
+): SceneryInstance[] {
+  const out: SceneryInstance[] = [];
   const seat = (x: number, y: number) => terrainHeightAt(field, x, y);
   const dry = (x: number, y: number) => !grid || terrainTintAt(grid, x, y) !== 1;
   for (let fi = 0; fi < features.length; fi++) {
@@ -111,7 +111,7 @@ export function featuresToBattleScenery(
 
 // Mixed wood: conifer- and oak-led with ash/aspen accents and the odd bush at
 // the sampled spot, so a forest reads as varied canopy instead of two clones.
-function battleTreeSpecies(roll: number): CampaignSceneryInstance["kind"] {
+function battleTreeSpecies(roll: number): SceneryInstance["kind"] {
   if (roll < 0.34) return "conifer";
   if (roll < 0.62) return "broadleaf";
   if (roll < 0.78) return "ash";

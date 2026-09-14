@@ -1,3 +1,4 @@
+import type { SceneryInstance } from "../../../../packages/game-renderer/src/terrain/scenery";
 import {
   type FrameGraphPass,
   type OverlayRenderPass,
@@ -29,10 +30,7 @@ import {
   type CampaignLabel,
 } from "@packages/game-renderer/src/campaign/mapPass";
 import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
-import {
-  CampaignSceneryPass,
-  type CampaignSceneryInstance,
-} from "@packages/game-renderer/src/campaign/sceneryPass";
+import { CampaignSceneryPass } from "@packages/game-renderer/src/campaign/sceneryPass";
 import {
   standardSeed,
   standardWindPhase,
@@ -480,7 +478,7 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
   const entities: CampaignEntityInstance[] = [];
   const standards: StandardInstance[] = [];
   const armyAnchors: { x: number; y: number; z?: number }[] = [];
-  const scenery: CampaignSceneryInstance[] = [];
+  const scenery: SceneryInstance[] = [];
   const selections: CampaignSelectionInstance[] = [];
   const labels: CampaignLabel[] = [];
   let roads: Float32Array<ArrayBufferLike> = new Float32Array();

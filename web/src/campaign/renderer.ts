@@ -1,3 +1,4 @@
+import type { SceneryInstance } from "../../../packages/game-renderer/src/terrain/scenery";
 import {
   CampaignCloudPass,
   CampaignFogPass,
@@ -18,10 +19,7 @@ import {
   type CampaignMapStats,
 } from "@packages/game-renderer/src/campaign/roadGeometry";
 import type { ScreenRect } from "@packages/game-renderer/src/campaign/labelLayout";
-import {
-  CampaignSceneryPass,
-  type CampaignSceneryInstance,
-} from "@packages/game-renderer/src/campaign/sceneryPass";
+import { CampaignSceneryPass } from "@packages/game-renderer/src/campaign/sceneryPass";
 import { CampaignSelectionPass } from "@packages/game-renderer/src/campaign/selectionPass";
 import { SharedStandardPass } from "@packages/game-renderer/src/models/shared/standardPass";
 import {
@@ -152,7 +150,7 @@ export class CampaignRenderer {
   private soldierClips: Record<number, { walk: string; atEase: string }> = {};
   private surface: CampaignSurface;
   private staticLabels: CampaignLabel[] = [];
-  private sceneryCandidates: CampaignSceneryInstance[] = [];
+  private sceneryCandidates: SceneryInstance[] = [];
   private labelStats: CampaignLabelPassStats = {
     labels: 0,
     visibleLabels: 0,
@@ -610,7 +608,7 @@ export class CampaignRenderer {
   }
 
   /** Verification probe: the full static scenery candidate set (world km). */
-  sceneryCandidateSnapshot(): CampaignSceneryInstance[] {
+  sceneryCandidateSnapshot(): SceneryInstance[] {
     return this.sceneryCandidates.map((item) => ({ ...item }));
   }
 

@@ -1,7 +1,6 @@
+import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
 import type { MeshData } from "../../../game-renderer/src/models/shared/meshBuilder";
-// foliageLayer — battle scenery on the photoreal substrate. Production grass
-// belongs to the blade-field layer. Scenery uses the CampaignSceneryPass pose
-// over the shared prop meshes (SCENERY_PROP_MODELS).
+// Instanced trees and rocks share model identities and native-world poses.
 import {
   TREE_VARIANTS,
   type TreeDetail,
@@ -21,7 +20,7 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import type { CampaignSceneryInstance } from "../../../game-renderer/src/campaign/sceneryPass";
+
 import {
   buildLeafAtlas,
   LEAF_ATLAS_RGB_GAIN,
@@ -31,10 +30,10 @@ import {
   SCENERY_PROP_MODELS,
   type SceneryPropId,
 } from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
-import { linearAlbedo, rotateYawN, viewNormalNode } from "../landscape/shaderNodes";
-import { RENDER_ORDER } from "./terrainLayer";
+import { linearAlbedo, rotateYawN, viewNormalNode } from "./shaderNodes";
+import { RENDER_ORDER } from "../battle/terrainLayer";
 
-// Battle scenery is trees and rocks; mountains and carts stay campaign-only.
+// Landscape vegetation and rocks; moving entities have their own world owner.
 const SCENERY_KINDS: SceneryPropId[] = SCENERY_PROP_IDS.filter((id) => {
   const family = SCENERY_PROP_MODELS[id].family;
   return family === "tree" || family === "rock";
@@ -52,7 +51,7 @@ interface SceneryBucket {
  *  the shared prop meshes with sceneryPass shading expressed in TSL. */
 export class PhotorealScenery {
   private buckets: SceneryBucket[] = [];
-  private instances: readonly CampaignSceneryInstance[] = [];
+  private instances: readonly SceneryInstance[] = [];
   private detailActive: boolean[] = [];
   private leafFade: number[] = [];
   private readonly modelHeights = new Map<SceneryPropId, number>();
@@ -96,7 +95,7 @@ export class PhotorealScenery {
     }
   }
 
-  upload(instances: readonly CampaignSceneryInstance[]): void {
+  upload(instances: readonly SceneryInstance[]): void {
     this.instances = instances;
     this.detailActive = instances.map(() => false);
     this.leafFade = instances.map(() => 0);
@@ -217,7 +216,7 @@ export class PhotorealScenery {
 }
 
 /** Identity comes from the placed tree, never its current tile-array index. */
-function sceneryVariant(inst: CampaignSceneryInstance): number {
+function sceneryVariant(inst: SceneryInstance): number {
   let h =
     Math.imul(Math.round(inst.x * 1000), 73856093) ^ Math.imul(Math.round(inst.y * 1000), 19349663);
   h ^= h >>> 16;

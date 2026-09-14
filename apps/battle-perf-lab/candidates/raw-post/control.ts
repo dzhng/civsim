@@ -1,3 +1,4 @@
+import { readHdrTexture, unpackRgba16fRows } from "../../src/numericalReadback";
 // Isolated Three control: both pipelines receive the same half-float HDR texels.
 import * as THREE from "three/webgpu";
 import { texture, uv } from "three/tsl";
@@ -33,30 +34,6 @@ function syntheticHdr(width: number, height: number) {
         result[(y * width + x) * 4 + c] = THREE.DataUtils.toHalfFloat(c === 3 ? 1 : rgb[c]);
     }
   return result;
-}
-async function read(device: GPUDevice, target: GPUTexture) {
-  const bytesPerRow = Math.ceil((target.width * 8) / 256) * 256;
-  const buffer = device.createBuffer({
-    size: bytesPerRow * target.height,
-    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-  });
-  try {
-    const encoder = device.createCommandEncoder();
-    encoder.copyTextureToBuffer({ texture: target }, { buffer, bytesPerRow }, [
-      target.width,
-      target.height,
-    ]);
-    device.queue.submit([encoder.finish()]);
-    await buffer.mapAsync(GPUMapMode.READ);
-    const raw = new Uint16Array(buffer.getMappedRange());
-    return Array.from({ length: target.width * target.height * 4 }, (_, i) =>
-      THREE.DataUtils.fromHalfFloat(
-        raw[(Math.floor(i / (target.width * 4)) * bytesPerRow) / 2 + (i % (target.width * 4))],
-      ),
-    );
-  } finally {
-    buffer.destroy();
-  }
 }
 function compare(actual: number[], expected: number[]) {
   let maxAbs = 0,
@@ -169,19 +146,12 @@ export async function runPostControl(factory: PostFactory, backend: string) {
               WIDTH,
               HEIGHT,
             )) as Uint16Array;
-            const expected = Array.from({ length: WIDTH * HEIGHT * 4 }, (_, i) =>
-              THREE.DataUtils.fromHalfFloat(
-                expectedRaw[
-                  Math.floor(i / (WIDTH * 4)) * Math.ceil((WIDTH * 8) / 256) * 128 +
-                    (i % (WIDTH * 4))
-                ],
-              ),
-            );
+            const expected = unpackRgba16fRows(expectedRaw, WIDTH, HEIGHT);
             results.push({
               preset: env.id,
               changed,
               bloom,
-              ...compare(await read(device, output), expected),
+              ...compare(await readHdrTexture(device, output), expected),
             });
           }
         }

@@ -6,7 +6,7 @@ import {
   SKY_LUT_WIDTH,
   SKY_LUT_HEIGHT,
 } from "../../../../packages/game-renderer/src/environment/skyParameters";
-import { decodeFloat16, readHdrTexture, compareHdr } from "../skyNumericalCheck";
+import { decodeFloat16, readHdrTexture, compareHdr } from "../numericalReadback";
 import { createRawPmrem } from "./pmrem";
 import { cubeUvWGSL } from "../shaders/pmrem";
 import { fullscreenWGSL } from "../shared/postShader";

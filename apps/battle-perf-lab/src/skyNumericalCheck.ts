@@ -1,3 +1,4 @@
+import { decodeFloat16, readHdrTexture, compareHdr } from "./numericalReadback";
 // Shared numerical control. Three is confined to this harness, never candidate runtimes.
 import * as THREE from "three/webgpu";
 import { equirectUV, normalize, texture, uv, vec3, vec4, smoothstep } from "three/tsl";
@@ -16,84 +17,6 @@ export type SkyCheckFactory = (
   params: sky.SkyModelParams,
 ) => Promise<SkyCheckCandidate>;
 
-export function decodeFloat16(value: number) {
-  const sign = value & 0x8000 ? -1 : 1,
-    exponent = (value >> 10) & 31,
-    mantissa = value & 1023;
-  return (
-    sign *
-    (exponent === 0
-      ? (2 ** -14 * mantissa) / 1024
-      : exponent === 31
-        ? mantissa
-          ? NaN
-          : Infinity
-        : 2 ** (exponent - 15) * (1 + mantissa / 1024))
-  );
-}
-export async function readHdrTexture(device: GPUDevice, target: GPUTexture) {
-  const bytesPerRow = Math.ceil((target.width * 8) / 256) * 256;
-  const buffer = device.createBuffer({
-    size: bytesPerRow * target.height,
-    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-  });
-  try {
-    const encoder = device.createCommandEncoder();
-    encoder.copyTextureToBuffer({ texture: target }, { buffer, bytesPerRow }, [
-      target.width,
-      target.height,
-    ]);
-    device.queue.submit([encoder.finish()]);
-    await buffer.mapAsync(GPUMapMode.READ);
-    const raw = new Uint16Array(buffer.getMappedRange());
-    return Array.from({ length: target.width * target.height * 4 }, (_, i) =>
-      decodeFloat16(
-        raw[(Math.floor(i / (target.width * 4)) * bytesPerRow) / 2 + (i % (target.width * 4))],
-      ),
-    );
-  } finally {
-    buffer.destroy();
-  }
-}
-export function compareHdr(actual: number[], expected: number[]) {
-  if (actual.length !== expected.length) throw new Error("Sky readback dimensions differ");
-  let maxAbs = 0,
-    maxRelative = 0,
-    squared = 0,
-    bad = 0,
-    peak = 0;
-  let actualNonfinite = 0,
-    expectedNonfinite = 0,
-    nonfiniteMismatch = 0;
-  const nonfiniteCoordinates: number[] = [];
-  for (let i = 0; i < actual.length; i++) {
-    const difference = Math.abs(actual[i] - expected[i]);
-    if (!Number.isFinite(actual[i]) || !Number.isFinite(expected[i])) {
-      bad++;
-      actualNonfinite += +!Number.isFinite(actual[i]);
-      expectedNonfinite += +!Number.isFinite(expected[i]);
-      if (!Object.is(actual[i], expected[i])) nonfiniteMismatch++;
-      if (nonfiniteCoordinates.length < 24) nonfiniteCoordinates.push(i);
-      continue;
-    }
-    maxAbs = Math.max(maxAbs, difference);
-    maxRelative = Math.max(maxRelative, difference / Math.max(0.05, Math.abs(expected[i])));
-    squared += difference * difference;
-    peak = Math.max(peak, actual[i]);
-  }
-  return {
-    maxAbs,
-    maxRelative,
-    rmse: Math.sqrt(squared / actual.length),
-    nonfinite: bad,
-    actualNonfinite,
-    expectedNonfinite,
-    nonfiniteMismatch,
-    nonfiniteCoordinates,
-    peak,
-    samples: actual.length,
-  };
-}
 export async function runSkyNumericalCheck(createCandidate: SkyCheckFactory) {
   const errors: string[] = [];
   if (!navigator.gpu) throw new Error("WebGPU is unavailable");

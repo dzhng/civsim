@@ -5,7 +5,7 @@ import * as THREE from "three/webgpu";
 import { farAdmissionCamera } from "../scenes/models/_far-inspection";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
-import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/battle/crowdLod";
+import { planCrowdLods } from "@packages/crowd-runtime/src/visibility";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 import type { BattleCameraSnapshot } from "@packages/photoreal-renderer/src/battle/battleWorld";
 
@@ -38,7 +38,7 @@ test("far inspection admits real projected impostors without changing the magnif
       camera.projectionMatrix,
       camera.matrixWorldInverse,
     );
-    return planPhotorealCrowdLods(
+    return planCrowdLods(
       instances,
       [
         {

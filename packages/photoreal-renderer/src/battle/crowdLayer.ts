@@ -33,9 +33,9 @@ import { viewNormalNode } from "./battleTsl";
 import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
 import {
   createCrowdLodBuffers,
-  planPhotorealCrowdLods,
+  planCrowdLods,
   type CrowdProjectionView,
-} from "./crowdLod";
+} from "../../../crowd-runtime/src/visibility";
 import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
 import { RENDER_ORDER } from "./terrainLayer";
 import { weightedPaletteColumns } from "./skinNodes";
@@ -328,7 +328,7 @@ export class PhotorealCrowd {
       );
     // Separate output keeps a failed plan from partly replacing the preceding history.
     const plan = scope
-      ? planPhotorealCrowdLods(
+      ? planCrowdLods(
           instances,
           scope.views,
           this.assets,

@@ -14,7 +14,7 @@ import { SimClock } from "../src/shared/simClock";
 import { BattleFreeze } from "../src/battle/battleFreeze";
 import * as THREE from "three/webgpu";
 import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
-import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/battle/crowdLod";
+import { planCrowdLods } from "@packages/crowd-runtime/src/visibility";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
 
@@ -313,13 +313,9 @@ test("production instance seating and visibility consume the delayed root, not t
     const visible = build(frame[0]);
     expect(visible[0].x).toBe(1);
     expect(visible[0].elevation).toBe(0.1);
-    expect(Array.from(planPhotorealCrowdLods(visible, [view], { 0: bundle }).visibility)).toEqual([
-      1,
-    ]);
+    expect(Array.from(planCrowdLods(visible, [view], { 0: bundle }).visibility)).toEqual([1]);
     expect(
-      Array.from(
-        planPhotorealCrowdLods(build(f.views.positions()), [view], { 0: bundle }).visibility,
-      ),
+      Array.from(planCrowdLods(build(f.views.positions()), [view], { 0: bundle }).visibility),
     ).toEqual([0]);
   } finally {
     f.game.free();

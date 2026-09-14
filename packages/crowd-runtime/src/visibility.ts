@@ -1,17 +1,36 @@
-import * as THREE from "three/webgpu";
-import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+import type { CrowdInstance } from "./instanceData";
 import {
   levelForProjection,
   DEFAULT_LOD_POLICY,
   instanceScreenSize,
   type LodLevel,
   type LodCounts,
-} from "../../../crowd-runtime/src/lod";
-import { projectionDepth, type ProjectionFootprint } from "../../../renderer-core/src/camera3d";
-import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
+} from "./lod";
+import { projectionDepth, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
+import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
+
+/** Normalized inward-facing plane equations; Three Frustum planes satisfy this
+ * data contract directly, as do native camera/shadow producers. */
+export interface FrustumPlane {
+  normal: { x: number; y: number; z: number };
+  constant: number;
+}
+
+function intersectsSphere(
+  planes: readonly FrustumPlane[],
+  x: number,
+  y: number,
+  z: number,
+  radius: number,
+) {
+  for (const { normal, constant } of planes) {
+    if (normal.x * x + normal.y * y + normal.z * z + constant < -radius) return false;
+  }
+  return true;
+}
 
 export interface CrowdProjectionView {
-  frustum: THREE.Frustum;
+  frustum: { planes: readonly FrustumPlane[] };
   projection: ProjectionFootprint;
   shadow: boolean;
 }
@@ -36,7 +55,7 @@ export function createCrowdLodBuffers(capacity: number): CrowdLodBuffers {
 }
 
 /** Bounds select contributing views; only those actual projections demand detail. */
-export function planPhotorealCrowdLods(
+export function planCrowdLods(
   instances: readonly CrowdInstance[],
   views: readonly CrowdProjectionView[],
   assets: Record<number, { manifest: Pick<AppearanceBundle["manifest"], "bounds"> }>,
@@ -45,7 +64,6 @@ export function planPhotorealCrowdLods(
   prevShadowLevels?: ArrayLike<number>,
   out?: CrowdLodBuffers,
 ) {
-  const sphere = new THREE.Sphere();
   const buffers =
     out && out.levels.length >= instances.length ? out : createCrowdLodBuffers(instances.length);
   const { levels, shadowLevels, screenSizes, shadowScreenSizes, visibility } = buffers;
@@ -60,23 +78,15 @@ export function planPhotorealCrowdLods(
     const angle = inst.facing - Math.PI / 2;
     const cosAngle = Math.cos(angle),
       sinAngle = Math.sin(angle);
-    sphere.center.set(
-      inst.x + center[0] * cosAngle - center[1] * sinAngle,
-      inst.y + center[0] * sinAngle + center[1] * cosAngle,
-      (inst.elevation ?? 0) + center[2],
-    );
-    sphere.radius = radius;
+    const x = inst.x + center[0] * cosAngle - center[1] * sinAngle;
+    const y = inst.y + center[0] * sinAngle + center[1] * cosAngle;
+    const z = (inst.elevation ?? 0) + center[2];
     let viewPixels = 0,
       shadowPixels = 0;
     for (const view of views) {
-      if (!view.frustum.intersectsSphere(sphere)) continue;
+      if (!intersectsSphere(view.frustum.planes, x, y, z, radius)) continue;
       visibility[index] |= view.shadow ? 2 : 1;
-      const depth = projectionDepth(
-        view.projection,
-        sphere.center.x,
-        sphere.center.y,
-        sphere.center.z,
-      );
+      const depth = projectionDepth(view.projection, x, y, z);
       const pixels =
         depth - radius <= view.projection.near
           ? Infinity

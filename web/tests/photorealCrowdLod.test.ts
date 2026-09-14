@@ -6,10 +6,10 @@ import * as THREE from "three/webgpu";
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { assignLodForProjection, DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod";
 import {
-  planPhotorealCrowdLods,
+  planCrowdLods,
   createCrowdLodBuffers,
   type CrowdProjectionView,
-} from "@packages/photoreal-renderer/src/battle/crowdLod";
+} from "@packages/crowd-runtime/src/visibility";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
 import { createCrowdDrawMesh } from "@packages/photoreal-renderer/src/battle/crowdLayer";
@@ -94,7 +94,7 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
         : frame === 2
           ? [mainView()]
           : [mainView(), shadowView(1000), shadowView(130.50966799187808, frame * 10)];
-    const plan = planPhotorealCrowdLods(
+    const plan = planCrowdLods(
       instances,
       views,
       fixtureAssets,
@@ -133,24 +133,24 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
 
 test("production LOD follows projected depth and exits L0 for the visible 150m mounted body", () => {
   const instances = [10, 150, 300, 1000].map((y) => ({ ...body(0, y), mounted: true }));
-  const plan = planPhotorealCrowdLods(instances, [mainView()], assets);
+  const plan = planCrowdLods(instances, [mainView()], assets);
   assert.deepEqual(Array.from(plan.levels), [0, 1, 2, 3]);
   assert.equal(plan.viewVisible, 4);
   assert.equal(plan.shadowOnly, 0);
   assert.ok(plan.screenSizes[1] < 16.5);
-  assert.equal(planPhotorealCrowdLods([instances[1]], [mainView()], assets, [0]).levels[0], 1);
+  assert.equal(planCrowdLods([instances[1]], [mainView()], assets, [0]).levels[0], 1);
   assert.deepEqual(plan.counts, { l0: 1, l1: 1, l2: 1, l3: 1 });
 });
 
 test("unseen bodies make no view contribution while retaining the policy floor", () => {
-  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView()], assets);
+  const plan = planCrowdLods([body(0, -100)], [mainView()], assets);
   assert.equal(plan.visibility[0], 0);
   assert.equal(plan.screenSizes[0], DEFAULT_LOD_POLICY.minScreenPixels);
   assert.equal(plan.levels[0], 3);
 });
 
 test("a shadow caster does not replace the main view's distant impostor", () => {
-  const plan = planPhotorealCrowdLods([body(0, 1000)], [mainView(), shadowView()], assets);
+  const plan = planCrowdLods([body(0, 1000)], [mainView(), shadowView()], assets);
   assert.equal(plan.visibility[0], 3);
   assert.equal(plan.levels[0], 3);
   assert.equal(plan.shadowLevels[0], 2);
@@ -161,8 +161,8 @@ test("isolated mounted oracle needs the same initial shadow history as productio
   const instance = { ...body(0, 0), mounted: true };
   // Production workbench terrain is 128m square, with the existing 40m shadow margin.
   const views = [mainView(), shadowView(Math.hypot(128, 128) / 2 + 40)];
-  const retained = planPhotorealCrowdLods([instance], views, assets, [], undefined, [2]);
-  const fresh = planPhotorealCrowdLods([instance], views, assets, [], undefined, []);
+  const retained = planCrowdLods([instance], views, assets, [], undefined, [2]);
+  const fresh = planCrowdLods([instance], views, assets, [], undefined, []);
   assert.ok(Math.abs(fresh.shadowScreenSizes[0] - 10.239241433693344) < 1e-10);
   assert.equal(retained.shadowLevels[0], 2);
   assert.equal(fresh.shadowLevels[0], 1);
@@ -172,8 +172,8 @@ test("isolated mounted oracle needs the same initial shadow history as productio
 
 test("removing shadow views leaves the main representation and its hysteresis unchanged", () => {
   const instance = body(0, 1000);
-  const withShadow = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
-  const withoutShadow = planPhotorealCrowdLods(
+  const withShadow = planCrowdLods([instance], [mainView(), shadowView()], assets);
+  const withoutShadow = planCrowdLods(
     [instance],
     [mainView()],
     assets,
@@ -188,7 +188,7 @@ test("removing shadow views leaves the main representation and its hysteresis un
 });
 
 test("production size uses each body's actual terrain elevation", () => {
-  const plan = planPhotorealCrowdLods(
+  const plan = planCrowdLods(
     [body(0, 150), { ...body(0, 150), elevation: 20 }],
     [mainView()],
     assets,
@@ -202,7 +202,7 @@ test("unchanged hysteresis applies to measured pixels and shadow casters remain 
   assert.equal(assignLodForProjection(18.5, false, 1).level, 1);
   assert.equal(assignLodForProjection(16.49, false, 0).level, 1);
   assert.equal(assignLodForProjection(19.51, false, 1).level, 0);
-  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
+  const plan = planCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
   assert.equal(plan.visibility[0], 2);
   assert.equal(plan.viewVisible, 0);
   assert.equal(plan.shadowOnly, 1);
@@ -211,7 +211,7 @@ test("unchanged hysteresis applies to measured pixels and shadow casters remain 
 });
 
 test("the production mesh selected for a shadow-only body really casts shadows", () => {
-  const plan = planPhotorealCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
+  const plan = planCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
   const geometries = Array.from({ length: 3 }, () => new THREE.InstancedBufferGeometry());
   const materials = Array.from({ length: 3 }, () => new THREE.MeshStandardNodeMaterial());
   const meshes = geometries.map((geometry, lod) =>
@@ -229,8 +229,8 @@ test("the production mesh selected for a shadow-only body really casts shadows",
 
 test("a finer shadow map changes only the shadow audience", () => {
   const instance = body(0, 150);
-  const coarse = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
-  const fine = planPhotorealCrowdLods([instance], [mainView(), shadowView(20, 150)], assets);
+  const coarse = planCrowdLods([instance], [mainView(), shadowView()], assets);
+  const fine = planCrowdLods([instance], [mainView(), shadowView(20, 150)], assets);
   assert.equal(coarse.levels[0], 1);
   assert.equal(fine.levels[0], 1);
   assert.equal(coarse.shadowLevels[0], 2);
@@ -292,7 +292,7 @@ test("actual single and cascade cameras see shadow meshes but the main camera ca
 test("near-plane bounds keep full detail and corpse shading never moves authored bounds", () => {
   const view = mainView();
   const near = { ...body(0, -3), elevation: 2.3 };
-  const plan = planPhotorealCrowdLods([near], [view], assets);
+  const plan = planCrowdLods([near], [view], assets);
   assert.equal(plan.visibility[0], 1);
   assert.equal(plan.levels[0], 0);
   assert.equal(plan.screenSizes[0], Infinity);
@@ -317,7 +317,7 @@ test("near-plane bounds keep full detail and corpse shading never moves authored
     ...upright,
     playback: { ...upright.playback!, base: { ...upright.playback!.base, weight: 1 } },
   };
-  const admission = planPhotorealCrowdLods([upright, fallen], [halfspace], assets);
+  const admission = planCrowdLods([upright, fallen], [halfspace], assets);
   assert.deepEqual(
     Array.from(admission.visibility),
     [0, 0],
@@ -331,7 +331,7 @@ test("projected LOD reuses both audience buffers and clears only the active visi
   const instances = [body(0, 10), body(0, 150), body(0, 300), body(0, 1000)];
   const out = createCrowdLodBuffers(8);
   out.visibility.fill(255);
-  const first = planPhotorealCrowdLods(
+  const first = planCrowdLods(
     instances,
     [mainView(), shadowView()],
     assets,
@@ -353,7 +353,7 @@ test("projected LOD reuses both audience buffers and clears only the active visi
   assert.equal(out.visibility[4], 255, "capacity tail is not an active soldier");
   const priorMain = out.levels.slice(0, 4);
   const priorShadow = out.shadowLevels.slice(0, 4);
-  const expected = planPhotorealCrowdLods(
+  const expected = planCrowdLods(
     instances.slice(0, 2),
     [mainView()],
     assets,
@@ -361,7 +361,7 @@ test("projected LOD reuses both audience buffers and clears only the active visi
     undefined,
     priorShadow,
   );
-  const reused = planPhotorealCrowdLods(
+  const reused = planCrowdLods(
     instances.slice(0, 2),
     [mainView()],
     assets,

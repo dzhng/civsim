@@ -26,7 +26,7 @@ import {
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing";
 import { linearAlbedo } from "../landscape/shaderNodes";
-import { RENDER_ORDER } from "./terrainLayer";
+import { RENDER_ORDER } from "../renderOrder";
 
 export interface MarkerInstance {
   x: number;

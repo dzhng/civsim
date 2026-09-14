@@ -1,3 +1,12 @@
+import { RENDER_ORDER } from "../renderOrder";
+import {
+  createTerrainGeometry,
+  terrainSignals,
+  terrainSlopeMasks,
+  terrainRockResponse,
+  applyTerrainSurface,
+  groundDetailNode,
+} from "../landscape/terrainMaterial";
 // terrainLayer — the battle ground on the photoreal substrate. Background
 // quads, the height-displaced ground mesh, and sealed-edge horizon blockers use
 // standard-material responses with NEUTRAL albedos; the sun + IBL environment
@@ -14,7 +23,6 @@ import {
   clamp,
   float,
   floor,
-  fract,
   length,
   max,
   min,
@@ -41,7 +49,6 @@ import {
   linearAlbedo,
   ridgeN,
   rgbNode,
-  saturateN,
   smoothstepN,
   viewNormalNode,
   vnoiseN,
@@ -51,7 +58,6 @@ import {
   type Vec2Node,
 } from "../landscape/shaderNodes";
 import {
-  groundDetailNode,
   coverEdgeNode,
   coverEdgeNoiseNode,
   mudInteriorCoverageNode,
@@ -61,27 +67,11 @@ import {
   turfCanopyNode,
   TURF_CONTRAST,
 } from "./groundDetail";
-import { fieldWaterSurfaceNodes } from "./seaLayer";
 import type {
   BattleGroundCover,
   BattleSlopeBands,
 } from "../../../game-renderer/src/battle/terrainFeatures";
 import type { BladeFieldTransitionUniforms } from "./bladeFieldLayer";
-
-export const RENDER_ORDER = {
-  backdrop: -10,
-  terrain: -9,
-  markers: -8,
-  worldOpaque: 0,
-  groundCues: 3,
-  effectLines: 10,
-  debugBlocks: 11,
-  debugTriangles: 12,
-  // UI band: drawn after every world/backdrop transparent (the reversed-sort
-  // painter contract means a lower-order transparent backdrop would wash
-  // over anything below it in the list).
-  readout: 20,
-} as const;
 
 // frameShell TerrainShaderStyle — numeric mirror of the WGSL literals.
 interface TerrainQuadStyle {
@@ -133,10 +123,6 @@ interface TerrainMaterialOptions {
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
   earthDistance?: PhotorealEarthDistanceField;
-}
-
-function normalZForSlope(slope: number): number {
-  return 1 / Math.sqrt(1 + slope * slope);
 }
 
 function quadGeometry(): THREE.BufferGeometry {
@@ -330,36 +316,15 @@ export function createGroundMesh(
   mesh: LandscapeMesh,
   options: TerrainMaterialOptions = {},
 ): THREE.Mesh {
-  const geo = new THREE.BufferGeometry();
-  const buffer = new THREE.InterleavedBuffer(mesh.vertices, 10);
-  geo.setAttribute("position", new THREE.InterleavedBufferAttribute(buffer, 3, 0));
-  geo.setAttribute("gNormal", new THREE.InterleavedBufferAttribute(buffer, 3, 3));
-  // 'normal' alias (same interleaved view): shadow.normalBias reads
-  // normalWorld by attribute name — absent, the offset is silently zero (11).
-  geo.setAttribute("normal", new THREE.InterleavedBufferAttribute(buffer, 3, 3));
-  geo.setAttribute("gWater", new THREE.InterleavedBufferAttribute(buffer, 1, 9));
-  geo.setAttribute("gTint", new THREE.BufferAttribute(mesh.tint, 1));
-  geo.setAttribute("gSurfaceColor", new THREE.BufferAttribute(mesh.surfaceColor, 3));
+  const geo = createTerrainGeometry(mesh);
   const earthDistance = options.earthDistance;
   const earthEdgesEnabled = earthDistance !== undefined;
   let earthDistanceTexture: THREE.DataTexture | null = null;
-  geo.setIndex(new THREE.BufferAttribute(frontSideIndexBuffer(mesh.indices), 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
-  const position = attribute<"vec3">("position", "vec3");
-  const gNormal = attribute<"vec3">("gNormal", "vec3");
-  // Interpolate before normalization so a fine tile can reproduce its coarse
-  // parent's edge normals without a lighting seam at intermediate vertices.
-  const worldNormal = normalize(varying(gNormal)).toVar();
-  material.normalNode = transformNormalToView(worldNormal);
-  const surfaceColor = varying(attribute<"vec3">("gSurfaceColor", "vec3")).toVar();
-  const water = varying(attribute<"float">("gWater", "float")).toVar();
+  const surface = terrainSignals(options.detailScale);
+  const { worldNormal, surfaceColor, surfaceWorld, world, waterBlend } = surface;
   const tint = varying(attribute<"float">("gTint", "float")).toVar();
-  const surfaceWorld = varying(position.xy).toVar();
-  const world = options.detailScale ? surfaceWorld.mul(options.detailScale).toVar() : surfaceWorld;
-  const rawWaterBlend = saturateN(water).toVar();
-  const waterBlend = smoothstepN(0.08, 0.55, rawWaterBlend).toVar();
-
   // Turf exclusions are computed before the far canopy so that the same masks
   // also protect mud, rock, and scree from the distance replacement.
   let unionDistance: FloatNode = float(-(earthDistance?.rangeMeters ?? 1));
@@ -410,15 +375,11 @@ export function createGroundMesh(
     .mul(float(1).sub(roadInterior))
     .toVar();
   const normalZ = clamp(worldNormal.z, 0.0, 1.0).toVar();
-  let slowNz = 1;
-  let rollingNz = 1;
-  let cliffNz = 1;
-  let slopeRock: FloatNode = float(0);
-  let slowSlope: FloatNode = float(0);
   let rockTint: FloatNode = float(0);
   let screeTint: FloatNode = float(0);
   let rockMask: FloatNode = float(0);
   let screeMask: FloatNode = float(0);
+  let slopeMasks: ReturnType<typeof terrainSlopeMasks> | null = null;
   const tintDither = hashN(floor(world.mul(1.7)))
     .sub(0.5)
     .mul(0.5)
@@ -433,27 +394,12 @@ export function createGroundMesh(
     .toVar();
   screeMask = screeTint.mul(0.95).mul(float(1).sub(waterBlend)).toVar();
   if (options.slopeBands) {
-    slowNz = normalZForSlope(options.slopeBands.slowMin);
-    rollingNz = normalZForSlope(options.slopeBands.rollingMax);
-    cliffNz = normalZForSlope(options.slopeBands.cliffMin);
-    slopeRock = float(1)
-      .sub(smoothstepN(cliffNz, slowNz, normalZ))
-      .toVar();
-    slowSlope = float(1)
-      .sub(smoothstepN(slowNz, rollingNz, normalZ))
-      .toVar();
     rockTint = float(1)
       .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2).add(tintDither))))
       .toVar();
-    const dryOnly = float(1).sub(waterBlend);
-    rockMask = clamp(rockTint.add(slopeRock), 0, 1).mul(dryOnly).toVar();
-    screeMask = clamp(
-      screeTint.mul(0.95).add(slowSlope.mul(float(1).sub(rockTint)).mul(0.42)),
-      0,
-      1,
-    )
-      .mul(dryOnly)
-      .toVar();
+    slopeMasks = terrainSlopeMasks(normalZ, waterBlend, rockTint, screeTint, options.slopeBands);
+    rockMask = slopeMasks.rockMask;
+    screeMask = slopeMasks.screeMask;
   }
   const nonEarthExclusion = max(forestTint, max(rockMask, screeMask)).toVar();
 
@@ -513,73 +459,17 @@ export function createGroundMesh(
   albedo = mix(albedo, albedo.mul(churn), mudInterior);
   let dryRoughness: FloatNode = float(0.95);
 
-  if (options.slopeBands) {
-    // Rust passability measures slope over true metres. The mesh normal carries
-    // the same quantity as normal.z = 1 / sqrt(1 + slope^2).
-    const warp = fbmN(world.mul(0.035))
-      .mul(2.2)
-      .add(fbmN(world.mul(0.12).add(vec2(4.0, 9.0))).mul(0.7))
-      .toVar();
-    // Vertical fracture streaks dominate rock faces; strata stay faint so the
-    // material does not read as evenly spaced elevation bands.
-    const fracture = smoothstepN(
-      0.55,
-      0.95,
-      fbmN(world.mul(vec2(0.32, 0.32)).add(warp.mul(0.35))),
-    ).toVar();
-    const strataPhase = fract(
-      position.z.mul(0.16 * (options.detailScale ?? 1)).add(warp.mul(1.7)),
-    ).toVar();
-    const strata = smoothstepN(0.7, 0.98, abs(strataPhase.mul(2.0).sub(1.0)))
-      .mul(smoothstepN(0.35, 0.75, fbmN(world.mul(0.021).add(vec2(11.0, 3.0)))))
-      .toVar();
-    const faceNoise = fbmN(world.mul(0.075).add(vec2(2.0, 6.0))).toVar();
-    let rock = mix(rgbNode(MEADOW.rock.faceLow), rgbNode(MEADOW.rock.faceHigh), faceNoise);
-    rock = mix(rock, rgbNode(MEADOW.rock.fracture), fracture.mul(slopeRock).mul(0.62));
-    rock = mix(rock, rgbNode(MEADOW.rock.strata), strata.mul(slopeRock).mul(0.34));
-
-    const pebble = smoothstepN(0.78, 0.97, hashN(floor(world.mul(0.85)))).toVar();
-    let scree = mix(
-      rgbNode(MEADOW.rock.screeLow),
-      rgbNode(MEADOW.rock.screeHigh),
-      fbmN(world.mul(0.22).add(vec2(8.0, 3.0))),
-    );
-    scree = mix(scree, rgbNode(MEADOW.rock.screePebble), pebble.mul(0.28));
-
-    const benchCreep = clamp(rockMask.add(screeTint.mul(0.45)), 0.0, 1.0)
-      .mul(smoothstepN(slowNz, rollingNz, normalZ))
-      .mul(smoothstepN(0.42, 0.84, fbmN(world.mul(0.18).add(vec2(6.0, 1.0)))))
-      .mul(0.44)
-      .toVar();
-
-    albedo = mix(albedo, scree, screeMask.mul(0.78));
-    albedo = mix(albedo, rock, rockMask);
-    albedo = mix(albedo, rgbNode(MEADOW.rock.bench), benchCreep);
-    dryRoughness = mix(
-      dryRoughness,
-      float(0.985),
-      clamp(rockMask.add(screeMask).mul(0.62), 0.0, 1.0),
-    );
+  if (slopeMasks) {
+    const response = terrainRockResponse(surface, albedo, slopeMasks, options.detailScale);
+    albedo = response.albedo;
+    dryRoughness = response.dryRoughness;
   }
-
-  // Field water: the shared water surface blended by the box-filtered weight
-  // (albedo + roughness — wet ground gets a real sun sheen).
-  const fieldWater = fieldWaterSurfaceNodes(frame, surfaceWorld, rawWaterBlend);
-  // Water is already linear; convert only the display-authored dry surface.
-  material.colorNode = vec4(
-    mix(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), fieldWater.albedo, waterBlend),
-    1.0,
-  );
   const dryRoughnessFloor = options.vistaBand
     ? options.vistaBand === "farFog"
       ? float(0.995)
       : float(0.985)
-    : float(0.0);
-  material.roughnessNode = mix(
-    max(dryRoughness, dryRoughnessFloor),
-    fieldWater.roughness,
-    waterBlend,
-  );
+    : float(0);
+  applyTerrainSurface(material, frame, surface, albedo, dryRoughness, dryRoughnessFloor);
   if (options.vistaBand === "farFog") {
     // The 64 m far-fog ring is real terrain below the horizon, but from a low
     // eye its coarse vertices can project into the sky as giant grazing tiles.
@@ -727,16 +617,6 @@ function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): 
     indices: new Uint32Array(indices),
     triangles: indices.length / 3,
   };
-}
-
-function frontSideIndexBuffer(indices: Uint32Array): Uint32Array {
-  const out = new Uint32Array(indices.length);
-  for (let i = 0; i + 2 < indices.length; i += 3) {
-    out[i] = indices[i];
-    out[i + 1] = indices[i + 2];
-    out[i + 2] = indices[i + 1];
-  }
-  return out;
 }
 
 /** The sealed-edge blocker mesh (horizonPass port — cliffs/walls/aprons). */

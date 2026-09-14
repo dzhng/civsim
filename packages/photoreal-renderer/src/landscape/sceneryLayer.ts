@@ -1,4 +1,5 @@
 import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
+import { RENDER_ORDER } from "../renderOrder";
 import type { MeshData } from "../../../game-renderer/src/models/shared/meshBuilder";
 // Instanced trees and rocks share model identities and native-world poses.
 import {
@@ -31,7 +32,6 @@ import {
   type SceneryPropId,
 } from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
 import { linearAlbedo, rotateYawN, viewNormalNode } from "./shaderNodes";
-import { RENDER_ORDER } from "../battle/terrainLayer";
 
 // Landscape vegetation and rocks; moving entities have their own world owner.
 const SCENERY_KINDS: SceneryPropId[] = SCENERY_PROP_IDS.filter((id) => {

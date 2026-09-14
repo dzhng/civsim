@@ -57,7 +57,7 @@ import {
   type Vec2Node,
   type Vec3Node,
 } from "../landscape/shaderNodes";
-import { RENDER_ORDER } from "./terrainLayer";
+import { RENDER_ORDER } from "../renderOrder";
 import {
   createWindUniforms,
   type BattleWindUniforms,

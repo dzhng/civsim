@@ -1,3 +1,4 @@
+import { RENDER_ORDER } from "../renderOrder";
 // crowdLayer — the skinned crowd on the photoreal substrate: per-class meshes,
 // shared computed joint palettes, corpse desaturation, and faction accents. Soldiers use
 // a standard-material response with a NEUTRAL albedo; the sun + IBL light the
@@ -37,7 +38,7 @@ import {
   type CrowdProjectionView,
 } from "./crowdLod";
 import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
-import { RENDER_ORDER } from "./terrainLayer";
+
 import { weightedPaletteColumns } from "./skinNodes";
 import { SoldierPosePalette, type PaletteColumns } from "./posePalette";
 import { soldierGeometry } from "./meshGeometry";

@@ -1,3 +1,4 @@
+import { route as routeLandscapeMaterials } from "./routes/landscapeMaterials";
 import { route as routeLandscapeTraversal } from "./routes/landscapeTraversal";
 import { route as routeLandscapeTiles } from "./routes/landscapeTiles";
 import { route as routeLandscapeTreeLod } from "./routes/landscapeTreeLod";
@@ -60,6 +61,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/landscape-tree-lod": routeLandscapeTreeLod,
   "/renderer/campaign-landscape": routeCampaignLandscape,
   "/renderer/landscape-surface": routeCampaignLandscape,
+  "/renderer/landscape-materials": routeLandscapeMaterials,
   "/renderer/landscape-traversal": routeLandscapeTraversal,
   "/renderer/landscape-tiles": routeLandscapeTiles,
   "/renderer/terrain-water": routeTerrainWater,

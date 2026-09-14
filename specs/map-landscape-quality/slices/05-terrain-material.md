@@ -41,3 +41,5 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 First extract shared shader vocabulary and material response without changing appearance. This ownership pass can proceed while mountain form is evaluated. Keep physical tint decoding, road/mud masks, turf and playable/vista layout under battle. Then tune the common rock/grass transition on fixed accepted geometry. Final visual acceptance still depends on04; extracting shared ownership does not.
 
 The shared shader vocabulary extraction is verified; [evidence](../assets/shared-shader/README.md) records unchanged consumer captures and the controlled inherited battle snapshot failure. Next extract the terrain material response; moving helper ownership alone does not complete 05.
+
+The shared terrain response extraction is verified: [ownership evidence](../assets/slice-05/extraction/README.md) records exact small canonical controls, equivalent-consumer RGBA, matched hardware turf controls, and the inherited full SwiftShader readiness limitation. Face-oriented visual tuning remains active.

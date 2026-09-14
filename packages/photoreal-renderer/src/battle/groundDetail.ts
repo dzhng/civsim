@@ -15,12 +15,6 @@ import {
  * not palette colors: meadow hue remains owned by meadowPalette.ts.
  */
 export const TURF_CONTRAST = {
-  ground: {
-    driftStrength: 0.12,
-    mottleStrength: 0.24,
-    minimum: 0.56,
-    maximum: 1.36,
-  },
   canopy: {
     anchorMix: 0.5,
     anchorChroma: 0.55,
@@ -71,10 +65,6 @@ export const TURF_CONTRAST = {
 
 /** Fixed spatial vocabulary; amplitudes and material weights live above. */
 const TURF_SHAPE = {
-  ground: {
-    driftScale: 0.08,
-    mottleScale: 1.1,
-  },
   canopy: {
     broadScale: 0.045,
     midScale: 0.14,
@@ -84,11 +74,6 @@ const TURF_SHAPE = {
     midWeight: 0.38,
   },
 } as const;
-
-/** Compose the shared neutral ground-scale modulation before feature materials. */
-export interface GroundDetailOptions {
-  coverage?: FloatNode;
-}
 
 /** Noise-thresholded ownership for every photoreal mud/road edge. */
 export function coverEdgeNoiseNode(world: Vec2Node): FloatNode {
@@ -145,21 +130,6 @@ export function coverEdgeNoise(x: number, y: number): number {
 export function mudInteriorCoverage(mudDistanceMeters: number): number {
   const edge = TURF_CONTRAST.edge;
   return smoothstep(edge.mudInteriorStartMeters, edge.mudInteriorEndMeters, mudDistanceMeters);
-}
-
-/** Macro ground variation only; real blade geometry owns near turf and the
- * canopy owner carries distance. */
-export function groundDetailNode(
-  world: Vec2Node,
-  color: Vec3Node,
-  options: GroundDetailOptions = {},
-): Vec3Node {
-  const c = TURF_CONTRAST.ground;
-  const shape = TURF_SHAPE.ground;
-  const drift = fbmN(world.mul(shape.driftScale)).sub(0.5).mul(c.driftStrength);
-  const mottle = fbmN(world.mul(shape.mottleScale)).sub(0.5).mul(c.mottleStrength);
-  const detail = clamp(drift.add(mottle).add(float(1)), c.minimum, c.maximum);
-  return mix(color, color.mul(detail), options.coverage ?? float(1));
 }
 
 /** Compose the fixed-hue turf family from already-owned broad/mid signals. */

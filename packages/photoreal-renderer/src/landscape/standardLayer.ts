@@ -12,7 +12,7 @@ import {
 } from "../../../game-renderer/src/models/shared/standardAsset";
 import type { BattleFactionId } from "../../../game-renderer/src/battle/factionColors";
 import { linearAlbedo, viewNormalNode, type FloatNode } from "../landscape/shaderNodes";
-import { RENDER_ORDER } from "../battle/terrainLayer";
+import { RENDER_ORDER } from "../renderOrder";
 
 export interface StandardDrawInstance {
   unitId: number;

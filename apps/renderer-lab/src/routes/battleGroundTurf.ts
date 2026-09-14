@@ -4,7 +4,7 @@ import type { Camera3DParams } from "@packages/renderer-core/src/camera3d";
 import { battleCameraRig } from "../../../../web/src/battle/cameraRig";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { linearAlbedo } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
-import { groundDetailNode } from "@packages/photoreal-renderer/src/battle/groundDetail";
+import { groundDetailNode } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { MEADOW } from "@packages/game-renderer/src/battle/meadowPalette";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import type { LabContext } from "../labShell";

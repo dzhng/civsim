@@ -11,7 +11,7 @@ import {
   vec4,
 } from "three/tsl";
 import { linearAlbedo } from "../landscape/shaderNodes";
-import { RENDER_ORDER } from "./terrainLayer";
+import { RENDER_ORDER } from "../renderOrder";
 
 type BattleReadoutChipKind = "plain" | "hot" | "bad";
 

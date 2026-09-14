@@ -3,7 +3,7 @@ import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
-import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
+import { createLandscapeGroundMesh } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { PhotorealScenery } from "@packages/photoreal-renderer/src/landscape/sceneryLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
@@ -15,7 +15,7 @@ import { TerrainField } from "../../../../web/src/campaign/terrain";
 import { loadCampaignData } from "../../../../web/src/campaign/data";
 import { type LabContext, numberParam, publish, reportTable } from "../labShell";
 
-/** Regional migration spike. Reuses battle materials, physical environment,
+/** Regional migration spike. Reuses the shared terrain material, physical environment,
  * camera bridge and trees over real campaign geography; no game state needed. */
 export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
@@ -48,17 +48,7 @@ export async function route(ctx: LabContext) {
     aerialObserver: vec3(frame.focus, 0),
   });
   const grounds = landscapes.map((landscape) => {
-    const ground = createGroundMesh(frame, landscape.surface.mesh, {
-      detailScale: 2,
-      slopeBands: {
-        flatMax: 0.08,
-        rollingMax: 0.18,
-        slowMin: 0.35,
-        cliffMin: 0.8,
-        cliffDilateCells: 0,
-        highlandCapMinM: 0,
-      },
-    });
+    const ground = createLandscapeGroundMesh(frame, landscape.surface.mesh);
     if (clay) {
       (ground.material as THREE.Material).dispose();
       ground.material = new THREE.MeshStandardNodeMaterial({ color: 0x9c967f, roughness: 0.95 });
@@ -122,7 +112,7 @@ export async function route(ctx: LabContext) {
       trees: trees.length,
       mountainProps: 0,
       center,
-      material: "shared-battle-ground",
+      material: "shared-landscape-ground",
       environment: world.environmentId,
     });
   };
@@ -149,7 +139,7 @@ export async function route(ctx: LabContext) {
     terrainTriangles,
     trees: trees.length,
     mountains: "continuous height field",
-    materials: "battle ground + foliage",
+    materials: "landscape ground + foliage",
     lighting: "shared physical environment",
   });
 }

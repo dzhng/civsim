@@ -30,7 +30,8 @@ import { applyCivsimEnvironment } from "../environment";
 import { applyCamera3d } from "../cameraBridge";
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
 import { createLandscapeFrameUniforms, type LandscapeFrameUniforms } from "../landscape/shaderNodes";
-import { BattleBackgroundQuads, RENDER_ORDER } from "./terrainLayer";
+import { BattleBackgroundQuads } from "./terrainLayer";
+import { RENDER_ORDER } from "../renderOrder";
 import type { BattleVistaGrid } from "./vistaSurface";
 import { createSeaDisplacementSource, type BattleLakeSurfaceSpec } from "./seaLayer";
 import {

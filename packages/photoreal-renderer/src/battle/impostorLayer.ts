@@ -1,3 +1,4 @@
+import { RENDER_ORDER } from "../renderOrder";
 import * as THREE from "three/webgpu";
 import {
   attribute,
@@ -29,7 +30,6 @@ import {
   type PreparedSoldierSurface,
 } from "./soldierSurface";
 import { hemiOctTileDirections, nearestHemiOctTile } from "./impostorTile";
-import { RENDER_ORDER } from "./terrainLayer";
 
 export interface ImpostorAtlas {
   textures: { albedo: THREE.Texture; normal: THREE.Texture; orm: THREE.Texture };

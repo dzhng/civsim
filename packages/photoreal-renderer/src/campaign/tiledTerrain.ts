@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { createGroundMesh } from "../battle/terrainLayer";
+import { createLandscapeGroundMesh } from "../landscape/terrainMaterial";
 import type { LandscapeFrameUniforms } from "../landscape/shaderNodes";
 import {
   createRenderedSurface,
@@ -40,7 +40,7 @@ export class PhotorealTiledTerrain {
   }
 
   private ground(surface: RenderedSurface) {
-    const ground = createGroundMesh(this.frame, surface.mesh, { detailScale: 2 });
+    const ground = createLandscapeGroundMesh(this.frame, surface.mesh);
     ground.castShadow = true;
     this.decorate?.(ground, surface);
     return ground;
@@ -163,7 +163,7 @@ function geometryBuffers(geometry: THREE.BufferGeometry) {
 
 function updateIndices(geometry: THREE.BufferGeometry, indices: Uint32Array) {
   const attribute = geometry.index!;
-  // createGroundMesh reverses source winding for Three's front-face convention.
+  // createLandscapeGroundMesh reverses source winding for Three's front-face convention.
   for (let i = 0; i < indices.length; i += 3) {
     attribute.array[i] = indices[i];
     attribute.array[i + 1] = indices[i + 2];

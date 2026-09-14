@@ -1,10 +1,11 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
 import { test } from "vitest";
+import { TERRAIN_MATERIAL } from "@packages/game-renderer/src/terrain/materialProfile";
 import { MEADOW, type Rgb } from "@packages/game-renderer/src/battle/meadowPalette.ts";
 
-test("every meadow color role is a finite normalized RGB triplet", () => {
-  const roles = rgbRoles(MEADOW);
+test("every meadow and terrain color role is a finite normalized RGB triplet", () => {
+  const roles = rgbRoles({ meadow: MEADOW, terrain: TERRAIN_MATERIAL });
   assert.ok(Object.keys(roles).length > 0);
   for (const [role, color] of Object.entries(roles)) {
     assert.ok(

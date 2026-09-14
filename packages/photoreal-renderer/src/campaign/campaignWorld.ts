@@ -5,7 +5,7 @@ import { PhotorealWorld } from "../world";
 import { applyCamera3d } from "../cameraBridge";
 import { applyCivsimEnvironment } from "../environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../game-renderer/src/environment/environment";
-import { RENDER_ORDER } from "../battle/terrainLayer";
+import { RENDER_ORDER } from "../renderOrder";
 import { createLandscapeFrameUniforms, linearAlbedo, viewNormalNode } from "../landscape/shaderNodes";
 import { PhotorealStandardLayer } from "../landscape/standardLayer";
 import { SELECTION_GREEN } from "../../../game-renderer/src/overlays";

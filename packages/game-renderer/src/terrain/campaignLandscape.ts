@@ -8,7 +8,10 @@ let nextRevision = 0;
 /** World-aligned presentation window over strategic geography, in kilometres.
  * The halo exceeds every coast/material influence plus one normal sample. */
 export function buildCampaignLandscape(
-  source: CampaignTerrainField,
+  source: Pick<
+    CampaignTerrainField,
+    "w" | "h" | "cell" | "minX" | "maxY" | "height" | "biome" | "renderLandAt"
+  >,
   center: [number, number],
   radius = 360,
   cell = 2,

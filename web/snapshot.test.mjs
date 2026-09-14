@@ -109,3 +109,36 @@ test("UPDATE_SHOTS rewrites an existing baseline when pixels changed", async () 
   assert.equal(result.status, "updated");
   assert.deepEqual(await readFile(file), changed);
 });
+
+test.each(["antialiased edges", "transparent RGB"])(
+  "exact snapshots reject changes on %s",
+  async (kind) => {
+    const dir = await mkdtemp(join(tmpdir(), "snapshot-edge-"));
+    const name = basename(dir);
+    vi.stubEnv("SNAP", name);
+    vi.stubEnv("UPDATE_SHOTS", "");
+    onTestFinished(async () => {
+      vi.unstubAllEnvs();
+      await rm(dir, { recursive: true, force: true });
+      for (const suffix of [".png", "-actual.png"])
+        await rm(new URL(`./shots/diff/${name}${suffix}`, import.meta.url), { force: true });
+    });
+    const image = new PNG({ width: 7, height: 7 });
+    for (let y = 0; y < 7; y++)
+      for (let x = 0; x < 7; x++) {
+        const grey = x < 2 ? 0 : x === 2 ? 128 : 255;
+        image.data.set([grey, grey, grey, 255], (y * 7 + x) * 4);
+      }
+    const alpha = kind === "transparent RGB" ? 0 : 255;
+    image.data[(3 * 7 + 2) * 4 + 3] = alpha;
+    await writeFile(join(dir, `${name}.png`), PNG.sync.write(image));
+    image.data.set([129, 129, 129, alpha], (3 * 7 + 2) * 4);
+    const result = await snapCheck(null, name, () => {}, {
+      shot: PNG.sync.write(image),
+      baseDir: `${dir}/`,
+      threshold: 0,
+      maxDiffRatio: 0,
+    });
+    assert.equal(result.status, "failed");
+  },
+);

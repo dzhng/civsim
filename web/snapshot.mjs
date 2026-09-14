@@ -165,9 +165,30 @@ export async function snapCheck(
     return { status: "failed" };
   }
   const diff = new PNG({ width: cur.width, height: cur.height });
-  const differing = pixelmatch(baseline.data, cur.data, diff.data, cur.width, cur.height, {
+  const exact = threshold === 0 && maxDiffRatio === 0;
+  let differing = pixelmatch(baseline.data, cur.data, diff.data, cur.width, cur.height, {
     threshold,
+    includeAA: exact,
   });
+  if (exact) {
+    // Perceptual comparison can ignore antialiasing or invisible RGB channels.
+    // Exact mode promises the same decoded RGBA equality as baseline refresh.
+    differing = 0;
+    for (let i = 0; i < cur.data.length; i += 4) {
+      if (
+        baseline.data[i] !== cur.data[i] ||
+        baseline.data[i + 1] !== cur.data[i + 1] ||
+        baseline.data[i + 2] !== cur.data[i + 2] ||
+        baseline.data[i + 3] !== cur.data[i + 3]
+      ) {
+        differing++;
+        diff.data[i] = 255;
+        diff.data[i + 1] = 0;
+        diff.data[i + 2] = 0;
+        diff.data[i + 3] = 255;
+      }
+    }
+  }
   const ratio = differing / (cur.width * cur.height);
   const ok = ratio <= maxDiffRatio;
   if (!ok) {

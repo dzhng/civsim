@@ -44,6 +44,7 @@ The composition proof makes two independent contracts explicit. Implement them c
 - [x] Source/worker: one classified snapshot, one worker, shared source sampling, transferred outputs and allocation preflight. See [worker evidence](../assets/slice-03/scheduler-worker-notes.md).
 - [x] Joined presentation: indexed coarse coverage, union-boundary morphing, shading continuity and the actual worker-driven fixture. [Presentation evidence](../assets/slice-03/presentation.md) records exact repeats and the fresh visual verdict.
 - [x] Anchor integration: campaign objects, roads, labels, selection and DPR1/DPR2 picking follow detail admission and eviction. The fixture deliberately raises an army by 8 km.
-- [ ] Real-world integration: camera-driven requests over actual geography, bounded total allocation accounting, repeated traversal and hardware timing. This is the next pickup; reuse the verified presentation owner.
+- [x] Real-world terrain integration: camera-driven requests over actual geography, bounded geometry/query/GPU/transient allocation accounting, repeated traversal, exact captures and terrain-only hardware timing. See [traversal evidence](../assets/slice-03/traversal/README.md).
+- [ ] Final acceptance: unprimed critique of the merged terrain, and the full UI/scenery hardware workload after production integration. Terrain-only timing is not that gate.
 
 This subdivides verification inside 03; it does not add a second tile owner or change the fifteen-slice feature scope. The initial regular-grid approach remains the selected implementation; do not introduce clipmaps without measured evidence.

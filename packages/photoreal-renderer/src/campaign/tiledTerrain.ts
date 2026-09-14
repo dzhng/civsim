@@ -25,6 +25,7 @@ export class PhotorealTiledTerrain {
   private revision = 0;
   private uploadedBytes = 0;
   private admissionCpuMs = 0;
+  private peakAllocationBytes = 0;
   surface: ReturnType<typeof createSurfaceView>;
 
   constructor(
@@ -47,6 +48,12 @@ export class PhotorealTiledTerrain {
 
   install(tile: TerrainTileSurface, evictedKeys: readonly string[]) {
     const started = performance.now();
+    // Reserve the old revision, a complete replacement revision, incoming source,
+    // and upload staging before allocating or mutating visible coverage.
+    const admissionBound = this.stats().allocationBytes * 2 + meshBytes(tile.mesh) * 6;
+    if (admissionBound > 128 * 1024 * 1024)
+      throw new Error("Terrain admission exceeds total 128 MiB allocation budget");
+    this.peakAllocationBytes = Math.max(this.peakAllocationBytes, admissionBound);
     const revision = this.revision + 1;
     const sources = new Map(
       [...this.entries]
@@ -97,7 +104,28 @@ export class PhotorealTiledTerrain {
   }
 
   stats() {
+    const cpu = new Set<ArrayBufferLike>();
+    const addMesh = (mesh: RenderedSurface["mesh"]) => {
+      for (const array of [mesh.vertices, mesh.surfaceColor, mesh.tint, mesh.indices])
+        cpu.add(array.buffer);
+    };
+    addMesh(this.coarse.mesh);
+    for (const entry of this.entries.values()) addMesh(entry.source.mesh);
+    addMesh(this.surface.coarse.mesh);
+    for (const surface of this.surface.details) addMesh(surface.mesh);
+    // Unchanged geometry may retain an older array than the current query view.
+    let gpuBytes = 0;
+    for (const ground of [this.coarseGround, ...[...this.entries.values()].map((e) => e.ground)]) {
+      for (const buffer of geometryBuffers(ground.geometry)) cpu.add(buffer);
+      gpuBytes += geometryBytes(ground.geometry);
+    }
+    const cpuBytes = [...cpu].reduce((sum, buffer) => sum + buffer.byteLength, 0);
+    const allocationBytes = cpuBytes + gpuBytes;
     return {
+      allocationBytes,
+      cpuBytes,
+      gpuBytes,
+      peakAllocationBytes: Math.max(allocationBytes, this.peakAllocationBytes),
       revision: this.revision,
       residentTiles: this.entries.size,
       geometryBytes:
@@ -121,7 +149,7 @@ function disposeGround(ground: THREE.Mesh) {
   (ground.material as THREE.Material).dispose();
 }
 
-function geometryBytes(geometry: THREE.BufferGeometry) {
+function geometryBuffers(geometry: THREE.BufferGeometry) {
   const arrays = new Set<ArrayBufferLike>();
   for (const attribute of Object.values(geometry.attributes)) {
     const a = attribute as THREE.BufferAttribute | THREE.InterleavedBufferAttribute;
@@ -130,7 +158,7 @@ function geometryBytes(geometry: THREE.BufferGeometry) {
     );
   }
   if (geometry.index) arrays.add(geometry.index.array.buffer);
-  return [...arrays].reduce((sum, array) => sum + array.byteLength, 0);
+  return arrays;
 }
 
 function updateIndices(geometry: THREE.BufferGeometry, indices: Uint32Array) {
@@ -171,4 +199,16 @@ function updateArray(
   attribute.array = next;
   attribute.needsUpdate = true;
   return (last - first + 1) * 4;
+}
+
+function geometryBytes(geometry: THREE.BufferGeometry) {
+  return [...geometryBuffers(geometry)].reduce((sum, array) => sum + array.byteLength, 0);
+}
+function meshBytes(mesh: RenderedSurface["mesh"]) {
+  return (
+    mesh.vertices.byteLength +
+    mesh.surfaceColor.byteLength +
+    mesh.tint.byteLength +
+    mesh.indices.byteLength
+  );
 }

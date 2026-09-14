@@ -1,3 +1,4 @@
+import { route as routeLandscapeTraversal } from "./routes/landscapeTraversal";
 import { route as routeLandscapeTiles } from "./routes/landscapeTiles";
 import { route as routeLandscapeTreeLod } from "./routes/landscapeTreeLod";
 import { gpuFailureMessage } from "@packages/renderer-core/src/device";
@@ -59,6 +60,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/landscape-tree-lod": routeLandscapeTreeLod,
   "/renderer/campaign-landscape": routeCampaignLandscape,
   "/renderer/landscape-surface": routeCampaignLandscape,
+  "/renderer/landscape-traversal": routeLandscapeTraversal,
   "/renderer/landscape-tiles": routeLandscapeTiles,
   "/renderer/terrain-water": routeTerrainWater,
   "/renderer/campaign-ui": routeCampaignUi,

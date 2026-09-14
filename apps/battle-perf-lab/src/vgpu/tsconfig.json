@@ -1,0 +1,15 @@
+{
+  "extends": "../../../../web/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@packages/*": ["../../../../packages/*"],
+      "three": ["../../../../web/node_modules/@types/three/index.d.ts"],
+      "three/webgpu": ["../../../../web/node_modules/@types/three/build/three.webgpu.d.ts"],
+      "three/tsl": ["../../../../web/node_modules/@types/three/build/three.tsl.d.ts"],
+      "three/examples/jsm/*": ["../../../../web/node_modules/@types/three/examples/jsm/*"],
+      "vgpu": ["../../../../web/node_modules/vgpu/dist/index.d.ts"]
+    },
+    "typeRoots": ["../../../../web/node_modules/@types"]
+  },
+  "include": ["./*.ts", "./*.mts", "../../../../web/src/renderer-globals.d.ts"]
+}

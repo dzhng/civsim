@@ -8,6 +8,11 @@ The pinned TypeGPU API exposes typed render-pass viewport and scissor operations
 
 ## Sound — medium confidence
 
+### Mesh draws stay batched despite fragment-boundary differences
+
+The comparison keeps efficient mesh draws instead of splitting every triangle to force identical derivative grouping. Isolating a triangle can change its shading derivatives without changing its current-pixel geometry or animation. The exploratory numerical diagnostic remains visible; component image equivalence is judged with independent boundary analysis and visual/motion evidence. Full-scene readability and performance still determine backend eligibility. This avoids turning a diagnostic artifact into a costly production rendering rule.
+
+
 ### Frame percentiles use nearest rank
 
 When a recording has a small number of frames, there are several conventional ways to report its 95th-percentile frame time. The metrics module picks the first observed interval at the requested rank instead of interpolating an interval that never occurred. The plan specified percentiles but not the convention. This keeps reported spikes traceable to real frames; future reports and the chart use the same rule. The separate 1%/0.1% low FPS definitions remain exactly as specified. Landed with the metrics foundation.

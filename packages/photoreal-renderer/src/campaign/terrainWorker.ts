@@ -1,4 +1,7 @@
-import { buildCampaignLandscape } from "../../../game-renderer/src/terrain/campaignLandscape";
+import {
+  buildCampaignLandscape,
+  campaignLandscapeAllocation,
+} from "../../../game-renderer/src/terrain/campaignLandscape";
 import {
   campaignLandscapeSource,
   type CampaignLandscapeSnapshot,
@@ -90,6 +93,11 @@ export function campaignTerrainWorkerHandler(
         request.cell <= 0
       )
         throw new Error("Terrain tile requires a finite region and positive grid spacing");
+      if (
+        campaignLandscapeAllocation(request.size / 2, request.cell).typedArrayBytes >
+        128 * 1024 * 1024
+      )
+        throw new Error("Terrain tile generation exceeds the 128 MiB typed-array budget");
       const result = buildCampaignLandscape(
         source,
         [request.minX + request.size / 2, request.minY + request.size / 2],

@@ -4,6 +4,28 @@ import { createRenderedSurface, type LandscapeMesh } from "./surface";
 import { hash2, smoothstep } from "../../../renderer-core/src/math";
 
 let nextRevision = 0;
+const coastRange = 18;
+
+/** Explicit typed-array allocation sizes; excludes source, JS objects and GPU resources. */
+export function campaignLandscapeAllocation(radius: number, cell: number) {
+  if (!Number.isFinite(radius) || radius <= 0 || !Number.isFinite(cell) || cell <= 0)
+    throw new Error("Landscape radius and cell must be positive and finite");
+  const size = Math.ceil((radius * 2) / cell) + 1;
+  const halo = Math.ceil(coastRange / cell) + 2;
+  const paddedSize = size + halo * 2;
+  // Packed vertex (10), color (3), tint (1), shore (1), plus six indices per cell.
+  const outputBytes = size * size * (10 + 3 + 1 + 1) * 4 + (size - 1) ** 2 * 6 * 4;
+  // Height and both distance fields are Float32; land coverage is Uint8.
+  const scratchBytes = paddedSize * paddedSize * (4 + 4 + 4 + 1);
+  return {
+    size,
+    halo,
+    paddedSize,
+    outputBytes,
+    scratchBytes,
+    typedArrayBytes: outputBytes + scratchBytes,
+  };
+}
 
 /** World-aligned presentation window over strategic geography, in kilometres.
  * The halo exceeds every coast/material influence plus one normal sample. */
@@ -16,14 +38,9 @@ export function buildCampaignLandscape(
   radius = 360,
   cell = 2,
 ) {
-  if (!Number.isFinite(radius) || radius <= 0 || !Number.isFinite(cell) || cell <= 0)
-    throw new Error("Landscape radius and cell must be positive and finite");
-  const size = Math.ceil((radius * 2) / cell) + 1;
+  const { size, halo, paddedSize } = campaignLandscapeAllocation(radius, cell);
   const ox = Math.floor((center[0] - radius) / cell) * cell;
   const oy = Math.floor((center[1] - radius) / cell) * cell;
-  const coastRange = 18;
-  const halo = Math.ceil(coastRange / cell) + 2;
-  const paddedSize = size + halo * 2;
   const count = paddedSize * paddedSize;
   const heights = new Float32Array(count);
   const land = new Uint8Array(count);

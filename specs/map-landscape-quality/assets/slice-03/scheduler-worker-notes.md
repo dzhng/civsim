@@ -16,10 +16,16 @@ The client rejects a second concurrent build, reports per-build errors without r
 
 ## Evidence and limits
 
-The focused set passes 18 tests: existing mask and landscape contracts, scheduler behavior, and five new worker tests. Worker tests compare every generated mesh buffer byte against a direct build, full-resolution mask samples and margins over a grid extending beyond raster bounds, source-copy ownership, repeated request transport, errors, concurrency and disposal. The old mask test changed import location only; no old assertion or expected behavior moved.
+The focused set passes 19 tests: existing mask and landscape contracts, scheduler behavior, and six new worker tests. Worker tests compare every generated mesh buffer byte against a direct build, full-resolution mask samples and margins over a grid extending beyond raster bounds, source-copy ownership, repeated request transport, errors, concurrency and disposal. The old mask test changed import location only; no old assertion or expected behavior moved.
 
 Full web typecheck and focused oxlint pass. A Vite production bundle emitted the worker entry successfully. A native Chromium module-worker smoke run built a 128-triangle fixture, returned 3,240 vertex bytes, preserved the application's 64-byte height array, and returned both land/water shore signs (-6 to +6). The scratch server's unrelated full-repository dependency scan could not resolve a historical document's Three.js import; the exercised source modules and real worker completed successfully.
 
 Independent `codex review --uncommitted` found no actionable regressions and independently confirmed the focused tests, typecheck and worker bundle. Shape/code/docs review retained the existing classifier and sampling semantics with no second queue or generator.
 
 These are CPU/transport proofs, not GPU memory, tile-join, frame-time or visual acceptance evidence. Root integration still owns those slice-03 gates.
+
+## Allocation preflight
+
+The generator owns its grid and halo sizing through `campaignLandscapeAllocation`; the worker checks that same calculation before building. The returned count covers output typed arrays and all simultaneously live halo height/land/distance arrays, excluding shared source data, JS objects and GPU allocations. Work exceeding 128 MiB is rejected explicitly before generator entry. A regression supplies a tiny cell that would expand the output and halo enormously and confirms the generator was never called. Root can report the exported estimate without duplicating formulas.
+
+The preflight follow-up passed independent review; the reviewer checked the estimate against the generator allocations and found no actionable regressions.

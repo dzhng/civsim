@@ -4,6 +4,7 @@ import {
   snapshotCampaignLandscape,
   campaignLandscapeSource,
 } from "../../packages/game-renderer/src/terrain/campaignSource";
+import * as landscape from "../../packages/game-renderer/src/terrain/campaignLandscape";
 import { buildCampaignLandscape } from "../../packages/game-renderer/src/terrain/campaignLandscape";
 import {
   campaignTerrainWorkerHandler,
@@ -112,6 +113,21 @@ describe("campaign terrain worker transport", () => {
     expect(messages).toHaveLength(2);
     await expect(worker.build(request)).resolves.toHaveProperty("mesh");
     worker.dispose();
+  });
+
+  it("rejects excessive geometry and halo allocations before entering the generator", () => {
+    const build = vi.spyOn(landscape, "buildCampaignLandscape");
+    const reply = vi.fn();
+    const handle = campaignTerrainWorkerHandler(reply);
+    handle({ type: "init", source: snapshotCampaignLandscape(source()) });
+    // A tiny cell expands both output grid and coast halo well beyond the allowance.
+    handle({ type: "build", request: { ...request, cell: 0.0001 } });
+    expect(build).not.toHaveBeenCalled();
+    expect(reply.mock.calls[0][0]).toEqual({
+      key: request.key,
+      error: "Terrain tile generation exceeds the 128 MiB typed-array budget",
+    });
+    build.mockRestore();
   });
 
   it("rejects concurrent work and terminates outstanding work on disposal", async () => {

@@ -9,6 +9,10 @@ export default mergeConfig(base, {
   resolve: {
     alias: [
       {
+        find: /^vgpu$/,
+        replacement: fileURLToPath(new URL("./node_modules/vgpu/dist/index.js", import.meta.url)),
+      },
+      {
         find: /^typegpu$/,
         replacement: fileURLToPath(new URL("./node_modules/typegpu/index.js", import.meta.url)),
       },

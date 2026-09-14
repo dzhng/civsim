@@ -22,3 +22,11 @@ With that preview running, `node apps/battle-perf-lab/src/vgpu/verify.mjs` perfo
 The sky component uses shared physical-sky WGSL and environment parameters through vgpu draw pipelines, sampled HDR targets and reflected uniforms. It borrows the device, owns its vgpu wrapper, and encodes background work into the caller's frame without submitting it. It covers the LUT and linear HDR background only; PMREM/environment lighting, scene passes and final output remain incomplete, so the backend is unrankable.
 
 The shared `src/skyNumericalCheck.ts` controls all candidates against the same Three reference and checks every component for all environment presets. `src/verify-sky.mjs` runs the private sky build under hardware-requested Chrome and treats console warnings as failures. The recorded vgpu and raw checks pass; TypeGPU's numerical values pass but its `external-omitted` warnings keep its report red. No tolerance or warning gate was relaxed. Disposal checks verify each candidate leaves the borrowed device usable.
+
+
+The post component preserves five-level bloom and the shared grade/AgX/output
+algorithms using vgpu targets, reflected uniforms, draw pipelines and frame
+encoding. The numerical post control reports exact agreement across all 24 cases
+for each candidate, including bloom toggles and changed grade/exposure. Device,
+input and frame output remain borrowed by the component; disposing its wrapper
+releases its intermediate resources. Scene parity and performance remain unproven.

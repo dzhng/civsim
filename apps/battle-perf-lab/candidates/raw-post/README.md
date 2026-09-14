@@ -1,7 +1,7 @@
 # Native post numerical control
 
-This isolated harness compares raw WebGPU and TypeGPU post factories with the
-actual production `BattlePostChain`. Both receive identical half-float HDR texels. The input covers
+This isolated harness compares raw WebGPU, TypeGPU and vgpu post factories with the
+actual production `BattlePostChain`. All receive identical half-float HDR texels. The input covers
 color ramps, an emissive patch, values around the bloom threshold, and dark
 values; the control exercises preset policy, changed grade/exposure, and bloom
 toggling on an odd framebuffer. It measures encoded sRGB output stored in
@@ -22,7 +22,14 @@ checking that disposal preserves caller-owned resources.
 From the repository root, start `bun run --cwd web vite --config
 vite.postcheck.config.ts --host 127.0.0.1 --port 5188`, then obtain the coordinated
 GPU slot before running `node apps/battle-perf-lab/candidates/raw-post/verify.mjs`.
-The factory adapter keeps one fixture/control owner for both runtimes; the shared
+The factory adapter keeps one fixture/control owner for all three runtimes; the shared
 shader source is used only by candidates, leaving Three independent. The standalone
 config and Three control remain lab-only. The verifier closes its
 browser even when an assertion fails.
+
+
+The adapter returns a completed candidate output texture for shared readback. Each
+backend owns its output and submission API: vgpu uses its public frame/target
+encoding while raw and TypeGPU use their native-encoder contracts. All candidates
+retain the same five bloom levels and shared shader algorithms. This adapter is
+only a numerical-control seam; it does not force a common production runtime.

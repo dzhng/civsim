@@ -8,7 +8,7 @@ import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer
 
 export interface PostAdapter {
   setGrade(grade: BattlePostGradeUniforms, exposure: number): void;
-  encode(encoder: GPUCommandEncoder, output: GPUTextureView, bloom?: boolean): void;
+  render(bloom?: boolean): Promise<GPUTexture>;
   dispose(): void;
 }
 export type PostFactory = (
@@ -87,11 +87,6 @@ export async function runPostControl(factory: PostFactory, backend: string) {
     WIDTH,
     HEIGHT,
   ]);
-  const output = device.createTexture({
-    size: [WIDTH, HEIGHT],
-    format: "rgba16float",
-    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-  });
   const dataTexture = new THREE.DataTexture(
     texels,
     WIDTH,
@@ -132,9 +127,7 @@ export async function runPostControl(factory: PostFactory, backend: string) {
           raw.setGrade(control.stats().grade.uniforms, exposure);
           for (const bloom of [false, true, false]) {
             control.setBloomEnabled(bloom);
-            const encoder = device.createCommandEncoder();
-            raw.encode(encoder, output.createView(), bloom);
-            device.queue.submit([encoder.finish()]);
+            const output = await raw.render(bloom);
             renderer.setRenderTarget(reference);
             control.render(scene, quad.camera);
             renderer.setRenderTarget(null);
@@ -166,7 +159,7 @@ export async function runPostControl(factory: PostFactory, backend: string) {
     replacement.dispose();
     let disposedGuard = false;
     try {
-      replacement.encode(device.createCommandEncoder(), output.createView());
+      await replacement.render();
     } catch {
       disposedGuard = true;
     }
@@ -195,7 +188,6 @@ export async function runPostControl(factory: PostFactory, backend: string) {
     dataTexture.dispose();
     renderer.dispose();
     input.destroy();
-    output.destroy();
     device.destroy();
   }
 }

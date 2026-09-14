@@ -10,7 +10,7 @@ const browser = await chromium.launch({
 });
 try {
   const reports = [];
-  for (const backend of ["raw", "typegpu"]) {
+  for (const backend of ["raw", "typegpu", "vgpu"]) {
     const page = await browser.newPage();
     const pageErrors = [],
       warnings = [];

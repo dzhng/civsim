@@ -1,0 +1,14 @@
+[
+  {
+    "name": "alps-regional",
+    "changedPixels": 955754,
+    "grayscaleMAE": 12.437879118703348,
+    "grayscaleRMSE": 20.38240913508275
+  },
+  {
+    "name": "fixture-close",
+    "changedPixels": 606089,
+    "grayscaleMAE": 7.146299587109465,
+    "grayscaleRMSE": 14.282328976625672
+  }
+]

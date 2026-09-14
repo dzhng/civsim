@@ -1,0 +1,9 @@
+{
+  "hypothesis": "Replacing dominant folded zero-contours with two scales of signed height noise will create irregular summits rather than uniformly tall enclosing ridges.",
+  "candidate": "Replace ridge60 squared and ridge28 squared by squared 1.4-times signed campaignNoise at matching scales. Keep original broad0.24body, fine13km detail, source envelope, foothills, coast.",
+  "controls": "Same source, coast, footprint, material, light, viewport1280x800, DPR1, frozen reference, SwiftShader, baseline route/zoom. Ground-centered camera target follows height as in baseline.",
+  "verdict": "Rejected; original is less wrong. Alpine relief becomes broad bulbous blocks with fewer distinct crests and valleys. Fixture becomes a huge smooth convex mound and wall with substantially wider shadow. Closed-contour repetition decreases, but angular summits and useful shoulder hierarchy do not emerge.",
+  "confidence": "high",
+  "verification": "20 focused CPU guards and targeted lint pass. Both changed frames captured with snapCheck; no GPU validation/page errors. No baselines blessed. Negative verdict requires no acceptance review.",
+  "retainedCode": false
+}

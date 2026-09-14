@@ -55,3 +55,14 @@ walls repeat across the three views. Coastal ramps are continuous but lack
 rocky-promontory variety. No torn seams, detached terrain or isolated spikes were
 seen. Small Alpine crest steps remain a medium-confidence discretization issue.
 This preserves bounded-cleanup acceptance while keeping the full form slice open.
+
+## Further form boundary
+
+Broad crest-amplitude variation preserves the enclosing folded contours, so it
+cannot remove the repeated horseshoe walls; it can instead make them taller.
+Replacing those contours with signed noise removes some repetition but produces
+broad convex mounds and loses distinct crests. Both bounded probes are rejected:
+[amplitude evidence](angular-spike/verdict.json) and
+[signed-field evidence](signed-spike/verdict.json) include matched clay frames,
+enlarged crops and change telemetry. The relief formula and accepted snapshots
+remain unchanged. The larger form target stays open.

@@ -61,3 +61,11 @@ Environment and post policy values live outside Three so all candidates consume 
 ### Build feasibility does not change the production compiler
 
 A faster measured window from the existing no-opt profiling artifact is insufficient to choose release settings: executable differences and transient spikes remain unresolved. Preserve the current production build until a controlled causal probe and full live benchmark support a change. This avoids promoting a profiling artifact into the release path on incomplete evidence.
+
+### Candidate depth and beauty preserve identical vertex placement
+
+Native geometry passes mark clip position invariant so a depth prepass and its beauty pass cannot disagree because the compiler rearranged arithmetic. This is a rendering contract shared by later candidate ports. The component comparison retains the existing Three prepass defects as explicit reference differences; it does not reproduce missing grass merely to obtain a zero pixel diff. Full moving-scene acceptance still owns coverage and performance.
+
+### Existing material quirks remain part of the comparison control
+
+Pure terrain and water parameters now have backend-independent owners. The comparison preserves the current water color conversion and source geometry rather than quietly improving them during a backend test. Any visual correction must be a separately evidenced change, so renderer selection measures the same scene.

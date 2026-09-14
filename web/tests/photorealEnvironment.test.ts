@@ -16,7 +16,7 @@ import {
 import {
   AERIAL_DISTANCE_SCALE,
   aerialParams,
-} from "@packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts";
+} from "@packages/game-renderer/src/environment/aerialParameters.ts";
 
 const PRESET_IDS = Object.keys(CIVSIM_ENVIRONMENTS) as (keyof typeof CIVSIM_ENVIRONMENTS)[];
 

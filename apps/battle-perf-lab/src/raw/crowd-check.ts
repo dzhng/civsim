@@ -570,20 +570,22 @@ async function run() {
         commonOverCode,
         worst,
         errorPixels,
-        probes: [
-          ...Array.from({ length: 36 }, (_, i) => [362 + (i % 6), 194 + Math.floor(i / 6)]),
-          [544, 231],
-          [225, 241],
-          [225, 243],
-          [364, 196],
-          [372, 237],
-          [219, 294],
-          [560, 255],
-          [398, 254],
-        ].map(([x, y]) => {
-          const i = (y * W + x) * 4;
-          return { x, y, actual: actual.slice(i, i + 4), expected: expected.slice(i, i + 4) };
-        }),
+        probes: vertexDiagnostic
+          ? [
+              ...Array.from({ length: 36 }, (_, i) => [362 + (i % 6), 194 + Math.floor(i / 6)]),
+              [544, 231],
+              [225, 241],
+              [225, 243],
+              [364, 196],
+              [372, 237],
+              [219, 294],
+              [560, 255],
+              [398, 254],
+            ].map(([x, y]) => {
+              const i = (y * W + x) * 4;
+              return { x, y, actual: actual.slice(i, i + 4), expected: expected.slice(i, i + 4) };
+            })
+          : undefined,
         ...(vertexDiagnostic === "primitive"
           ? {
               primitiveIds: Object.fromEntries(

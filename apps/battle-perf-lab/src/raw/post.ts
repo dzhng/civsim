@@ -1,11 +1,13 @@
+import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
 import {
-  BLOOM_STRENGTH,
-  BLOOM_RADIUS,
-  BLOOM_THRESHOLD,
-  BLOOM_SMOOTH_WIDTH,
-  type BattlePostGradeUniforms,
-} from "../../../../packages/game-renderer/src/environment/postParameters";
-import { fullscreenWGSL, postColorWGSL } from "../shared/postShader";
+  fullscreenWGSL,
+  postColorWGSL,
+  BLOOM_KERNEL_RADII,
+  bloomHighpassWgsl,
+  bloomBlurWgsl,
+  bloomCompositeWgsl,
+  postFinalWgsl,
+} from "../shared/postShader";
 
 type Stage = {
   pipeline: GPURenderPipeline;
@@ -74,11 +76,8 @@ export class RawBattlePost {
       });
     const high = pipeline(
       sampled +
-        `
-      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f {
-        let c = textureSample(source,linearSampler,v.uv);
-        return mix(vec4f(0),c,smoothstep(${BLOOM_THRESHOLD},${BLOOM_THRESHOLD + BLOOM_SMOOTH_WIDTH},dot(c.rgb,vec3f(0.2126,0.7152,0.0722))));
-      }`,
+        `fn highpass${bloomHighpassWgsl}
+      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return highpass(v.uv,source,linearSampler); }`,
     );
     let w = Math.floor(width / 2),
       h = Math.floor(height / 2);
@@ -92,32 +91,18 @@ export class RawBattlePost {
     let source = bright;
     const levels: GPUTextureView[] = [];
     let compositeTarget!: GPUTextureView;
-    for (const radius of [6, 10, 14, 18, 22]) {
+    for (const radius of BLOOM_KERNEL_RADII) {
       const horizontal = texture(w, h),
         vertical = texture(w, h);
       if (levels.length === 0) compositeTarget = horizontal;
-      const sigma = radius / 3;
-      const weights = Array.from(
-        { length: radius },
-        (_, i) => (0.39894 * Math.exp((-0.5 * i * i) / (sigma * sigma))) / sigma,
-      );
       for (const [axis, target] of [
         [0, horizontal],
         [1, vertical],
       ] as const) {
-        const delta = axis === 0 ? `vec2f(${1 / w},0)` : `vec2f(0,${1 / h})`;
         const p = pipeline(
           sampled +
-            `
-          @fragment fn fragment(v: VertexOut) -> @location(0) vec4f {
-            let weights = array<f32,${radius}>(${weights.join(",")});
-            var color = textureSample(source,linearSampler,v.uv).rgb*weights[0];
-            for(var i = 1; i < ${radius}; i++) {
-              let offset = ${delta}*f32(i);
-              color += (textureSample(source,linearSampler,v.uv+offset).rgb+textureSample(source,linearSampler,v.uv-offset).rgb)*weights[i];
-            }
-            return vec4f(color,1);
-          }`,
+            `fn blur${bloomBlurWgsl(radius, w, h, axis)}
+          @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return blur(v.uv,source,linearSampler); }`,
         );
         this.stages.push({
           pipeline: p,
@@ -134,9 +119,9 @@ export class RawBattlePost {
     const composite = pipeline(`
       @group(0) @binding(0) var linearSampler: sampler;
       ${levels.map((_, i) => `@group(0) @binding(${i + 1}) var level${i}: texture_2d<f32>;`).join("\n")}
-      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f {
-        return (${[1, 0.8, 0.6, 0.4, 0.2].map((f, i) => `textureSample(level${i},linearSampler,v.uv)*${f * (1 - BLOOM_RADIUS) + (1.2 - f) * BLOOM_RADIUS}`).join("+")})*${BLOOM_STRENGTH};
-      }`);
+      fn composite${bloomCompositeWgsl}
+      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return composite(v.uv,level0,level1,level2,level3,level4,linearSampler); }
+    `);
     const compositeGroup = device.createBindGroup({
       layout: composite.getBindGroupLayout(0),
       entries: [
@@ -160,10 +145,8 @@ export class RawBattlePost {
       @group(0) @binding(1) var scene: texture_2d<f32>;
       @group(0) @binding(2) var bloom: texture_2d<f32>;
       @group(0) @binding(3) var<uniform> grade: Grade;
-      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f {
-        let hdr = textureSample(scene,linearSampler,v.uv)+textureSample(bloom,linearSampler,v.uv);
-        return vec4f(outputSrgb(agx(gradeColor(hdr.rgb,grade),grade.exposure)),clamp(hdr.a,0.0,1.0));
-      }`,
+      fn finalColor${postFinalWgsl}
+      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return finalColor(v.uv,scene,bloom,linearSampler,grade); }`,
       outputFormat,
     );
     this.finalGroups = [zero, compositeTarget].map((bloom) =>

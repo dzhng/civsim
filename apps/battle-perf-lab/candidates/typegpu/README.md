@@ -93,3 +93,18 @@ part of the required output contract too: omitting it leaves nonfinite values in
 a few low-sun, below-horizon LUT texels. The port preserves that operation rather
 than modifying the atmosphere equations. The current comparison gate allows one
 half-float step at the measured radiance range and rejects all nonfinite values.
+
+
+## Post pass
+
+[post.ts](post.ts) owns the bloom pyramid, grade uniform, bind groups and pipelines
+through TypeGPU. Native candidates share pure [post shader functions](../../src/shared/postShader.ts),
+while each retains its own resource and encoding lifecycle. The fixture supplies
+validated grade state and opaque linear HDR; the final pass applies AgX and the
+sRGB transfer once, so its output target must not apply another sRGB conversion.
+
+The [independent numerical control](../raw-post/README.md) runs the same fixture
+against both native candidates and the production Three chain. Its committed
+results have exact agreement at half-float output precision, including bloom
+toggles and changed grading/exposure. This does not establish full renderer
+parity or a performance advantage.

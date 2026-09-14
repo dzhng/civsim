@@ -1,4 +1,4 @@
-import type { WorldSurfaceDiagnostic } from "../shaders/environment";
+import { trackTextureLifetime } from "../textureLifetimeCheck";
 import { encodeRgba8Base64 } from "../imageTransport";
 import * as THREE from "three/webgpu";
 import {
@@ -30,17 +30,11 @@ import {
 import { localPoseToJointMatrices } from "../../../../packages/soldier-assets/src/localPose";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
-import {
-  eyePosition,
-  viewMatrix,
-  type Camera3DParams,
-} from "../../../../packages/renderer-core/src/camera3d";
+import { eyePosition, type Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
-import {
-  createRawEnvironment,
-  rawEnvironmentWgsl,
-} from "./environment";
-import { createRawImpostors, type ImpostorAtlasData, type ImpostorView } from "./impostor";
+import { createImpostorControlBackend, type ImpostorBackend } from "../impostorControlBackend";
+import type { WorldSurfaceDiagnostic } from "../shaders/environment";
+import type { ImpostorAtlasData, ImpostorView } from "../impostorData";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 
 const W = 640,
@@ -99,6 +93,10 @@ async function run() {
   const query = new URLSearchParams(location.search);
   const samples = query.get("samples") === "4" ? 4 : 1;
   const canonicalProjection = query.has("canonical");
+  const selectedBackend = query.get("candidate") ?? "raw";
+  if (selectedBackend !== "raw" && selectedBackend !== "typegpu" && selectedBackend !== "vgpu")
+    throw new Error("Unknown impostor candidate");
+  const backend: ImpostorBackend = selectedBackend;
   const requestedDiagnostic = query.get("diagnostic");
   const diagnostic: WorldSurfaceDiagnostic | undefined =
     requestedDiagnostic === "albedo" ||
@@ -112,7 +110,8 @@ async function run() {
   if (!adapter) throw new Error("No WebGPU adapter");
   const device = await adapter.requestDevice(),
     errors: string[] = [];
-  const cleanup: Array<() => void> = [() => device.destroy()];
+  const textures = trackTextureLifetime(device);
+  const cleanup: Array<() => void> = [() => device.destroy(), textures.restore];
   try {
     device.addEventListener("uncapturederror", (e) => errors.push(e.error.message));
     const world = await PhotorealWorld.create(document.createElement("canvas"), {
@@ -128,50 +127,17 @@ async function run() {
     applyCivsimEnvironment(world, env, { aerialObserver: vec3(0, 0, 0) });
     for (const child of world.scene.children)
       if (child instanceof THREE.Mesh) child.visible = false;
-    const lighting = await createRawEnvironment(device, env);
-    cleanup.push(() => lighting.dispose());
-    if (diagnostic) lighting.shader = rawEnvironmentWgsl(env, diagnostic);
-    const cameraBuffer = device.createBuffer({
-      size: 192,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-    cleanup.push(() => cameraBuffer.destroy());
-    const cameraLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          buffer: { type: "uniform" },
-        },
-      ],
-    });
-    const cameraGroup = device.createBindGroup({
-      layout: cameraLayout,
-      entries: [{ binding: 0, resource: { buffer: cameraBuffer } }],
-    });
-    const output = device.createTexture({
-      size: [W, H],
-      format: "rgba16float",
-      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-    });
-    cleanup.push(() => output.destroy());
-    const multisample =
-      samples === 4
-        ? device.createTexture({
-            size: [W, H],
-            format: "rgba16float",
-            sampleCount: samples,
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
-          })
-        : undefined;
-    if (multisample) cleanup.push(() => multisample.destroy());
-    const depth = device.createTexture({
-      sampleCount: samples,
-      size: [W, H],
-      format: "depth32float",
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-    cleanup.push(() => depth.destroy());
+    const candidate = await createImpostorControlBackend(
+      backend,
+      device,
+      env,
+      samples,
+      W,
+      H,
+      errors,
+      diagnostic,
+    );
+    cleanup.push(candidate.dispose);
     const reference = new THREE.RenderTarget(W, H, {
       type: THREE.HalfFloatType,
       samples,
@@ -214,12 +180,12 @@ async function run() {
         layer = new OctahedralImpostorLayer(world.scene, atlas);
         let rejectedIncompleteMips = false;
         try {
-          await createRawImpostors(device, { ...data, orm: [] }, cameraLayout, lighting, samples);
+          await candidate.create({ ...data, orm: [] });
         } catch {
           rejectedIncompleteMips = true;
         }
-        const raw = await createRawImpostors(device, data, cameraLayout, lighting, samples);
-        classCleanup.push(() => raw.dispose());
+        const native = await candidate.create(data);
+        classCleanup.push(() => native.dispose());
         for (const [label, pitch, distance] of focused
           ? [["overhead", 1.35, 32] as const]
           : ([
@@ -254,8 +220,7 @@ async function run() {
             far: 3000,
           };
           applyCamera3d(camera, params);
-          const view = viewMatrix(params),
-            eye = eyePosition(params),
+          const eye = eyePosition(params),
             matrix = camera.matrixWorld.elements;
           const right = new THREE.Vector3(matrix[0], matrix[1], matrix[2]).normalize(),
             up = new THREE.Vector3(matrix[4], matrix[5], matrix[6]).normalize();
@@ -265,24 +230,9 @@ async function run() {
             eye: [eye[0], eye[1], eye[2]],
             fovY: params.fovY,
           };
-          lighting.setView(view, [0, 0, 0]);
-          device.queue.writeBuffer(
-            cameraBuffer,
-            0,
-            cameraUniformData({
-              camera3d: params,
-              x: 0,
-              y: 0,
-              zoom: 8,
-              width: W,
-              height: H,
-              sunAzimuth: 0,
-              sunElevation: 0,
-            }),
-          );
           layer.upload(source);
           layer.setCamera(camera);
-          const packed = raw.update(source, billView);
+          const packed = native.update(source, billView);
           const mesh = world.scene.getObjectByName(
             "battle-crowd-far-impostors",
           ) as THREE.Mesh<THREE.InstancedBufferGeometry>;
@@ -337,27 +287,7 @@ async function run() {
                     : expectedLiving.array[i])
               )
                 packingEqual = false;
-          const encoder = device.createCommandEncoder(),
-            pass = encoder.beginRenderPass({
-              colorAttachments: [
-                {
-                  view: (multisample ?? output).createView(),
-                  resolveTarget: multisample ? output.createView() : undefined,
-                  loadOp: "clear",
-                  storeOp: "store",
-                  clearValue: [0, 0, 0, 0],
-                },
-              ],
-              depthStencilAttachment: {
-                view: depth.createView(),
-                depthClearValue: 0,
-                depthLoadOp: "clear",
-                depthStoreOp: "store",
-              },
-            });
-          raw.draw(pass, cameraGroup);
-          pass.end();
-          device.queue.submit([encoder.finish()]);
+          const output = await native.render(params);
           await new Promise<void>((r) => requestAnimationFrame(() => r()));
           renderer.setRenderTarget(reference);
           renderer.render(world.scene, camera);
@@ -430,7 +360,7 @@ async function run() {
             actualRgba: rgba(actual),
             expectedRgba: rgba(expected),
             mipLevels: data.albedo.length,
-            stats: raw.stats(),
+            stats: native.stats(),
           });
         }
         const emptyView: ImpostorView = {
@@ -439,18 +369,16 @@ async function run() {
           eye: [0, -10, 10],
           fovY: 0.8,
         };
-        raw.update([], emptyView);
-        const emptyDraw = raw.stats().draws === 0;
-        raw.dispose();
+        native.update([], emptyView);
+        const emptyDraw = native.stats().draws === 0;
+        native.dispose();
         let disposedGuard = false;
         try {
-          raw.update([], emptyView);
+          native.update([], emptyView);
         } catch {
           disposedGuard = true;
         }
-        const borrowedAlive =
-          (await readHdrTexture(device, output)).every(Number.isFinite) &&
-          (await readHdrTexture(device, lighting.sky.lut)).every(Number.isFinite);
+        const borrowedAlive = await candidate.borrowedResourcesAlive();
         lifecycle.push({
           classId,
           rejectedIncompleteMips,
@@ -462,13 +390,17 @@ async function run() {
         for (const release of classCleanup.reverse()) release();
       }
     }
+    candidate.dispose();
+    const texturesAfterBackendDispose = textures.liveCount();
     return {
+      texturesAfterBackendDispose,
       adapter: {
         vendor: adapter.info.vendor,
         architecture: adapter.info.architecture,
         device: adapter.info.device,
         description: adapter.info.description,
       },
+      backend,
       samples,
       canonicalProjection,
       diagnostic,
@@ -477,6 +409,7 @@ async function run() {
       lifecycle,
       errors,
       passed:
+        texturesAfterBackendDispose === 0 &&
         results.length === (focused ? 1 : 12) &&
         results.every((r) => r.passed) &&
         lifecycle.every(

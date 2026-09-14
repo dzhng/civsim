@@ -36,3 +36,5 @@ The build deliberately avoids copying the large public asset tree; the control s
 Base source: `a8fadca361fc3fdee887984470feb6c4f32312e8`. Shared transport: `77ec6853`. The enclosing component commit identifies the native code and harness. Copied root-owned lighting dependencies are excluded from the commit: `raw/environment.ts` SHA-256 `99db4932950212ca99f4f811b4297a52b9c5c3503255262c4c5434ab59859366`; `shaders/soldier.ts` SHA-256 `46cc8a80f2bce73ab6f1c585713d6a78d5cd26a62dcaff6db94da02596b93fe3`. Paths are relative to `apps/battle-perf-lab/src`. Integration moved that unchanged faction WGSL to `shaders/soldierFaction.ts`, so this component does not depend on the still-experimental mesh shader.
 
 No performance benchmark or complete battle-frame parity claim is made here.
+
+The shared shader/data extraction was rerun against the same oracle for raw, TypeGPU and vgpu at one/four samples. All six matrices meet the original per-pixel gates. The control now accounts for real texture allocation/destruction and requires zero live candidate textures after backend disposal; both raw reports record zero.

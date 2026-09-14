@@ -14,12 +14,15 @@ try {
   page.on("console", (m) => {
     if (["error", "warning"].includes(m.type())) pageErrors.push(m.text());
   });
-  await page.goto(process.env.IMPOSTOR_CHECK_URL ?? "http://localhost:5198/impostor-check.html");
+  const url = process.env.IMPOSTOR_CHECK_URL ?? "http://localhost:5198/impostor-check.html";
+  const selected = new URL(url).searchParams.get("candidate") ?? "raw";
+  if (!["raw", "typegpu", "vgpu"].includes(selected)) throw new Error("Unknown impostor candidate");
+  await page.goto(url);
   await page.waitForFunction(() => window.__impostorCheck !== undefined, null, { timeout: 120000 });
   const result = await page.evaluate(() => window.__impostorCheck);
   await browser.close();
   const directory = new URL(
-    `../../../../specs/battle-performance/assets/02-raw/impostor/samples-${result.samples ?? "error"}${result.canonicalProjection ? "-canonical" : ""}${result.diagnostic ? "-" + result.diagnostic : ""}${result.focused ? "-focused" : ""}/`,
+    `../../../../specs/battle-performance/assets/02-${result.backend ?? selected}/impostor/samples-${result.samples ?? "error"}${result.canonicalProjection ? "-canonical" : ""}${result.diagnostic ? "-" + result.diagnostic : ""}${result.focused ? "-focused" : ""}/`,
     import.meta.url,
   );
   await mkdir(directory, { recursive: true });

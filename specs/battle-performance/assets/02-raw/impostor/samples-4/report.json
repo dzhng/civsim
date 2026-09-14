@@ -1,10 +1,12 @@
 {
+  "texturesAfterBackendDispose": 0,
   "adapter": {
     "vendor": "apple",
     "architecture": "metal-3",
     "device": "",
     "description": ""
   },
+  "backend": "raw",
   "samples": 4,
   "canonicalProjection": false,
   "focused": false,

@@ -1,0 +1,241 @@
+{
+  "passed": false,
+  "results": [
+    {
+      "preset": "golden",
+      "lut": {
+        "maxAbs": 0.00390625,
+        "maxRelative": 0.0009765625,
+        "rmse": 0.000022011543304089597,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 5.26953125,
+        "samples": 294912
+      },
+      "backgrounds": [
+        {
+          "maxAbs": 0.0009765625,
+          "maxRelative": 0.0009157509157509158,
+          "rmse": 0.000018639393125240388,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.890625,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 4.72265625,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 5.26953125,
+          "samples": 8192
+        }
+      ]
+    },
+    {
+      "preset": "dusk",
+      "lut": {
+        "maxAbs": 0.00390625,
+        "maxRelative": 0.0009699321047526673,
+        "rmse": 0.000027304913143578355,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 9.703125,
+        "samples": 294912
+      },
+      "backgrounds": [
+        {
+          "maxAbs": 0.00048828125,
+          "maxRelative": 0.0009250693802035153,
+          "rmse": 0.000015713936856540757,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.8623046875,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 6.05078125,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 9.703125,
+          "samples": 8192
+        }
+      ]
+    },
+    {
+      "preset": "noon",
+      "lut": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.0009606147934678194,
+        "rmse": 0.000011492555925067405,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.50390625,
+        "samples": 294912
+      },
+      "backgrounds": [
+        {
+          "maxAbs": 0.0009765625,
+          "maxRelative": 0.0008904719501335708,
+          "rmse": 0.00001112165812462864,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.4296875,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 2.974609375,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.3955078125,
+          "samples": 8192
+        }
+      ]
+    },
+    {
+      "preset": "overcast-highland",
+      "lut": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 294912
+      },
+      "backgrounds": [
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 8192
+        },
+        {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 8192
+        }
+      ]
+    }
+  ],
+  "borrowedDeviceChecks": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "errors": [],
+  "scope": "linear HDR LUT and background sampling only; no PMREM, fixture parity or performance claim",
+  "backend": "typegpu",
+  "capturedAt": "2026-09-14T20:08:33.168Z",
+  "pageErrors": [
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals.",
+    "⚠️ [external-omitted]  During resolution, the external 'in.uv' has been omitted. Only TGPU resources, 'use gpu' functions, primitives, and plain JS objects can be used as externals."
+  ]
+}

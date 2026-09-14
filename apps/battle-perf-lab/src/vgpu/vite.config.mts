@@ -9,6 +9,12 @@ export default mergeConfig(base, {
   resolve: {
     alias: [
       {
+        find: /^typegpu$/,
+        replacement: fileURLToPath(
+          new URL("../../../../web/node_modules/typegpu/index.js", import.meta.url),
+        ),
+      },
+      {
         find: /^vgpu$/,
         replacement: fileURLToPath(
           new URL("../../../../web/node_modules/vgpu/dist/index.js", import.meta.url),
@@ -17,6 +23,12 @@ export default mergeConfig(base, {
     ],
   },
   build: {
+    rolldownOptions: {
+      input: {
+        preflight: fileURLToPath(new URL("./index.html", import.meta.url)),
+        sky: fileURLToPath(new URL("./sky-check.html", import.meta.url)),
+      },
+    },
     outDir: fileURLToPath(new URL("../../../../throwaway/vgpu/dist", import.meta.url)),
     emptyOutDir: true,
   },

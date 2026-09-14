@@ -1,8 +1,8 @@
-import { createTypegpuSky } from "./sky";
-import { runSkyNumericalCheck, SKY_CHECK_SIZE } from "../../src/skyNumericalCheck";
+import { createRawSky } from "./sky";
+import { runSkyNumericalCheck, SKY_CHECK_SIZE } from "../skyNumericalCheck";
 
 const report = await runSkyNumericalCheck(async (device, params) => {
-  const sky = await createTypegpuSky(device, params);
+  const sky = await createRawSky(device, params);
   const output = device.createTexture({
     size: [...SKY_CHECK_SIZE],
     format: "rgba16float",
@@ -24,4 +24,4 @@ const report = await runSkyNumericalCheck(async (device, params) => {
   };
 });
 document.querySelector("#result")!.textContent = JSON.stringify(report, null, 2);
-Object.assign(window, { __typegpuSky: report });
+Object.assign(window, { __rawSky: report });

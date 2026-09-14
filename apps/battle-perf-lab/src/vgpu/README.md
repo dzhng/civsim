@@ -17,3 +17,8 @@ web/node_modules/.bin/vite preview --config apps/battle-perf-lab/src/vgpu/vite.c
 ```
 
 With that preview running, `node apps/battle-perf-lab/src/vgpu/verify.mjs` performs the hardware check and writes results/pixel captures under `specs/battle-performance/assets/02-vgpu/`. Serialize this check with other GPU runs. A failed healthy control is inconclusive; never patch around it with raw rendering and call the result vgpu.
+
+
+The sky component uses shared physical-sky WGSL and environment parameters through vgpu draw pipelines, sampled HDR targets and reflected uniforms. It borrows the device, owns its vgpu wrapper, and encodes background work into the caller's frame without submitting it. It covers the LUT and linear HDR background only; PMREM/environment lighting, scene passes and final output remain incomplete, so the backend is unrankable.
+
+The shared `src/skyNumericalCheck.ts` controls all candidates against the same Three reference and checks every component for all environment presets. `src/verify-sky.mjs` runs the private sky build under hardware-requested Chrome and treats console warnings as failures. The recorded vgpu and raw checks pass; TypeGPU's numerical values pass but its `external-omitted` warnings keep its report red. No tolerance or warning gate was relaxed. Disposal checks verify each candidate leaves the borrowed device usable.

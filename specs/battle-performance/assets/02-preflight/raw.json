@@ -1,0 +1,46 @@
+{
+  "result": {
+    "kind": "native-api-preflight",
+    "cases": [
+      {
+        "sharedUniform": true,
+        "computed": [
+          2,
+          4,
+          6,
+          8
+        ],
+        "pixel": [
+          64,
+          255,
+          128,
+          255
+        ],
+        "passed": true
+      },
+      {
+        "sharedUniform": false,
+        "computed": [
+          2,
+          4,
+          6,
+          8
+        ],
+        "pixel": [
+          64,
+          255,
+          191,
+          255
+        ],
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    }
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "errors": []
+}

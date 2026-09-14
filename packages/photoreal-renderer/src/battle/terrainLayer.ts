@@ -458,18 +458,20 @@ export function createGroundMesh(
   const churn = clamp(clods.mul(0.72).add(ruts.mul(0.28)).add(0.58), 0.42, 1.3);
   albedo = mix(albedo, albedo.mul(churn), mudInterior);
   let dryRoughness: FloatNode = float(0.95);
+  let dryNormal: ReturnType<typeof terrainRockResponse>["normal"] | undefined;
 
   if (slopeMasks) {
     const response = terrainRockResponse(surface, albedo, slopeMasks, options.detailScale);
     albedo = response.albedo;
     dryRoughness = response.dryRoughness;
+    dryNormal = response.normal;
   }
   const dryRoughnessFloor = options.vistaBand
     ? options.vistaBand === "farFog"
       ? float(0.995)
       : float(0.985)
     : float(0);
-  applyTerrainSurface(material, frame, surface, albedo, dryRoughness, dryRoughnessFloor);
+  applyTerrainSurface(material, frame, surface, albedo, dryRoughness, dryRoughnessFloor, dryNormal);
   if (options.vistaBand === "farFog") {
     // The 64 m far-fog ring is real terrain below the horizon, but from a low
     // eye its coarse vertices can project into the sky as giant grazing tiles.

@@ -20,7 +20,6 @@ export const TERRAIN_MATERIAL = {
     faceLow: [0.32, 0.32, 0.29],
     faceHigh: [0.45, 0.43, 0.36],
     fracture: [0.21, 0.22, 0.21],
-    strata: [0.19, 0.2, 0.19],
     screeLow: [0.43, 0.42, 0.36],
     screeHigh: [0.57, 0.54, 0.45],
     screePebble: [0.3, 0.3, 0.27],

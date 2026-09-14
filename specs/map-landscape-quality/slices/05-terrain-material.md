@@ -1,10 +1,10 @@
 # 05 — Shared rock, scree and grass response
 
-Status: shared ownership extraction active; visual tuning follows [04](04-mountain-form.md).
+Status: shared owner and face-oriented artifact reduction implemented; combined visual acceptance remains open after [04](04-mountain-form.md).
 
 ## Contract and owner
 
-Extract shared terrain response into the proposed landscape terrainMaterial owner. Keep battle turf, roads, mud, trample and physical tint decoding at their existing boundary. Common material profiles own neutral palette and feature scale.
+Shared terrain response lives in the landscape terrainMaterial owner. Keep battle turf, roads, mud, trample and physical tint decoding at their existing boundary. Common material profiles own neutral palette and feature scale.
 
 Slice variable: **Surface material and transition quality on fixed geometry.**
 
@@ -14,9 +14,7 @@ First reproduce triplanar color/normal mapping on a flat-to-steep ramp with the 
 
 ## Runnable checkpoint
 
-Planned landscape-materials scene with common material probes at campaign and battle scales, then frozen real regions; terrain-water remains a consumer guard.
-
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+The landscape-materials scene renders equivalent campaign and battle inputs, a geometric-normal control, and near/far material views. Frozen real regions and terrain-water remain consumer guards.
 
 ## Verification and review
 
@@ -40,6 +38,8 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 
 First extract shared shader vocabulary and material response without changing appearance. This ownership pass can proceed while mountain form is evaluated. Keep physical tint decoding, road/mud masks, turf and playable/vista layout under battle. Then tune the common rock/grass transition on fixed accepted geometry. Final visual acceptance still depends on04; extracting shared ownership does not.
 
-The shared shader vocabulary extraction is verified; [evidence](../assets/shared-shader/README.md) records unchanged consumer captures and the controlled inherited battle snapshot failure. Next extract the terrain material response; moving helper ownership alone does not complete 05.
+The shared shader vocabulary extraction is verified; [evidence](../assets/shared-shader/README.md) records unchanged consumer captures and the controlled inherited battle snapshot failure. The terrain material response now also has one shared owner; moving helper ownership alone did not complete 05.
 
 The shared terrain response extraction is verified: [ownership evidence](../assets/slice-05/extraction/README.md) records exact small canonical controls, equivalent-consumer RGBA, matched hardware turf controls, and the inherited full SwiftShader readiness limitation. Face-oriented visual tuning remains active.
+
+The [face-response evidence](../assets/slice-05/face-detail/README.md) records the procedural triplanar/normal probe, fixed-geometry before/after comparison, exact consumer and water guards, hardware battle controls, and remaining close-rock softness. This is a verified material implementation checkpoint, not final combined landscape art acceptance.

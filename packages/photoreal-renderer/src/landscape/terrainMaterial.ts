@@ -4,12 +4,18 @@ import {
   abs,
   attribute,
   clamp,
+  cross,
+  dFdx,
+  dFdy,
+  dot,
   float,
-  floor,
-  fract,
+  fwidth,
+  length,
   max,
   mix,
   normalize,
+  positionView,
+  sign,
   transformNormalToView,
   varying,
   vec2,
@@ -25,7 +31,6 @@ import {
 import { fieldWaterSurfaceNodes } from "../battle/seaLayer";
 import {
   fbmN,
-  hashN,
   linearAlbedo,
   rgbNode,
   saturateN,
@@ -121,31 +126,35 @@ export function terrainRockResponse(
   const { slowNz, rollingNz, slopeRock, rockMask, screeMask, sourceScree } = masks;
   let albedo = inputAlbedo;
   let dryRoughness: FloatNode = float(0.95);
-  const warp = fbmN(world.mul(0.035))
-    .mul(2.2)
-    .add(fbmN(world.mul(0.12).add(vec2(4.0, 9.0))).mul(0.7))
-    .toVar();
-  // Vertical fracture streaks dominate rock faces; strata stay faint so the
-  // material does not read as evenly spaced elevation bands.
-  const fracture = smoothstepN(
-    0.55,
-    0.95,
-    fbmN(world.mul(vec2(0.32, 0.32)).add(warp.mul(0.35))),
+  // The pinned Three triplanar helper normalizes absolute axis weights. Apply
+  // that same basis to procedural fields so vertical faces retain their scale.
+  const p = varying(position).mul(detailScale).toVar();
+  const faceNoise = mix(
+    float(0.5),
+    triplanarNoise(p, worldNormal, [0.16, 0.16]),
+    detailVisibility(p, 0.16),
   ).toVar();
-  const strataPhase = fract(position.z.mul(0.16 * detailScale).add(warp.mul(1.7))).toVar();
-  const strata = smoothstepN(0.7, 0.98, abs(strataPhase.mul(2.0).sub(1.0)))
-    .mul(smoothstepN(0.35, 0.75, fbmN(world.mul(0.021).add(vec2(11.0, 3.0)))))
-    .toVar();
-  const faceNoise = fbmN(world.mul(0.075).add(vec2(2.0, 6.0))).toVar();
+  const fractureField = triplanarNoise(p, worldNormal, [0.09, 0.12]);
+  const fracture = smoothstepN(0.44, 0.72, fractureField).mul(detailVisibility(p, 0.12)).toVar();
   let rock = mix(
     rgbNode(TERRAIN_MATERIAL.rock.faceLow),
     rgbNode(TERRAIN_MATERIAL.rock.faceHigh),
     faceNoise,
   );
-  rock = mix(rock, rgbNode(TERRAIN_MATERIAL.rock.fracture), fracture.mul(slopeRock).mul(0.62));
-  rock = mix(rock, rgbNode(TERRAIN_MATERIAL.rock.strata), strata.mul(slopeRock).mul(0.34));
+  rock = mix(rock, rgbNode(TERRAIN_MATERIAL.rock.fracture), fracture.mul(slopeRock).mul(0.32));
+  // Derivatives perturb shading only, in the library's view-space basis. No
+  // height displacement or world-height contour function enters this response.
+  const normal = normalize(
+    mix(
+      transformNormalToView(worldNormal),
+      terrainNormal(faceNoise, worldNormal),
+      rockMask.mul(0.5),
+    ),
+  );
 
-  const pebble = smoothstepN(0.78, 0.97, hashN(floor(world.mul(0.85)))).toVar();
+  const pebble = smoothstepN(0.6, 0.78, fbmN(world.mul(0.5)))
+    .mul(detailVisibility(vec3(world, 0), 0.5))
+    .toVar();
   let scree = mix(
     rgbNode(TERRAIN_MATERIAL.rock.screeLow),
     rgbNode(TERRAIN_MATERIAL.rock.screeHigh),
@@ -161,13 +170,14 @@ export function terrainRockResponse(
 
   albedo = mix(albedo, scree, screeMask.mul(0.78));
   albedo = mix(albedo, rock, rockMask);
-  albedo = mix(albedo, rgbNode(TERRAIN_MATERIAL.rock.bench), benchCreep);
+  albedo = mix(albedo, mix(rgbNode(TERRAIN_MATERIAL.rock.bench), inputAlbedo, 0.65), benchCreep);
   dryRoughness = mix(
     dryRoughness,
     float(0.985),
     clamp(rockMask.add(screeMask).mul(0.62), 0.0, 1.0),
   );
-  return { albedo, dryRoughness };
+  dryRoughness = mix(dryRoughness, faceNoise.mul(0.03).add(0.955), rockMask);
+  return { albedo, dryRoughness, normal };
 }
 
 /** Dry albedo is display-authored. Water comes from its producer already linear. */
@@ -178,9 +188,10 @@ export function applyTerrainSurface(
   albedo: Vec3Node,
   dryRoughness: FloatNode,
   dryRoughnessFloor: FloatNode = float(0),
+  normal?: Vec3Node,
 ) {
   const { surfaceWorld, rawWaterBlend, waterBlend, worldNormal } = surface;
-  material.normalNode = transformNormalToView(worldNormal);
+  material.normalNode = normal ?? transformNormalToView(worldNormal);
   // Field water: the shared water surface blended by the box-filtered weight
   // (albedo + roughness — wet ground gets a real sun sheen).
   const fieldWater = fieldWaterSurfaceNodes(frame, surfaceWorld, rawWaterBlend);
@@ -215,7 +226,15 @@ export function createLandscapeGroundMesh(
   });
   const response = terrainRockResponse(surface, base, masks, profile.detailScale);
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
-  applyTerrainSurface(material, frame, surface, response.albedo, response.dryRoughness);
+  applyTerrainSurface(
+    material,
+    frame,
+    surface,
+    response.albedo,
+    response.dryRoughness,
+    float(0),
+    response.normal,
+  );
   const ground = new THREE.Mesh(createTerrainGeometry(mesh), material);
   ground.name = "landscape-ground";
   ground.frustumCulled = false;
@@ -232,4 +251,40 @@ function frontSideIndexBuffer(indices: Uint32Array): Uint32Array {
     out[i + 2] = indices[i + 1];
   }
   return out;
+}
+
+function triplanarNoise(
+  position: Vec3Node,
+  normal: Vec3Node,
+  frequency: readonly [number, number],
+) {
+  const weights = abs(normal).div(abs(normal).x.add(abs(normal).y).add(abs(normal).z));
+  const scale = vec2(...frequency);
+  // Both steep projections keep their second coordinate vertical; fractures
+  // therefore follow faces without switching direction at an axis blend.
+  return fbmN(position.yz.mul(scale))
+    .mul(weights.x)
+    .add(fbmN(position.xz.mul(scale)).mul(weights.y))
+    .add(fbmN(position.xy.mul(scale)).mul(weights.z));
+}
+
+function detailVisibility(position: Vec3Node, frequency: number) {
+  // Subpixel modulation converges to its mean instead of aliasing into dots.
+  return float(1).sub(smoothstepN(0.3, 1.0, length(fwidth(position)).mul(frequency)));
+}
+
+// Mikkelsen surface-gradient basis, as used by Three's BumpMapNode. Procedural
+// height needs explicit screen derivatives; that node offsets texture UVs only.
+function terrainNormal(height: FloatNode, worldNormal: Vec3Node) {
+  const n = transformNormalToView(worldNormal);
+  const dx = dFdx(positionView),
+    dy = dFdy(positionView);
+  const r1 = cross(dy, n),
+    r2 = cross(n, dx);
+  const det = dot(dx, r1);
+  const gradient = r1
+    .mul(dFdx(height))
+    .add(r2.mul(dFdy(height)))
+    .mul(sign(det));
+  return normalize(n.mul(abs(det)).sub(gradient.mul(0.5)));
 }

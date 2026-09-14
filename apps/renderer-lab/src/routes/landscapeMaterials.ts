@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { vec3 } from "three/tsl";
+import { attribute, normalize, transformNormalToView, varying, vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
 import { createLandscapeGroundMesh } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
@@ -34,13 +34,20 @@ export async function route(ctx: LabContext) {
           },
         })
       : createLandscapeGroundMesh(frame, mesh);
+  // A same-scene control proves procedural derivatives affect lighting.
+  if (ctx.params.get("normal") === "geometric")
+    (ground.material as THREE.MeshStandardNodeMaterial).normalNode = transformNormalToView(
+      normalize(varying(attribute<"vec3">("gNormal", "vec3"))),
+    );
   world.scene.add(ground);
   const camera = new THREE.PerspectiveCamera();
+  const zoom =
+    ctx.params.get("view") === "near" ? 4.8 : ctx.params.get("view") === "far" ? 1.6 : 3.2;
   const draw = () => {
     const width = ctx.canvas.clientWidth,
       height = ctx.canvas.clientHeight;
     world.resize(width, height, 1);
-    const pose = chartCamera3d({ x: 0, y: 0, zoom: 3.2, pitch: 0.55 }, height);
+    const pose = chartCamera3d({ x: 0, y: 0, zoom, pitch: 0.55 }, height);
     pose.aspect = width / height;
     pose.target = [0, 0, 18];
     applyCamera3d(camera, pose);

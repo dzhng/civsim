@@ -1,3 +1,4 @@
+import { destroyVgpuTarget } from "./targetLifetime";
 import {
   draw,
   frame,
@@ -18,6 +19,14 @@ export async function createVgpuPmrem(device: GPUDevice, sourceLut: GPUTexture) 
   if (sourceLut.width !== 384 || sourceLut.height !== 192 || sourceLut.format !== "rgba16float")
     throw new Error("PMREM comparison expects the canonical 384×192 HDR sky LUT");
   const gpu = await initFromDevice(device);
+  const targets: Target[] = [];
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    for (const t of targets) destroyVgpuTarget(t);
+    gpu.dispose();
+  };
   try {
     const maxMip = Math.floor(Math.log2(sourceLut.width / 4)),
       cubeSize = 2 ** maxMip;
@@ -29,11 +38,13 @@ export async function createVgpuPmrem(device: GPUDevice, sourceLut: GPUTexture) 
       format: "rgba16float",
       label: "vgpu PMREM atlas",
     });
+    targets.push(atlas);
     const ping = target(gpu, {
       size: [width, height],
       format: "rgba16float",
       label: "vgpu PMREM ping-pong",
     });
+    targets.push(ping);
     const linear = sampler(gpu, { minFilter: "linear", magFilter: "linear" });
     const meshes = Array.from({ length: count }, (_, lod) =>
       geometry(gpu, {
@@ -125,12 +136,10 @@ struct FilterParams { value:vec4f };
       maxMip,
       width,
       height,
-      dispose() {
-        gpu.dispose();
-      },
+      dispose,
     };
   } catch (error) {
-    gpu.dispose();
+    dispose();
     throw error;
   }
 }

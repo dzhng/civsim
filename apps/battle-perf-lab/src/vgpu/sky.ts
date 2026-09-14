@@ -1,3 +1,4 @@
+import { destroyVgpuTarget } from "./targetLifetime";
 import {
   draw,
   frame,
@@ -31,12 +32,21 @@ struct Vertex { @builtin(position) position: vec4f, @location(0) uv: vec2f };
 /** Linear HDR only. Borrows the device; owns vgpu resources and wrapper lifetime. */
 export async function createVgpuSky(device: GPUDevice, params: SkyModelParams) {
   const gpu = await initFromDevice(device);
+  const targets: Target[] = [];
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    for (const t of targets) destroyVgpuTarget(t);
+    gpu.dispose();
+  };
   try {
     const lut = target(gpu, {
       size: [SKY_LUT_WIDTH, SKY_LUT_HEIGHT],
       format: "rgba16float",
       label: "vgpu-sky-lut",
     });
+    targets.push(lut);
     const rays = uniforms(gpu, { origin: [0, 1, 0], dx: [0, 0, 0], dy: [0, 0, 0] });
     const linearSampler = sampler(gpu, {
       minFilter: "linear",
@@ -85,12 +95,10 @@ fn disc${skyDiscWgsl(params)}
         if (gpu.disposed) throw new Error("Vgpu sky is disposed");
         current.pass(output, background);
       },
-      dispose() {
-        gpu.dispose();
-      },
+      dispose,
     };
   } catch (error) {
-    gpu.dispose();
+    dispose();
     throw error;
   }
 }

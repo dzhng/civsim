@@ -1,3 +1,4 @@
+import { destroyVgpuTarget } from "./targetLifetime";
 import {
   draw,
   initFromDevice,
@@ -33,6 +34,14 @@ export async function createVgpuPost(
     throw new Error("Five-level parity bloom requires a framebuffer at least 64×64");
   if (outputFormat.endsWith("-srgb")) throw new Error("Post output already applies sRGB transfer");
   const gpu = await initFromDevice(device);
+  const targets: Target[] = [];
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    for (const t of targets) destroyVgpuTarget(t);
+    gpu.dispose();
+  };
   try {
     const linearSampler = sampler(gpu, { minFilter: "linear", magFilter: "linear" });
     const grade = uniforms(gpu, {
@@ -47,8 +56,11 @@ export async function createVgpuPost(
     });
     const stages: { render: Draw; output: Target }[] = [];
     const compile: Promise<Draw>[] = [];
-    const createTarget = (w: number, h: number) =>
-      target(gpu, { size: [w, h], format: "rgba16float" });
+    const createTarget = (w: number, h: number) => {
+      const output = target(gpu, { size: [w, h], format: "rgba16float" });
+      targets.push(output);
+      return output;
+    };
     const stage = (shader: string, set: Record<string, unknown>, output: Target, label: string) => {
       const render = draw(gpu, { shader: fullscreenWGSL + shader, set, vertices: 3, label });
       stages.push({ render, output });
@@ -149,12 +161,10 @@ fn finalColor${postFinalWgsl}
             current.pass({ target: stage.output, clear: [0, 0, 0, 0] }, stage.render);
         current.pass({ target: output, clear: [0, 0, 0, 0] }, finals[bloom ? 1 : 0]);
       },
-      dispose() {
-        gpu.dispose();
-      },
+      dispose,
     };
   } catch (error) {
-    gpu.dispose();
+    dispose();
     throw error;
   }
 }

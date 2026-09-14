@@ -11,7 +11,22 @@ import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../shaders/dfgLut";
 
 /** All native world materials share group3. Camera/projection stays group0,
  * with the canonical WORLD_CAMERA_WGSL block supplied by the material. */
-export function rawEnvironmentWgsl(env: CivsimEnvironment): string {
+export type WorldSurfaceDiagnostic = "albedo" | "normal" | "roughness" | "ao";
+export function rawEnvironmentWgsl(
+  env: CivsimEnvironment,
+  diagnostic?: WorldSurfaceDiagnostic,
+): string {
+  const shade =
+    diagnostic === "ao"
+      ? "return vec4f(vec3f(ao),1);"
+      : diagnostic === "albedo"
+        ? "return vec4f(base,1);"
+        : diagnostic === "normal"
+          ? "return vec4f(normalize(normalWorld)*0.5+vec3f(0.5),1);"
+          : diagnostic === "roughness"
+            ? "return vec4f(min(max(roughness,0.0525)+geomRoughness,1.0),geomRoughness,metal,1);"
+            : `let lit=standardPbr(base,emissive,roughness,geomRoughness,metal,ao,normalize(normalWorld),normalize(cam.eye-worldPosition),environment.sunDirection.xyz,environment.sunRadiance.xyz,shadow,environment.settings.y,environmentPmrem,environmentSampler,environment.settings.x,environmentDfg,environmentSampler);
+      return applyAerial(vec4f(lit,1),worldPosition,cam.eye,environment.observer.xyz,environmentSky,environmentSampler);`;
   return `
     struct Environment {
       worldToView:mat4x4f, observer:vec4f, sunDirection:vec4f, sunRadiance:vec4f, settings:vec4f
@@ -25,14 +40,16 @@ export function rawEnvironmentWgsl(env: CivsimEnvironment): string {
     fn standardPbr${standardPbrWgsl}
     fn equirectUv${equirectUvWgsl}
     fn applyAerial${aerialWgsl(env)}
-    fn geometryRoughness(normalWorld:vec3f)->f32 {
-      let n=normalize((environment.worldToView*vec4f(normalWorld,0)).xyz);
+    fn geometryRoughnessFromView(normalView:vec3f)->f32 {
+      let n=normalize(normalView);
       let d=max(abs(dpdx(n)),abs(dpdy(n)));
       return max(max(d.x,d.y),d.z);
     }
+    fn geometryRoughness(normalWorld:vec3f)->f32 {
+      return geometryRoughnessFromView((environment.worldToView*vec4f(normalWorld,0)).xyz);
+    }
     fn shadeWorldSurface(base:vec3f,emissive:vec3f,roughness:f32,geomRoughness:f32,metal:f32,ao:f32,normalWorld:vec3f,worldPosition:vec3f,shadow:f32)->vec4f {
-      let lit=standardPbr(base,emissive,roughness,geomRoughness,metal,ao,normalize(normalWorld),normalize(cam.eye-worldPosition),environment.sunDirection.xyz,environment.sunRadiance.xyz,shadow,environment.settings.y,environmentPmrem,environmentSampler,environment.settings.x,environmentDfg,environmentSampler);
-      return applyAerial(vec4f(lit,1),worldPosition,cam.eye,environment.observer.xyz,environmentSky,environmentSampler);
+      ${shade}
     }
   `;
 }
@@ -72,7 +89,11 @@ export async function createRawEnvironment(device: GPUDevice, env: CivsimEnviron
     const sampler = device.createSampler({ minFilter: "linear", magFilter: "linear" });
     const layout = device.createBindGroupLayout({
       entries: [
-        { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
+        {
+          binding: 0,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          buffer: { type: "uniform" },
+        },
         ...[1, 2, 3].map((binding) => ({
           binding,
           visibility: GPUShaderStage.FRAGMENT,

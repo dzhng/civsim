@@ -64,7 +64,7 @@ A faster measured window from the existing no-opt profiling artifact is insuffic
 
 ### Candidate depth and beauty preserve identical vertex placement
 
-Native geometry passes mark clip position invariant so a depth prepass and its beauty pass cannot disagree because the compiler rearranged arithmetic. This is a rendering contract shared by later candidate ports. The component comparison retains the existing Three prepass defects as explicit reference differences; it does not reproduce missing grass merely to obtain a zero pixel diff. Full moving-scene acceptance still owns coverage and performance.
+Native grass marks clip position invariant so its equal-depth prepass and beauty pass cannot disagree because the compiler rearranged arithmetic. This requirement applies to that shared-depth contract, not automatically to every scene component. The single-pass impostor omits the annotation, matching its source; adding it caused filtered-normal differences without supplying a cross-pass benefit. Other mesh cases remain independently tested. The component comparison retains the existing Three prepass defects as explicit reference differences; it does not reproduce missing grass merely to obtain a zero pixel diff. Full moving-scene acceptance still owns coverage and performance.
 
 ### Existing material quirks remain part of the comparison control
 

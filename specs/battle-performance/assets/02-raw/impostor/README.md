@@ -10,7 +10,7 @@ Lifecycle checks cover empty uploads, rejected incomplete mip chains followed by
 
 The final one-sample and four-sample controls both pass all twelve cases on the Apple Metal 3 adapter: exact packed attributes and alpha, no RGB exceptions, maximum HDR RGB error 0.000244140625, all lifecycle/shadow-flag checks green, and zero GPU/browser warnings or errors. Typecheck, build and the exact-byte transport test passed. Independent final code review found no actionable defects; its earlier resource-admission and failure-cleanup findings were fixed before the final runs.
 
-Fresh visual critique is explicitly pending with the parent task. Direct inspection of the control images has not replaced that gate, and no user-reported visual issue or complete battle-frame parity is declared fixed.
+Fresh unprimed review inspected all twelve final four-sample pairs and found no perceptible differences; alpha is identical and only twelve blue-channel bytes differ across the set. The shared source appearance still has dotted/broken phalanx shafts, some detached cavalry weapon segments, and coarse silhouettes at the distant screen floor. The black-background component images cannot establish terrain grounding, shadows, or full scene quality. These are retained source limitations, not new candidate defects. Root inspection of the original paired PNGs agrees. No user-reported visual issue or complete battle-frame parity is declared fixed.
 
 ## Clip precision contract
 
@@ -33,6 +33,6 @@ IMPOSTOR_CHECK_URL='http://localhost:5198/impostor-check.html?samples=4' node ap
 
 The build deliberately avoids copying the large public asset tree; the control server serves the pinned assets from `web/public`. The verifier uses the project's hardware Chrome flags. Its compact base64 transport preserves every RGBA8 byte and closes the browser before writing PNGs. This replaces an oversized per-channel Playwright array transfer that exhausted Node's heap; no memory limit was increased.
 
-Base source: `a8fadca361fc3fdee887984470feb6c4f32312e8`. Shared transport: `77ec6853`. The enclosing component commit identifies the native code and harness. Copied root-owned lighting dependencies are excluded from the commit: `raw/environment.ts` SHA-256 `99db4932950212ca99f4f811b4297a52b9c5c3503255262c4c5434ab59859366`; `shaders/soldier.ts` SHA-256 `46cc8a80f2bce73ab6f1c585713d6a78d5cd26a62dcaff6db94da02596b93fe3`. Paths are relative to `apps/battle-perf-lab/src`. Only the shared faction WGSL export is consumed from the soldier shader module.
+Base source: `a8fadca361fc3fdee887984470feb6c4f32312e8`. Shared transport: `77ec6853`. The enclosing component commit identifies the native code and harness. Copied root-owned lighting dependencies are excluded from the commit: `raw/environment.ts` SHA-256 `99db4932950212ca99f4f811b4297a52b9c5c3503255262c4c5434ab59859366`; `shaders/soldier.ts` SHA-256 `46cc8a80f2bce73ab6f1c585713d6a78d5cd26a62dcaff6db94da02596b93fe3`. Paths are relative to `apps/battle-perf-lab/src`. Integration moved that unchanged faction WGSL to `shaders/soldierFaction.ts`, so this component does not depend on the still-experimental mesh shader.
 
 No performance benchmark or complete battle-frame parity claim is made here.

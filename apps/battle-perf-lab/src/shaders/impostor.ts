@@ -1,5 +1,5 @@
 import { WORLD_CAMERA_WGSL } from "../../../../packages/renderer-core/src/cameraWgsl";
-import { soldierFactionWGSL } from "./soldier";
+import { soldierFactionWGSL } from "./soldierFaction";
 
 export function impostorShader(environment: string, columns: number, rows: number): string {
   return `${WORLD_CAMERA_WGSL}

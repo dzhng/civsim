@@ -676,6 +676,10 @@ export class PhotorealBattleWorld {
     };
   }
 
+  gpuEventsSince(afterSequence: number) {
+    return this.world.gpuTelemetry.eventsSince(afterSequence);
+  }
+
   /** Capture alongside CPU frame metrics; asynchronous query results retain this identity. */
   gpuSubmissionIdentity() {
     return this.world.gpuTelemetry.latestSubmissionIdentity();

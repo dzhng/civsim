@@ -81,6 +81,15 @@ it("bounds unresolved retention and makes expired submissions visible", () => {
   const snapshot = telemetry.snapshot();
   expect(snapshot.submissions.length).toBeLessThan(100);
   expect(snapshot.droppedSubmissions + snapshot.submissions.length).toBe(150);
+  const expired = telemetry.eventsSince(0).events;
+  expect(expired.length).toBe(snapshot.droppedSubmissions);
+  expect(expired[0]).toMatchObject({
+    submissionId: 1,
+    source: "render-only",
+    status: "dropped",
+    reason: "submission-retention-limit",
+    measuredPassGpuMs: null,
+  });
   expect(snapshot.lastDroppedSubmissionId).toBe(snapshot.submissions[0].submissionId - 1);
   expect(snapshot.submissions.every((entry) => entry.measuredPassGpuMs === null)).toBe(true);
   expect([...pools.render.timestamps]).toEqual([]);
@@ -134,4 +143,62 @@ it("does not present a truncated pass list as complete GPU work", () => {
   });
   expect(sample.passes.length).toBeLessThan(100);
   expect([...pools.render.timestamps]).toEqual([]);
+});
+
+it("streams each terminal result once even when later submissions resolve first", () => {
+  const { telemetry, camera, scene, pools, backend, nextFrame } = fixture();
+  telemetry.beginSubmission(camera, "battle-draw");
+  telemetry.beginRender("r:1:2:f7", scene, camera);
+  telemetry.finishRender("r:1:2:f7");
+  telemetry.endSubmission();
+  nextFrame();
+  telemetry.beginSubmission(camera, "battle-draw");
+  telemetry.beginRender("r:1:2:f8", scene, camera);
+  telemetry.finishRender("r:1:2:f8");
+  telemetry.endSubmission();
+  expect(telemetry.eventsSince(0).events).toEqual([]);
+  pools.render.timestamps.set("r:1:2:f8", 4);
+  telemetry.resolve(backend);
+  const first = telemetry.eventsSince(0);
+  expect(first.events.map((event) => event.submissionId)).toEqual([2]);
+  expect(first.events[0].stages).toEqual([
+    { kind: "render", label: "main", queries: 1, missingQueries: 0, ms: 4 },
+  ]);
+  pools.render.timestamps.set("r:1:2:f7", 6);
+  telemetry.resolve(backend);
+  const second = telemetry.eventsSince(first.nextSequence);
+  expect(second.events.map((event) => event.submissionId)).toEqual([1]);
+  expect(second.events[0]).toMatchObject({
+    source: "battle-draw",
+    threeFrameId: 7,
+    status: "complete",
+    measuredPassGpuMs: 6,
+  });
+  telemetry.resolve(backend);
+  expect(telemetry.eventsSince(second.nextSequence).events).toEqual([]);
+  first.events[0].stages[0].ms = 999;
+  expect(telemetry.eventsSince(0).events[0].stages[0].ms).toBe(4);
+});
+
+it("reports a cursor gap when a consumer misses the bounded event window", () => {
+  const { telemetry, camera, scene, pools, backend, nextFrame } = fixture();
+  for (let i = 0; i < 200; i++) {
+    const frame = nextFrame();
+    const uid = `r:1:2:f${frame}`;
+    telemetry.beginSubmission(camera, "battle-draw");
+    telemetry.beginRender(uid, scene, camera);
+    telemetry.finishRender(uid);
+    telemetry.endSubmission();
+    pools.render.timestamps.set(uid, i + 1);
+    telemetry.resolve(backend);
+  }
+  const missed = telemetry.eventsSince(0);
+  expect(missed.cursorGap).toBe(true);
+  expect(missed.events.length).toBeLessThan(200);
+  expect(missed.events[0].sequence).toBe(missed.oldestRetainedSequence);
+  expect(missed.events.at(-1)).toMatchObject({ submissionId: 200, measuredPassGpuMs: 200 });
+  expect(telemetry.eventsSince(missed.nextSequence)).toMatchObject({
+    cursorGap: false,
+    events: [],
+  });
 });

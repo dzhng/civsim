@@ -1,0 +1,26 @@
+# Native post numerical control
+
+This isolated harness compares `RawBattlePost` with the actual production
+`BattlePostChain`. Both receive identical half-float HDR texels. The input covers
+color ramps, an emissive patch, values around the bloom threshold, and dark
+values; the control exercises preset policy, changed grade/exposure, and bloom
+toggling on an odd framebuffer. It measures encoded sRGB output stored in
+RGBA16F before display quantization, rather than comparing duplicate CPU math.
+
+The [recorded hardware result](evidence/post.json) has exact agreement for every
+compared component. The raw implementation needs the same final alpha clamp as
+Three's `RenderOutputNode`: bloom can raise alpha above one even with an opaque
+scene. This check does not establish premultiplied-transparency behavior, battle
+visual parity, or a performance advantage. Parameters come from the control's
+validated grade state, as they do from a recorded battle fixture.
+
+Odd dimensions matter to both the five-level bloom pyramid and the test itself:
+Three's public readback returns GPU-aligned rows, which the harness strips before
+comparison. Recreating the pass across presets reuses the same borrowed input,
+checking that disposal preserves caller-owned resources.
+
+From the repository root, start `bun run --cwd web vite --config
+vite.postcheck.config.ts --host 127.0.0.1 --port 5188`, then obtain the coordinated
+GPU slot before running `node apps/battle-perf-lab/candidates/raw-post/verify.mjs`.
+The standalone config and Three control remain lab-only. The verifier closes its
+browser even when an assertion fails.

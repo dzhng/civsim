@@ -8,10 +8,16 @@ import {
 } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import { decodeFloat16, readHdrTexture, compareHdr } from "../numericalReadback";
 import { createRawPmrem } from "./pmrem";
+import { createVgpuPmrem } from "../vgpu/pmrem";
 import { createTypegpuPmrem } from "../../candidates/typegpu/pmrem";
 const backend = new URLSearchParams(location.search).get("backend") ?? "raw";
-if (!["raw", "typegpu"].includes(backend)) throw new Error("Unknown PMREM backend");
-const createPmrem = backend === "typegpu" ? createTypegpuPmrem : createRawPmrem;
+if (!["raw", "typegpu", "vgpu"].includes(backend)) throw new Error("Unknown PMREM backend");
+const createPmrem =
+  backend === "vgpu"
+    ? createVgpuPmrem
+    : backend === "typegpu"
+      ? createTypegpuPmrem
+      : createRawPmrem;
 import { cubeUvWGSL } from "../shaders/pmrem";
 import { fullscreenWGSL } from "../shared/postShader";
 

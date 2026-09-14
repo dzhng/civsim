@@ -30,3 +30,12 @@ encoding. The numerical post control reports exact agreement across all 24 cases
 for each candidate, including bloom toggles and changed grade/exposure. Device,
 input and frame output remain borrowed by the component; disposing its wrapper
 releases its intermediate resources. Scene parity and performance remain unproven.
+
+
+The PMREM component preserves the shared nine-level GGX prefilter and its
+filter-then-copy sequence. vgpu owns geometry, reflected per-draw parameters,
+atlas targets and frame viewport/scissor encoding; each draw retains its own
+parameters so queue writes cannot collapse the filtering sequence. The device
+and source LUT remain borrowed. All-preset atlas and direction/roughness checks
+against Three pass, including exact initial projection and finite unused atlas
+regions. These checks do not establish complete scene parity or performance.

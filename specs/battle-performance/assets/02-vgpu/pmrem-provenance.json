@@ -1,0 +1,29 @@
+{
+  "baseCommit": "97d6652b",
+  "vgpuVersion": "0.5.0",
+  "scope": "PMREM component correctness only; full battle fixture parity and performance remain unrankable.",
+  "command": "PMREM_BACKEND=vgpu node apps/battle-perf-lab/src/raw/verify-pmrem.mjs",
+  "build": "web/node_modules/.bin/vite build --config apps/battle-perf-lab/src/raw/pmrem.vite.config.mts",
+  "borrowedOwnership": "device and source are borrowed; vgpu wrapper owns atlas/ping-pong, geometry and immutable per-draw uniforms; double disposal leaves source readable unchanged.",
+  "sourceSha256": {
+    "apps/battle-perf-lab/src/vgpu/pmrem.ts": "7b8f1bb1fa3c20e0f61411bbf74e68ab4a71295260165e2a5623593028477710",
+    "apps/battle-perf-lab/src/shaders/pmrem.ts": "23b717b4548fe2bf81f7cf4b5c2913c289db96fd49c309ab0b10d3c54a17a98c",
+    "apps/battle-perf-lab/candidates/typegpu/pmrem.ts": "522db87f7470fc3935039fe272f43573b791e0188bad47bfcd6810b883418548",
+    "apps/battle-perf-lab/src/raw/pmrem-check.ts": "26c7e96751c9a54bfb7343d844187fd18f2504e974c70f4ae28d4cf03f0d6a92"
+  },
+  "parentOwnedDependencies": [
+    "shared pmrem function exports and precise Float32Array<ArrayBuffer> return type",
+    "TypeGPU PMREM component and transform configuration"
+  ],
+  "results": {
+    "presets": 4,
+    "stage0Exact": true,
+    "maxLodAbs": 0.00048828125,
+    "maxSampleAbs": 0.0001220703125,
+    "allFinite": true,
+    "allBorrowedSourcesUnchanged": true,
+    "gpuErrors": [],
+    "pageErrors": []
+  },
+  "comparison": "Raw and TypeGPU controls rerun serially in the same build; both pass all4presets with identical gates."
+}

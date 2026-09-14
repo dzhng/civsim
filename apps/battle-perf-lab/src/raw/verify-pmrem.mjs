@@ -2,7 +2,7 @@ import { chromium } from "../../../../web/node_modules/playwright/index.mjs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { GPU_HARDWARE_FLAGS } from "../../../../web/renderer-probe-lib.mjs";
 const backend = process.env.PMREM_BACKEND ?? "raw";
-if (!["raw", "typegpu"].includes(backend)) throw new Error("Unknown PMREM backend");
+if (!["raw", "typegpu", "vgpu"].includes(backend)) throw new Error("Unknown PMREM backend");
 const browser = await chromium.launch({
   channel: "chrome",
   headless: true,

@@ -1,5 +1,5 @@
 {
-  "backend": "raw",
+  "backend": "vgpu",
   "passed": true,
   "results": [
     {
@@ -1298,5 +1298,5 @@
   "errors": [],
   "scope": "Native PMREM numerical component only; strict initial HDR tolerances, no full-backend parity or performance claim",
   "pageErrors": [],
-  "capturedAt": "2026-09-14T20:37:27.557Z"
+  "capturedAt": "2026-09-14T20:37:06.607Z"
 }

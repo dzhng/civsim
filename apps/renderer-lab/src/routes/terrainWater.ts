@@ -4,7 +4,7 @@ import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
-import { createBattleFrameUniforms } from "@packages/photoreal-renderer/src/battle/battleTsl";
+import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { fieldWaterSurfaceNodes } from "@packages/photoreal-renderer/src/battle/seaLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
@@ -16,7 +16,7 @@ export async function route(ctx: LabContext) {
   ctx.root.classList.add("reference-shot");
   const world = await PhotorealWorld.create(ctx.canvas);
   applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.noon);
-  const frame = createBattleFrameUniforms();
+  const frame = createLandscapeFrameUniforms();
   const vertices = new Float32Array([
     -100, 5, 0, 0, 0, 1, 0, 0, 0, 1, 100, 5, 0, 0, 0, 1, 0, 0, 0, 1, -100, 75, 0, 0, 0, 1, 0, 0, 0,
     1, 100, 75, 0, 0, 0, 1, 0, 0, 0, 1,

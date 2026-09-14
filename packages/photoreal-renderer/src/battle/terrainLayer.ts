@@ -45,11 +45,11 @@ import {
   smoothstepN,
   viewNormalNode,
   vnoiseN,
-  type BattleFrameUniforms,
+  type LandscapeFrameUniforms,
   type FloatNode,
   type Rgb,
   type Vec2Node,
-} from "./battleTsl";
+} from "../landscape/shaderNodes";
 import {
   groundDetailNode,
   coverEdgeNode,
@@ -169,7 +169,7 @@ function quadGroundHeight(p: Vec2Node): FloatNode {
 function terrainQuadMaterial(
   style: TerrainQuadStyle,
   contrast: typeof TURF_CONTRAST.quad.default | typeof TURF_CONTRAST.quad.wideDetail,
-  frame: BattleFrameUniforms,
+  frame: LandscapeFrameUniforms,
 ): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
     side: THREE.FrontSide,
@@ -278,7 +278,7 @@ export class BattleBackgroundQuads {
   readonly terrainDefault: THREE.Mesh;
   readonly terrainWide: THREE.Mesh;
 
-  constructor(scene: THREE.Scene, frame: BattleFrameUniforms) {
+  constructor(scene: THREE.Scene, frame: LandscapeFrameUniforms) {
     this.backdrop = new THREE.Mesh(quadGeometry(), backdropMaterial());
     this.backdrop.name = "battle-backdrop";
     this.backdrop.renderOrder = RENDER_ORDER.backdrop;
@@ -326,7 +326,7 @@ export class BattleBackgroundQuads {
 
 /** The rolling battle ground mesh shared by playable and vista terrain. */
 export function createGroundMesh(
-  frame: BattleFrameUniforms,
+  frame: LandscapeFrameUniforms,
   mesh: LandscapeMesh,
   options: TerrainMaterialOptions = {},
 ): THREE.Mesh {
@@ -619,7 +619,7 @@ export function createGroundMesh(
 }
 
 export function createVistaMesh(
-  frame: BattleFrameUniforms,
+  frame: LandscapeFrameUniforms,
   band: BattleVistaBand,
   cover: BattleGroundCover,
   options: TerrainMaterialOptions = {},

@@ -56,7 +56,7 @@ import {
   type UniformNode,
   type Vec2Node,
   type Vec3Node,
-} from "./battleTsl";
+} from "../landscape/shaderNodes";
 import { RENDER_ORDER } from "./terrainLayer";
 import {
   createWindUniforms,

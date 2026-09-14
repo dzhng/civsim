@@ -1,21 +1,30 @@
-// Shared TSL vocabulary for the photoreal battle world: the noise helpers the
-// bespoke WGSL passes shared (cameraWgsl.ts viewForwardDist, the groundPass
-// hash/vnoise/fbm/ridge family), plus the standard-material seams every battle
-// layer uses (linearAlbedo — the one
-// display→linear conversion; viewNormalNode — the one normalNode hook).
-//
-// Determinism: nothing here reads the TSL `time` node (banned); every animated
-// term keys off uniforms owned by PhotorealBattleWorld.
+// Shader math and owned frame uniforms shared by both landscape renderers.
+// All animation reads the world's injectable clock; never the TSL time node.
 import {
-  abs, clamp, cos, dot, float, floor, fract, mix, sRGBTransferEOTF, sin, smoothstep, transformNormalToView, uniform, varying, vec2, vec3,
-} from 'three/tsl';
-import { Vector2, Vector3 } from 'three';
-import type { Node, UniformNode as ThreeUniformNode } from 'three/webgpu';
+  abs,
+  clamp,
+  cos,
+  dot,
+  float,
+  floor,
+  fract,
+  mix,
+  sRGBTransferEOTF,
+  sin,
+  smoothstep,
+  transformNormalToView,
+  uniform,
+  varying,
+  vec2,
+  vec3,
+} from "three/tsl";
+import { Vector2, Vector3 } from "three";
+import type { Node, UniformNode as ThreeUniformNode } from "three/webgpu";
 
-export type FloatNode = Node<'float'>;
-export type Vec2Node = Node<'vec2'>;
-export type Vec3Node = Node<'vec3'>;
-export type Vec4Node = Node<'vec4'>;
+export type FloatNode = Node<"float">;
+export type Vec2Node = Node<"vec2">;
+export type Vec3Node = Node<"vec3">;
+export type Vec4Node = Node<"vec4">;
 
 type UniformValue = number | Vector2 | Vector3;
 type UniformNodeType<T extends UniformValue> = T extends number
@@ -36,14 +45,8 @@ export function rgbNode(c: Rgb): Vec3Node {
   return vec3(c[0], c[1], c[2]);
 }
 
-/** The per-frame camera/clock uniforms the battle shaders read — the
- *  TSL mirror of the bespoke `cam` uniform scalars that survive projection
- *  (focus, time, dt). One owner: PhotorealBattleWorld writes them; the aerial
- *  hook reads `focus` as its observer.
- *  `time` mirrors cam.time — the production battle never sets it, so static
- *  captures freeze it at 0; live viewing may drive it. `dt` is the single
- *  rAF delta threaded from scene.ts for future stateful render/audio updates. */
-export function createBattleFrameUniforms() {
+/** Each world updates its own camera focus and injectable clock before rendering. */
+export function createLandscapeFrameUniforms() {
   return {
     focus: uniform(new Vector2(0, 0)),
     time: uniform(0),
@@ -51,7 +54,7 @@ export function createBattleFrameUniforms() {
   };
 }
 
-export type BattleFrameUniforms = ReturnType<typeof createBattleFrameUniforms>;
+export type LandscapeFrameUniforms = ReturnType<typeof createLandscapeFrameUniforms>;
 
 /** WGSL `hash(p)` from groundPass/frameShell — a 2D value hash. */
 export function hashN(p: Vec2Node): FloatNode {
@@ -64,7 +67,10 @@ export function hashN(p: Vec2Node): FloatNode {
 export function vnoiseN(p: Vec2Node): FloatNode {
   const i = floor(p).toVar();
   const f = fract(p).toVar();
-  const u = f.mul(f).mul(float(3.0).sub(f.mul(2.0))).toVar();
+  const u = f
+    .mul(f)
+    .mul(float(3.0).sub(f.mul(2.0)))
+    .toVar();
   return mix(
     mix(hashN(i), hashN(i.add(vec2(1.0, 0.0))), u.x),
     mix(hashN(i.add(vec2(0.0, 1.0))), hashN(i.add(vec2(1.0, 1.0))), u.x),
@@ -74,14 +80,17 @@ export function vnoiseN(p: Vec2Node): FloatNode {
 
 /** WGSL `fbm(p)` from groundPass — three octaves of vnoise. */
 export function fbmN(p: Vec2Node): FloatNode {
-  return vnoiseN(p).mul(0.52)
+  return vnoiseN(p)
+    .mul(0.52)
     .add(vnoiseN(p.mul(2.11).add(vec2(4.3, 1.7))).mul(0.31))
     .add(vnoiseN(p.mul(4.07).add(vec2(9.1, 6.4))).mul(0.17));
 }
 
 /** WGSL `ridge(p)`/`ridged(p)` — folded value noise. */
 export function ridgeN(p: Vec2Node): FloatNode {
-  const r = float(1.0).sub(abs(vnoiseN(p).mul(2.0).sub(1.0))).toVar();
+  const r = float(1.0)
+    .sub(abs(vnoiseN(p).mul(2.0).sub(1.0)))
+    .toVar();
   return r.mul(r);
 }
 
@@ -91,7 +100,10 @@ export function fnoiseN(p: Vec2Node): FloatNode {
   const fhash = (q: Vec2Node): FloatNode => fract(sin(dot(q, vec2(127.1, 311.7))).mul(43758.5453));
   const i = floor(p).toVar();
   const f = fract(p).toVar();
-  const u = f.mul(f).mul(float(3.0).sub(f.mul(2.0))).toVar();
+  const u = f
+    .mul(f)
+    .mul(float(3.0).sub(f.mul(2.0)))
+    .toVar();
   return mix(
     mix(fhash(i), fhash(i.add(vec2(1.0, 0.0))), u.x),
     mix(fhash(i.add(vec2(0.0, 1.0))), fhash(i.add(vec2(1.0, 1.0))), u.x),
@@ -99,10 +111,10 @@ export function fnoiseN(p: Vec2Node): FloatNode {
   );
 }
 
-/** The battle palette (vertex tints, style constants, preset colours) is
+/** The display-authored palette (vertex tints, style constants, preset colours) is
  *  authored display-referred — the bespoke frame wrote those values straight
  *  to a non-sRGB swapchain. A standard-material response needs LINEAR albedo,
- *  so every battle material converts its composed albedo through the sRGB
+ *  so every material converts its composed albedo through the sRGB
  *  EOTF exactly once, at the end (compose in display space, light in linear —
  *  the same contract as an sRGB-tagged albedo texture). */
 export function linearAlbedo(display: Vec3Node): Vec3Node {
@@ -110,7 +122,7 @@ export function linearAlbedo(display: Vec3Node): Vec3Node {
   return sRGBTransferEOTF(display) as unknown as Vec3Node;
 }
 
-/** The standard-material normal hook for battle geometry: attributes are
+/** The standard-material normal hook for world geometry: attributes are
  *  authored in world (z-up) space on identity-transform meshes, and
  *  `normalNode` expects a VIEW-space normal — transform
  *  in the vertex stage, interpolate, renormalize.
@@ -137,7 +149,11 @@ export function saturateN(x: FloatNode): FloatNode {
 
 /** Rotate a local XY by an instance yaw (the cy/sy pattern every instanced
  *  battle shader uses). Returns [rotatedX, rotatedY, cosYaw, sinYaw]. */
-export function rotateYawN(x: FloatNode, y: FloatNode, yaw: FloatNode): { rx: FloatNode; ry: FloatNode; cy: FloatNode; sy: FloatNode } {
+export function rotateYawN(
+  x: FloatNode,
+  y: FloatNode,
+  yaw: FloatNode,
+): { rx: FloatNode; ry: FloatNode; cy: FloatNode; sy: FloatNode } {
   const cy = cos(yaw).toVar();
   const sy = sin(yaw).toVar();
   return {

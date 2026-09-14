@@ -1,6 +1,6 @@
 import * as THREE from "three/webgpu";
 import { createGroundMesh } from "../battle/terrainLayer";
-import type { BattleFrameUniforms } from "../battle/battleTsl";
+import type { LandscapeFrameUniforms } from "../landscape/shaderNodes";
 import {
   createRenderedSurface,
   createSurfaceView,
@@ -29,7 +29,7 @@ export class PhotorealTiledTerrain {
 
   constructor(
     private readonly scene: THREE.Scene,
-    private readonly frame: BattleFrameUniforms,
+    private readonly frame: LandscapeFrameUniforms,
     private readonly coarse: RenderedSurface,
     private readonly decorate?: (ground: THREE.Mesh, surface: RenderedSurface) => void,
   ) {

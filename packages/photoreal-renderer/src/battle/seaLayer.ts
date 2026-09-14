@@ -34,11 +34,11 @@ import {
   rgbNode,
   saturateN,
   smoothstepN,
-  type BattleFrameUniforms,
+  type LandscapeFrameUniforms,
   type FloatNode,
   type Vec2Node,
   type Vec3Node,
-} from "./battleTsl";
+} from "../landscape/shaderNodes";
 
 // The neutral scattering colour the sea contributes beneath its sky reflection.
 // These are display-authored effective albedos: pale Aegean turquoise in the
@@ -357,7 +357,7 @@ function waterSurfaceNodes(
  *  box-filtered water weight. The ground material blends these over turf by
  *  the same weight. */
 export function fieldWaterSurfaceNodes(
-  frame: BattleFrameUniforms,
+  frame: LandscapeFrameUniforms,
   p: Vec2Node,
   shoreDist: FloatNode,
 ): WaterSurfaceNodes {
@@ -381,7 +381,7 @@ export function fieldWaterSurfaceNodes(
 /** One battle ocean-edge plane (waterPlanePass battle mode): the displaced
  *  grid mesh + the shore-keyed standard-material water surface. */
 export function createOceanPlaneMesh(
-  frame: BattleFrameUniforms,
+  frame: LandscapeFrameUniforms,
   spec: BattleOceanPlaneSpec,
   displacement: SeaDisplacementSource = createSeaDisplacementSource(),
 ): THREE.Mesh {
@@ -462,7 +462,7 @@ export function createOceanPlaneMesh(
  *  is clipped to the sim-owned tint=water mask. It shares the sea material
  *  response, but displacement is nearly becalmed so the water reads as a lake. */
 export function createLakePlaneMesh(
-  frame: BattleFrameUniforms,
+  frame: LandscapeFrameUniforms,
   spec: BattleLakeSurfaceSpec,
   grid: BattleTerrainGrid,
   displacement: SeaDisplacementSource = createSeaDisplacementSource(),

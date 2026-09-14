@@ -5,7 +5,7 @@ import {
   buildBattleTerrain,
   BattleTerrainSurface,
 } from "@packages/photoreal-renderer/src/battle/battleTerrainBuild";
-import { createBattleFrameUniforms } from "@packages/photoreal-renderer/src/battle/battleTsl";
+import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { createSeaDisplacementSource } from "@packages/photoreal-renderer/src/battle/seaLayer";
 import {
   productionBladeFieldProfile,
@@ -34,7 +34,7 @@ test("vista mountains join a lowered playable edge instead of exposing their und
     cover: "green-grass",
     slopeBands: null,
     lakeSurfaces: [],
-    frame: createBattleFrameUniforms(),
+    frame: createLandscapeFrameUniforms(),
     sea: createSeaDisplacementSource(),
     grassTransition: createBladeFieldTransitionUniforms(
       initialBladeFieldTransition(productionBladeFieldProfile()),

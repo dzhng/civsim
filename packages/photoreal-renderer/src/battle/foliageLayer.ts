@@ -31,7 +31,7 @@ import {
   SCENERY_PROP_MODELS,
   type SceneryPropId,
 } from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
-import { linearAlbedo, rotateYawN, viewNormalNode } from "./battleTsl";
+import { linearAlbedo, rotateYawN, viewNormalNode } from "../landscape/shaderNodes";
 import { RENDER_ORDER } from "./terrainLayer";
 
 // Battle scenery is trees and rocks; mountains and carts stay campaign-only.

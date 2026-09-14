@@ -26,7 +26,7 @@ import {
 } from "../../../soldier-assets/src/material";
 import { uploadImageTexture } from "../../../renderer-core/src/imageTexture";
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
-import { linearAlbedo } from "./battleTsl";
+import { linearAlbedo } from "../landscape/shaderNodes";
 
 /** Scale before squaring: even a finite authored normal scale can overflow dot(v,v). */
 export function soldierUnitDirection(direction: THREE.Node<"vec3">, fallback: THREE.Node<"vec3">) {

@@ -8,7 +8,7 @@ import {
   type FloatNode,
   type Vec2Node,
   type Vec3Node,
-} from "./battleTsl";
+} from "../landscape/shaderNodes";
 
 /**
  * The single contrast owner for battle turf. These are amplitude/value controls,

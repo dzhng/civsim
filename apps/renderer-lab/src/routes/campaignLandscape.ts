@@ -4,7 +4,7 @@ import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
-import { createBattleFrameUniforms } from "@packages/photoreal-renderer/src/battle/battleTsl";
+import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { PhotorealScenery } from "@packages/photoreal-renderer/src/battle/foliageLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { buildCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignLandscape";
@@ -40,7 +40,7 @@ export async function route(ctx: LabContext) {
   const trees = landscapes.flatMap((s) => s.scenery);
   const terrainTriangles = landscapes.reduce((sum, s) => sum + s.surface.mesh.triangles, 0);
   const world = await PhotorealWorld.create(ctx.canvas);
-  const frame = createBattleFrameUniforms();
+  const frame = createLandscapeFrameUniforms();
   frame.focus.value.set(...center);
   const env = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
     aerialObserver: vec3(frame.focus, 0),

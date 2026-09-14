@@ -10,7 +10,7 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import { linearAlbedo } from "./battleTsl";
+import { linearAlbedo } from "../landscape/shaderNodes";
 import { RENDER_ORDER } from "./terrainLayer";
 
 type BattleReadoutChipKind = "plain" | "hot" | "bad";

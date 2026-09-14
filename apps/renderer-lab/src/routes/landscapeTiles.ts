@@ -3,7 +3,7 @@ import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
-import { createBattleFrameUniforms } from "@packages/photoreal-renderer/src/battle/battleTsl";
+import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { PhotorealTiledTerrain } from "@packages/photoreal-renderer/src/campaign/tiledTerrain";
 import {
   createTerrainTiles,
@@ -35,7 +35,7 @@ export async function route(ctx: LabContext) {
   const worker = createCampaignTerrainWorker(snapshotCampaignLandscape(field));
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8);
   const world = await PhotorealWorld.create(ctx.canvas);
-  const frame = createBattleFrameUniforms();
+  const frame = createLandscapeFrameUniforms();
   applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
     aerialObserver: vec3(frame.focus, 0),
   });

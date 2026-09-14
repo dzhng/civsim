@@ -1,6 +1,6 @@
 # 05 — Shared rock, scree and grass response
 
-Status: pending. Dependencies: [04](04-mountain-form.md).
+Status: shared ownership extraction active; visual tuning follows [04](04-mountain-form.md).
 
 ## Contract and owner
 
@@ -35,3 +35,9 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: A different rock or climate art direction changes material profiles; it does not create another material implementation.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Implementation order
+
+First extract shared shader vocabulary and material response without changing appearance. This ownership pass can proceed while mountain form is evaluated. Keep physical tint decoding, road/mud masks, turf and playable/vista layout under battle. Then tune the common rock/grass transition on fixed accepted geometry. Final visual acceptance still depends on04; extracting shared ownership does not.
+
+The shared shader vocabulary extraction is verified; [evidence](../assets/shared-shader/README.md) records unchanged consumer captures and the controlled inherited battle snapshot failure. Next extract the terrain material response; moving helper ownership alone does not complete 05.

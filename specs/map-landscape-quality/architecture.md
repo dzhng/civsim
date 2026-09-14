@@ -15,6 +15,7 @@ No new save version, campaign locale schema, battle recipe format, backend, pack
 | Input geography | Campaign data adapter and `crates/sim` battle terrain | Strategic range/coast identity versus physical playable terrain |
 | Surface domain and mesh/query contract | `packages/game-renderer/src/terrain/surface.ts` | Source units and transforms, not duplicated interpolation math |
 | Campaign relief generation | `packages/game-renderer/src/terrain/campaignLandscape.ts`, redesigned | Geographic range envelope, ridge hierarchy, city approach constraints |
+| Shared shader vocabulary and frame uniforms | `photoreal-renderer/src/landscape/shaderNodes.ts` | Each world updates its own camera focus and clock |
 | Common physical terrain response | **Proposed:** `packages/photoreal-renderer/src/landscape/terrainMaterial.ts` | Battle road/mud/trample masks and campaign cover profiles |
 | Water response | **Proposed:** `packages/photoreal-renderer/src/landscape/waterMaterial.ts`, extracted from `battle/seaLayer.ts` | Ocean, river, lake shape/displacement and world-scale shore ramps |
 | Material/cover profile | **Proposed:** `packages/game-renderer/src/terrain/materialProfile.ts` | Explicit detail wavelengths and cover mixtures for each scale |

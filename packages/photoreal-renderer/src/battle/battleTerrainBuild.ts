@@ -17,7 +17,7 @@ import {
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../game-renderer/src/terrain/heightField";
-import type { BattleFrameUniforms } from "./battleTsl";
+import type { LandscapeFrameUniforms } from "../landscape/shaderNodes";
 import { createGroundMesh, createHorizonBlockerMesh, createVistaMesh } from "./terrainLayer";
 import { joinVistaSurface, vistaSurfaceHeightAt, type BattleVistaGrid } from "./vistaSurface";
 import {
@@ -35,7 +35,7 @@ export interface BattleTerrainBuildInput {
   slopeBands: BattleSlopeBands | null;
   vista: BattleVistaGrid | null;
   lakeSurfaces: readonly BattleLakeSurfaceSpec[];
-  frame: BattleFrameUniforms;
+  frame: LandscapeFrameUniforms;
   grassTransition: BladeFieldTransitionUniforms;
   sea: ReturnType<typeof createSeaDisplacementSource>;
 }

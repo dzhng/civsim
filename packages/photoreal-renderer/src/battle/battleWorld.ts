@@ -29,7 +29,7 @@ import { PhotorealWorld } from "../world";
 import { applyCivsimEnvironment } from "../environment";
 import { applyCamera3d } from "../cameraBridge";
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
-import { createBattleFrameUniforms, type BattleFrameUniforms } from "./battleTsl";
+import { createLandscapeFrameUniforms, type LandscapeFrameUniforms } from "../landscape/shaderNodes";
 import { BattleBackgroundQuads, RENDER_ORDER } from "./terrainLayer";
 import type { BattleVistaGrid } from "./vistaSurface";
 import { createSeaDisplacementSource, type BattleLakeSurfaceSpec } from "./seaLayer";
@@ -101,7 +101,7 @@ export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;
   readonly camera = new THREE.PerspectiveCamera();
   private readonly environment: BattleEnvironment;
-  private readonly frame: BattleFrameUniforms;
+  private readonly frame: LandscapeFrameUniforms;
   private readonly sunDirectionScratch = new THREE.Vector3(0, 0, 1);
   private readonly background: BattleBackgroundQuads;
   private readonly grass: BattleGrassField;
@@ -176,7 +176,7 @@ export class PhotorealBattleWorld {
     this.grassTransition = createBladeFieldTransitionUniforms(
       initialBladeFieldTransition(grassProfile),
     );
-    this.frame = createBattleFrameUniforms();
+    this.frame = createLandscapeFrameUniforms();
     this.frame.time = world.uTime;
     const scene = world.scene;
     const env = this.environment;

@@ -29,7 +29,7 @@ import { soldierMaterialIdentity } from "../../../soldier-assets/src/material";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
 import { decodeLocalSample, resolveLocalSample } from "../../../soldier-assets/src/localAnimation";
 import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose";
-import { viewNormalNode } from "./battleTsl";
+import { viewNormalNode } from "../landscape/shaderNodes";
 import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
 import {
   createCrowdLodBuffers,

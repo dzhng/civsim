@@ -6,7 +6,7 @@ import { applyCamera3d } from "../cameraBridge";
 import { applyCivsimEnvironment } from "../environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../game-renderer/src/environment/environment";
 import { RENDER_ORDER } from "../battle/terrainLayer";
-import { createBattleFrameUniforms, linearAlbedo, viewNormalNode } from "../battle/battleTsl";
+import { createLandscapeFrameUniforms, linearAlbedo, viewNormalNode } from "../landscape/shaderNodes";
 import { PhotorealStandardLayer } from "../landscape/standardLayer";
 import { SELECTION_GREEN } from "../../../game-renderer/src/overlays";
 import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing";
@@ -41,7 +41,7 @@ export interface CampaignComposition {
  * this world owns their 3D anchors, occlusion, and presented-surface picking. */
 export class PhotorealCampaignWorld {
   readonly camera = new THREE.PerspectiveCamera();
-  private readonly frame = createBattleFrameUniforms();
+  private readonly frame = createLandscapeFrameUniforms();
   private readonly standards: PhotorealStandardLayer;
   private readonly objects: { input: CampaignWorldObject; mesh: THREE.Mesh }[] = [];
   private readonly meshes: THREE.Mesh[] = [];

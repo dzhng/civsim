@@ -1,6 +1,6 @@
 import type { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
-import type { BattlePostGradeUniforms } from "../../../packages/photoreal-renderer/src/post/postChain";
+import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/src/environment/postParameters";
 import type { GraphicsSettings } from "../../../web/src/shared/graphicsSettings";
 
 type Draw = Parameters<PhotorealBattleWorld["draw"]>;

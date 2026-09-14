@@ -70,7 +70,7 @@ import {
 import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
 import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";
 import { BattlePostChain } from "../post/postChain";
-import type { BattlePostGradeUniforms } from "../post/postChain";
+import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
 
 export type { BattleVistaGrid } from "./vistaSurface";
 export { vistaSurfaceHeightAt } from "./vistaSurface";
@@ -536,7 +536,8 @@ export class PhotorealBattleWorld {
   }
 
   render(): void {
-    if (!this.world.gpuTelemetry.hasActiveSubmission) this.world.gpuTelemetry.beginSubmission(this.camera);
+    if (!this.world.gpuTelemetry.hasActiveSubmission)
+      this.world.gpuTelemetry.beginSubmission(this.camera);
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);
     if (this.world.sunLight) {

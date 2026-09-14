@@ -3,12 +3,22 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM"],
-    "types": ["@webgpu/types"],
-    "typeRoots": ["../../../../web/node_modules"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "@webgpu/types"
+    ],
+    "typeRoots": [
+      "../../../../web/node_modules"
+    ],
     "strict": true,
     "noEmit": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["*.ts"]
+  "include": [
+    "*.ts"
+  ]
 }

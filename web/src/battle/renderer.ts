@@ -9,10 +9,8 @@ import {
   type BattleCameraSnapshot,
   type BattleTerrainOptions,
 } from "@packages/photoreal-renderer/src/battle/battleWorld";
-import {
-  postGradeUniformsFromParams,
-  type BattlePostGradeUniforms,
-} from "@packages/photoreal-renderer/src/post/postChain";
+import type { BattlePostGradeUniforms } from "@packages/game-renderer/src/environment/postParameters";
+import { postGradeUniformsFromParams } from "@packages/photoreal-renderer/src/post/postChain";
 import {
   getGraphicsSettings,
   graphicsQueryOverrides,

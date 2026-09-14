@@ -1,4 +1,4 @@
-# Native API preflight
+# Native comparison components
 
 This verifies native compute-to-render storage visibility and pipeline-specific
 bindings with a shared uniform buffer and with distinct uniform values. Readback
@@ -12,6 +12,12 @@ from the repository root. `RAW_PREFLIGHT_URL` selects the served `preflight.html
 Build output stays in ignored scratch; the verifier saves its explicit API verdict
 under the spec’s evidence folder.
 
-There is no battle scene, shadow pipeline or performance result here. This is a
-healthy native API control for the library preflights; full fixture parity is the
-next independent obligation.
+The native post component consumes the same renderer-independent policy as the
+production chain and encodes five-level HDR bloom, grade, AgX and one sRGB transfer.
+Its [numerical control](../../candidates/raw-post/README.md) exercises actual Three
+output, including bloom toggles and disposal. The caller supplies the scene image,
+validated grade parameters, output target and command submission. Recreate the
+pass when its input or framebuffer changes.
+
+There is no complete battle scene or performance result here. API and component
+checks do not establish full fixture parity or qualify this backend for ranking.

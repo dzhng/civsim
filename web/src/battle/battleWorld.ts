@@ -1,3 +1,4 @@
+import type { BattleBenchmarkScenario } from "./benchmark/benchmarkScenario";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import type {
   BattleEdgeRole,
@@ -82,6 +83,7 @@ export interface BattleConfig {
   generatedMap?: GeneratedBattleMapDescriptor;
   restart?: () => void;
   inCampaign?: boolean;
+  benchmark?: BattleBenchmarkScenario;
 }
 
 export class BattleCameraRig {

@@ -1,3 +1,7 @@
+import {
+  BATTLE_BENCHMARK_SCENARIO,
+  benchmarkOpeningOrders,
+} from "./battle/benchmark/benchmarkScenario";
 import init, { Campaign, Game, type InitOutput } from "./wasm/game_wasm.js";
 import { currentScene, switchScene } from "./scene";
 import { MenuScene } from "./menu/scene";
@@ -59,6 +63,34 @@ async function main() {
     else game.start_battle(kind === "mapB" ? 1 : 0);
     if (AI_ON) game.set_ai_team(1);
     return game;
+  }
+
+  function launchBenchmark() {
+    const scenario = BATTLE_BENCHMARK_SCENARIO;
+    setActiveFactions();
+    const game = new Game(scenario.simSeed);
+    game.start_battle_generated(BigInt(scenario.mapSeed));
+    game.set_ai_team(1);
+    const info = new Float32Array(
+      wasm.memory.buffer,
+      game.unit_info_ptr(),
+      game.unit_count() * game.unit_info_stride(),
+    );
+    const orders = benchmarkOpeningOrders(info, game.unit_info_stride());
+    for (const order of orders) game.set_attack_order(order.unit, order.target);
+    switchScene(
+      new BattleScene({
+        wasm,
+        game,
+        kind: "gen",
+        benchmark: scenario,
+        generatedMap: JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor,
+        environment: DEFAULT_BATTLE_ENVIRONMENT,
+        onExit: () => location.assign("/"),
+        onLaunch: launchBattle,
+        restart: () => location.reload(),
+      }),
+    );
   }
 
   function launchBattle(kind: BattleKind) {
@@ -196,6 +228,7 @@ async function main() {
     },
     classSpecs: quickBattleClasses,
     onNewCampaign: () => location.assign("/campaign"),
+    onBenchmark: () => location.assign("/benchmark"),
     onLoadCampaign: () => location.assign("/campaign?load=1"),
     hasSave: () => readCampaignSave() !== null,
     gpuStatus: gpuStatus!,
@@ -206,6 +239,7 @@ async function main() {
   const sandbox = params.get("battle");
   const wantsCampaign = params.has("campaign") || location.pathname === "/campaign";
   const wantsBattle =
+    location.pathname === "/benchmark" ||
     location.pathname === "/battle/run" ||
     sandbox === "duel" ||
     sandbox === "5v5" ||
@@ -214,6 +248,7 @@ async function main() {
     params.has("map") ||
     params.has("battle");
   if (!gpuStatus!.ok && (wantsCampaign || wantsBattle)) switchScene(menu);
+  else if (location.pathname === "/benchmark") launchBenchmark();
   else if (location.pathname === "/battle/run" && routeConfig) launchQuickBattle(routeConfig);
   else if (battleSetup) switchScene(menu);
   else if (params.get("campaign") === "test") void launchCampaign(false, await buildTestCampaign());

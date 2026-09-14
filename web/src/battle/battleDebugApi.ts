@@ -1,3 +1,4 @@
+import type { BenchmarkStatus } from "./benchmark/benchmarkRun";
 import { eyePosition } from "@packages/renderer-core/src/camera3d";
 import {
   UNIT_INFO,
@@ -33,6 +34,7 @@ export interface BattleLoopFrameMetrics {
 }
 
 interface DebugOwners {
+  benchmark?: { status(): BenchmarkStatus; cancel(): void };
   advance(n: number): void;
   freeze(on?: boolean): void;
   freezeAtTick(target: number, options?: { effects?: boolean }): Promise<void>;
@@ -89,6 +91,7 @@ export function installBattleDebugApi({
     new Float32Array(wasm.memory.buffer, game.positions_ptr(), game.soldier_count() * 2);
   const views = createBattleViews(game, wasm.memory);
   window.__game = {
+    benchmark: owners.benchmark,
     frameMetrics: () => {
       const sample = frameMetrics();
       return sample ? { ...sample, renderer: { ...sample.renderer } } : null;

@@ -11,7 +11,6 @@ export interface BattleBenchmarkScenario {
   startTick: number;
   durationMs: number;
   cameraScript: string;
-  provisional: boolean;
 }
 
 export const BATTLE_BENCHMARK_SCENARIO: BattleBenchmarkScenario = {
@@ -24,7 +23,6 @@ export const BATTLE_BENCHMARK_SCENARIO: BattleBenchmarkScenario = {
   startTick: 9000,
   durationMs: 300_000,
   cameraScript: BENCHMARK_CAMERA_TOUR_VERSION,
-  provisional: true,
 };
 
 /** Copy before issuing orders: each WASM mutation can grow or replace the view. */

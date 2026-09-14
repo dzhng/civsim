@@ -1,5 +1,8 @@
 # Production camera-motion evidence
 
+Status: implemented and verified for baseline acquisition. The [evidence record](../assets/01-benchmark/README.md) owns full-menu checks, camera captures, raw timing and limitations. The baseline is slow; completing this measurement slice does not pass the final performance contract.
+
+
 ## Contract and question
 
 Can the actual complaint be reproduced and attributed without changing rendering? This is the first runnable checkpoint and prerequisite to every comparison.

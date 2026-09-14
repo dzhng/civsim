@@ -1,6 +1,6 @@
 import type { Camera } from "../../shared/camera";
 
-// Provisional contact anchors scouted from the seeded battle at ticks 9000–18000.
+// Contact anchors scouted from the seeded battle at ticks 9000–18000.
 // Changing anchors or timing changes the workload and requires a new version.
 export const BENCHMARK_CAMERA_TOUR_VERSION = "contact-9000-v2";
 export const BENCHMARK_CAMERA_PHASES = [

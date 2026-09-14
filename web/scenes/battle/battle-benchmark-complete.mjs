@@ -21,7 +21,7 @@ export async function run(ctx) {
     { timeout: 900000 },
   );
   const report = await page.evaluate(() => window.__game.benchmark.report());
-  const out = new URL("../../reports/battle-benchmark/", import.meta.url);
+  const out = new URL("../../reports/rendering/scenario-runs/battle-benchmark/", import.meta.url);
   await mkdir(out, { recursive: true });
   await writeFile(new URL("complete.json", out), JSON.stringify(report));
   ctx.check(

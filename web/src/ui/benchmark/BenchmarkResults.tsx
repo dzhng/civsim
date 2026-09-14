@@ -31,11 +31,6 @@ export function BenchmarkResults({ report }: { report: BenchmarkReport }) {
           <p>
             {status.reason} · {(status.elapsedMs / 1000).toFixed(1)} seconds recorded
           </p>
-          {status.scenario.provisional && (
-            <p className="benchmark-note">
-              Scenario calibration in progress — this run is diagnostic.
-            </p>
-          )}
         </header>
         <dl className="benchmark-metrics">
           {[

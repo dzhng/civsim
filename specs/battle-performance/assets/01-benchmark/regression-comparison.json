@@ -1,0 +1,249 @@
+{
+  "current": [
+    {
+      "check": "PASS  battle-benchmark-flow: preparation advances real ticks"
+    },
+    {
+      "check": "PASS  battle-benchmark-flow: preparation retains the ready frame instead of redrawing skipped history"
+    },
+    {
+      "check": "PASS  battle-benchmark-flow: manual pan zoom and pause cannot alter the benchmark"
+    },
+    {
+      "check": "PASS  battle-benchmark-flow: cancelled preparation has no invented FPS"
+    },
+    {
+      "check": "PASS  battle-benchmark-flow: export preserves partial status and raw empty recording"
+    },
+    {
+      "check": "PASS  battle-benchmark-flow: returns to actual menu"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: left-click selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: drag-box selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: selection grows per-soldier ground rings"
+    },
+    {
+      "check": "FAIL  battle-input: dpr1: freezeAtTick keeps WebGPU canvas pixels stable",
+      "diffBytes": 809,
+      "markerLayer": "far-lod-impostor",
+      "lod": {
+        "skinned": 197,
+        "impostors": 2643
+      }
+    },
+    {
+      "check": "PASS  battle-input: dpr1: right-click issues a wasm move order through WebGPU canvas input"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: holding Space shows the order overlay"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: wheel zoom updates the production WebGPU battle camera"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: D key pans the view east at the north-up yaw"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: W key pans the view north at the north-up yaw"
+    },
+    {
+      "check": "PASS  battle-input: banner plants on the block at yaw -1.57"
+    },
+    {
+      "check": "PASS  battle-input: banner plants on the block at yaw 0.60"
+    },
+    {
+      "check": "PASS  battle-input: banner plants on the block at yaw 2.10"
+    },
+    {
+      "check": "PASS  battle-input: toolbar icon shows a bronze tooltip on hover (no native title)"
+    },
+    {
+      "check": "PASS  battle-input: toolbar icon shows its tooltip on keyboard focus"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: left-click selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: drag-box selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: selection grows per-soldier ground rings"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: freezeAtTick keeps WebGPU canvas pixels stable"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: right-click issues a wasm move order through WebGPU canvas input"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: holding Space shows the order overlay"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: wheel zoom updates the production WebGPU battle camera"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: D key pans the view east at the north-up yaw"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: W key pans the view north at the north-up yaw"
+    },
+    {
+      "check": "FAIL  battle-renderer-default: battle default renderer is the photoreal WebGPU world",
+      "diffBytes": null,
+      "markerLayer": "none",
+      "lod": {
+        "skinned": 1651,
+        "impostors": 0
+      }
+    },
+    {
+      "check": "PASS  battle-renderer-default: renderer drew the full battle crowd"
+    },
+    {
+      "check": "PASS  battle-renderer-default: WebGPU battle terrain includes sim-sourced feature detail"
+    },
+    {
+      "check": "PASS  battle-renderer-default: WebGPU battle frame has visible terrain and crowd mass"
+    },
+    {
+      "check": "PASS  battle-renderer-default: frozen frame reuse retains the same submitted pose"
+    },
+    {
+      "check": "PASS  battle-renderer-default: frozen tick advance refreshes the submitted phase at the same camera"
+    },
+    {
+      "check": "PASS  battle-renderer-default: successful same-tick catalog reload replaces the submitted pose history"
+    },
+    {
+      "check": "PASS  battle-smoke: full battle spawned"
+    },
+    {
+      "check": "FAIL  battle-smoke: scene completed without throwing"
+    },
+    {
+      "check": "PASS  runner: no page errors"
+    }
+  ],
+  "baseline": [
+    {
+      "check": "PASS  battle-input: dpr1: left-click selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: drag-box selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: selection grows per-soldier ground rings"
+    },
+    {
+      "check": "FAIL  battle-input: dpr1: freezeAtTick keeps WebGPU canvas pixels stable",
+      "diffBytes": 3168,
+      "markerLayer": "far-lod-impostor",
+      "lod": {
+        "skinned": 197,
+        "impostors": 2643
+      }
+    },
+    {
+      "check": "PASS  battle-input: dpr1: right-click issues a wasm move order through WebGPU canvas input"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: holding Space shows the order overlay"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: wheel zoom updates the production WebGPU battle camera"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: D key pans the view east at the north-up yaw"
+    },
+    {
+      "check": "PASS  battle-input: dpr1: W key pans the view north at the north-up yaw"
+    },
+    {
+      "check": "PASS  battle-input: banner plants on the block at yaw -1.57"
+    },
+    {
+      "check": "PASS  battle-input: banner plants on the block at yaw 0.60"
+    },
+    {
+      "check": "PASS  battle-input: banner plants on the block at yaw 2.10"
+    },
+    {
+      "check": "PASS  battle-input: toolbar icon shows a bronze tooltip on hover (no native title)"
+    },
+    {
+      "check": "PASS  battle-input: toolbar icon shows its tooltip on keyboard focus"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: left-click selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: drag-box selects the rendered WebGPU unit"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: selection grows per-soldier ground rings"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: freezeAtTick keeps WebGPU canvas pixels stable"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: right-click issues a wasm move order through WebGPU canvas input"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: holding Space shows the order overlay"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: wheel zoom updates the production WebGPU battle camera"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: D key pans the view east at the north-up yaw"
+    },
+    {
+      "check": "PASS  battle-input: dpr2: W key pans the view north at the north-up yaw"
+    },
+    {
+      "check": "FAIL  battle-renderer-default: battle default renderer is the photoreal WebGPU world",
+      "diffBytes": null,
+      "markerLayer": "none",
+      "lod": {
+        "skinned": 1651,
+        "impostors": 0
+      }
+    },
+    {
+      "check": "PASS  battle-renderer-default: renderer drew the full battle crowd"
+    },
+    {
+      "check": "PASS  battle-renderer-default: WebGPU battle terrain includes sim-sourced feature detail"
+    },
+    {
+      "check": "PASS  battle-renderer-default: WebGPU battle frame has visible terrain and crowd mass"
+    },
+    {
+      "check": "PASS  battle-renderer-default: frozen frame reuse retains the same submitted pose"
+    },
+    {
+      "check": "PASS  battle-renderer-default: frozen tick advance refreshes the submitted phase at the same camera"
+    },
+    {
+      "check": "PASS  battle-renderer-default: successful same-tick catalog reload replaces the submitted pose history"
+    },
+    {
+      "check": "PASS  battle-smoke: full battle spawned"
+    },
+    {
+      "check": "FAIL  battle-smoke: scene completed without throwing"
+    },
+    {
+      "check": "PASS  runner: no page errors"
+    }
+  ],
+  "baselineRevision": "c924e5ce9cac0a8abd5cd93de0d17df892facb3f",
+  "currentRevision": "2e5133a63a941c435b6390592d1502580dac8f36",
+  "interpretation": "All three failing contracts reproduce on the untouched starting source with the same release WASM. No thresholds changed. Renderer telemetry has no newly failing contract in this sweep."
+}

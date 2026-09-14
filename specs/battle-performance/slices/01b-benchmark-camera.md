@@ -1,5 +1,8 @@
 # Repeatable action-following benchmark camera
 
+Status: implemented and verified for baseline acquisition. The [evidence record](../assets/01-benchmark/README.md) owns full-menu checks, camera captures, raw timing and limitations. The baseline is slow; completing this measurement slice does not pass the final performance contract.
+
+
 ## Contract and seam
 
 The benchmark camera behaves like a person watching the battle: pans between fighting formations, slows over contact, zooms in to inspect, pulls back to reveal both armies, and looks toward the horizon. It must continuously move and cross real grass/LOD thresholds, not merely teleport between static poses.

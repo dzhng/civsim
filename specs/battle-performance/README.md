@@ -3,22 +3,24 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **implementation in progress — benchmark verification**, updated 2026-09-15. The actual menu now launches preparation, a live five-minute camera tour, results/chart and JSON export. Production rendering remains unchanged.
-Current pickup: integrate correlated GPU telemetry, run the durable full-menu verification and remaining normal-entry/lifecycle checks, then freeze the shared fixture for 02. The first complete live diagnostic exposes a major simulation cost as well as rendering cost; profile attribution before assuming an engine swap fixes end-to-end cadence. The user authorized a hard renderer cutover with **no compatibility or migrations**. Preserve saved battles and gameplay semantics by leaving their data contracts intact.
+Status: **implementation in progress — full backend comparison**, updated 2026-09-15. The actual menu now launches preparation, a live five-minute camera tour, results/chart and JSON export. Production rendering remains unchanged.
+Current pickup: finish bounded capture of actual production-presented frames for 02a, verify the Three replay against those frames, then port that fixture to all three candidate runtimes. The permanent menu benchmark and correlated reporting are implemented and its full five-minute browser gate passes. Raw, TypeGPU and vgpu API preflights are separate from full battle parity; no backend has won. Preserve gameplay semantics and the user's hard-cutover/no-compatibility decision.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 
 Follow the slice graph below. Parallelize backend implementation in separate worktrees; serialize hardware timing on the same host. Do not implement the rest of a renderer migration from an unmeasured guess. Slice 03 selects one backend and must materialize any conditional migration using the [migration contract](migration.md) before dependent work. If live simulation blocks the target, report the boundary and leave the live gate failed; this spec does not authorize sim mechanics changes. Update this section, checklist and evidence links before ending each implementation pass.
 
-- [ ] [01 — production motion evidence](slices/01-motion-evidence.md)
-- [ ] [01a — menu-launched simulated benchmark](slices/01a-benchmark-run.md)
-- [ ] [01b — action-following camera tour](slices/01b-benchmark-camera.md)
-- [ ] [01c — FPS results and spike chart](slices/01c-benchmark-results.md)
+- [x] [01 — production motion evidence](slices/01-motion-evidence.md)
+- [x] [01a — menu-launched simulated benchmark](slices/01a-benchmark-run.md)
+- [x] [01b — action-following camera tour](slices/01b-benchmark-camera.md)
+- [x] [01c — FPS results and spike chart](slices/01c-benchmark-results.md)
 - [ ] [02 — matched backend comparison](slices/02-backend-comparison.md), including all three alternative backends
 - [ ] [03 — choose one backend and resolve the remaining graph](slices/03-backend-decision.md)
+- [ ] [03a — simulation publication and camera scheduling](slices/03a-simulation-publication.md)
 - [ ] [04 — bounded grass residency](slices/04-grass-residency.md)
 - [ ] [05 — grass GPU work and temporal coverage](slices/05-grass-routing.md)
-- [ ] [06 — camera-independent crowd state](slices/06-crowd-state.md)
+- [ ] [06a — animation-transition preparation](slices/06a-animation-transitions.md)
+- [ ] [06b — camera-independent crowd state](slices/06b-crowd-state.md)
 - [ ] [07 — visibility and LOD work](slices/07-crowd-visibility.md)
 - [ ] [08 — readable tactical shadow coverage](slices/08-shadow-coverage.md)
 - [ ] [09 — stable moving shadows](slices/09-shadow-stability.md)
@@ -27,11 +29,15 @@ Follow the slice graph below. Parallelize backend implementation in separate wor
 ## Current evidence
 
 - Baseline source: `c924e5ce`; plan checkpoint `76b45cca`; telemetry `5518110f`; pure metrics `8978a174`.
-- 29 focused tests, TypeScript checking and the production build pass. Actual-menu cancellation/input/export flow passes after fixing preparation to retain its ready frame instead of redrawing skipped history. Independent review found a missing deployment rewrite for `/benchmark`; it is corrected.
+- 43 focused tests, TypeScript checking and the production build pass. Actual-menu cancellation/input/export flow passes after fixing preparation to retain its ready frame instead of redrawing skipped history. Independent review found a missing deployment rewrite for `/benchmark`; it is corrected.
 - Named host: Apple M5 Pro, 20 GPU cores, 48GB. Chrome fixture confirms `apple / metal-3`, 1440×900 CSS at DPR2 → 2880×1800 framebuffer and 15,560 total soldiers.
 - [Paused camera evidence](assets/01-baseline/README.md): roughly 25–31 FPS, with a 233 ms worst pan interval. These are measured failures, not accepted performance.
 - [Live diagnostic](assets/01-benchmark/README.md): actual menu completed 300.1 wall seconds, correct tick 9000 start hash, no browser errors. It advanced 156.3 simulation seconds and averaged 3.9 FPS. Mean CPU work was 204 ms simulation plus 49 ms rendering per frame. Shared-host diagnostic, not final quiet repeated timing.
-- Exact same-seed scout stays contested from tick 9000 through 18000. Fresh visual review accepts the revised results UI and horizon/return action framing as useful evidence. Continuous motion and the durable full-menu gate remain pending; backend eligibility remains undecided.
+- Exact same-seed scout stays contested from tick 9000 through 18000. Fresh visual review accepts the revised results UI and horizon/return action framing as useful evidence. The full-menu gate validates every phase, near/wide/horizon ranges and a new primary submission for every recorded callback; backend eligibility remains undecided.
+- [Controlled full-menu report](assets/01-benchmark/complete/report.json): 300.138 wall seconds, 118.6 simulated seconds, 2.962 average FPS; 886 complete GPU records, four explicitly pending, no lost events. Other agent builds/GPU work were held. One run, not repeated acceptance evidence.
+- Correlated GPU smoke: 59 complete / 5 pending submissions, no dropped records or browser errors. Diagnostic averages: main 21.68 ms, post 21.58 ms, shadow 2.75 ms, grass compute 0.72 ms, pose compute 0.66 ms. This is pass work, not presentation latency.
+- [CPU profiles](assets/01-benchmark/cpu-profile/summary.json) show substantial ActionTimeline transition work before renderer submission. A separate named-WASM profile identifies combat and separation as dominant simulation phases; its modified profiling artifact cannot establish a production speedup.
+- Normal-entry regression sweep passes benchmark flow and most input/render checks, but has three failures reproduced on the untouched baseline: frozen pixel identity, expected impostor tier, and the smoke test's screen-to-ground assumption. No threshold has been changed.
 - [Choices ledger](choices.md) records decisions beyond the plan. Scratch remains in ignored `throwaway/`; accepted baseline evidence lives in `assets/01-baseline/`.
 
 ## Outcome
@@ -53,15 +59,19 @@ The user additionally requested an in-game menu benchmark: a real battle, using 
 ## Slice graph and review map
 
 ```text
-01 motion evidence → 01a benchmark run → 01b camera tour → 01c result chart
-                   → 02 backend spikes (Three / raw / TypeGPU / vgpu)
-                   → 03 decision + explicit conditional migration graph
-                   → 04 grass residency → 05 grass routing ┐
-                   → 06 crowd state → 07 crowd visibility ├→ 08 shadow coverage
-                                                         └→ 09 shadow stability → 10 acceptance
+01 → 01a → 01b → 01c → 02a fixture/control
+                       ├→ 02b raw / 02c TypeGPU / 02d vgpu
+                       └→ 02e matched report → 03 backend decision
+                            ├→ 03a simulation publication ──────────┐
+                            ├→ 04 grass residency → 05 routing ┐   │
+                            └→ 06a animation → 06b state → 07 ─┴→ 08 shadows
+                                                               → 09 stability
+                                                               → 10 acceptance
+03 materializes any replacement migration graph before dependent GPU work.
+10 joins simulation publication, presentation, GPU work and migration.
 ```
 
-08 follows both 05 and 07. 09 follows 08. Grass and crowd tracks may run in parallel after 03 fixes shared ownership. Early shadow probes belong in 02 so backend selection includes their cost. A slice whose hypothesis is disproved closes with evidence and no production edit; update downstream dependencies rather than adding machinery for completeness.
+03a joins final live acceptance; it cannot claim that moving slow ticks to a worker restores simulation throughput. 06a owns measured transition preparation above every backend; shared-layer changes require refreshed controls. 08 follows both 05 and 07. 09 follows 08. Grass and crowd tracks may run in parallel after 03 fixes shared ownership. Early shadow probes belong in 02 so backend selection includes their cost. A slice whose hypothesis is disproved closes with evidence and no production edit; update downstream dependencies rather than adding machinery for completeness.
 
 | Checkpoint | Human review surface | Question answered |
 | --- | --- | --- |

@@ -17,3 +17,15 @@ The preparation browser contract was first red (`preparation-red.txt`): the engi
 Independent integration review found no actionable regressions after the deployment rewrite correction. The first result capture’s visible issues were addressed with a scrolling report body, persistent action footer, rounded tooltip values and direct camera-phase labels. Full-precision values remain in JSON.
 
 Fresh visual critique accepted the revised UI and horizon/return framing as usable benchmark evidence. Remaining limitations are a cramped wrapped readout and compressed 16.67/33.33 ms reference lines on the very slow diagnostic scale; neither hides a spike or a control. Stills do not verify continuous motion.
+
+The non-blocking human review showed the revised result, initial contact view and horizon view together in Preview. No override arrived during independent work; the fresh visual review supports retaining this layout/framing. Preview was closed afterward. This resolves the presentation checkpoint, not the continuous-motion or performance gates.
+
+`gpu-smoke.json` verifies asynchronous pass-to-submission attribution in an ordinary production battle. It contains 59 complete and 5 pending records, no dropped submissions and no browser errors. Mean completed GPU pass work was main 21.68 ms, post 21.58 ms, shadows 2.75 ms, pose 0.66 ms and grass 0.72 ms. Timings are diagnostic and exclude uploads, copies, queue wait and physical presentation.
+
+## Full menu gate with correlated GPU records
+
+`complete/report.json` is the first complete report from the durable full-menu scene with all agent builds and other GPU workloads held during timing. All checks pass (`complete/checks.txt`). The start state matches the scout; all six phases and near/wide/horizon camera ranges are present; every retained callback submitted a fresh primary frame; export preserves the raw report and the action footer fits the initial viewport. This is one controlled run, not repeated acceptance evidence.
+
+The run records 300.138 wall seconds, 118.6 simulation seconds, 2.962 average FPS, 1.617 FPS 1% low and 1.225 FPS 0.1% low. There are 886 complete submission-matched GPU results and four explicitly unresolved terminal submissions, with no lost events or cursor gaps. End-of-run reports intentionally do not wait for unresolved GPU queries.
+
+`regression-comparison.json` records all three normal-entry failures on both current code and untouched starting source. They are existing failures, not waived thresholds: the default camera no longer guarantees an impostor tier, the smoke camera test assumes horizon rays hit ground, and DPR1 frozen image bytes vary. The other tested input/pose/renderer contracts pass.

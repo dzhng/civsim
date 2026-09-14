@@ -1,5 +1,8 @@
 # In-game benchmark run lifecycle
 
+Status: implemented and verified for baseline acquisition. The [evidence record](../assets/01-benchmark/README.md) owns full-menu checks, camera captures, raw timing and limitations. The baseline is slow; completing this measurement slice does not pass the final performance contract.
+
+
 ## Contract and seam
 
 A **Battle Benchmark** button in the actual main menu launches a real simulated battle with current production renderer/settings. This is a permanent player-facing tool, not merely a lab page. Add `onBenchmark` through `web/src/ui/menu/Menu.tsx`, `web/src/menu/scene.ts` and the existing scene launcher. A proposed `web/src/battle/benchmark/benchmarkRun.ts` owns `idle → preparing → running → complete/cancelled/failed`; normal battle rendering/simulation remains the only world implementation.

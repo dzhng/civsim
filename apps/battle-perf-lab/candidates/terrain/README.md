@@ -25,7 +25,7 @@ first as albedo/roughness and then with the real sun, PMREM and aerial perspecti
 It compares HDR arrays before post, across all presets, three camera poses, and
 with/without horizon. Shared geometry includes mud/road feathers, scree, rock,
 water and varying slopes. The odd framebuffer exercises padded readback. The
-[recorded acceptance results](evidence/terrain.json) retain strict failures rather
+[recorded acceptance results](../../../../specs/battle-performance/assets/02-raw/terrain/terrain.json) retain strict failures rather
 than masking coplanar pixels. Material and beauty absolute diagnostic limits are
 0.001 and 0.005 respectively; exact coverage and finite output are mandatory.
 The recorded ground gate passes (material maximum 0.0007324; beauty maximum
@@ -36,7 +36,7 @@ authored colors; no pixel-count exemption is applied. Coverage matches exactly.
 These diagnostic limits grant no permission to replace material detail or lower
 quality.
 
-The [separate projection diagnostic](evidence/terrain-canonical.json) is invoked
+The [separate projection diagnostic](../../../../specs/battle-performance/assets/02-raw/terrain/terrain-canonical.json) is invoked
 with `?canonical`: it changes only the reference's vertex projection to the
 canonical combined matrix. It cannot replace the actual-production acceptance
 control. The horizon wall has overlapping base/body bottom and end caps at
@@ -45,17 +45,20 @@ different fragments at that authored coplanar overlap. The native clip output is
 invariant across its material/beauty pipelines. Geometry and depth bias remain
 unchanged.
 
-The larger [readable-horizon control](evidence/terrain-visual.json), selected with
+The larger [readable-horizon control](../../../../specs/battle-performance/assets/02-raw/terrain/terrain-visual.json), selected with
 `?visual`, uses 1025×769 pixels. Its strict gates also remain red: 67 pixels select
 the other source wall cap, plus two material-detail pixels exceed 0.001 and one
 beauty-detail pixel exceeds 0.005. The largest unlocalized difference is 0.0119629
 at pixel (984,499); the matching material difference is 0.0076904 with unchanged
-roughness. These ground-detail differences still need input/derivative/precision
-investigation. The control counts every failing pixel, classifies source cap hits,
+roughness. The [same-fragment float32 probe](../../../../specs/battle-performance/assets/02-raw/terrain/terrain-input-boundaries.json)
+classifies these captured outcomes: the first crosses the authored pebble hash
+cell boundary; the second crosses an observed SDF sampling precision boundary.
+The [earlier term survey](../../../../specs/battle-performance/assets/02-raw/terrain/terrain-input-terms.json) locates the affected
+material terms, but cannot establish cross-variant interpolator identity. The control counts every failing pixel, classifies source cap hits,
 and retains a bounded list of the worst 16; it grants no classification-based
 exemption. No full scene or game-appearance parity is claimed.
 
-Paired `golden-*-raw.png` / `golden-*-three.png` files in `evidence/` show the HDR
+Paired `golden-*-raw.png` / `golden-*-three.png` files in the [review assets](../../../../specs/battle-performance/assets/02-raw/terrain/) show the HDR
 arrays through the same already-controlled native post transform. They are
 partial-scene diagnostic captures, not a full beauty or performance verdict.
 
@@ -63,3 +66,21 @@ Start `bun run --cwd web vite --config vite.terraincheck.config.ts --host 127.0.
 --port 5199`, obtain the coordinated GPU slot, then run
 `node apps/battle-perf-lab/candidates/terrain/verify.mjs`. Set `TERRAIN_CHECK_URL`
 to select another port or the explicitly separate projection diagnostic.
+
+The fresh unprimed review found no concrete difference between the image pairs.
+The larger camera made the silhouette reviewable. Both images share the stepped
+dark line along the right ridge base, the angular notch beneath the left mountains,
+and the cropped block at upper right. These shared features are not evidence of
+a new renderer defect; the critique does not override the strict numerical gates.
+
+The [readable-view canonical diagnostic](../../../../specs/battle-performance/assets/02-raw/terrain/terrain-visual-canonical.json)
+eliminates its 67 wall-cap differences, while both ground-detail outcomes remain
+bit-identical to the source-projection comparison. That isolates these two causes:
+coplanar depth selection is projection-sensitive; ground color follows the
+captured interpolator/lookup thresholds. This is a bounded classification of
+observed samples, not a generic allowed-pixel budget. No shader math, SDF content,
+or numeric gate was changed to remove the failures.
+
+`?shaders` uses Three's public `renderer.debug.getShaderAsync` to save actual
+compiled vertex/fragment WGSL under `/tmp/terrain-shaders`. `?visual&canonical`
+records a separate result and cannot overwrite the production-projection gate.

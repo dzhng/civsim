@@ -1,0 +1,189 @@
+{
+  "kind": "same-fragment threshold inputs and outputs, rgba32float",
+  "results": [
+    {
+      "term": "pebble-worldY-scaledY-floorY-mask",
+      "pixel": [
+        984,
+        499
+      ],
+      "expected": [
+        -122.35295104980469,
+        -104.00000762939453,
+        -105,
+        1
+      ],
+      "actual": [
+        -122.35293579101562,
+        -104,
+        -104,
+        0
+      ],
+      "difference": [
+        1.52587890625e-05,
+        7.62939453125e-06,
+        1,
+        -1
+      ]
+    },
+    {
+      "term": "pebble-worldY-scaledY-floorY-mask",
+      "pixel": [
+        138,
+        545
+      ],
+      "expected": [
+        -112.23828887939453,
+        -95.40254974365234,
+        -96,
+        0.04315442591905594
+      ],
+      "actual": [
+        -112.23827362060547,
+        -95.40253448486328,
+        -96,
+        0.04315442591905594
+      ],
+      "difference": [
+        1.52587890625e-05,
+        1.52587890625e-05,
+        0,
+        0
+      ]
+    },
+    {
+      "term": "sdf-worldXY-distance-earth",
+      "pixel": [
+        984,
+        499
+      ],
+      "expected": [
+        148.11183166503906,
+        -122.35295104980469,
+        -32,
+        0
+      ],
+      "actual": [
+        148.11181640625,
+        -122.35293579101562,
+        -32,
+        0
+      ],
+      "difference": [
+        -1.52587890625e-05,
+        1.52587890625e-05,
+        0,
+        0
+      ]
+    },
+    {
+      "term": "sdf-worldXY-distance-earth",
+      "pixel": [
+        138,
+        545
+      ],
+      "expected": [
+        -180.54385375976562,
+        -112.23828887939453,
+        -0.31372642517089844,
+        0.7651455998420715
+      ],
+      "actual": [
+        -180.5438232421875,
+        -112.23827362060547,
+        -0.2980384826660156,
+        0.7752211689949036
+      ],
+      "difference": [
+        3.0517578125e-05,
+        1.52587890625e-05,
+        0.015687942504882812,
+        0.010075569152832031
+      ]
+    },
+    {
+      "term": "sdf-uv-encodedR-distance",
+      "pixel": [
+        984,
+        499
+      ],
+      "expected": [
+        0.7314247488975525,
+        0.2450980246067047,
+        0,
+        -32
+      ],
+      "actual": [
+        0.7314247488975525,
+        0.2450980693101883,
+        0,
+        -32
+      ],
+      "difference": [
+        0,
+        4.470348358154297e-08,
+        0,
+        0
+      ]
+    },
+    {
+      "term": "sdf-uv-encodedR-distance",
+      "pixel": [
+        138,
+        545
+      ],
+      "expected": [
+        0.21790023148059845,
+        0.2661702334880829,
+        0.4950980246067047,
+        -0.31372642517089844
+      ],
+      "actual": [
+        0.21790027618408203,
+        0.2661702632904053,
+        0.4953431487083435,
+        -0.2980384826660156
+      ],
+      "difference": [
+        4.470348358154297e-08,
+        2.9802322387695312e-08,
+        0.00024512410163879395,
+        0.015687942504882812
+      ]
+    }
+  ],
+  "errors": [],
+  "pageErrors": [],
+  "method": "Temporary terminal-output substitution of the existing production TSL expressions and native WGSL expressions. Source and native use the canonical combined projection, identical original mesh/SDF bytes, golden readable-horizon camera, and RGBA32Float targets. Each row records related input and output in the same fragment. Original sources were restored exactly after readback.",
+  "scope": {
+    "framebuffer": [
+      1025,
+      769
+    ],
+    "pose": "horizon-readable",
+    "timeSeconds": 20,
+    "preset": "golden"
+  },
+  "classifications": [
+    {
+      "pixel": [
+        984,
+        499
+      ],
+      "classification": "authored pebble hash-cell boundary",
+      "proof": "Scaled Y changes from -104.00000762939453 to -104.0; floor selects -105 versus -104 and the actual pebble mask changes from 1 to 0. Material roughness and slope masks are equal.",
+      "materialAbsoluteDifference": 0.0076904296875,
+      "beautyAbsoluteDifference": 0.011962890625
+    },
+    {
+      "pixel": [
+        138,
+        545
+      ],
+      "classification": "observed linear SDF texture-sampling precision boundary",
+      "proof": "The actual sampler receives UVs differing by 1\u20133 float32 ULPs and returns encoded R values differing by 0.00024512410163879395. The same fragment decodes those to signed distances differing by 0.015687942504882812m, producing an earth-coverage change of 0.010075569152832031. No assumption about universal hardware filter precision is made.",
+      "materialAbsoluteDifference": 0.0013427734375
+    }
+  ],
+  "decision": "Classify only these captured input-boundary outcomes. Keep the strict numerical reports unchanged: no pixel mask, generic pixel-count allowance, SDF rewrite, shader look change or tolerance relaxation. Full-frame visual and temporal gates remain required."
+}

@@ -32,6 +32,7 @@ import { RawBattleTerrain } from "../../src/raw/terrain";
 import { createRawEnvironment } from "../../src/raw/environment";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../../src/numericalReadback";
 
+const dumpShaders = new URL(location.href).searchParams.has("shaders");
 const visualReview = new URL(location.href).searchParams.has("visual");
 const WIDTH = visualReview ? VISUAL_WIDTH : NUMERICAL_WIDTH,
   HEIGHT = visualReview ? VISUAL_HEIGHT : NUMERICAL_HEIGHT;
@@ -115,6 +116,7 @@ async function run() {
     layout: cameraLayout,
     entries: [{ binding: 0, resource: { buffer: cameraBuffer } }],
   });
+  const shaderSources: { name: string; vertexShader: string; fragmentShader: string }[] = [];
   const results: TerrainCase[] = [];
   const captures: { name: string; png: string }[] = [];
   try {
@@ -241,6 +243,18 @@ async function run() {
                 renderer.setRenderTarget(reference);
                 renderer.render(scene, camera);
                 renderer.setRenderTarget(null);
+                if (dumpShaders && !includeHorizon && env.id === "golden" && pose === poses[0]) {
+                  renderer.setRenderTarget(reference);
+                  const shader = await renderer.debug.getShaderAsync(scene, camera, groundMesh);
+                  if (shader.vertexShader === null || shader.fragmentShader === null)
+                    throw new Error("Compiled terrain shader source is unavailable");
+                  shaderSources.push({
+                    name: mode,
+                    vertexShader: shader.vertexShader,
+                    fragmentShader: shader.fragmentShader,
+                  });
+                  renderer.setRenderTarget(null);
+                }
                 const expected = unpackRgba16fRows(
                     (await renderer.readRenderTargetPixelsAsync(
                       reference,
@@ -351,6 +365,7 @@ async function run() {
       limits: ABSOLUTE_LIMIT,
       groundPassed: results.filter((r) => !r.includeHorizon).every(accepts) && errors.length === 0,
       horizonPassed: results.filter((r) => r.includeHorizon).every(accepts) && errors.length === 0,
+      shaderSources,
       visualReview,
       canonicalProjection,
       captures,
@@ -379,7 +394,11 @@ try {
   const report = await run();
   Object.assign(window, { __terrainCheck: report });
   document.querySelector("#result")!.textContent = JSON.stringify(
-    { ...report, captures: report.captures.map((c) => c.name) },
+    {
+      ...report,
+      captures: report.captures.map((c) => c.name),
+      shaderSources: report.shaderSources.map((s) => s.name),
+    },
     null,
     2,
   );

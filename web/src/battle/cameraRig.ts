@@ -53,6 +53,8 @@ interface RigCurve {
   easeBias: number;
   /** Battle's tilt transition starts only within this physical distance. */
   tiltStartMeters?: number;
+  /** >1 brings pitch toward the horizon sooner, without changing distance or lens. */
+  pitchEaseBias?: number;
 }
 
 // Battle: tilt begins at army-wide scale, passes through an oblique formation
@@ -68,6 +70,7 @@ const BATTLE_CURVE: RigCurve = {
   maxForwardFraction: 0.3,
   easeBias: 20,
   tiltStartMeters: 1200,
+  pitchEaseBias: 1.75,
 };
 
 // Campaign: a strategic chart. Flatter (stays near-top-down longer via easeBias),
@@ -134,7 +137,11 @@ function rigForZoom(
   return {
     target: [-forward, 0, 0],
     distance,
-    pitch: lerp(curve.topDownPitch, curve.vistaPitch, framing),
+    pitch: lerp(
+      curve.vistaPitch,
+      curve.topDownPitch,
+      Math.pow(1 - framing, curve.pitchEaseBias ?? 1),
+    ),
     fovY: lerp(curve.topDownFovY, curve.vistaFovY, framing),
     zoomT,
   };

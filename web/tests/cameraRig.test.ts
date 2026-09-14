@@ -141,16 +141,21 @@ test("battle auto tilt follows army overview, oblique approach, and soldier-heig
     for (let zoom = range.min; zoom <= range.max; zoom += 0.001) {
       const rig = battleCameraRig(zoom, range, field);
       if (rig.distance >= 700)
-        assert.ok(rig.pitch >= 1.3, `overview pitch ${rig.pitch} at ${rig.distance}m`);
+        assert.ok(rig.pitch >= 1.28, `overview pitch ${rig.pitch} at ${rig.distance}m`);
       if (rig.distance >= 400 && rig.distance <= 500)
         assert.ok(
-          rig.pitch < 1.34 && rig.pitch > 1.2,
+          rig.pitch < 1.2 && rig.pitch > 1.1,
           `army-wide view should begin tilting: ${rig.pitch} at ${rig.distance}m`,
         );
       if (rig.distance >= 90 && rig.distance <= 110)
         assert.ok(
-          rig.pitch > 0.65 && rig.pitch < 0.85,
+          rig.pitch > 0.54 && rig.pitch < 0.62,
           `approach should be oblique: ${rig.pitch} at ${rig.distance}m`,
+        );
+      if (rig.distance >= 60 && rig.distance <= 65)
+        assert.ok(
+          rig.pitch > 0.43 && rig.pitch < 0.47,
+          `close formation view should look toward the horizon: ${rig.pitch} at ${rig.distance}m`,
         );
     }
     const closest = battleCameraRig(99, range, field);

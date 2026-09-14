@@ -10,6 +10,10 @@ use crate::terrain::Terrain;
 
 use UnitClassId::*;
 
+// Front offsets for screen, main line, reserves, archers, and artillery.
+// Shared by the default battle and formed campaign rosters.
+const FORMED_ROW_OFFSETS: [f32; 5] = [25.0, 0.0, -25.0, -50.0, -75.0];
+
 /// Soldiers per unit by class (data, freely tunable).
 /// Soldiers in one deployed unit — the shared `contract::unit_size` (one campaign
 /// slot = one battle unit). INDEPENDENT of the balance test bench
@@ -114,7 +118,13 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     let right = f.perp();
     let row = |fwd: f32| base + f * fwd;
 
-    deploy_row(sim, &[Skirmishers, Skirmishers], row(45.0), facing, team);
+    deploy_row(
+        sim,
+        &[Skirmishers, Skirmishers],
+        row(FORMED_ROW_OFFSETS[0]),
+        facing,
+        team,
+    );
     deploy_row(
         sim,
         &[
@@ -124,25 +134,31 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
             HeavyPhalanx,
             HeavySword,
         ],
-        row(0.0),
+        row(FORMED_ROW_OFFSETS[1]),
         facing,
         team,
     );
     deploy_row(
         sim,
         &[LightSpear, HeavySword, LongSwords, HeavySword, LightSpear],
-        row(-55.0),
+        row(FORMED_ROW_OFFSETS[2]),
         facing,
         team,
     );
     deploy_row(
         sim,
         &[Archers, LightSpear, Archers, Archers],
-        row(-110.0),
+        row(FORMED_ROW_OFFSETS[3]),
         facing,
         team,
     );
-    deploy_row(sim, &[ArtilleryCrew], row(-150.0), facing, team);
+    deploy_row(
+        sim,
+        &[ArtilleryCrew],
+        row(FORMED_ROW_OFFSETS[4]),
+        facing,
+        team,
+    );
     // Cavalry wings, slightly refused.
     // Wings must fit inside the sealed flanks (open corridor |y| < ~360).
     sim.spawn_class(
@@ -160,7 +176,7 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
         team,
     );
     sim.spawn_class(
-        row(-60.0) + right * 340.0,
+        row(-40.0) + right * 340.0,
         facing,
         unit_size(HorseArchers),
         HorseArchers,
@@ -474,7 +490,7 @@ where
     let right = f.perp();
     const MAX_ROW_W: f32 = 1500.0;
     const GAP: f32 = 14.0;
-    let row_fwd = [45.0, 0.0, -55.0, -110.0, -150.0];
+    let mut next_role_front = f32::INFINITY;
     for r in 0..5 {
         let members: Vec<&SpawnPlan> = units.iter().filter(|u| role(u.class) == r).collect();
         if members.is_empty() {
@@ -492,8 +508,10 @@ where
             rows.last_mut().unwrap().push(m);
             w_acc += w;
         }
+        // Extra rows must push the following role back instead of overlapping it.
+        let role_front = FORMED_ROW_OFFSETS[r].min(next_role_front);
         for (k, row_members) in rows.iter().enumerate() {
-            let fwd = row_fwd[r] - k as f32 * 45.0;
+            let fwd = role_front - k as f32 * 45.0;
             let total: f32 = row_members.iter().map(|m| m.width() + GAP).sum::<f32>() - GAP;
             let mut x = -0.5 * total;
             for &&plan in row_members {
@@ -509,6 +527,7 @@ where
                 x += w + GAP;
             }
         }
+        next_role_front = role_front - (rows.len() - 1) as f32 * 45.0 - 25.0;
     }
     // Cavalry wings, alternating sides.
     let wings: Vec<&SpawnPlan> = units.iter().filter(|u| role(u.class) == 5).collect();

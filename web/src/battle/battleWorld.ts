@@ -9,7 +9,7 @@ import type { Game, InitOutput } from "../wasm/game_wasm.js";
 import { Camera } from "../shared/camera";
 import { getGraphicsSettings } from "../shared/graphicsSettings";
 import { BattleAmbientAudio } from "./battleAudio";
-import type { CameraRigRange } from "./cameraRig";
+import { battleCameraRig, type CameraRigRange } from "./cameraRig";
 import { BattleRenderer } from "./renderer";
 import { installViewportGate } from "./viewportGate";
 import { createBattleViews } from "./battleViews";
@@ -115,13 +115,13 @@ export class BattleCameraRig {
     let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
     for (let unit = 0; unit < game.unit_count(); unit++) {
       const offset = unit * stride;
+      if (info[offset + UNIT_INFO.team] !== 0) continue;
       x0 = Math.min(x0, info[offset]);
       x1 = Math.max(x1, info[offset]);
       y0 = Math.min(y0, info[offset + UNIT_INFO.y]);
       y1 = Math.max(y1, info[offset + UNIT_INFO.y]);
     }
     const dpr = window.devicePixelRatio || 1;
-    const mapZoom = (this.canvas.clientHeight * dpr) / Math.min(mapH * 0.62, 1000);
     const topDownCos = 0.95;
     const tacticalZoom = Math.min(
       (this.canvas.clientWidth * dpr) / mapW,
@@ -130,17 +130,20 @@ export class BattleCameraRig {
     this.range = { min: Math.max(0.4, tacticalZoom), max: Math.max(8, tacticalZoom * 6) };
     this.mapBounds = { ...this.bounds };
     this.mapRange = { ...this.range };
-    const fit = Number.isFinite(x0)
-      ? Math.min(
-          (this.canvas.clientWidth * dpr) / (x1 - x0 + 130),
-          (this.canvas.clientHeight * dpr) / (y1 - y0 + 130),
-        )
-      : 0;
-    const initialCenter: [number, number] =
-      fit > mapZoom ? [(x0 + x1) / 2, (y0 + y1) / 2] : [this.camera.x, -0.27 * mapH];
-    this.camera.zoom = fit > mapZoom ? Math.min(fit, 6) : mapZoom;
+    const initialCenter: [number, number] = Number.isFinite(x0)
+      ? [(x0 + x1) / 2, (y0 + y1) / 2]
+      : [this.camera.x, -0.27 * mapH];
+    this.camera.zoom = this.range.min;
     this.camera.yaw = -Math.PI / 2;
     this.apply();
+    const far = battleCameraRig(this.range.min, this.range, this.bounds).distance;
+    const near = battleCameraRig(this.range.max, this.range, this.bounds).distance;
+    // Initial framing uses physical distance; the zoom dial is nonlinear.
+    this.camera.zoomAt(
+      this.canvas.width / 2,
+      this.canvas.height / 2,
+      far / Math.max(near, 0.49 * (near + 0.0375 * (far - near))),
+    );
     this.camera.setViewCenter(initialCenter[0], initialCenter[1]);
     this.camera.clampView();
   }

@@ -3,6 +3,13 @@
 // The material consumer must also retain NodeMaterial's final max(output, 0).
 import * as sky from "../../../../packages/game-renderer/src/environment/skyParameters";
 
+/** Unnormalized world-space ray at UV (0,0), plus the UV x/y increments.
+ * Camera projection/orientation belongs to the fixture; translation is excluded. */
+export interface SkyRays {
+  origin: sky.Rgb;
+  dx: sky.Rgb;
+  dy: sky.Rgb;
+}
 const f = (value: number) => `${value.toExponential(16)}f`;
 const rgb = (value: readonly number[]) => `vec3f(${value.map(f).join(", ")})`;
 

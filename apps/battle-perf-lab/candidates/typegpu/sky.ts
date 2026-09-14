@@ -1,26 +1,17 @@
 import { tgpu, d, common } from "typegpu";
-import type {
-  SkyModelParams,
-  Rgb,
-} from "../../../../packages/game-renderer/src/environment/skyParameters";
+import type { SkyModelParams } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import {
   SKY_LUT_WIDTH,
   SKY_LUT_HEIGHT,
 } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import {
+  type SkyRays,
   equirectDirectionWgsl,
   equirectUvWgsl,
   skyRadianceWgsl,
   skyDiscWgsl,
 } from "../../src/shaders/physicalSky";
 
-/** Unnormalized world-space ray at UV (0,0), plus the UV x/y increments.
- * Camera projection/orientation belongs to the fixture; translation is excluded. */
-export interface SkyRays {
-  origin: Rgb;
-  dx: Rgb;
-  dy: Rgb;
-}
 const Rays = d.struct({ origin: d.vec3f, dx: d.vec3f, dy: d.vec3f });
 
 /** Linear HDR sky only: no exposure, tone mapping, PMREM or environment lighting. */

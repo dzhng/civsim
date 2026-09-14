@@ -5,7 +5,8 @@ import { equirectUV, normalize, texture, uv, vec3, vec4, smoothstep } from "thre
 import { SkyModel } from "../../../../packages/photoreal-renderer/src/atmosphere/skyModel";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import * as sky from "../../../../packages/game-renderer/src/environment/skyParameters";
-import { createTypegpuSky, type SkyRays } from "./sky";
+import { createTypegpuSky } from "./sky";
+import type { SkyRays } from "../../src/shaders/physicalSky";
 
 function half(value: number) {
   const sign = value & 0x8000 ? -1 : 1,

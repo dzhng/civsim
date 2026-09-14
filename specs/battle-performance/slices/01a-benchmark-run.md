@@ -1,0 +1,21 @@
+# In-game benchmark run lifecycle
+
+## Contract and seam
+
+A **Battle Benchmark** button in the actual main menu launches a real simulated battle with current production renderer/settings. This is a permanent player-facing tool, not merely a lab page. Add `onBenchmark` through `web/src/ui/menu/Menu.tsx`, `web/src/menu/scene.ts` and the existing scene launcher. A proposed `web/src/battle/benchmark/benchmarkRun.ts` owns `idle → preparing → running → complete/cancelled/failed`; normal battle rendering/simulation remains the only world implementation.
+
+`BattleBenchmarkScenario` contains version/id, map seed, both armies and orders, start tick, duration (default 300 seconds), and camera script identity. Author one representative intense battle after observing actual contact; record why the selected start tick/window contains sustained heavy activity. Fast-forward the deterministic real sim to that tick in bounded/yielding preparation chunks with progress and Cancel; never fast-forward an entire battle on the UI thread in one blocking call. Reuse supported current simulation initialization/advance APIs. The repo's quick-battle URL is an initial configuration, not a mid-battle save: do not invent save migrations or assume a restore API exists. A serialized start state is optional only if an existing correct API is found; otherwise seed+orders+pre-roll is the contract.
+
+The timed five minutes run at normal simulation speed with production HUD and real combat. Early victory completes honestly with actual duration and a short-run label; choose a fixture that normally sustains the five-minute window. Do not pad with an idle end screen or repeat combat frames. A full-battle-to-completion mode may be added later; the requested five-minute intense window is sufficient for this plan. Start/stop times use monotonic elapsed time; report simulation ticks and slowdown separately so low FPS cannot silently reduce the claimed duration. Preparation/loading is reported separately. Keep interactive first-traversal compilation in the measured window after readiness.
+
+Run uses an isolated fresh battle and does not overwrite campaign saves or the user's custom battle setup. Escape opens an explicit Cancel benchmark action; cancellation returns to the menu with partial results, without pretending completion. Tab hidden/device loss produces an interrupted/failed result, not silently filtered samples. Re-entry and rerun dispose the previous world and collectors.
+
+## Artifact and verification
+
+Menu → preparation progress → real intense battle → result summary placeholder (01c supplies final chart). Test state transitions, cancellation during prep/run, repeat run, failure and no save writes through consumers. Browser test clicks the actual menu button; direct URL alone is insufficient. Normal game entry remains green. Visual variable: menu/progress discoverability and readability; crop menu/progress UI, freeze battle visuals. Follow the existing bronze game UI style. Delegated: button placement and internal lifecycle naming; scenario details are chosen from evidence and frozen before backend timing. Human preference can change duration or representative roster, but not silently change a matched benchmark between builds.
+
+## Inherited verification and review
+
+Keep existing camera, crowd LOD, animation/pose, grass sampling, depth, default-renderer and lifecycle checks green; run the narrow affected checks plus the standing hardware `battle-perf-30k` gate for renderer changes. Preserve its thresholds. Record pre-existing reds separately; do not re-bless unrelated failures. Simulation semantics and campaign consumers must remain unchanged.
+
+For every visual artifact, inspect the actual candidate; use [compare-screenshots](../../../.agents/skills/compare-screenshots/SKILL.md) against the matched baseline/reference, then run an unprimed [screenshot-critique](../../../.agents/skills/screenshot-critique/SKILL.md) as the **last visual acceptance check**. Use screenshot-regression/snapCheck for captures. Motion claims need a frame sequence/video as well as stills. Store evidence under this spec. Open review shots via preview-shots, allow about five minutes while doing other work, then record an evidence-based decision if no reply arrives and close the shots. Human feedback is non-blocking; failed acceptance is not.

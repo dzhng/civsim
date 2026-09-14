@@ -1,5 +1,6 @@
 import type { SceneryInstance } from "./scenery";
 import { buildCampaignCoast, campaignCoastSize } from "./campaignCoast";
+import { campaignRelief, campaignNoise } from "./campaignRelief";
 import type { CampaignTerrainField } from "../campaign/entityFrame";
 
 import { createRenderedSurface, type LandscapeMesh } from "./surface";
@@ -61,47 +62,12 @@ export function buildCampaignLandscape(
     paddedSize,
     cell,
   );
-  const sample = (
-    values: ArrayLike<number>,
-    stride: number,
-    channel: number,
-    x: number,
-    y: number,
-  ) => {
-    const gx = Math.max(0, Math.min(source.w - 1, (x - source.minX) / source.cell - 0.5));
-    const gy = Math.max(0, Math.min(source.h - 1, (source.maxY - y) / source.cell - 0.5));
-    const ix = Math.floor(gx),
-      iy = Math.floor(gy);
-    const jx = Math.min(ix + 1, source.w - 1),
-      jy = Math.min(iy + 1, source.h - 1);
-    const get = (i: number, j: number) => values[(j * source.w + i) * stride + channel];
-    return mix(
-      mix(get(ix, iy), get(jx, iy), gx - ix),
-      mix(get(ix, jy), get(jx, jy), gx - ix),
-      gy - iy,
-    );
-  };
-  const reliefHeight = (x: number, y: number) => {
-    const envelope = Math.max(0, sample(source.height, 1, 0, x, y) - 2.2);
-    const wx = x + (noise(x / 75, y / 75) - 0.5) * 30;
-    const wy = y + (noise(x / 75 + 13, y / 75 + 7) - 0.5) * 30;
-    const ridge = (scale: number) => {
-      const n = 2 * noise(wx / scale, wy / scale) - 1;
-      return Math.max(0, 1 - Math.sqrt(n * n + 0.0025));
-    };
-    const folds =
-      0.24 +
-      0.52 * ridge(60) ** 2 +
-      0.18 * ridge(28) ** 2 +
-      0.06 * ridge(13) * (1 - smoothstep(3, 8, cell));
-    const foothill = 0.5 + noise(x / 18, y / 18) * 1.1;
-    return foothill + envelope * 2.5 * folds;
-  };
+  const { sample, heightAt: reliefHeight } = campaignRelief(source, cell);
   for (let j = 0; j < paddedSize; j++)
     for (let i = 0; i < paddedSize; i++) {
       const k = j * paddedSize + i,
         [x, y] = world(i, j);
-      const height = reliefHeight(x, y) * smoothstep(0, 16, coast.inlandAt(x, y));
+      const height = reliefHeight(x, y, coast.inlandAt(x, y));
       heights[k] = land[k] ? height : 0;
     }
   const vertices = new Float32Array(size * size * 10);
@@ -124,7 +90,7 @@ export function buildCampaignLandscape(
         ? Math.min(coastRange, coast.inlandAt(x, y))
         : -Math.min(coastRange, coast.offshoreAt(x, y));
       const moisture = sample(source.biome, 4, 0, x, y) / 255;
-      const meadow = noise(x / 24 + 5, y / 24 - 11);
+      const meadow = campaignNoise(x / 24 + 5, y / 24 - 11);
       const green = smoothstep(0.15, 0.65, moisture) * (0.45 + 0.55 * meadow);
       const sand = 1 - smoothstep(0, 8, coast.inlandAt(x, y));
       const color = [mix(0.65, 0.46, green), mix(0.61, 0.55, green), mix(0.3, 0.23, green)];
@@ -137,7 +103,7 @@ export function buildCampaignLandscape(
       if (i < size - 1 && j < size - 1)
         indices.set([k, k + size, k + 1, k + 1, k + size, k + size + 1], (j * (size - 1) + i) * 6);
       const forest = sample(source.biome, 4, 1, x, y) / 255;
-      const groves = smoothstep(0.38, 0.7, noise(x / 29 + 8, y / 29 + 3));
+      const groves = smoothstep(0.38, 0.7, campaignNoise(x / 29 + 8, y / 29 + 3));
       const suitable =
         (0.012 + forest * 0.055) * groves * (1 - smoothstep(0.25, 0.75, Math.hypot(dx, dy)));
       // Identity comes from the world lattice, never the loaded window's indices.
@@ -184,25 +150,4 @@ export function buildCampaignLandscape(
 
 function mix(a: number, b: number, t: number) {
   return a + (b - a) * t;
-}
-
-function noise(x: number, y: number): number {
-  const ix = Math.floor(x),
-    iy = Math.floor(y),
-    tx = x - ix,
-    ty = y - iy;
-  const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
-  const gradient = (gx: number, gy: number, dx: number, dy: number) => {
-    const angle = hash2(gx, gy) * Math.PI * 2;
-    return Math.cos(angle) * dx + Math.sin(angle) * dy;
-  };
-  return (
-    0.5 +
-    0.7 *
-      mix(
-        mix(gradient(ix, iy, tx, ty), gradient(ix + 1, iy, tx - 1, ty), fade(tx)),
-        mix(gradient(ix, iy + 1, tx, ty - 1), gradient(ix + 1, iy + 1, tx - 1, ty - 1), fade(tx)),
-        fade(ty),
-      )
-  );
 }

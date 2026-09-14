@@ -69,3 +69,8 @@ Native grass marks clip position invariant so its equal-depth prepass and beauty
 ### Existing material quirks remain part of the comparison control
 
 Pure terrain and water parameters now have backend-independent owners. The comparison preserves the current water color conversion and source geometry rather than quietly improving them during a backend test. Any visual correction must be a separately evidenced change, so renderer selection measures the same scene.
+
+
+### vgpu targets have explicit checked disposal
+
+The pinned vgpu runtime exposes target destruction but omits it from its public TypeScript interface. Borrowed-device disposal leaves target attachments alive. One checked helper calls that runtime method and fails clearly if it disappears; candidate controls verify every owned texture is destroyed. This is an experimental API maintenance cost for the backend decision, not a production compatibility layer.

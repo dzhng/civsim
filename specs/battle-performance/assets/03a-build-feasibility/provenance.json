@@ -1,0 +1,20 @@
+{
+  "kind": "paired-wasm-build-feasibility-provenance",
+  "sourceRoot": "/Users/david/dev/game-battle-performance-spec",
+  "sourceRevision": "2aae7ab5e2e6801236339f2e52f66905ca908166",
+  "rustSourceTreeSha256": "f2a991e6ac83ab6b653f17bd319cb484a35ce4824fc171e0395c29550079b629",
+  "rustSourceTreeHashMethod": "Sorted crates/**/*.rs, crates/**/Cargo.toml, root Cargo.toml and Cargo.lock; relative path + NUL + bytes + NUL",
+  "rustTreeUnchangedSinceProfilingCommit": true,
+  "harnessPath": "/Users/david/dev/game-battle-benchmark-run/throwaway/battle-performance/paired-replay.mjs",
+  "harnessSha256": "3ee137e23634fbac74d395a2db34bf3f9251ca0353bcc556f750356f5b07694c",
+  "commandTemplate": "node /Users/david/dev/game-battle-benchmark-run/throwaway/battle-performance/paired-replay.mjs /Users/david/dev/game-battle-performance-spec <report.json> <wasmDirectory> <arm> <pair>",
+  "profilingNoOptBuildCommand": "CARGO_TARGET_DIR=throwaway/profile-target CARGO_PROFILE_RELEASE_OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_PROFILE_RELEASE_DEBUG=1 RUSTFLAGS='-C target-feature=+simd128' wasm-pack build crates/game-wasm --target web --profiling --no-opt --out-dir ../../throwaway/battle-performance/wasm-symbols",
+  "profilingOptimizedBuild": "Same cached Rust build, wasm-pack --profiling without --no-opt; existing artifact, no new build for this experiment.",
+  "limits": [
+    "Production and profiling+opt have different non-custom section contents despite same section lengths. Existing artifact comparison therefore does not isolate only wasm-opt.",
+    "Fat LTO held in both builds; no fat-LTO treatment arm exists.",
+    "Default Node/V8 tiering; no tiering trace in paired runs. Function size differences do not establish compilation or execution cause.",
+    "Exact endpoint hashes establish this replay scenario, not universal semantic equivalence.",
+    "advance_ticks(4) includes AI and export refresh; cost is per tick equivalent, not isolated Sim::tick."
+  ]
+}

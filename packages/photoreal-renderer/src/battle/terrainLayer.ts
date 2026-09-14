@@ -348,8 +348,10 @@ export function createGroundMesh(
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
   const position = attribute<"vec3">("position", "vec3");
   const gNormal = attribute<"vec3">("gNormal", "vec3");
-  const worldNormal = normalize(gNormal).toVar();
-  material.normalNode = viewNormalNode(worldNormal);
+  // Interpolate before normalization so a fine tile can reproduce its coarse
+  // parent's edge normals without a lighting seam at intermediate vertices.
+  const worldNormal = normalize(varying(gNormal)).toVar();
+  material.normalNode = transformNormalToView(worldNormal);
   const surfaceColor = varying(attribute<"vec3">("gSurfaceColor", "vec3")).toVar();
   const water = varying(attribute<"float">("gWater", "float")).toVar();
   const tint = varying(attribute<"float">("gTint", "float")).toVar();

@@ -183,6 +183,67 @@ export async function route(ctx: LabContext) {
     draw();
     requestAnimationFrame(draw);
   };
+  let tileKey: string | null = null;
+  const installDetail = (raised: boolean) => {
+    const ox = raised ? 0 : -80,
+      oy = -80,
+      columns = 81;
+    const vertices = new Float32Array(columns * columns * 10);
+    const colors = new Float32Array(columns * columns * 3);
+    const indices = new Uint32Array(80 * 80 * 6);
+    const h = (x: number, y: number) =>
+      surface.sampleRendered(Math.max(-80, Math.min(80, x)), Math.max(-80, Math.min(80, y)))!
+        .position[2] + (raised ? 8 * Math.exp(-((x - 35) ** 2 + (y + 25) ** 2) / 400) : 0);
+    for (let j = 0; j < columns; j++)
+      for (let i = 0; i < columns; i++) {
+        const k = j * columns + i,
+          x = ox + i,
+          y = oy + j;
+        const dx = (h(x + 1, y) - h(x - 1, y)) / 2,
+          dy = (h(x, y + 1) - h(x, y - 1)) / 2,
+          length = Math.hypot(dx, dy, 1);
+        vertices.set(
+          [x, y, h(x, y), -dx / length, -dy / length, 1 / length, 0.57, 0.61, 0.32, 0],
+          k * 10,
+        );
+        colors.set([0.57, 0.61, 0.32], k * 3);
+        if (i < 80 && j < 80)
+          indices.set(
+            [k, k + columns, k + 1, k + 1, k + columns, k + columns + 1],
+            (j * 80 + i) * 6,
+          );
+      }
+    const key = raised ? "raised-army" : "left-detail";
+    world.installTerrain(
+      {
+        request: { key, minX: ox, minY: oy, size: 80, cell: 1 },
+        domain: { ox, oy, columns, rows: columns, cell: 1, units: "kilometers" },
+        mesh: {
+          vertices,
+          indices,
+          surfaceColor: colors,
+          tint: new Float32Array(columns * columns),
+          triangles: indices.length / 3,
+        },
+      },
+      tileKey ? [tileKey] : [],
+    );
+    tileKey = key;
+    draw();
+    requestAnimationFrame(draw);
+  };
+  Object.assign(window, { __campaignComposition: { installDetail } });
+  if (ctx.path === "/renderer/campaign-tile-anchors") {
+    for (const [label, raised] of [
+      ["Load raised detail", true],
+      ["Evict raised detail", false],
+    ] as const) {
+      const button = document.createElement("button");
+      button.textContent = label;
+      button.onclick = () => installDetail(raised);
+      controls.append(button);
+    }
+  }
   window.addEventListener("resize", draw);
   draw();
   requestAnimationFrame(draw);

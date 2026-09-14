@@ -1,3 +1,4 @@
+import { buildCampaignCoast, campaignCoastSize } from "./campaignCoast";
 import type { CampaignTerrainField } from "../campaign/entityFrame";
 import type { CampaignSceneryInstance } from "../campaign/sceneryPass";
 import { createRenderedSurface, type LandscapeMesh } from "./surface";
@@ -15,8 +16,9 @@ export function campaignLandscapeAllocation(radius: number, cell: number) {
   const paddedSize = size + halo * 2;
   // Packed vertex (10), color (3), tint (1), shore (1), plus six indices per cell.
   const outputBytes = size * size * (10 + 3 + 1 + 1) * 4 + (size - 1) ** 2 * 6 * 4;
-  // Height and both distance fields are Float32; land coverage is Uint8.
-  const scratchBytes = paddedSize * paddedSize * (4 + 4 + 4 + 1);
+  // Geometry height/land plus a resolution-independent coast land/two-distance grid.
+  const coastSize = campaignCoastSize(paddedSize, cell);
+  const scratchBytes = paddedSize * paddedSize * 5 + coastSize * coastSize * 9;
   return {
     size,
     halo,
@@ -51,8 +53,13 @@ export function buildCampaignLandscape(
   for (let j = 0; j < paddedSize; j++)
     for (let i = 0; i < paddedSize; i++)
       land[j * paddedSize + i] = source.renderLandAt(...world(i, j)) ? 1 : 0;
-  const inland = distanceTo(land, paddedSize, 0, cell);
-  const offshore = distanceTo(land, paddedSize, 1, cell);
+  const coast = buildCampaignCoast(
+    (x, y) => source.renderLandAt(x, y),
+    ox - halo * cell,
+    oy - halo * cell,
+    paddedSize,
+    cell,
+  );
   const sample = (
     values: ArrayLike<number>,
     stride: number,
@@ -83,7 +90,8 @@ export function buildCampaignLandscape(
       const ridge = (scale: number) => 1 - Math.abs(2 * noise(wx / scale, wy / scale) - 1);
       const folds = 0.24 + 0.52 * ridge(60) ** 2 + 0.18 * ridge(28) ** 2 + 0.06 * ridge(13);
       const foothill = 0.5 + noise(x / 18, y / 18) * 1.1;
-      heights[k] = (foothill + envelope * 2.5 * folds) * land[k] * smoothstep(0, 6, inland[k]);
+      heights[k] =
+        (foothill + envelope * 2.5 * folds) * land[k] * smoothstep(0, 6, coast.inlandAt(x, y));
     }
   const vertices = new Float32Array(size * size * 10);
   const surfaceColor = new Float32Array(size * size * 3),
@@ -100,14 +108,14 @@ export function buildCampaignLandscape(
       const dx = (heights[p + 1] - heights[p - 1]) / (2 * cell);
       const dy = (heights[p + paddedSize] - heights[p - paddedSize]) / (2 * cell);
       const length = Math.hypot(dx, dy, 1);
-      const wet = (1 - land[p]) * (0.15 + 0.85 * smoothstep(0, 18, offshore[p]));
+      const wet = (1 - land[p]) * (0.15 + 0.85 * smoothstep(0, 18, coast.offshoreAt(x, y)));
       shoreDistance[k] = land[p]
-        ? Math.min(coastRange, inland[p])
-        : -Math.min(coastRange, offshore[p]);
+        ? Math.min(coastRange, coast.inlandAt(x, y))
+        : -Math.min(coastRange, coast.offshoreAt(x, y));
       const moisture = sample(source.biome, 4, 0, x, y) / 255;
       const meadow = noise(x / 24 + 5, y / 24 - 11);
       const green = smoothstep(0.15, 0.65, moisture) * (0.45 + 0.55 * meadow);
-      const sand = 1 - smoothstep(0, 8, inland[p]);
+      const sand = 1 - smoothstep(0, 8, coast.inlandAt(x, y));
       const color = [mix(0.65, 0.46, green), mix(0.61, 0.55, green), mix(0.3, 0.23, green)];
       for (let c = 0; c < 3; c++) color[c] = mix(color[c], [0.72, 0.65, 0.45][c], sand);
       vertices.set(
@@ -185,32 +193,4 @@ function noise(x: number, y: number): number {
         fade(ty),
       )
   );
-}
-
-function distanceTo(mask: Uint8Array, size: number, target: number, cell: number): Float32Array {
-  const distance = Float32Array.from(mask, (value) => (value === target ? 0 : size * cell));
-  for (const direction of [1, -1]) {
-    for (let row = 0; row < size; row++) {
-      const y = direction === 1 ? row : size - 1 - row;
-      for (let col = 0; col < size; col++) {
-        const x = direction === 1 ? col : size - 1 - col;
-        const k = y * size + x;
-        for (const [dx, dy] of [
-          [-direction, 0],
-          [0, -direction],
-          [-direction, -direction],
-          [direction, -direction],
-        ]) {
-          const nx = x + dx,
-            ny = y + dy;
-          if (nx >= 0 && nx < size && ny >= 0 && ny < size)
-            distance[k] = Math.min(
-              distance[k],
-              distance[ny * size + nx] + cell * Math.hypot(dx, dy),
-            );
-        }
-      }
-    }
-  }
-  return distance;
 }

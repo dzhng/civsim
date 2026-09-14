@@ -26,6 +26,7 @@ export interface SurfaceHit {
   normal: [number, number, number];
   revision: string;
   triangle: number;
+  barycentric: [number, number, number];
 }
 
 /** A regular XY mesh with two indexed triangles per cell, in row-major order.
@@ -63,6 +64,7 @@ export function createRenderedSurface(
       normal: [-dx / length, -dy / length, 1 / length],
       revision,
       triangle: t,
+      barycentric: [1 - u - w, u, w],
     };
   };
   const cellAt = (x: number, y: number) => [

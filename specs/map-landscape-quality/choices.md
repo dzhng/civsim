@@ -42,3 +42,20 @@ explicitly delegated by the slice and are not additional architecture choices.
   The renderer's shadow override does not inherit opacity nodes, so opacity-only
   fading left hidden cards casting shadows. The common mask follows the actual
   shared renderer contract.
+
+
+## Tile scheduling and source decisions
+
+- **Sound, medium confidence; total accounting still open:** Reserve 32 MiB for resident CPU tile payloads inside the feature's 128 MiB total limit. Transfer peaks, worker scratch and GPU buffers are reported separately; the CPU allowance alone does not prove the total budget.
+- **Sound, high confidence:** Keep useful work alive across camera changes and admit it only before a frame. A single scheduler owns prioritization and residency; the worker has no second queue.
+- **Sound, high confidence:** Retain unwanted cached tiles until their space is needed. A return can reuse them without introducing another cache. Oversized working sets retain coarse coverage instead of continuously evicting each other.
+- **Sound, high confidence:** Remember actual failures for the source lifetime, but clear temporary space-related admission blocks when the requested region changes. An unchanged view neither retries errors nor repeats work it cannot fit.
+- **Sound, high confidence:** Transfer a copy of the full classified geographic source once. Image decoding stays in the application, and application buffers remain intact. Both threads use the same classified-mask sampler rather than approximate the coastline independently.
+- **Sound, high confidence:** The generator owns its allocation estimate and the worker checks it before generation. This bounds typed-array output and halo scratch without copying the sizing formulas into a second owner.
+- **Sound, high confidence:** One newly admitted tile and the changed boundaries of its neighbors switch together. Updating only the newcomer would leave previous boundary morphs as artificial internal valleys; the transaction includes all changed buffer ranges and reports their bytes.
+
+## Joined presentation decisions
+
+- **Sound, medium confidence — fixed coast sampling:** When zoom selects a coarser mesh, the shore should stay in the same place. Coast distance therefore uses a fixed 2 km world grid while terrain geometry can change spacing. A per-mesh distance transform changed beach and water signals at the same location. This adds bounded coast scratch independent of mesh spacing; the allocation estimate includes it. The plan required stable coast signals but did not choose their sampling owner.
+- **Sound, high confidence — interpolate the parent triangle:** When a fine tile meets coarse ground, its boundary follows the actual coarse triangle and vertex attributes, rather than independently resampling an analytic height. This makes shading and picking agree with the visible parent. Only the union's outer band blends; treating every tile edge independently would leave internal valleys. This settles the plan's delegated join implementation without adding a second surface owner.
+- **Sound, high confidence — exact means RGBA equality:** An edge pixel changing by one channel value must fail a zero-tolerance capture. The existing perceptual comparator could ignore it. Exact comparison now uses decoded pixel equality, while explicitly tolerant checks retain their existing behavior. This makes the test oracle match its stated contract; no product format or dependency changes.

@@ -1,10 +1,11 @@
+import { PhotorealTiledTerrain, type TerrainTileSurface } from "./tiledTerrain";
 import * as THREE from "three/webgpu";
 import { attribute, varying, vec3, vec4, mix, uniform, modelNormalMatrix } from "three/tsl";
 import { PhotorealWorld } from "../world";
 import { applyCamera3d } from "../cameraBridge";
 import { applyCivsimEnvironment } from "../environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../game-renderer/src/environment/environment";
-import { createGroundMesh, RENDER_ORDER } from "../battle/terrainLayer";
+import { RENDER_ORDER } from "../battle/terrainLayer";
 import { createBattleFrameUniforms, linearAlbedo, viewNormalNode } from "../battle/battleTsl";
 import { PhotorealStandardLayer } from "../landscape/standardLayer";
 import { SELECTION_GREEN } from "../../../game-renderer/src/overlays";
@@ -52,6 +53,9 @@ export class PhotorealCampaignWorld {
   private fogEnabled = false;
   private readonly fogAmount = uniform(0);
   private readonly selection: THREE.Mesh;
+  private readonly terrain: PhotorealTiledTerrain;
+  private readonly road: THREE.Mesh;
+  private readonly roadOffsets: Float32Array;
 
   static async create(canvas: HTMLCanvasElement, composition: CampaignComposition) {
     return new PhotorealCampaignWorld(await PhotorealWorld.create(canvas), composition);
@@ -100,13 +104,23 @@ export class PhotorealCampaignWorld {
       this.objects.push({ input, mesh });
     }
     this.standards = new PhotorealStandardLayer(world.scene, world.uTime, "campaign-army");
-    const ground = createGroundMesh(this.frame, composition.surface.mesh, { detailScale: 2 });
-    ground.castShadow = true;
-    this.add(ground);
-    this.colorLandscape(ground, composition.surface.mesh.vertices, true);
-    const road = roadMesh(composition.roads);
-    this.colorLandscape(road, composition.roads, false);
-    this.add(road);
+    this.terrain = new PhotorealTiledTerrain(
+      world.scene,
+      this.frame,
+      composition.surface,
+      (ground, surface) => this.colorLandscape(ground, surface.mesh.vertices, true),
+    );
+    this.road = roadMesh(composition.roads);
+    this.roadOffsets = new Float32Array(composition.roads.length / 10);
+    for (let i = 0; i < this.roadOffsets.length; i++) {
+      const x = composition.roads[i * 10],
+        y = composition.roads[i * 10 + 1];
+      this.roadOffsets[i] =
+        composition.roads[i * 10 + 2] -
+        (composition.surface.sampleRendered(x, y)?.position[2] ?? 0);
+    }
+    this.colorLandscape(this.road, composition.roads, false);
+    this.add(this.road);
     this.selection = new THREE.Mesh(new THREE.BufferGeometry(), decalMaterial());
     this.selection.renderOrder = RENDER_ORDER.groundCues + 1;
     this.selection.visible = false;
@@ -134,6 +148,23 @@ export class PhotorealCampaignWorld {
   private add(mesh: THREE.Mesh) {
     this.meshes.push(mesh);
     this.world.scene.add(mesh);
+  }
+
+  /** Called by the tile scheduler before render, so geometry, anchors, roads and
+   * picking all switch to the same presented surface in one frame. */
+  installTerrain(tile: TerrainTileSurface, evictedKeys: readonly string[]) {
+    this.terrain.install(tile, evictedKeys);
+    const surface = this.terrain.surface;
+    for (const { input, mesh } of this.objects)
+      mesh.position.z = surface.sampleRendered(input.x, input.y)!.position[2];
+    const positions = this.road.geometry.getAttribute("position") as THREE.BufferAttribute;
+    for (let i = 0; i < positions.count; i++) {
+      const height = surface.sampleRendered(positions.getX(i), positions.getY(i))?.position[2];
+      if (height !== undefined) positions.setZ(i, height + this.roadOffsets[i]);
+    }
+    positions.needsUpdate = true;
+    this.road.geometry.computeBoundingSphere();
+    this.updateSelection();
   }
 
   setFog(enabled: boolean) {
@@ -184,7 +215,7 @@ export class PhotorealCampaignWorld {
           const points = triangle.map(([angle, r, alpha]) => {
             const x = input.x + Math.cos(angle) * radius * r,
               y = input.y + Math.sin(angle) * radius * r;
-            const hit = this.composition.surface.sampleRendered(x, y);
+            const hit = this.terrain.surface.sampleRendered(x, y);
             return hit ? [x, y, hit.position[2] + 0.42, ...SELECTION_GREEN, alpha] : null;
           });
           if (points.every((p) => p !== null)) for (const point of points) vertices.push(...point!);
@@ -230,7 +261,7 @@ export class PhotorealCampaignWorld {
   pick(x: number, y: number) {
     if (!this.pose) return null;
     const ray = screenRay(this.pose, (x / this.width) * 2 - 1, 1 - (y / this.height) * 2);
-    const surface = this.composition.surface.raycastRendered(ray);
+    const surface = this.terrain.surface.raycastRendered(ray);
     this.raycaster.ray.origin.fromArray(ray.origin);
     this.raycaster.ray.direction.fromArray(ray.dir);
     const hits = this.raycaster.intersectObjects(
@@ -257,7 +288,7 @@ export class PhotorealCampaignWorld {
           (screen.x / this.width) * 2 - 1,
           1 - (screen.y / this.height) * 2,
         );
-        const hit = this.composition.surface.raycastRendered(ray);
+        const hit = this.terrain.surface.raycastRendered(ray);
         if (hit)
           visible =
             Math.hypot(...hit.position.map((v, i) => v - ray.origin[i])) >=
@@ -265,6 +296,7 @@ export class PhotorealCampaignWorld {
       }
       return {
         id: input.id,
+        groundZ: mesh.position.z,
         label: input.label,
         selected: input.id === this.selected,
         ...this.project(
@@ -284,11 +316,13 @@ export class PhotorealCampaignWorld {
       selected: this.selected,
       fog: this.fogEnabled,
       objects: this.objects.filter((o) => o.mesh.visible).length,
-      surfaceRevision: this.composition.surface.revision,
+      surfaceRevision: this.terrain.stats().revision,
+      terrain: this.terrain.stats(),
       standards: this.standards.stats(),
     };
   }
   dispose() {
+    this.terrain.dispose();
     this.standards.dispose();
     for (const mesh of this.meshes) {
       mesh.removeFromParent();

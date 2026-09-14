@@ -1,6 +1,6 @@
 # 03 — Bounded terrain residency and joins
 
-Status: pending. Dependencies: [01](01-surface-contract.md), [02](02-campaign-composition-proof.md).
+Status: active. Dependencies: [01](01-surface-contract.md), [02](02-campaign-composition-proof.md).
 
 ## Contract and owner
 
@@ -35,3 +35,15 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: A larger supported camera range or a different target device class changes the budget, not the world-coordinate contract.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Implementation passes
+
+The composition proof makes two independent contracts explicit. Implement them concurrently, then integrate through the final world owner:
+
+- [x] Scheduling: bounded asynchronous work, frame-only admission, overlap retention, eviction and failure behavior. See [scheduler evidence](../assets/slice-03/scheduler-notes.md).
+- [x] Source/worker: one classified snapshot, one worker, shared source sampling, transferred outputs and allocation preflight. See [worker evidence](../assets/slice-03/scheduler-worker-notes.md).
+- [x] Joined presentation: indexed coarse coverage, union-boundary morphing, shading continuity and the actual worker-driven fixture. [Presentation evidence](../assets/slice-03/presentation.md) records exact repeats and the fresh visual verdict.
+- [x] Anchor integration: campaign objects, roads, labels, selection and DPR1/DPR2 picking follow detail admission and eviction. The fixture deliberately raises an army by 8 km.
+- [ ] Real-world integration: camera-driven requests over actual geography, bounded total allocation accounting, repeated traversal and hardware timing. This is the next pickup; reuse the verified presentation owner.
+
+This subdivides verification inside 03; it does not add a second tile owner or change the fifteen-slice feature scope. The initial regular-grid approach remains the selected implementation; do not introduce clipmaps without measured evidence.

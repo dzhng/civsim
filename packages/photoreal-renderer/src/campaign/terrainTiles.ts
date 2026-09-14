@@ -155,7 +155,10 @@ export function createTerrainTiles(options: {
       pendingPayloadBytes: ready?.payloadBytes ?? 0,
       peakPayloadBytes,
       budgetBlockedKeys: [...budgetBlocked],
-      failed: [...failures].map(([key, error]) => ({ key, error })),
+      failed: [...failures].map(([key, error]) => ({
+        key,
+        error: error instanceof Error ? error.message : String(error),
+      })),
     }),
     /** The world owns disposal of its installed GPU resources. Late CPU replies are ignored. */
     dispose() {

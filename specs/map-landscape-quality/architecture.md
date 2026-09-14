@@ -58,7 +58,7 @@ Initial engineering limits, selected for this feature rather than claimed measur
 
 - At most 64 detailed terrain tiles resident, in addition to one coarse overview.
 - One terrain-build worker request in flight. Keep completed overlapping tiles useful during camera motion; do not cancel/restart all work on every view change.
-- At most one tile upload/surface swap per animation frame; prioritize visible missing detail, then nearby reuse. A failed tile produces an explicit error and keeps the coarse surface; no automatic retry loop.
+- At most one new tile admission/surface swap per animation frame; prioritize visible missing detail, then nearby reuse. Existing adjacent edge buffers update inside that same transaction so the detailed region shares one boundary. Report all changed upload bytes, including neighbor edges and coarse coverage. A failed tile produces an explicit error and keeps the coarse surface; no automatic retry loop.
 - At most 128 MiB of feature-owned terrain tile geometry and coverage textures. Report allocated bytes directly. Shared global geography, scenery assets, shadows, and other game resources are reported separately.
 - Idle camera: no repeated tile generation or unchanged static-instance uploads. Repeated traverse/return and campaign/battle round trips must reach a stable residency plateau and dispose evicted resources.
 

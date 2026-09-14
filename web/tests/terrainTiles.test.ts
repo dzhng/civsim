@@ -131,7 +131,10 @@ describe("bounded terrain scheduling", () => {
       tiles.tick();
     }
     expect(build).toHaveBeenCalledTimes(2);
-    expect(tiles.snapshot().failed[0].key).toBe("bad");
+    expect(JSON.parse(JSON.stringify(tiles.snapshot().failed))[0]).toEqual({
+      key: "bad",
+      error: "worker failed",
+    });
     expect(tiles.snapshot().residentKeys).toEqual(["good"]);
   });
 

@@ -1,0 +1,14 @@
+[
+  {
+    "label": "before",
+    "shoreMismatch": 63,
+    "waterMismatch": 32,
+    "colorMismatch": 15
+  },
+  {
+    "label": "after",
+    "shoreMismatch": 0,
+    "waterMismatch": 0,
+    "colorMismatch": 0
+  }
+]

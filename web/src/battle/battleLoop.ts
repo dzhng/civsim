@@ -110,13 +110,19 @@ export function enterBattleScene(
   const benchmark = cfg.benchmark ? new BenchmarkRun(cfg.benchmark, performance.now()) : null;
   const recording = benchmark ? new BenchmarkRecording(benchmark.scenario.durationMs) : null;
   let benchmarkIdentity: BenchmarkIdentity | null = null;
-  const benchmarkReport = () =>
-    createBenchmarkReport(
+  let terminalBenchmarkReport: ReturnType<typeof createBenchmarkReport> | null = null;
+  const benchmarkReport = () => {
+    if (terminalBenchmarkReport) return terminalBenchmarkReport;
+    const report = createBenchmarkReport(
       benchmark!.status(),
       benchmarkIdentity,
       recording!.samples(),
       recording!.firstFrame(),
+      recording!.gpuSnapshot(),
     );
+    if (!benchmark!.active) terminalBenchmarkReport = report;
+    return report;
+  };
   const cancelBenchmark = () => benchmark?.cancel(performance.now(), simTick);
   const benchmarkPanel = benchmark
     ? mountBenchmarkPanel(benchmark, cancelBenchmark, signal, benchmarkReport)
@@ -211,6 +217,7 @@ export function enterBattleScene(
         intended.phase,
         intended,
       );
+      recording!.collectGpu(renderer.gpuEventsSince(recording!.gpuEventCursor));
       benchmark.frame(now, simTick, game.victor());
     }
   };
@@ -240,7 +247,8 @@ export function enterBattleScene(
     if (benchmark && battleReady && benchmark.status().phase === "preparing") {
       if (simTick < benchmark.scenario.startTick || benchmarkViewReady)
         benchmark.frame(now, simTick, game.victor());
-      if (benchmark.status().phase === "running") recording!.start(now);
+      if (benchmark.status().phase === "running")
+        recording!.start(now, renderer.gpuEventsSince(0)?.nextSequence ?? 0);
     }
     if (benchmark?.status().phase === "running")
       applyBenchmarkCamera(camera, benchmark.elapsedAt(now));

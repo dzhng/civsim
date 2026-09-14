@@ -17,6 +17,7 @@ export interface BenchmarkChartSample extends TimestampedFrameInterval {
   phase?: string;
   simTick?: number;
   loopCpuMs?: number;
+  renderer?: { gpuSubmission?: { submissionId: number } | null };
   camera?: { center: [number, number]; distance: number; yaw: number; pitch: number };
 }
 
@@ -29,9 +30,18 @@ export interface BenchmarkChartPhase {
 export interface BenchmarkFrameChartProps {
   samples: readonly BenchmarkChartSample[];
   phases: readonly BenchmarkChartPhase[];
+  gpuResults?: readonly {
+    submissionId: number;
+    status: string;
+    measuredPassGpuMs: number | null;
+  }[];
 }
 
-export function BenchmarkFrameChart({ samples, phases }: BenchmarkFrameChartProps) {
+export function BenchmarkFrameChart({ samples, phases, gpuResults }: BenchmarkFrameChartProps) {
+  const gpuBySubmission = useMemo(
+    () => new Map(gpuResults?.map((result) => [result.submissionId, result])),
+    [gpuResults],
+  );
   const descriptionId = useId();
   const [selection, setSelection] = useState({ index: 0, extreme: "max" as "min" | "max" });
   const plotRef = useRef<HTMLDivElement>(null);
@@ -62,6 +72,8 @@ export function BenchmarkFrameChart({ samples, phases }: BenchmarkFrameChartProp
   ];
   const selectedIndex = Math.min(selection.index, bins.length - 1);
   const selected = bins[selectedIndex]?.[selection.extreme];
+  const gpuSubmission = selected?.renderer?.gpuSubmission;
+  const selectedGpu = gpuSubmission ? gpuBySubmission.get(gpuSubmission.submissionId) : undefined;
   const selectedPhase =
     selected?.phase ??
     phases.find(
@@ -238,6 +250,15 @@ export function BenchmarkFrameChart({ samples, phases }: BenchmarkFrameChartProp
             {selected.simTick !== undefined && <> · Sim tick {selected.simTick}</>}
             {selected.loopCpuMs !== undefined && (
               <> · Callback CPU {Number(selected.loopCpuMs.toFixed(2))} ms</>
+            )}
+            {gpuSubmission && (
+              <>
+                {" "}
+                · Matched GPU passes{" "}
+                {selectedGpu?.status === "complete" && selectedGpu.measuredPassGpuMs !== null
+                  ? `${selectedGpu.measuredPassGpuMs.toFixed(2)} ms`
+                  : (selectedGpu?.status ?? "pending or missing at run end")}
+              </>
             )}
             {selected.camera && (
               <>

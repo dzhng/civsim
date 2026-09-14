@@ -94,7 +94,17 @@ export function installBattleDebugApi({
     benchmark: owners.benchmark,
     frameMetrics: () => {
       const sample = frameMetrics();
-      return sample ? { ...sample, renderer: { ...sample.renderer } } : null;
+      return sample
+        ? {
+            ...sample,
+            renderer: {
+              ...sample.renderer,
+              gpuSubmission: sample.renderer.gpuSubmission
+                ? { ...sample.renderer.gpuSubmission }
+                : null,
+            },
+          }
+        : null;
     },
     stateHash: () => game.state_hash().toString(),
     stats: () => ({

@@ -26,5 +26,8 @@ an incomplete recording has unavailable metrics rather than an invented zero.
 
 The raw frame record pairs an incoming callback interval with work performed in
 that callback. To attribute a gap, inspect the preceding callback’s CPU work;
-current-callback work occurs after the recorded interval. GPU timings require
-submission correlation and must not be added to CPU time as a frame total.
+current-callback work occurs after the recorded interval. GPU query results arrive later and are matched by submission identity, never by
+whichever timing resolved most recently. The final report freezes at run end and
+keeps pending or missing results and cursor gaps visible. GPU pass times exclude
+uploads, copies, queue wait and presentation, and must not be added to CPU time
+as a frame total.

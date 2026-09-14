@@ -33,6 +33,7 @@ it("reads raw completed frame snapshots without traversing full game or renderer
     loopCpuMs: 12.345678,
     renderer: {
       renderedFrameId: 1,
+      gpuSubmission: { submissionId: 7, threeFrameId: 17, source: "battle-draw" },
       skippedFrozenFrame: false,
       buildMs: 2.123456,
       uploadMs: 1,
@@ -55,6 +56,8 @@ it("reads raw completed frame snapshots without traversing full game or renderer
   expect(api.frameMetrics()!.renderer.renderedFrameId).toBe(1);
   expect(retained.frameId).toBe(2);
   retained.renderer.renderedFrameId = 99;
+  retained.renderer.gpuSubmission!.submissionId = 999;
+  expect(api.frameMetrics()!.renderer.gpuSubmission!.submissionId).toBe(7);
   expect(api.frameMetrics()!.renderer.renderedFrameId).toBe(1);
   expect(api.stateHash()).toBe("18446744073709551615");
 });

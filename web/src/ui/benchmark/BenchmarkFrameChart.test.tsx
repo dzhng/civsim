@@ -109,3 +109,22 @@ test("a long stall remains on scale while the two reference labels stay separate
   fireEvent.keyDown(screen.getByRole("group", { name: "Frame time chart" }), { key: "End" });
   expect(screen.getByRole("status")).toHaveTextContent("Interval 1000 ms");
 });
+
+test("GPU hover uses the selected submission instead of the latest asynchronous result", () => {
+  render(
+    <BenchmarkFrameChart
+      samples={[
+        { elapsedMs: 10, intervalMs: 10, renderer: { gpuSubmission: { submissionId: 101 } } },
+        { elapsedMs: 20, intervalMs: 10, renderer: { gpuSubmission: { submissionId: 102 } } },
+      ]}
+      phases={[]}
+      gpuResults={[
+        { submissionId: 102, status: "complete", measuredPassGpuMs: 8 },
+        { submissionId: 101, status: "complete", measuredPassGpuMs: 3 },
+      ]}
+    />,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("Matched GPU passes 3.00 ms");
+  fireEvent.keyDown(screen.getByRole("group", { name: "Frame time chart" }), { key: "End" });
+  expect(screen.getByRole("status")).toHaveTextContent("Matched GPU passes 8.00 ms");
+});

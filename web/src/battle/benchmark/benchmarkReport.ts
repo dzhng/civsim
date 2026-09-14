@@ -3,7 +3,7 @@ import { ACTION_TICK_SECONDS } from "@packages/crowd-runtime/src/actionTimeline"
 import type { GraphicsSettings } from "../../shared/graphicsSettings";
 import { summarizeFrameIntervals } from "./benchmarkMetrics";
 import { BENCHMARK_CAMERA_PHASES } from "./benchmarkCamera";
-import type { BenchmarkFrame } from "./benchmarkRecording";
+import type { BenchmarkFrame, BenchmarkRecording } from "./benchmarkRecording";
 import type { BenchmarkStatus } from "./benchmarkRun";
 
 export interface BenchmarkIdentity {
@@ -22,6 +22,7 @@ export function createBenchmarkReport(
   identity: BenchmarkIdentity | null,
   frames: readonly BenchmarkFrame[],
   firstFrame: BattleLoopFrameMetrics | null = null,
+  gpu: ReturnType<BenchmarkRecording["gpuSnapshot"]> | null = null,
 ) {
   const summary = summarizeFrameIntervals(frames.map((frame) => frame.intervalMs));
   const phases = BENCHMARK_CAMERA_PHASES.map((phase) => ({
@@ -32,7 +33,7 @@ export function createBenchmarkReport(
   }));
   return {
     kind: "battle-benchmark" as const,
-    version: 1,
+    version: 2,
     createdAt: new Date().toISOString(),
     status,
     identity,
@@ -42,8 +43,9 @@ export function createBenchmarkReport(
       status.startTick === null ? 0 : (status.tick - status.startTick) * ACTION_TICK_SECONDS,
     summary,
     phases,
-    frames,
+    frames: frames.slice(),
     firstFrame,
+    gpu,
   };
 }
 export type BenchmarkReport = ReturnType<typeof createBenchmarkReport>;

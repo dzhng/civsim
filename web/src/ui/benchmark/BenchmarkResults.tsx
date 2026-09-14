@@ -61,7 +61,11 @@ export function BenchmarkResults({ report }: { report: BenchmarkReport }) {
           {report.completeWindow ? (cadenceMet ? "met" : "not met") : "partial run"}. Simulation
           advanced {report.simulatedSeconds.toFixed(1)} seconds.
         </p>
-        <BenchmarkFrameChart samples={report.frames} phases={report.phases} />
+        <BenchmarkFrameChart
+          samples={report.frames}
+          phases={report.phases}
+          gpuResults={report.gpu?.results}
+        />
         <details>
           <summary>Camera phases and measurement details</summary>
           <p>
@@ -102,6 +106,13 @@ export function BenchmarkResults({ report }: { report: BenchmarkReport }) {
             {report.measurement}. Lows use the slowest 1%/0.1% of raw frame intervals.
             Minimum/maximum FPS are instantaneous extremes.
           </p>
+          {report.gpu && (
+            <p>
+              GPU results: {report.gpu.results.length} terminal · {report.gpu.pendingOrMissingCount}{" "}
+              pending or missing at run end · {report.gpu.lostEventCount} events lost across{" "}
+              {report.gpu.cursorGapCount} cursor gaps. {report.gpu.exclusions}.
+            </p>
+          )}
           <p>
             Preparation: {(status.preparationMs / 1000).toFixed(1)} seconds · {status.scenario.id} v
             {status.scenario.version} · camera {status.scenario.cameraScript}

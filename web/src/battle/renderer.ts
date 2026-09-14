@@ -290,9 +290,14 @@ export class BattleRenderer {
   frameMetrics() {
     return {
       renderedFrameId: this.renderedFrameId,
+      gpuSubmission: this.world?.gpuSubmissionIdentity() ?? null,
       skippedFrozenFrame: this.skipFrozenFrame,
       ...this.framePerf,
     };
+  }
+
+  gpuEventsSince(afterSequence: number) {
+    return this.world?.gpuEventsSince(afterSequence) ?? null;
   }
 
   stats() {

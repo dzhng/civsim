@@ -1,5 +1,9 @@
+import type { BattleRenderer } from "../renderer";
 import type { BattleLoopFrameMetrics } from "../battleDebugApi";
 import type { BenchmarkCameraSample } from "./benchmarkCamera";
+
+type GpuEventBatch = NonNullable<ReturnType<BattleRenderer["gpuEventsSince"]>>;
+type GpuEvent = GpuEventBatch["events"][number];
 
 type CameraRecord = Omit<BenchmarkCameraSample, "phase">;
 export interface BenchmarkFrame extends BattleLoopFrameMetrics {
@@ -17,13 +21,19 @@ export class BenchmarkRecording {
   private previousAt = 0;
   private readonly frames: BenchmarkFrame[] = [];
   private readonly capacity: number;
+  private gpuCursor = 0;
+  private readonly gpuSubmissions = new Set<number>();
+  private readonly gpuResults = new Map<number, GpuEvent>();
+  private gpuCursorGaps = 0;
+  private lostGpuEvents = 0;
 
   constructor(durationMs: number) {
     // 1000 samples/second exceeds supported display cadences while bounding retained data.
     this.capacity = Math.ceil(durationMs) + 1;
   }
 
-  start(now: number) {
+  start(now: number, gpuCursor = 0) {
+    this.gpuCursor = gpuCursor;
     this.startedAt = now;
     this.previousAt = now;
   }
@@ -34,12 +44,14 @@ export class BenchmarkRecording {
     phase: string,
     intendedCamera: CameraRecord,
   ) {
+    if (this.frames.length >= this.capacity)
+      throw new Error(`Benchmark recording exceeded ${this.capacity} frame samples`);
+    const submission = frame.renderer.gpuSubmission;
+    if (submission) this.gpuSubmissions.add(submission.submissionId);
     if (frame.timestampMs === this.previousAt) {
       this.initial = frame;
       return;
     }
-    if (this.frames.length >= this.capacity)
-      throw new Error(`Benchmark recording exceeded ${this.capacity} frame samples`);
     this.frames.push({
       ...frame,
       elapsedMs: frame.timestampMs - this.startedAt,
@@ -50,6 +62,43 @@ export class BenchmarkRecording {
       intendedCamera,
     });
     this.previousAt = frame.timestampMs;
+  }
+
+  get gpuEventCursor(): number {
+    return this.gpuCursor;
+  }
+
+  collectGpu(batch: GpuEventBatch | null): void {
+    if (!batch || batch.nextSequence <= this.gpuCursor) return;
+    if (batch.cursorGap) {
+      this.gpuCursorGaps++;
+      this.lostGpuEvents += Math.max(0, batch.oldestRetainedSequence - this.gpuCursor - 1);
+    }
+    this.gpuCursor = batch.nextSequence;
+    for (const event of batch.events) {
+      // Preparation may resolve after timing starts; retain only identities
+      // captured with benchmark CPU samples. Maps stay bounded by frame capacity.
+      if (this.gpuSubmissions.has(event.submissionId))
+        this.gpuResults.set(event.submissionId, event);
+    }
+  }
+
+  gpuSnapshot() {
+    const unresolvedSubmissionIds = [...this.gpuSubmissions].filter(
+      (id) => !this.gpuResults.has(id),
+    );
+    return {
+      coverage: "Exact submission-matched render and compute pass queries",
+      exclusions:
+        "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+      terminalPolicy: "Snapshot at run end; unresolved queries are not awaited",
+      trackedSubmissions: this.gpuSubmissions.size,
+      pendingOrMissingCount: unresolvedSubmissionIds.length,
+      unresolvedSubmissionIds,
+      cursorGapCount: this.gpuCursorGaps,
+      lostEventCount: this.lostGpuEvents,
+      results: [...this.gpuResults.values()],
+    };
   }
 
   firstFrame(): BattleLoopFrameMetrics | null {

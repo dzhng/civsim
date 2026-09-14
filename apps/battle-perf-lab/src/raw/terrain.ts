@@ -2,8 +2,8 @@ import type { PhotorealBattleGroundMesh } from "../../../../packages/game-render
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
 import { WORLD_CAMERA_WGSL } from "../../../../packages/renderer-core/src/cameraWgsl";
-import { terrainMaterialWgsl, type TerrainMaterialOptions } from "../shaders/terrainMaterial";
-import { terrainNoiseWgsl } from "../shaders/terrainNoise";
+import { terrainMaterialFunctions, type TerrainMaterialOptions } from "../shaders/terrainMaterial";
+import { terrainNoiseFunctions } from "../shaders/terrainNoise";
 import type { RawEnvironment } from "./environment";
 
 interface Draw {
@@ -31,6 +31,8 @@ export class RawBattleTerrain {
     horizon: BattleHorizonLayout | null,
     options: TerrainMaterialOptions = {},
     mode: "beauty" | "material" = "beauty",
+    sampleCount: 1 | 4 = 1,
+    invariantPosition = true,
   ) {
     try {
       const buffer = (data: Float32Array | Uint32Array | Uint16Array, usage: number) => {
@@ -84,18 +86,21 @@ export class RawBattleTerrain {
       const common =
         WORLD_CAMERA_WGSL +
         environment.shader +
-        terrainNoiseWgsl +
+        Object.entries(terrainNoiseFunctions)
+          .map(([name, body]) => `fn ${name}${body}`)
+          .join("\n") +
         `
    struct TerrainState {farStrength:f32,shadow:f32,pad:vec2f};
    @group(1) @binding(0) var<uniform> terrainState:TerrainState;
    @group(1) @binding(1) var earthSdf:texture_2d<f32>;
    @group(1) @binding(2) var earthSampler:sampler;
-   struct VertexOut {@invariant @builtin(position) clip:vec4f,@location(0) position:vec3f,@location(1) normal:vec3f,@location(2) color:vec3f,@location(3) tint:f32,@location(4) water:f32};
+   struct VertexOut {${invariantPosition ? "@invariant " : ""}@builtin(position) clip:vec4f,@location(0) position:vec3f,@location(1) normal:vec3f,@location(2) color:vec3f,@location(3) tint:f32,@location(4) water:f32,@location(5) viewNormalGeometry:vec3f};
   `;
       const pipeline = (code: string, buffers: GPUVertexBufferLayout[]) => {
         const module = device.createShaderModule({ code: common + code });
         return device.createRenderPipeline({
           layout: pipelineLayout,
+          multisample: { count: sampleCount },
           vertex: { module, entryPoint: "vertex", buffers },
           fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
           primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
@@ -108,12 +113,14 @@ export class RawBattleTerrain {
       };
       const shade =
         mode === "beauty"
-          ? "shadeWorldSurface(surface.rgb,vec3f(0),surface.a,geometryRoughness(v.normal),0.0,1.0,normalize(v.normal),v.position,terrainState.shadow)"
+          ? "shadeWorldSurface(surface.rgb,vec3f(0),surface.a,geometryRoughnessFromView(v.viewNormalGeometry),0.0,1.0,normalize(v.normal),v.position,terrainState.shadow)"
           : "surface";
       const groundPipeline = pipeline(
-        terrainMaterialWgsl(options) +
+        Object.entries(terrainMaterialFunctions(options))
+          .map(([name, body]) => `fn ${name}${body}`)
+          .join("\n") +
           `
-   @vertex fn vertex(@location(0) p:vec3f,@location(1) n:vec3f,@location(2) water:f32,@location(3) tint:f32,@location(4) color:vec3f)->VertexOut {return VertexOut(projectWorld(p),p,n,color,tint,water);}
+   @vertex fn vertex(@location(0) p:vec3f,@location(1) n:vec3f,@location(2) water:f32,@location(3) tint:f32,@location(4) color:vec3f)->VertexOut {return VertexOut(projectWorld(p),p,n,color,tint,water,normalize((environment.worldToView*vec4f(n,0)).xyz));}
    @fragment fn fragment(v:VertexOut)->@location(0) vec4f {
     let surface=terrainSurface(v.position,v.normal,v.color,v.tint,v.water,cam.time,cam.focus,terrainState.farStrength,earthSdf,earthSampler);
     return ${shade};
@@ -146,7 +153,7 @@ export class RawBattleTerrain {
         const h = horizon.mesh;
         const p = pipeline(
           `
-    @vertex fn vertex(@location(0) p:vec3f,@location(1) n:vec3f,@location(2) color:vec3f)->VertexOut {return VertexOut(projectWorld(p),p,n,color,0,0);}
+    @vertex fn vertex(@location(0) p:vec3f,@location(1) n:vec3f,@location(2) color:vec3f)->VertexOut {return VertexOut(projectWorld(p),p,n,color,0,0,normalize((environment.worldToView*vec4f(n,0)).xyz));}
     @fragment fn fragment(v:VertexOut)->@location(0) vec4f {let surface=vec4f(terrainLinear(clamp(v.color,vec3f(0),vec3f(1))),0.92);return ${shade};}
    `,
           [

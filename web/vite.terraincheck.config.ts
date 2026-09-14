@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { mergeConfig } from "vite";
-import base from "./vite.config";
+import base from "./vite.typegpu.config";
 export default mergeConfig(base, {
   root: fileURLToPath(new URL("../apps/battle-perf-lab/candidates/terrain", import.meta.url)),
   publicDir: false,

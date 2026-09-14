@@ -124,3 +124,9 @@ with native rendering; no native pipeline or Three runtime implements this path.
 PMREM sampling functions have one TypeGPU adapter owner in `pmremSampling.ts`.
 The root/device and borrowed camera buffer follow the already-tested lifetime
 contract above. Every owned texture and buffer is disposed explicitly.
+
+The [terrain component control](../terrain/README.md) now uses this environment
+with actual TypeGPU ground/horizon pipelines and one- or four-sample attachments.
+The shared material algorithms and production geometry are preserved. Its
+single-sample ground gate passes; coplanar horizon and four-sample beauty gates
+remain open, so this is not a complete or eligible benchmark backend.

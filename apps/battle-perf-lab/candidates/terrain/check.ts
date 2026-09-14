@@ -28,10 +28,14 @@ import {
   CAMERA_UNIFORM_BYTES,
 } from "../../../../packages/renderer-core/src/cameraUniform";
 import { viewMatrix } from "../../../../packages/renderer-core/src/camera3d";
-import { RawBattleTerrain } from "../../src/raw/terrain";
-import { createRawEnvironment } from "../../src/raw/environment";
+import { createTerrainBackend } from "./backend";
+
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../../src/numericalReadback";
 
+const parameters = new URL(location.href).searchParams;
+const backend = parameters.get("backend") === "typegpu" ? "typegpu" : "raw";
+const sampleCount: 1 | 4 = parameters.get("samples") === "4" ? 4 : 1;
+const invariantPosition = backend === "raw" && parameters.get("invariant") !== "0";
 const dumpShaders = new URL(location.href).searchParams.has("shaders");
 const visualReview = new URL(location.href).searchParams.has("visual");
 const WIDTH = visualReview ? VISUAL_WIDTH : NUMERICAL_WIDTH,
@@ -85,6 +89,7 @@ async function run() {
   const reference = new THREE.RenderTarget(WIDTH, HEIGHT, {
     type: THREE.HalfFloatType,
     depthBuffer: true,
+    samples: sampleCount,
   });
   const output = device.createTexture({
     size: [WIDTH, HEIGHT],
@@ -94,27 +99,24 @@ async function run() {
       GPUTextureUsage.COPY_SRC |
       GPUTextureUsage.TEXTURE_BINDING,
   });
+  const multisampled =
+    sampleCount === 4
+      ? device.createTexture({
+          size: [WIDTH, HEIGHT],
+          sampleCount,
+          format: "rgba16float",
+          usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        })
+      : null;
   const depth = device.createTexture({
     size: [WIDTH, HEIGHT],
+    sampleCount,
     format: "depth32float",
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
   const cameraBuffer = device.createBuffer({
     size: CAMERA_UNIFORM_BYTES,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-  });
-  const cameraLayout = device.createBindGroupLayout({
-    entries: [
-      {
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        buffer: { type: "uniform" },
-      },
-    ],
-  });
-  const cameraGroup = device.createBindGroup({
-    layout: cameraLayout,
-    entries: [{ binding: 0, resource: { buffer: cameraBuffer } }],
   });
   const shaderSources: { name: string; vertexShader: string; fragmentShader: string }[] = [];
   const results: TerrainCase[] = [];
@@ -124,7 +126,14 @@ async function run() {
     for (const env of Object.values(CIVSIM_ENVIRONMENTS).filter(
       (env) => !visualReview || env.id === "golden",
     )) {
-      const environment = await createRawEnvironment(device, env),
+      const environment = await createTerrainBackend(
+          backend,
+          device,
+          env,
+          cameraBuffer,
+          sampleCount,
+          invariantPosition,
+        ),
         sky = new SkyModel(env);
       let atlas: THREE.RenderTarget | undefined;
       try {
@@ -173,10 +182,7 @@ async function run() {
               scene.add(light.target);
               scene.fogNode = aerialPerspectiveNode(sky, env, observer);
             }
-            const raw = new RawBattleTerrain(
-              device,
-              cameraLayout,
-              environment,
+            const candidate = await environment.create(
               ground,
               includeHorizon ? horizon : null,
               options,
@@ -191,7 +197,7 @@ async function run() {
                 farGrass.terrainDetailStrength.value = pose.strength;
                 observer.value.set(...pose.camera.target);
                 environment.setView(viewMatrix(pose.camera), pose.camera.target);
-                raw.setState(pose.strength);
+                candidate.setState(pose.strength);
                 device.queue.writeBuffer(
                   cameraBuffer,
                   0,
@@ -220,26 +226,11 @@ async function run() {
                     sunElevation: env.sunElevation,
                   }).subarray(0, 16),
                 );
-                const encoder = device.createCommandEncoder();
-                const pass = encoder.beginRenderPass({
-                  colorAttachments: [
-                    {
-                      view: output.createView(),
-                      clearValue: [0, 0, 0, 0],
-                      loadOp: "clear",
-                      storeOp: "store",
-                    },
-                  ],
-                  depthStencilAttachment: {
-                    view: depth.createView(),
-                    depthClearValue: 0,
-                    depthLoadOp: "clear",
-                    depthStoreOp: "store",
-                  },
+                candidate.render({
+                  color: (multisampled ?? output).createView(),
+                  resolveTarget: multisampled ? output.createView() : undefined,
+                  depth: depth.createView(),
                 });
-                raw.encode(pass, cameraGroup);
-                pass.end();
-                device.queue.submit([encoder.finish()]);
                 renderer.setRenderTarget(reference);
                 renderer.render(scene, camera);
                 renderer.setRenderTarget(null);
@@ -274,7 +265,7 @@ async function run() {
                   env.id === "golden"
                 )
                   for (const [name, pixels] of [
-                    ["raw", actual],
+                    [backend, actual],
                     ["three", expected],
                   ] as const)
                     captures.push({
@@ -344,7 +335,7 @@ async function run() {
                 });
               }
             } finally {
-              raw.dispose();
+              candidate.dispose();
               for (let i = 0; i < meshes.length; i++) {
                 meshes[i].geometry.dispose();
                 (meshes[i].material as THREE.Material).dispose();
@@ -362,6 +353,10 @@ async function run() {
     const accepts = (r: TerrainCase) =>
       r.nonfinite === 0 && r.coverageMismatch === 0 && r.maxAbs <= ABSOLUTE_LIMIT[r.mode];
     return {
+      backend,
+      geometryNormalStage: "vertex",
+      sampleCount,
+      invariantPosition,
       limits: ABSOLUTE_LIMIT,
       groundPassed: results.filter((r) => !r.includeHorizon).every(accepts) && errors.length === 0,
       horizonPassed: results.filter((r) => r.includeHorizon).every(accepts) && errors.length === 0,
@@ -385,6 +380,7 @@ async function run() {
     generator.dispose();
     reference.dispose();
     output.destroy();
+    multisampled?.destroy();
     depth.destroy();
     cameraBuffer.destroy();
     device.destroy();

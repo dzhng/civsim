@@ -26,23 +26,23 @@ const rgb = (v: readonly number[]) => `vec3f(${v.map(f).join(",")})`;
 
 /** Linear albedo + authored roughness, matching createGroundMesh's base terrain.
  * The on-field water's existing inner and outer EOTF are deliberately preserved.
- * Requires terrainNoiseWgsl; performs no lighting, fog, or GPU orchestration. */
-export function terrainMaterialWgsl(options: TerrainMaterialOptions) {
+ * Requires the shared terrain noise functions; performs no lighting, fog, or GPU orchestration. */
+export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
   const sdf = options.earthDistance,
     bands = options.slopeBands;
   const slow = bands ? 1 / Math.sqrt(1 + bands.slowMin ** 2) : 1;
   const rolling = bands ? 1 / Math.sqrt(1 + bands.rollingMax ** 2) : 1;
   const cliff = bands ? 1 / Math.sqrt(1 + bands.cliffMin ** 2) : 1;
-  return `
-fn turfCanopy(broad:f32,mid:f32,fine:f32)->vec3f {
+  return {
+    turfCanopy: `(broad:f32,mid:f32,fine:f32)->vec3f {
  let canopy=smoothstep(${f(TURF_SHAPE.canopy.contrastLow)},${f(TURF_SHAPE.canopy.contrastHigh)},broad*${f(TURF_SHAPE.canopy.broadWeight)}+mid*${f(TURF_SHAPE.canopy.midWeight)});
  let anchor=mix(${rgb(MEADOW.farGrass.low)},${rgb(MEADOW.farGrass.high)},${f(TURF_CONTRAST.canopy.anchorMix)});
  let neutral=dot(anchor,vec3f(0.2126,0.7152,0.0722));
  let quiet=mix(vec3f(neutral),anchor,${f(TURF_CONTRAST.canopy.anchorChroma)})*${f(TURF_CONTRAST.canopy.anchorLift)}*vec3f(${f(1 + TURF_CONTRAST.canopy.anchorWarmth)},1,${f(1 - TURF_CONTRAST.canopy.anchorWarmth)});
  let value=clamp(1.0+(canopy-0.5)*${f(TURF_CONTRAST.canopy.valueSpread)}+(fine-0.5)*${f(TURF_CONTRAST.canopy.fineSpread)},${f(TURF_CONTRAST.canopy.valueMinimum)},${f(TURF_CONTRAST.canopy.valueMaximum)});
  return quiet*value;
-}
-fn terrainSurface(position:vec3f,normal:vec3f,surfaceColor:vec3f,tint:f32,water:f32,time:f32,focus:vec2f,farStrength:f32,earthSdf:texture_2d<f32>,linear:sampler)->vec4f {
+}`,
+    terrainSurface: `(position:vec3f,normal:vec3f,surfaceColor:vec3f,tint:f32,water:f32,time:f32,focus:vec2f,farStrength:f32,earthSdf:texture_2d<f32>,linear:sampler)->vec4f {
  let world=position.xy;let rawWater=clamp(water,0.0,1.0);let waterBlend=smoothstep(0.08,0.55,rawWater);
  var unionDistance=${f(-(sdf?.rangeMeters ?? 1))};var roadDistance=unionDistance;
  ${
@@ -123,5 +123,6 @@ fn terrainSurface(position:vec3f,normal:vec3f,surfaceColor:vec3f,tint:f32,water:
  albedo=mix(albedo,waterAlbedo,waterBlend);
  roughness=mix(roughness,mix(${f(WATER_ROUGHNESS)},${f(WATER_FOAM_ROUGHNESS)},foam),waterBlend);
  return vec4f(terrainLinear(clamp(albedo,vec3f(0),vec3f(1))),roughness);
-}`;
+}`,
+  };
 }

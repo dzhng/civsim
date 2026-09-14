@@ -1,16 +1,16 @@
-# Native playable terrain and opaque horizon
+# Playable terrain and opaque horizon controls
 
 This component submits the production ground and horizon vertex/index arrays
-through native WebGPU. Its pure WGSL material uses the shared turf/water policy,
+through native WebGPU or TypeGPU. Their shared pure WGSL material uses the shared turf/water policy,
 RG8 signed earth distances, canopy noise, terrain slope response, and on-field
 water. The original on-field water applies a linear transfer inside its surface
 function and again after mixing with turf; this port preserves both conversions.
 
 The camera belongs to `renderer-core`; the environment owns sun, PMREM/DFG and
 atmospheric lighting. The terrain owns only geometry buffers, the earth-distance
-texture and a small state uniform. It encodes into a borrowed HDR/depth pass,
-with reverse-Z depth and the same front-facing winding as production. Normal
-variation supplies the geometry-roughness derivatives before PBR evaluation.
+texture and a small state uniform. It renders into borrowed HDR/depth attachments,
+with reverse-Z depth and the same front-facing winding as production. The vertex stage normalizes the view-space geometry normal; its interpolated
+value supplies fragment derivatives before PBR evaluation, matching Three staging.
 Its scalar shadow input attenuates the sun; shadow-map construction and spatial
 shadow sampling remain separate work.
 
@@ -41,8 +41,9 @@ with `?canonical`: it changes only the reference's vertex projection to the
 canonical combined matrix. It cannot replace the actual-production acceptance
 control. The horizon wall has overlapping base/body bottom and end caps at
 effectively the same Z or Y plane, with different colors; tiny projection/compilation differences can choose
-different fragments at that authored coplanar overlap. The native clip output is
-invariant across its material/beauty pipelines. Geometry and depth bias remain
+different fragments at that authored coplanar overlap. The historical native control uses invariant clip output; `?invariant=0` selects
+ordinary output. TypeGPU uses ordinary output because this pass has no equal-depth
+prepass reuse. This choice is explicit in each report. Geometry and depth bias remain
 unchanged.
 
 The larger [readable-horizon control](../../../../specs/battle-performance/assets/02-raw/terrain/terrain-visual.json), selected with
@@ -84,3 +85,30 @@ or numeric gate was changed to remove the failures.
 `?shaders` uses Three's public `renderer.debug.getShaderAsync` to save actual
 compiled vertex/fragment WGSL under `/tmp/terrain-shaders`. `?visual&canonical`
 records a separate result and cannot overwrite the production-projection gate.
+
+The TypeGPU adapter owns typed geometry/index buffers, RG8 SDF upload, bind groups,
+render pipelines and render-pass submission. It consumes the shared material
+function bodies and TypeGPU environment; it never calls a raw render pipeline.
+The pinned library's public experimental command encoder supplies the borrowed
+HDR/depth attachment pass, including optional four-sample resolve. Its canonical
+camera buffer remains caller-owned after disposal. Production Vite configuration
+is unchanged; only this isolated control uses the TypeGPU transform plugin.
+
+Select `?backend=typegpu` and optionally `&samples=4`. The
+[one-sample matrix](../../../../specs/battle-performance/assets/02-typegpu/terrain/terrain-1x-ordinary-vertex-normal.json)
+passes every ground case with exact coverage. The
+[four-sample matrix](../../../../specs/battle-performance/assets/02-typegpu/terrain/terrain-4x-ordinary-vertex-normal.json)
+also preserves coverage and passes ground material, but ground beauty remains
+red: 79 pixels across the matrix exceed 0.005 (maximum 0.0705566). The matched
+[native four-sample readable case](../../../../specs/battle-performance/assets/02-raw/terrain/terrain-4x-ordinary-visual-vertex-normal.json)
+also retains one beauty failure (0.0406494). Moving geometry-normal preparation
+to the actual source vertex stage did not change these results. These unresolved
+multisample shading differences block component parity; there is no relaxed gate.
+All these controls completed without GPU errors, page errors or warnings.
+
+The earlier ordinary-position readable captures are retained separately. Their
+ground detail passes, unlike the historical invariant capture; full-horizon
+coplanar differences remain. Filenames distinguish backend, sample count,
+projection diagnostic and normal staging so later controls cannot silently
+replace earlier evidence. Neither these partial scenes nor the TypeGPU port
+establish complete-backend appearance, temporal stability or performance.

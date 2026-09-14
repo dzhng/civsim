@@ -1,6 +1,11 @@
 type GPUTextureFormat = string;
 type GPUColor = { r: number; g: number; b: number; a: number };
-type GPUBuffer = unknown;
+interface GPUBuffer {
+  mapAsync(mode: number): Promise<void>;
+  getMappedRange(): ArrayBuffer;
+  unmap(): void;
+}
+type GPUCommandBuffer = object;
 type GPUBindGroup = unknown;
 type GPUBindGroupLayout = unknown;
 type GPURenderPipeline = unknown;
@@ -148,7 +153,7 @@ interface GPUCommandEncoder {
     destinationOffset: number,
     size: number,
   ): void;
-  finish(): unknown;
+  finish(): GPUCommandBuffer;
 }
 
 interface GPUComputePassEncoder {
@@ -160,12 +165,6 @@ interface GPUComputePassEncoder {
     workgroupCountZ?: number,
   ): void;
   end(): void;
-}
-
-interface GPUMappableBuffer {
-  mapAsync(mode: number): Promise<void>;
-  getMappedRange(): ArrayBuffer;
-  unmap(): void;
 }
 
 interface GPURenderPassEncoder {

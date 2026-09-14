@@ -182,10 +182,9 @@ function createGpuFrameTimer(device: GPUDevice): GpuFrameTimer {
     readback() {
       if (mapping || !resolved) return;
       mapping = true;
-      const buffer = readbackBuffer as unknown as GPUMappableBuffer;
-      void buffer.mapAsync(GPUMapMode.READ).then(() => {
-        const stamps = new BigUint64Array(buffer.getMappedRange().slice(0));
-        buffer.unmap();
+      void readbackBuffer.mapAsync(GPUMapMode.READ).then(() => {
+        const stamps = new BigUint64Array(readbackBuffer.getMappedRange().slice(0));
+        readbackBuffer.unmap();
         timer.lastMs = Number(stamps[1] - stamps[0]) / 1e6;
         mapping = false;
       }).catch(() => { mapping = false; });
@@ -376,7 +375,7 @@ class RawFrameShellImpl implements RawFrameShell {
       });
     }
     this.gpuTimer?.recordResolve(encoder);
-    let commandBuffer: unknown;
+    let commandBuffer: GPUCommandBuffer;
     try {
       commandBuffer = encoder.finish();
     } catch (error) {

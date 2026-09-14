@@ -71,3 +71,8 @@ explicitly delegated by the slice and are not additional architecture choices.
   in the CPU terrain owner while battle owns eligibility and cap policy.
   Window origins and feature order cannot reseed a tree; random-priority
   thinning avoids making the cap empty the last rows of a forest.
+
+## Crown silhouette finish candidate
+
+- **Sound, medium confidence — preserve the narrow species' fuller crown.** When the broad tree families expose fewer main lobes, the slender aspen loses too much visible foliage. Aspen therefore keeps its previous lobe distribution, while sharing the same connected surface construction and leaf seating. The plan delegated crown construction but did not specify a universal lobe count. This keeps species identity without another generator; future shape changes must still satisfy each family's existing coverage gate.
+- **Sound, medium confidence — seat leaves into their shared volume.** At close zoom, a leaf cluster that sits outside the crown can look like loose scraps floating beside a tree. Leaf surfaces now intersect the crown and wander less sideways, so their exposed edges describe the volume. This deliberately trades some busy leaf texture for the reference's coherent main masses; no material, silhouette threshold, density or draw-budget change conceals the result. Final visual acceptance remains a separate review of the rendered candidate.

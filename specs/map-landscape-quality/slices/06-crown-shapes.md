@@ -74,3 +74,10 @@ including returns) repeat with zero changed pixels on SwiftShader.
 The production default-battle marker/impostor assertion is a proven pristine
 failure and remains outside this slice. Unrelated stale non-tree baselines are
 preserved. The canonical campaign PNGs have been regenerated against the integrating worktree's current surface owner. [Merged integration evidence](../assets/crowns/integration/README.md) records exact repeats and the production campaign gate. Placement scale and forest coverage remain assigned to 07; whole-landscape shadow grounding remains assigned to 10.
+
+**06C — silhouette candidate, independent visual acceptance pending:**
+The [candidate report](../assets/crowns/finish/README.md) records a smaller
+crown-only tuning pass: broad crowns expose fewer main lobes, while close leaf
+surfaces sit into the crown. Aspen retains its fuller narrow crown. The same
+geometry and draw budgets apply. This checkpoint must receive a fresh unprimed
+visual verdict and merged regional inspection before closing 06.

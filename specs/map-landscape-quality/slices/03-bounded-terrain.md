@@ -45,7 +45,7 @@ The composition proof makes two independent contracts explicit. Implement them c
 - [x] Joined presentation: indexed coarse coverage, union-boundary morphing, shading continuity and the actual worker-driven fixture. [Presentation evidence](../assets/slice-03/presentation.md) records exact repeats and the fresh visual verdict.
 - [x] Anchor integration: campaign objects, roads, labels, selection and DPR1/DPR2 picking follow detail admission and eviction. The fixture deliberately raises an army by 8 km.
 - [x] Real-world terrain integration: camera-driven requests over actual geography, bounded geometry/query/GPU/transient allocation accounting, repeated traversal, exact captures and terrain-only hardware timing. See [traversal evidence](../assets/slice-03/traversal/README.md).
-- [x] Final acceptance: unprimed critique of the merged terrain, and the full UI/scenery hardware workload after production integration. Terrain-only timing is not that gate.
+- [x] Terrain acceptance: unprimed critique of the merged terrain. Full UI/scenery hardware acceptance remains open under [15](15-acceptance.md); terrain-only timing does not satisfy that later gate.
 
 This subdivides verification inside 03; it does not add a second tile owner or change the fifteen-slice feature scope. The initial regular-grid approach remains the selected implementation; do not introduce clipmaps without measured evidence.
 

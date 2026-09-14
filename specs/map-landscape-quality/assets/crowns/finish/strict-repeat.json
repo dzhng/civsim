@@ -1,0 +1,177 @@
+[
+  {
+    "name": "snapshot shared/props/landscape-tree-lod",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-campaign-12",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-campaign-26",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-campaign-45",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-campaign-26",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-campaign-12",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "campaign: close leaves return to crown-only distance",
+    "ok": true,
+    "detail": "[0,1,1,1,0]"
+  },
+  {
+    "name": "campaign: crown coverage survives representation changes",
+    "ok": true,
+    "detail": "[8.666666666666666,9.612426035502958,10.337777777777777,9.612426035502958,8.666666666666666]"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-battle-12",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-battle-26",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-battle-45",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-battle-26",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "snapshot shared/props/tree-lod-battle-12",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "battle: close leaves return to crown-only distance",
+    "ok": true,
+    "detail": "[0,1,1,1,0]"
+  },
+  {
+    "name": "battle: crown coverage survives representation changes",
+    "ok": true,
+    "detail": "[6.152777777777778,6.727810650887574,6.897283950617284,6.727810650887574,6.152777777777778]"
+  },
+  {
+    "name": "tree geometry and shaders have no GPU validation warnings",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "snapshot shared/props/tree-canopies",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "reusable props are owned by the shared registry",
+    "ok": true,
+    "detail": "campaign sceneryPass and the renderer-lab route both import builders from sceneryPropRegistry; no parallel build* tables"
+  },
+  {
+    "name": "snapshot shared/props/trees",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "shared prop content trees",
+    "ok": true,
+    "detail": "{\"label\":\"Mixed Trees\",\"criteria\":\"Tree family is visible with separate conifer and broadleaf silhouettes in one comparison capture.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0073,\"foliageRatio\":0.1485,\"trunkRatio\":0.0041,\"darkRatio\":0.3314}}"
+  },
+  {
+    "name": "snapshot shared/props/conifer",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "shared prop content conifer",
+    "ok": true,
+    "detail": "{\"label\":\"Conifer Tree\",\"criteria\":\"Individual conifer model has trunk, tiered crown, non-square contact shadow, and shared lighting.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0003,\"foliageRatio\":0.0881,\"trunkRatio\":0.0031,\"darkRatio\":0.1836}}"
+  },
+  {
+    "name": "snapshot shared/props/broadleaf",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "shared prop content broadleaf",
+    "ok": true,
+    "detail": "{\"label\":\"Broadleaf Tree\",\"criteria\":\"Individual broadleaf model has trunk, rounded low-poly canopy, non-square contact shadow, and shared lighting.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0,\"foliageRatio\":0.0853,\"trunkRatio\":0.0029,\"darkRatio\":0.1539}}"
+  },
+  {
+    "name": "snapshot shared/props/ash",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "shared prop content ash",
+    "ok": true,
+    "detail": "{\"label\":\"Ash Tree\",\"criteria\":\"Individual ash model reads as a tall shade tree: grey-brown trunk and a deep-green layered crown.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0145,\"foliageRatio\":0.0869,\"trunkRatio\":0.0015,\"darkRatio\":0.1486}}"
+  },
+  {
+    "name": "snapshot shared/props/aspen",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "shared prop content aspen",
+    "ok": true,
+    "detail": "{\"label\":\"Aspen Tree\",\"criteria\":\"Individual aspen model reads as a slender pale-barked tree with a light yellow-green crown.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0042,\"foliageRatio\":0.0322,\"trunkRatio\":0,\"darkRatio\":0.1179}}"
+  },
+  {
+    "name": "snapshot shared/props/bush",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "shared prop content bush",
+    "ok": true,
+    "detail": "{\"label\":\"Bush\",\"criteria\":\"Bush pair reads as low scrub: no tall trunk, rounded foliage mass sitting on the ground with a contact shadow.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0,\"foliageRatio\":0.0219,\"trunkRatio\":0,\"darkRatio\":0.1047}}"
+  },
+  {
+    "name": "shared prop content rocks",
+    "ok": true,
+    "detail": "{\"label\":\"Rock Cluster\",\"criteria\":\"Rock/boulder family is visible, low and ridged, distinct from mountains.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.1402,\"foliageRatio\":0,\"trunkRatio\":0,\"darkRatio\":0.1329}}"
+  },
+  {
+    "name": "shared prop content mountain",
+    "ok": true,
+    "detail": "{\"label\":\"Mountain Massif\",\"criteria\":\"Mountain massif family is visible, broad and ridged, anchored to the ground.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.2879,\"foliageRatio\":0,\"trunkRatio\":0,\"darkRatio\":0.1324}}"
+  },
+  {
+    "name": "shared prop content cart",
+    "ok": true,
+    "detail": "{\"label\":\"Cart\",\"criteria\":\"Ox-less trade cart reads as road life: dark wheels, plank bed, canvas load, contact shadow.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0275,\"foliageRatio\":0,\"trunkRatio\":0.0571,\"darkRatio\":0.098}}"
+  },
+  {
+    "name": "shared prop shots captured",
+    "ok": true,
+    "detail": "{\"captures\":9,\"shots\":[\"shared/props/trees.png\",\"shared/props/conifer.png\",\"shared/props/broadleaf.png\",\"shared/props/ash.png\",\"shared/props/aspen.png\",\"shared/props/bush.png\",\"shared/props/rocks.png\",\"shared/props/mountain.png\",\"shared/props/cart.png\"]}"
+  },
+  {
+    "name": "page errors",
+    "ok": true,
+    "detail": ""
+  }
+]

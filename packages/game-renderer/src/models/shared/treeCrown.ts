@@ -42,9 +42,10 @@ export function buildTreeCrown(
             ? 0.25
             : 0.34);
   const lobes: number[][] = [];
-  for (let i = 0; i < 8; i++) {
+  const lobeCount = species === "aspen" ? 8 : 6;
+  for (let i = 0; i < lobeCount; i++) {
     const angle = i * 2.39996 + seed * 0.7;
-    const z = -0.5 + i / 7 + Math.sin(seed * 3 + i * 1.7) * 0.08;
+    const z = -0.5 + i / (lobeCount - 1) + Math.sin(seed * 3 + i * 1.7) * 0.08;
     const xy = Math.sqrt(1 - z * z);
     lobes.push([
       Math.cos(angle) * xy * 0.68,
@@ -138,8 +139,8 @@ export function buildTreeCrown(
         const angle = sample * 2.39996 + seed;
         const ca = Math.cos(angle),
           sa = Math.sin(angle);
-        const jitterU = Math.sin(sample * 1.7 + seed) * 0.6,
-          jitterV = Math.sin(sample * 2.9 + seed) * 0.6;
+        const jitterU = Math.sin(sample * 1.7 + seed) * 0.25,
+          jitterV = Math.sin(sample * 2.9 + seed) * 0.25;
         const start = vertices.length / 10;
         for (const [u, v] of [
           [-1, -1],
@@ -151,9 +152,9 @@ export function buildTreeCrown(
             dv = u * sa + v * ca + jitterV;
           // Shade the foliage as part of the crown, not as disconnected flat cards.
           vertices.push(
-            anchor[0] + anchor[3] * leafSize * 0.45 + (tx * du + bx * dv) * leafSize,
-            anchor[1] + anchor[4] * leafSize * 0.45 + (ty * du + by * dv) * leafSize,
-            anchor[2] + anchor[5] * leafSize * 0.45 + bz * dv * leafSize,
+            anchor[0] - anchor[3] * leafSize * 0.2 + (tx * du + bx * dv) * leafSize,
+            anchor[1] - anchor[4] * leafSize * 0.2 + (ty * du + by * dv) * leafSize,
+            anchor[2] - anchor[5] * leafSize * 0.2 + bz * dv * leafSize,
             anchor[3],
             anchor[4],
             anchor[5],

@@ -35,3 +35,15 @@ batched crown candidate retains that same failure. Both pristine and candidate
 submit 54 draw calls, meeting the unchanged <64 gate. A rejected separate-variant
 implementation used 74; batching resolved that regression rather than changing
 the limit. Unit LOD is outside this pass.
+
+
+## Slice 06B checkpoint
+
+The six detailed family snapshots, the physical tree contact sheet, both
+near/mid/far zoom sequences and the two campaign regions intentionally change:
+smaller distributed foliage now uses crown normals, giving continuous volume
+lighting. Close triangles rise from 1,607 to 2,647 per tree while coarse crowns
+stay at 567 and family/detail draw buckets stay unchanged. The coarse model sheet stays unchanged. Snapshot names, content floors,
+coverage floor, clock, camera and terrain are unchanged. The previous close
+control is retained as `close-before.png`; changed pixel counts are measured in
+`changed-shots.json`. Non-tree baselines remain untouched.

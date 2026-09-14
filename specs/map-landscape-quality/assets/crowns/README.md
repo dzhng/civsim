@@ -37,14 +37,14 @@ blobs), harmonic crowns (twisted shapes), and old detailed leaves over the new
 crown (sparse protruding foliage). Fresh visual review accepted the connected
 crown volume but found dark leaf outlines and detached edge-on leaf fringes.
 Alpha-normalized sampling fixes the first; denser, irregularly oriented leaf detail improves
-the second; the remaining close fringe and smooth-patch findings are explicitly
-open in checkpoint 06B. Campaign-pitch trunks can be occluded by their own crown; lower
+the second; coherent crown normals reduce the disconnected plate lighting. Small silhouette
+flecks and weak large-scale lobes remain open after checkpoint 06B. Campaign-pitch trunks can be occluded by their own crown; lower
 battle views are the direct attachment check, while the high view retains a
 continuous trunk-to-crown shadow.
 
 Checkpoint 06A is accepted for crown representation and both shown map scales.
-The last unprimed review still identified close-foliage artifacts, so checkpoint
-06B remains open; this is not an artifact-free or full-slice completion claim.
+The last unprimed review still identified small close-foliage artifacts, so final
+slice acceptance remains open; this is not an artifact-free or full-slice completion claim.
 The scoped 16 PNGs repeat exactly (20 capture calls including zoom returns). Hardware performance is not inferred from
 SwiftShader captures or from model triangle counts.
 
@@ -62,3 +62,25 @@ with `scene landscape-tree-lod tree-canopies shared-prop-models campaign-landsca
 This excludes the three unchanged, proven stale non-tree baselines; it does not
 change the default gate. The hardware `battle-renderer-default` flow used Chrome
 on Apple Metal and retained only its pristine marker/impostor assertion failure.
+
+
+## Close-foliage checkpoint
+
+[The preceding close crown](close-before.png) is the 06A control. The current
+close captures and crops use smaller leaves distributed between surface rows,
+shaded with the crown normals. Fresh critique sees coherent shaded volumes and
+continuous battle attachment. It still sees small detached-looking edge flecks,
+rounded rather than strongly lobed crowns, and surface patches visible mainly
+in crops. These are remaining work, not a clean visual acceptance claim.
+
+Solid geometry tufts were tested and rejected: sparse placement resembled bead
+rows; dense placement resembled a polygon pile and failed the existing coverage
+floor. The retained candidate has 567 crown triangles and 2,647 total close
+triangles per family. Draw buckets and all numeric acceptance limits are unchanged.
+The GIF writer now resolves its output relative to its module, so invoking the
+scene runner from the repository root also works.
+
+Regional tree size relative to mountains remains a slice 07 placement/scale
+review item. This checkpoint does not change production instance size or density.
+
+The refinement is also checked against the current shared terrain worktree: [merged refinement evidence](integration-b/README.md).

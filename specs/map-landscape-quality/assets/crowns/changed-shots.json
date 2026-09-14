@@ -1,38 +1,62 @@
 [
   {
     "path": "web/shots/campaign/landscape-alps.png",
-    "pixels": 343785
+    "pixels": 12304
   },
   {
     "path": "web/shots/campaign/landscape-italy.png",
-    "pixels": 193285
+    "pixels": 6077
   },
   {
     "path": "web/shots/models/shared/props/ash.png",
-    "pixels": 620497
+    "pixels": 44511
   },
   {
     "path": "web/shots/models/shared/props/aspen.png",
-    "pixels": 616272
+    "pixels": 30921
   },
   {
     "path": "web/shots/models/shared/props/broadleaf.png",
-    "pixels": 613781
+    "pixels": 39654
   },
   {
     "path": "web/shots/models/shared/props/bush.png",
-    "pixels": 610560
+    "pixels": 6634
   },
   {
     "path": "web/shots/models/shared/props/conifer.png",
-    "pixels": 625986
+    "pixels": 61973
   },
   {
-    "path": "web/shots/models/shared/props/tree-canopies.png",
-    "pixels": 79572
+    "path": "web/shots/models/shared/props/landscape-tree-lod.png",
+    "pixels": 102938
+  },
+  {
+    "path": "web/shots/models/shared/props/tree-lod-battle-12.png",
+    "pixels": 49
+  },
+  {
+    "path": "web/shots/models/shared/props/tree-lod-battle-26.png",
+    "pixels": 10898
+  },
+  {
+    "path": "web/shots/models/shared/props/tree-lod-battle-45.png",
+    "pixels": 33444
+  },
+  {
+    "path": "web/shots/models/shared/props/tree-lod-campaign-12.png",
+    "pixels": 55
+  },
+  {
+    "path": "web/shots/models/shared/props/tree-lod-campaign-26.png",
+    "pixels": 15670
+  },
+  {
+    "path": "web/shots/models/shared/props/tree-lod-campaign-45.png",
+    "pixels": 49142
   },
   {
     "path": "web/shots/models/shared/props/trees.png",
-    "pixels": 104814
+    "pixels": 77888
   }
 ]

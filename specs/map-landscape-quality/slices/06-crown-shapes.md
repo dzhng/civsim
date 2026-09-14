@@ -1,6 +1,6 @@
 # 06 — Tree crown representation and scale
 
-Status: **06A implemented and verified; 06B close-foliage polish remains open.** Dependencies: [01](01-surface-contract.md).
+Status: **06A implemented; 06B close-foliage checkpoint verified, final visual acceptance remains open.** Dependencies: [01](01-surface-contract.md).
 
 ## Contract and owner
 
@@ -45,11 +45,24 @@ and shadow cutouts, and bounded draw calls. Both map-pitch zoom/return sequences
 and the existing tree-family sheets repeat exactly. The generator and unused
 ellipsoid spike primitive are retired; the shared registry remains the owner.
 
-**06B — next:** the latest unprimed review accepts campaign use and the shown
-battle sizes, but reports thin fringe strips and remaining smooth interior
-patches at close zoom. Resolve those close-foliage artifacts before declaring
-all of slice 06 finished. Keep the accepted silhouette, coverage, draw budget,
-seed identity and shadow agreement intact.
+**06B — checkpoint:** smaller, more evenly distributed leaf surfaces use the
+crown's normals, preserving one coherent volume instead of lighting every card
+as a disconnected plane. Front-face rendering avoids the back-facing fringes;
+shadow casting remains double-sided. Close detail is 2,647 triangles per tree
+versus 567 for its retained crown, with the same family/detail draw buckets.
+
+Fresh critique accepts the volume lighting and continuous battle attachment,
+but still finds small silhouette flecks and weaker large-scale lobes than the
+reference. These remain in-scope visual work before slice 06 can close. Two
+solid-tuft alternatives were rejected: sparse bead rows, then a polygon pile
+that also failed the unchanged coverage gate. Do not replace the accepted
+coverage contract to accommodate a worse candidate.
+
+The regional tree-to-mountain size criticism belongs to slice 07's production
+scale and placement review: this pass preserves species dimensions and instance
+scales. Crown-hidden trunks at high pitch are an occlusion observation; battle
+pitch proves continuous attachment. The final candidate and residual findings
+are recorded in the crown report rather than presented as reference parity.
 
 Evidence and the measured baseline ledger are in
 [the crown report](../assets/crowns/README.md). The separate-variant draw-call

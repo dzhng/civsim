@@ -113,12 +113,18 @@ export function buildTreeCrown(
     const region = buildLeafAtlas().regions[conifer ? "needle" : "cluster"];
     const crownEnd = vertices.length;
     for (let i = base * 10 + sides * 10; i < crownEnd - sides * 10; i += 10) {
-      for (let leaf = 0; leaf < 2; leaf++) {
+      for (let leaf = 0; leaf < 4; leaf++) {
         const sample = i + leaf * 97;
+        const column = (i / 10 - base) % sides;
+        const neighbor = column === sides - 1 ? i - (sides - 1) * 10 : i + 10;
+        const blend = (leaf % 2) * 0.5;
+        const anchor = [0, 1, 2, 3, 4, 5].map(
+          (axis) => vertices[i + axis] * (1 - blend) + vertices[neighbor + axis] * blend,
+        );
         const n = [
-          vertices[i + 3] + Math.sin(sample * 3.1 + seed) * 0.35,
-          vertices[i + 4] + Math.sin(sample * 7.7 + seed) * 0.35,
-          vertices[i + 5] + Math.sin(sample * 11.3 + seed) * 0.35,
+          anchor[3] + Math.sin(sample * 3.1 + seed) * 0.65,
+          anchor[4] + Math.sin(sample * 7.7 + seed) * 0.65,
+          anchor[5] + Math.sin(sample * 11.3 + seed) * 0.65,
         ];
         const magnitude = Math.hypot(...n) || 1;
         const [nx, ny, nz] = n.map((v) => v / magnitude);
@@ -128,7 +134,7 @@ export function buildTreeCrown(
         const bx = -nz * ty,
           by = nz * tx,
           bz = nx * ty - ny * tx;
-        const leafSize = high * (0.075 + 0.02 * Math.sin(sample + seed));
+        const leafSize = high * (0.055 + 0.015 * Math.sin(sample + seed));
         const angle = sample * 2.39996 + seed;
         const ca = Math.cos(angle),
           sa = Math.sin(angle);
@@ -143,13 +149,14 @@ export function buildTreeCrown(
         ]) {
           const du = u * ca - v * sa + jitterU,
             dv = u * sa + v * ca + jitterV;
+          // Shade the foliage as part of the crown, not as disconnected flat cards.
           vertices.push(
-            vertices[i] + nx * leafSize * 0.3 + (tx * du + bx * dv) * leafSize,
-            vertices[i + 1] + ny * leafSize * 0.3 + (ty * du + by * dv) * leafSize,
-            vertices[i + 2] + nz * leafSize * 0.3 + bz * dv * leafSize,
-            nx,
-            ny,
-            nz,
+            anchor[0] + anchor[3] * leafSize * 0.45 + (tx * du + bx * dv) * leafSize,
+            anchor[1] + anchor[4] * leafSize * 0.45 + (ty * du + by * dv) * leafSize,
+            anchor[2] + anchor[5] * leafSize * 0.45 + bz * dv * leafSize,
+            anchor[3],
+            anchor[4],
+            anchor[5],
             ...color,
             1,
           );

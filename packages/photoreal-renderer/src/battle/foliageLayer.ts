@@ -298,7 +298,8 @@ function leafAtlasTexture(): THREE.DataTexture {
 // this same positionNode.
 function sceneryMaterial(leafMap: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
-    side: THREE.DoubleSide,
+    side: THREE.FrontSide,
+    shadowSide: THREE.DoubleSide,
     roughness: 0.9,
     metalness: 0,
   });

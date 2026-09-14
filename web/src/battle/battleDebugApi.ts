@@ -15,6 +15,23 @@ import type { BattleAmbientAudio } from "./battleAudio";
 import type { SimClock } from "../shared/simClock";
 import { createBattleViews, MOTOR_TRAVEL } from "./battleViews";
 
+/** Latest completed loop iteration, with raw CPU durations in milliseconds.
+ * intervalMs is unclamped rAF cadence, not proof of a presented frame.
+ * renderCpuMs includes crowd observation/preparation through submission;
+ * renderer.frameCpuMs is nested within it and must not be added to it. */
+export interface BattleLoopFrameMetrics {
+  frameId: number;
+  timestampMs: number;
+  intervalMs: number;
+  ready: boolean;
+  simTick: number;
+  ticksAdvanced: number;
+  simCpuMs: number;
+  renderCpuMs: number;
+  loopCpuMs: number;
+  renderer: ReturnType<BattleRenderer["frameMetrics"]>;
+}
+
 interface DebugOwners {
   advance(n: number): void;
   freeze(on?: boolean): void;
@@ -43,6 +60,7 @@ export function installBattleDebugApi({
   camera,
   game,
   generatedVista,
+  frameMetrics,
   metrics,
   owners,
   renderer,
@@ -54,6 +72,7 @@ export function installBattleDebugApi({
   camera: Camera;
   game: Game;
   generatedVista: BattleVistaGrid | null;
+  frameMetrics: () => BattleLoopFrameMetrics | null;
   metrics: () => {
     tickMs: number;
     audioUpdateMs: number;
@@ -70,6 +89,11 @@ export function installBattleDebugApi({
     new Float32Array(wasm.memory.buffer, game.positions_ptr(), game.soldier_count() * 2);
   const views = createBattleViews(game, wasm.memory);
   window.__game = {
+    frameMetrics: () => {
+      const sample = frameMetrics();
+      return sample ? { ...sample, renderer: { ...sample.renderer } } : null;
+    },
+    stateHash: () => game.state_hash().toString(),
     stats: () => ({
       soldiers: game.soldier_count(),
       units: game.unit_count(),

@@ -69,6 +69,7 @@ export class BattleRenderer {
     frameCpuMs: 0,
   };
   private frameStart = 0;
+  private renderedFrameId = 0;
   private readoutFrameKey = "";
   private readonly environmentRequest: string | null;
   private readonly shadowRequest: GraphicsSettings["shadows"];
@@ -253,6 +254,7 @@ export class BattleRenderer {
       cameraState,
     );
     const done = performance.now();
+    this.renderedFrameId += 1;
     this.framePerf.drawMs = done - drawStart;
     this.framePerf.frameCpuMs = done - this.frameStart;
     this.triangleVerts = new Float32Array();
@@ -281,6 +283,16 @@ export class BattleRenderer {
       this.skipFrozenFrame = false;
     }
     this.world.uploadUnitReadouts(standards, readouts);
+  }
+
+  /** Small unrounded CPU snapshot; counts submissions, not physical presentation.
+   * GPU query results are asynchronous render-pass-only values in stats(). */
+  frameMetrics() {
+    return {
+      renderedFrameId: this.renderedFrameId,
+      skippedFrozenFrame: this.skipFrozenFrame,
+      ...this.framePerf,
+    };
   }
 
   stats() {

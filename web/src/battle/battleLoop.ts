@@ -3,7 +3,7 @@ import { mountBattleLoading } from "./battleLoading";
 import { SimClock } from "../shared/simClock";
 import { mountBattleHud, type BattleHudHandle, type BattleHudState } from "../ui/hud/BattleHud";
 import { createHudStore } from "../ui/hudStore";
-import { installBattleDebugApi } from "./battleDebugApi";
+import { installBattleDebugApi, type BattleLoopFrameMetrics } from "./battleDebugApi";
 import { createBattleMinimap } from "./battleMinimap";
 import { BattleFreeze } from "./battleFreeze";
 import { createBattleHudBridge, mountBattleModals, type BattleHudBridge } from "./battleHudBridge";
@@ -133,11 +133,15 @@ export function enterBattleScene(
   let audioUpdateMsAvg = 0;
   let fpsAvg = 60;
   let hudTimer = 0;
+  let frameId = 0;
+  let frameMetrics: BattleLoopFrameMetrics | null = null;
 
   const frame = (now: number) => {
     // Asset/GPU preparation must not spend simulation time behind the loading screen.
     if (!rendererReady) return;
-    const frameDt = Math.min((now - lastFrame) / 1000, 0.25);
+    const cpuStartedAt = performance.now();
+    const intervalMs = now - lastFrame;
+    const frameDt = Math.min(intervalMs / 1000, 0.25);
     lastFrame = now;
     fpsAvg += (1 / Math.max(frameDt, 1e-4) - fpsAvg) * 0.05;
 
@@ -155,11 +159,13 @@ export function enterBattleScene(
       clock.paused = paused;
     }
     const ticks = clock.advance(now);
+    let simCpuMs = 0;
     if (ticks > 0) {
       const t0 = performance.now();
       game.advance_ticks(ticks);
       simTick += ticks;
-      tickMsAvg += ((performance.now() - t0) / ticks - tickMsAvg) * 0.1;
+      simCpuMs = performance.now() - t0;
+      tickMsAvg += (simCpuMs / ticks - tickMsAvg) * 0.1;
     }
 
     // Reinforcements: campaign battles grow units mid-fight.
@@ -169,6 +175,7 @@ export function enterBattleScene(
       hudBridge.buildCards();
     }
 
+    const renderStartedAt = performance.now();
     crowd.draw(simTick, clock.frozen, clock.alpha, frameDt, input.selected);
     if (!preparingFrame) {
       preparingFrame = true;
@@ -188,6 +195,8 @@ export function enterBattleScene(
       orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
       camera,
     );
+
+    const renderCpuMs = performance.now() - renderStartedAt;
 
     // DOM selection rectangle.
     if (input.box) {
@@ -209,6 +218,18 @@ export function enterBattleScene(
       hudBridge.checkGameover();
       battleMinimap.drawMinimap();
     }
+    frameMetrics = {
+      frameId: ++frameId,
+      timestampMs: now,
+      intervalMs,
+      ready: battleReady,
+      simTick,
+      ticksAdvanced: ticks,
+      simCpuMs,
+      renderCpuMs,
+      loopCpuMs: performance.now() - cpuStartedAt,
+      renderer: renderer.frameMetrics(),
+    };
   };
 
   // --- Debug/verify API ------------------------------------------------------------
@@ -232,6 +253,7 @@ export function enterBattleScene(
     camera,
     game,
     generatedVista: generatedVistaForDebug,
+    frameMetrics: () => frameMetrics,
     metrics: () => ({
       tickMs: tickMsAvg,
       audioUpdateMs: audioUpdateMsAvg,

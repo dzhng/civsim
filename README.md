@@ -63,6 +63,11 @@ frame are being prepared. The scene owns its loading cover and readiness;
 leaving it also cancels its pending UI callbacks. Loading errors use the same
 fatal-error surface as renderer startup errors.
 
+The menu's Battle Benchmark runs an isolated, seeded fight with an automatic
+camera tour. Preparation is outside the timed window; cancellation and
+interruptions retain partial results instead of inventing a completed score.
+[Benchmark measurements](docs/battle-benchmark.md) explains the frame-time report.
+
 Appearance directories are content-versioned and safe to cache immutably.
 The catalog must revalidate so a new deployment can select new versions.
 Within one catalog load, texture filenames emitted by the baker contain their

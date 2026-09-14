@@ -17,6 +17,7 @@ export interface BenchmarkChartSample extends TimestampedFrameInterval {
   phase?: string;
   simTick?: number;
   loopCpuMs?: number;
+  camera?: { center: [number, number]; distance: number; yaw: number; pitch: number };
 }
 
 export interface BenchmarkChartPhase {
@@ -158,7 +159,7 @@ export function BenchmarkFrameChart({ samples, phases }: BenchmarkFrameChartProp
                   />
                   {end - start > 14 && (
                     <text x={(start + end) / 2} y={22} textAnchor="middle">
-                      {index + 1}
+                      {end - start > phase.name.length * 8 ? phase.name : index + 1}
                     </text>
                   )}
                 </g>
@@ -231,10 +232,21 @@ export function BenchmarkFrameChart({ samples, phases }: BenchmarkFrameChartProp
       <div className="benchmark-frame-chart__detail" role="status">
         {selected ? (
           <>
-            Interval {selected.intervalMs} ms · Elapsed {selected.elapsedMs / 1000} s
+            Interval {Number(selected.intervalMs.toFixed(2))} ms · Elapsed{" "}
+            {Number((selected.elapsedMs / 1000).toFixed(2))} s
             {selectedPhase && <> · Phase {selectedPhase}</>}
             {selected.simTick !== undefined && <> · Sim tick {selected.simTick}</>}
-            {selected.loopCpuMs !== undefined && <> · CPU {selected.loopCpuMs} ms</>}
+            {selected.loopCpuMs !== undefined && (
+              <> · Callback CPU {Number(selected.loopCpuMs.toFixed(2))} ms</>
+            )}
+            {selected.camera && (
+              <>
+                {" "}
+                · Camera ({selected.camera.center.map((value) => value.toFixed(1)).join(", ")}) ·
+                distance {selected.camera.distance.toFixed(1)} m · yaw{" "}
+                {selected.camera.yaw.toFixed(2)} · pitch {selected.camera.pitch.toFixed(2)}
+              </>
+            )}
           </>
         ) : (
           "No valid frame intervals were recorded."
@@ -253,8 +265,9 @@ export function BenchmarkFrameChart({ samples, phases }: BenchmarkFrameChartProp
         ))}
       </ol>
       <p className="benchmark-frame-chart__note" id={descriptionId}>
-        Frame intervals estimate rendering cadence. Inspect with the pointer or focus the chart:
-        left/right moves through time; up/down inspects slower/faster frames.
+        Each mark shows a frame interval; dense columns retain their fastest and slowest frames.
+        Inspect with the pointer or focus the chart: left/right moves through time; up/down inspects
+        slower/faster frames.
       </p>
     </figure>
   );

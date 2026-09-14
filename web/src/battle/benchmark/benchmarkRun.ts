@@ -36,6 +36,9 @@ export class BenchmarkRun {
   status(): BenchmarkStatus {
     return { ...this.state };
   }
+  elapsedAt(now: number) {
+    return this.runningAt === null ? 0 : Math.max(0, now - this.runningAt);
+  }
   get active() {
     return this.state.phase === "preparing" || this.state.phase === "running";
   }
@@ -73,7 +76,7 @@ export class BenchmarkRun {
         this.state.phase = "running";
       }
     } else {
-      this.state.elapsedMs = Math.max(0, now - this.runningAt!);
+      this.state.elapsedMs = this.elapsedAt(now);
       if (victor >= 0) return this.finish("complete", "Early victory — short run", now, tick);
       if (this.state.elapsedMs >= this.scenario.durationMs)
         return this.finish("complete", "Timed window complete", now, tick);
@@ -93,7 +96,7 @@ export class BenchmarkRun {
     this.state.phase = phase;
     this.state.reason = reason;
     this.state.tick = tick;
-    if (this.runningAt !== null) this.state.elapsedMs = Math.max(0, now - this.runningAt);
+    if (this.runningAt !== null) this.state.elapsedMs = this.elapsedAt(now);
     else this.state.preparationMs = Math.max(0, now - this.createdAt);
     this.publish(now, true);
   }

@@ -3,8 +3,8 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **planning complete; no optimizations or new benchmarks implemented**, updated 2026-09-15.
-Start at [01: production motion evidence](slices/01-motion-evidence.md). Read [research and findings](research.md) before proposing a backend. Capture the current baseline before changing rendering. The user authorized a hard renderer cutover with **no compatibility or migrations**. Preserve saved battles and gameplay semantics by leaving their data contracts intact.
+Status: **implementation in progress — benchmark verification**, updated 2026-09-15. The actual menu now launches preparation, a live five-minute camera tour, results/chart and JSON export. Production rendering remains unchanged.
+Current pickup: integrate correlated GPU telemetry, run the durable full-menu verification and remaining normal-entry/lifecycle checks, then freeze the shared fixture for 02. The first complete live diagnostic exposes a major simulation cost as well as rendering cost; profile attribution before assuming an engine swap fixes end-to-end cadence. The user authorized a hard renderer cutover with **no compatibility or migrations**. Preserve saved battles and gameplay semantics by leaving their data contracts intact.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 
@@ -23,6 +23,16 @@ Follow the slice graph below. Parallelize backend implementation in separate wor
 - [ ] [08 — readable tactical shadow coverage](slices/08-shadow-coverage.md)
 - [ ] [09 — stable moving shadows](slices/09-shadow-stability.md)
 - [ ] [10 — production acceptance and cleanup](slices/10-production-acceptance.md)
+
+## Current evidence
+
+- Baseline source: `c924e5ce`; plan checkpoint `76b45cca`; telemetry `5518110f`; pure metrics `8978a174`.
+- 29 focused tests, TypeScript checking and the production build pass. Actual-menu cancellation/input/export flow passes after fixing preparation to retain its ready frame instead of redrawing skipped history. Independent review found a missing deployment rewrite for `/benchmark`; it is corrected.
+- Named host: Apple M5 Pro, 20 GPU cores, 48GB. Chrome fixture confirms `apple / metal-3`, 1440×900 CSS at DPR2 → 2880×1800 framebuffer and 15,560 total soldiers.
+- [Paused camera evidence](assets/01-baseline/README.md): roughly 25–31 FPS, with a 233 ms worst pan interval. These are measured failures, not accepted performance.
+- [Live diagnostic](assets/01-benchmark/README.md): actual menu completed 300.1 wall seconds, correct tick 9000 start hash, no browser errors. It advanced 156.3 simulation seconds and averaged 3.9 FPS. Mean CPU work was 204 ms simulation plus 49 ms rendering per frame. Shared-host diagnostic, not final quiet repeated timing.
+- Exact same-seed scout stays contested from tick 9000 through 18000. Fresh visual review accepts the revised results UI and horizon/return action framing as useful evidence. Continuous motion and the durable full-menu gate remain pending; backend eligibility remains undecided.
+- [Choices ledger](choices.md) records decisions beyond the plan. Scratch remains in ignored `throwaway/`; accepted baseline evidence lives in `assets/01-baseline/`.
 
 ## Outcome
 

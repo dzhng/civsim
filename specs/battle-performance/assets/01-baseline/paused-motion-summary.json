@@ -1,0 +1,139 @@
+{
+  "kind": "battle-camera-attribution",
+  "version": 1,
+  "recordedAt": "2026-09-14T18:03:39.788Z",
+  "mode": "paused",
+  "phaseMs": 60000,
+  "shortenedDiagnostic": false,
+  "timingCoverage": {
+    "cpu": "completed production loop",
+    "gpu": "low-frequency latest render-pass-only; not correlated with frame",
+    "cadence": "rAF scheduling, not physical presentation"
+  },
+  "identity": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "viewport": [
+      1440,
+      900
+    ],
+    "dpr": 2,
+    "framebuffer": [
+      2880,
+      1800
+    ],
+    "initialState": "4948292657387416424",
+    "tick": 1
+  },
+  "runs": [
+    {
+      "phase": "hold",
+      "summary": {
+        "validCount": 1537,
+        "invalidCount": 0,
+        "durationMs": 60064.26499999999,
+        "averageFps": 25.589258438440897,
+        "low1PercentFps": 11.851676271462585,
+        "low01PercentFps": 10.909289259804295,
+        "minFps": 10.00050002500117,
+        "maxFps": 60.02400960385517,
+        "p50FrameMs": 33.330000000001746,
+        "p95FrameMs": 83.33000000000175,
+        "p99FrameMs": 83.33499999999913,
+        "maxFrameMs": 99.9950000000008,
+        "spikes": {
+          "over25Ms": 892,
+          "over33_33Ms": 807,
+          "over50Ms": 420
+        }
+      }
+    },
+    {
+      "phase": "pan",
+      "summary": {
+        "validCount": 1485,
+        "invalidCount": 0,
+        "durationMs": 59997.59999999999,
+        "averageFps": 24.75099003960159,
+        "low1PercentFps": 8.911199893065401,
+        "low01PercentFps": 5.714448984256608,
+        "minFps": 4.285867352405496,
+        "maxFps": 60.02400960388138,
+        "p50FrameMs": 33.330000000001746,
+        "p95FrameMs": 83.33000000000175,
+        "p99FrameMs": 99.99499999999534,
+        "maxFrameMs": 233.3249999999971,
+        "spikes": {
+          "over25Ms": 870,
+          "over33_33Ms": 848,
+          "over50Ms": 426
+        }
+      }
+    },
+    {
+      "phase": "zoom",
+      "summary": {
+        "validCount": 1890,
+        "invalidCount": 0,
+        "durationMs": 60047.595,
+        "averageFps": 31.475032430524486,
+        "low1PercentFps": 10.08883484577324,
+        "low01PercentFps": 9.231053263177179,
+        "minFps": 8.57191839533662,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 16.670000000012806,
+        "p95FrameMs": 66.66500000000815,
+        "p99FrameMs": 83.33499999999185,
+        "maxFrameMs": 116.66000000000349,
+        "spikes": {
+          "over25Ms": 909,
+          "over33_33Ms": 770,
+          "over50Ms": 238
+        }
+      }
+    },
+    {
+      "phase": "horizon",
+      "summary": {
+        "validCount": 1183,
+        "invalidCount": 0,
+        "durationMs": 59964.264999999985,
+        "averageFps": 19.72841658277643,
+        "low1PercentFps": 8.57155102215686,
+        "low01PercentFps": 8.57155102215686,
+        "minFps": 8.57155102215686,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 49.99499999999534,
+        "p95FrameMs": 100,
+        "p99FrameMs": 116.66500000000815,
+        "maxFrameMs": 116.66500000000815,
+        "spikes": {
+          "over25Ms": 791,
+          "over33_33Ms": 752,
+          "over50Ms": 419
+        }
+      }
+    },
+    {
+      "phase": "combined",
+      "summary": {
+        "validCount": 1651,
+        "invalidCount": 0,
+        "durationMs": 59964.264999999985,
+        "averageFps": 27.533064901237434,
+        "low1PercentFps": 8.430030744817865,
+        "low01PercentFps": 5.714612263557746,
+        "minFps": 5.45479339969964,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.32999999995809,
+        "p95FrameMs": 83.3300000000163,
+        "p99FrameMs": 100,
+        "maxFrameMs": 183.32500000001164,
+        "spikes": {
+          "over25Ms": 879,
+          "over33_33Ms": 805,
+          "over50Ms": 295
+        }
+      }
+    }
+  ]
+}

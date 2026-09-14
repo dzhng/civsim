@@ -1,3 +1,8 @@
+import { applyBenchmarkCamera, sampleBenchmarkCamera } from "./benchmark/benchmarkCamera";
+import { BenchmarkRecording } from "./benchmark/benchmarkRecording";
+import { createBenchmarkReport, type BenchmarkIdentity } from "./benchmark/benchmarkReport";
+import { lockBenchmarkInput } from "./benchmark/benchmarkInput";
+import { getGraphicsSettings } from "../shared/graphicsSettings";
 import { BenchmarkRun } from "./benchmark/benchmarkRun";
 import { mountBenchmarkPanel } from "./benchmark/benchmarkPanel";
 import { awaitRendererReady } from "../shared/rendererReady";
@@ -103,23 +108,33 @@ export function enterBattleScene(
   // freeze at a known tick, not "whenever ~1s of wall-clock happened to land".
   let simTick = 0;
   const benchmark = cfg.benchmark ? new BenchmarkRun(cfg.benchmark, performance.now()) : null;
+  const recording = benchmark ? new BenchmarkRecording(benchmark.scenario.durationMs) : null;
+  let benchmarkIdentity: BenchmarkIdentity | null = null;
+  const benchmarkReport = () =>
+    createBenchmarkReport(
+      benchmark!.status(),
+      benchmarkIdentity,
+      recording!.samples(),
+      recording!.firstFrame(),
+    );
   const cancelBenchmark = () => benchmark?.cancel(performance.now(), simTick);
-  const benchmarkPanel = benchmark ? mountBenchmarkPanel(benchmark, cancelBenchmark, signal) : null;
+  const benchmarkPanel = benchmark
+    ? mountBenchmarkPanel(benchmark, cancelBenchmark, signal, benchmarkReport)
+    : null;
   if (benchmark) {
     const interrupted = () => {
       if (document.hidden) benchmark.fail("Interrupted — tab hidden", performance.now(), simTick);
     };
     document.addEventListener("visibilitychange", interrupted, { signal });
     interrupted();
+    lockBenchmarkInput(signal, () => benchmarkPanel?.showCancel());
     window.addEventListener(
-      "keydown",
-      (event) => {
-        if (event.key !== "Escape" || !benchmark.active) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        benchmarkPanel?.showCancel();
+      "resize",
+      () => {
+        if (benchmark.status().phase === "running")
+          benchmark.fail("Interrupted — viewport resized", performance.now(), simTick);
       },
-      { signal, capture: true },
+      { signal },
     );
     cleanups.push(cancelBenchmark);
   }
@@ -159,6 +174,46 @@ export function enterBattleScene(
   let hudTimer = 0;
   let frameId = 0;
   let frameMetrics: BattleLoopFrameMetrics | null = null;
+  let benchmarkViewReady = false;
+  let benchmarkViewPending = false;
+
+  const completeFrame = (
+    now: number,
+    intervalMs: number,
+    ticks: number,
+    simCpuMs: number,
+    renderCpuMs: number,
+    cpuStartedAt: number,
+  ) => {
+    frameMetrics = {
+      frameId: ++frameId,
+      timestampMs: now,
+      intervalMs,
+      ready: battleReady,
+      simTick,
+      ticksAdvanced: ticks,
+      simCpuMs,
+      renderCpuMs,
+      loopCpuMs: performance.now() - cpuStartedAt,
+      renderer: renderer.frameMetrics(),
+    };
+    if (benchmark?.status().phase === "running") {
+      const achieved = camera.params();
+      const intended = sampleBenchmarkCamera(benchmark.elapsedAt(now));
+      recording!.record(
+        frameMetrics,
+        {
+          center: [achieved.target[0], achieved.target[1]],
+          distance: achieved.distance,
+          yaw: achieved.yaw,
+          pitch: achieved.pitch,
+        },
+        intended.phase,
+        intended,
+      );
+      benchmark.frame(now, simTick, game.victor());
+    }
+  };
 
   const frame = (now: number) => {
     // Asset/GPU preparation must not spend simulation time behind the loading screen.
@@ -182,7 +237,14 @@ export function enterBattleScene(
 
     // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
     applyBattleCameraRig();
-    input.updateCamera(frameDt);
+    if (benchmark && battleReady && benchmark.status().phase === "preparing") {
+      if (simTick < benchmark.scenario.startTick || benchmarkViewReady)
+        benchmark.frame(now, simTick, game.victor());
+      if (benchmark.status().phase === "running") recording!.start(now);
+    }
+    if (benchmark?.status().phase === "running")
+      applyBenchmarkCamera(camera, benchmark.elapsedAt(now));
+    else if (!benchmark) input.updateCamera(frameDt);
     const audioUpdateStart = performance.now();
     battleAudio.update(camera, frameDt, now / 1000);
     audioUpdateMsAvg += (performance.now() - audioUpdateStart - audioUpdateMsAvg) * 0.05;
@@ -195,7 +257,8 @@ export function enterBattleScene(
       clock.paused = paused;
     }
     if (preparingBenchmark && battleReady) {
-      benchmark.prepareStep(
+      const prepBegan = performance.now();
+      const preparedTicks = benchmark.prepareStep(
         simTick,
         () => {
           game.advance_ticks(1);
@@ -208,7 +271,23 @@ export function enterBattleScene(
       clock.paused = true;
       clock.advance(preparedAt);
       clock.paused = false;
-      benchmark.frame(preparedAt, simTick, game.victor());
+      if (simTick < benchmark.scenario.startTick) {
+        completeFrame(now, intervalMs, preparedTicks, preparedAt - prepBegan, 0, cpuStartedAt);
+        return;
+      }
+      applyBenchmarkCamera(camera, 0);
+      if (!benchmarkIdentity) {
+        benchmarkIdentity = {
+          userAgent: navigator.userAgent,
+          adapter: renderer.stats().device ?? "unknown",
+          viewport: [innerWidth, innerHeight],
+          framebuffer: [canvas.width, canvas.height],
+          dpr: devicePixelRatio,
+          initialStateHash: game.state_hash().toString(),
+          soldiers: game.soldier_count(),
+          graphics: getGraphicsSettings(),
+        };
+      }
     }
     const ticks = preparingBenchmark ? 0 : clock.advance(now);
     let simCpuMs = 0;
@@ -219,8 +298,6 @@ export function enterBattleScene(
       simCpuMs = performance.now() - t0;
       tickMsAvg += (simCpuMs / ticks - tickMsAvg) * 0.1;
     }
-
-    if (benchmark && !preparingBenchmark) benchmark.frame(now, simTick, game.victor());
 
     // Reinforcements: campaign battles grow units mid-fight.
     if (game.unit_count() > knownUnits) {
@@ -249,6 +326,17 @@ export function enterBattleScene(
       orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
       camera,
     );
+    if (preparingBenchmark && simTick >= benchmark!.scenario.startTick && !benchmarkViewPending) {
+      benchmarkViewPending = true;
+      awaitRendererReady(
+        renderer.settlePresentedFrame(),
+        canvas,
+        () => {
+          benchmarkViewReady = true;
+        },
+        signal,
+      );
+    }
 
     const renderCpuMs = performance.now() - renderStartedAt;
 
@@ -272,18 +360,7 @@ export function enterBattleScene(
       if (!benchmark) hudBridge.checkGameover();
       battleMinimap.drawMinimap();
     }
-    frameMetrics = {
-      frameId: ++frameId,
-      timestampMs: now,
-      intervalMs,
-      ready: battleReady,
-      simTick,
-      ticksAdvanced: ticks,
-      simCpuMs,
-      renderCpuMs,
-      loopCpuMs: performance.now() - cpuStartedAt,
-      renderer: renderer.frameMetrics(),
-    };
+    completeFrame(now, intervalMs, ticks, simCpuMs, renderCpuMs, cpuStartedAt);
   };
 
   // --- Debug/verify API ------------------------------------------------------------
@@ -337,7 +414,7 @@ export function enterBattleScene(
       tickCount: () => simTick,
       disposeRenderer: world.disposeRenderer,
       benchmark: benchmark
-        ? { status: () => benchmark.status(), cancel: cancelBenchmark }
+        ? { status: () => benchmark.status(), cancel: cancelBenchmark, report: benchmarkReport }
         : undefined,
     },
     renderer,

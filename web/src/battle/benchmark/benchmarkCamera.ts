@@ -1,8 +1,8 @@
 import type { Camera } from "../../shared/camera";
 
-// Provisional contact anchors scouted from the seeded battle at ticks 9000–12000.
+// Provisional contact anchors scouted from the seeded battle at ticks 9000–18000.
 // Changing anchors or timing changes the workload and requires a new version.
-export const BENCHMARK_CAMERA_TOUR_VERSION = "contact-9000-v1";
+export const BENCHMARK_CAMERA_TOUR_VERSION = "contact-9000-v2";
 export const BENCHMARK_CAMERA_PHASES = [
   { name: "tactical", startMs: 0, endMs: 30_000 },
   { name: "pan", startMs: 30_000, endMs: 90_000 },
@@ -36,16 +36,16 @@ const KEYFRAMES: readonly (readonly [number, number, number, number, number, num
   [130, -85, -70, 200, -1.8, 0.6],
   [140, -95, -65, 45, -1.7, 0.4],
   [150, -50, -75, 250, -1.55, 0.15],
-  [165, 0, -90, 300, -2.0, 0.15],
-  [180, 80, -100, 350, -1.3, 0.15],
-  [195, 25, -85, 300, -0.8, 0.15],
+  [165, -60, -75, 300, -2.0, 0.15],
+  [180, -80, -70, 350, -1.3, 0.15],
+  [195, -50, -75, 300, -0.8, 0.15],
   [210, -80, -70, 250, -1.5, 0.15],
-  [225, 105, -105, 70, -1.9, 0.45],
+  [225, -60, -70, 70, -1.9, 0.45],
   [240, -110, -65, 900, -1.2, 0.8],
-  [255, 80, -95, 100, -1.75, 0.45],
+  [255, -70, -70, 100, -1.75, 0.45],
   [270, -60, -75, 250, -1.4, 0.65],
-  [285, 20, -90, 180, -1.65, 0.6],
-  [300, 75, -100, 200, -1.57, 0.65],
+  [285, -90, -70, 180, -1.65, 0.6],
+  [300, -75, -70, 200, -1.57, 0.65],
 ];
 
 /** Random-access tour sampling: missed frames cannot shorten or change the path. */

@@ -1,3 +1,4 @@
+import { BENCHMARK_CAMERA_TOUR_VERSION } from "./benchmarkCamera";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 
 export interface BattleBenchmarkScenario {
@@ -22,7 +23,7 @@ export const BATTLE_BENCHMARK_SCENARIO: BattleBenchmarkScenario = {
   orders: "player-nearest-enemy-at-tick-zero",
   startTick: 9000,
   durationMs: 300_000,
-  cameraScript: "pending-tactical-tour",
+  cameraScript: BENCHMARK_CAMERA_TOUR_VERSION,
   provisional: true,
 };
 

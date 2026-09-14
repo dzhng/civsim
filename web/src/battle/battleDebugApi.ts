@@ -34,7 +34,7 @@ export interface BattleLoopFrameMetrics {
 }
 
 interface DebugOwners {
-  benchmark?: { status(): BenchmarkStatus; cancel(): void };
+  benchmark?: { status(): BenchmarkStatus; cancel(): void; report(): unknown };
   advance(n: number): void;
   freeze(on?: boolean): void;
   freezeAtTick(target: number, options?: { effects?: boolean }): Promise<void>;

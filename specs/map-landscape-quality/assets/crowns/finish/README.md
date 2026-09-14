@@ -10,7 +10,7 @@ The first six-lobe aspen trial failed the unchanged foliage floor (0.0263 versus
 
 Independent code review found no actionable regressions. The shape pass added no owner, runtime state, dependency or new configuration surface. The existing screenshot scenes own the visual regression coverage; no implementation-mirroring unit test was added for geometric tuning. TypeScript and all 454 existing tests pass.
 
-**Fresh visual acceptance is pending.** These baselines are a reproducible candidate checkpoint, not a claim that slice 06 is closed. An unprimed reviewer should inspect both native pitches, the enlarged outline crops, the family sheets and the supplied reference. Parent integration must also inspect the regional production crops after merging, because this worktree preserves its original terrain/placement state.
+Fresh native/crop comparison and the separate [merged regional review](integration/README.md) accept simple matching character. Slice 06 is complete for tree form; planting and environment remain separate contracts.
 
 ## Verification evidence
 
@@ -24,4 +24,4 @@ The [change ledger](change-ledger.md) names every moved image and its decoded-pi
 
 Size: production code 8 lines added, 7 deleted (net +1); comments and test/harness code unchanged. The capture driver and comparison tooling remain scratch files. There is no new structural maintenance surface.
 
-Fresh unprimed comparison accepts the candidate tree-form contract for simple matching character: clearer connected lobes, solid coverage and fewer torn-looking fringe fragments at both pitches. Native families remain distinct, and visible trunks meet their crowns. Minor edge fragments and scratchy conifer needle detail remain visible; they do not defeat the native tree silhouette. Regional density, terrain and lighting were outside this verdict. Merged CPU verification passes all 464 tests and TypeScript; the two campaign regional captures remain the next integration check.
+Fresh unprimed comparison accepts the candidate tree-form contract for simple matching character: clearer connected lobes, solid coverage and fewer torn-looking fringe fragments at both pitches. Native families remain distinct, and visible trunks meet their crowns. Minor edge fragments and scratchy conifer needle detail remain visible; they do not defeat the native tree silhouette. Regional density, terrain and lighting were outside this verdict. Merged CPU verification passes all 464 tests and TypeScript; both campaign regional captures are updated and repeat exactly.

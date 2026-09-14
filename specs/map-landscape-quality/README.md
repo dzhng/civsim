@@ -1,12 +1,12 @@
 # Shared landscape quality
 
-Status: implementation active; slices 01–03 complete, no production cutover yet. Updated: 2026-09-15.
+Status: implementation active; slices 01–03 and 06 complete, no production cutover yet. Updated: 2026-09-15.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. The bounded terrain foundation (01–03) is verified, including real geography, memory limits and hardware traversal. Integrate the minimal mountain cleanup from `/Users/david/dev/game-landscape-mountains` after its visual verdict, and crown candidate `144f6676` after merged regional checks. Shared material extraction (05) runs in `/Users/david/dev/game-landscape-materials`; root owns campaign planting (07), reusing the integrated battle scatter primitive. Then advance water boundaries (08) and real overlay inputs (11) along their implementation dependencies. Read [architecture](architecture.md) and [validation](validation.md). Update this prompt, the checklist and owning slice before ending a pass.
+Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. The bounded terrain foundation (01–03) is verified, including real geography, memory limits and hardware traversal. Integrate the minimal mountain cleanup from `/Users/david/dev/game-landscape-mountains` after its visual verdict, The shared crown form is accepted in both pitches and merged regional views. Shared material extraction (05) runs in `/Users/david/dev/game-landscape-materials`; root owns campaign planting (07), reusing the integrated battle scatter primitive. Then advance water boundaries (08) and real overlay inputs (11) along their implementation dependencies. Read [architecture](architecture.md) and [validation](validation.md). Update this prompt, the checklist and owning slice before ending a pass.
 
 The user has authorized implementation, renderer migration, refactoring and as many reversible spikes as useful. Make these decisions without permission questions. No compatibility backend or save migration is requested. Preserve gameplay and existing save formats; this is a presentation change. Human review is a chance to steer, not a wait for approval.
 
@@ -19,7 +19,7 @@ Warnings: the regional spike remains below the visual bar and is not the product
 - [x] [03 — Bounded terrain residency and joins](slices/03-bounded-terrain.md)
 - [ ] [04 — Connected mountain form and foothills](slices/04-mountain-form.md)
 - [ ] [05 — Shared rock, scree and grass response](slices/05-terrain-material.md)
-- [ ] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)
+- [x] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)
 - [ ] [07 — Forests, edges and intermediate ground detail](slices/07-ecological-placement.md)
 - [ ] [08 — Coasts, channels and river connections](slices/08-water-boundaries.md)
 - [ ] [09 — Shared water depth, surf and motion](slices/09-water-response.md)

@@ -35,3 +35,7 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: Lighting mood preferences change preset values. No human response is required to choose the reference-consistent default.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Normal-transform audit before lighting tuning
+
+The current scenery position shader scales XY by instance size and Z by optional instance height, but rotates its authored normal without the corresponding inverse scale. Audit this when height and width differ, as they do in campaign planting. Correct that shared normal transform before compensating with environment values; preserve deliberate crown/card normal direction and verify both uniform and nonuniform instances.

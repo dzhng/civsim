@@ -1,0 +1,14 @@
+{
+  "landscape-alps": {
+    "changedPixels": 938625,
+    "totalPixels": 1024000
+  },
+  "landscape-italy": {
+    "changedPixels": 486839,
+    "totalPixels": 1024000
+  },
+  "landscape-surface": {
+    "changedPixels": 438730,
+    "totalPixels": 1024000
+  }
+}

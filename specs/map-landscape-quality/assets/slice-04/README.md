@@ -38,3 +38,20 @@ The retained pass passes 79 files / 448 CPU tests, typecheck and targeted lint. 
 ## Final independent view review
 
 A fresh reviewer compared the three natural baselines with 877c5d77 and inspected the coarse clay diagnostic. It accepted the bounded cleanup with medium-high confidence: ranges remain connected and the coastal lip becomes a continuous descending apron, with no new high-confidence geometry defect. Remaining left-center Alps crest teeth and regular stepping/fanned facets in the coarse view remain visible. The coarse view had no prior comparison in that review. Neither review claims the reference's varied peaks, buttresses, saddles or foothill hierarchy have been achieved.
+
+## Merged controls
+
+The main worktree retains its newer crown models and shared shader owner. Three
+natural baselines were regenerated after integrating the bounded geometry pass;
+all three and the seven clay views repeat with zero differing RGBA pixels.
+[Pixel changes](merged/changes.json) compare the prior main baselines against this
+geometry change. [The repeat report](merged/repeat.json) records the ten controls.
+The separate relief-query extraction preserves every mesh array, shore sample
+and prototype tree at 2, 8 and 16 km fixture spacing.
+
+Fresh merged-image review still rejects reference parity with high confidence:
+connectivity works, but long rounded ribs, U-shaped bowls and uniform steep
+walls repeat across the three views. Coastal ramps are continuous but lack
+rocky-promontory variety. No torn seams, detached terrain or isolated spikes were
+seen. Small Alpine crest steps remain a medium-confidence discretization issue.
+This preserves bounded-cleanup acceptance while keeping the full form slice open.

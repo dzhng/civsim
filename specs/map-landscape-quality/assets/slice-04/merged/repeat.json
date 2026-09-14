@@ -1,0 +1,215 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-14T22:24:10.453Z",
+  "target": "http://localhost:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "campaign-landscape",
+      "file": "campaign/campaign-landscape.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "landscape-mountains",
+      "file": "campaign/landscape-mountains.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "landscape-surface",
+      "file": "campaign/landscape-surface.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-landscape",
+      "name": "alps: continuous terrain and trees render",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-810,\"oy\":630,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-450,990.023281698255,43.54799751617458],\"normal\":[0.6335509773063617,0.5593248124103535,0.5345735808813198],\"revision\":\"campaign:0\",\"triangle\":129960,\"barycentric\":[0.9883591508724976,0.011640849127502406,0]}},\"drawCalls\":6,\"triangles\":2307793,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":259200,\"trees\":1576,\"mountainProps\":0,\"center\":[-450,990],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "alps: GPU validation is clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "snapshot landscape-alps",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "italy: continuous terrain and trees render",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-686,\"oy\":280,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-325,639.9977355931635,0],\"normal\":[0,0,1],\"revision\":\"campaign:0\",\"triangle\":129241,\"barycentric\":[0.0011322034182512652,0.5,0.49886779658174873]}},\"drawCalls\":6,\"triangles\":1394923,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":259200,\"trees\":771,\"mountainProps\":0,\"center\":[-325,640],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "italy: GPU validation is clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "snapshot landscape-italy",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "alps-regional: terrain renders",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-810,\"oy\":630,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-450,990.023281698255,43.54799751617458],\"normal\":[0.6335509773063617,0.5593248124103535,0.5345735808813198],\"revision\":\"campaign:0\",\"triangle\":129960,\"barycentric\":[0.9883591508724976,0.011640849127502406,0]}},\"drawCalls\":4,\"triangles\":520609,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":259200,\"trees\":1576,\"mountainProps\":0,\"center\":[-450,990],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "alps-regional: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "snapshot mountains-alps-regional",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "alps-close: terrain renders",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-810,\"oy\":630,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-450,989.6307746648458,44.14403432033683],\"normal\":[0.6178135362919334,0.6605346114984817,0.42661512090759984],\"revision\":\"campaign:0\",\"triangle\":129240,\"barycentric\":[0.18461266757708472,0.8153873324229153,0]}},\"drawCalls\":4,\"triangles\":520609,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":259200,\"trees\":1576,\"mountainProps\":0,\"center\":[-450,990],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "alps-close: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "snapshot mountains-alps-close",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "italy-regional: terrain renders",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-830,\"oy\":280,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-469.9826948437073,639.9673366744853,20.65391588367136],\"normal\":[-0.15246320505545974,0.10617474553975283,0.982589382455248],\"revision\":\"campaign:0\",\"triangle\":129240,\"barycentric\":[0.007679084610998643,0.9836683372426478,0.008652578146353562]}},\"drawCalls\":4,\"triangles\":520609,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":259200,\"trees\":813,\"mountainProps\":0,\"center\":[-470,640],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "italy-regional: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "snapshot mountains-italy-regional",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "italy-close: terrain renders",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-830,\"oy\":280,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-469.98918401067976,639.9796921357267,20.651573911338676],\"normal\":[-0.15246320505545974,0.10617474553975283,0.982589382455248],\"revision\":\"campaign:0\",\"triangle\":129240,\"barycentric\":[0.004745937476513973,0.9898460678633683,0.005407994660117765]}},\"drawCalls\":4,\"triangles\":520609,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":259200,\"trees\":813,\"mountainProps\":0,\"center\":[-470,640],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "italy-close: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "snapshot mountains-italy-close",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "fixture-regional: terrain renders",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"landscape-surface\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-160,\"oy\":-80,\"columns\":81,\"rows\":81,\"cell\":2,\"units\":\"kilometers\"},{\"ox\":0,\"oy\":-80,\"columns\":81,\"rows\":81,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:1\",\"centerRay\":{\"position\":[5.120015878548444e-19,-0.008246878365838484,24.608680155200503],\"normal\":[0.30827490279140046,0.20736180119521844,0.928422138746178],\"revision\":\"campaign:1\",\"triangle\":6240,\"barycentric\":[0.004123439182919242,0.9958765608170808,2.560007939274222e-19]}},\"drawCalls\":6,\"triangles\":53409,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":25600,\"trees\":109,\"mountainProps\":0,\"center\":[0,0],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "fixture-regional: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "snapshot mountains-fixture-regional",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "fixture-close: terrain renders",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"landscape-surface\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-160,\"oy\":-80,\"columns\":81,\"rows\":81,\"cell\":2,\"units\":\"kilometers\"},{\"ox\":0,\"oy\":-80,\"columns\":81,\"rows\":81,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:1\",\"centerRay\":{\"position\":[2.1423517381927262e-19,-0.0034491875152156126,24.607608597581567],\"normal\":[0.30827490279140046,0.20736180119521844,0.928422138746178],\"revision\":\"campaign:1\",\"triangle\":6240,\"barycentric\":[0.0017245937576078063,0.9982754062423922,1.0711758690963631e-19]}},\"drawCalls\":6,\"triangles\":53409,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":25600,\"trees\":109,\"mountainProps\":0,\"center\":[0,0],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "fixture-close: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "snapshot mountains-fixture-close",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "alps-coarse: terrain renders",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-816,\"oy\":624,\"columns\":91,\"rows\":91,\"cell\":8,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-450,989.9565407111838,42.22744540336523],\"normal\":[0.5683320304589266,0.6043809292394992,0.5583210505847269],\"revision\":\"campaign:0\",\"triangle\":8191,\"barycentric\":[0.25543241110202075,0.25,0.49456758889797925]}},\"drawCalls\":4,\"triangles\":34609,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":16200,\"trees\":107,\"mountainProps\":0,\"center\":[-450,990],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "alps-coarse: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-mountains",
+      "name": "snapshot mountains-alps-coarse",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-surface",
+      "name": "camera ray hits the presented raised surface",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"landscape-surface\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-160,\"oy\":-80,\"columns\":81,\"rows\":81,\"cell\":2,\"units\":\"kilometers\"},{\"ox\":0,\"oy\":-80,\"columns\":81,\"rows\":81,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:1\",\"centerRay\":{\"position\":[5.120015878548444e-19,-0.008246878365838484,24.608680155200503],\"normal\":[0.30827490279140046,0.20736180119521844,0.928422138746178],\"revision\":\"campaign:1\",\"triangle\":6240,\"barycentric\":[0.004123439182919242,0.9958765608170808,2.560007939274222e-19]}},\"drawCalls\":8,\"triangles\":177015,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":25600,\"trees\":109,\"mountainProps\":0,\"center\":[0,0],\"material\":\"shared-battle-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "landscape-surface",
+      "name": "snapshot landscape-surface",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

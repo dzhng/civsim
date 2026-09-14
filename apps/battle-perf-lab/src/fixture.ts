@@ -6,7 +6,6 @@ import type { GraphicsSettings } from "../../../web/src/shared/graphicsSettings"
 type Draw = Parameters<PhotorealBattleWorld["draw"]>;
 type Static = Parameters<PhotorealBattleWorld["setStatic"]>;
 type Terrain = Parameters<PhotorealBattleWorld["setTerrain"]>;
-type Readouts = Parameters<PhotorealBattleWorld["uploadUnitReadouts"]>;
 
 /** Fixture data is borrowed read-only. Capture owns its buffers and must not reuse
  * live wasm views; the Three control snapshots static inputs during preparation. */
@@ -28,20 +27,27 @@ export type BattleReplaySettings = Readonly<
   }
 >;
 
-/** Source observations preserve production crowd building and per-frame LOD work. */
+/** Semantic updates on resolved plain battle data; these are not GPU commands. */
+export type BattleReplayMethod =
+  | "setTime"
+  | "draw"
+  | "uploadUnitReadouts"
+  | "drawTris"
+  | "drawTacticalLines"
+  | "settlePresentedFrame"
+  | "render";
+export type BattleReplayCommand = {
+  [Method in BattleReplayMethod]: {
+    readonly method: Method;
+    readonly args: Parameters<PhotorealBattleWorld[Method]>;
+  };
+}[BattleReplayMethod];
+
+/** Exactly the outer public updates ending at one actual presentation. */
 export interface BattleReplayFrame {
   readonly frameId: number;
   readonly simTick: number;
   readonly timeSeconds: number;
-  readonly frameDt: number;
   readonly camera: Readonly<Draw[5]>;
-  readonly positions: Draw[0];
-  readonly facings: Draw[1];
-  readonly playback: Draw[2];
-  readonly alive: Draw[3];
-  readonly count: Draw[4];
-  readonly standards: Readouts[0];
-  readonly readouts: Readouts[1];
-  readonly triangles: Parameters<PhotorealBattleWorld["drawTris"]>[0];
-  readonly tacticalLines: Readonly<Parameters<PhotorealBattleWorld["drawTacticalLines"]>[0]>;
+  readonly commands: readonly BattleReplayCommand[];
 }

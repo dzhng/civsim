@@ -1,7 +1,12 @@
 import type { LabContext } from "../../renderer-lab/src/labShell";
 import type { BattleReplayAssets, BattleReplaySettings } from "./fixture";
 import type { CapturedReplayFrame } from "./CaptureBattleRenderer";
-import { decodeReplayValue, hashLoadedAppearances, hashReplayBlob } from "./replayArchive";
+import {
+  encodeReplayValue,
+  decodeReplayValue,
+  hashLoadedAppearances,
+  hashReplayBlob,
+} from "./replayArchive";
 import { loadReplayArchive, replayArchiveDownload } from "./captureStore";
 import { ThreeControl } from "./threeControl";
 
@@ -40,6 +45,11 @@ export async function route(ctx: LabContext) {
     poses.push(Object.freeze(await decodeReplayValue<number[]>(blob)));
   }
   const control = await ThreeControl.prepare(ctx.canvas, assets, settings);
+  const replayGroundHash = await hashReplayBlob(encodeReplayValue(control.groundInputs()));
+  if (replayGroundHash !== archive.manifest.groundHash) {
+    control.dispose();
+    throw new Error("Generated ground changed since capture");
+  }
   let disposed = false;
   const dispose = () => {
     if (!disposed) {
@@ -58,7 +68,7 @@ export async function route(ctx: LabContext) {
   }
   const stats = document.createElement("pre");
   const next = document.createElement("button");
-  next.textContent = "Next captured frame";
+  next.textContent = "Replay window";
   const download = document.createElement("button");
   download.textContent = "Download capture and hashes";
   ctx.panel.append(next, download, stats);
@@ -75,19 +85,41 @@ export async function route(ctx: LabContext) {
     ctx.panel.append(source);
     window.addEventListener("pagehide", () => URL.revokeObjectURL(sourceUrl), { once: true });
   }
-  let index = 0;
+  let nextFrame = 0;
+  let latestSummary: unknown;
+  let triangleVertices = 0,
+    readouts = 0,
+    standards = 0;
   const showFrame = async (frameIndex: number) => {
     if (disposed) throw new Error("Replay route disposed");
-    const blob = archive.frames[frameIndex];
-    if (!blob) throw new Error("Capture contains no frames");
-    if ((await hashReplayBlob(blob)) !== archive.manifest.frameHashes[frameIndex])
-      throw new Error(`Capture frame ${frameIndex} hash mismatch`);
-    const captured = await decodeReplayValue<CapturedReplayFrame>(blob, poses);
-    control.render(captured.frame);
-    await control.settlePresentedFrame();
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const report = control.render(captured.frame);
+    if (frameIndex === nextFrame - 1) return latestSummary;
+    if (
+      !Number.isInteger(frameIndex) ||
+      frameIndex < nextFrame ||
+      frameIndex >= archive.frames.length
+    )
+      throw new Error("Replay advances in captured order; reload to start again");
+    let captured!: CapturedReplayFrame;
+    let report!: Awaited<ReturnType<ThreeControl["render"]>>;
+    while (nextFrame <= frameIndex) {
+      const blob = archive.frames[nextFrame];
+      if ((await hashReplayBlob(blob)) !== archive.manifest.frameHashes[nextFrame])
+        throw new Error(`Capture frame ${nextFrame} hash mismatch`);
+      captured = await decodeReplayValue<CapturedReplayFrame>(blob, poses);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      report = await control.render(captured.frame);
+      for (const command of captured.frame.commands) {
+        if (command.method === "drawTris") triangleVertices = command.args[0].length / 6;
+        if (command.method === "uploadUnitReadouts") {
+          standards = command.args[0].length;
+          readouts = command.args[1].length;
+        }
+      }
+      nextFrame++;
+    }
     const summary = {
+      grassDraws: { source: archive.manifest.grassDraws, replay: await control.readGrassDraws() },
+      groundIdentity: { source: archive.manifest.groundHash, replay: replayGroundHash },
       provisional: true,
       parity: "unverified",
       frame: frameIndex + 1,
@@ -102,8 +134,8 @@ export async function route(ctx: LabContext) {
         height: archive.manifest.framebuffer.height,
         soldiers: captured.reference.soldiers,
         expectedSoldiers: captured.reference.expectedSoldiers,
-        triangles: captured.reference.triangles,
-        drawCalls: captured.reference.drawCalls,
+        reportedTriangleCapacityEstimate: captured.reference.triangles,
+        reportedFrameDrawCalls: captured.reference.drawCalls,
       },
       replay: {
         camera: report.stats.camera,
@@ -113,14 +145,14 @@ export async function route(ctx: LabContext) {
         height: report.stats.height,
         soldiers: report.stats.soldiers,
         expectedSoldiers: report.stats.expectedSoldiers,
-        triangles: report.stats.triangles,
-        drawCalls: report.stats.drawCalls,
+        reportedTriangleCapacityEstimate: report.stats.triangles,
+        reportedFrameDrawCalls: report.stats.drawCalls,
       },
       grass: {
         source: {
           hash: captured.reference.terrain?.grass.recordHash,
           records: captured.reference.terrain?.grass.recordCount,
-          triangles: captured.reference.terrain?.grass.submittedTriangles,
+          cachedCpuTriangleEstimate: captured.reference.terrain?.grass.submittedTriangles,
           tiers: captured.reference.terrain?.grass.tiers,
           cull: captured.reference.terrain?.grass.routeCullMask,
           transition: captured.reference.terrain?.grass.activeTransition,
@@ -128,7 +160,7 @@ export async function route(ctx: LabContext) {
         replay: {
           hash: report.stats.terrain?.grass.recordHash,
           records: report.stats.terrain?.grass.recordCount,
-          triangles: report.stats.terrain?.grass.submittedTriangles,
+          cachedCpuTriangleEstimate: report.stats.terrain?.grass.submittedTriangles,
           tiers: report.stats.terrain?.grass.tiers,
           cull: report.stats.terrain?.grass.routeCullMask,
           transition: report.stats.terrain?.grass.activeTransition,
@@ -140,28 +172,19 @@ export async function route(ctx: LabContext) {
         sourceShadow: captured.reference.crowd?.shadowTierHistogram,
         replayShadow: report.stats.crowd.shadowTierHistogram,
       },
-      triangleVertices: captured.frame.triangles.length / 6,
-      readouts: captured.frame.readouts.length,
-      standards: captured.frame.standards.length,
+      triangleVertices,
+      readouts,
+      standards,
       assetsHash: archive.manifest.assetsHash,
     };
+    latestSummary = summary;
     stats.textContent = JSON.stringify(summary, null, 2);
     ctx.status.textContent =
       "Actual production submission replay — hashes checked; image parity not yet verified.";
     window.__battleReplay = { manifest: archive.manifest, summary, showFrame };
     return summary;
   };
-  next.onclick = async () => {
-    next.disabled = true;
-    try {
-      index = (index + 1) % archive.frames.length;
-      await showFrame(index);
-    } catch (error) {
-      ctx.status.textContent = String(error);
-    } finally {
-      next.disabled = false;
-    }
-  };
+  next.onclick = () => location.reload();
   download.onclick = () => {
     const url = URL.createObjectURL(replayArchiveDownload(archive));
     const anchor = document.createElement("a");
@@ -171,7 +194,7 @@ export async function route(ctx: LabContext) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   try {
-    await showFrame(0);
+    await showFrame(archive.frames.length - 1);
   } catch (error) {
     dispose();
     throw error;

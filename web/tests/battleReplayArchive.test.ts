@@ -74,3 +74,7 @@ test("overflowing pose definitions do not consume the static-inclusive window bu
   expect(window.append({ frameId: 2 })).toBe("recording");
   expect(window.bytes).toBe(staticBytes + encodeReplayValue({ frameId: 2 }).size);
 });
+
+test("archive rejects executable values instead of silently dropping them", () => {
+  expect(() => encodeReplayValue({ sample: () => 1 })).toThrow("executable");
+});

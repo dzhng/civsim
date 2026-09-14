@@ -1,38 +1,47 @@
 # Battle replay laboratory
 
-The capture build runs the actual game menu, battle loop and crowd presentation.
-Its Vite config substitutes a recording subclass only at the battle world's
-renderer import. The normal build keeps the original renderer. Capture therefore
-sees the interpolated positions, animation playback, readouts and attack triangles
-that production submits, without a second simulation/bootstrap implementation.
+The lab build runs the actual menu, battle loop and crowd presentation. Its
+importer-scoped Vite substitutions wrap the original renderer and real world
+factory. The factory records outer public world calls and observes every actual
+presentation, including presentations made while settling. Disposal removes the
+wrappers and registry entry. Ordinary builds retain their original imports.
 
-Start Vite from the repository with
-`web/node_modules/.bin/vite --config apps/battle-perf-lab/vite.config.mts`.
-Launch the battle from the real menu, wait for the benchmark to enter its running phase, and
-call `await window.__battleCapture.start()` in the browser console. Limits may
-be passed as frame count and total retained bytes, including static data, pose
-dictionary, frame chunks and the boundary PNG. `status()` exposes the current
-finalization step and completed hash count. Capture is intentionally a
-short window; its copies and source image readback make it unsuitable for FPS
-measurement. Finishing a window cancels the benchmark through its public API after
-the boundary image is requested; the benchmark is explicitly partial, and hashing
-can finish without competing with further simulation/rendering. `cancel()` finishes
-a partial window early.
+A replay frame is an ordered batch of semantic updates on resolved battle data:
+time, crowd observations, readouts, triangles, tactical lines, settling and
+presentation. The Three control calls those same public methods. Native candidates
+consume the same resolved inputs and must implement the corresponding semantics;
+this is not a GPU API trace or permission to hide a Three renderer in a candidate.
+Recording the actual calls preserves initialization, LOD and grass history that a
+reconstructed last-frame snapshot misses.
 
-The latest window replaces the previous one in this origin's IndexedDB. Open
-`/renderer/battle-replay` to replay it through the real Three control, inspect
-source/replay counts and download the capture or source image. Replay verifies
-recorded hashes and the loaded appearance content before drawing. Typed arrays
-are encoded by bytes, preserving their exact values independently of live wasm
-storage. The driver decodes one frame at a time rather than a full recording's
-object graph. Shared immutable frozen poses are stored once per window, with exact
-Float64 bytes rather than a repeated numeric object graph. Loaded appearance
-content is hashed one appearance at a time; the manifest records total encoded
-content and the largest appearance, while the existing loader remains its owner.
+Start the lab server with
+`web/node_modules/.bin/vite --config apps/battle-perf-lab/vite.config.mts --port 5189`.
+With exclusive GPU access, run
+`node apps/battle-perf-lab/scripts/capturePrelude.mjs` to capture the actual menu
+benchmark from its first presentation through its first running frame, then replay
+and compare the source canvas pixel for pixel. The script retains evidence even
+when comparison fails. This proves only the running-origin window; later motion
+windows still need their relevant presentation history.
 
-These captures remain provisional until matching source/replay pixels and
-submitted work establish that all history-dependent renderer inputs are represented. A matching hash proves input identity, not matching pixels, grass history,
-submitted work or performance. The replay route deliberately reports image parity
-as unverified; settling its cold world is a screenshot aid and cannot count as a
-performance result. Source images are recorded at the frame-count boundary;
-byte-limited or cancelled windows may have no matching source image.
+For interactive capture, arm `window.__battleCapture.prelude()` before the first
+presentation. `start(frameLimit, byteLimit)` records a bounded later window but
+cannot manufacture its missing history. `status()` identifies the active capture
+or finalization stage; `cancel()` finishes a partial window. The latest capture
+replaces the previous one in this origin's IndexedDB. Open `/renderer/battle-replay`
+to replay it and download the archive and boundary PNG.
+
+The cap covers static inputs, generated-ground hash scratch, command chunks,
+shared frozen-pose definitions and the boundary PNG. Typed arrays retain exact
+bytes; immutable pose arrays are stored once per window without quantization.
+Loaded appearance content is hashed one appearance at a time, and the manifest
+records total encoded content and the largest appearance. Replay decodes one frame
+at a time instead of materializing a five-minute object graph.
+
+Finishing capture cancels the benchmark through its existing public API after the
+boundary PNG is requested. This explicitly partial run allows hashes and storage
+to finish without competing with simulation/rendering. Copies, readback, hashing,
+and correctness replay are not performance measurements. GPU indirect-command
+readback gives actual grass draw counts; Three's triangle counters use CPU instance
+capacity for indirect draws and accumulate until its animation callback resets
+stats, while the grass CPU tier mirror is cached and sampled. Neither estimate is
+an emitted-work floor.

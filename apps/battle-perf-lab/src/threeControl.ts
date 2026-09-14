@@ -1,3 +1,4 @@
+import { readGrassDraws, readGroundInputs } from "./threeInspection";
 import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import type { BattleReplayAssets, BattleReplayFrame, BattleReplaySettings } from "./fixture";
 import { consumeReplayFrames } from "./replayFrames";
@@ -31,12 +32,12 @@ export class ThreeControl {
     });
     try {
       const { width, height, pixelRatio } = config.viewport;
-      world.resize(width, height, pixelRatio);
       world.setGrassVisible(config.grass);
       world.setFarGrassVisible(config.farGrass);
       world.setBloomEnabled(config.bloom);
       world.setStatic(soldierUnit, teams, classes);
       world.setTerrain(terrain, terrainOptions);
+      world.resize(width, height, pixelRatio);
       return new ThreeControl(world);
     } catch (error) {
       world.dispose();
@@ -49,29 +50,44 @@ export class ThreeControl {
     return this.world.soldierAssets;
   }
 
-  render(frame: BattleReplayFrame) {
-    if (this.disposed) throw new Error("Three control is disposed");
-    this.world.setTime(frame.timeSeconds);
-    this.world.draw(
-      frame.positions,
-      frame.facings,
-      frame.playback,
-      frame.alive,
-      frame.count,
-      frame.camera,
-      frame.frameDt,
-    );
-    this.world.uploadUnitReadouts(frame.standards, frame.readouts);
-    this.world.drawTris(frame.triangles, frame.camera);
-    // This method submits the complete world, including environment/grass/shadows/post.
-    this.world.drawTacticalLines(frame.tacticalLines, frame.camera);
-    return { frameId: frame.frameId, simTick: frame.simTick, stats: this.world.stats() };
+  readGrassDraws() {
+    return readGrassDraws(this.world);
   }
 
-  /** Explicit screenshot preparation only; never used by timed replay. */
-  async settlePresentedFrame(): Promise<void> {
+  groundInputs() {
+    return readGroundInputs(this.world);
+  }
+
+  async render(frame: BattleReplayFrame) {
     if (this.disposed) throw new Error("Three control is disposed");
-    await this.world.settlePresentedFrame();
+    for (const command of frame.commands) {
+      switch (command.method) {
+        case "setTime":
+          this.world.setTime(...command.args);
+          break;
+        case "draw":
+          this.world.draw(...command.args);
+          break;
+        case "uploadUnitReadouts":
+          this.world.uploadUnitReadouts(...command.args);
+          break;
+        case "drawTris":
+          this.world.drawTris(...command.args);
+          break;
+        case "drawTacticalLines":
+          this.world.drawTacticalLines(...command.args);
+          break;
+        case "render":
+          this.world.render(...command.args);
+          break;
+        case "settlePresentedFrame":
+          await this.world.settlePresentedFrame(...command.args);
+          break;
+      }
+    }
+    // Queue completion does not introduce extra renders or change residency.
+    await this.world.world.settlePresentedFrame();
+    return { frameId: frame.frameId, simTick: frame.simTick, stats: this.world.stats() };
   }
 
   dispose(): void {
@@ -81,7 +97,7 @@ export class ThreeControl {
   }
 }
 
-export type ThreeReplayFrameReport = ReturnType<ThreeControl["render"]>;
+export type ThreeReplayFrameReport = Awaited<ReturnType<ThreeControl["render"]>>;
 
 /** Correctness replay: one frame per browser animation callback, without buffering
  * ahead. Source/observer latency remains in playback; this is not a timing oracle.
@@ -94,6 +110,6 @@ export async function runThreeReplay(
 ) {
   return consumeReplayFrames(frames, frameLimit, async (frame) => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    await observe(control.render(frame));
+    await observe(await control.render(frame));
   });
 }

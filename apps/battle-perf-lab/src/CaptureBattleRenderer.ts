@@ -1,3 +1,10 @@
+import { readGrassDraws, readGroundInputs } from "./threeInspection";
+import {
+  capturedWorld,
+  hasPresented,
+  observePresentations,
+  type PresentationEvent,
+} from "./captureWorldRegistry";
 import {
   BattleRenderer as ProductionBattleRenderer,
   type BattleRendererOptions,
@@ -7,7 +14,12 @@ import {
   getGraphicsSettings,
 } from "../../../web/src/shared/graphicsSettings";
 import { resolveBattleEnvironment } from "../../../packages/game-renderer/src/environment/environment";
-import type { BattleReplayAssets, BattleReplayFrame, BattleReplaySettings } from "./fixture";
+import type {
+  BattleReplayAssets,
+  BattleReplayFrame,
+  BattleReplaySettings,
+  BattleReplayCommand,
+} from "./fixture";
 import {
   encodeReplayValue,
   hashReplayBlob,
@@ -34,16 +46,21 @@ export class BattleRenderer extends ProductionBattleRenderer {
   private staticCapture: Pick<BattleReplayAssets, "soldierUnit" | "teams" | "classes"> | null =
     null;
   private terrainCapture: Pick<BattleReplayAssets, "terrain" | "terrainOptions"> | null = null;
-  private drawCapture: Draw | null = null;
-  private triangleCapture: Float32Array = new Float32Array();
-  private readoutCapture: Parameters<ProductionBattleRenderer["setUnitReadouts"]> = [[], []];
+  private simTick = 0;
+  private commands: BattleReplayCommand[] = [];
   private active: {
     benchmark: ReplayManifest["benchmark"];
+    stopAtRunning: boolean;
     appearances: NonNullable<ProductionBattleRenderer["soldierAssets"]>;
     framebuffer: { width: number; height: number };
     window: ReplayWindow;
     assets: Blob;
+    ground: Blob;
     settings: Blob;
+    resolve: (manifest: ReplayManifest) => void;
+    reject: (error: unknown) => void;
+  } | null = null;
+  private armed: {
     resolve: (manifest: ReplayManifest) => void;
     reject: (error: unknown) => void;
   } | null = null;
@@ -62,6 +79,7 @@ export class BattleRenderer extends ProductionBattleRenderer {
     bytes: 0,
     frames: 0,
   };
+  private stopObserving: () => void;
   private api;
 
   constructor(
@@ -69,12 +87,32 @@ export class BattleRenderer extends ProductionBattleRenderer {
     private readonly captureOptions: BattleRendererOptions = {},
   ) {
     super(captureCanvas, captureOptions);
+    this.stopObserving = observePresentations(captureCanvas, {
+      command: (command) => {
+        if (this.active || this.armed) this.commands.push(command);
+      },
+      presented: (event) => this.capturePresentation(event),
+    });
     this.api = {
       start: (frameLimit = 30, byteLimit = 64 * 1024 * 1024) =>
         this.startCapture(frameLimit, byteLimit),
-      cancel: () => this.finishCapture("cancelled"),
+      prelude: () => {
+        if (hasPresented(captureCanvas))
+          throw new Error("Arm the prelude before the first presentation");
+        if (this.active || this.armed || this.finishing)
+          throw new Error("Capture already in progress");
+        return new Promise<ReplayManifest>((resolve, reject) => {
+          this.armed = { resolve, reject };
+        });
+      },
+      cancel: () => {
+        this.armed?.reject(new Error("Prelude cancelled before first presentation"));
+        this.armed = null;
+        return this.finishCapture("cancelled");
+      },
       status: () => ({
         active: this.active !== null,
+        armed: this.armed !== null,
         finishing: this.finishing,
         frames: this.active?.window.frames.length ?? this.progress.frames,
         bytes: this.active?.window.bytes ?? this.progress.bytes,
@@ -110,25 +148,21 @@ export class BattleRenderer extends ProductionBattleRenderer {
   }
 
   override draw(...args: Draw) {
+    this.simTick = args[6];
     super.draw(...args);
-    if (this.active) this.drawCapture = args;
   }
 
-  override drawTris(...args: Parameters<ProductionBattleRenderer["drawTris"]>) {
-    super.drawTris(...args);
-    if (this.active) this.triangleCapture = args[0];
-  }
-
-  override setUnitReadouts(...args: Parameters<ProductionBattleRenderer["setUnitReadouts"]>) {
-    super.setUnitReadouts(...args);
-    this.readoutCapture = args;
-  }
-
-  override drawTacticalLines(...args: Parameters<ProductionBattleRenderer["drawTacticalLines"]>) {
-    const before = this.frameMetrics().renderedFrameId;
-    super.drawTacticalLines(...args);
-    const metrics = this.frameMetrics();
-    if (this.active && this.drawCapture && metrics.renderedFrameId !== before) {
+  private capturePresentation(event: PresentationEvent) {
+    if (this.armed && this.commands.length) {
+      const armed = this.armed;
+      this.armed = null;
+      try {
+        void this.startCapture(120, 128 * 1024 * 1024, true).then(armed.resolve, armed.reject);
+      } catch (error) {
+        armed.reject(error);
+      }
+    }
+    if (this.active && this.commands.length) {
       try {
         if (
           this.fixedTime !== null ||
@@ -137,31 +171,27 @@ export class BattleRenderer extends ProductionBattleRenderer {
           this.captureCanvas.height !== this.active.framebuffer.height
         )
           throw new Error("Frozen state, appearances or framebuffer changed during capture");
-        const [positions, facings, playback, alive, count, , simTick, frameDt] = this.drawCapture;
         const reference = this.stats();
         const frame: BattleReplayFrame = {
-          frameId: metrics.renderedFrameId,
-          simTick,
+          frameId: event.sequence,
+          simTick: this.simTick,
           timeSeconds: reference.standards!.timeSeconds,
-          frameDt: frameDt ?? 0,
           camera: reference.camera!,
-          positions,
-          facings,
-          playback,
-          alive,
-          count,
-          standards: this.readoutCapture[0],
-          readouts: this.readoutCapture[1],
-          triangles: this.triangleCapture,
-          tacticalLines: args[0],
+          commands: this.commands,
         };
-        const stopped = this.active.window.append({
+        let stopped: ReplayManifest["stopped"] | "recording" = this.active.window.append({
           frame,
           reference,
         } satisfies CapturedReplayFrame);
+        if (
+          stopped === "recording" &&
+          this.active.stopAtRunning &&
+          benchmarkApi()?.status().phase === "running"
+        )
+          stopped = "running-boundary";
         if (stopped !== "recording") {
           const referenceImage =
-            stopped === "frame-limit"
+            stopped === "frame-limit" || stopped === "running-boundary"
               ? new Promise<Blob>((resolve, reject) => {
                   this.captureCanvas.toBlob(
                     (blob) =>
@@ -177,11 +207,14 @@ export class BattleRenderer extends ProductionBattleRenderer {
         this.active = null;
       }
     }
-    this.drawCapture = null;
-    this.triangleCapture = new Float32Array();
+    this.commands = [];
   }
 
-  private startCapture(frameLimit: number, byteLimit: number): Promise<ReplayManifest> {
+  private startCapture(
+    frameLimit: number,
+    byteLimit: number,
+    stopAtRunning = false,
+  ): Promise<ReplayManifest> {
     if (this.active || this.finishing) throw new Error("Capture already in progress");
     if (!this.staticCapture || !this.terrainCapture || !this.soldierAssets || !this.stats().ready)
       throw new Error("Battle renderer is not ready for capture");
@@ -194,7 +227,11 @@ export class BattleRenderer extends ProductionBattleRenderer {
         "Short capture windows are limited to 120 frames and 128 MiB of frame blobs",
       );
     const benchmark = benchmarkApi()?.status() ?? null;
-    if (benchmark && benchmark.phase !== "running")
+    if (
+      benchmark &&
+      benchmark.phase !== "running" &&
+      !(stopAtRunning && benchmark.phase === "preparing")
+    )
       throw new Error("Wait for the benchmark's running phase before capture");
     const stats = this.stats();
     const params = new URLSearchParams(location.search);
@@ -225,7 +262,12 @@ export class BattleRenderer extends ProductionBattleRenderer {
     };
     const assetBlob = encodeReplayValue(assets);
     const settingsBlob = encodeReplayValue(settings);
-    const recording = new ReplayWindow(frameLimit, byteLimit, assetBlob.size + settingsBlob.size);
+    const groundBlob = encodeReplayValue(readGroundInputs(capturedWorld(this.captureCanvas)));
+    const recording = new ReplayWindow(
+      frameLimit,
+      byteLimit,
+      assetBlob.size + settingsBlob.size + groundBlob.size,
+    );
     this.progress = {
       step: "recording",
       completed: 0,
@@ -236,10 +278,12 @@ export class BattleRenderer extends ProductionBattleRenderer {
     return new Promise((resolve, reject) => {
       this.active = {
         benchmark: structuredClone(benchmark),
+        stopAtRunning,
         appearances: this.soldierAssets!,
         framebuffer: { width: this.captureCanvas.width, height: this.captureCanvas.height },
         window: recording,
         assets: assetBlob,
+        ground: groundBlob,
         settings: settingsBlob,
         resolve,
         reject,
@@ -256,6 +300,7 @@ export class BattleRenderer extends ProductionBattleRenderer {
     if (!active) return;
     this.active = null;
     this.finishing = true;
+    const boundaryBenchmark = benchmarkApi()?.status() ?? null;
     // The boundary PNG has already copied the submitted canvas. End this explicitly
     // partial lab run so continued battle work cannot starve digest/IDB callbacks.
     if (active.benchmark) benchmarkApi()?.cancel();
@@ -268,6 +313,8 @@ export class BattleRenderer extends ProductionBattleRenderer {
     };
     try {
       const referenceImage = await image;
+      this.progress.step = "grass-indirect-readback";
+      const grassDraws = await readGrassDraws(capturedWorld(this.captureCanvas));
       if (active.window.bytes + (referenceImage?.size ?? 0) > active.window.byteLimit)
         throw new Error("Source image exceeds the total capture byte cap");
       const frameHashes: string[] = [];
@@ -297,8 +344,10 @@ export class BattleRenderer extends ProductionBattleRenderer {
       this.progress.step = "manifest-hashes";
       const manifest: ReplayManifest = {
         source: "production-presented",
+        grassDraws,
         sourceUrl: location.href,
         benchmark: active.benchmark,
+        boundaryBenchmark,
         provisional: true,
         capturedAt: new Date().toISOString(),
         stopped,
@@ -313,6 +362,8 @@ export class BattleRenderer extends ProductionBattleRenderer {
         frameHashes,
         poseHashes,
         assetsHash: await hashReplayBlob(active.assets),
+        groundHash: await hashReplayBlob(active.ground),
+        groundBytes: active.ground.size,
         settingsHash: await hashReplayBlob(active.settings),
         loadedAppearanceHash: appearances.hash,
         assetsBytes: active.assets.size,
@@ -341,6 +392,9 @@ export class BattleRenderer extends ProductionBattleRenderer {
   }
 
   override dispose() {
+    this.stopObserving();
+    this.armed?.reject(new Error("Renderer disposed before prelude"));
+    this.armed = null;
     if (this.active) {
       this.active.reject(new Error("Renderer disposed during capture"));
       this.active = null;

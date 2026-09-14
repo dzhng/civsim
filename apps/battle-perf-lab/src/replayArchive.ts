@@ -19,6 +19,8 @@ export function encodeReplayValue(
     [
       JSON.stringify(value, (_key, raw) => {
         const original = replace(raw);
+        if (typeof original === "function" || typeof original === "symbol")
+          throw new Error("Replay encoding rejects executable or symbolic values");
         const numericArray =
           Array.isArray(original) &&
           original.length >= 16 &&

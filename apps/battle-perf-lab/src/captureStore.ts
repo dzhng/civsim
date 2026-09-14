@@ -1,10 +1,12 @@
 export interface ReplayManifest {
   source: "production-presented";
+  grassDraws: Awaited<ReturnType<typeof import("./threeInspection").readGrassDraws>>;
   sourceUrl: string;
   benchmark: import("../../../web/src/battle/benchmark/benchmarkRun").BenchmarkStatus | null;
+  boundaryBenchmark: ReplayManifest["benchmark"];
   provisional: true;
   capturedAt: string;
-  stopped: "frame-limit" | "byte-limit" | "cancelled";
+  stopped: "frame-limit" | "byte-limit" | "cancelled" | "running-boundary";
   timing: "capture-overhead-not-a-performance-run";
   framebuffer: { width: number; height: number };
   referenceImageHash: string | null;
@@ -12,6 +14,8 @@ export interface ReplayManifest {
   frameCount: number;
   frameBytes: number;
   assetsHash: string;
+  groundHash: string;
+  groundBytes: number;
   settingsHash: string;
   loadedAppearanceHash: string;
   assetsBytes: number;

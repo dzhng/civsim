@@ -1,0 +1,184 @@
+{
+  "provisional": true,
+  "parity": "unverified",
+  "frame": 1,
+  "frameCount": 1,
+  "frameId": 22,
+  "simTick": 9010,
+  "source": {
+    "width": 2880,
+    "height": 1800,
+    "soldiers": 15560,
+    "expectedSoldiers": 15560,
+    "triangles": 188799253,
+    "drawCalls": 63
+  },
+  "replay": {
+    "width": 2880,
+    "height": 1800,
+    "soldiers": 15560,
+    "expectedSoldiers": 15560,
+    "triangles": 196473261,
+    "drawCalls": 60
+  },
+  "grass": {
+    "source": {
+      "hash": "e891a94b+400e3bec",
+      "records": 1610110,
+      "triangles": 6022264,
+      "tiers": {
+        "far": {
+          "bladesPerRecord": 2,
+          "candidateRecords": 1162604,
+          "droppedByThinning": 522729,
+          "lodTier": 2,
+          "maxDistanceM": 1250,
+          "minDistanceM": 64,
+          "records": 639875,
+          "segments": 2,
+          "triangles": 5119000,
+          "vertices": 7678500
+        },
+        "mid": {
+          "bladesPerRecord": 6,
+          "candidateRecords": 37144,
+          "droppedByThinning": 0,
+          "lodTier": 1,
+          "maxDistanceM": 64,
+          "minDistanceM": 5,
+          "records": 37144,
+          "segments": 2,
+          "triangles": 891456,
+          "vertices": 1337184
+        },
+        "near": {
+          "bladesPerRecord": 6,
+          "candidateRecords": 246,
+          "droppedByThinning": 0,
+          "lodTier": 0,
+          "maxDistanceM": 5,
+          "minDistanceM": 0,
+          "records": 246,
+          "segments": 4,
+          "triangles": 11808,
+          "vertices": 14760
+        }
+      },
+      "cull": {
+        "center": [
+          48,
+          -144
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "transition": {
+        "denseBladeEndM": 143,
+        "edgeSinkStartM": 1120,
+        "farGrassEndM": 1250,
+        "farGrassStartM": 260,
+        "farSoftWidthScale": 3,
+        "lowerFarWidthEndM": 112,
+        "lowerFarWidthScale": 1.35,
+        "midTierEndM": 64,
+        "nearCoverageWidthScale": 1,
+        "nearTierEndM": 5,
+        "terrainDetailStrength": 1
+      }
+    },
+    "replay": {
+      "hash": "e891a94b+400e3bec",
+      "records": 1610110,
+      "triangles": 5560680,
+      "tiers": {
+        "near": {
+          "lodTier": 0,
+          "segments": 4,
+          "minDistanceM": 0,
+          "maxDistanceM": 5,
+          "bladesPerRecord": 6,
+          "candidateRecords": 216,
+          "records": 216,
+          "droppedByThinning": 0,
+          "triangles": 10368,
+          "vertices": 12960
+        },
+        "mid": {
+          "lodTier": 1,
+          "segments": 2,
+          "minDistanceM": 5,
+          "maxDistanceM": 64,
+          "bladesPerRecord": 6,
+          "candidateRecords": 32008,
+          "records": 32008,
+          "droppedByThinning": 0,
+          "triangles": 768192,
+          "vertices": 1152288
+        },
+        "far": {
+          "lodTier": 2,
+          "segments": 2,
+          "minDistanceM": 64,
+          "maxDistanceM": 1250,
+          "bladesPerRecord": 2,
+          "candidateRecords": 1160104,
+          "records": 597765,
+          "droppedByThinning": 562339,
+          "triangles": 4782120,
+          "vertices": 7173180
+        }
+      },
+      "cull": {
+        "enabled": true,
+        "center": [
+          48,
+          -144
+        ],
+        "radiusSq": 78400
+      },
+      "transition": {
+        "denseBladeEndM": 143,
+        "farGrassStartM": 260,
+        "farGrassEndM": 1250,
+        "nearTierEndM": 5,
+        "midTierEndM": 64,
+        "farSoftWidthScale": 3,
+        "nearCoverageWidthScale": 1,
+        "lowerFarWidthScale": 1.35,
+        "lowerFarWidthEndM": 112,
+        "terrainDetailStrength": 1,
+        "edgeSinkStartM": 1120
+      }
+    }
+  },
+  "crowd": {
+    "source": {
+      "l0": 5377,
+      "l1": 576,
+      "l2": 0,
+      "l3": 954
+    },
+    "replay": {
+      "l0": 6342,
+      "l1": 565,
+      "l2": 0,
+      "l3": 0
+    },
+    "sourceShadow": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadow": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    }
+  },
+  "triangleVertices": 5235,
+  "readouts": 0,
+  "standards": 40,
+  "assetsHash": "d71dbbabc4b97c7335982558a845e1d7f5d850d8c7c6abc08b1540ff1664c93a"
+}

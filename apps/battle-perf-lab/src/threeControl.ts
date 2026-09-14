@@ -62,9 +62,16 @@ export class ThreeControl {
       frame.frameDt,
     );
     this.world.uploadUnitReadouts(frame.standards, frame.readouts);
+    this.world.drawTris(frame.triangles, frame.camera);
     // This method submits the complete world, including environment/grass/shadows/post.
     this.world.drawTacticalLines(frame.tacticalLines, frame.camera);
     return { frameId: frame.frameId, simTick: frame.simTick, stats: this.world.stats() };
+  }
+
+  /** Explicit screenshot preparation only; never used by timed replay. */
+  async settlePresentedFrame(): Promise<void> {
+    if (this.disposed) throw new Error("Three control is disposed");
+    await this.world.settlePresentedFrame();
   }
 
   dispose(): void {

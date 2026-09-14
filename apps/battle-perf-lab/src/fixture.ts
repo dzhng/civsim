@@ -42,5 +42,6 @@ export interface BattleReplayFrame {
   readonly count: Draw[4];
   readonly standards: Readouts[0];
   readonly readouts: Readouts[1];
+  readonly triangles: Parameters<PhotorealBattleWorld["drawTris"]>[0];
   readonly tacticalLines: Readonly<Parameters<PhotorealBattleWorld["drawTacticalLines"]>[0]>;
 }

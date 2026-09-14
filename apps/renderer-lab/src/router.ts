@@ -1,3 +1,4 @@
+import { route as routeBattleReplay } from "../../battle-perf-lab/src/replayRoute";
 import { gpuFailureMessage } from "@packages/renderer-core/src/device";
 import { route as routePhotorealCrowd } from "./routes/photorealCrowd";
 import { route as routePhotorealPbr } from "./routes/photorealPbr";
@@ -32,6 +33,7 @@ import { route as routeWorldCamera } from "./routes/worldCamera";
 import { route as routeCardBar } from "./routes/cardBar";
 
 const routes: Record<string, LabRoute> = {
+  "/renderer/battle-replay": routeBattleReplay,
   "/renderer/device": routeDevice,
   "/renderer/capabilities": routeCapabilities,
   "/renderer/per-class-animation": routePerClassAnimation,

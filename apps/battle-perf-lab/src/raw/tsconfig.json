@@ -1,24 +1,14 @@
 {
+  "extends": "../../../../web/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
-    "types": [
-      "@webgpu/types"
-    ],
-    "typeRoots": [
-      "../../../../web/node_modules"
-    ],
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true
+    "types": ["@webgpu/types"],
+    "typeRoots": ["../../../../web/node_modules/@types", "../../../../web/node_modules"],
+    "paths": {
+      "three": ["../../../../web/node_modules/@types/three/index.d.ts"],
+      "three/webgpu": ["../../../../web/node_modules/@types/three/build/three.webgpu.d.ts"],
+      "three/tsl": ["../../../../web/node_modules/@types/three/build/three.tsl.d.ts"],
+      "three/examples/jsm/*": ["../../../../web/node_modules/@types/three/examples/jsm/*"]
+    }
   },
-  "include": [
-    "*.ts"
-  ]
+  "include": ["./*.ts"]
 }

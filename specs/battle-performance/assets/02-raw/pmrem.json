@@ -1,0 +1,1301 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "preset": "golden",
+      "sameInput": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 5.26953125,
+        "samples": 294912
+      },
+      "finite": {
+        "actual": true,
+        "reference": true
+      },
+      "lods": [
+        {
+          "lod": 0,
+          "rectangle": [
+            0,
+            0,
+            192,
+            128
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 5.2421875,
+          "samples": 98304
+        },
+        {
+          "lod": 1,
+          "rectangle": [
+            0,
+            128,
+            96,
+            64
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 5.125,
+          "samples": 24576
+        },
+        {
+          "lod": 2,
+          "rectangle": [
+            0,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 4.65234375,
+          "samples": 6144
+        },
+        {
+          "lod": 3,
+          "rectangle": [
+            48,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 4.23046875,
+          "samples": 6144
+        },
+        {
+          "lod": 4,
+          "rectangle": [
+            96,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.0001220703125,
+          "maxRelative": 0.0005521811154058532,
+          "rmse": 0.000001557343637328579,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 3.498046875,
+          "samples": 6144
+        },
+        {
+          "lod": 5,
+          "rectangle": [
+            144,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.00048828125,
+          "maxRelative": 0.000819672131147541,
+          "rmse": 0.000006229374549314316,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 2.69921875,
+          "samples": 6144
+        },
+        {
+          "lod": 6,
+          "rectangle": [
+            192,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 2.033203125,
+          "samples": 6144
+        },
+        {
+          "lod": 7,
+          "rectangle": [
+            240,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5546875,
+          "samples": 6144
+        },
+        {
+          "lod": 8,
+          "rectangle": [
+            288,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.000244140625,
+          "maxRelative": 0.0007552870090634441,
+          "rmse": 0.000004404832986371046,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.2333984375,
+          "samples": 6144
+        }
+      ],
+      "directions": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          1
+        ],
+        [
+          -1,
+          1,
+          -1
+        ],
+        [
+          -1,
+          1,
+          1
+        ],
+        [
+          1,
+          -1,
+          -1
+        ],
+        [
+          1,
+          -1,
+          1
+        ],
+        [
+          1,
+          1,
+          -1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          0.0001
+        ],
+        [
+          1,
+          1.0001,
+          0
+        ],
+        [
+          1.0001,
+          1,
+          0
+        ],
+        [
+          -1,
+          -1,
+          0.0001
+        ],
+        [
+          0,
+          1,
+          1.0001
+        ],
+        [
+          0,
+          1.0001,
+          1
+        ],
+        [
+          -0.9393727128473789,
+          1.1503997859949083e-16,
+          0.34289780745545134
+        ]
+      ],
+      "roughness": [
+        0,
+        0.05,
+        0.21,
+        0.305,
+        0.4,
+        0.6,
+        0.8,
+        1
+      ],
+      "sampled": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 4.94921875,
+        "samples": 672
+      },
+      "borrowedSourceUnchanged": true,
+      "passed": true
+    },
+    {
+      "preset": "dusk",
+      "sameInput": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 9.703125,
+        "samples": 294912
+      },
+      "finite": {
+        "actual": true,
+        "reference": true
+      },
+      "lods": [
+        {
+          "lod": 0,
+          "rectangle": [
+            0,
+            0,
+            192,
+            128
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 9.6328125,
+          "samples": 98304
+        },
+        {
+          "lod": 1,
+          "rectangle": [
+            0,
+            128,
+            96,
+            64
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 9.359375,
+          "samples": 24576
+        },
+        {
+          "lod": 2,
+          "rectangle": [
+            0,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 8.2734375,
+          "samples": 6144
+        },
+        {
+          "lod": 3,
+          "rectangle": [
+            48,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 7.3984375,
+          "samples": 6144
+        },
+        {
+          "lod": 4,
+          "rectangle": [
+            96,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 5.8828125,
+          "samples": 6144
+        },
+        {
+          "lod": 5,
+          "rectangle": [
+            144,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 4.24609375,
+          "samples": 6144
+        },
+        {
+          "lod": 6,
+          "rectangle": [
+            192,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 2.9453125,
+          "samples": 6144
+        },
+        {
+          "lod": 7,
+          "rectangle": [
+            240,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 2.087890625,
+          "samples": 6144
+        },
+        {
+          "lod": 8,
+          "rectangle": [
+            288,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.00048828125,
+          "maxRelative": 0.0009242144177449168,
+          "rmse": 0.000006229374549314316,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.568359375,
+          "samples": 6144
+        }
+      ],
+      "directions": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          1
+        ],
+        [
+          -1,
+          1,
+          -1
+        ],
+        [
+          -1,
+          1,
+          1
+        ],
+        [
+          1,
+          -1,
+          -1
+        ],
+        [
+          1,
+          -1,
+          1
+        ],
+        [
+          1,
+          1,
+          -1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          0.0001
+        ],
+        [
+          1,
+          1.0001,
+          0
+        ],
+        [
+          1.0001,
+          1,
+          0
+        ],
+        [
+          -1,
+          -1,
+          0.0001
+        ],
+        [
+          0,
+          1,
+          1.0001
+        ],
+        [
+          0,
+          1.0001,
+          1
+        ],
+        [
+          -0.9713379748520297,
+          1.1895459417928105e-16,
+          0.23770262642713458
+        ]
+      ],
+      "roughness": [
+        0,
+        0.05,
+        0.21,
+        0.305,
+        0.4,
+        0.6,
+        0.8,
+        1
+      ],
+      "sampled": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 9.078125,
+        "samples": 672
+      },
+      "borrowedSourceUnchanged": true,
+      "passed": true
+    },
+    {
+      "preset": "noon",
+      "sameInput": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.50390625,
+        "samples": 294912
+      },
+      "finite": {
+        "actual": true,
+        "reference": true
+      },
+      "lods": [
+        {
+          "lod": 0,
+          "rectangle": [
+            0,
+            0,
+            192,
+            128
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.501953125,
+          "samples": 98304
+        },
+        {
+          "lod": 1,
+          "rectangle": [
+            0,
+            128,
+            96,
+            64
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.4853515625,
+          "samples": 24576
+        },
+        {
+          "lod": 2,
+          "rectangle": [
+            0,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.4033203125,
+          "samples": 6144
+        },
+        {
+          "lod": 3,
+          "rectangle": [
+            48,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.3720703125,
+          "samples": 6144
+        },
+        {
+          "lod": 4,
+          "rectangle": [
+            96,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.000244140625,
+          "maxRelative": 0.0007027406886858749,
+          "rmse": 0.000003114687274657158,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.296875,
+          "samples": 6144
+        },
+        {
+          "lod": 5,
+          "rectangle": [
+            144,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.000244140625,
+          "maxRelative": 0.0006393861892583121,
+          "rmse": 0.000003814697265625,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.1689453125,
+          "samples": 6144
+        },
+        {
+          "lod": 6,
+          "rectangle": [
+            192,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.000244140625,
+          "maxRelative": 0.0009487666034155598,
+          "rmse": 0.000006964652474786964,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.0478515625,
+          "samples": 6144
+        },
+        {
+          "lod": 7,
+          "rectangle": [
+            240,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.000244140625,
+          "maxRelative": 0.0007158196134574087,
+          "rmse": 0.000004404832986371046,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        },
+        {
+          "lod": 8,
+          "rectangle": [
+            288,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.000244140625,
+          "maxRelative": 0.0005571030640668524,
+          "rmse": 0.000003114687274657158,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        }
+      ],
+      "directions": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          1
+        ],
+        [
+          -1,
+          1,
+          -1
+        ],
+        [
+          -1,
+          1,
+          1
+        ],
+        [
+          1,
+          -1,
+          -1
+        ],
+        [
+          1,
+          -1,
+          1
+        ],
+        [
+          1,
+          1,
+          -1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          0.0001
+        ],
+        [
+          1,
+          1.0001,
+          0
+        ],
+        [
+          1.0001,
+          1,
+          0
+        ],
+        [
+          -1,
+          -1,
+          0.0001
+        ],
+        [
+          0,
+          1,
+          1.0001
+        ],
+        [
+          0,
+          1.0001,
+          1
+        ],
+        [
+          -0.34364574631604705,
+          4.208446632665504e-17,
+          0.9390993563190676
+        ]
+      ],
+      "roughness": [
+        0,
+        0.05,
+        0.21,
+        0.305,
+        0.4,
+        0.6,
+        0.8,
+        1
+      ],
+      "sampled": {
+        "maxAbs": 0.0001220703125,
+        "maxRelative": 0.0005704506560182544,
+        "rmse": 0.000004708964537417356,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.384765625,
+        "samples": 672
+      },
+      "borrowedSourceUnchanged": true,
+      "passed": true
+    },
+    {
+      "preset": "overcast-highland",
+      "sameInput": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 294912
+      },
+      "finite": {
+        "actual": true,
+        "reference": true
+      },
+      "lods": [
+        {
+          "lod": 0,
+          "rectangle": [
+            0,
+            0,
+            192,
+            128
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 98304
+        },
+        {
+          "lod": 1,
+          "rectangle": [
+            0,
+            128,
+            96,
+            64
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 24576
+        },
+        {
+          "lod": 2,
+          "rectangle": [
+            0,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        },
+        {
+          "lod": 3,
+          "rectangle": [
+            48,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.00048828125,
+          "maxRelative": 0.0006397952655150352,
+          "rmse": 0.000016481375880960746,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        },
+        {
+          "lod": 4,
+          "rectangle": [
+            96,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        },
+        {
+          "lod": 5,
+          "rectangle": [
+            144,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0.00048828125,
+          "maxRelative": 0.0005955926146515784,
+          "rmse": 0.000006229374549314316,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        },
+        {
+          "lod": 6,
+          "rectangle": [
+            192,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        },
+        {
+          "lod": 7,
+          "rectangle": [
+            240,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        },
+        {
+          "lod": 8,
+          "rectangle": [
+            288,
+            192,
+            48,
+            32
+          ],
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 6144
+        }
+      ],
+      "directions": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1,
+          1
+        ],
+        [
+          -1,
+          1,
+          -1
+        ],
+        [
+          -1,
+          1,
+          1
+        ],
+        [
+          1,
+          -1,
+          -1
+        ],
+        [
+          1,
+          -1,
+          1
+        ],
+        [
+          1,
+          1,
+          -1
+        ],
+        [
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          0.0001
+        ],
+        [
+          1,
+          1.0001,
+          0
+        ],
+        [
+          1.0001,
+          1,
+          0
+        ],
+        [
+          -1,
+          -1,
+          0.0001
+        ],
+        [
+          0,
+          1,
+          1.0001
+        ],
+        [
+          0,
+          1.0001,
+          1
+        ],
+        [
+          -0.8253356149096783,
+          1.01074461902145e-16,
+          0.5646424733950354
+        ]
+      ],
+      "roughness": [
+        0,
+        0.05,
+        0.21,
+        0.305,
+        0.4,
+        0.6,
+        0.8,
+        1
+      ],
+      "sampled": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 672
+      },
+      "borrowedSourceUnchanged": true,
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "scope": "Native PMREM numerical component only; strict initial HDR tolerances, no full-backend parity or performance claim",
+  "pageErrors": [],
+  "capturedAt": "2026-09-14T20:19:49.498Z"
+}

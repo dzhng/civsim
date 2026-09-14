@@ -16,7 +16,7 @@ export type SkyCheckFactory = (
   params: sky.SkyModelParams,
 ) => Promise<SkyCheckCandidate>;
 
-function half(value: number) {
+export function decodeFloat16(value: number) {
   const sign = value & 0x8000 ? -1 : 1,
     exponent = (value >> 10) & 31,
     mantissa = value & 1023;
@@ -31,7 +31,7 @@ function half(value: number) {
         : 2 ** (exponent - 15) * (1 + mantissa / 1024))
   );
 }
-async function read(device: GPUDevice, target: GPUTexture) {
+export async function readHdrTexture(device: GPUDevice, target: GPUTexture) {
   const bytesPerRow = Math.ceil((target.width * 8) / 256) * 256;
   const buffer = device.createBuffer({
     size: bytesPerRow * target.height,
@@ -47,13 +47,15 @@ async function read(device: GPUDevice, target: GPUTexture) {
     await buffer.mapAsync(GPUMapMode.READ);
     const raw = new Uint16Array(buffer.getMappedRange());
     return Array.from({ length: target.width * target.height * 4 }, (_, i) =>
-      half(raw[(Math.floor(i / (target.width * 4)) * bytesPerRow) / 2 + (i % (target.width * 4))]),
+      decodeFloat16(
+        raw[(Math.floor(i / (target.width * 4)) * bytesPerRow) / 2 + (i % (target.width * 4))],
+      ),
     );
   } finally {
     buffer.destroy();
   }
 }
-function compare(actual: number[], expected: number[]) {
+export function compareHdr(actual: number[], expected: number[]) {
   if (actual.length !== expected.length) throw new Error("Sky readback dimensions differ");
   let maxAbs = 0,
     maxRelative = 0,
@@ -119,9 +121,9 @@ export async function runSkyNumericalCheck(createCandidate: SkyCheckFactory) {
             sky.SKY_LUT_WIDTH,
             sky.SKY_LUT_HEIGHT,
           )) as Uint16Array,
-          half,
+          decodeFloat16,
         );
-        const lut = compare(await read(device, candidate.lut), expected);
+        const lut = compareHdr(await readHdrTexture(device, candidate.lut), expected);
         const backgrounds = [];
         const cases: SkyRays[] = [
           { origin: [-1, 1, 0.3], dx: [2, 0, 0], dy: [0, 0, -0.8] },
@@ -161,8 +163,8 @@ export async function runSkyNumericalCheck(createCandidate: SkyCheckFactory) {
             quad.render(renderer);
             renderer.setRenderTarget(null);
             backgrounds.push(
-              compare(
-                await read(device, target),
+              compareHdr(
+                await readHdrTexture(device, target),
                 Array.from(
                   (await renderer.readRenderTargetPixelsAsync(
                     reference,
@@ -170,7 +172,7 @@ export async function runSkyNumericalCheck(createCandidate: SkyCheckFactory) {
                     0,
                     ...SKY_CHECK_SIZE,
                   )) as Uint16Array,
-                  half,
+                  decodeFloat16,
                 ),
               ),
             );

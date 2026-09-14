@@ -1,7 +1,7 @@
 # Playable terrain and opaque horizon controls
 
 This component submits the production ground and horizon vertex/index arrays
-through native WebGPU or TypeGPU. Their shared pure WGSL material uses the shared turf/water policy,
+through native WebGPU, TypeGPU or vgpu. Their shared pure WGSL material uses the shared turf/water policy,
 RG8 signed earth distances, canopy noise, terrain slope response, and on-field
 water. The original on-field water applies a linear transfer inside its surface
 function and again after mixing with turf; this port preserves both conversions.
@@ -112,3 +112,27 @@ coplanar differences remain. Filenames distinguish backend, sample count,
 projection diagnostic and normal staging so later controls cannot silently
 replace earlier evidence. Neither these partial scenes nor the TypeGPU port
 establish complete-backend appearance, temporal stability or performance.
+
+The vgpu runtime borrows the context, camera and environment and lends its draw
+commands to the caller's frame pass. Its geometry, terrain state and SDF are
+component-owned; samplers and pipeline caches follow the context lifetime. The
+pinned API has no texel-upload helper, so the SDF uses a native queue byte upload
+to a vgpu-owned texture. Geometry, reflection, pipelines, draw encoding and MSAA
+resolve remain vgpu operations. Native and vgpu share the complete pure terrain
+shader assembly; TypeGPU consumes its material/noise function bodies through
+typed functions. None of these wrappers imports a Three rendering runtime.
+
+The isolated control accepts `?backend=vgpu`. Each adapter owns its appropriate
+HDR target and returns the resolved texture for the same numerical readback.
+This keeps vgpu's public frame/target contract intact without substituting a
+native render pipeline or constructing a private target adapter. Completion waits
+are confined to this numerical harness, not the terrain component's draw path.
+
+The [vgpu one-sample matrix](../../../../specs/battle-performance/assets/02-vgpu/terrain/terrain-1x-ordinary-vertex-normal-runtime-targets.json)
+passes the ground gate. Its [four-sample matrix](../../../../specs/battle-performance/assets/02-vgpu/terrain/terrain-4x-ordinary-vertex-normal-runtime-targets.json)
+retains the same 79 ground beauty failures and maximum difference as TypeGPU,
+while ground material and exact coverage pass. Horizon cap differences remain
+explicitly red. All runs have finite output and no GPU errors or console warnings.
+Raw one-sample and TypeGPU four-sample regressions retain their established
+outcomes with the runtime-owned test targets. The recorded results prove the
+bounded component behavior only; they do not establish full-scene parity.

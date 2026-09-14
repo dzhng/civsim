@@ -1,9 +1,8 @@
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
-import { WORLD_CAMERA_WGSL } from "../../../../packages/renderer-core/src/cameraWgsl";
-import { terrainMaterialFunctions, type TerrainMaterialOptions } from "../shaders/terrainMaterial";
-import { terrainNoiseFunctions } from "../shaders/terrainNoise";
+import type { TerrainMaterialOptions } from "../shaders/terrainMaterial";
+import { terrainShaders } from "../shaders/terrain";
 import type { RawEnvironment } from "./environment";
 
 interface Draw {
@@ -83,21 +82,9 @@ export class RawBattleTerrain {
       const pipelineLayout = device.createPipelineLayout({
         bindGroupLayouts: [cameraLayout, layout, emptyLayout, environment.layout],
       });
-      const common =
-        WORLD_CAMERA_WGSL +
-        environment.shader +
-        Object.entries(terrainNoiseFunctions)
-          .map(([name, body]) => `fn ${name}${body}`)
-          .join("\n") +
-        `
-   struct TerrainState {farStrength:f32,shadow:f32,pad:vec2f};
-   @group(1) @binding(0) var<uniform> terrainState:TerrainState;
-   @group(1) @binding(1) var earthSdf:texture_2d<f32>;
-   @group(1) @binding(2) var earthSampler:sampler;
-   struct VertexOut {${invariantPosition ? "@invariant " : ""}@builtin(position) clip:vec4f,@location(0) position:vec3f,@location(1) normal:vec3f,@location(2) color:vec3f,@location(3) tint:f32,@location(4) water:f32,@location(5) viewNormalGeometry:vec3f};
-  `;
+      const shaders = terrainShaders(environment.shader, options, mode, invariantPosition);
       const pipeline = (code: string, buffers: GPUVertexBufferLayout[]) => {
-        const module = device.createShaderModule({ code: common + code });
+        const module = device.createShaderModule({ code });
         return device.createRenderPipeline({
           layout: pipelineLayout,
           multisample: { count: sampleCount },
@@ -111,33 +98,18 @@ export class RawBattleTerrain {
           },
         });
       };
-      const shade =
-        mode === "beauty"
-          ? "shadeWorldSurface(surface.rgb,vec3f(0),surface.a,geometryRoughnessFromView(v.viewNormalGeometry),0.0,1.0,normalize(v.normal),v.position,terrainState.shadow)"
-          : "surface";
-      const groundPipeline = pipeline(
-        Object.entries(terrainMaterialFunctions(options))
-          .map(([name, body]) => `fn ${name}${body}`)
-          .join("\n") +
-          `
-   @vertex fn vertex(@location(0) p:vec3f,@location(1) n:vec3f,@location(2) water:f32,@location(3) tint:f32,@location(4) color:vec3f)->VertexOut {return VertexOut(projectWorld(p),p,n,color,tint,water,normalize((environment.worldToView*vec4f(n,0)).xyz));}
-   @fragment fn fragment(v:VertexOut)->@location(0) vec4f {
-    let surface=terrainSurface(v.position,v.normal,v.color,v.tint,v.water,cam.time,cam.focus,terrainState.farStrength,earthSdf,earthSampler);
-    return ${shade};
-   }`,
-        [
-          {
-            arrayStride: 40,
-            attributes: [
-              { shaderLocation: 0, offset: 0, format: "float32x3" },
-              { shaderLocation: 1, offset: 12, format: "float32x3" },
-              { shaderLocation: 2, offset: 36, format: "float32" },
-            ],
-          },
-          { arrayStride: 4, attributes: [{ shaderLocation: 3, offset: 0, format: "float32" }] },
-          { arrayStride: 12, attributes: [{ shaderLocation: 4, offset: 0, format: "float32x3" }] },
-        ],
-      );
+      const groundPipeline = pipeline(shaders.ground, [
+        {
+          arrayStride: 40,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 1, offset: 12, format: "float32x3" },
+            { shaderLocation: 2, offset: 36, format: "float32" },
+          ],
+        },
+        { arrayStride: 4, attributes: [{ shaderLocation: 3, offset: 0, format: "float32" }] },
+        { arrayStride: 12, attributes: [{ shaderLocation: 4, offset: 0, format: "float32x3" }] },
+      ]);
       this.draws.push({
         pipeline: groundPipeline,
         buffers: [
@@ -151,22 +123,16 @@ export class RawBattleTerrain {
       });
       if (horizon && horizon.mesh.indices.length) {
         const h = horizon.mesh;
-        const p = pipeline(
-          `
-    @vertex fn vertex(@location(0) p:vec3f,@location(1) n:vec3f,@location(2) color:vec3f)->VertexOut {return VertexOut(projectWorld(p),p,n,color,0,0,normalize((environment.worldToView*vec4f(n,0)).xyz));}
-    @fragment fn fragment(v:VertexOut)->@location(0) vec4f {let surface=vec4f(terrainLinear(clamp(v.color,vec3f(0),vec3f(1))),0.92);return ${shade};}
-   `,
-          [
-            {
-              arrayStride: 40,
-              attributes: [
-                { shaderLocation: 0, offset: 0, format: "float32x3" },
-                { shaderLocation: 1, offset: 12, format: "float32x3" },
-                { shaderLocation: 2, offset: 24, format: "float32x3" },
-              ],
-            },
-          ],
-        );
+        const p = pipeline(shaders.horizon, [
+          {
+            arrayStride: 40,
+            attributes: [
+              { shaderLocation: 0, offset: 0, format: "float32x3" },
+              { shaderLocation: 1, offset: 12, format: "float32x3" },
+              { shaderLocation: 2, offset: 24, format: "float32x3" },
+            ],
+          },
+        ]);
         this.draws.push({
           pipeline: p,
           buffers: [buffer(h.vertices, GPUBufferUsage.VERTEX)],

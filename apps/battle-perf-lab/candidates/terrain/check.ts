@@ -33,7 +33,9 @@ import { createTerrainBackend } from "./backend";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../../src/numericalReadback";
 
 const parameters = new URL(location.href).searchParams;
-const backend = parameters.get("backend") === "typegpu" ? "typegpu" : "raw";
+const requestedBackend = parameters.get("backend");
+const backend =
+  requestedBackend === "typegpu" || requestedBackend === "vgpu" ? requestedBackend : "raw";
 const sampleCount: 1 | 4 = parameters.get("samples") === "4" ? 4 : 1;
 const invariantPosition = backend === "raw" && parameters.get("invariant") !== "0";
 const dumpShaders = new URL(location.href).searchParams.has("shaders");
@@ -91,29 +93,6 @@ async function run() {
     depthBuffer: true,
     samples: sampleCount,
   });
-  const output = device.createTexture({
-    size: [WIDTH, HEIGHT],
-    format: "rgba16float",
-    usage:
-      GPUTextureUsage.RENDER_ATTACHMENT |
-      GPUTextureUsage.COPY_SRC |
-      GPUTextureUsage.TEXTURE_BINDING,
-  });
-  const multisampled =
-    sampleCount === 4
-      ? device.createTexture({
-          size: [WIDTH, HEIGHT],
-          sampleCount,
-          format: "rgba16float",
-          usage: GPUTextureUsage.RENDER_ATTACHMENT,
-        })
-      : null;
-  const depth = device.createTexture({
-    size: [WIDTH, HEIGHT],
-    sampleCount,
-    format: "depth32float",
-    usage: GPUTextureUsage.RENDER_ATTACHMENT,
-  });
   const cameraBuffer = device.createBuffer({
     size: CAMERA_UNIFORM_BYTES,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -133,6 +112,8 @@ async function run() {
           cameraBuffer,
           sampleCount,
           invariantPosition,
+          [WIDTH, HEIGHT],
+          (message) => errors.push(message),
         ),
         sky = new SkyModel(env);
       let atlas: THREE.RenderTarget | undefined;
@@ -226,11 +207,7 @@ async function run() {
                     sunElevation: env.sunElevation,
                   }).subarray(0, 16),
                 );
-                candidate.render({
-                  color: (multisampled ?? output).createView(),
-                  resolveTarget: multisampled ? output.createView() : undefined,
-                  depth: depth.createView(),
-                });
+                const output = await candidate.render();
                 renderer.setRenderTarget(reference);
                 renderer.render(scene, camera);
                 renderer.setRenderTarget(null);
@@ -379,9 +356,6 @@ async function run() {
     renderer.dispose();
     generator.dispose();
     reference.dispose();
-    output.destroy();
-    multisampled?.destroy();
-    depth.destroy();
     cameraBuffer.destroy();
     device.destroy();
   }

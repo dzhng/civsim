@@ -26,6 +26,9 @@
       ],
       "typegpu": [
         "../../../../web/node_modules/typegpu/index.d.ts"
+      ],
+      "vgpu": [
+        "../../../../web/node_modules/vgpu/dist/index.d.ts"
       ]
     }
   },

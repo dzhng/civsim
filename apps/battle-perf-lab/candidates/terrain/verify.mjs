@@ -2,10 +2,12 @@ import { chromium } from "../../../../web/node_modules/playwright/index.mjs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { GPU_HARDWARE_FLAGS } from "../../../../web/renderer-probe-lib.mjs";
 const url = new URL(process.env.TERRAIN_CHECK_URL ?? "http://127.0.0.1:5199/check.html");
-const backend = url.searchParams.get("backend") === "typegpu" ? "typegpu" : "raw";
+const requestedBackend = url.searchParams.get("backend");
+const backend =
+  requestedBackend === "typegpu" || requestedBackend === "vgpu" ? requestedBackend : "raw";
 const sampleCount = url.searchParams.get("samples") === "4" ? 4 : 1;
 const invariantPosition = backend === "raw" && url.searchParams.get("invariant") !== "0";
-const stem = `terrain-${sampleCount}x-${invariantPosition ? "invariant" : "ordinary"}${url.searchParams.has("visual") ? "-visual" : ""}${url.searchParams.has("canonical") ? "-canonical" : ""}-vertex-normal`;
+const stem = `terrain-${sampleCount}x-${invariantPosition ? "invariant" : "ordinary"}${url.searchParams.has("visual") ? "-visual" : ""}${url.searchParams.has("canonical") ? "-canonical" : ""}-vertex-normal-runtime-targets`;
 const evidenceRoot = new URL(
   `../../../../specs/battle-performance/assets/02-${backend}/terrain/`,
   import.meta.url,

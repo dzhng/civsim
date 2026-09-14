@@ -1,0 +1,81 @@
+{
+  "kind": "typegpu-preflight",
+  "typegpuVersion": "0.12.5",
+  "pluginVersion": "0.12.3",
+  "passed": true,
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "framebuffer": [
+    640,
+    400
+  ],
+  "first": [
+    [
+      0.25,
+      0.5
+    ],
+    [
+      -0.25,
+      -0.5
+    ],
+    [
+      0.75,
+      -0.5
+    ]
+  ],
+  "second": [
+    [
+      -0.25,
+      0.5
+    ],
+    [
+      -0.75,
+      -0.5
+    ],
+    [
+      0.25,
+      -0.5
+    ]
+  ],
+  "ownership": [
+    0.125,
+    -0.25
+  ],
+  "restored": [
+    [
+      -0.25,
+      0.5
+    ],
+    [
+      -0.75,
+      -0.5
+    ],
+    [
+      0.25,
+      -0.5
+    ]
+  ],
+  "errors": [],
+  "battleParity": "not implemented; unrankable",
+  "pageErrors": [],
+  "pixels": {
+    "triangle": [
+      209,
+      133,
+      51,
+      255
+    ],
+    "background": [
+      15,
+      18,
+      20,
+      255
+    ]
+  },
+  "rasterPassed": true
+}

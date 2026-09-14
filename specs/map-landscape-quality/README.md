@@ -1,20 +1,20 @@
 # Shared landscape quality
 
-Status: ready for implementation; no production cutover yet. Updated: 2026-09-15.
+Status: implementation active; slice 01 complete, no production cutover yet. Updated: 2026-09-15.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Start with [01 — World-stable surface and evidence](slices/01-surface-contract.md). Read [architecture](architecture.md) and [validation](validation.md), inspect the existing uncommitted spike, and capture the current baseline before changing it. Implement one contract at a time, keep its runnable artifact and evidence, then advance along the dependencies. Update this prompt, the checklist and the owning slice before ending your pass.
+Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Continue [02 — One-world campaign composition proof](slices/02-campaign-composition-proof.md). Slice 06 is running independently in `/Users/david/dev/game-landscape-crowns`; integrate its reviewed commit when ready. Read [architecture](architecture.md) and [validation](validation.md), inspect the current surface contract and preserve its evidence. Implement one contract at a time, keep its runnable artifact and evidence, then advance along the dependencies. Update this prompt, the checklist and the owning slice before ending your pass.
 
 The user has authorized implementation, renderer migration, refactoring and as many reversible spikes as useful. Make these decisions without permission questions. No compatibility backend or save migration is requested. Preserve gameplay and existing save formats; this is a presentation change. Human review is a chance to steer, not a wait for approval.
 
-Warnings: the regional spike is below the visual bar and is not the production campaign renderer. Its coarse crowns and noise relief are evidence, not approved final assets. The previous 425-test result describes the spike, not this future implementation. Planned scenes in the slices do not exist yet. Hardware timing remains to be measured. Preserve unrelated work and do not reset the worktree.
+Warnings: the regional spike is below the visual bar and is not the production campaign renderer. Its coarse crowns and noise relief are evidence, not approved final assets. Slice 01 passes 428 tests and exact regional/fixture repeat captures. Production has inherited tolerant-baseline drift; do not call it exact. Planned scenes in the slices do not exist yet. Hardware timing remains to be measured. Preserve unrelated work and do not reset the worktree.
 
 ### Global TODO
 
-- [ ] [01 — World-stable surface and evidence](slices/01-surface-contract.md)
+- [x] [01 — World-stable surface and evidence](slices/01-surface-contract.md)
 - [ ] [02 — One-world campaign composition proof](slices/02-campaign-composition-proof.md)
 - [ ] [03 — Bounded terrain residency and joins](slices/03-bounded-terrain.md)
 - [ ] [04 — Connected mountain form and foothills](slices/04-mountain-form.md)

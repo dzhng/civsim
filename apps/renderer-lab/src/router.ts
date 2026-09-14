@@ -52,6 +52,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/battle": routeBattle,
   "/renderer/campaign-map": routeCampaignMap,
   "/renderer/campaign-landscape": routeCampaignLandscape,
+  "/renderer/landscape-surface": routeCampaignLandscape,
   "/renderer/terrain-water": routeTerrainWater,
   "/renderer/campaign-ui": routeCampaignUi,
   "/renderer/campaign-models": routeCampaignModelShots,

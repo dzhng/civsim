@@ -33,6 +33,8 @@ export async function run(ctx) {
     );
     ctx.check(`${region}: GPU validation is clean`, warnings.length === 0, warnings.join("\n"));
     await ctx.snap(null, `landscape-${region}`, {
+      threshold: 0,
+      maxDiffRatio: 0,
       shot: await page.screenshot({ timeout: 180000 }),
     });
     await page.close();

@@ -29,7 +29,7 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
+import type { LandscapeMesh } from "../../../game-renderer/src/terrain/surface";
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { GROUND_COVER_COLOR, MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
@@ -134,8 +134,6 @@ interface TerrainMaterialOptions {
   farGrass?: BladeFieldTransitionUniforms | null;
   earthDistance?: PhotorealEarthDistanceField;
 }
-
-type PhotorealGroundMesh = Omit<PhotorealBattleGroundMesh, "earthDistance">;
 
 function normalZForSlope(slope: number): number {
   return 1 / Math.sqrt(1 + slope * slope);
@@ -329,7 +327,7 @@ export class BattleBackgroundQuads {
 /** The rolling battle ground mesh shared by playable and vista terrain. */
 export function createGroundMesh(
   frame: BattleFrameUniforms,
-  mesh: PhotorealGroundMesh,
+  mesh: LandscapeMesh,
   options: TerrainMaterialOptions = {},
 ): THREE.Mesh {
   const geo = new THREE.BufferGeometry();
@@ -527,7 +525,9 @@ export function createGroundMesh(
       0.95,
       fbmN(world.mul(vec2(0.32, 0.32)).add(warp.mul(0.35))),
     ).toVar();
-    const strataPhase = fract(position.z.mul(0.16 * (options.detailScale ?? 1)).add(warp.mul(1.7))).toVar();
+    const strataPhase = fract(
+      position.z.mul(0.16 * (options.detailScale ?? 1)).add(warp.mul(1.7)),
+    ).toVar();
     const strata = smoothstepN(0.7, 0.98, abs(strataPhase.mul(2.0).sub(1.0)))
       .mul(smoothstepN(0.35, 0.75, fbmN(world.mul(0.021).add(vec2(11.0, 3.0)))))
       .toVar();
@@ -646,10 +646,7 @@ export function createVistaMesh(
   return vista;
 }
 
-function buildVistaGroundMesh(
-  band: BattleVistaBand,
-  cover: BattleGroundCover,
-): PhotorealGroundMesh {
+function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): LandscapeMesh {
   const base = GROUND_COVER_COLOR[cover];
   const verts = new Float32Array(band.w * band.h * 10);
   const tint = new Float32Array(band.w * band.h);

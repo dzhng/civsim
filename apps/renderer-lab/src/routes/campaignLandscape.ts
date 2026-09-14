@@ -8,7 +8,9 @@ import { createBattleFrameUniforms } from "@packages/photoreal-renderer/src/batt
 import { PhotorealScenery } from "@packages/photoreal-renderer/src/battle/foliageLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { buildCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignLandscape";
-import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
+import { createSurfaceView } from "@packages/game-renderer/src/terrain/surface";
+import { LANDSCAPE_REGIONS, coastalRidgeFixture } from "./landscapeFixtures";
+import { chartCamera3d, screenRay } from "@packages/renderer-core/src/camera3d";
 import { TerrainField } from "../../../../web/src/campaign/terrain";
 import { loadCampaignData } from "../../../../web/src/campaign/data";
 import { type LabContext, numberParam, publish, reportTable } from "../labShell";
@@ -17,34 +19,51 @@ import { type LabContext, numberParam, publish, reportTable } from "../labShell"
  * camera bridge and trees over real campaign geography; no game state needed. */
 export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
-  const { data } = await loadCampaignData();
-  const field = new TerrainField(data);
-  const center: [number, number] = ctx.params.get("region") === "italy" ? [-325, 640] : [-450, 990];
+  const isFixture = ctx.path === "/renderer/landscape-surface";
+  const preset =
+    LANDSCAPE_REGIONS[
+      isFixture ? "fixture" : ctx.params.get("region") === "italy" ? "italy" : "alps"
+    ];
+  const field = isFixture
+    ? coastalRidgeFixture()
+    : new TerrainField((await loadCampaignData()).data);
+  const center: [number, number] = [...preset.center];
   center[0] = numberParam(ctx.params, "x", center[0]);
   center[1] = numberParam(ctx.params, "y", center[1]);
-  const landscape = buildCampaignLandscape(field, center);
+  const landscapes = (isFixture ? [-preset.radius, preset.radius] : [0]).map((offset) =>
+    buildCampaignLandscape(field, [center[0] + offset, center[1]], preset.radius),
+  );
+  const surface = createSurfaceView(
+    landscapes[0].surface,
+    landscapes.slice(1).map((s) => s.surface),
+  );
+  const trees = landscapes.flatMap((s) => s.scenery);
+  const terrainTriangles = landscapes.reduce((sum, s) => sum + s.surface.mesh.triangles, 0);
   const world = await PhotorealWorld.create(ctx.canvas);
   const frame = createBattleFrameUniforms();
   frame.focus.value.set(...center);
   const env = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
     aerialObserver: vec3(frame.focus, 0),
   });
-  const ground = createGroundMesh(frame, landscape.mesh, {
-    detailScale: 2,
-    slopeBands: {
-      flatMax: 0.08,
-      rollingMax: 0.18,
-      slowMin: 0.35,
-      cliffMin: 0.8,
-      cliffDilateCells: 0,
-      highlandCapMinM: 0,
-    },
+  const grounds = landscapes.map((landscape) => {
+    const ground = createGroundMesh(frame, landscape.surface.mesh, {
+      detailScale: 2,
+      slopeBands: {
+        flatMax: 0.08,
+        rollingMax: 0.18,
+        slowMin: 0.35,
+        cliffMin: 0.8,
+        cliffDilateCells: 0,
+        highlandCapMinM: 0,
+      },
+    });
+    ground.name = "campaign-continuous-landscape";
+    ground.castShadow = true;
+    world.scene.add(ground);
+    return ground;
   });
-  ground.name = "campaign-continuous-landscape";
-  ground.castShadow = true;
-  world.scene.add(ground);
   const scenery = new PhotorealScenery(world.scene, "canopy");
-  scenery.upload(landscape.scenery);
+  scenery.upload(trees);
   const sun = world.sunLight!;
   sun.position.set(
     center[0] + env.sunDirection[0] * 500,
@@ -74,20 +93,26 @@ export async function route(ctx: LabContext) {
       {
         x: center[0],
         y: center[1],
-        zoom: numberParam(ctx.params, "zoom", 2.5),
+        zoom: numberParam(ctx.params, "zoom", preset.zoom),
         pitch: numberParam(ctx.params, "pitch", 0.55),
       },
       height,
     );
     pose.aspect = width / height;
-    pose.target = [center[0], center[1], landscape.heightAt(...center)];
+    pose.target = [center[0], center[1], surface.sampleRendered(...center)!.position[2]];
     applyCamera3d(camera, pose);
     world.setTime(0);
     world.render(camera);
-    publish("campaign-landscape", true, {
+    const hit = surface.raycastRendered(screenRay(pose, 0, 0));
+    publish(isFixture ? "landscape-surface" : "campaign-landscape", true, {
+      surface: {
+        domains: landscapes.map((s) => s.surface.domain),
+        revision: surface.ownerAt(...center).revision,
+        centerRay: hit,
+      },
       ...world.stats(),
-      terrainTriangles: landscape.mesh.triangles,
-      trees: landscape.scenery.length,
+      terrainTriangles,
+      trees: trees.length,
       mountainProps: 0,
       center,
       material: "shared-battle-ground",
@@ -103,8 +128,10 @@ export async function route(ctx: LabContext) {
     () => {
       window.removeEventListener("resize", draw);
       scenery.dispose();
-      ground.geometry.dispose();
-      (ground.material as THREE.Material).dispose();
+      for (const ground of grounds) {
+        ground.geometry.dispose();
+        (ground.material as THREE.Material).dispose();
+      }
       world.dispose();
     },
     { once: true },
@@ -112,8 +139,8 @@ export async function route(ctx: LabContext) {
   ctx.status.innerHTML = reportTable({
     route: "campaign-landscape",
     status: "terrain migration spike",
-    terrainTriangles: landscape.mesh.triangles,
-    trees: landscape.scenery.length,
+    terrainTriangles,
+    trees: trees.length,
     mountains: "continuous height field",
     materials: "battle ground + foliage",
     lighting: "shared physical environment",

@@ -30,7 +30,7 @@ in TypeScript.
   unchanged API. `game-renderer` holds the terrain/scenery data pipeline both
   worlds sample, the environment presets (`CIVSIM_ENVIRONMENTS`), and the
   bespoke WGSL passes that still render the campaign (and the renderer lab)
-  until the photoreal ladder decides their fate. The conversion rationale and
+  during the [shared landscape migration](specs/map-landscape-quality/README.md). The conversion rationale and
   the in-flight ladder live in
   [specs/done/3d-perspective-renderer/README.md](specs/done/3d-perspective-renderer/README.md).
 - `web` — Vite + TypeScript shell (routes, input, HUD, wasm glue); the

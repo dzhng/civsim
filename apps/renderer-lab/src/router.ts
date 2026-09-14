@@ -25,6 +25,7 @@ import { route as routeLod } from "./routes/lod";
 import { route as routeBattle } from "./routes/battle";
 import { route as routeTerrainWater } from "./routes/terrainWater";
 import { route as routeCampaignLandscape } from "./routes/campaignLandscape";
+import { route as routeCampaignComposition } from "./routes/campaignComposition";
 import { route as routeCampaignMap } from "./routes/campaignMap";
 import { route as routeCampaignUi } from "./routes/campaignUi";
 import { route as routeCampaignModelShots } from "./routes/campaignModels";
@@ -51,6 +52,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/lod": routeLod,
   "/renderer/battle": routeBattle,
   "/renderer/campaign-map": routeCampaignMap,
+  "/renderer/campaign-composition": routeCampaignComposition,
   "/renderer/campaign-landscape": routeCampaignLandscape,
   "/renderer/landscape-surface": routeCampaignLandscape,
   "/renderer/terrain-water": routeTerrainWater,

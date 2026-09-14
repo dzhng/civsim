@@ -1,6 +1,6 @@
 # 02 — One-world campaign composition proof
 
-Status: pending. Dependencies: [01](01-surface-contract.md).
+Status: complete. Dependencies: [01](01-surface-contract.md).
 
 ## Contract and owner
 
@@ -35,3 +35,19 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: A new UI design would change the label/card work. Existing campaign UI and faction/allegiance meanings are the acceptance target.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Implementation and review evidence — 2026-09-15
+
+The production composition owner now exists under `photoreal-renderer/src/campaign/`. Its lab route uses the real city asset, existing road geometry and a shared standard layer (promoted out of the battle directory). The tactical source and application commands are unchanged. The army boxes are an explicit verification fixture, not a new production army representation.
+
+Actual CSS-pixel clicks select the raised army and city at DPR1 and DPR2. Fog removes the army, standard, label and selection together. A flat control exposes 97 road pixels and more than 500 army pixels behind the ridge; the raised fixture occludes both regions completely despite hostile submission order. Resize and same-canvas world recreation pass. New screenshots are explicit-zero-tolerance captures; the final repeat is recorded in the pass handoff.
+
+Visual review rejected a card that covered its army/banner; anchoring above the shared standard's pole top resolves that. A second independent critique found no blocking depth, grounding, continuity, flag, selection or fog defects. The card can cover a small road segment as screen UI, and fixture roads/army models remain intentionally schematic; polished production presentation belongs to 11–12.
+
+Code review found the source box winding disagrees with its outward normals. The material now honors authored normals with the model normal matrix rather than letting stock double-sided shading reverse them. The earlier test mock return-type finding was corrected and typecheck passes.
+
+Disposal initially reproduced a real pending timestamp-buffer `mapAsync` abort. The shared world now waits for every outstanding readback before destroying query buffers; an explicit failure-plus-pending-read test pins this. It retains the original older-success-after-newer-failure regression and original sampling cadence. Final hardware `renderer-lifecycle` passed all ten cycles on Chrome/Apple Metal: 25 geometries, 181 textures and 12,910,592 WASM bytes remained constant; user-agent memory ranged 262.34–273.04 MB, with no page errors. [Hardware evidence](../assets/slice-02/hardware/) includes the complete log and metrics.
+
+Hardware battle standards passed behavior checks. Tactical and approach are byte-identical to the matched prior-code hardware control. Eye differs by 8,251 RGB pixels (885 at the existing 0.12 comparison threshold), concentrated in distant grass; an unprimed paired review found neither image visibly worse and no changed soldier/flag shapes. This is not certified exact and is larger than control-repeat noise. Hardware-versus-software baselines differ substantially in both candidate and control; no battle baseline was changed. Full battle visual acceptance remains in 13/15. Subsequent long browser gates should use a frozen build/preview: live Vite reloads interrupted earlier runs, and SwiftShader's 66-million-triangle battle frames exceeded readiness timeouts.
+
+Final closeout: all 429 web tests, typecheck, build and focused lint pass. The five composition captures (initial, selected, fog, flat control, DPR2) repeat with zero differing pixels. The final normal-corrected images were independently critiqued: no detached poles, floating bases or broken roads; schematic road/model forms and deliberately simple fog-of-war gradient remain fixture limitations. Selection uses the existing shared green and ring profile. Review findings were fixed, with no remaining in-scope blocker.

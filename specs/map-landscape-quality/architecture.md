@@ -13,7 +13,7 @@ No new save version, campaign locale schema, battle recipe format, backend, pack
 | Concept | End-state owner | What remains mode-specific |
 |---|---|---|
 | Input geography | Campaign data adapter and `crates/sim` battle terrain | Strategic range/coast identity versus physical playable terrain |
-| Surface domain and mesh/query contract | **Proposed:** `packages/game-renderer/src/terrain/surface.ts` | Source units and transforms, not duplicated interpolation math |
+| Surface domain and mesh/query contract | `packages/game-renderer/src/terrain/surface.ts` | Source units and transforms, not duplicated interpolation math |
 | Campaign relief generation | `packages/game-renderer/src/terrain/campaignLandscape.ts`, redesigned | Geographic range envelope, ridge hierarchy, city approach constraints |
 | Common physical terrain response | **Proposed:** `packages/photoreal-renderer/src/landscape/terrainMaterial.ts` | Battle road/mud/trample masks and campaign cover profiles |
 | Water response | **Proposed:** `packages/photoreal-renderer/src/landscape/waterMaterial.ts`, extracted from `battle/seaLayer.ts` | Ocean, river, lake shape/displacement and world-scale shore ramps |
@@ -21,8 +21,9 @@ No new save version, campaign locale schema, battle recipe format, backend, pack
 | Vegetation identities and meshes | Existing `models/shared/sceneryPropRegistry.ts` | Placement eligibility, density budgets, projected representation thresholds |
 | Shared scenery instances and drawing | **Proposed:** neutral scenery contract under `game-renderer/src/terrain/`; physical layer under `photoreal-renderer/src/landscape/` | Per-world visibility/reservations; no battle import from a campaign GPU pass |
 | Campaign tile residency | **Proposed:** `photoreal-renderer/src/campaign/terrainTiles.ts` | Battle may reuse edge/mesh primitives; its existing playable/vista layout stays owned by battle |
+| Standards | Existing shared standard asset and `photoreal-renderer/src/landscape/standardLayer.ts` | Tier, grounded scale, livery and label policy |
 | Environment and color | Existing `game-renderer/src/environment/environment.ts` and `photoreal-renderer/src/environment.ts` | Preset, distance scaling, view-fitted shadow extent |
-| Campaign composition | **Proposed:** `photoreal-renderer/src/campaign/campaignWorld.ts` | Territory, fog, roads, cards, labels, entities, campaign scene data |
+| Campaign composition | **In progress:** `photoreal-renderer/src/campaign/campaignWorld.ts` | Territory, fog, roads, cards, labels, entities, campaign scene data |
 | Application interaction | Existing `web/src/campaign/renderer.ts` and `scene.ts` | Commands, saves, selections, UI state, camera controls |
 
 Do not move whole files just to make names neutral. Extract shared response from battle's ground/sea orchestration, then have battle and campaign import it directly. Move the existing node math helpers to a neutral home only when they have actual cross-world consumers. Retain the battle turf/blade owner and physical generator.

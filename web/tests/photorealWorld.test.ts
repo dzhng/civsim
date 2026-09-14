@@ -17,6 +17,7 @@ vi.mock("three/webgpu", async (original) => {
       backend = gpu.backend;
       shadowMap = {};
       info = { render: { drawCalls: 1, triangles: 2, timestamp: 0 }, compute: { timestamp: 0 } };
+      dispose = vi.fn();
       setOpaqueSort() {}
       setTransparentSort() {}
       async init() {}
@@ -96,3 +97,25 @@ test.each(["render", "compute"] as const)(
     expect(gpu.resolves).toBe(resolves);
   },
 );
+
+test("disposal waits for every timestamp readback even when the other pool fails", async () => {
+  const world = await PhotorealWorld.create(document.createElement("canvas"));
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  vi.spyOn(world.renderer, "resolveTimestampsAsync")
+    .mockImplementationOnce(async () => {
+      await pending;
+      return undefined;
+    })
+    .mockRejectedValueOnce(new Error("compute readback failed"));
+  world.render(new THREE.PerspectiveCamera());
+  await vi.waitFor(() => expect(gpu.backend.trackTimestamp).toBe(false));
+  world.dispose();
+  expect(world.renderer.dispose).not.toHaveBeenCalled();
+  release();
+  await vi.waitFor(() => expect(world.renderer.dispose).toHaveBeenCalledTimes(1));
+  world.dispose();
+  expect(world.renderer.dispose).toHaveBeenCalledTimes(1);
+});

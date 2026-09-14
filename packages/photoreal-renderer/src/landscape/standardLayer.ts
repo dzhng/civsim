@@ -2,6 +2,7 @@ import * as THREE from "three/webgpu";
 import { attribute, clamp, float, mix, normalize, sin, step, varying, vec3, vec4 } from "three/tsl";
 import {
   buildStandardMesh,
+  type StandardSizeTier,
   STANDARD_VERTEX_STRIDE_FLOATS,
   STANDARD_WAVE_BACK_LOBE,
   standardLiveryForFaction,
@@ -10,10 +11,10 @@ import {
   standardWindStrength,
 } from "../../../game-renderer/src/models/shared/standardAsset";
 import type { BattleFactionId } from "../../../game-renderer/src/battle/factionColors";
-import { linearAlbedo, viewNormalNode, type FloatNode } from "./battleTsl";
-import { RENDER_ORDER } from "./terrainLayer";
+import { linearAlbedo, viewNormalNode, type FloatNode } from "../battle/battleTsl";
+import { RENDER_ORDER } from "../battle/terrainLayer";
 
-export interface BattleStandardInstance {
+export interface StandardDrawInstance {
   unitId: number;
   x: number;
   y: number;
@@ -23,8 +24,6 @@ export interface BattleStandardInstance {
   factionId: BattleFactionId;
   selected: boolean;
 }
-
-const STANDARD_TIER = "battle-unit";
 
 export class PhotorealStandardLayer {
   private readonly mesh: THREE.Mesh;
@@ -36,10 +35,14 @@ export class PhotorealStandardLayer {
   private count = 0;
   private selected = 0;
 
-  constructor(scene: THREE.Scene, time: FloatNode) {
-    this.geometry = standardGeometry();
+  constructor(
+    scene: THREE.Scene,
+    time: FloatNode,
+    private readonly tier: StandardSizeTier = "battle-unit",
+  ) {
+    this.geometry = standardGeometry(tier);
     this.mesh = new THREE.Mesh(this.geometry, standardMaterial(time));
-    this.mesh.name = "battle-unit-3d-standards";
+    this.mesh.name = `${tier}-3d-standards`;
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
     // No shadows: at far zoom the legibility floor scales the standard well
@@ -50,7 +53,7 @@ export class PhotorealStandardLayer {
     scene.add(this.mesh);
   }
 
-  upload(instances: readonly BattleStandardInstance[]): void {
+  upload(instances: readonly StandardDrawInstance[]): void {
     this.count = instances.length;
     this.selected = 0;
     this.mesh.visible = instances.length > 0;
@@ -77,8 +80,7 @@ export class PhotorealStandardLayer {
       const instance = instances[i];
       const livery = standardLiveryForFaction(instance.factionId);
       const seed =
-        standardSeed(STANDARD_TIER, instance.factionId) ^
-        Math.imul(instance.unitId + 1, 0x9e3779b1);
+        standardSeed(this.tier, instance.factionId) ^ Math.imul(instance.unitId + 1, 0x9e3779b1);
       const o4 = i * 4;
       const o3 = i * 3;
       this.pose[o4] = instance.x;
@@ -87,7 +89,7 @@ export class PhotorealStandardLayer {
       this.pose[o4 + 3] = instance.yaw;
       this.meta[o4] = instance.scale;
       this.meta[o4 + 1] = standardWindPhase(seed >>> 0);
-      this.meta[o4 + 2] = standardWindStrength(STANDARD_TIER);
+      this.meta[o4 + 2] = standardWindStrength(this.tier);
       this.meta[o4 + 3] = instance.selected ? 1 : 0;
       this.field.set(livery.field, o3);
       if (instance.selected) this.selected++;
@@ -102,10 +104,13 @@ export class PhotorealStandardLayer {
     return {
       standards: this.count,
       selected: this.selected,
-      tier: STANDARD_TIER,
-      layer: "photoreal-battle-3d-standards" as const,
+      tier: this.tier,
+      layer:
+        this.tier === "battle-unit"
+          ? "photoreal-battle-3d-standards"
+          : "photoreal-campaign-3d-standards",
       waveContract: "PhotorealWorld.uTime + deterministic per-unit phase + strength" as const,
-      legibility: "measured cloth-width floor from battle scene standardScale" as const,
+      legibility: this.tier === "battle-unit" ? "measured cloth-width floor from battle scene standardScale" : "campaign tier dimensions and grounded per-object scale",
     };
   }
 
@@ -116,8 +121,8 @@ export class PhotorealStandardLayer {
   }
 }
 
-function standardGeometry(): THREE.InstancedBufferGeometry {
-  const mesh = buildStandardMesh(STANDARD_TIER);
+function standardGeometry(tier: StandardSizeTier): THREE.InstancedBufferGeometry {
+  const mesh = buildStandardMesh(tier);
   const src = mesh.opaque.vertices;
   const count = src.length / STANDARD_VERTEX_STRIDE_FLOATS;
   const position = new Float32Array(count * 3);

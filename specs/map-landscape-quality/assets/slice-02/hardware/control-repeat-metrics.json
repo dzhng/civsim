@@ -1,0 +1,56 @@
+[
+  {
+    "name": "tactical",
+    "comparison": "control vs control-repeat",
+    "exactRGBDifferentPixels": 0,
+    "maxChannelDelta": 0,
+    "meanRGBAbsoluteDelta": 0,
+    "pixelmatchThreshold0": 0,
+    "pixelmatchThreshold012": 0
+  },
+  {
+    "name": "tactical",
+    "comparison": "candidate vs control-repeat",
+    "exactRGBDifferentPixels": 0,
+    "maxChannelDelta": 0,
+    "meanRGBAbsoluteDelta": 0,
+    "pixelmatchThreshold0": 0,
+    "pixelmatchThreshold012": 0
+  },
+  {
+    "name": "approach",
+    "comparison": "control vs control-repeat",
+    "exactRGBDifferentPixels": 0,
+    "maxChannelDelta": 0,
+    "meanRGBAbsoluteDelta": 0,
+    "pixelmatchThreshold0": 0,
+    "pixelmatchThreshold012": 0
+  },
+  {
+    "name": "approach",
+    "comparison": "candidate vs control-repeat",
+    "exactRGBDifferentPixels": 0,
+    "maxChannelDelta": 0,
+    "meanRGBAbsoluteDelta": 0,
+    "pixelmatchThreshold0": 0,
+    "pixelmatchThreshold012": 0
+  },
+  {
+    "name": "eye",
+    "comparison": "control vs control-repeat",
+    "exactRGBDifferentPixels": 208,
+    "maxChannelDelta": 23,
+    "meanRGBAbsoluteDelta": 0.0012692057291666667,
+    "pixelmatchThreshold0": 208,
+    "pixelmatchThreshold012": 0
+  },
+  {
+    "name": "eye",
+    "comparison": "candidate vs control-repeat",
+    "exactRGBDifferentPixels": 8448,
+    "maxChannelDelta": 119,
+    "meanRGBAbsoluteDelta": 0.08690462239583334,
+    "pixelmatchThreshold0": 7681,
+    "pixelmatchThreshold012": 902
+  }
+]

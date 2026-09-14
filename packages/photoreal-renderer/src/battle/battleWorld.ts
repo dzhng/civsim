@@ -68,7 +68,7 @@ import {
   type MarkerInstance,
 } from "./overlayLayer";
 import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
-import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";
+import { PhotorealStandardLayer, type StandardDrawInstance } from "../landscape/standardLayer";
 import { BattlePostChain } from "../post/postChain";
 import type { BattlePostGradeUniforms } from "../post/postChain";
 
@@ -465,7 +465,7 @@ export class PhotorealBattleWorld {
   }
 
   uploadUnitReadouts(
-    standards: readonly BattleStandardInstance[],
+    standards: readonly StandardDrawInstance[],
     readouts: readonly BattleReadoutInstance[],
   ): void {
     this.standardLayer.upload(standards);

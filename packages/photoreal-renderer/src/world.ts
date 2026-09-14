@@ -7,9 +7,9 @@
 // BANNED in this package and everything built on it. All animation keys off
 // setTime() + seeded RNG, so a fixed setTime renders byte-identical frames and
 // snapCheck baselines stay byte-stable.
-import * as THREE from 'three/webgpu';
-import { uniform } from 'three/tsl';
-import type { CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
+import * as THREE from "three/webgpu";
+import { uniform } from "three/tsl";
+import type { CivsimEnvironmentId } from "../../game-renderer/src/environment/environment";
 
 // The ONE tone-map operator, engine-wide. Applied
 // by the renderer's output — or, when a post chain is installed, by three's
@@ -68,6 +68,8 @@ export class PhotorealWorld {
   sunLight: THREE.DirectionalLight | null = null;
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
+  private readonly timestampReadbacks = new Set<Promise<void>>();
+  private disposed = false;
   private environmentDisposer: (() => void) | null = null;
   // Snapshotted at render(): three's internal animation loop calls
   // info.reset() every browser frame, so live info.render counts read 0
@@ -80,7 +82,10 @@ export class PhotorealWorld {
     this.scene = scene;
   }
 
-  static async create(canvas: HTMLCanvasElement, options: { antialias?: boolean } = {}): Promise<PhotorealWorld> {
+  static async create(
+    canvas: HTMLCanvasElement,
+    options: { antialias?: boolean } = {},
+  ): Promise<PhotorealWorld> {
     const renderer = new THREE.WebGPURenderer({
       canvas,
       // Default on; the single-sample battle world opts out (the production battle
@@ -107,12 +112,20 @@ export class PhotorealWorld {
     // order is the classic painter contract (renderOrder asc; opaque
     // front-to-back, transparent back-to-front) every photoreal world layers
     // by; the sky dome uses the painter band on lab routes too.
-    renderer.setOpaqueSort((a: SortItem, b: SortItem) =>
-      ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
-      || ((b.z ?? 0) - (a.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));
-    renderer.setTransparentSort((a: SortItem, b: SortItem) =>
-      ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
-      || ((a.z ?? 0) - (b.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));
+    renderer.setOpaqueSort(
+      (a: SortItem, b: SortItem) =>
+        (b.groupOrder ?? 0) - (a.groupOrder ?? 0) ||
+        (b.renderOrder ?? 0) - (a.renderOrder ?? 0) ||
+        (b.z ?? 0) - (a.z ?? 0) ||
+        (b.id ?? 0) - (a.id ?? 0),
+    );
+    renderer.setTransparentSort(
+      (a: SortItem, b: SortItem) =>
+        (b.groupOrder ?? 0) - (a.groupOrder ?? 0) ||
+        (b.renderOrder ?? 0) - (a.renderOrder ?? 0) ||
+        (a.z ?? 0) - (b.z ?? 0) ||
+        (b.id ?? 0) - (a.id ?? 0),
+    );
     await renderer.init();
     return new PhotorealWorld(renderer, new THREE.Scene());
   }
@@ -138,6 +151,7 @@ export class PhotorealWorld {
   }
 
   render(camera: THREE.Camera): void {
+    if (this.disposed) return;
     if (this.post) this.post.render(this.scene, camera);
     else this.renderer.render(this.scene, camera);
     this.lastDrawCalls = this.renderer.info.render.drawCalls;
@@ -147,7 +161,9 @@ export class PhotorealWorld {
 
   private pollGpuTime(): void {
     // Pinned Three exposes this allocation gate; its published Backend type omits it.
-    const backend = this.renderer.backend as typeof this.renderer.backend & { trackTimestamp: boolean };
+    const backend = this.renderer.backend as typeof this.renderer.backend & {
+      trackTimestamp: boolean;
+    };
     if (!backend.trackTimestamp) return;
     const failed = () => {
       backend.trackTimestamp = false;
@@ -156,16 +172,20 @@ export class PhotorealWorld {
     try {
       // The independent pools must both drain, even though the standing metric
       // deliberately reports render passes only (not a correlated frame total).
-      void Promise.all([
-        this.renderer.resolveTimestampsAsync(THREE.TimestampQuery.RENDER),
-        this.renderer.resolveTimestampsAsync(THREE.TimestampQuery.COMPUTE),
+      const readback = Promise.all([
+        this.renderer.resolveTimestampsAsync(THREE.TimestampQuery.RENDER).catch(failed),
+        this.renderer.resolveTimestampsAsync(THREE.TimestampQuery.COMPUTE).catch(failed),
       ])
         .then(() => {
-          if (!backend.trackTimestamp) return;
+          if (!backend.trackTimestamp || this.disposed) return;
           const t = this.renderer.info.render.timestamp;
-          if (typeof t === 'number' && t > 0) this.gpuTimeMs = t;
+          if (typeof t === "number" && t > 0) this.gpuTimeMs = t;
         })
-        .catch(failed);
+        .catch(failed)
+        .finally(() => {
+          this.timestampReadbacks.delete(readback);
+        });
+      this.timestampReadbacks.add(readback);
     } catch {
       failed();
     }
@@ -185,9 +205,12 @@ export class PhotorealWorld {
    *  published (GPUDevice.adapterInfo; 'unknown' before init/without support). */
   private deviceLabel(): string {
     const device = (this.renderer.backend as unknown as { device?: GPUDevice }).device;
-    const info = (device as (GPUDevice & { adapterInfo?: GPUAdapterInfo }) | undefined)?.adapterInfo;
-    if (!info) return 'unknown';
-    return [info.vendor, info.architecture, info.description].filter(Boolean).join(' / ') || 'unknown';
+    const info = (device as (GPUDevice & { adapterInfo?: GPUAdapterInfo }) | undefined)
+      ?.adapterInfo;
+    if (!info) return "unknown";
+    return (
+      [info.vendor, info.architecture, info.description].filter(Boolean).join(" / ") || "unknown"
+    );
   }
 
   /** Await the GPU queue so the presented frame is fully rasterized before a
@@ -198,10 +221,17 @@ export class PhotorealWorld {
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     this.environmentDisposer?.();
     this.environmentDisposer = null;
     const context = (this.renderer.backend as unknown as { context?: GPUCanvasContext }).context;
     context?.unconfigure?.();
-    this.renderer.dispose();
+    // Three destroys query buffers in dispose(), even while mapAsync is pending.
+    // Release the canvas now so a replacement can bind it, but let outstanding
+    // readbacks finish before destroying its buffers.
+    if (this.timestampReadbacks.size)
+      void Promise.all(this.timestampReadbacks).then(() => this.renderer.dispose());
+    else this.renderer.dispose();
   }
 }

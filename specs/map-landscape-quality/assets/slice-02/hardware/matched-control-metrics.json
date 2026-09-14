@@ -1,0 +1,51 @@
+{
+  "candidate": "http://localhost:5188 frozen candidate-dist",
+  "control": "http://localhost:5189 frozen control-dist with HEAD54d1 world.ts and standardLayer.ts",
+  "browser": "Chrome153 headless",
+  "adapter": "apple / metal-3; same hardware flags",
+  "viewport": [
+    1280,
+    800
+  ],
+  "dpr": 1,
+  "scene": "battle-3d-standards",
+  "clock": "freezeAtTick(4000), timeSeconds0",
+  "captures": [
+    {
+      "name": "tactical",
+      "width": 1280,
+      "height": 800,
+      "exactRGBDifferentPixels": 0,
+      "exactRGBRatio": 0,
+      "rgbaDifferentBytes": 0,
+      "maxChannelDelta": 0,
+      "meanRGBAbsoluteDelta": 0,
+      "pixelmatchThreshold0": 0,
+      "pixelmatchThreshold012": 0
+    },
+    {
+      "name": "approach",
+      "width": 1280,
+      "height": 800,
+      "exactRGBDifferentPixels": 0,
+      "exactRGBRatio": 0,
+      "rgbaDifferentBytes": 0,
+      "maxChannelDelta": 0,
+      "meanRGBAbsoluteDelta": 0,
+      "pixelmatchThreshold0": 0,
+      "pixelmatchThreshold012": 0
+    },
+    {
+      "name": "eye",
+      "width": 1280,
+      "height": 800,
+      "exactRGBDifferentPixels": 8269,
+      "exactRGBRatio": 0.0080751953125,
+      "rgbaDifferentBytes": 17867,
+      "maxChannelDelta": 119,
+      "meanRGBAbsoluteDelta": 0.085912109375,
+      "pixelmatchThreshold0": 7502,
+      "pixelmatchThreshold012": 902
+    }
+  ]
+}

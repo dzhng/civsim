@@ -21,7 +21,7 @@ import {
   type GraphicsSettings,
 } from "../shared/graphicsSettings";
 import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
-import type { BattleStandardInstance } from "@packages/photoreal-renderer/src/battle/standardLayer";
+import type { StandardDrawInstance } from "@packages/photoreal-renderer/src/landscape/standardLayer";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
@@ -270,7 +270,7 @@ export class BattleRenderer {
   }
 
   setUnitReadouts(
-    standards: readonly BattleStandardInstance[],
+    standards: readonly StandardDrawInstance[],
     readouts: readonly BattleReadoutInstance[],
   ) {
     if (!this.world) return;
@@ -437,7 +437,7 @@ function frozenSelectionGroundCues(verts: Float32Array) {
 }
 
 function readoutsKey(
-  standards: readonly BattleStandardInstance[],
+  standards: readonly StandardDrawInstance[],
   readouts: readonly BattleReadoutInstance[],
 ) {
   let key = `${standards.length}/${readouts.length}`;

@@ -9,24 +9,14 @@ import { aerialWgsl } from "../shaders/aerial";
 import { equirectUvWgsl } from "../shaders/physicalSky";
 import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../shaders/dfgLut";
 
+import { environmentFunctions, type WorldSurfaceDiagnostic } from "../shaders/environment";
+
 /** All native world materials share group3. Camera/projection stays group0,
  * with the canonical WORLD_CAMERA_WGSL block supplied by the material. */
-export type WorldSurfaceDiagnostic = "albedo" | "normal" | "roughness" | "ao";
 export function rawEnvironmentWgsl(
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
 ): string {
-  const shade =
-    diagnostic === "ao"
-      ? "return vec4f(vec3f(ao),1);"
-      : diagnostic === "albedo"
-        ? "return vec4f(base,1);"
-        : diagnostic === "normal"
-          ? "return vec4f(normalize(normalWorld)*0.5+vec3f(0.5),1);"
-          : diagnostic === "roughness"
-            ? "return vec4f(min(max(roughness,0.0525)+geomRoughness,1.0),geomRoughness,metal,1);"
-            : `let lit=standardPbr(base,emissive,roughness,geomRoughness,metal,ao,normalize(normalWorld),normalize(cam.eye-worldPosition),environment.sunDirection.xyz,environment.sunRadiance.xyz,shadow,environment.settings.y,environmentPmrem,environmentSampler,environment.settings.x,environmentDfg,environmentSampler);
-      return applyAerial(vec4f(lit,1),worldPosition,cam.eye,environment.observer.xyz,environmentSky,environmentSampler);`;
   return `
     struct Environment {
       worldToView:mat4x4f, observer:vec4f, sunDirection:vec4f, sunRadiance:vec4f, settings:vec4f
@@ -40,16 +30,14 @@ export function rawEnvironmentWgsl(
     fn standardPbr${standardPbrWgsl}
     fn equirectUv${equirectUvWgsl}
     fn applyAerial${aerialWgsl(env)}
-    fn geometryRoughnessFromView(normalView:vec3f)->f32 {
-      let n=normalize(normalView);
-      let d=max(abs(dpdx(n)),abs(dpdy(n)));
-      return max(max(d.x,d.y),d.z);
-    }
+    ${Object.entries(environmentFunctions(diagnostic))
+      .map(([name, body]) => `fn ${name}${body}`)
+      .join("\n")}
     fn geometryRoughness(normalWorld:vec3f)->f32 {
-      return geometryRoughnessFromView((environment.worldToView*vec4f(normalWorld,0)).xyz);
+      return geometryRoughnessWithView(normalWorld,environment.worldToView);
     }
     fn shadeWorldSurface(base:vec3f,emissive:vec3f,roughness:f32,geomRoughness:f32,metal:f32,ao:f32,normalWorld:vec3f,worldPosition:vec3f,shadow:f32)->vec4f {
-      ${shade}
+      return shadeEnvironment(base,emissive,roughness,geomRoughness,metal,ao,normalWorld,worldPosition,shadow,cam.eye,environment.observer.xyz,environment.sunDirection.xyz,environment.sunRadiance.xyz,environment.settings.y,environment.settings.x,environmentSky,environmentPmrem,environmentDfg,environmentSampler);
     }
   `;
 }

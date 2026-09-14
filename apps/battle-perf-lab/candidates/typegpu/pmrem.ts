@@ -1,5 +1,6 @@
+import {cubeDirection,cubeSample} from "./pmremSampling";
 import { tgpu, d } from "typegpu";
-import { cubeUvFunctions as cube, ggxFunctions as ggx, pmremPlanes } from "../../src/shaders/pmrem";
+import { ggxFunctions as ggx, pmremPlanes } from "../../src/shaders/pmrem";
 import { equirectUvWgsl } from "../../src/shaders/physicalSky";
 
 const Vertex = d.unstruct({ position: d.vec3f, uv: d.vec2f, face: d.f32 });
@@ -13,16 +14,7 @@ const filtering = tgpu.bindGroupLayout({
   linear: { sampler: "filtering" },
   params: { uniform: d.vec4f },
 });
-const cubeFace = tgpu.fn([d.vec3f], d.f32)(cube.cubeFace);
-const cubeUv = tgpu.fn([d.vec3f, d.f32], d.vec2f)(cube.cubeUv);
-const cubeDirection = tgpu.fn([d.vec2f, d.f32], d.vec3f)(cube.cubeDirection);
 const equirectUv = tgpu.fn([d.vec3f], d.vec2f)(equirectUvWgsl);
-const cubeSample = tgpu
-  .fn(
-    [d.texture2d(), d.sampler(), d.vec3f, d.f32, d.f32],
-    d.vec3f,
-  )(cube.cubeSample)
-  .$uses({ cubeFace, cubeUv });
 const radicalInverse = tgpu.fn([d.u32], d.f32)(ggx.radicalInverse);
 const importanceGGX = tgpu.fn([d.vec2f, d.f32], d.vec3f)(ggx.importanceGGX);
 const convolve = tgpu

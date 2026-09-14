@@ -108,3 +108,19 @@ against both native candidates and the production Three chain. Its committed
 results have exact agreement at half-float output precision, including bloom
 toggles and changed grading/exposure. This does not establish full renderer
 parity or a performance advantage.
+
+## Shared environment resources
+
+`createTypegpuEnvironment` owns TypeGPU sky/PMREM preparation, the exact DFG
+texture, typed view/lighting uniform and environment bind group. It exposes the
+shared `shade` function with the native surface arguments plus camera eye;
+geometry roughness is an explicit caller input. The environment's group index is
+assigned by TypeGPU, while the canonical 192-byte camera schema lives in
+`camera.ts` at index 0. This avoids the pinned library's missing-bind-group error
+for anonymous gaps when forcing a sparse index 3. It changes binding assignment,
+not shader math or fixture bytes. The pure environment functions remain shared
+with native rendering; no native pipeline or Three runtime implements this path.
+
+PMREM sampling functions have one TypeGPU adapter owner in `pmremSampling.ts`.
+The root/device and borrowed camera buffer follow the already-tested lifetime
+contract above. Every owned texture and buffer is disposed explicitly.

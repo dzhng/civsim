@@ -1,3 +1,4 @@
+import type { WorldSurfaceDiagnostic } from "../shaders/environment";
 import { encodeRgba8Base64 } from "../imageTransport";
 import * as THREE from "three/webgpu";
 import {
@@ -38,7 +39,6 @@ import { cameraUniformData } from "../../../../packages/renderer-core/src/camera
 import {
   createRawEnvironment,
   rawEnvironmentWgsl,
-  type WorldSurfaceDiagnostic,
 } from "./environment";
 import { createRawImpostors, type ImpostorAtlasData, type ImpostorView } from "./impostor";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";

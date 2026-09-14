@@ -47,6 +47,7 @@ export interface CampaignTerrainField {
   maxH: number;
   heightAt(x: number, y: number): number;
   renderLandAt(x: number, y: number, marginKm?: number): boolean;
+  renderWaterAt(x: number, y: number): boolean;
 }
 
 export interface ArmyView {

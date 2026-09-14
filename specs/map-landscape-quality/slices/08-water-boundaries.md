@@ -1,6 +1,6 @@
 # 08 — Coasts, channels and river connections
 
-Status: pending. Dependencies: [01](01-surface-contract.md), [03](03-bounded-terrain.md), [04](04-mountain-form.md).
+Status: in progress. Dependencies: [01](01-surface-contract.md), [03](03-bounded-terrain.md), [04](04-mountain-form.md).
 
 ## Contract and owner
 
@@ -35,3 +35,10 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: A user-supplied geographic correction changes source data. Better-looking water alone is not grounds for moving the shoreline.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+
+## Source checkpoint and next boundary
+
+The [source investigation](../assets/slice-08/README.md) separates wet coverage from territory-capable land without enlarging the serialized mask. A compact source-wide run index retains connected river/body identity. Existing canonical shore distance remains authoritative; body level and future depth proxies are separate signals.
+
+The first checkpoint does not change water geometry. Before the next geometry pass, demonstrate the narrow-channel/island failure at coarse resolution and reconcile bank geometry, water level, picking and tile suppression as one surface contract. A texture-only water mask on sloping terrain is not sufficient. Battle lake levels remain supplied by physical hydrology rather than re-inferred from filtered water weights.

@@ -21,6 +21,7 @@ function coast(): CampaignTerrainField {
     maxH: 9,
     heightAt: () => 4,
     renderLandAt: (x, _y, margin = 0) => x > margin,
+    renderWaterAt: (x) => x <= 0,
   };
 }
 

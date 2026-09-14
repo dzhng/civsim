@@ -65,7 +65,7 @@ describe("campaign terrain worker transport", () => {
           );
         }
     snapshot.height[0] = 77;
-    snapshot.renderMask.land.fill(0);
+    snapshot.renderMask.classes.fill(0);
     expect(original.height[0]).toBe(6);
     expect(original.renderMask.landAt(5, 0)).toBe(true);
   });

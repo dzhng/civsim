@@ -27,5 +27,18 @@ export function coastalRidgeFixture(): CampaignTerrainField {
       height[k] = land[k] * (3 + 12 * Math.exp(-(((x - 12 - Math.sin(y / 38) * 10) / 24) ** 2)));
       biome.set([160, 180, 80, land[k] ? 255 : 0], k * 4);
     }
-  return { w, h, cell, minX, maxY, height, biome, land, maxH: 15, heightAt: () => 0, renderLandAt };
+  return {
+    w,
+    h,
+    cell,
+    minX,
+    maxY,
+    height,
+    biome,
+    land,
+    maxH: 15,
+    heightAt: () => 0,
+    renderLandAt,
+    renderWaterAt: (x, y) => !renderLandAt(x, y),
+  };
 }

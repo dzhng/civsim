@@ -46,7 +46,7 @@ export function createCampaignTerrainWorker(
   try {
     worker.postMessage(
       { type: "init", source } satisfies Request,
-      buffers(source.height, source.biome, source.renderMask.land),
+      buffers(source.height, source.biome, source.renderMask.classes),
     );
   } catch (error) {
     fail(error instanceof Error ? error : new Error(String(error)));

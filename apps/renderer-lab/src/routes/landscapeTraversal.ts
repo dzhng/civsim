@@ -19,7 +19,7 @@ export async function route(ctx: LabContext) {
   const field = new TerrainField((await loadCampaignData()).data);
   const source = snapshotCampaignLandscape(field);
   const sourceBytes =
-    source.height.byteLength + source.biome.byteLength + source.renderMask.land.byteLength;
+    source.height.byteLength + source.biome.byteLength + source.renderMask.classes.byteLength;
   const minX = Math.floor(source.renderMask.rect.min[0] / 128) * 128;
   const minY = Math.floor(source.renderMask.rect.min[1] / 128) * 128;
   const size =

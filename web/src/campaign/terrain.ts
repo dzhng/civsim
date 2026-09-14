@@ -354,6 +354,10 @@ export class TerrainField {
     return this.land[gy * this.w + gx] === 1;
   }
 
+  renderWaterAt(wx: number, wy: number): boolean {
+    return this.renderMask.waterAt(wx, wy);
+  }
+
   renderLandAt(wx: number, wy: number, marginKm = 0): boolean {
     return this.renderMask.landAt(wx, wy, marginKm);
   }

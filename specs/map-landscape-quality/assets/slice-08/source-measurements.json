@@ -1,0 +1,15 @@
+{
+  "width": 2357,
+  "height": 1943,
+  "sourceClassBytes": 4579651,
+  "sourceCopyByteDelta": 0,
+  "wetPixels": 1313157,
+  "wetRuns": 15770,
+  "fourConnectedComponents": 3449,
+  "eightConnectedBodies": 24,
+  "retainedBodyIndexBytesPerSource": 197016,
+  "bodyBuildScratchBytesPerSource": 63080,
+  "bodyBuildPeakTypedBytesPerSource": 260096,
+  "retainedBodyIndexBytesTwoSources": 394032,
+  "note": "CPU typed-array accounting only. No GPU allocations or water geometry added in this checkpoint."
+}

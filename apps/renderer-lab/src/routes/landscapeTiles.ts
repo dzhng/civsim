@@ -24,13 +24,13 @@ export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
   const fixture = coastalRidgeFixture();
   const width = 328,
-    land = new Uint8Array(width * width);
+    classes = new Uint8Array(width * width);
   for (let y = 0; y < width; y++)
     for (let x = 0; x < width; x++)
-      land[y * width + x] = fixture.renderLandAt(x - 164 + 0.5, 164 - y - 0.5) ? 1 : 0;
+      classes[y * width + x] = fixture.renderLandAt(x - 164 + 0.5, 164 - y - 0.5) ? 1 : 0;
   const field = campaignLandscapeSource({
     ...fixture,
-    renderMask: { width, height: width, land, rect: { min: [-164, -164], max: [164, 164] } },
+    renderMask: { width, height: width, classes, rect: { min: [-164, -164], max: [164, 164] } },
   });
   const worker = createCampaignTerrainWorker(snapshotCampaignLandscape(field));
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8);

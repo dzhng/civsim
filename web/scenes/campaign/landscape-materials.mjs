@@ -45,6 +45,49 @@ export async function run(ctx) {
     changed === 0,
     `${changed} different pixels`,
   );
+  const authored = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 1,
+  });
+  const authoredWarnings = [];
+  authored.on("console", (m) => {
+    if (m.type() === "warning" && /GPU|shader|bind|validation/i.test(m.text()))
+      authoredWarnings.push(m.text());
+  });
+  await authored.goto(`${ctx.target}/renderer/landscape-materials?consumer=battle&slopes=authored`);
+  await authored.waitForFunction(() => window.__rendererLabReady === true);
+  await authored.waitForTimeout(500);
+  const authoredPixels = changedPixels(images[1], PNG.sync.read(await authored.screenshot()));
+  ctx.check(
+    "authored terrain without gameplay slope bands retains shared face response",
+    authoredPixels === 0,
+    `${authoredPixels} different pixels from equivalent explicit profile`,
+  );
+  ctx.check(
+    "authored material preserves source height, normals and semantic tint",
+    await authored.evaluate(() => window.__rendererLabStats.stats.sourceUnchanged === true),
+  );
+  ctx.check(
+    "authored material has clean GPU validation",
+    authoredWarnings.length === 0,
+    authoredWarnings.join("\n"),
+  );
+  for (const slopes of ["authored", "generated"]) {
+    await authored.goto(
+      `${ctx.target}/renderer/landscape-materials?consumer=battle&slopes=${slopes}&tint=rock`,
+    );
+    await authored.waitForFunction(() => window.__rendererLabReady === true);
+    await authored.waitForTimeout(500);
+    const pixels = changedPixels(images[1], PNG.sync.read(await authored.screenshot()));
+    ctx.check(
+      slopes === "authored"
+        ? "authored rock footprints retain ground color while geometric faces still respond"
+        : "generated exposed-rock classification still changes surface response",
+      slopes === "authored" ? pixels === 0 : pixels > 100,
+      `${pixels} changed pixels`,
+    );
+  }
+  await authored.close();
   const control = await ctx.newPage({
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 1,

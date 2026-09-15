@@ -1,0 +1,113 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T03:15:26.746Z",
+  "target": "http://127.0.0.1:5197",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "landscape-materials",
+      "file": "campaign/landscape-materials.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "landscape-materials",
+      "name": "campaign: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "snapshot landscape-materials-campaign",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "battle: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "snapshot landscape-materials-battle",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "equivalent consumers have identical RGBA",
+      "ok": true,
+      "detail": "0 different pixels"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "authored terrain without gameplay slope bands retains shared face response",
+      "ok": true,
+      "detail": "0 different pixels from equivalent explicit profile"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "authored material preserves source height, normals and semantic tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "authored material has clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "authored rock footprints retain ground color while geometric faces still respond",
+      "ok": true,
+      "detail": "0 changed pixels"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "generated exposed-rock classification still changes surface response",
+      "ok": true,
+      "detail": "412669 changed pixels"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "procedural normal changes visible shading",
+      "ok": true,
+      "detail": "22490 pixels respond to the normal field"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "snapshot landscape-materials-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "snapshot landscape-materials-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-materials",
+      "name": "normal and scale controls have clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

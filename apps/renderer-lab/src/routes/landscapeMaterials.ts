@@ -24,17 +24,23 @@ export async function route(ctx: LabContext) {
     aerialObserver: vec3(frame.focus, 0),
   });
   const mesh = materialRamp();
+  if (ctx.params.get("tint") === "rock") mesh.tint!.fill(2);
+  const originalVertices = mesh.vertices.slice();
+  const originalTint = mesh.tint!.slice();
   const consumer = ctx.params.get("consumer") === "battle" ? "battle" : "campaign";
   const ground =
     consumer === "battle"
       ? createGroundMesh(frame, mesh, {
           ...CAMPAIGN_TERRAIN_PROFILE,
-          slopeBands: {
-            ...CAMPAIGN_TERRAIN_PROFILE.slopeBands,
-            flatMax: 0.08,
-            cliffDilateCells: 0,
-            highlandCapMinM: 0,
-          },
+          slopeBands:
+            ctx.params.get("slopes") === "authored"
+              ? null
+              : {
+                  ...CAMPAIGN_TERRAIN_PROFILE.slopeBands,
+                  flatMax: 0.08,
+                  cliffDilateCells: 0,
+                  highlandCapMinM: 0,
+                },
         })
       : createLandscapeGroundMesh(mesh, createLandscapeGroundMaterial(frame));
   // A same-scene control proves procedural derivatives affect lighting.
@@ -59,6 +65,9 @@ export async function route(ctx: LabContext) {
     publish("landscape-materials", true, {
       ...world.stats(),
       consumer,
+      sourceUnchanged:
+        mesh.vertices.every((v, i) => v === originalVertices[i]) &&
+        mesh.tint!.every((v, i) => v === originalTint[i]),
       terrainTriangles: mesh.triangles,
       profile: CAMPAIGN_TERRAIN_PROFILE,
     });

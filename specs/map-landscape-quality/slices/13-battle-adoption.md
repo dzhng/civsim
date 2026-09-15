@@ -35,3 +35,7 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: Exact-geography replication or new tactical mechanics would change scope; the user explicitly chose character matching only.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Authored material checkpoint
+
+The current audit found that null gameplay slope descriptors disable physical rock response on authored templates. The focused checkpoint resolves a visual default inside the existing material, preserving semantic tint and all physical inputs. Existing shared scenery and forest membership/slope work is already adopted. See [evidence and corrected cover audit](../assets/slice-13/README.md). Full slice acceptance remains pending.

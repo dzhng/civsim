@@ -1,3 +1,4 @@
+import { DEFAULT_TERRAIN_SLOPE_BANDS } from "../../../game-renderer/src/terrain/materialProfile";
 import { RENDER_ORDER } from "../renderOrder";
 import {
   createTerrainGeometry,
@@ -375,11 +376,6 @@ export function createGroundMesh(
     .mul(float(1).sub(roadInterior))
     .toVar();
   const normalZ = clamp(worldNormal.z, 0.0, 1.0).toVar();
-  let rockTint: FloatNode = float(0);
-  let screeTint: FloatNode = float(0);
-  let rockMask: FloatNode = float(0);
-  let screeMask: FloatNode = float(0);
-  let slopeMasks: ReturnType<typeof terrainSlopeMasks> | null = null;
   const tintDither = hashN(floor(world.mul(1.7)))
     .sub(0.5)
     .mul(0.5)
@@ -388,20 +384,28 @@ export function createGroundMesh(
   const forestTint = float(1)
     .sub(smoothstepN(0.18, 0.95, abs(tint.sub(4).add(tintDither))))
     .toVar();
-  screeTint = float(1)
+  const screeTint = float(1)
     .sub(smoothstepN(0.18, 0.95, abs(tint.sub(6).add(tintDither))))
     .mul(float(1).sub(roadEdge))
     .toVar();
-  screeMask = screeTint.mul(0.95).mul(float(1).sub(waterBlend)).toVar();
-  if (options.slopeBands) {
-    rockTint = float(1)
-      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2).add(tintDither))))
-      .toVar();
-    slopeMasks = terrainSlopeMasks(normalZ, waterBlend, rockTint, screeTint, options.slopeBands);
-    rockMask = slopeMasks.rockMask;
-    screeMask = slopeMasks.screeMask;
-  }
-  const nonEarthExclusion = max(forestTint, max(rockMask, screeMask)).toVar();
+  // Authored terrain has semantic tints but no gameplay slope descriptor.
+  // Visual slope response still comes from the rendered normal.
+  const bands = options.slopeBands ?? DEFAULT_TERRAIN_SLOPE_BANDS;
+  const rockTint = float(1)
+    .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2).add(tintDither))))
+    .toVar();
+  // Authored rock/scree tints mark tactical prop footprints, already softened
+  // into surfaceColor. Generated tints classify exposed faces from slope.
+  const slopeMasks = terrainSlopeMasks(
+    normalZ,
+    waterBlend,
+    options.slopeBands ? rockTint : float(0),
+    options.slopeBands ? screeTint : float(0),
+    bands,
+  );
+  const { rockMask, screeMask } = slopeMasks;
+  const authoredScree = screeTint.mul(0.95).mul(float(1).sub(waterBlend));
+  const nonEarthExclusion = max(forestTint, max(rockMask, max(screeMask, authoredScree))).toVar();
 
   // Broad neutral albedo variation; real blade geometry owns fine turf.
   const baseAlbedo = surfaceColor
@@ -457,15 +461,10 @@ export function createGroundMesh(
   const ruts = ridgeN(world.mul(vec2(0.11, 0.045)).add(vec2(2.0, 0.0)));
   const churn = clamp(clods.mul(0.72).add(ruts.mul(0.28)).add(0.58), 0.42, 1.3);
   albedo = mix(albedo, albedo.mul(churn), mudInterior);
-  let dryRoughness: FloatNode = float(0.95);
-  let dryNormal: ReturnType<typeof terrainRockResponse>["normal"] | undefined;
-
-  if (slopeMasks) {
-    const response = terrainRockResponse(surface, albedo, slopeMasks, options.detailScale);
-    albedo = response.albedo;
-    dryRoughness = response.dryRoughness;
-    dryNormal = response.normal;
-  }
+  const response = terrainRockResponse(surface, albedo, slopeMasks, options.detailScale);
+  albedo = response.albedo;
+  const dryRoughness = response.dryRoughness;
+  const dryNormal = response.normal;
   const dryRoughnessFloor = options.vistaBand
     ? options.vistaBand === "farFog"
       ? float(0.995)

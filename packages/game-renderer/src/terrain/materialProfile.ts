@@ -3,9 +3,14 @@ export interface TerrainProfile {
   detailScale: number;
   slopeBands: { slowMin: number; rollingMax: number; cliffMin: number };
 }
+export const DEFAULT_TERRAIN_SLOPE_BANDS: TerrainProfile["slopeBands"] = {
+  rollingMax: 0.18,
+  slowMin: 0.35,
+  cliffMin: 0.8,
+};
 export const CAMPAIGN_TERRAIN_PROFILE: TerrainProfile = {
   detailScale: 2,
-  slopeBands: { rollingMax: 0.18, slowMin: 0.35, cliffMin: 0.8 },
+  slopeBands: DEFAULT_TERRAIN_SLOPE_BANDS,
 };
 export const TERRAIN_MATERIAL = {
   ground: {

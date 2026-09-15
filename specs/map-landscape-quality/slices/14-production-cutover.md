@@ -63,3 +63,8 @@ hardware acceptance, and active independent raw lab/model consumers remain.
 The shared atmosphere ray must use one normalized direction for its intersection
 and integration samples; [aerial-ray evidence](../assets/slice-14-production/aerial-ray/README.md)
 records the below-camera rectangle diagnosis and focused regression contract.
+
+[Controlled acceptance evidence](../assets/slice-14-production/remaining-acceptance/README.md)
+records the synthetic bitmap class correction and the reference-grounded color
+oracle. Fixture/source and UI acceptance remain distinct from material quality;
+full-frame repeat evidence is required before those baselines are adopted.

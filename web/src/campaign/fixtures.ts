@@ -1,4 +1,5 @@
 import type { CampaignData } from "./data";
+import { PALETTE } from "@packages/game-renderer/src/terrain/campaignSource";
 import { hash2 } from "@packages/renderer-core/src/math";
 
 export async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson: string }> {
@@ -54,7 +55,7 @@ export async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson
     min: [-45, Y - 28] as [number, number],
     max: [45, Y + 28] as [number, number],
   };
-  const bg = await controlledCampaignBitmap(180, 112, [154, 170, 104]);
+  const bg = await controlledCampaignBitmap(180, 112);
   const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }
@@ -110,7 +111,7 @@ export async function buildHandoffCampaign(): Promise<{ data: CampaignData; mapJ
     min: [-54, Y - 32] as [number, number],
     max: [54, Y + 32] as [number, number],
   };
-  const bg = await controlledCampaignBitmap(216, 128, [154, 170, 104]);
+  const bg = await controlledCampaignBitmap(216, 128);
   const nodeIndex = new Map(map.nodes.map((n, i) => [n.id, i]));
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }
@@ -200,30 +201,12 @@ export async function buildAlignmentCampaign(): Promise<{ data: CampaignData; ma
   return { data: { map, bg, bgRect, nodeIndex }, mapJson: JSON.stringify(map) };
 }
 
-async function controlledCampaignBitmap(
-  width: number,
-  height: number,
-  rgb: [number, number, number],
-) {
+// The bitmap supplies geographic classes, not painted color. Natural material
+// comes from the terrain's moisture; art-green RGB can classify as mountains.
+async function controlledCampaignBitmap(width: number, height: number) {
   const pixels = new Uint8ClampedArray(width * height * 4);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = y * width + x;
-      const nx = x / Math.max(1, width - 1);
-      const ny = y / Math.max(1, height - 1);
-      const broad = smoothNoise(nx * 4.2 + 7.1, ny * 3.4 + 2.6);
-      const fine = smoothNoise(nx * 18.0 + 1.7, ny * 13.0 + 5.3);
-      const striation = Math.sin((nx * 5.5 + ny * 1.2) * Math.PI * 2) * 0.5 + 0.5;
-      const moisture = smoothNoise(nx * 2.0 + 12.4, ny * 2.2 + 0.8);
-      const shade = (broad - 0.5) * 25 + (fine - 0.5) * 11 + (striation - 0.5) * 8;
-      const green = (moisture - 0.5) * 18;
-      const o = i * 4;
-      pixels[o] = clampByte(rgb[0] + shade - green * 0.25);
-      pixels[o + 1] = clampByte(rgb[1] + shade * 0.82 + green);
-      pixels[o + 2] = clampByte(rgb[2] + shade * 0.55 - green * 0.18);
-      pixels[o + 3] = 255;
-    }
-  }
+  const land = [...PALETTE[1].c, 255];
+  for (let i = 0; i < width * height; i++) pixels.set(land, i * 4);
   return createImageBitmap(new ImageData(pixels, width, height));
 }
 

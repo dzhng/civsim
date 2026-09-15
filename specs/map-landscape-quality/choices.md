@@ -141,3 +141,21 @@ before/after visual evidence.
 - **Sound, high confidence — submit the initial battle frame once while it settles.** The existing preparation state now prevents repeated draws from adding work behind the first GPU wait. Its paused clock continues to consume wall time, so loading cannot spend simulation time. No per-frame queue system or timeout increase is needed.
 
 - **Sound, high confidence — patch disposal in the dependency that owns the listeners.** Shared Three texture and quad objects retained callbacks to retired renderers. A reproducible patch detaches each manager's listeners without destroying resources another world uses. It follows the dependency's existing geometry-manager pattern, avoids an application cleanup layer, and is removed once an upstream version passes the same regression and lifetime checks.
+### Controlled natural-ground color acceptance (slice 14)
+
+- **Choice:** Judge the visible ground as yellow-to-olive vegetation rather than
+  requiring green to lead red in almost every pixel. A sunlit yellow grass patch
+  in the user's reference fails the former test as almost entirely brown. The
+  replacement admits that patch and neighboring olive grass while rejecting blue
+  water, gray rock and red-brown soil. Its fixed world-space patch follows the
+  rendered ground, so lowering an incorrectly mountainous fixture cannot put a
+  road into the measurement.
+- **Gap:** The renderer migration retained a color test derived from directly
+  painted fixture artwork, while the supplied target includes yellow grass.
+- **Reach:** Future material changes must retain natural-ground color coverage,
+  but this color gate does not certify texture richness or complete visual quality.
+- **Verdict:** Sound: the oracle is grounded in independent reference pixels and
+  negative controls rather than the shader's current constants. Keep full-frame
+  critique and material acceptance separate.
+- **Confidence:** Medium. The exact lighting allowance is a judgment call; the
+  reference crops and unchanged coverage floor make that choice reviewable.

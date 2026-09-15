@@ -1,3 +1,4 @@
+import { frontSideGroundIndices } from "../../../packages/game-renderer/src/battle/groundPass";
 import { buildBattleTerrainData } from "../../../packages/game-renderer/src/battle/terrainSceneData";
 import type { BattleTerrainInput } from "./sceneTypes";
 import type { BattleWaterInput } from "./waterData";
@@ -20,4 +21,27 @@ export function prepareBattleTerrain(input: BattleTerrainInput) {
     ...lakes.map((spec) => ({ kind: "lake" as const, spec, grid })),
   ];
   return { grid, cover, data, lakes, slopeBands, waterInputs };
+}
+
+/** Identity of the actual owned recipe; no GPU readback is implied. */
+export function battleGroundInputs(ground: ReturnType<typeof buildBattleTerrainData>["ground"]) {
+  const sdf = ground.earthDistance;
+  return {
+    vertices: ground.vertices,
+    indices: frontSideGroundIndices(ground.indices),
+    tint: ground.tint,
+    surfaceColor: ground.surfaceColor,
+    earthDistance: {
+      data: sdf.data,
+      width: sdf.width,
+      height: sdf.height,
+      owner: "playable-ground",
+      format: "rg8-unorm",
+      rangeMeters: sdf.rangeMeters,
+      channels: ["earth-union", "road"],
+      filters: ["linear", "linear"],
+      textureResources: 1,
+      vistaSamples: 0,
+    },
+  };
 }

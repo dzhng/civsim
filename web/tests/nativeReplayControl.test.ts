@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, test } from 'vitest';
-import { createRawReplayControl } from '../../apps/battle-perf-lab/src/raw/replayControl';
+import { createReplayControl } from '../../apps/battle-perf-lab/src/replayControl';
 import {
   BattleGrassResidency,
   beginGrassPublicationCapture,
@@ -119,10 +119,10 @@ const frame = (commands: BattleReplayCommand[]): BattleReplayFrame => ({
   commands,
 });
 
-function attach(f: ReturnType<typeof fixture>) {
-  return createRawReplayControl({
-    device: f.device as never,
-    context: f.context as never,
+function attach(f: ReturnType<typeof fixture>, submitPresentation: () => void | Promise<void> = () => { f.scene.encode(); f.device.queue.submit(); }) {
+  return createReplayControl({
+    waitForSubmittedWork: () => f.device.queue.onSubmittedWorkDone(),
+    submitPresentation,
     scene: f.scene as never,
     assets,
     settings,
@@ -245,4 +245,43 @@ test('unused source publications are rejected rather than silently discarded', a
     control.dispose();
     f.residency.dispose();
   }
+});
+
+test('awaits asynchronous crowd upload before a later upload or presentation', async () => {
+  const f = fixture(1);
+  const original = f.scene.uploadCrowd;
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.scene.uploadCrowd = (async (...args: Parameters<typeof original>) => {
+    await gate;
+    return original(...args);
+  }) as typeof original;
+  const control = await attach(f);
+  try {
+    const submitted = control.submit(frame([draw(5), { method: 'render', args: [] }]), f.publications);
+    await Promise.resolve();
+    expect(f.log.map(x => x[0])).toEqual(['resize', 'visibility']);
+    release();
+    await submitted;
+    expect(f.log.slice(2).map(x => x[0])).toEqual(['crowd', 'prepare', 'encode', 'submit']);
+    expect(f.log[2][1][0].x).toBe(5);
+  } finally { control.dispose(); f.residency.dispose(); }
+});
+
+test('snapshots only the final actual submission before asynchronous validation completes', async () => {
+  const f = fixture(2);
+  let release!: () => void;
+  const validation = new Promise<void>(resolve => { release = resolve; });
+  let submitted = 0;
+  const control = await attach(f, () => { submitted++; return submitted === 2 ? validation : Promise.resolve(); });
+  let snapshot = 0;
+  try {
+    const pending = control.submit(frame([draw(5), { method: 'render', args: [] }, { method: 'render', args: [] }]), f.publications, () => { snapshot++; });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(submitted).toBe(2);
+    expect(snapshot).toBe(1);
+    expect(control.stats().presentations).toBe(1);
+    release();
+    expect((await pending).counts.presentations).toBe(2);
+  } finally { release(); control.dispose(); f.residency.dispose(); }
 });

@@ -163,6 +163,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
     return {
       groundInputs: () => terrain.groundInputs(),
       grassReplayState: () => grass.snapshot(),
+      readGrassDiagnostics: () => grass.readDiagnostics(),
       readGrassRouting: () => grass.readRouting(),
       heightAt: terrain.heightAt,
       seatingHeightAt: (x: number, y: number) => terrainHeightAt(terrain.field(), x, y),

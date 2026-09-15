@@ -22,6 +22,7 @@ export async function createTypegpuGrassField(
         TgpuBindGroup,
         (typeof layers)[number]
       >(profile, [layers[0], layers[1]]),
+      readDiagnostics: () => Promise.all(layers.map((l) => l.readDiagnostics())),
       readRouting: () => Promise.all(layers.map((l) => l.readRouting())),
     };
   } catch (error) {

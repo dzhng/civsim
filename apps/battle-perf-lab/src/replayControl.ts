@@ -1,17 +1,17 @@
 import {
   buildCrowdInstances,
   type CrowdInstance,
-} from '../../../../packages/crowd-runtime/src/instanceData';
-import type { AppearanceBundle } from '../../../../packages/soldier-assets/src/appearanceBundle';
-import type { createRawBattleScene } from './battleScene';
-import type { BattleReplayAssets, BattleReplayFrame, BattleReplaySettings } from '../fixture';
+} from '../../../packages/crowd-runtime/src/instanceData';
+import type { AppearanceBundle } from '../../../packages/soldier-assets/src/appearanceBundle';
+import type { createRawBattleScene } from './raw/battleScene';
+import type { BattleReplayAssets, BattleReplayFrame, BattleReplaySettings } from './fixture';
 import {
   queueGrassPublications,
   assertGrassPublicationsConsumed,
   type GrassPublication,
-} from '../CaptureGrassResidency';
+} from './CaptureGrassResidency';
 
-type Scene = Pick<
+type SceneMethods = Pick<
   Awaited<ReturnType<typeof createRawBattleScene>>,
   | 'resize'
   | 'setVisibility'
@@ -21,27 +21,35 @@ type Scene = Pick<
   | 'uploadTriangles'
   | 'uploadTacticalLines'
   | 'prepare'
-  | 'encode'
   | 'settleGrass'
-  | 'stats'
 >;
+
+export type ReplayScene = {
+  stats(): unknown;
+} & {
+  [K in keyof SceneMethods]: K extends 'seatingHeightAt'
+    ? SceneMethods[K]
+    : (
+        ...args: Parameters<SceneMethods[K]>
+      ) => ReturnType<SceneMethods[K]> | Promise<ReturnType<SceneMethods[K]>>;
+};
 
 /** Recorded semantic control only. Begin publication replay before constructing
  * the borrowed scene; its residency must be the importer-scoped replay provider.
  * Caller owns scene/device/context lifetime and configures terrain, catalog,
  * environment, grade and shadows from the same fixture before attaching. A failed
  * batch requires disposing/recreating that scene/provider, not only this adapter. */
-export async function createRawReplayControl({
-  device,
-  context,
+export async function createReplayControl({
+  submitPresentation,
+  waitForSubmittedWork,
   scene,
   assets,
   settings,
   appearances,
 }: {
-  device: GPUDevice;
-  context: Pick<GPUCanvasContext, 'getCurrentTexture'>;
-  scene: Scene;
+  submitPresentation(): void | Promise<void>;
+  waitForSubmittedWork(): Promise<void>;
+  scene: ReplayScene;
   assets: BattleReplayAssets;
   settings: BattleReplaySettings;
   appearances: Readonly<Record<number, AppearanceBundle>>;
@@ -55,7 +63,7 @@ export async function createRawReplayControl({
     .map(([id]) => Number(id));
   const { width, height, pixelRatio } = settings.viewport;
   await scene.resize(Math.floor(width * pixelRatio), Math.floor(height * pixelRatio));
-  scene.setVisibility({
+  await scene.setVisibility({
     grass: settings.grass,
     farGrass: settings.farGrass,
     bloom: settings.bloom,
@@ -80,29 +88,43 @@ export async function createRawReplayControl({
     if (disposed) throw Error('Native replay control disposed');
     if (failed) throw Error('Native replay must restart its scene after a failed command batch');
   };
-  const waitForSubmittedWork = () => {
-    check();
-    return device.queue.onSubmittedWorkDone();
-  };
-  const present = async () => {
+  const present = async (onPresentation?: () => void) => {
     // Captured menu history initializes camera with draw/drawTris/tactical lines.
     // Do not substitute the frame's terminal camera for an earlier render.
     if (!camera) throw Error('Replay render precedes a captured camera command');
     await scene.prepare({ camera, time });
     check();
-    const encoder = device.createCommandEncoder();
-    scene.encode(encoder, context.getCurrentTexture().createView());
-    device.queue.submit([encoder.finish()]);
+    const submitted = submitPresentation();
+    try {
+      onPresentation?.();
+    } finally {
+      await submitted;
+    }
+    check();
     counts.presentations++;
   };
   return {
-    async submit(frame: BattleReplayFrame, publications: readonly GrassPublication[]) {
+    async submit(
+      frame: BattleReplayFrame,
+      publications: readonly GrassPublication[],
+      onPresentation?: () => void,
+    ) {
       check();
       if (busy) throw Error('Native replay submission already in flight');
       busy = true;
       try {
         queueGrassPublications(publications);
-        for (const command of frame.commands) {
+        const lastPresentation = frame.commands.reduce(
+          (last, command, index) =>
+            command.method === 'render' ||
+            command.method === 'drawTacticalLines' ||
+            command.method === 'settlePresentedFrame'
+              ? index
+              : last,
+          -1,
+        );
+        for (const [index, command] of frame.commands.entries()) {
+          const capture = index === lastPresentation ? onPresentation : undefined;
           check();
           switch (command.method) {
             case 'setTime':
@@ -127,7 +149,7 @@ export async function createRawReplayControl({
                 pool,
               );
               camera = nextCamera;
-              scene.uploadCrowd(built.instances, camera, time);
+              await scene.uploadCrowd(built.instances, camera, time);
               counts.crowdUploads++;
               break;
             }
@@ -137,23 +159,23 @@ export async function createRawReplayControl({
               counts.readoutUploads++;
               break;
             case 'drawTris':
-              scene.uploadTriangles(command.args[0]);
+              await scene.uploadTriangles(command.args[0]);
               camera = command.args[1];
               counts.triangleUploads++;
               break;
             case 'drawTacticalLines':
-              scene.uploadTacticalLines(command.args[0]);
+              await scene.uploadTacticalLines(command.args[0]);
               camera = command.args[1];
               counts.tacticalUploads++;
-              await present();
+              await present(capture);
               break;
             case 'render':
-              await present();
+              await present(capture);
               break;
             case 'settlePresentedFrame':
               await scene.settleGrass(camera ?? undefined);
               check();
-              if (camera) await present();
+              if (camera) await present(capture);
               await waitForSubmittedWork();
               counts.settles++;
               break;
@@ -180,7 +202,10 @@ export async function createRawReplayControl({
         busy = false;
       }
     },
-    waitForSubmittedWork,
+    waitForSubmittedWork: () => {
+      check();
+      return waitForSubmittedWork();
+    },
     stats() {
       check();
       return { ...counts, scene: scene.stats() };

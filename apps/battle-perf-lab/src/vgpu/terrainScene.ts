@@ -1,6 +1,6 @@
 import type { Gpu, FramePass } from "vgpu";
 import type { BattleTerrainInput } from "../sceneTypes";
-import { prepareBattleTerrain } from "../terrainScenePreparation";
+import { prepareBattleTerrain, battleGroundInputs } from "../terrainScenePreparation";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import {
   battleTerrainHeightAt,
@@ -137,6 +137,7 @@ export async function createVgpuBattleTerrainScene(
     grid: () => current().grid,
     cover: () => current().cover,
     field: () => current().data.field,
+    groundInputs: () => battleGroundInputs(current().data.ground),
     heightAt: (x: number, y: number) => {
       const d = current().data;
       return battleTerrainHeightAt(d.field, d.vista, d.rect, x, y);

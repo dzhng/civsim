@@ -1,6 +1,5 @@
-import { prepareBattleTerrain } from "../terrainScenePreparation";
+import { prepareBattleTerrain, battleGroundInputs } from "../terrainScenePreparation";
 import type { BattleTerrainInput } from "../sceneTypes";
-import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import {
   battleTerrainHeightAt,
   expandedBattleTerrainRect,
@@ -176,29 +175,7 @@ export async function createRawBattleTerrainScene(
     grid: () => current().grid,
     cover: () => current().cover,
     field: () => current().data.field,
-    /** Source-comparable identity of the owned CPU geometry/SDF recipe, not a GPU readback. */
-    groundInputs() {
-      const ground = current().data.ground,
-        sdf = ground.earthDistance;
-      return {
-        vertices: ground.vertices,
-        indices: frontSideGroundIndices(ground.indices),
-        tint: ground.tint,
-        surfaceColor: ground.surfaceColor,
-        earthDistance: {
-          data: sdf.data,
-          width: sdf.width,
-          height: sdf.height,
-          owner: "playable-ground",
-          format: "rg8-unorm",
-          rangeMeters: sdf.rangeMeters,
-          channels: ["earth-union", "road"],
-          filters: ["linear", "linear"],
-          textureResources: 1,
-          vistaSamples: 0,
-        },
-      };
-    },
+    groundInputs: () => battleGroundInputs(current().data.ground),
     heightAt: (x: number, y: number) => {
       const d = current().data;
       return battleTerrainHeightAt(d.field, d.vista, d.rect, x, y);

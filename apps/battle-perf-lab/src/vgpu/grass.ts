@@ -1,3 +1,4 @@
+import { readU32Buffer } from "../numericalReadback";
 import {
   compute,
   draw,
@@ -217,6 +218,17 @@ export async function createVgpuGrass(
         pipelineMetric:
           "2 compute handles and 6 draw compile requests; cache may share GPU pipelines",
       }),
+      readDiagnostics: async () => {
+        // vgpu's public storage object exposes gpu; StorageBuffer omits this declaration.
+        if (!("gpu" in commands) || !("gpu" in buffers.records))
+          throw Error("vgpu storage lacks public GPU buffer readback");
+        const active = count;
+        const [routed, records] = await Promise.all([
+          readU32Buffer(native, commands.gpu as GPUBuffer),
+          readU32Buffer(native, buffers.records.gpu as GPUBuffer, active * 64),
+        ]);
+        return { commands: routed, records: new Float32Array(records.buffer), recordCount: active };
+      },
       readRouting: async () => ({
         commands: new Uint32Array(await commands.read()),
         visible: await Promise.all(

@@ -24,6 +24,7 @@ export async function createVgpuGrassField(
       ...field,
       route: () => field.route(undefined),
       draw: (pass: FramePass, prepass = false) => field.draw(pass, undefined, prepass),
+      readDiagnostics: () => Promise.all(layers.map((l) => l.readDiagnostics())),
       readRouting: () => Promise.all(layers.map((l) => l.readRouting())),
     };
   } catch (error) {

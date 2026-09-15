@@ -17,8 +17,9 @@ const windows = process.argv[4]
   : [{ name: "origin-motion", startMs: 0, frameLimit: 6 }];
 const diagnostic = process.argv[7] === "localize";
 const replayOnly = process.argv[5] === "replay-only";
-const raw = process.argv[7] === "raw";
-if (raw && !replayOnly)
+const backend = ["raw", "typegpu", "vgpu"].includes(process.argv[7]) ? process.argv[7] : null;
+const native = backend !== null;
+if (native && !replayOnly)
   throw Error("Native replay requires an existing archive; source capture is disabled");
 const atlasCatalog =
   process.argv[8] ??
@@ -224,20 +225,21 @@ try {
   }
   page = await context.newPage();
   page.on("pageerror", (e) => errors.push(e.message));
-  if (raw)
+  if (native)
     page.on("console", (message) => {
       if (["error", "warning"].includes(message.type())) errors.push(message.text());
     });
-  await page.goto(raw ? `${base}/replay.html` : base);
+  await page.goto(native ? `${base}/replay.html` : base);
   await boundedBrowserCall(
     page.evaluate(
-      async ({ url, inputs, sinkUrl, resources, diagnostic, raw, atlasCatalog }) => {
+      async ({ url, inputs, sinkUrl, resources, diagnostic, native, backend, atlasCatalog }) => {
         const { createSpoolReplay } = await import(url);
         window.__spoolReplay = await createSpoolReplay(
           inputs,
           sinkUrl,
           resources,
-          raw ? atlasCatalog : diagnostic,
+          native ? atlasCatalog : diagnostic,
+          backend,
         );
       },
       {
@@ -245,8 +247,8 @@ try {
           "/@fs/" +
           fileURLToPath(
             new URL(
-              raw
-                ? "apps/battle-perf-lab/src/raw/spoolReplay.ts"
+              native
+                ? "apps/battle-perf-lab/src/nativeSpoolReplay.ts"
                 : "apps/battle-perf-lab/src/spoolReplay.ts",
               root,
             ),
@@ -255,7 +257,8 @@ try {
         sinkUrl,
         resources,
         diagnostic,
-        raw,
+        native,
+        backend,
         atlasCatalog,
       },
     ),
@@ -279,7 +282,7 @@ try {
     if (createHash("sha256").update(compressed).digest("hex") !== packet.sha256)
       throw Error("Packet hash changed");
     const text = gunzipSync(compressed, { maxOutputLength: 128 * 1024 * 1024 }).toString();
-    status = { phase: raw ? "native-replay" : "three-replay", packet: packet.id };
+    status = { phase: native ? "native-replay" : "three-replay", packet: packet.id };
     const result = await boundedBrowserCall(
       page.evaluate(async (text) => {
         const result = await window.__spoolReplay.present(text);
@@ -322,7 +325,7 @@ try {
       typeof result.source.terrain.grass.recordHash === "string" &&
       result.source.terrain.grass.recordHash === result.replay.terrain.grass.recordHash;
     const nativeHealthy =
-      !raw || (!result.native.errors.length && result.native.gpuRecordsMatch !== false);
+      !native || (!result.native.errors.length && result.native.gpuRecordsMatch !== false);
     if (!cameraMatches || !crowdMatches || !grassMatches || !nativeHealthy) {
       history.failedFrames++;
       if (history.failures.length < 32)
@@ -402,7 +405,7 @@ try {
       grassDrawsMatch: packet.snapshot ? isDeepStrictEqual(packet.draws, result.draws) : null,
       sourceGrassDraws: packet.draws,
       replayGrassDraws: result.draws,
-      ...(raw ? { native: result.native } : {}),
+      ...(native ? { native: result.native } : {}),
       sourceGrassRecordHash: item.summary.source.terrain.grass.recordHash,
       replayGrassRecordHash: item.summary.replay.terrain.grass.recordHash,
       grassRecordHashMatches:
@@ -449,7 +452,7 @@ try {
       await boundedWrite(`${name}-localization.json`, JSON.stringify(result.localization, null, 2));
     }
     if (sourceBytes && replayBytes && !diagnostic) {
-      if (!raw) await boundedWrite(`${name}-source.png`, sourceBytes);
+      if (!native) await boundedWrite(`${name}-source.png`, sourceBytes);
       await boundedWrite(`${name}-replay.png`, replayBytes);
     }
     findings.push(finding);
@@ -464,7 +467,7 @@ try {
     await boundedWrite("findings.json", JSON.stringify(findings, null, 2));
   }
 
-  if (raw)
+  if (native)
     errors.push(
       ...(await boundedBrowserCall(
         page.evaluate(() => window.__spoolReplay.finish()),

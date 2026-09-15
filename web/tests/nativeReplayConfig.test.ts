@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, test } from 'vitest';
 import { fileURLToPath } from 'node:url';
-import { nativeReplayResidencyPlugin } from '../../apps/battle-perf-lab/src/raw/replay.vite.config.mts';
+import { nativeReplayResidencyPlugin } from '../../apps/battle-perf-lab/src/replay.vite.config.mts';
 
 test('publication alias selects only the native field importer and cannot recurse into its provider', () => {
   const plugin = nativeReplayResidencyPlugin();

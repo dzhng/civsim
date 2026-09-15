@@ -23,7 +23,7 @@ const reachable = (entry, seen = new Set()) => {
   for (const match of code[entry].matchAll(/from ["']\.\/([^"']+\.mjs)["']/g)) reachable(match[1], seen);
   return seen;
 };
-const entries = ['control.mjs', 'scene.mjs', 'publications.mjs', 'spool.mjs'];
+const entries = ['control.mjs', 'scene.mjs', 'typegpuScene.mjs', 'vgpuScene.mjs', 'publications.mjs', 'spool.mjs'];
 for (const entry of entries)
   assert.ok(reachable(entry).has(provider), `${entry} must reach the shared provider chunk`);
 const sceneModule = [...reachable('scene.mjs')].find(name => code[name].includes('apps/battle-perf-lab/src/grassField.ts'));
@@ -56,7 +56,7 @@ assert.equal(
 
 // Exercise the emitted control/publications boundary, not the source config.
 const publications = await import(pathToFileURL(resolve(directory, 'publications.mjs')).href);
-const { createRawReplayControl } = await import(
+const { createReplayControl } = await import(
   pathToFileURL(resolve(directory, 'control.mjs')).href
 );
 const profile = publications.productionBladeFieldProfile();
@@ -98,13 +98,10 @@ const scene = {
   encode: () => presentations++,
   stats: () => ({}),
 };
-const control = await createRawReplayControl({
+const control = await createReplayControl({
   scene,
-  device: {
-    createCommandEncoder: () => ({ finish: () => ({}) }),
-    queue: { submit: () => {}, onSubmittedWorkDone: async () => {} },
-  },
-  context: { getCurrentTexture: () => ({ createView: () => ({}) }) },
+  submitPresentation: () => { scene.encode(); },
+  waitForSubmittedWork: async () => {},
   assets: { soldierUnit: new Uint32Array(), teams: [] },
   appearances: {},
   settings: {

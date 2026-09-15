@@ -6,6 +6,7 @@ import {
   type TgpuRenderCommands,
   type TgpuBindGroup,
 } from "typegpu";
+import { readU32Buffer } from "../../src/numericalReadback";
 import { beginGpuAdmission } from "../../src/gpuAdmission";
 import { grassUniformData, type GrassFrame, type GrassGeometry } from "../../src/grassData";
 import {
@@ -298,6 +299,14 @@ export async function createTypegpuGrass(
             if (onlyTier === undefined || onlyTier === i) render(beauty, i);
       },
       stats: () => ({ recordCount: count, capacity, pipelineBuilds: 4 }),
+      readDiagnostics: async () => {
+        const active = count;
+        const [routed, records] = await Promise.all([
+          readU32Buffer(device, commands.buffer),
+          readU32Buffer(device, buffers.records.buffer, active * 64),
+        ]);
+        return { commands: routed, records: new Float32Array(records.buffer), recordCount: active };
+      },
       readRouting: async () => ({
         commands: await commands.read(),
         visible: await Promise.all(buffers.visible.map((b) => b.read())),

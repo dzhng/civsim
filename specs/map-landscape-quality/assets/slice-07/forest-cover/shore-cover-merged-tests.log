@@ -1,0 +1,10 @@
+$ vitest run tests/battleTerrainCover.test.ts tests/battleTerrainSeam.test.ts tests/terrainScenery.test.ts
+
+ RUN  v4.1.9 /Users/david/dev/game-map-landscape-quality/web
+
+
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  15:10:50
+   Duration  341ms (transform 212ms, setup 291ms, import 304ms, tests 41ms, environment 0ms)
+

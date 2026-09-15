@@ -133,3 +133,8 @@ and battle seam guards, then fresh critique and exact crop repeats. Forest
 models, density, ground color palette, atmosphere and physics are frozen.
 
 The [bounded battle-density correction](../assets/slice-07/battle-density/README.md) raises the existing component cap without changing lattice, masks, slopes or models. CPU and source-field checks pass across generated 1/7/8 and authored A/B/C; fresh critique accepts improved woodland presence. Named seed 8 and standing 30k hardware costs remain within budget. Forest-world pixels repeat exactly; unrelated bronze-cardbar hardware drift is retained as an explicit full-frame limitation. Boundary material, tree proportions, understory and troop visibility under crowns remain open.
+
+The [forest boundary correction](../assets/slice-07/forest-cover/README.md) is
+implemented and freshly accepted: independent cover weights remove the false
+rock strip. World/edge repeats are exact; full-frame hardware HUD drift remains
+explicit. Fine floor striping and understory remain open.

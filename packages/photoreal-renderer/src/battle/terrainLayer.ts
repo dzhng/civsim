@@ -319,6 +319,18 @@ export function createGroundMesh(
   options: TerrainMaterialOptions = {},
 ): THREE.Mesh {
   const geo = createTerrainGeometry(mesh);
+  // IDs must become coverage before seams or fragments interpolate: grass0
+  // and forest4 must never blend through the rock2 category.
+  const tint = geo.getAttribute("gTint");
+  const cover = new Float32Array(tint.count * 3);
+  for (let i = 0; i < tint.count; i++) {
+    const id = tint.getX(i);
+    cover[i * 3] = id === 2 ? 1 : 0;
+    cover[i * 3 + 1] = id === 4 ? 1 : 0;
+    cover[i * 3 + 2] = id === 6 ? 1 : 0;
+  }
+  geo.deleteAttribute("gTint");
+  geo.setAttribute("gCover", new THREE.BufferAttribute(cover, 3));
   const earthDistance = options.earthDistance;
   const earthEdgesEnabled = earthDistance !== undefined;
   let earthDistanceTexture: THREE.DataTexture | null = null;
@@ -326,7 +338,7 @@ export function createGroundMesh(
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
   const surface = terrainSignals(options.detailScale);
   const { worldNormal, surfaceColor, surfaceWorld, world, waterBlend } = surface;
-  const tint = varying(attribute<"float">("gTint", "float")).toVar();
+  const coverage = varying(attribute<"vec3">("gCover", "vec3")).toVar();
   // Turf exclusions are computed before the far canopy so that the same masks
   // also protect mud, rock, and scree from the distance replacement.
   let unionDistance: FloatNode = float(-(earthDistance?.rangeMeters ?? 1));
@@ -382,19 +394,15 @@ export function createGroundMesh(
     .mul(0.5)
     .add(fbmN(world.mul(0.12)).sub(0.5).mul(0.24))
     .toVar();
-  const forestTint = float(1)
-    .sub(smoothstepN(0.18, 0.95, abs(tint.sub(4).add(tintDither))))
+  const coverDetail = float(1)
+    .sub(smoothstepN(0.18, 0.95, abs(tintDither)))
     .toVar();
-  const screeTint = float(1)
-    .sub(smoothstepN(0.18, 0.95, abs(tint.sub(6).add(tintDither))))
-    .mul(float(1).sub(roadEdge))
-    .toVar();
+  const forestTint = coverage.y.mul(coverDetail).toVar();
+  const screeTint = coverage.z.mul(coverDetail).mul(float(1).sub(roadEdge)).toVar();
   // Authored terrain has semantic tints but no gameplay slope descriptor.
   // Visual slope response still comes from the rendered normal.
   const bands = options.slopeBands ?? DEFAULT_TERRAIN_SLOPE_BANDS;
-  const rockTint = float(1)
-    .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2).add(tintDither))))
-    .toVar();
+  const rockTint = coverage.x.mul(coverDetail).toVar();
   // Authored rock/scree tints mark tactical prop footprints, already softened
   // into surfaceColor. Generated tints classify exposed faces from slope.
   const slopeMasks = terrainSlopeMasks(

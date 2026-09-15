@@ -19,3 +19,11 @@ FRAME_CHECK_URL='http://localhost:5199/frame-check.html?backend=typegpu&samples=
 ```
 
 The verifier's nonzero exit preserves the strict image diagnostic. Runtime error arrays and disposal counts must still be checked independently.
+
+[Fresh independent still review](review/findings.md) confirms matching soldier
+coverage and plausible foot contact after the initial source shadow-direction
+change. Both ports retain the same first-source leftward shadow versus subsequent
+rightward shadow discrepancy. One-sample plain repeats differ within soldier
+pixels; six other actual repeat pairs are pixel-identical. This is limited static
+correspondence, with aliasing and stippling retained, not cold-frame, full-world,
+interactive or performance acceptance.

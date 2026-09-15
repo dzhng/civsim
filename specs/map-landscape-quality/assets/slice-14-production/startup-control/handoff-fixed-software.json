@@ -1,0 +1,61 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T08:57:28.081Z",
+  "target": "http://127.0.0.1:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "handoff-normalized-control",
+      "file": "campaign/campaign-handoff.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "handoff-normalized-control",
+      "name": "fixed campaign input",
+      "ok": true,
+      "detail": "{\"tick\":4117,\"seedHex\":\"0x0000000000000022\",\"eid\":0,\"encounter\":{\"ambush\":false,\"attacker\":{\"faction\":0,\"garrison\":false,\"id\":0,\"soldiers\":8000},\"defender\":{\"faction\":1,\"garrison\":false,\"id\":1,\"soldiers\":8000},\"id\":0,\"no_retreat\":[false,false],\"player_faction\":0,\"reinforcements\":0},\"armies\":[{\"id\":0,\"x\":-3.75,\"y\":450,\"faction\":0,\"soldiers\":8000,\"stance\":0,\"pieKind\":0,\"pieFrac\":0,\"marching\":false,\"encounter\":0,\"moraleCap\":1,\"mine\":true,\"unitCount\":16,\"roster\":[0,8000,0,0,0,0,0,0,0,0,0,0,0,0,0],\"unitsByClass\":[0,16,0,0,0,0,0,0,0,0,0,0,0,0,0]},{\"id\":1,\"x\":3.75,\"y\":450,\"faction\":1,\"soldiers\":8000,\"stance\":0,\"pieKind\":0,\"pieFrac\":0,\"marching\":false,\"encounter\":0,\"moraleCap\":1,\"mine\":false,\"unitCount\":16,\"roster\":[0,8000,0,0,0,0,0,0,0,0,0,0,0,0,0],\"unitsByClass\":[0,16,0,0,0,0,0,0,0,0,0,0,0,0,0]}],\"saveSha256\":\"e3aa12b6fee7c4e65c4b8bb3ca87c3de2c4fc2a912bca003686df6e913606d29\"}"
+    },
+    {
+      "scenario": "handoff-normalized-control",
+      "name": "launch",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "handoff-normalized-control",
+      "name": "CPU terrain identity",
+      "ok": true,
+      "detail": "{\"manifest\":{\"edgeSeals\":{\"composition\":{\"east\":\"waterReach\",\"west\":\"cliffRun\"},\"expectedRoles\":{\"east\":\"ocean\",\"west\":\"cliff\"}},\"edges\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"featureSummary\":{\"lakeCells\":0,\"mudCells\":0,\"passableForestCells\":0,\"playableLakeCells\":0,\"roughFieldCells\":6176,\"screeCells\":8450,\"streamCells\":0,\"streams\":0},\"groundCover\":\"green-grass\",\"recipeClass\":\"plain\",\"seed\":34,\"seedHex\":\"0x0000000000000022\",\"terrainHash\":\"0x7e952c5de338fd0a\"},\"manifestSha256\":\"b1a321ce525d25c533b314260ba871da4648d64af27f8814091169c6a963bd32\"}"
+    },
+    {
+      "scenario": "handoff-normalized-control",
+      "name": "GPU queue instrumentation attached",
+      "ok": true,
+      "detail": "{\"records\":[{\"id\":0,\"submissions\":290,\"battleSubmissions\":0,\"fences\":[],\"fenceCalls\":0},{\"id\":1,\"submissions\":415,\"battleSubmissions\":415,\"fences\":[{\"start\":48939.60000002384,\"submitted\":301,\"phase\":\"battle\",\"end\":61774.00999999046,\"submittedAtEnd\":326},{\"start\":61812.814999997616,\"submitted\":387,\"phase\":\"battle\"}],\"fenceCalls\":2}],\"installed\":true}"
+    },
+    {
+      "scenario": "handoff-normalized-control",
+      "name": "scene completed without throwing",
+      "ok": false,
+      "detail": "Error: page.waitForFunction: Timeout 60000ms exceeded.; battle readiness state: {\"ready\":false,\"renderer\":\"gpu\",\"renderReady\":true,\"soldiers\":16000,\"uploaded\":16000,\"loading\":\"\\n    BATTLE\\n    Preparing the battlefield\\n    Loading the terrain and armies…\\n    \\n    Your armies will wait until everything is ready.The first visit takes longer; downloaded models are cached.\\n    Back to menu\\n  \"}\n    at battleRendererReady (file:///Users/david/dev/game-map-landscape-quality/web/scenes/worlds.mjs:139:11)\n    at async Object.run (file:///Users/david/dev/game-map-landscape-quality/throwaway/handoff-normalized.mjs:71:7)\n    at async runSelected (file:///Users/david/dev/game-map-landscape-quality/web/scene.mjs:189:9)\n    at async file:///Users/david/dev/game-map-landscape-quality/throwaway/handoff-normalized.mjs:82:20"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "handoff-normalized-control: scene completed without throwing"
+  ],
+  "pageErrors": []
+}

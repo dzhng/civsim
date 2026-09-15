@@ -167,3 +167,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 
 - **Settled:** Track requested native buffer/texture payloads and explicit destruction with bounded counters. Include profiler allocations; keep unknown formats unavailable. These figures are logical allocation accounting, not physical VRAM and not equivalent to source Three object counts.
 - **Settled:** Validate exported runs offline using the game's FPS owner and explicit experiment manifests. Pair eligibility establishes comparable cadence evidence only; simulation progress, incomplete GPU data, visual parity and repeated-run acceptance remain separate decisions. Preserve rejected-pair evidence instead of producing a winner from incomplete measurements.
+
+### Overlapping GPU timing intervals
+
+- **Settled:** Keep pass-duration sums as diagnostics only. Observed hardware intervals overlap, so comparison uses separately named whole-presentation span and interval union after source/native coverage is aligned. Neither is labelled physical GPU busy time; shadow comparisons use matched whole presentations, not subtraction of overlapping stage sums.

@@ -39,3 +39,9 @@ batching or awaiting per-pass fences, with bloom enabled and disabled. Preserve
 the existing image/numerical comparison. Only if blur dominates should a later
 single-variable coefficient-storage experiment follow. This checkpoint attributes
 cost; it does not replace complete Menu trials or authorize a fidelity reduction.
+
+The [range control](assets/02-live/post-timestamp-ranges/README.md) now proves
+that overlap inflates native pass sums. Do not proceed to a blur-coefficient
+optimization from those sums. The next seam is comparable source/native raw GPU
+ranges and calibrated aggregation, then fresh matched timing. Historical live
+runs still prove functional validity and query correlation, not GPU elapsed cost.

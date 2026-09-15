@@ -1,0 +1,3379 @@
+{
+  "backend": "typegpu",
+  "passed": false,
+  "pageErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "warnings": [],
+  "result": {
+    "passed": true,
+    "backend": "typegpu",
+    "framebuffer": [
+      2880,
+      1800
+    ],
+    "warmup": 4,
+    "measured": 24,
+    "errors": [],
+    "scope": "Fixed HDR post-only diagnostic; GPU pass time excludes copies, queue waits and presentation. Not a whole-battle ranking.",
+    "numerical": {
+      "passed": true,
+      "backend": "typegpu",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "framebuffer": [
+        127,
+        95
+      ],
+      "results": [
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.81396484375,
+            "expected": 0.81396484375
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.75732421875,
+            "expected": 0.75732421875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7919921875,
+            "expected": 0.7919921875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.8095703125,
+            "expected": 0.8095703125
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.755859375,
+            "expected": 0.755859375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.830078125,
+            "expected": 0.830078125
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.78076171875,
+            "expected": 0.78076171875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        }
+      ],
+      "errors": [],
+      "disposedGuard": true,
+      "scope": "synthetic HDR numerical control against actual BattlePostChain; no battle visual or performance claim"
+    },
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "outputFormat": "bgra8unorm",
+    "preset": "golden",
+    "modes": [
+      {
+        "bloom": true,
+        "levels": 5,
+        "passes": [
+          {
+            "name": "highpass",
+            "samples": 24,
+            "meanMs": 0.4513337083333333,
+            "minMs": 0.056871,
+            "medianMs": 0.120203,
+            "p95Ms": 1.61451,
+            "maxMs": 4.010899
+          },
+          {
+            "name": "horizontal-0",
+            "samples": 24,
+            "meanMs": 0.6938247083333334,
+            "minMs": 0.165698,
+            "medianMs": 0.295571,
+            "p95Ms": 2.871743,
+            "maxMs": 4.192016
+          },
+          {
+            "name": "vertical-0",
+            "samples": 24,
+            "meanMs": 1.0434397499999999,
+            "minMs": 0.275899,
+            "medianMs": 0.471603,
+            "p95Ms": 3.695998,
+            "maxMs": 4.443422
+          },
+          {
+            "name": "horizontal-1",
+            "samples": 24,
+            "meanMs": 1.3598782916666667,
+            "minMs": 0.372394,
+            "medianMs": 0.622263,
+            "p95Ms": 4.131144,
+            "maxMs": 4.596748
+          },
+          {
+            "name": "vertical-1",
+            "samples": 24,
+            "meanMs": 1.4972119166666664,
+            "minMs": 0.425724,
+            "medianMs": 0.897945,
+            "p95Ms": 4.271013,
+            "maxMs": 4.685244
+          },
+          {
+            "name": "horizontal-2",
+            "samples": 24,
+            "meanMs": 1.5859394166666665,
+            "minMs": 0.471929,
+            "medianMs": 0.9569,
+            "p95Ms": 4.322677,
+            "maxMs": 4.757157
+          },
+          {
+            "name": "vertical-2",
+            "samples": 24,
+            "meanMs": 1.697118041666667,
+            "minMs": 0.49622,
+            "medianMs": 1.007229,
+            "p95Ms": 4.348718,
+            "maxMs": 4.795197
+          },
+          {
+            "name": "horizontal-3",
+            "samples": 24,
+            "meanMs": 1.7608874166666666,
+            "minMs": 0.529801,
+            "medianMs": 1.080518,
+            "p95Ms": 4.403924,
+            "maxMs": 4.858778
+          },
+          {
+            "name": "vertical-3",
+            "samples": 24,
+            "meanMs": 1.8098383333333334,
+            "minMs": 0.545717,
+            "medianMs": 1.158072,
+            "p95Ms": 4.413548,
+            "maxMs": 4.891609
+          },
+          {
+            "name": "horizontal-4",
+            "samples": 24,
+            "meanMs": 1.8072065416666663,
+            "minMs": 0.568257,
+            "medianMs": 1.124222,
+            "p95Ms": 4.380883,
+            "maxMs": 4.928233
+          },
+          {
+            "name": "vertical-4",
+            "samples": 24,
+            "meanMs": 1.7393182083333334,
+            "minMs": 0.580882,
+            "medianMs": 1.073268,
+            "p95Ms": 4.399049,
+            "maxMs": 4.935567
+          },
+          {
+            "name": "composite",
+            "samples": 24,
+            "meanMs": 1.8184154166666664,
+            "minMs": 0.506644,
+            "medianMs": 1.420996,
+            "p95Ms": 4.479669,
+            "maxMs": 5.018353
+          },
+          {
+            "name": "grade-agx-output",
+            "samples": 24,
+            "meanMs": 2.5207005,
+            "minMs": 1.0851,
+            "medianMs": 1.986129,
+            "p95Ms": 5.455293,
+            "maxMs": 5.763903
+          }
+        ],
+        "events": [
+          {
+            "submissionId": 9,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 5,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 40.897421,
+            "computeMs": 0,
+            "measuredPassGpuMs": 40.897421,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 40.897421
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.062163
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.907236
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.984046
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.575365
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.665027
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.709649
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.734272
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.768186
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.787352
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.807559
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.815517
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.812727
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.268322
+              }
+            ]
+          },
+          {
+            "submissionId": 11,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 6,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 6.225241,
+            "computeMs": 0,
+            "measuredPassGpuMs": 6.225241,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 6.225241
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.056871
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.165698
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.275899
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.372394
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.425724
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.471929
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.49622
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.529801
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.549216
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.571923
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.584589
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.635002
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.089975
+              }
+            ]
+          },
+          {
+            "submissionId": 13,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 7,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 6.231665,
+            "computeMs": 0,
+            "measuredPassGpuMs": 6.231665,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 6.231665
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.061246
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.170323
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.280858
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.37502
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.428433
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.472263
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.496887
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.535717
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.545717
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.568257
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.580882
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.630962
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.0851
+              }
+            ]
+          },
+          {
+            "submissionId": 15,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 8,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 8.944329,
+            "computeMs": 0,
+            "measuredPassGpuMs": 8.944329,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 8.944329
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.548758
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.222695
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.416141
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.530383
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.597756
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.654502
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.685167
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.733455
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.757704
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.786244
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.801618
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.86478
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.345126
+              }
+            ]
+          },
+          {
+            "submissionId": 17,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 9,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 8.646267,
+            "computeMs": 0,
+            "measuredPassGpuMs": 8.646267,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 8.646267
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.070745
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.207529
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.345729
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.463181
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.531552
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.588256
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.621045
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.795494
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.82045
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.848532
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.865739
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.956108
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.531907
+              }
+            ]
+          },
+          {
+            "submissionId": 19,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 10,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 9.707616,
+            "computeMs": 0,
+            "measuredPassGpuMs": 9.707616,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 9.707616
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.120577
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.222404
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.325355
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.410475
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.457805
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.497094
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.515301
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.545551
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.562007
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.582131
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.592798
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.151452
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.724666
+              }
+            ]
+          },
+          {
+            "submissionId": 21,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 11,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 7.971514,
+            "computeMs": 0,
+            "measuredPassGpuMs": 7.971514,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 7.971514
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.071537
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.209279
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.347354
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.468263
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.535218
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.608046
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.638794
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.686958
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.710456
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.738205
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.754538
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.816992
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.385874
+              }
+            ]
+          },
+          {
+            "submissionId": 23,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 12,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 12.424112,
+            "computeMs": 0,
+            "measuredPassGpuMs": 12.424112,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 12.424112
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.258192
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.430556
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.715997
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.833366
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.897945
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.9569
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.007229
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.080518
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.104765
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.124222
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.073268
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.16143
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.779724
+              }
+            ]
+          },
+          {
+            "submissionId": 25,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 13,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 30.571091,
+            "computeMs": 0,
+            "measuredPassGpuMs": 30.571091,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 30.571091
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.671584
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.804034
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.136912
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.67417
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.64663
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.380084
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.412583
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.507619
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.025482
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.911905
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.594195
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.617818
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.188075
+              }
+            ]
+          },
+          {
+            "submissionId": 27,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 14,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 7.789482,
+            "computeMs": 0,
+            "measuredPassGpuMs": 7.789482,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 7.789482
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.067329
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.205654
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.34402
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.462097
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.528967
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.587172
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.618587
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.667127
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.691375
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.719414
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.735705
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.797576
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.364459
+              }
+            ]
+          },
+          {
+            "submissionId": 29,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 15,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 7.715610999999999,
+            "computeMs": 0,
+            "measuredPassGpuMs": 7.715610999999999,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 7.715610999999999
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.074328
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.210862
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.348853
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.466764
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.528217
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.58484
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.615587
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.651169
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.675542
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.703957
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.720081
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.782952
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.352459
+              }
+            ]
+          },
+          {
+            "submissionId": 31,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 16,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 15.700541999999999,
+            "computeMs": 0,
+            "measuredPassGpuMs": 15.700541999999999,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 15.700541999999999
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.163073
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.767578
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.967691
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.140347
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.207511
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.263381
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.293671
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.336085
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.360584
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.388499
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.404997
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.420996
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.986129
+              }
+            ]
+          },
+          {
+            "submissionId": 33,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 17,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 12.532512999999998,
+            "computeMs": 0,
+            "measuredPassGpuMs": 12.532512999999998,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 12.532512999999998
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.120203
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.295571
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.471603
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.622263
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.710343
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.784089
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.844753
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.983496
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.158072
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.245068
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.432477
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.550346
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.314229
+              }
+            ]
+          },
+          {
+            "submissionId": 35,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 18,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 26.899228000000004,
+            "computeMs": 0,
+            "measuredPassGpuMs": 26.899228000000004,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 26.899228000000004
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.072247
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.215115
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.361233
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.478061
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.204195
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.264276
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.312144
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.3716
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.229435
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.268351
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.291516
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.375762
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 5.455293
+              }
+            ]
+          },
+          {
+            "submissionId": 37,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 19,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 12.657463,
+            "computeMs": 0,
+            "measuredPassGpuMs": 12.657463,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 12.657463
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.117912
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.476436
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.79338
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.978372
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.06116
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.130448
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.250276
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.326189
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.355563
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.105449
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.794756
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.708635
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.558887
+              }
+            ]
+          },
+          {
+            "submissionId": 39,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 20,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 41.180823000000004,
+            "computeMs": 0,
+            "measuredPassGpuMs": 41.180823000000004,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 41.180823000000004
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.768798
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.951624
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.827541
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.316599
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.575878
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.60321
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.646208
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.760535
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.779827
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.756079
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.760537
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.84449
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.589497
+              }
+            ]
+          },
+          {
+            "submissionId": 41,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 21,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 10.187907,
+            "computeMs": 0,
+            "measuredPassGpuMs": 10.187907,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 10.187907
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.092537
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.271488
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.451937
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.603889
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.691509
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.766923
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.807546
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.87021
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.901667
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.938707
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.960414
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.042952
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.788128
+              }
+            ]
+          },
+          {
+            "submissionId": 43,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 22,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 43.744288999999995,
+            "computeMs": 0,
+            "measuredPassGpuMs": 43.744288999999995,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 43.744288999999995
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.524476
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.775089
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.651133
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.708876
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.327514
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.402719
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.176226
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.21914
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.413548
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.380883
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.399049
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.479669
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 5.285967
+              }
+            ]
+          },
+          {
+            "submissionId": 45,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 23,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 10.216701,
+            "computeMs": 0,
+            "measuredPassGpuMs": 10.216701,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 10.216701
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.092329
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.271779
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.452688
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.605306
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.693219
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.76859
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.809005
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.873252
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.905208
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.942457
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.964081
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.046744
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.792043
+              }
+            ]
+          },
+          {
+            "submissionId": 47,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 24,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 49.714600999999995,
+            "computeMs": 0,
+            "measuredPassGpuMs": 49.714600999999995,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 49.714600999999995
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.61451
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.871743
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.695998
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.131144
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.271013
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.322677
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.348718
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.403924
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.3678
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.271305
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.121269
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.277766
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.016734
+              }
+            ]
+          },
+          {
+            "submissionId": 49,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 25,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 8.472779999999998,
+            "computeMs": 0,
+            "measuredPassGpuMs": 8.472779999999998,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 8.472779999999998
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.091954
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.270696
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.451105
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.604389
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.692052
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.768048
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.808838
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.871627
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.889543
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.743341
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.58114
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.506644
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.193403
+              }
+            ]
+          },
+          {
+            "submissionId": 51,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 26,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 18.879466,
+            "computeMs": 0,
+            "measuredPassGpuMs": 18.879466,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 18.879466
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.84342
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.021787
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.206236
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.298899
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.386103
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.460225
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.499889
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.534262
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.566596
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.603926
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.518346
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.597052
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.342725
+              }
+            ]
+          },
+          {
+            "submissionId": 53,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 27,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 15.654906,
+            "computeMs": 0,
+            "measuredPassGpuMs": 15.654906,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 15.654906
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.256321
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.514601
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.747423
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.920708
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.184071
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.260068
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.29669
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.350605
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.386602
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.43831
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.460558
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.544762
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.294187
+              }
+            ]
+          },
+          {
+            "submissionId": 55,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 28,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 61.877126,
+            "computeMs": 0,
+            "measuredPassGpuMs": 61.877126,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 13,
+                "missingQueries": 0,
+                "ms": 61.877126
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.010899
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.192016
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.443422
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.596748
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.685244
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.757157
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.795197
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.858778
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.891609
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.928233
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 4.935567
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 5.018353
+              },
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 5.763903
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "bloom": false,
+        "levels": 0,
+        "passes": [
+          {
+            "name": "grade-agx-output",
+            "samples": 24,
+            "meanMs": 1.172691625,
+            "minMs": 0.59569,
+            "medianMs": 0.780768,
+            "p95Ms": 3.75226,
+            "maxMs": 5.018222
+          }
+        ],
+        "events": [
+          {
+            "submissionId": 65,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 33,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 3.75226,
+            "computeMs": 0,
+            "measuredPassGpuMs": 3.75226,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 3.75226
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 3.75226
+              }
+            ]
+          },
+          {
+            "submissionId": 67,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 34,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.783851,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.783851,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.783851
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.783851
+              }
+            ]
+          },
+          {
+            "submissionId": 69,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 35,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 2.001231,
+            "computeMs": 0,
+            "measuredPassGpuMs": 2.001231,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 2.001231
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.001231
+              }
+            ]
+          },
+          {
+            "submissionId": 71,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 36,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.809433,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.809433,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.809433
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.809433
+              }
+            ]
+          },
+          {
+            "submissionId": 73,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 37,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.626981,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.626981,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.626981
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.626981
+              }
+            ]
+          },
+          {
+            "submissionId": 75,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 38,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.59569,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.59569,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.59569
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.59569
+              }
+            ]
+          },
+          {
+            "submissionId": 77,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 39,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.807559,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.807559,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.807559
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.807559
+              }
+            ]
+          },
+          {
+            "submissionId": 79,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 40,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.596024,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.596024,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.596024
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.596024
+              }
+            ]
+          },
+          {
+            "submissionId": 81,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 41,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.599857,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.599857,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.599857
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.599857
+              }
+            ]
+          },
+          {
+            "submissionId": 83,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 42,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.597398,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.597398,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.597398
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.597398
+              }
+            ]
+          },
+          {
+            "submissionId": 85,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 43,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 2.9972,
+            "computeMs": 0,
+            "measuredPassGpuMs": 2.9972,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 2.9972
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 2.9972
+              }
+            ]
+          },
+          {
+            "submissionId": 87,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 44,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.724145,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.724145,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.724145
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.724145
+              }
+            ]
+          },
+          {
+            "submissionId": 89,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 45,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.625022,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.625022,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.625022
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.625022
+              }
+            ]
+          },
+          {
+            "submissionId": 91,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 46,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.712396,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.712396,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.712396
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.712396
+              }
+            ]
+          },
+          {
+            "submissionId": 93,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 47,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.787684,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.787684,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.787684
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.787684
+              }
+            ]
+          },
+          {
+            "submissionId": 95,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 48,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 5.018222,
+            "computeMs": 0,
+            "measuredPassGpuMs": 5.018222,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 5.018222
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 5.018222
+              }
+            ]
+          },
+          {
+            "submissionId": 97,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 49,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.780893,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.780893,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.780893
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.780893
+              }
+            ]
+          },
+          {
+            "submissionId": 99,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 50,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.780768,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.780768,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.780768
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.780768
+              }
+            ]
+          },
+          {
+            "submissionId": 101,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 51,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.59769,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.59769,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.59769
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.59769
+              }
+            ]
+          },
+          {
+            "submissionId": 103,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 52,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.649688,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.649688,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.649688
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.649688
+              }
+            ]
+          },
+          {
+            "submissionId": 105,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 53,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 1.324001,
+            "computeMs": 0,
+            "measuredPassGpuMs": 1.324001,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 1.324001
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 1.324001
+              }
+            ]
+          },
+          {
+            "submissionId": 107,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 54,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.781851,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.781851,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.781851
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.781851
+              }
+            ]
+          },
+          {
+            "submissionId": 109,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 55,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.597648,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.597648,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.597648
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.597648
+              }
+            ]
+          },
+          {
+            "submissionId": 111,
+            "backend": "typegpu",
+            "source": "render-only",
+            "sequence": 56,
+            "status": "complete",
+            "reason": null,
+            "missingQueries": 0,
+            "renderMs": 0.597107,
+            "computeMs": 0,
+            "measuredPassGpuMs": 0.597107,
+            "stages": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "queries": 1,
+                "missingQueries": 0,
+                "ms": 0.597107
+              }
+            ],
+            "passes": [
+              {
+                "kind": "render",
+                "label": "<unnamed>",
+                "ms": 0.597107
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

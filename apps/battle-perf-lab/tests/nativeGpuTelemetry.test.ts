@@ -235,8 +235,8 @@ it("publishes ordered diagnostic pass details only when requested, without chang
     { kind: "render", label: "post", queries: 2, missingQueries: 0, ms: 4 },
   ]);
   expect(event.passes).toEqual([
-    { kind: "render", label: "post", ms: 2 },
-    { kind: "render", label: "post", ms: 2 },
+    { kind: "render", label: "post", ms: 2, beginNs: "0", endNs: "2000000" },
+    { kind: "render", label: "post", ms: 2, beginNs: "2000000", endNs: "4000000" },
   ]);
   event.passes![0].ms = 999;
   expect(telemetry.eventsSince(0)!.events[0].passes![0].ms).toBe(2);

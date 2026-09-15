@@ -11,6 +11,8 @@ interface Pass {
   ended: boolean;
   submitted: boolean;
   ms: number | null;
+  beginNs?: string;
+  endNs?: string;
 }
 interface Slot {
   query: GPUQuerySet;
@@ -35,7 +37,13 @@ export interface NativeGpuEvent extends NativeSubmissionIdentity {
   computeMs: number | null;
   measuredPassGpuMs: number | null;
   /** Opt-in diagnostic detail; order is command encoding order. */
-  passes?: { kind: Pass["kind"]; label: string; ms: number | null }[];
+  passes?: {
+    kind: Pass["kind"];
+    label: string;
+    ms: number | null;
+    beginNs?: string;
+    endNs?: string;
+  }[];
   stages: {
     kind: Pass["kind"];
     label: string;
@@ -217,6 +225,10 @@ export class NativeGpuTelemetry {
           slot.readback.unmap();
           if (!(await accepted)) record.reason = "submission-validation-failed";
           for (let i = 0; i < record.passes.length; i++) {
+            if (this.options.passDetails) {
+              record.passes[i].beginNs = values[i * 2].toString();
+              record.passes[i].endNs = values[i * 2 + 1].toString();
+            }
             const duration = values[i * 2 + 1] - values[i * 2];
             if (duration < 0n || (values[i * 2] === 0n && values[i * 2 + 1] === 0n))
               record.reason = "invalid-query-result";
@@ -404,10 +416,11 @@ export class NativeGpuTelemetry {
       stages,
       ...(this.options.passDetails
         ? {
-            passes: record.passes.map(({ kind, label, ms }) => ({
+            passes: record.passes.map(({ kind, label, ms, beginNs, endNs }) => ({
               kind,
               label,
               ms: complete ? ms : null,
+              ...(complete ? { beginNs, endNs } : {}),
             })),
           }
         : {}),

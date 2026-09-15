@@ -7,11 +7,15 @@ const backend = process.argv[2] ?? "typegpu";
 if (!["raw", "typegpu", "vgpu"].includes(backend)) throw Error("Expected raw, typegpu or vgpu");
 const directory = resolve(process.argv[3] ?? `throwaway/post-timing-${backend}`);
 await mkdir(directory, { recursive: true });
-const report = { backend, passed: false, pageErrors: [], warnings: [] };
+const report = { backend, passed: false, pageErrors: [], warnings: [], failedRequests: [] };
 let browser;
 try {
   browser = await chromium.launch({ channel: "chrome", headless: true, args: GPU_HARDWARE_FLAGS });
   const page = await browser.newPage();
+  page.on("response", (response) => {
+    if (response.status() >= 400)
+      report.failedRequests.push({ url: response.url(), status: response.status() });
+  });
   page.on("pageerror", (error) => report.pageErrors.push(error.message));
   page.on("console", (message) => {
     if (message.type() === "warning") report.warnings.push(message.text());

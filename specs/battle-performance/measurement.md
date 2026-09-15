@@ -56,3 +56,13 @@ sample incomplete. Query storage referenced by unsubmitted commands is quarantin
 until disposal. The implementation lives in
 [the native observer](../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts); hardware
 correlation and instrumentation-overhead controls remain required before ranking.
+
+The lab build's compile-time `BATTLE_NATIVE_TIMING_QUERIES` flag supplies the paired
+control. Its `disabled` value removes the observer's query sets, injected
+timestampWrites, resolve/copy submission and readback maps while keeping the requested
+device features, backend drawing, validation, graphics settings, submission identity,
+submission counting and allocation observation. It therefore bounds the incremental
+query/readback cost only; it is not an uninstrumented baseline. A disabled run reports
+GPU timing as explicitly unavailable, never zero, and names its mode in both the runtime
+diagnostic stats and the lab build provenance. No overhead figure exists yet: that needs
+fixed-build paired hardware runs of the two modes over the workloads above.

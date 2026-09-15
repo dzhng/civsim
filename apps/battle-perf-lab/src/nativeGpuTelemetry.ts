@@ -4,6 +4,12 @@ import {
 } from "../../../packages/renderer-core/src/gpuTimestampRanges";
 export type NativeGpuBackend = "raw" | "typegpu" | "vgpu";
 export type NativeGpuSource = "battle-draw" | "render-only";
+/** Lab-only compile-time control over this observer's incremental query work. */
+export type NativeTimingQueryMode = "enabled" | "disabled";
+export type NativeGpuTimingAvailability =
+  | "available"
+  | "disabled-by-lab-control"
+  | "device-unsupported";
 export interface NativeSubmissionIdentity {
   submissionId: number;
   backend: NativeGpuBackend;
@@ -73,7 +79,11 @@ export function nativeGpuScope<T>(device: GPUDevice, label: string, work: () => 
 
 /** Lab measurement of standard WebGPU calls, installed before library construction.
  * Resolve/copy work uses a separate submission and is never included in pass time
- * or the returned final-render identity. No readback is awaited by presentation. */
+ * or the returned final-render identity. No readback is awaited by presentation.
+ * `timingQueries: "disabled"` withholds only this observer's incremental query work:
+ * no query set, no injected timestampWrites, no resolve/copy submission and no
+ * readback map. Submission counting and identity stay installed, so a disabled build
+ * is an incremental query/readback overhead control, not an uninstrumented renderer. */
 export class NativeGpuTelemetry {
   private readonly createEncoder: GPUDevice["createCommandEncoder"];
   private readonly submitQueue: GPUQueue["submit"];
@@ -87,14 +97,28 @@ export class NativeGpuTelemetry {
   private sequence = 0;
   private outsidePasses = 0;
   readonly supported: boolean;
+  /** Reported so a disabled control never reads as a device limitation. */
+  readonly timingQueries: NativeTimingQueryMode;
+  readonly availability: NativeGpuTimingAvailability;
 
   constructor(
     private readonly device: GPUDevice,
     private readonly backend: NativeGpuBackend,
-    private readonly options: { passDetails?: boolean } = {},
+    private readonly options: {
+      passDetails?: boolean;
+      timingQueries?: NativeTimingQueryMode;
+    } = {},
   ) {
     if (observers.has(device)) throw Error("GPU device already has a native telemetry owner");
-    this.supported = device.features.has("timestamp-query");
+    const deviceTimestamps = device.features.has("timestamp-query");
+    this.timingQueries = options.timingQueries ?? "enabled";
+    this.supported = this.timingQueries === "enabled" && deviceTimestamps;
+    this.availability =
+      this.timingQueries === "disabled"
+        ? "disabled-by-lab-control"
+        : deviceTimestamps
+          ? "available"
+          : "device-unsupported";
     this.createEncoder = device.createCommandEncoder;
     this.submitQueue = device.queue.submit;
     const observer = this;
@@ -289,6 +313,8 @@ export class NativeGpuTelemetry {
   stats() {
     return {
       supported: this.supported,
+      timingQueries: this.timingQueries,
+      availability: this.availability,
       submissionCount: this.count,
       outsideSubmissionPasses: this.outsidePasses,
       querySlots: this.slots.length,

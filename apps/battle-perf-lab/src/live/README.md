@@ -7,6 +7,16 @@ HUD, cancellation, and result collection remain their production owners. Select
 `BATTLE_NATIVE_ATLAS_CATALOG` as the URL of the verified full appearance atlas
 catalog. These build-time values survive the Menu's document navigation.
 
+`BATTLE_NATIVE_TIMING_QUERIES=enabled|disabled` (default `enabled`) is the lab's
+incremental query/readback overhead control. `disabled` withholds only the native
+observer's timestamp work: no query set, no injected `timestampWrites`, no query
+resolve/copy submission and no timestamp readback. It is not an uninstrumented
+build. Requested device features, drawing, shaders, validation scopes, graphics
+settings, submission identity, submission counting and allocation observation all
+stay as they are under the default. A disabled build reports GPU timing as
+explicitly unavailable rather than zero, and both modes name the flag and its value
+in the renderer's diagnostic stats.
+
 Native scenes share construction and synchronous submission with offline replay,
 without importing replay history into live grass residency. The facade snapshots
 terrain inputs and uses the prepared scene's actual ground/apron triangles for

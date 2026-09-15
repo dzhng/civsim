@@ -56,13 +56,14 @@ import { claimCanvas } from "./canvasOwnership";
 import { createSceneBackend, type SceneBackend } from "../sceneBackend";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import { createTerrainPicking } from "../terrainPicking";
-import { NativeGpuTelemetry } from "../nativeGpuTelemetry";
+import { NativeGpuTelemetry, type NativeTimingQueryMode } from "../nativeGpuTelemetry";
 import { trackNativeGpuAllocations } from "../nativeGpuAllocations";
 import { beginGpuAdmission } from "../gpuAdmission";
 import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
 
 declare const __BATTLE_NATIVE_BACKEND__: SceneBackend;
 declare const __BATTLE_NATIVE_ATLAS_CATALOG__: string;
+declare const __BATTLE_NATIVE_TIMING_QUERIES__: NativeTimingQueryMode;
 type Owner = Awaited<ReturnType<typeof createSceneBackend>>;
 type View = Parameters<Owner["scene"]["prepare"]>[0];
 const twoFrames = () =>
@@ -78,6 +79,7 @@ export class BattleRenderer implements BattleRendererApi {
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
   private readonly backend = __BATTLE_NATIVE_BACKEND__;
+  private readonly timingQueries = __BATTLE_NATIVE_TIMING_QUERIES__;
   private readonly environmentRequest: string | null;
   private readonly settings: GraphicsSettings;
   private visibility: Pick<GraphicsSettings, "grass" | "farGrass" | "bloom">;
@@ -149,6 +151,8 @@ export class BattleRenderer implements BattleRendererApi {
     const params = new URLSearchParams(location.search);
     if (!["raw", "typegpu", "vgpu"].includes(this.backend))
       throw Error("Invalid native lab backend");
+    if (!["enabled", "disabled"].includes(this.timingQueries))
+      throw Error("Invalid native lab timing-query mode");
     if (!__BATTLE_NATIVE_ATLAS_CATALOG__)
       throw Error("Native live lab requires the prepared atlas catalog");
     if (params.get("debug") === "blocks")
@@ -246,6 +250,8 @@ export class BattleRenderer implements BattleRendererApi {
         .filter(Boolean)
         .join(" ") || "WebGPU adapter";
     const device = await adapter.requestDevice({
+      // Requested independently of the timing-query control, so a disabled build
+      // still runs on the same device configuration it is a control for.
       requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [],
     });
     this.device = device;
@@ -254,7 +260,9 @@ export class BattleRenderer implements BattleRendererApi {
     const allocations = trackNativeGpuAllocations(device);
     this.allocations = allocations;
     this.releases.push(() => allocations.restore());
-    const telemetry = new NativeGpuTelemetry(device, this.backend);
+    const telemetry = new NativeGpuTelemetry(device, this.backend, {
+      timingQueries: this.timingQueries,
+    });
     this.telemetry = telemetry;
     this.releases.push(() => telemetry.dispose());
     void device.lost.then((info) => {
@@ -685,6 +693,15 @@ export class BattleRenderer implements BattleRendererApi {
         latest: this.latestSubmission,
       },
       gpuTiming: this.telemetry?.stats() ?? { supported: false },
+      labBuild: {
+        backend: this.backend,
+        timingQueryFlag: "BATTLE_NATIVE_TIMING_QUERIES",
+        timingQueries: this.timingQueries,
+        scope:
+          this.timingQueries === "disabled"
+            ? "compile-time control: no timestamp query sets, no injected timestampWrites, no query resolve/copy submission and no timestamp readback; GPU timing is unavailable, never zero. CPU submission observation, admission scopes, device features and drawing are unchanged, so this is an incremental query/readback overhead control, not an uninstrumented renderer"
+            : "compile-time default: this observer's timestamp queries, resolve/copy submission and readback are active",
+      },
       allocations: this.allocations
         ? {
             scope: "requested buffer and texture bytes, including telemetry; not physical VRAM",

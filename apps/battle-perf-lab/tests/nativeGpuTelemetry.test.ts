@@ -7,6 +7,10 @@ function deviceFixture(supported = true, timestampValues?: bigint[]) {
   const mappings: (() => void)[] = [];
   const descriptors: (GPURenderPassDescriptor | GPUComputePassDescriptor)[] = [];
   const resources: { destroy: ReturnType<typeof vi.fn> }[] = [];
+  const encoders: {
+    resolveQuerySet: ReturnType<typeof vi.fn>;
+    copyBufferToBuffer: ReturnType<typeof vi.fn>;
+  }[] = [];
   const submit = vi.fn();
   const queue = { submit };
   const device = {
@@ -35,19 +39,23 @@ function deviceFixture(supported = true, timestampValues?: bigint[]) {
       resources.push(buffer);
       return buffer;
     }),
-    createCommandEncoder: vi.fn(() => ({
-      beginRenderPass: vi.fn((descriptor: GPURenderPassDescriptor) => {
-        descriptors.push(descriptor);
-        return { end: vi.fn() };
-      }),
-      beginComputePass: vi.fn((descriptor: GPUComputePassDescriptor) => {
-        descriptors.push(descriptor);
-        return { end: vi.fn() };
-      }),
-      resolveQuerySet: vi.fn(),
-      copyBufferToBuffer: vi.fn(),
-      finish: vi.fn(() => ({})),
-    })),
+    createCommandEncoder: vi.fn(() => {
+      const encoder = {
+        beginRenderPass: vi.fn((descriptor: GPURenderPassDescriptor) => {
+          descriptors.push(descriptor);
+          return { end: vi.fn() };
+        }),
+        beginComputePass: vi.fn((descriptor: GPUComputePassDescriptor) => {
+          descriptors.push(descriptor);
+          return { end: vi.fn() };
+        }),
+        resolveQuerySet: vi.fn(),
+        copyBufferToBuffer: vi.fn(),
+        finish: vi.fn(() => ({})),
+      };
+      encoders.push(encoder);
+      return encoder;
+    }),
   } as unknown as GPUDevice;
   async function drain() {
     mappings.splice(0).forEach((resolve) => resolve());
@@ -64,7 +72,7 @@ function deviceFixture(supported = true, timestampValues?: bigint[]) {
     if (submit) device.queue.submit([buffer]);
     return buffer;
   }
-  return { device, submit, queue, descriptors, resources, drain, encode };
+  return { device, submit, queue, descriptors, resources, encoders, drain, encode };
 }
 
 afterEach(() => vi.unstubAllGlobals());
@@ -297,5 +305,75 @@ it("withholds all interval aggregates when one query is invalid", async () => {
     event.stages.every((s) => s.observedGpuSpanMs === null && s.observedGpuUnionMs === null),
   ).toBe(true);
   expect(event.passes!.every((p) => p.ms === null && p.beginNs === undefined)).toBe(true);
+  telemetry.dispose();
+});
+
+test("the disabled lab control issues no query GPU work while actual submission identity advances", async () => {
+  const f = deviceFixture();
+  const telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  expect(f.device.features.has("timestamp-query")).toBe(true);
+  telemetry.beginSubmission("battle-draw");
+  nativeGpuScope(f.device, "main", () => f.encode());
+  expect(telemetry.endSubmission(Promise.resolve())).toEqual({
+    submissionId: 1,
+    backend: "raw",
+    source: "battle-draw",
+  });
+  telemetry.beginSubmission("render-only");
+  f.encode("compute");
+  expect(telemetry.endSubmission(Promise.resolve())).toEqual({
+    submissionId: 2,
+    backend: "raw",
+    source: "render-only",
+  });
+  await f.drain();
+  expect(f.device.createQuerySet).not.toHaveBeenCalled();
+  expect(f.device.createBuffer).not.toHaveBeenCalled();
+  // Each pass descriptor reaches the backend exactly as it was authored.
+  expect(f.descriptors).toEqual([{ colorAttachments: [] }, undefined]);
+  expect(
+    f.encoders.every(
+      (encoder) =>
+        !encoder.resolveQuerySet.mock.calls.length && !encoder.copyBufferToBuffer.mock.calls.length,
+    ),
+  ).toBe(true);
+  // Only the two scene submissions; the resolve/copy submission is gone with the queries.
+  expect(f.submit).toHaveBeenCalledTimes(2);
+  expect(telemetry.submissionCount).toBe(2);
+  expect(telemetry.eventsSince(0)).toBeNull();
+  expect(telemetry.stats()).toEqual({
+    supported: false,
+    timingQueries: "disabled",
+    availability: "disabled-by-lab-control",
+    submissionCount: 2,
+    outsideSubmissionPasses: 0,
+    querySlots: 0,
+    busyQuerySlots: 0,
+  });
+  telemetry.dispose();
+});
+
+test("a lab-disabled control is distinguishable from an unsupported device and is never the default", () => {
+  const unsupported = deviceFixture(false);
+  const absent = new NativeGpuTelemetry(unsupported.device, "raw");
+  expect(absent.stats()).toMatchObject({
+    supported: false,
+    timingQueries: "enabled",
+    availability: "device-unsupported",
+  });
+  absent.dispose();
+  const f = deviceFixture();
+  const telemetry = new NativeGpuTelemetry(f.device, "raw");
+  telemetry.beginSubmission("battle-draw");
+  f.encode();
+  telemetry.endSubmission(Promise.resolve());
+  expect(telemetry.stats()).toMatchObject({
+    supported: true,
+    timingQueries: "enabled",
+    availability: "available",
+    querySlots: 1,
+  });
+  expect(f.device.createQuerySet).toHaveBeenCalledTimes(1);
+  expect(f.descriptors[0].timestampWrites).toBeDefined();
   telemetry.dispose();
 });

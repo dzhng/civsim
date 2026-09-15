@@ -78,9 +78,10 @@ beforeEach(() => {
   state.disposed.mockReset();
 });
 afterEach(() => vi.unstubAllGlobals());
-function fixture() {
+function fixture(build: { timingQueries?: "enabled" | "disabled"; timestampQuery?: boolean } = {}) {
   vi.stubGlobal("__BATTLE_NATIVE_BACKEND__", "raw");
   vi.stubGlobal("__BATTLE_NATIVE_ATLAS_CATALOG__", "/prepared/catalog.json");
+  vi.stubGlobal("__BATTLE_NATIVE_TIMING_QUERIES__", build.timingQueries ?? "enabled");
   vi.stubGlobal("location", { search: "", href: "http://localhost/benchmark" });
   vi.stubGlobal("window", { devicePixelRatio: 2, addEventListener() {}, removeEventListener() {} });
   vi.stubGlobal("fetch", async () => ({
@@ -94,21 +95,28 @@ function fixture() {
   });
   const queue = { submit: vi.fn(), onSubmittedWorkDone: vi.fn(async () => {}) };
   state.queue = queue;
+  const features = new Set(build.timestampQuery ? ["timestamp-query"] : []);
   const device = {
     queue,
     limits: {},
-    features: new Set(),
+    features,
     destroy: vi.fn(),
     lost: new Promise(() => {}),
     pushErrorScope() {},
     popErrorScope: async () => null,
+    createQuerySet: vi.fn(() => ({ destroy: vi.fn() })),
+    createBuffer: vi.fn(() => ({ destroy: vi.fn() })),
   };
+  const requested: GPUDeviceDescriptor[] = [];
   vi.stubGlobal("navigator", {
     gpu: {
       requestAdapter: async () => ({
-        features: new Set(),
+        features,
         info: { vendor: "test" },
-        requestDevice: async () => device,
+        requestDevice: async (descriptor: GPUDeviceDescriptor) => {
+          requested.push(descriptor);
+          return device;
+        },
       }),
       getPreferredCanvasFormat: () => "bgra8unorm",
     },
@@ -155,7 +163,7 @@ function fixture() {
   };
   const renderer = new BattleRenderer(canvas);
   renderer.setTerrain({ w: 1, h: 1, cell: 4, ox: 0, oy: 0, tint: new Uint8Array(1) });
-  return { renderer, canvas, device, callbacks };
+  return { renderer, canvas, device, callbacks, requested };
 }
 async function progress(callbacks: FrameRequestCallback[]) {
   for (let i = 0; i < 80; i++) {
@@ -346,4 +354,41 @@ test("measurement starts before pose submission and cancellation closes failed p
   await expect(f.renderer.present(packet())).resolves.toMatchObject({ submitted: true });
   f.renderer.dispose();
   vi.restoreAllMocks();
+});
+
+test("the disabled lab timing control removes query work while the same device and submissions remain", async () => {
+  const off = fixture({ timingQueries: "disabled", timestampQuery: true });
+  await off.renderer.ready;
+  expect(off.requested[0].requiredFeatures).toEqual(["timestamp-query"]);
+  const first = await off.renderer.present(packet());
+  const second = await off.renderer.present(packet());
+  expect(first.gpuSubmission).toMatchObject({ submissionId: 2, source: "battle-draw" });
+  expect(second.gpuSubmission!.submissionId).toBeGreaterThan(first.gpuSubmission!.submissionId);
+  expect(off.device.createQuerySet).not.toHaveBeenCalled();
+  expect(off.renderer.gpuEventsSince(0)).toBeNull();
+  expect(off.renderer.stats()).toMatchObject({
+    gpuTiming: {
+      supported: false,
+      timingQueries: "disabled",
+      availability: "disabled-by-lab-control",
+      querySlots: 0,
+      submissionCount: 4,
+    },
+    labBuild: { timingQueryFlag: "BATTLE_NATIVE_TIMING_QUERIES", timingQueries: "disabled" },
+    // Allocation observation stays installed and records no resolve/readback buffers.
+    allocations: { buffers: { createdCount: 0 }, currentBytes: 0 },
+  });
+  expect(off.renderer.stats().performance.gpuTimeMs).toBeNull();
+  off.renderer.dispose();
+  vi.stubGlobal("GPUBufferUsage", { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 });
+  const on = fixture({ timestampQuery: true });
+  await on.renderer.ready;
+  expect(on.requested[0].requiredFeatures).toEqual(["timestamp-query"]);
+  await on.renderer.present(packet());
+  expect(on.device.createQuerySet).toHaveBeenCalled();
+  expect(on.renderer.stats()).toMatchObject({
+    gpuTiming: { supported: true, timingQueries: "enabled", availability: "available" },
+    labBuild: { timingQueries: "enabled" },
+  });
+  on.renderer.dispose();
 });

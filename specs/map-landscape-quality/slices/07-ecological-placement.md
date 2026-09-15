@@ -114,3 +114,20 @@ than increase every tree again.
 ## Composed battle audit follow-up
 
 The [battle audit and census](../assets/slice-13/composed/README.md) finds a sparse western forest and an outlined angular forest-floor transition. In real seed 8, the large connected forest has 2,873 eligible candidates and no slope removals, but its per-feature 240 cap removes 2,633; measured coarse canopy coverage is 2.348%, versus 26–29% in uncapped small components. Investigate area-stable visual density and shared budget policy while preserving physical membership/clearings. The cap is a measured thinning cause; it does not by itself explain the material boundary. Full ecological acceptance remains open.
+
+## Forest material boundary correction
+
+The battle ground shader currently interpolates categorical tint IDs before
+classifying them. A grass0-to-forest4 edge therefore passes through rock2 even
+when neither source vertex is rock. This is a concrete candidate cause of the
+gray forest outline, separate from tree density. Decode categorical IDs into
+independent forest/rock/scree weights before any GPU or seam interpolation;
+interpolate those weights, preserving source geometry and physical tint bytes.
+The existing battle material boundary owns decoding; shared terrain geometry
+must not acquire battle class semantics. Do not add a second source field.
+
+Use the existing seed8 forest-edge framing with fixed tree distribution and an
+actual geometry/seam interpolation regression that cannot invent an absent
+material. Compare full frames and boundary crops, run the shared terrain/water
+and battle seam guards, then fresh critique and exact crop repeats. Forest
+models, density, ground color palette, atmosphere and physics are frozen.

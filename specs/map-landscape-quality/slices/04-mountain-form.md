@@ -89,3 +89,27 @@ Its 2km sampling error improves, but fresh real-region critique rejects both
 Alps and Italy: rounded curtain-like masses replace readable summits, saddles,
 spurs and valley openings. The accepted relief is restored. Numeric smoothness
 alone does not satisfy the mountain-form target; no parameter sweep follows.
+
+## Next bounded source-data control
+
+Repeated procedural profile controls have not produced a better regional form.
+Test one pre-baked real-elevation input against the existing Alps/Italy framing
+before building another shaping algorithm. The campaign map already uses a
+known Lambert azimuthal equal-area projection; the spike can sample elevation
+into its existing presentation height field. This is a render-source asset
+comparison, not a change to battle maps, roads, land/water masks or saves.
+
+First establish projection alignment, input provenance, required attribution,
+asset size and sampling error. Then compare a plain elevation-derived height
+with the existing relief using fixed cameras/material/light. Keep coast seating
+and city contact under their existing owners. No runtime network, new terrain
+cache, second rendering backend or production schema is authorized by the spike.
+If it wins, specify the single existing loader/field seam and rebuild workflow
+before adopting the asset; if it loses, retain evidence and remove spike code.
+
+[Terrain Tiles on AWS](https://registry.opendata.aws/terrain-tiles/) supplies
+open raster elevation. [Tilezen format documentation](https://github.com/tilezen/joerd/blob/master/docs/formats.md)
+explains the encoded inputs; its [attribution requirements](https://github.com/tilezen/joerd/blob/master/docs/attribution.md)
+apply to derived data and must be retained. Use only the small region needed for
+the first control. This candidate tests geographic branching already present in
+measured data, rather than another tuning of enclosing procedural ridge contours.

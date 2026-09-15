@@ -138,3 +138,11 @@ The [forest boundary correction](../assets/slice-07/forest-cover/README.md) is
 implemented and freshly accepted: independent cover weights remove the false
 rock strip. World/edge repeats are exact; full-frame hardware HUD drift remains
 explicit. Fine floor striping and understory remain open.
+
+## Detached campaign rock props
+
+[Production comparison](../assets/slice-07/campaign-rock-removal/README.md) accepts
+removing the real-geography rock producer. All tree records remain exact; the
+three production views repeat exactly and fresh review prefers the continuity.
+Generic battle and authored-stage rocks remain. This does not resolve missing
+intermediate detail, terrain texture or final ecological composition.

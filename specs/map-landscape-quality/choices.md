@@ -159,3 +159,9 @@ before/after visual evidence.
   critique and material acceptance separate.
 - **Confidence:** Medium. The exact lighting allowance is a judgment call; the
   reference crops and unchanged coverage floor make that choice reviewable.
+
+- **Sound, high confidence — let terrain carry campaign mountain mass.** Remove
+  the disconnected cool rock props from real geography. Their shape and color
+  competed with the mountain surface; deletion keeps woodland unchanged and
+  removes an obsolete placement loop. Battle and authored-stage rock assets
+  remain. The resulting bare slopes still need coherent surface detail.

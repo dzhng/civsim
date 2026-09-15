@@ -15,16 +15,7 @@ const CAMPAIGN_MOUNTAIN_MIN_SCALE = 0.28;
 const CAMPAIGN_TREE_MIN_SCALE = 0.45;
 const CAMPAIGN_ROCK_MIN_SCALE = 0.45;
 const CAMPAIGN_MAX_TREES = 32000;
-const CAMPAIGN_MAX_ROCKS = 1000;
-const CAMPAIGN_ROCK_VISUAL_SCALE = 1.75;
 const CAMPAIGN_TREE_VISUAL_SCALE = 1.72;
-// Land gate (B9): every static candidate must pass renderLandAt — the
-// full-res rendered coast, not the 8 km grid — with the instance's own
-// footprint radius as the margin (`size` is roughly the footprint diameter in
-// km), so no prop hangs over the water side of the drawn coastline.
-function sceneryFootprintOnLand(field: CampaignTerrainField, x: number, y: number, size: number) {
-  return field.renderLandAt(x, y, size * 0.5);
-}
 
 export function tallySceneryCandidates(candidates: SceneryInstance[]) {
   const tally = { total: candidates.length, mountains: 0, trees: 0, rocks: 0 };
@@ -61,55 +52,14 @@ export function buildCampaignSceneryCandidates(
 ): SceneryInstance[] {
   if (data.map.attribution === "test")
     return clearCampaignStaticScenery(data, testStageScenery(data), controlledStage);
-  const rocks: ScoredSceneryInstance[] = [];
-  for (let gy = 0; gy < field.h; gy++) {
-    for (let gx = 0; gx < field.w; gx++) {
-      const i = gy * field.w + gx;
-      if (!field.land[i]) continue;
-      const x0 = field.minX + (gx + 0.5) * field.cell;
-      const y0 = field.maxY - (gy + 0.5) * field.cell;
-      const rock = field.biome[i * 4 + 2] / 255;
-      const height = field.height[i] / Math.max(1, field.maxH);
-      // Preserve the established rock gaps on prominent relief. Range mass now
-      // belongs to the terrain; this selector never places mountain models.
-      const reliefScore = height * 0.85 + rock * 0.5;
-      const gapChance =
-        reliefScore > 0.66 ? 0.58 : height > 0.2 ? 0.6 : rock > 0.18 && height > 0.04 ? 0.4 : 0;
-      const gap = gapChance > 0 && hash2(gx * 3 + 1, gy * 7 + 2) < gapChance;
-      if (!gap && rock > 0.3 && hash2(gx * 5, gy * 9) < rock * 0.6) {
-        const count = 1 + Math.floor(hash2(gx, gy) * 2.5);
-        for (let t = 0; t < count; t++) {
-          const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * field.cell * 1.2;
-          const y = y0 + (hash2(gx * 5 + t, gy * 13) - 0.5) * field.cell * 1.2;
-          const radius = 0.9 + hash2(gx + t, gy) * 1.7;
-          const size = radius * CAMPAIGN_ROCK_VISUAL_SCALE;
-          if (!sceneryFootprintOnLand(field, x, y, size)) continue;
-          rocks.push({
-            x,
-            y,
-            z: Math.max(0, field.heightAt(x, y)),
-            size,
-            height: (0.7 + hash2(gx, gy + t) * 1.4) * 1.12,
-            kind: "rock",
-            shade: hash2(t + 1, gx),
-            yaw: hash2(gx * 7 + t, gy * 3 + 11) * Math.PI * 2,
-            score: rock + hash2(gx + t * 5, gy + t * 7) * 0.1,
-            gx,
-            gy,
-          });
-        }
-      }
-    }
-  }
+  // Mountain mass belongs to terrain; separate rock props are authored only
+  // in the controlled stage above.
   return clearCampaignStaticScenery(
     data,
-    [
-      ...buildCampaignWoodlandCandidates(field, temperateYKm).map((tree) => ({
-        ...tree,
-        z: Math.max(0, field.heightAt(tree.x, tree.y) - 0.05),
-      })),
-      ...selectRegionalScenery(rocks, CAMPAIGN_MAX_ROCKS),
-    ],
+    buildCampaignWoodlandCandidates(field, temperateYKm).map((tree) => ({
+      ...tree,
+      z: Math.max(0, field.heightAt(tree.x, tree.y) - 0.05),
+    })),
     controlledStage,
   );
 }
@@ -186,6 +136,9 @@ export function buildCampaignWoodlandCandidates(
         const fringe = forest < 0.2;
         const height = fringe ? 0.9 + hash2(seed, 4) * 0.6 : 6 + hash2(seed, 4) * 3;
         const size = height * (fringe ? 0.85 : 0.72) * CAMPAIGN_TREE_VISUAL_SCALE;
+        // Land gate (B9): the full-res rendered coast, not the 8 km grid, with
+        // the prop's own footprint radius as the margin (`size` is roughly the
+        // footprint diameter in km), so nothing hangs over the drawn coastline.
         if (!field.renderLandAt(x, y, size * 0.5)) continue;
         trees.push({
           x,

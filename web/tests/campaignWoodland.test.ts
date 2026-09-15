@@ -5,7 +5,10 @@ import {
   buildCampaignSceneryCandidates,
   campaignScenery,
 } from "../../packages/game-renderer/src/campaign/scenery";
-import type { CampaignTerrainField } from "../../packages/game-renderer/src/campaign/entityFrame";
+import type {
+  CampaignRenderData,
+  CampaignTerrainField,
+} from "../../packages/game-renderer/src/campaign/entityFrame";
 
 function woodland(): CampaignTerrainField {
   const w = 48,
@@ -57,36 +60,31 @@ test("campaign woodland excludes steep relief without changing source elevation"
   expect(field.height).toEqual(before);
 });
 
+function campaignData(
+  nodes: CampaignRenderData["map"]["nodes"] = [],
+  edges: CampaignRenderData["map"]["edges"] = [],
+): CampaignRenderData {
+  return {
+    bgRect: { min: [-192, -192], max: [192, 192] },
+    map: { attribution: "woodland-test", factions: [], nodes, edges },
+  };
+}
+
 test("campaign planting retains city and road clearances through its production producer", () => {
   const field = woodland();
   const candidates = buildCampaignSceneryCandidates(
-    {
-      bgRect: { min: [-192, -192], max: [192, 192] },
-      map: {
-        attribution: "woodland-test",
-        factions: [],
-        nodes: [
-          {
-            id: 1,
-            name: "Town",
-            pos: [-100, 80],
-            kind: "city",
-            tier: 2,
-            port: false,
-            owner: "test",
-          },
-        ],
-        edges: [
-          {
-            kind: "road",
-            via: [
-              [-100, -192],
-              [-100, 0],
-            ],
-          },
-        ],
-      },
-    },
+    campaignData(
+      [{ id: 1, name: "Town", pos: [-100, 80], kind: "city", tier: 2, port: false, owner: "test" }],
+      [
+        {
+          kind: "road",
+          via: [
+            [-100, -192],
+            [-100, 0],
+          ],
+        },
+      ],
+    ),
     field,
     false,
     0,
@@ -97,4 +95,24 @@ test("campaign planting retains city and road clearances through its production 
   expect(
     candidates.filter((t) => t.kind !== "mountain").every((t) => Math.abs(t.z! - 2.15) < 1e-6),
   ).toBe(true);
+});
+
+test("source rock coverage does not spawn props or change woodland", () => {
+  const bare = woodland();
+  const rocky = woodland();
+  // Saturate the source rock channel on every land cell: the coverage that real
+  // geography reports across the Alps and the Apennines.
+  for (let i = 0; i < rocky.w * rocky.h; i++) rocky.biome[i * 4 + 2] = 255;
+  const sourceBiome = rocky.biome.slice();
+  const sourceHeight = rocky.height.slice();
+
+  const candidates = buildCampaignSceneryCandidates(campaignData(), rocky, false, 0);
+
+  // Rock coverage is the terrain surface's own business — it plants no props.
+  expect(candidates.some((item) => item.kind === "rock")).toBe(false);
+  // ...and it perturbs neither the woodland it grows beside nor the source.
+  expect(candidates).toEqual(buildCampaignSceneryCandidates(campaignData(), bare, false, 0));
+  expect(candidates.length).toBeGreaterThan(300);
+  expect(rocky.biome).toEqual(sourceBiome);
+  expect(rocky.height).toEqual(sourceHeight);
 });

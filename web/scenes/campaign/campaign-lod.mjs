@@ -254,13 +254,15 @@ export async function run(ctx) {
 function hasTerrainFeatureDensity(stats) {
   // Candidate tallies, not per-frame uploads: uploads are LOD- and
   // view-culled, so they say nothing about whole-map feature density.
+  // On real geography relief is the terrain surface's own: neither mountains
+  // nor rocks are planted as props, so both tallies must be exactly zero and
+  // the woodland floor is the one density this gate owns.
   const scenery = stats.sceneryCandidateStats;
   return (
-    scenery?.total >= 3100 &&
     scenery?.mountains === 0 &&
+    scenery?.rocks === 0 &&
     stats.physicalWorld?.terrain?.allocationBytes > 0 &&
-    scenery?.trees >= 2400 &&
-    scenery?.rocks >= 700
+    scenery?.trees >= 2400
   );
 }
 
@@ -418,12 +420,7 @@ function checkRegionalMapStructure(ctx, current) {
         name,
         {
           crop,
-          // Mountain/dark floors exclude warm-stone tan plains from the mountain
-          // classifier, preventing inflated
-          // these crops. With living-green grass only the actual rock props count
-          // (sparser in the southern crop), and they read MORE clearly against the
-          // green (verified by critique). Floors guard readability against the new
-          // palette; the greenRatio floor pins the greening itself.
+          // Keep relief contrast and vegetation coverage as separate visual gates.
           ok:
             crop.mountainRatio >= 0.07 && crop.darkFeatureRatio >= 0.04 && crop.greenRatio >= 0.55,
         },

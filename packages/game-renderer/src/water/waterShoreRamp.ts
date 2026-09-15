@@ -28,3 +28,13 @@ export const FIELD_WATER_RAMP: WaterShoreRamp = { depthNear: 0.05, depthFar: 2.6
 // range is pushed far out because the battle camera stands ~360 m inland (the lab's
 // 55/300 would wash the whole sea to sky).
 export const BATTLE_OCEAN_RAMP: WaterShoreRamp = { depthNear: 12, depthFar: 300, hazeNear: 520, hazeFar: 1900 };
+
+/** Terrain material transition shared by filtered weights and signed shores. */
+export const TERRAIN_WATER_BLEND = [0.08, 0.55] as const;
+
+/** Keep this affine until fragment interpolation; clamping vertices restores
+ * source-grid steps along oblique coasts. Positive shore distance is wet. */
+export function shoreWaterSignal(distanceMeters: number, sampleSpacingMeters: number): number {
+  const [dry, wet] = TERRAIN_WATER_BLEND;
+  return (dry + wet) / 2 + distanceMeters / sampleSpacingMeters;
+}

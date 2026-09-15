@@ -187,3 +187,24 @@ The source-conforming builder/worker now drives campaign terrain. Packed color r
 ## Composed battle audit follow-up
 
 The [current full battle coast](../assets/slice-13/composed/README.md) exposes a repeated stair-step water/vista seam and green lip, confirmed by fresh image critique. This is a battle presentation/topology boundary follow-up, not a request to regenerate physical terrain or change water semantics. Whole shared-water acceptance remains open.
+
+The [battle vista source probe](../assets/slice-08/battle-vista-source/README.md)
+traces the regular steps to continuous coast distance being discarded into binary
+samples before rendering. The next correction belongs at that render-only source
+contract; ocean-plane or inter-band seam changes do not reach the measured loss.
+The green lip still requires a separate material control. No fix is accepted.
+
+The bounded battle correction renames the existing render-only float channel to
+`shoreDistance` in world metres, preserving the canonical coast distance before
+interpolation. Rust, wasm and TypeScript move together without a compatibility
+alias or extra buffer. Physical terrain, water/passability, recipes and hashes
+stay fixed. The first candidate retains all vista heights.
+
+### Battle source correction accepted within scope
+
+The [signed-shore evidence](../assets/slice-08/battle-vista-source/README.md)
+now includes matching hardware frames, an exact full-frame repeat and fresh
+visual acceptance of the removed staircase. A neutral dry-material control
+traces the remaining green fringe to color response rather than geometry.
+Physical hashes and all sampled vista height bytes remain unchanged. The fringe,
+source-shaped coastal regularity and whole shared-water acceptance remain open.

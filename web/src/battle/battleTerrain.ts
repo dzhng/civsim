@@ -158,8 +158,12 @@ export function readGeneratedVistaGrid(
       outerHalfW: meta.outerHalfW,
       outerHalfH: meta.outerHalfH,
       height: heights,
-      water: new Float32Array(
-        new Float32Array(memory.buffer, game.generated_vista_band_water_ptr(index), width * height),
+      shoreDistance: new Float32Array(
+        new Float32Array(
+          memory.buffer,
+          game.generated_vista_band_shore_distance_ptr(index),
+          width * height,
+        ),
       ),
     });
   }

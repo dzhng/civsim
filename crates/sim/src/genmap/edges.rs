@@ -168,9 +168,9 @@ impl WaterReach {
         }
     }
 
-    fn sample(&self, p: Vec2, height: f32) -> (f32, bool) {
+    fn sample(&self, p: Vec2, height: f32) -> (f32, bool, f32) {
         if !on_side(self.side, p.x) {
-            return (height, false);
+            return (height, false, -1.0e6);
         }
         let offshore = (p.x.abs() - self.recipe.half_w).max(0.0);
         let segment = SealSegment {
@@ -189,7 +189,11 @@ impl WaterReach {
             .min(segment.y1 - p.y);
         let water = coast_distance >= 0.0 && reach >= self.recipe.cell;
         let blend = smoothstep(-COAST_SLOPE_M, 0.0, coast_distance);
-        (height + (height.min(WATER_LEVEL_M) - height) * blend, water)
+        (
+            height + (height.min(WATER_LEVEL_M) - height) * blend,
+            water,
+            coast_distance.min(reach - self.recipe.cell),
+        )
     }
 }
 
@@ -209,11 +213,12 @@ impl EdgeSurface {
         }
     }
 
-    pub fn height_and_water(&self, p: Vec2, height: f32) -> (f32, bool) {
+    pub fn height_and_shore_distance(&self, p: Vec2, height: f32) -> (f32, f32) {
         let coast = if p.x < 0.0 { &self.west } else { &self.east };
-        coast
-            .as_ref()
-            .map_or((height, false), |coast| coast.sample(p, height))
+        coast.as_ref().map_or((height, -1.0e6), |coast| {
+            let (height, _, shore_distance) = coast.sample(p, height);
+            (height, shore_distance)
+        })
     }
 }
 
@@ -224,7 +229,7 @@ fn paint_water_reach(recipe: &MapRecipe, t: &mut Terrain, side: EdgeSide) {
         for cx in 0..t.w {
             let x = cell_x(t, cx);
             let i = cy * t.w + cx;
-            let (height, water) = coast.sample(Vec2::new(x, y), t.height[i]);
+            let (height, water, _) = coast.sample(Vec2::new(x, y), t.height[i]);
             t.height[i] = height;
             if water {
                 t.speed[i] = 0.0;

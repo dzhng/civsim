@@ -1,3 +1,4 @@
+import { shoreWaterSignal } from "../../../game-renderer/src/water/waterShoreRamp";
 import { DEFAULT_TERRAIN_SLOPE_BANDS } from "../../../game-renderer/src/terrain/materialProfile";
 import { RENDER_ORDER } from "../renderOrder";
 import {
@@ -585,7 +586,7 @@ function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): 
       verts[v++] = base[0];
       verts[v++] = base[1];
       verts[v++] = base[2];
-      verts[v++] = band.water[j * band.w + i];
+      verts[v++] = shoreWaterSignal(band.shoreDistance[j * band.w + i], band.cell);
       surfaceColor[tv * 3] = base[0];
       surfaceColor[tv * 3 + 1] = base[1];
       surfaceColor[tv * 3 + 2] = base[2];

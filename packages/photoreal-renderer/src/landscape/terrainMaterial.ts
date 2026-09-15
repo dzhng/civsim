@@ -1,3 +1,4 @@
+import { TERRAIN_WATER_BLEND } from "../../../game-renderer/src/water/waterShoreRamp";
 import { RENDER_ORDER } from "../renderOrder";
 import * as THREE from "three/webgpu";
 import {
@@ -74,7 +75,11 @@ export function terrainSignals(detailScale?: number) {
   const surfaceWorld = varying(position.xy).toVar();
   const world = detailScale ? surfaceWorld.mul(detailScale).toVar() : surfaceWorld;
   const rawWaterBlend = saturateN(water).toVar();
-  const waterBlend = smoothstepN(0.08, 0.55, rawWaterBlend).toVar();
+  const waterBlend = smoothstepN(
+    TERRAIN_WATER_BLEND[0],
+    TERRAIN_WATER_BLEND[1],
+    rawWaterBlend,
+  ).toVar();
 
   return { position, worldNormal, surfaceColor, surfaceWorld, world, rawWaterBlend, waterBlend };
 }

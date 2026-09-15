@@ -1041,3 +1041,39 @@ fn reported_water_reach_continues_into_the_vista_without_a_hanging_ridge() {
         "shore must descend through slopes, not a single-cell cut: {max_drop}m drop"
     );
 }
+
+#[test]
+fn vista_coast_interpolates_continuously_between_offshore_columns() {
+    let vista = generate_vista_grid(&MapRecipe {
+        seed: 1,
+        ..MapRecipe::default()
+    });
+    for band in &vista.bands {
+        let mut previous: Option<(f32, f32)> = None;
+        for ix in 0..band.w {
+            let x = band.origin.x + ix as f32 * band.cell;
+            if x < 1400.0 || x > band.outer_half_w {
+                continue;
+            }
+            let Some(iy) = (0..band.h - 1).rev().find(|&iy| {
+                band.shore_distance[iy * band.w + ix] >= 0.0
+                    && band.shore_distance[(iy + 1) * band.w + ix] < 0.0
+            }) else {
+                continue;
+            };
+            let a = band.shore_distance[iy * band.w + ix];
+            let b = band.shore_distance[(iy + 1) * band.w + ix];
+            let y = band.origin.y + (iy as f32 + (-a) / (b - a)) * band.cell;
+            if let Some((px, py)) = previous {
+                assert!(
+                    (y - py - (x - px) * 0.25).abs() < band.cell * 0.2,
+                    "{} coast stairs at x={x}: y={y}, previous={py}; cell={}",
+                    band.name,
+                    band.cell
+                );
+            }
+            previous = Some((x, y));
+        }
+        assert!(previous.is_some(), "{} has no observed coast", band.name);
+    }
+}

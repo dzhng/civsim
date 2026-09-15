@@ -1,0 +1,11 @@
+{
+  "url": "http://127.0.0.1:5197",
+  "listener": "127.0.0.1:5197",
+  "pid": 72017,
+  "root": "/Users/david/dev/game-battle-water-join",
+  "servedAdapterContains": "game.generated_vista_band_shore_distance_ptr(index)",
+  "servedImportsRoot": "/Users/david/dev/game-battle-water-join/packages",
+  "servedWasmSha256": "6446e3f9c6231e3beb13128ce05d6c90dce763db643f1710fc346fec0ff47a9b",
+  "localWasmSha256": "6446e3f9c6231e3beb13128ce05d6c90dce763db643f1710fc346fec0ff47a9b",
+  "otherListener": "[::1]:5197 game-battle-landscape-acceptance (not capture target)"
+}

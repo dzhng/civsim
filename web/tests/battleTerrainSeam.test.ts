@@ -54,7 +54,7 @@ test("vista mountains join a lowered playable edge instead of exposing their und
           outerHalfW: 32,
           outerHalfH: 32,
           height: new Float32Array(81).fill(200),
-          water: new Float32Array(81),
+          shoreDistance: new Float32Array(81).fill(-1000),
         },
       ],
     },

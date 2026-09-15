@@ -1,0 +1,79 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T08:03:47.913Z",
+  "target": "http://127.0.0.1:5197",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-genmap-curated",
+      "file": "battle/battle-genmap-curated.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags curated catalog entry names the loaded generated seed",
+      "ok": true,
+      "detail": "{\"def\":{\"id\":\"shore-and-crags\",\"label\":\"Shore & Crags\",\"seed\":1,\"description\":\"A cliff-bound highland field with a water reach sealing the eastern flank.\",\"character\":\"water flank\",\"manifest\":{\"seed\":1,\"groundCover\":\"green-grass\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"ocean\"}}},\"entry\":{\"id\":\"shore-and-crags\",\"wasmMapId\":-1,\"generatedSeed\":\"1\",\"label\":\"Shore & Crags\",\"description\":\"A cliff-bound highland field with a water reach sealing the eastern flank.\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"ocean\"},\"groundCover\":\"green-grass\"},\"manifest\":{\"edgeSeals\":{\"composition\":{\"east\":\"waterReach\",\"west\":\"cliffRun\"},\"expectedRoles\":{\"east\":\"ocean\",\"west\":\"cliff\"}},\"edges\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"featureSummary\":{\"lakeCells\":1568,\"mudCells\":4982,\"passableForestCells\":3213,\"playableLakeCells\":1568,\"roughFieldCells\":9409,\"screeCells\":13019,\"streamCells\":147,\"streams\":3},\"groundCover\":\"green-grass\",\"recipeClass\":\"full\",\"seed\":1,\"seedHex\":\"0x0000000000000001\",\"terrainHash\":\"0x35787940547b4e73\"},\"rebuilt\":{\"id\":\"shore-and-crags\",\"wasmMapId\":-1,\"generatedSeed\":\"1\",\"label\":\"Shore & Crags\",\"description\":\"A cliff-bound highland field with a water reach sealing the eastern flank.\",\"edges\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"groundCover\":\"green-grass\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags curated catalog edge roles come from the generated manifest path",
+      "ok": true,
+      "detail": "{\"catalog\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"ocean\"},\"rebuilt\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"manifest\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags generated certificates stay green in the browser",
+      "ok": true,
+      "detail": "{\"corridor\":true,\"drainage\":{\"corridorCrossingStreams\":0,\"fordCount\":0,\"lakeCells\":1568,\"lakeCount\":1,\"lakes\":[{\"cells\":1568,\"id\":0,\"level\":-4.778225898742676,\"maxCellX\":228,\"maxCellY\":149,\"maxX\":-284,\"maxY\":-200,\"minCellX\":184,\"minCellY\":107,\"minX\":-464,\"minY\":-372}],\"largestPlayableLakeCells\":1568,\"marshCells\":2755,\"playableLakeCells\":1568,\"playableLakeCount\":1,\"streamCells\":147,\"streamCount\":3,\"streamDeadEnds\":0,\"streamImpassableCells\":0,\"streamLakeConnections\":1,\"streamRunoffConnections\":2,\"streamsDescend\":true,\"suppressedMountainHollowCells\":1133,\"suppressedMountainHollowCount\":19,\"waterLevelSet\":true},\"eastFlankUnreachable\":1,\"eastSealed\":1,\"largestIsolatedPassablePocket\":0,\"northDeployPassable\":1,\"northDeployment\":{\"blockedCells\":0,\"maxSlope\":0.03378281742334366,\"meetsContract\":true,\"p95Slope\":0.02907416969537735,\"passableFraction\":1,\"totalCells\":3872},\"northOpen\":0.6399999856948853,\"orphanBlockedCells\":0,\"southDeployPassable\":1,\"southDeployment\":{\"blockedCells\":0,\"maxSlope\":0.04488227143883705,\"meetsContract\":true,\"p95Slope\":0.03704017400741577,\"passableFraction\":1,\"totalCells\":3872},\"southOpen\":0.6549999713897705,\"westFlankUnreachable\":1,\"westSealed\":1}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags renders under the generated-map golden-hour default",
+      "ok": true,
+      "detail": "{\"environment\":\"golden\",\"terrainEnvironment\":{\"id\":\"golden-hour\",\"source\":\"CIVSIM_ENVIRONMENTS.golden\",\"sharedPreset\":\"golden\",\"waterAlias\":\"CIVSIM_ENVIRONMENTS.golden\",\"sunAzimuth\":3.1416,\"sunElevation\":0.35,\"keyColor\":[1,0.88,0.66],\"fillColor\":[0.42,0.53,0.72],\"hazeColor\":[0.86,0.82,0.68],\"exposure\":1.16},\"vista\":{\"bands\":[{\"name\":\"vista\",\"width\":301,\"height\":201,\"cell\":16,\"originX\":-2400,\"originY\":-1600,\"innerHalfW\":1200,\"innerHalfH\":800,\"outerHalfW\":2400,\"outerHalfH\":1600},{\"name\":\"farFog\",\"width\":133,\"height\":90,\"cell\":64,\"originX\":-4208,\"originY\":-2848,\"innerHalfW\":2400,\"innerHalfH\":1600,\"outerHalfW\":4200,\"outerHalfH\":2800}]}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags vista frame contains terrain and sky",
+      "ok": true,
+      "detail": "{\"nonBlack\":1024000,\"terrain\":664224,\"sky\":106237}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "snapshot battle-genmap-curated/shore-and-crags",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags has its source water feature",
+      "ok": true,
+      "detail": "{\"kind\":1,\"cells\":17529,\"x\":946.3772034913572,\"y\":-97.91625306634717,\"miniX\":214.63772034913572,\"miniY\":89.79162530663473}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "snapshot battle-genmap-curated/shore-and-crags-water-join",
+      "ok": false,
+      "detail": "12652 px differ (1.2355%) — see shots/diff/battle-genmap-curated/shore-and-crags-water-join.png"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-genmap-curated: snapshot battle-genmap-curated/shore-and-crags-water-join"
+  ],
+  "pageErrors": []
+}

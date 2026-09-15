@@ -407,10 +407,10 @@ impl Game {
             .map_or(std::ptr::null(), |b| b.heights.as_ptr())
     }
 
-    pub fn generated_vista_band_water_ptr(&mut self, band: u32) -> *const f32 {
+    pub fn generated_vista_band_shore_distance_ptr(&mut self, band: u32) -> *const f32 {
         self.ensure_generated_vista();
         self.vista_band(band)
-            .map_or(std::ptr::null(), |b| b.water.as_ptr())
+            .map_or(std::ptr::null(), |b| b.shore_distance.as_ptr())
     }
 
     pub fn terrain_w(&self) -> u32 {

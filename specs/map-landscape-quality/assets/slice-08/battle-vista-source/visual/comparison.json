@@ -1,0 +1,22 @@
+{
+  "beforeCandidate": {
+    "rect": [
+      770,
+      60,
+      410,
+      210
+    ],
+    "changedPixels": 2377,
+    "meanAbsoluteRGBDifference": 0.23213317847464188
+  },
+  "candidateControl": {
+    "rect": [
+      770,
+      60,
+      410,
+      210
+    ],
+    "changedPixels": 43960,
+    "meanAbsoluteRGBDifference": 3.6146264034068913
+  }
+}

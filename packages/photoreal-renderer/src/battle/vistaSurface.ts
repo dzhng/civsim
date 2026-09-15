@@ -18,7 +18,8 @@ export interface BattleVistaBand {
   outerHalfW: number;
   outerHalfH: number;
   height: Float32Array;
-  water: Float32Array;
+  /** Signed coast distance in world metres; positive is wet. */
+  shoreDistance: Float32Array;
 }
 
 export interface BattleVistaGrid {

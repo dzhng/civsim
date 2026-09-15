@@ -1,0 +1,30 @@
+{
+  "sourceCommit": "9d377399db7c74c57793cff0aae14bbdc6603319",
+  "scope": "independent emitted artifact hash verification only; no runtime acceptance",
+  "results": [
+    {
+      "backend": "three",
+      "files": 14,
+      "mismatches": [],
+      "buildSha256": "33e3c6599ff5405f3b31df891c5a28710659e2b130dafa8ff164461cfeb07fa4"
+    },
+    {
+      "backend": "raw",
+      "files": 29,
+      "mismatches": [],
+      "buildSha256": "c6d1fc936ea4bdb99719a711cacb589dcbdabf8c5f6ecdb8fe07b12077a60a36"
+    },
+    {
+      "backend": "typegpu",
+      "files": 29,
+      "mismatches": [],
+      "buildSha256": "c2b94d92d7ea36b346a8310a9c7391234896c479c5bc19054256a20380a42945"
+    },
+    {
+      "backend": "vgpu",
+      "files": 29,
+      "mismatches": [],
+      "buildSha256": "ae7f15d7fc493431e4be93db4f8504813b29bbb807dc523bf143786d8345b2cc"
+    }
+  ]
+}

@@ -85,6 +85,8 @@ The source-coverage seam must also match the coarse material interpolation at
 new fine vertices along a coarse/fine boundary. Equal source samples at shared
 vertices alone are insufficient: a 2km fine edge over a 32km coarse cell can
 otherwise differ by 0.75 in rock coverage. Exercise a source band crossing that
-edge and compare against the coarse triangle's barycentric coverage. Keep
-original source arrays unchanged while the existing morph owner constructs its
-boundary response; account for any additional mutable arrays and uploads.
+edge and compare against the coarse triangle's barycentric coverage. A single world-space source lookup can instead avoid this mismatch altogether.
+The current candidate takes that route: a source-resolution byte texture avoids
+per-vertex buffer growth and leaves tile allocation unchanged. Verify its world
+orientation, filtering and disposal on the GPU before adoption; source arrays
+must remain unchanged.

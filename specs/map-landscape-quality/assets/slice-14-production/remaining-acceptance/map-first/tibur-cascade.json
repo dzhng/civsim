@@ -1,0 +1,54 @@
+{
+  "body": {
+    "id": 348,
+    "minX": 632.7671241073294,
+    "minY": 229.88483406164661,
+    "maxX": 649.2213598666897,
+    "maxY": 248.87638211354673
+  },
+  "desiredRect": {
+    "x": 598.7382751547924,
+    "y": 258.7963821135467,
+    "w": 82,
+    "h": 38
+  },
+  "observedRect": {
+    "x": 598.7382751547924,
+    "y": 458.480837398375,
+    "w": 82,
+    "h": 38
+  },
+  "reconstructedRect": {
+    "x": 598.7382751547924,
+    "y": 458.480837398375,
+    "w": 82,
+    "h": 38
+  },
+  "steps": [
+    {
+      "fromY": 258.7963821135467,
+      "collidesWith": [
+        "ROMA"
+      ],
+      "toY": 352.86307660170763
+    },
+    {
+      "fromY": 352.86307660170763,
+      "collidesWith": [
+        "FERENTINUM",
+        "OSTIA/PORTUS"
+      ],
+      "toY": 394.86307660170763
+    },
+    {
+      "fromY": 394.86307660170763,
+      "collidesWith": [
+        "TARRACINA"
+      ],
+      "toY": 458.480837398375
+    }
+  ],
+  "displacement": 199.6844552848283,
+  "exactObservedY": true,
+  "note": "Reconstructed only card obstacles from captured priority/body/final-rect data. It reaches exact observed y without an anchor obstacle; live stage-by-stage trace remains optional verification."
+}

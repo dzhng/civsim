@@ -96,3 +96,7 @@ The first and corrected-source reports retain every unchanged assertion and
 snapshot failure. No collision same-frame assertion or screenshot tolerance was
 changed. The remaining map-alignment, roads, frame, collision and LOD captures
 have not yet run in this pass.
+
+[The remaining-map first-pass audit](map-first/README.md) preserves the later17
+captures and separates newly confirmed label/Tibur regressions from the color
+and cart verification-owner updates. Those captures are not yet accepted.

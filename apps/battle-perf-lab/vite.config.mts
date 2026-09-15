@@ -30,6 +30,17 @@ export default {
           importer?.split("?")[0] === rendererPath
         )
           return worldCapturePath;
+        if (
+          importer?.split("?")[0] ===
+            fileURLToPath(
+              new URL(
+                "../../packages/photoreal-renderer/src/battle/battleGrassField.ts",
+                import.meta.url,
+              ),
+            ) &&
+          (source.endsWith("/battleGrassResidency") || source.endsWith("/battleGrassResidency.ts"))
+        )
+          return fileURLToPath(new URL("./src/CaptureGrassResidency.ts", import.meta.url));
         if (source === "./renderer" && importer?.split("?")[0] === worldPath) return capturePath;
         return null;
       },

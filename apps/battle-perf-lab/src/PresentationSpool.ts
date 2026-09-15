@@ -1,3 +1,8 @@
+import {
+  chunkGrassPublications,
+  GRASS_CHUNK_BYTES,
+  type GrassRecordChunk,
+} from "./grassRecordChunks";
 import { ReplayWindow, encodeReplayValue } from "./replayArchive";
 import type { BattleReplayAssets, BattleReplaySettings } from "./fixture";
 import type { CapturedReplayFrame } from "./CaptureBattleRenderer";
@@ -31,8 +36,10 @@ const DISK_CAP = 1024 * 1024 * 1024;
 interface Packet {
   id: number;
   raw: Blob;
+  resources: GrassRecordChunk[];
   reservedBytes: number;
   sourceImage?: Promise<Blob>;
+  sourceDraws?: Promise<unknown>;
 }
 
 /** Lossless source-only recording. Disk acknowledgments release queued ownership. */
@@ -51,13 +58,22 @@ export class PresentationSpool {
   private compressor: Worker | null = null;
   private compression: { resolve: (bytes: number) => void; reject: (error: Error) => void } | null =
     null;
-  private compress(packet: Packet, png?: Blob): Promise<number> {
+  private compress(packet: Packet, png?: Blob, draws?: unknown): Promise<number> {
     this.compressor ??= new Worker(new URL("./spoolCompression.worker.ts", import.meta.url), {
       type: "module",
     });
     return new Promise((resolve, reject) => {
       this.compression = { resolve, reject };
       this.compressor!.onmessage = ({ data }) => {
+        if (data.progress !== undefined) {
+          const resource = packet.resources.shift();
+          if (!resource || resource.id !== data.progress) {
+            reject(Error("Resource acknowledgment mismatch"));
+            return;
+          }
+          packet.reservedBytes -= resource.blob.size;
+          return;
+        }
         this.compression = null;
         if (data.id !== packet.id) reject(Error("Compression reply id mismatch"));
         else if (data.error) reject(Error(data.error));
@@ -67,7 +83,14 @@ export class PresentationSpool {
         this.compression = null;
         reject(Error(event.message));
       };
-      this.compressor!.postMessage({ id: packet.id, blob: packet.raw, png, sink: this.sink });
+      this.compressor!.postMessage({
+        id: packet.id,
+        blob: packet.raw,
+        resources: packet.resources,
+        png,
+        draws,
+        sink: this.sink,
+      });
     });
   }
   constructor(
@@ -77,6 +100,7 @@ export class PresentationSpool {
     private readonly windows: readonly SpoolWindow[],
     private readonly cancelSource: () => void,
     private readonly sink: string,
+    private readonly readDraws?: () => Promise<unknown>,
   ) {
     validateSpoolWindows(windows);
     this.inputs = encodeReplayValue({ assets, settings });
@@ -85,8 +109,15 @@ export class PresentationSpool {
   offer(frame: CapturedReplayFrame, elapsedMs: number, running: boolean) {
     if (this.stopped || this.complete) return;
     try {
+      const resourceBytes = (frame.grassPublications ?? []).reduce(
+        (sum, p) => sum + Object.values(p.records).reduce((n, a) => n + (a?.byteLength ?? 0), 0),
+        0,
+      );
+      if (this.retainedBytes() + resourceBytes > MEMORY_CAP)
+        throw Error("Grass revision resources exceed retained byte cap");
+      const grass = chunkGrassPublications(frame.grassPublications ?? []);
       const encoded = new ReplayWindow(1, MEMORY_CAP);
-      if (encoded.append(frame) === "byte-limit")
+      if (encoded.append({ ...frame, grassPublications: grass.frames }) === "byte-limit")
         throw Error("One source frame exceeds memory cap");
       const window = running
         ? this.windows.find(
@@ -108,14 +139,23 @@ export class PresentationSpool {
       const raw = new Blob(parts);
       // Compression retains its input and may produce an incompressible output.
       const reservedBytes =
-        raw.size * 2 +
+        resourceBytes +
+        raw.size +
         65536 +
         (snapshot ? this.source.width * this.source.height * 4 + 1048576 : 0);
-      if (this.retainedBytes() + reservedBytes > MEMORY_CAP || this.packets.length >= 32)
+      const packet: Packet = {
+        id: this.offered + 1,
+        raw,
+        reservedBytes,
+        resources: grass.resources,
+      };
+      if (this.retainedBytes(packet) > MEMORY_CAP || this.packets.length >= 32)
         throw Error("Source spool reached its 128 MiB / 32-packet memory cap");
-      const packet: Packet = { id: ++this.offered, raw, reservedBytes };
+      this.offered++;
       this.packets.push(packet);
       if (snapshot) {
+        packet.sourceDraws = this.readDraws?.();
+        void packet.sourceDraws?.catch((error) => this.fail(error));
         packet.sourceImage = new Promise<Blob>((resolve, reject) =>
           this.source.toBlob(
             (blob) => (blob ? resolve(blob) : reject(Error("Source snapshot failed"))),
@@ -142,8 +182,9 @@ export class PresentationSpool {
       while (!this.stopped) {
         const packet = this.packets[0];
         if (!packet) break;
-        const png = await packet.sourceImage;
-        const bytes = await this.compress(packet, png);
+        const [png, draws] = await Promise.all([packet.sourceImage, packet.sourceDraws]);
+        if (this.stopped) break;
+        const bytes = await this.compress(packet, png, draws);
         if (this.stopped) break;
         if (this.diskBytes + bytes > DISK_CAP)
           throw Error("Source spool reached its 1 GiB compressed disk cap");
@@ -163,8 +204,15 @@ export class PresentationSpool {
     this.packets.shift();
     this.acknowledged++;
   }
-  private retainedBytes() {
-    return this.inputs.size + this.packets.reduce((n, p) => n + p.reservedBytes, 0);
+  private retainedBytes(candidate?: Packet) {
+    const packets = candidate ? [...this.packets, candidate] : this.packets;
+    // One worker compresses one chunk/frame at a time. Queued inputs do not yet
+    // own compressed outputs; reserve only the largest possible in-flight output.
+    const scratch = packets.reduce(
+      (size, p) => Math.max(size, p.raw.size, p.resources.length ? GRASS_CHUNK_BYTES : 0),
+      0,
+    );
+    return this.inputs.size + packets.reduce((n, p) => n + p.reservedBytes, 0) + scratch;
   }
   status() {
     return {

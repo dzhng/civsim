@@ -26,18 +26,20 @@ export function readGroundInputs(world: PhotorealBattleWorld) {
 
 /** Actual indirect commands after submission; diagnostic readback, never timed. */
 export async function readGrassDraws(world: PhotorealBattleWorld) {
-  const rows: { name: string; visible: boolean; command: number[] }[] = [];
+  const pending: Promise<{ name: string; visible: boolean; command: number[] }>[] = [];
   for (const object of world.world.scene.children) {
     if (!object.name.startsWith("battle-grass") || !("geometry" in object)) continue;
-    const geometry = (object as import("three/webgpu").Mesh).geometry;
-    const indirect = geometry.getIndirect();
+    const indirect = (object as Mesh).geometry.getIndirect();
     if (!indirect) continue;
-    const bytes = await world.world.renderer.getArrayBufferAsync(indirect);
-    rows.push({
-      name: object.name,
-      visible: object.visible,
-      command: Array.from(new Uint32Array(bytes)),
-    });
+    const name = object.name,
+      visible = object.visible;
+    // Three submits copyBufferToBuffer before its first await. Queue every copy
+    // at this boundary, before later presentations can change indirect commands.
+    pending.push(
+      world.world.renderer
+        .getArrayBufferAsync(indirect)
+        .then((bytes) => ({ name, visible, command: Array.from(new Uint32Array(bytes)) })),
+    );
   }
-  return rows;
+  return Promise.all(pending);
 }

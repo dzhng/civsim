@@ -79,3 +79,14 @@ when a new source group requires it. Async grass publication timing remains a
 correctness gate; retaining commands alone is not a claim that all temporal state
 is already reproduced. Nonzero endpoint differences and mismatched counts remain
 failed gates, not performance results.
+
+For resolved grass replay, the lab config substitutes the shared residency import
+only inside Three's grass adapter. Live capture delegates every owner method and
+records its snapshot after each actual `prepareRender`. Record arrays are copied
+only when base/ring revisions change; other routing and transition state is kept
+per boundary. Replay consumes this stream through the same Three upload consumer,
+without running a second sampler or forcing source settlement. Recorded residency
+statistics are inputs, not independent validation. Actual active layer record
+hashes and endpoint GPU indirect commands are checked separately. The native live
+benchmark still runs the real shared residency owner; only render-only correctness
+replay consumes these resolved publications.

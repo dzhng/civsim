@@ -25,23 +25,55 @@ const browser = await chromium.launch({
 const findings = [],
   packets = [],
   errors = [];
+const resources = {};
 let status,
   diskBytes = 0;
 const boundedWrite = async (name, bytes) => {
-  if (diskBytes + bytes.length > 1024 * 1024 * 1024) throw Error("1 GiB disk cap reached");
+  if (typeof bytes === "string") bytes = Buffer.from(bytes);
+  // Reserve a small durable failure report even when the payload cap is reached.
+  if (diskBytes + bytes.length > 1024 * 1024 * 1024 - 65536) throw Error("1 GiB disk cap reached");
   await writeFile(`${output}/${name}`, bytes);
   diskBytes += bytes.length;
 };
 const sink = createServer(async (request, response) => {
   response.setHeader("Access-Control-Allow-Origin", base);
   response.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.setHeader("Access-Control-Allow-Headers", "content-type");
   if (request.method === "OPTIONS") {
     response.end();
     return;
   }
-  const match = /^\/(\d+)\/(packet|image)$/.exec(request.url ?? "");
+  const resource = /^\/resource\/((?:base|ring)-\d+-\d+)$/.exec(request.url ?? "");
+  if (resource) {
+    try {
+      const name = `resource-${resource[1]}.bin.gz`;
+      if (request.method === "GET") {
+        response.end(await readFile(`${output}/${name}`));
+        return;
+      }
+      if (request.method !== "POST" || resources[resource[1]])
+        throw Error("Invalid resource publication");
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of request) {
+        size += chunk.length;
+        if (size > 5 * 1024 * 1024) throw Error("Resource chunk cap exceeded");
+        chunks.push(chunk);
+      }
+      const bytes = Buffer.concat(chunks);
+      await boundedWrite(name, bytes);
+      resources[resource[1]] = {
+        bytes: bytes.length,
+        sha256: createHash("sha256").update(bytes).digest("hex"),
+      };
+      response.end("stored");
+    } catch (error) {
+      response.writeHead(500).end(String(error));
+    }
+    return;
+  }
+  const match = /^\/(\d+)\/(packet|image|draws)$/.exec(request.url ?? "");
   if (request.method !== "POST" || !match) {
     response.writeHead(400).end();
     return;
@@ -68,6 +100,9 @@ const sink = createServer(async (request, response) => {
         sha256: createHash("sha256").update(bytes).digest("hex"),
         snapshot: false,
       });
+    } else if (match[2] === "draws") {
+      if (packets.at(-1)?.id !== id) throw Error("Draw count sequence mismatch");
+      packets.at(-1).draws = JSON.parse(bytes.toString());
     } else {
       if (packets.at(-1)?.id !== id) throw Error("Image packet sequence mismatch");
       await boundedWrite(`${name}-source.png`, bytes);
@@ -93,6 +128,7 @@ try {
     packets.push(...manifest.packets);
     status = manifest.status;
     identity = manifest.identity;
+    Object.assign(resources, manifest.resources);
     diskBytes = manifest.diskBytes;
     inputs = gunzipSync(await readFile(`${output}/inputs.json.gz`), {
       maxOutputLength: 128 * 1024 * 1024,
@@ -139,11 +175,12 @@ try {
     inputs = await page.evaluate(async () => window.__battleCapture.spoolInputs().text());
     identity = await page.evaluate(() => window.__battleCapture.spoolIdentity());
     await boundedWrite("inputs.json.gz", gzipSync(inputs));
-    await writeFile(
-      `${output}/manifest.json`,
+    await boundedWrite(
+      "manifest.json",
       JSON.stringify(
         {
           windows,
+          resources,
           identity,
           status,
           packets,
@@ -160,13 +197,15 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
   await page.evaluate(
-    async ({ url, inputs }) => {
+    async ({ url, inputs, sinkUrl, resources }) => {
       const { createSpoolReplay } = await import(url);
-      window.__spoolReplay = await createSpoolReplay(inputs);
+      window.__spoolReplay = await createSpoolReplay(inputs, sinkUrl, resources);
     },
     {
       url: "/@fs/" + fileURLToPath(new URL("apps/battle-perf-lab/src/spoolReplay.ts", root)),
       inputs,
+      sinkUrl,
+      resources,
     },
   );
   if (createHash("sha256").update(inputs).digest("hex") !== identity.inputsHash)
@@ -255,6 +294,15 @@ try {
       maxChannelDifference: max,
       camera: item.summary.source.camera,
       sourceGrass: item.summary.source.terrain.grass.rebuild,
+      grassDrawsMatch: packet.snapshot ? isDeepStrictEqual(packet.draws, result.draws) : null,
+      sourceGrassDraws: packet.draws,
+      replayGrassDraws: result.draws,
+      sourceGrassRecordHash: item.summary.source.terrain.grass.recordHash,
+      replayGrassRecordHash: item.summary.replay.terrain.grass.recordHash,
+      grassRecordHashMatches:
+        typeof item.summary.source.terrain.grass.recordHash === "string" &&
+        item.summary.source.terrain.grass.recordHash ===
+          item.summary.replay.terrain.grass.recordHash,
       replayGrass: item.summary.replay.terrain.grass.rebuild,
       cameraMatches: isDeepStrictEqual(item.summary.source.camera, item.summary.replay.camera),
       crowdMatches:
@@ -286,18 +334,32 @@ try {
       sourcePending: finding.sourceGrass.pending,
       replayPending: finding.replayGrass.pending,
     });
-    await writeFile(`${output}/findings.json`, JSON.stringify(findings, null, 2));
+    await boundedWrite("findings.json", JSON.stringify(findings, null, 2));
   }
 
   await page.evaluate(() => window.__spoolReplay.dispose());
-  await writeFile(`${output}/browser-errors.json`, JSON.stringify(errors, null, 2));
+  await boundedWrite("browser-errors.json", JSON.stringify(errors, null, 2));
   console.log({ frames: findings.length, packets: packets.length, diskBytes, errors });
-  if (errors.length || findings.some((f) => f.changedPixels || !f.cameraMatches || !f.crowdMatches))
+  if (
+    errors.length ||
+    findings.some(
+      (f) =>
+        f.changedPixels ||
+        !f.cameraMatches ||
+        !f.crowdMatches ||
+        !f.grassRecordHashMatches ||
+        f.grassDrawsMatch === false,
+    )
+  )
     process.exitCode = 1;
 } catch (error) {
   await writeFile(
     `${output}/failure.json`,
-    JSON.stringify({ error: String(error), status, diskBytes, packets: packets.length }, null, 2),
+    JSON.stringify(
+      { error: String(error).slice(0, 8192), status, diskBytes, packets: packets.length },
+      null,
+      2,
+    ),
   );
   throw error;
 } finally {

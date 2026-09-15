@@ -1,3 +1,8 @@
+import {
+  beginGrassPublicationCapture,
+  takeGrassPublications,
+  type GrassPublication,
+} from "./CaptureGrassResidency";
 import { PresentationSpool, validateSpoolWindows, type SpoolWindow } from "./PresentationSpool";
 import { readGrassDraws, readGroundInputs } from "./threeInspection";
 import {
@@ -39,6 +44,7 @@ const benchmarkApi = () =>
 type Draw = Parameters<ProductionBattleRenderer["draw"]>;
 export interface CapturedReplayFrame {
   animationFrame: number;
+  grassPublications?: GrassPublication[];
   frame: BattleReplayFrame;
   reference: ReturnType<ProductionBattleRenderer["stats"]>;
 }
@@ -204,6 +210,7 @@ export class BattleRenderer extends ProductionBattleRenderer {
   }
 
   private startSpool() {
+    beginGrassPublicationCapture();
     const { assets, settings } = this.captureInputs();
     this.spool = new PresentationSpool(
       this.captureCanvas,
@@ -212,11 +219,13 @@ export class BattleRenderer extends ProductionBattleRenderer {
       this.spoolArmed!,
       () => benchmarkApi()?.cancel(),
       this.spoolSink,
+      () => readGrassDraws(capturedWorld(this.captureCanvas)),
     );
     this.spoolArmed = null;
   }
 
   private capturePresentation(event: PresentationEvent) {
+    const grassPublications = takeGrassPublications();
     if (this.spool && this.commands.length) {
       const reference = this.stats();
       const benchmark = benchmarkApi()?.status();
@@ -231,6 +240,7 @@ export class BattleRenderer extends ProductionBattleRenderer {
           },
           reference,
           animationFrame: event.animationFrame,
+          grassPublications,
         },
         benchmark?.elapsedMs ?? 0,
         benchmark?.phase === "running",
@@ -266,6 +276,7 @@ export class BattleRenderer extends ProductionBattleRenderer {
           frame,
           reference,
           animationFrame: event.animationFrame,
+          grassPublications,
         } satisfies CapturedReplayFrame);
         if (
           stopped === "recording" &&

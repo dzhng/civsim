@@ -192,7 +192,7 @@ export async function run(ctx) {
               // node. This is an oracle only, not a separate production renderer.
               const expected = 1 + (64 / 255 - 1) * 0.7;
               for (const mesh of [
-                ...replacement.buckets[0].map((b) => b.mesh),
+                ...replacement.buckets[0].main.map((b) => b.mesh),
                 replacement.impostors[0].mesh,
               ]) {
                 mesh.material.aoNode = mesh.material.aoNode.mul(expected);

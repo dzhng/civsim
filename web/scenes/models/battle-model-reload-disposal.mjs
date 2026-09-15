@@ -53,7 +53,7 @@ export async function run(ctx) {
             (object) =>
               object.name.startsWith("battle-crowd") &&
               !Object.values(previous.buckets)
-                .flat()
+                .flatMap(({ main, shadow }) => [...main, ...shadow])
                 .some((bucket) => bucket.mesh === object) &&
               !Object.values(previous.impostors).some((layer) => layer.mesh === object),
           );

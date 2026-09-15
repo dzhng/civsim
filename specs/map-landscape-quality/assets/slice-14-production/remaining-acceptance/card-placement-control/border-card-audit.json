@@ -1,0 +1,35 @@
+[
+  {
+    "name": "before",
+    "cards": 15,
+    "overlaps": [],
+    "culled": [
+      "city:BENEVENTUM",
+      "city:PUTEOLI",
+      "city:CASTRUM TRUENTINUM",
+      "city:CORFINIUM"
+    ]
+  },
+  {
+    "name": "candidate",
+    "cards": 15,
+    "overlaps": [],
+    "culled": [
+      "city:BENEVENTUM",
+      "city:PUTEOLI",
+      "city:CASTRUM TRUENTINUM",
+      "city:CORFINIUM"
+    ]
+  },
+  {
+    "name": "repeat",
+    "cards": 15,
+    "overlaps": [],
+    "culled": [
+      "city:BENEVENTUM",
+      "city:PUTEOLI",
+      "city:CASTRUM TRUENTINUM",
+      "city:CORFINIUM"
+    ]
+  }
+]

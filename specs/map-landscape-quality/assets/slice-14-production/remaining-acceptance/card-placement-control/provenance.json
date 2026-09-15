@@ -1,0 +1,14 @@
+{
+  "candidateHead": "58ad33b6fc34ed3554ddf3fd9621c3a81b582013",
+  "candidateSourceHashes": {
+    "cardLayout": "d424ed1f0a1fb5ed544c60acfed6b0dcb75eaebaf5e2cbb814a094eb3dd6abec",
+    "scene": "a25fc97d6b6d1bd2bdc423383aab049e52b2b93af7c95a7aee5c68b6f4006235"
+  },
+  "originalScenes": [
+    "campaign-lod",
+    "campaign-collision"
+  ],
+  "unchangedBodyGeometry": true,
+  "candidateRepeatGeometryEqual": true,
+  "orchestrationSha256": "ef928a6f8ab00a34135ede220ff3d88153bbce94fd6132825f5c1b8da1f74ef3"
+}

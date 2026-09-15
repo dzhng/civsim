@@ -1,3 +1,4 @@
+import { destroyVgpuTarget } from "../../src/vgpu/targetLifetime";
 import { frame, target } from "vgpu";
 import { RawBattlePost } from "../../src/raw/post";
 import { createTypegpuPost } from "../typegpu/post";
@@ -17,7 +18,10 @@ const factories: Record<string, PostFactory> = {
         await post.gpu.settled();
         return output.color.gpu;
       },
-      dispose: post.dispose,
+      dispose() {
+        destroyVgpuTarget(output);
+        post.dispose();
+      },
     };
   },
 };

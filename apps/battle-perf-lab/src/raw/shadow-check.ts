@@ -1,7 +1,8 @@
+import { trackTextureLifetime } from "../textureLifetimeCheck";
 import * as THREE from "three/webgpu";
 import { shadow, convert } from "three/tsl";
-import { RawSunShadow } from "./shadow";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../shaders/shadow";
+import { createRawShadowControl } from "./shadowControl";
+import { createShadowControlBackend } from "../shadowControlBackend";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
 import { configureSunShadows } from "../../../../packages/photoreal-renderer/src/battle/shadowRig";
@@ -45,14 +46,6 @@ async function run() {
     sun.position.set(...physical.sunDirection);
     scene.add(sun, sun.target);
     const rig = own(configureSunShadows(renderer, sun, env, "single"));
-    const cameraLayout = device.createBindGroupLayout({
-      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: "uniform" } }],
-    });
-    const native = own(new RawSunShadow(device, env));
-    const shadowCameraGroup = device.createBindGroup({
-      layout: cameraLayout,
-      entries: [{ binding: 0, resource: { buffer: native.camera } }],
-    });
     const boxGeometry = own(new THREE.BoxGeometry(2, 2, 4));
     boxGeometry.translate(0, 0, 2);
     const casterMaterial = own(new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide }));
@@ -63,94 +56,38 @@ async function run() {
     scene.add(box);
     const planeGeometry = own(new THREE.PlaneGeometry(40, 40));
     const receiverMaterial = own(new THREE.MeshBasicNodeMaterial());
-    // Public convert returns a generic Node in the pinned declarations, although
-    // this explicit conversion fixes its shader output type to vec3.
+    // Pinned declarations omit the known output type of this public conversion.
     receiverMaterial.colorNode = convert(shadow(sun), "vec3") as THREE.Node<"vec3">;
     const plane = new THREE.Mesh(planeGeometry, receiverMaterial);
     plane.receiveShadow = true;
     scene.add(plane);
     const reference = own(new THREE.RenderTarget(width, height, { type: THREE.HalfFloatType }));
-    const output = own(
-      device.createTexture({
-        size: [width, height],
-        format: "rgba16float",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-      }),
-    );
-    const mainCamera = own(
-      device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }),
-    );
-    const mainGroup = device.createBindGroup({
-      layout: cameraLayout,
-      entries: [{ binding: 0, resource: { buffer: mainCamera } }],
-    });
-    const lightLayout = device.createBindGroupLayout({
-      entries: [
-        { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
-        { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "depth" } },
-        { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "comparison" } },
-      ],
-    });
-    const lightGroup = device.createBindGroup({
-      layout: lightLayout,
-      entries: [
-        { binding: 0, resource: { buffer: native.state } },
-        { binding: 1, resource: native.depth.createView() },
-        { binding: 2, resource: native.comparison },
-      ],
-    });
-    const vertex = `struct Camera {vp:mat4x4f}; @group(0) @binding(0) var<uniform> camera:Camera;
-      struct V {@builtin(position) clip:vec4f,@location(0) world:vec3f};
-      @vertex fn vertex(@location(0) p:vec3f)->V {return V(camera.vp*vec4f(p,1),p);}`;
-    const receiver = `${vertex}
-      struct Sun {vp:mat4x4f,settings:vec4f}; @group(1) @binding(0) var<uniform> sun:Sun;
-      @group(1) @binding(1) var depth:texture_depth_2d;
-      @group(1) @binding(2) var compare:sampler_comparison;
-      fn shadowPcf${shadowPcfWgsl}
-      fn shadowVisibility${shadowVisibilityWgsl}
-      @fragment fn fragment(v:V)->@location(0) vec4f {
-        let shade=shadowVisibility(depth,compare,sun.vp,sun.settings,v.world,vec3f(0,0,1),v.clip.xy);
-        return vec4f(vec3f(shade),1);
-      }`;
-    const vertexLayout: GPUVertexBufferLayout = {
-      arrayStride: 12,
-      attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+    const backend = new URLSearchParams(location.search).get("backend") ?? "raw";
+    if (backend !== "raw" && backend !== "typegpu" && backend !== "vgpu")
+      throw Error("Unknown shadow backend");
+    const vertices = (g: THREE.BufferGeometry) => {
+      const mesh = g.toNonIndexed();
+      const data = Float32Array.from(mesh.getAttribute("position").array);
+      mesh.dispose();
+      return data;
     };
-    const depthModule = device.createShaderModule({ code: vertex });
-    const depthPipeline = device.createRenderPipeline({
-      layout: device.createPipelineLayout({ bindGroupLayouts: [cameraLayout] }),
-      vertex: { module: depthModule, entryPoint: "vertex", buffers: [vertexLayout] },
-      primitive: { cullMode: "none" },
-      depthStencil: {
-        format: "depth32float",
-        depthWriteEnabled: true,
-        depthCompare: "greater-equal",
-      },
-    });
-    const module = device.createShaderModule({ code: receiver });
-    const pipeline = device.createRenderPipeline({
-      layout: device.createPipelineLayout({ bindGroupLayouts: [cameraLayout, lightLayout] }),
-      vertex: { module, entryPoint: "vertex", buffers: [vertexLayout] },
-      fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
-      primitive: { cullMode: "none" },
-    });
-    const upload = (geometry: THREE.BufferGeometry) => {
-      const unindexed = geometry.toNonIndexed();
-      const array = unindexed.getAttribute("position").array;
-      const buffer = own(
-        device.createBuffer({
-          size: array.byteLength,
-          usage: GPUBufferUsage.VERTEX,
-          mappedAtCreation: true,
-        }),
-      );
-      new Float32Array(buffer.getMappedRange()).set(array);
-      buffer.unmap();
-      unindexed.dispose();
-      return { buffer, count: array.length / 3 };
-    };
-    const cube = upload(boxGeometry),
-      ground = upload(planeGeometry);
+    const cubeData = vertices(boxGeometry),
+      groundData = vertices(planeGeometry);
+    const textures = trackTextureLifetime(device);
+    releases.push(textures.restore);
+    const native = own(
+      backend === "raw"
+        ? createRawShadowControl(device, env, cubeData, groundData, width, height)
+        : await createShadowControlBackend(
+            backend,
+            device,
+            env,
+            cubeData,
+            groundData,
+            width,
+            height,
+          ),
+    );
     const camera = new THREE.PerspectiveCamera(),
       results = [];
     let firstActual: number[] | undefined, firstExpected: number[] | undefined;
@@ -173,36 +110,12 @@ async function run() {
         far: 3000,
       };
       applyCamera3d(camera, params);
-      device.queue.writeBuffer(mainCamera, 0, multiply(projMatrix(params), viewMatrix(params)));
-      const encoder = device.createCommandEncoder();
-      native.encode(encoder, (pass) => {
-        pass.setPipeline(depthPipeline);
-        pass.setBindGroup(0, shadowCameraGroup);
-        pass.setVertexBuffer(0, cube.buffer);
-        pass.draw(cube.count);
-      });
-      const pass = encoder.beginRenderPass({
-        colorAttachments: [
-          {
-            view: output.createView(),
-            loadOp: "clear",
-            storeOp: "store",
-            clearValue: { r: 1, g: 1, b: 1, a: 1 },
-          },
-        ],
-      });
-      pass.setPipeline(pipeline);
-      pass.setBindGroup(0, mainGroup);
-      pass.setBindGroup(1, lightGroup);
-      pass.setVertexBuffer(0, ground.buffer);
-      pass.draw(ground.count);
-      pass.end();
-      device.queue.submit([encoder.finish()]);
+      await native.render(multiply(projMatrix(params), viewMatrix(params)));
       await new Promise<void>((r) => requestAnimationFrame(() => r()));
       renderer.setRenderTarget(reference);
       renderer.render(scene, camera);
       renderer.setRenderTarget(null);
-      const actual = Array.from(await readHdrTexture(device, output));
+      const actual = Array.from(await readHdrTexture(device, native.output));
       const raw = await renderer.readRenderTargetPixelsAsync(reference, 0, 0, width, height);
       if (!(raw instanceof Uint16Array)) throw Error("Expected half output");
       const expected = Array.from(unpackRgba16fRows(raw, width, height));
@@ -240,11 +153,17 @@ async function run() {
         expectedRgba: bytes(expected),
       });
     }
+    native.dispose();
+    const liveCandidateTexturesAfterDispose = textures.liveCount();
     return {
+      liveCandidateTexturesAfterDispose,
+      backend,
+      unusedColorBytes: native.unusedColorBytes,
       results,
       errors,
       passed:
         errors.length === 0 &&
+        liveCandidateTexturesAfterDispose === 0 &&
         results.every(
           (r) =>
             r.comparison.nonfinite === 0 &&

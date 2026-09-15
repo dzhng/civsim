@@ -1,0 +1,352 @@
+{
+  "checks": [
+    {
+      "name": "parent:snapshot near-campaign",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "parent:near-campaign source unchanged",
+      "ok": true
+    },
+    {
+      "name": "procedural:snapshot near-campaign",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "procedural:near-campaign source unchanged",
+      "ok": true
+    },
+    {
+      "name": "bitmap:snapshot near-campaign",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "bitmap:near-campaign source unchanged",
+      "ok": true
+    },
+    {
+      "name": "parent:snapshot near-battle",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "parent:near-battle source unchanged",
+      "ok": true
+    },
+    {
+      "name": "procedural:snapshot near-battle",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "procedural:near-battle source unchanged",
+      "ok": true
+    },
+    {
+      "name": "bitmap:snapshot near-battle",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "bitmap:near-battle source unchanged",
+      "ok": true
+    },
+    {
+      "name": "parent:snapshot far-campaign",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "parent:far-campaign source unchanged",
+      "ok": true
+    },
+    {
+      "name": "procedural:snapshot far-campaign",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "procedural:far-campaign source unchanged",
+      "ok": true
+    },
+    {
+      "name": "bitmap:snapshot far-campaign",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "bitmap:far-campaign source unchanged",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "frames": [
+    {
+      "name": "near-campaign",
+      "mode": "parent",
+      "url": "http://127.0.0.1:5211/renderer/landscape-materials?consumer=campaign&view=near&t=0",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "campaign",
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "near-campaign",
+      "mode": "procedural",
+      "url": "http://127.0.0.1:5212/renderer/landscape-materials?consumer=campaign&view=near&t=0",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "campaign",
+          "rockFace": "procedural",
+          "rockDetailTile": null,
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "near-campaign",
+      "mode": "bitmap",
+      "url": "http://127.0.0.1:5212/renderer/landscape-materials?consumer=campaign&view=near&t=0&detail=bitmap",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "campaign",
+          "rockFace": "bitmap",
+          "rockDetailTile": 512,
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "near-battle",
+      "mode": "parent",
+      "url": "http://127.0.0.1:5211/renderer/landscape-materials?consumer=battle&view=near&t=0",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "battle",
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "near-battle",
+      "mode": "procedural",
+      "url": "http://127.0.0.1:5212/renderer/landscape-materials?consumer=battle&view=near&t=0",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "battle",
+          "rockFace": "procedural",
+          "rockDetailTile": null,
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "near-battle",
+      "mode": "bitmap",
+      "url": "http://127.0.0.1:5212/renderer/landscape-materials?consumer=battle&view=near&t=0&detail=bitmap",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "battle",
+          "rockFace": "bitmap",
+          "rockDetailTile": 512,
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "far-campaign",
+      "mode": "parent",
+      "url": "http://127.0.0.1:5211/renderer/landscape-materials?consumer=campaign&view=far&t=0",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "campaign",
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "far-campaign",
+      "mode": "procedural",
+      "url": "http://127.0.0.1:5212/renderer/landscape-materials?consumer=campaign&view=far&t=0",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "campaign",
+          "rockFace": "procedural",
+          "rockDetailTile": null,
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "far-campaign",
+      "mode": "bitmap",
+      "url": "http://127.0.0.1:5212/renderer/landscape-materials?consumer=campaign&view=far&t=0&detail=bitmap",
+      "stats": {
+        "ok": true,
+        "route": "landscape-materials",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 26785,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "consumer": "campaign",
+          "rockFace": "bitmap",
+          "rockDetailTile": 512,
+          "sourceUnchanged": true,
+          "terrainTriangles": 24576,
+          "profile": {
+            "detailScale": 2,
+            "slopeBands": {
+              "rollingMax": 0.18,
+              "slowMin": 0.35,
+              "cliffMin": 0.8
+            }
+          }
+        }
+      }
+    }
+  ]
+}

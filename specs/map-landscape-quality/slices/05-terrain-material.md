@@ -26,7 +26,8 @@ Apply [compare-screenshots](../../../.agents/skills/compare-screenshots/SKILL.md
 
 ## Delegated decisions and protected behavior
 
-Procedural versus small checked-in material textures, frequencies, blend curves, roughness and palette values are delegated. No runtime asset dependency or duplicated campaign shader is permitted.
+Procedural versus small checked-in material textures, frequencies, blend curves, roughness and palette values are delegated. No external runtime asset service or duplicated campaign shader is permitted;
+small checked-in material textures are owned by the application build.
 
 Everything outside this slice's variable stays fixed; the relevant existing gameplay, water-color, surface and lifecycle tests stay green. Follow the [ownership contracts](../architecture.md). Record new implementation decisions and measured deviations in this slice before ending a pass.
 
@@ -104,3 +105,10 @@ filtering / disposal checks. It restores some lower green ground while keeping
 rocky range continuity. Source band semantics are now explicit; no tile buffers
 or battle material behavior change. Barren high gullies and cloudy face detail
 remain open, so this does not complete05.
+
+
+The [rock-height prototype comparison](../assets/slice-05/rock-height-prototype/README.md)
+selects the checked-in image for bounded production adoption. It improves
+fracture readability on fixed real terrain and repeats exactly; source-band
+composition, actual battle/vista use and resource lifetime still need proof.
+Rounded landforms and stepped grass transitions remain separate open defects.

@@ -1,0 +1,41 @@
+[
+  {
+    "name": "near-campaign",
+    "parentToProcedural": {
+      "changedPixels": 0,
+      "rgbMAE": 0
+    },
+    "proceduralToBitmap": {
+      "changedPixels": 85538,
+      "rgbMAE": 0.32235546875
+    }
+  },
+  {
+    "name": "near-battle",
+    "parentToProcedural": {
+      "changedPixels": 0,
+      "rgbMAE": 0
+    },
+    "proceduralToBitmap": {
+      "changedPixels": 85538,
+      "rgbMAE": 0.32235546875
+    }
+  },
+  {
+    "name": "far-campaign",
+    "parentToProcedural": {
+      "changedPixels": 0,
+      "rgbMAE": 0
+    },
+    "proceduralToBitmap": {
+      "changedPixels": 9588,
+      "rgbMAE": 0.026887369791666667
+    }
+  },
+  {
+    "campaignToBattleBitmap": {
+      "changedPixels": 0,
+      "rgbMAE": 0
+    }
+  }
+]

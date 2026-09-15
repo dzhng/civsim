@@ -1,0 +1,9 @@
+{
+  "packages/photoreal-renderer/src/landscape/terrainMaterial.ts": "07aafe2a67580ca79ad3fb25390596f9a9e05bfe98566cbac84e4d95b0a28e94",
+  "packages/photoreal-renderer/src/landscape/rockDetailMap.ts": "e593f4a9adf63721df2a47d0ec101115a032d590b21da667bdd41d966f3ab5df",
+  "packages/photoreal-renderer/src/battle/terrainLayer.ts": "4f6d88ae4ce3dbd65443e46ee522e2e511deda0e4cc8ba5c00f29749f7fff114",
+  "apps/renderer-lab/src/routes/campaignLandscape.ts": "3247a0d93ff7fc5b15e5f539ba836b6c999b2a42c9c29060af7c9189b64ba906",
+  "apps/renderer-lab/src/routes/landscapeMaterials.ts": "380d85d4abc6a1850b4c024113d5da9a2a511911878ae00caf249be00c268fd5",
+  "web/tests/rockDetailFace.test.ts": "f049996647d8da2b8919de94ccfa2fd60cfb03ef344294542e42cf2356e4396d",
+  "packages/photoreal-renderer/assets/rock-detail-height.png": "5e657379898ffb20b7fb4a5d1f4c24374383ffb31d644fac6225c4aab8991b96"
+}

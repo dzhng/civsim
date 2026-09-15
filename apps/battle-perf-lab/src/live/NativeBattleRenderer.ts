@@ -56,6 +56,7 @@ import { claimCanvas } from "./canvasOwnership";
 import { createSceneBackend, type SceneBackend } from "../sceneBackend";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import { createTerrainPicking } from "../terrainPicking";
+import { NativeGpuTelemetry } from "../nativeGpuTelemetry";
 import { beginGpuAdmission } from "../gpuAdmission";
 import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
 
@@ -102,7 +103,7 @@ export class BattleRenderer implements BattleRendererApi {
   private owner: Owner | null = null;
   private format!: GPUTextureFormat;
   private deviceLabel = "unavailable";
-  private queueSubmissions = 0;
+  private telemetry: NativeGpuTelemetry | null = null;
   private readinessSubmissions = 0;
   private latestSubmission: BattleSubmissionIdentity | null = null;
   private renderedFrameId = 0;
@@ -242,18 +243,15 @@ export class BattleRenderer implements BattleRendererApi {
       ]
         .filter(Boolean)
         .join(" ") || "WebGPU adapter";
-    const device = await adapter.requestDevice();
+    const device = await adapter.requestDevice({
+      requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [],
+    });
     this.device = device;
     this.releases.push(() => device.destroy());
     this.check();
-    const originalSubmit = device.queue.submit;
-    device.queue.submit = (...args) => {
-      originalSubmit.apply(device.queue, args);
-      this.queueSubmissions++;
-    };
-    this.releases.push(() => {
-      device.queue.submit = originalSubmit;
-    });
+    const telemetry = new NativeGpuTelemetry(device, this.backend);
+    this.telemetry = telemetry;
+    this.releases.push(() => telemetry.dispose());
     void device.lost.then((info) => {
       if (!this.lifecycle.disposed)
         showFatalErrorSurface(this.canvas, fatalSurfaceFor("device-lost", info.message));
@@ -401,10 +399,10 @@ export class BattleRenderer implements BattleRendererApi {
           }
         };
         const step = async (f: () => void | Promise<void>) => {
-          const pending = sync(f);
-          await pending;
+          await this.admitted(() => sync(f));
           this.check(signal);
         };
+        this.telemetry!.beginSubmission("battle-draw");
         await step(() => this.reconcile(signal));
         const c = packet.crowd;
         if (!c) throw Error("Native presentation requires admitted soldier assets");
@@ -413,6 +411,7 @@ export class BattleRenderer implements BattleRendererApi {
             ? null
             : `${frozenFrameKey(packet.camera, c.count)}|tick=${c.observationTick}|effects=${packet.preserveFrozenEffects ? 1 : 0}|${readoutsKey(c.standards, c.readouts)}`;
         if (key && key === this.frozenKey) {
+          this.telemetry!.cancelSubmission();
           this.metrics = {
             ...this.metrics,
             skippedFrozenFrame: true,
@@ -463,6 +462,9 @@ export class BattleRenderer implements BattleRendererApi {
           this.startupCallback = false;
         }
         if (this.startupRequested) {
+          // The first startup render closes the pose+initial presentation record.
+          // Later readiness renders have their own render-only measurement.
+          if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
           await step(() => owner.scene.settleGrass(view.camera));
           await step(() => owner.scene.prepare(view));
           await step(() => this.submit("render-only"));
@@ -485,6 +487,7 @@ export class BattleRenderer implements BattleRendererApi {
         );
         uploadMs = cpuMs - uploadStart;
         const drawStart = cpuMs;
+        if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("battle-draw");
         await step(() => owner.scene.prepare(view));
         await step(() => this.submit("battle-draw"));
         drawMs = cpuMs - drawStart;
@@ -493,6 +496,7 @@ export class BattleRenderer implements BattleRendererApi {
           await this.device.queue.onSubmittedWorkDone();
           await twoFrames();
           this.check(signal);
+          if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
           await step(() => owner.scene.settleGrass(view.camera));
           await step(() => owner.scene.prepare(view));
           await step(() => this.submit("render-only"));
@@ -530,6 +534,7 @@ export class BattleRenderer implements BattleRendererApi {
       },
       (error) => {
         if (this.pendingPresentation === task) this.pendingPresentation = null;
+        this.telemetry?.cancelSubmission();
         this.startupRequested = false;
         this.startupReady?.reject(error);
         this.startupReady = null;
@@ -537,20 +542,35 @@ export class BattleRenderer implements BattleRendererApi {
     );
     return task;
   }
-  private async submit(source: "battle-draw" | "render-only") {
+  private async admitted<T>(work: () => T | Promise<T>): Promise<T> {
     const admission = beginGpuAdmission(this.device);
-    const before = this.queueSubmissions;
     try {
-      const pending = this.owner!.submitPresentation();
+      const pending = work();
       const accepted = admission();
-      await Promise.all([pending, accepted]);
+      const [result] = await Promise.all([pending, accepted]);
+      return result;
     } catch (error) {
       await admission().catch(() => {});
       throw error;
     }
-    if (this.queueSubmissions === before)
-      throw Error("Native presentation submitted no command buffer");
-    this.latestSubmission = { submissionId: this.queueSubmissions, source, backend: this.backend };
+  }
+  private async submit(source: "battle-draw" | "render-only") {
+    const telemetry = this.telemetry!;
+    if (!telemetry.measuring) telemetry.beginSubmission(source);
+    const admission = beginGpuAdmission(this.device);
+    try {
+      const pending = this.owner!.submitPresentation();
+      const accepted = admission();
+      const validation = Promise.all([pending, accepted]);
+      const identity = telemetry.endSubmission(validation);
+      await validation;
+      if (!identity) throw Error("Native presentation submitted no command buffer");
+      this.latestSubmission = identity;
+    } catch (error) {
+      telemetry.cancelSubmission();
+      await admission().catch(() => {});
+      throw error;
+    }
   }
   settlePresentedFrame(signal?: AbortSignal): Promise<void> {
     if (this.startupCallback) {
@@ -577,9 +597,10 @@ export class BattleRenderer implements BattleRendererApi {
         const view = this.lastView!;
         for (let i = 0; i < 2; i++) {
           this.check(signal);
-          await this.owner!.scene.settleGrass(view.camera);
+          this.telemetry!.beginSubmission("render-only");
+          await this.admitted(() => this.owner!.scene.settleGrass(view.camera));
           this.check(signal);
-          await this.owner!.scene.prepare(view);
+          await this.admitted(() => this.owner!.scene.prepare(view));
           this.check(signal);
           await this.submit("render-only");
           this.readinessSubmissions++;
@@ -593,7 +614,9 @@ export class BattleRenderer implements BattleRendererApi {
     // The original returned job still reports its failure to its caller.
     const barrier = job.then(
       () => {},
-      () => {},
+      () => {
+        this.telemetry?.cancelSubmission();
+      },
     );
     this.readiness = barrier;
     const clear = () => {
@@ -622,8 +645,8 @@ export class BattleRenderer implements BattleRendererApi {
   frameMetrics() {
     return { ...this.metrics, gpuSubmission: this.latestSubmission };
   }
-  gpuEventsSince(_sequence: number) {
-    return null;
+  gpuEventsSince(sequence: number) {
+    return this.telemetry?.eventsSince(sequence) ?? null;
   }
   memoryInfo() {
     return null;
@@ -652,11 +675,11 @@ export class BattleRenderer implements BattleRendererApi {
       },
       native,
       submission: {
-        actualQueueSubmissions: this.queueSubmissions,
+        actualQueueSubmissions: this.telemetry?.submissionCount ?? 0,
         readinessSubmissions: this.readinessSubmissions,
         latest: this.latestSubmission,
       },
-      gpuTiming: { available: false, reason: "native pass timestamp instrumentation pending" },
+      gpuTiming: this.telemetry?.stats() ?? { supported: false },
       cpuCoverage:
         "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
       picking: { triangles: this.picking?.triangles ?? 0 },

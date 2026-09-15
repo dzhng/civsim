@@ -22,9 +22,12 @@ source renderer continues to implement its existing `present` path.
 
 This is a functional checkpoint, not a ranked renderer result. CPU values cover
 synchronous API entry and instance packing; asynchronous continuations are not
-CPU-profiled. GPU pass timings and memory diagnostics are explicitly unavailable.
+CPU-profiled. Memory diagnostics remain explicitly unavailable. GPU pass timings use the shared
+native observer when timestamp-query is supported; missing results stay explicit.
 Submission identities count actual queue submissions, without a fictitious Three
-frame number. Native pass timing instrumentation is a separate integration.
+frame number. Each measured synchronous owner call has a validation scope popped before await;
+this admission and timestamp instrumentation overhead is part of the instrumented
+control. Readback helpers are counted globally but never replace final render IDs.
 
 The benchmark's default single shadows, canvas scale, post/grade, grass settings,
 and frozen behavior are retained. CSM, debug-block rendering and development asset

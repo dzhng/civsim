@@ -50,10 +50,17 @@ export interface BattleRendererApi extends Pick<
   | "raycastGround"
   | "reloadSoldierAssets"
   | "settlePresentedFrame"
-  | "gpuEventsSince"
 > {
+  gpuEventsSince(afterSequence: number): BattleGpuEventBatch | null;
   frameMetrics(): BattleRendererFrameMetrics;
   stats(): BattleRendererStats;
   memoryInfo(): BattleRendererMemoryInfo | null;
   debugSoldierAnim(index: number): unknown;
 }
+
+type SourceGpuBatch = NonNullable<ReturnType<BattleRenderer["gpuEventsSince"]>>;
+export type BattleGpuEvent = Omit<SourceGpuBatch["events"][number], "threeFrameId"> & {
+  threeFrameId?: number;
+  backend?: "raw" | "typegpu" | "vgpu";
+};
+export type BattleGpuEventBatch = Omit<SourceGpuBatch, "events"> & { events: BattleGpuEvent[] };

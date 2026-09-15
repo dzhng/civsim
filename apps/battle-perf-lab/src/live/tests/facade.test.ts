@@ -105,7 +105,11 @@ function fixture() {
   };
   vi.stubGlobal("navigator", {
     gpu: {
-      requestAdapter: async () => ({ info: { vendor: "test" }, requestDevice: async () => device }),
+      requestAdapter: async () => ({
+        features: new Set(),
+        info: { vendor: "test" },
+        requestDevice: async () => device,
+      }),
       getPreferredCanvasFormat: () => "bgra8unorm",
     },
   });
@@ -307,4 +311,39 @@ test("public readiness and soldier count come from the admitted native audience"
   expect(f.renderer.stats()).toMatchObject({ ready: false, soldiers: 8 });
   f.renderer.dispose();
   expect(f.renderer.stats()).toMatchObject({ ready: false, soldiers: 0 });
+});
+test("measurement starts before pose submission and cancellation closes failed preparation", async () => {
+  const { NativeGpuTelemetry } = await import("../../nativeGpuTelemetry");
+  const begin = vi.spyOn(NativeGpuTelemetry.prototype, "beginSubmission");
+  const end = vi.spyOn(NativeGpuTelemetry.prototype, "endSubmission");
+  const cancel = vi.spyOn(NativeGpuTelemetry.prototype, "cancelSubmission");
+  const f = fixture();
+  await f.renderer.ready;
+  const readouts = state.owner.scene.uploadReadouts;
+  state.owner.scene.uploadReadouts = (...args: unknown[]) => {
+    expect(begin).toHaveBeenCalledWith("battle-draw");
+    readouts(...args);
+  };
+  const visibility = state.owner.scene.setVisibility;
+  state.owner.scene.setVisibility = (...args: unknown[]) => {
+    expect(begin).toHaveBeenCalledWith("battle-draw");
+    visibility(...args);
+  };
+  const upload = state.owner.scene.uploadCrowd;
+  state.owner.scene.uploadCrowd = (...args: unknown[]) => {
+    expect(begin).toHaveBeenCalledWith("battle-draw");
+    upload(...args);
+  };
+  await f.renderer.present(packet());
+  expect(end).toHaveBeenCalledTimes(1);
+  expect(end.mock.calls[0][0]).toBeInstanceOf(Promise);
+  state.owner.scene.uploadCrowd = () => {
+    throw Error("pose failed");
+  };
+  await expect(f.renderer.present(packet())).rejects.toThrow("pose failed");
+  expect(cancel).toHaveBeenCalled();
+  state.owner.scene.uploadCrowd = upload;
+  await expect(f.renderer.present(packet())).resolves.toMatchObject({ submitted: true });
+  f.renderer.dispose();
+  vi.restoreAllMocks();
 });

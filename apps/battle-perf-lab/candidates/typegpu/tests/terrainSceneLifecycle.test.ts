@@ -68,7 +68,7 @@ test("a failed staged generation retains the previous complete terrain and dispo
   state.factory.mockRejectedValueOnce(Error("terrain admission failed"));
   await expect(owner.replace(input)).rejects.toThrow("terrain admission failed");
   expect(owner.grid()).toBe(grid);
-  expect(() => owner.drawOpaque({} as TgpuRenderPass, {} as TgpuBindGroup)).not.toThrow();
+  expect(() => owner.drawOpaque({} as TgpuRenderPass)).not.toThrow();
   expect(previous.every((r) => r.dispose.mock.calls.length === 0)).toBe(true);
   await owner.replace(input);
   expect(owner.grid()).not.toBe(grid);

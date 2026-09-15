@@ -329,13 +329,13 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           encoder,
           output,
           (pass, camera) => {
-            terrain.drawOpaque(pass, camera);
+            terrain.drawOpaque(pass);
             crowd.draw(pass, "main", camera);
             standards.draw(pass, camera);
             grass.draw(pass, camera);
             // Source readouts are opaque cutouts, before the transparent render list.
             readouts.draw(pass);
-            terrain.drawTransparent(pass, camera);
+            terrain.drawTransparent(pass);
             ground.draw(pass);
             rings.draw(pass);
             effects.draw(pass);

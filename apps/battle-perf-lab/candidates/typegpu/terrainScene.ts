@@ -168,7 +168,7 @@ export async function createTypegpuBattleTerrainScene(
       strength = terrainDetailStrength;
       current().setFrame(zoom, strength);
     },
-    drawOpaque(pass: TgpuRenderPass, _camera: TgpuBindGroup) {
+    drawOpaque(pass: TgpuRenderPass) {
       const s = current();
       s.backdrop.draw(pass);
       s.ground.draw(pass);
@@ -176,7 +176,7 @@ export async function createTypegpuBattleTerrainScene(
       s.water.draw(pass);
       s.scenery.draw(pass);
     },
-    drawTransparent(pass: TgpuRenderPass, _camera: TgpuBindGroup) {
+    drawTransparent(pass: TgpuRenderPass) {
       for (const layer of current().transparentVista) layer.draw(pass);
     },
     drawShadow(pass: TgpuRenderPass, shadowCamera: TgpuBindGroup) {

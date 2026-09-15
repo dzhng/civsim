@@ -98,3 +98,9 @@ The [first output-phase GPU proof](../assets/slice-10/screen-output-first/README
 rejects a direct second draw under default MSAA: ink is correct but the world
 attachment is replaced. The next public-API composition must preserve world
 samples and verify translucent blending as well as exact non-UI pixels.
+
+The [corrected output mechanism](../assets/slice-10/screen-output/README.md)
+passes exact opaque color, translucent blending, non-UI pixel preservation and
+an explicit rendered repeat. Both renderer target selectors must be restored
+before the final copy. Its owned and implicit MSAA cost is recorded; matched
+production UI, lifecycle and hardware checks remain before full acceptance.

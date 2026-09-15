@@ -1,0 +1,225 @@
+{
+  "results": [
+    {
+      "cell": 2,
+      "stats": {
+        "ok": true,
+        "route": "landscape-surface",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "surface": {
+            "domains": [
+              {
+                "ox": -160,
+                "oy": -80,
+                "columns": 81,
+                "rows": 81,
+                "cell": 2,
+                "units": "kilometers"
+              },
+              {
+                "ox": 0,
+                "oy": -80,
+                "columns": 81,
+                "rows": 81,
+                "cell": 2,
+                "units": "kilometers"
+              }
+            ],
+            "revision": "campaign:1",
+            "centerRay": {
+              "position": [
+                3.244784910084407e-19,
+                -0.003446940279260957,
+                18.880817891239445
+              ],
+              "normal": [
+                -0.41492058400159004,
+                0.6248187432132254,
+                0.6613943204331474
+              ],
+              "revision": "campaign:1",
+              "triangle": 6240,
+              "barycentric": [
+                0.0017234701396304784,
+                0.9982765298603695,
+                1.6223924550422035e-19
+              ]
+            }
+          },
+          "drawCalls": 4,
+          "triangles": 30688,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "terrainTriangles": 28479,
+          "trees": 1217,
+          "mountainProps": 0,
+          "center": [
+            0,
+            0
+          ],
+          "material": "shared-landscape-ground",
+          "environment": "golden"
+        }
+      },
+      "camera": {
+        "projection": [
+          2.2151446643453205,
+          0,
+          0,
+          0,
+          0,
+          3.544231462952513,
+          0,
+          0,
+          0,
+          0,
+          1.00000010000001e-7,
+          -1,
+          0,
+          0,
+          1.00000010000001,
+          0
+        ],
+        "world": [
+          1,
+          6.123233995736765e-17,
+          -6.162975822039155e-33,
+          0,
+          -5.220207135674002e-17,
+          0.8525245220595057,
+          0.5226872289306593,
+          0,
+          3.2005362093256573e-17,
+          -0.5226872289306593,
+          0.8525245220595057,
+          0,
+          7.56229408760718e-15,
+          -123.50163480396705,
+          220.3138438373375,
+          1
+        ]
+      },
+      "issues": [],
+      "checks": [
+        {
+          "name": "snapshot erosion-2km",
+          "ok": true,
+          "detail": "baseline created"
+        }
+      ]
+    },
+    {
+      "cell": 1,
+      "stats": {
+        "ok": true,
+        "route": "landscape-surface",
+        "projection": "camera3d-viewProj-reverse-z",
+        "stats": {
+          "surface": {
+            "domains": [
+              {
+                "ox": -160,
+                "oy": -80,
+                "columns": 161,
+                "rows": 161,
+                "cell": 1,
+                "units": "kilometers"
+              },
+              {
+                "ox": 0,
+                "oy": -80,
+                "columns": 161,
+                "rows": 161,
+                "cell": 1,
+                "units": "kilometers"
+              }
+            ],
+            "revision": "campaign:1",
+            "centerRay": {
+              "position": [
+                3.402353090436342e-19,
+                -0.0037042725054732273,
+                18.881237615689642
+              ],
+              "normal": [
+                -0.4130952083917845,
+                0.6414860581218582,
+                0.6464116227598542
+              ],
+              "revision": "campaign:1",
+              "triangle": 25280,
+              "barycentric": [
+                0.003704272505473227,
+                0.9962957274945268,
+                3.402353090436342e-19
+              ]
+            }
+          },
+          "drawCalls": 4,
+          "triangles": 107961,
+          "gpuTimeMs": null,
+          "timeSeconds": 0,
+          "device": "google / swiftshader",
+          "terrainTriangles": 105752,
+          "trees": 1217,
+          "mountainProps": 0,
+          "center": [
+            0,
+            0
+          ],
+          "material": "shared-landscape-ground",
+          "environment": "golden"
+        }
+      },
+      "camera": {
+        "projection": [
+          2.2151446643453205,
+          0,
+          0,
+          0,
+          0,
+          3.544231462952513,
+          0,
+          0,
+          0,
+          0,
+          1.00000010000001e-7,
+          -1,
+          0,
+          0,
+          1.00000010000001,
+          0
+        ],
+        "world": [
+          1,
+          6.123233995736765e-17,
+          -6.162975822039155e-33,
+          0,
+          -5.220207135674002e-17,
+          0.8525245220595057,
+          0.5226872289306593,
+          0,
+          3.2005362093256573e-17,
+          -0.5226872289306593,
+          0.8525245220595057,
+          0,
+          7.56229408760718e-15,
+          -123.50163480396705,
+          220.3138438373375,
+          1
+        ]
+      },
+      "issues": [],
+      "checks": [
+        {
+          "name": "snapshot erosion-1km",
+          "ok": true,
+          "detail": "baseline created"
+        }
+      ]
+    }
+  ],
+  "cameraExact": true
+}

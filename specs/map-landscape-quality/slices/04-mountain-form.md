@@ -52,4 +52,17 @@ the source-form model before trying another local-link or noise adjustment.
 
 ## One landform owner
 
-The source height producer already modulates geographic ranges with ridge noise; the presentation field applies a second ridge pattern. Preserve range-distance geography and city aprons at the source, and move detailed landform shaping into the existing relief owner. The next bounded comparison uses a plain base and two stateless slope-directed erosion-noise octaves. This is a procedural shaping function, not a drainage or erosion simulation. Read the [primary algorithm explanation](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html) and preserve source-license notices for any port. Close clay and a shadow-free diagnostic must win before regional captures; measure query cost and keep coast, terrain-join and gameplay contracts protected. No new schema, cache or package dependency is planned.
+The source height producer already modulates geographic ranges with ridge noise; the presentation field applies a second ridge pattern. Preserve range-distance geography and city aprons at the source, and move detailed landform shaping into the existing relief owner. The rejected comparison used a plain base and two stateless slope-directed erosion-noise octaves. This is a procedural shaping function, not a drainage or erosion simulation. Read the [primary algorithm explanation](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html) and preserve source-license notices for any port. Close clay and a shadow-free diagnostic must win before regional captures; measure query cost and keep coast, terrain-join and gameplay contracts protected. No new schema, cache or package dependency is planned.
+## Directional synthesis boundary
+
+The [stateless directional-erosion investigation](../assets/slice-04/directional-erosion/README.md)
+replicates the published kernel and removes duplicate source crest modulation.
+A measured bilinear-gradient height discontinuity was repaired with local C1
+height reconstruction. Corrected close clay still fails the landform target;
+1km geometry smooths some steps but retains the wall/pillar form at almost four
+times the fixture triangles. The candidate is rejected, all production/test
+edits are removed, and no regional captures or parameter sweep follow. Future
+directional synthesis must satisfy the continuous-gradient input contract and
+its actual mesh sampling limit before visual acceptance can be assessed.
+
+The next causal control is the same cleaned source and plain base with erosion disabled. It was not captured in this pass. Use the archived patch and camera matrices to distinguish defects inherited from the base from defects introduced by the filter before choosing another algorithm.

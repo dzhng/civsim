@@ -1,0 +1,34 @@
+{
+  "seamMax": 9.29148917805378e-7,
+  "plainSeamMax": 1.870424144456706e-7,
+  "seamAt": [
+    16,
+    9.039999999999992
+  ],
+  "queries": 10201,
+  "beforeMs": [
+    3.8532920000000104,
+    3.6823339999999973,
+    3.7854169999999954
+  ],
+  "plainBaseMs": [
+    3.5852920000000097,
+    3.5210830000000044,
+    3.478834000000006
+  ],
+  "candidateMs": [
+    14.827416,
+    14.820792000000012,
+    14.474291999999991
+  ],
+  "changed": 6844,
+  "maxChange": 19.315908195476556,
+  "maxKernelErrorVsRustF32": 0.000002007553612182189,
+  "maxHeightErrorVsRustF32": 0.0000016534940208146054,
+  "gradientError": 6.466842894514713e-10,
+  "oldNoiseError": 0,
+  "sourceUnchanged": true,
+  "coastZero": true,
+  "deterministic": true,
+  "checksum": 900592.8538865513
+}

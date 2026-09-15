@@ -1,0 +1,25 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-landscape-material-regions/web
+
+ ❯ tests/erosion.test.ts (3 tests | 1 failed) 17ms
+   × keeps filtered height continuous across source-height cell boundaries 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/erosion.test.ts > keeps filtered height continuous across source-height cell boundaries
+AssertionError: expected 9.82105943900147 to be less than 0.0001
+ ❯ tests/erosion.test.ts:75:81
+     73|   const step = 1e-7;
+     74|   for (const [x, y] of [[16, 73.04], [8, 10], [0, 12]]) {
+     75|     expect(Math.abs(field.heightAt(x - step, y) - field.heightAt(x + s…
+       |                                                                                 ^
+     76|     expect(Math.abs(field.heightAt(x, y - step) - field.heightAt(x, y …
+     77|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  12:50:11
+   Duration  265ms (transform 29ms, setup 47ms, import 15ms, tests 17ms, environment 126ms)

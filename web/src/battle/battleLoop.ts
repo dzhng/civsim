@@ -13,43 +13,72 @@ import { BenchmarkRun } from "./benchmark/benchmarkRun";
 import { mountBenchmarkPanel } from "./benchmark/benchmarkPanel";
 import { awaitRendererReady } from "../shared/rendererReady";
 import { mountBattleLoading } from "./battleLoading";
-import { SimClock } from "../shared/simClock";
 import { mountBattleHud, type BattleHudHandle, type BattleHudState } from "../ui/hud/BattleHud";
 import { createHudStore } from "../ui/hudStore";
 import { installBattleDebugApi, type BattleLoopFrameMetrics } from "./battleDebugApi";
 import { createBattleMinimap } from "./battleMinimap";
 import { BattleFreeze } from "./battleFreeze";
+import { BattleSimTime } from "./battleSimTime";
 import { createBattleHudBridge, mountBattleModals, type BattleHudBridge } from "./battleHudBridge";
-import {
-  BATTLE_TICK_DT,
-  BATTLE_MAX_TICKS_PER_FRAME,
-  createBattleWorld,
-  type BattleConfig,
-} from "./battleWorld";
+import { createBattleWorld, type BattleConfig } from "./battleWorld";
+import type { BattleSimClient } from "./sim/battleSimClient";
 import { buildBattleTerrain } from "./battleTerrain";
 import { BattleUnitPresentation } from "./battleUnitPresentation";
 import { BattleCrowd } from "./battleCrowd";
 import { createBattleControls } from "./battleControls";
 
+/** The battle scene's frame coordinator.
+ *
+ * It owns no simulation. The authority publishes completed ticks on its own
+ * cadence; this loop consumes every one of them as it lands and draws whenever the
+ * browser gives it a frame. The two rates are deliberately unrelated: a slow tick
+ * cannot stall the camera, and a skipped draw cannot skip a tick's transitions. */
 export function enterBattleScene(
   cfg: BattleConfig,
+  sim: BattleSimClient,
   cleanups: (() => void)[],
   restartBattle: () => void,
   sceneSignal: AbortSignal,
 ): (now: number) => void | Promise<void> {
-  const world = createBattleWorld(cfg, cleanups, sceneSignal);
-  const {
-    audio: battleAudio,
-    camera,
-    cameraRig,
-    canvas,
-    game,
-    renderer,
-    signal,
-    stride: STRIDE,
-  } = world;
   window.__ready = false;
-  const loading = mountBattleLoading(cfg.onExit, signal);
+  const loading = mountBattleLoading(cfg.onExit, sceneSignal);
+  let frame: (now: number) => void | Promise<void> = () => {};
+  let startupFailure: unknown = null;
+
+  const canvasOf = () => document.getElementById("battlefield") as HTMLCanvasElement;
+  const reportStartupFailure = (error: unknown) => {
+    if (sceneSignal.aborted || startupFailure !== null) return;
+    startupFailure = error;
+    frame = () => {};
+    loading.remove();
+    const message = error instanceof Error ? error.message : String(error);
+    showFatalErrorSurface(canvasOf(), fatalSurfaceFor("submission", message));
+  };
+
+  // The renderer's environment, terrain and opening framing all come from the map
+  // the authority actually built, so the scene is assembled on its first
+  // publication rather than guessed at before it.
+  void sim.firstPublication
+    .then(() => {
+      if (sceneSignal.aborted) return;
+      frame = buildBattleScene(cfg, sim, cleanups, restartBattle, sceneSignal, loading);
+    })
+    .catch(reportStartupFailure);
+
+  return (now) => frame(now);
+}
+
+function buildBattleScene(
+  cfg: BattleConfig,
+  sim: BattleSimClient,
+  cleanups: (() => void)[],
+  restartBattle: () => void,
+  sceneSignal: AbortSignal,
+  loading: { remove(): void },
+): (now: number) => void | Promise<void> {
+  const world = createBattleWorld(cfg, sim, cleanups, sceneSignal);
+  const { audio: battleAudio, camera, cameraRig, canvas, renderer, signal } = world;
+  const STRIDE = world.stride;
   let rendererReady = false;
   let battleReady = false;
   let preparingFrame = false;
@@ -62,8 +91,6 @@ export function enterBattleScene(
     signal,
     loading.remove,
   );
-  const wasm = cfg.wasm;
-  const unitInfo = world.unitInfo;
   const applyBattleCameraRig = cameraRig.apply;
 
   let handleToolbarCmd: (cmd: string) => void = () => {};
@@ -86,38 +113,52 @@ export function enterBattleScene(
   const battleMinimap = createBattleMinimap({
     canvas,
     camera,
-    game,
-    generatedMap: cfg.generatedMap ?? null,
+    certificates: sim.identity.generatedMapCertificates,
+    generatedMap: world.generatedMap,
     minimap: battleHud.minimapCanvas,
     signal,
     stride: STRIDE,
     terrain: terrain.grid,
-    unitInfo,
+    unitCount: () => sim.unitCount(),
+    unitInfo: world.unitInfo,
   });
 
   const unitPresentation = new BattleUnitPresentation(world);
   const crowd = new BattleCrowd(world, unitPresentation);
-  let knownUnits = game.unit_count();
+  let knownUnits = sim.unitCount();
 
-  const clock = new SimClock({
-    tickHz: 1 / BATTLE_TICK_DT,
-    maxTicksPerFrame: BATTLE_MAX_TICKS_PER_FRAME,
-  });
+  const time = new BattleSimTime(sim);
 
   // --- Time control ------------------------------------------------------------
-  const syncAudioSuspension = () => battleAudio.setSuspended(document.hidden || clock.frozen);
-  const freeze = new BattleFreeze(clock, renderer, syncAudioSuspension, signal);
-  document.addEventListener("visibilitychange", syncAudioSuspension, { signal });
-  syncAudioSuspension();
-  // Absolute sim ticks driven so far (real-time loop + scripted advance). The
-  // verify harness reads this to pin a snapshot to a fixed tick: idle men carry
-  // a fidget sway that re-rolls every few ticks, so a stable pixel snapshot must
-  // freeze at a known tick, not "whenever ~1s of wall-clock happened to land".
-  let simTick = 0;
+  const syncSuspension = () => {
+    time.setHidden(document.hidden);
+    battleAudio.setSuspended(document.hidden || time.frozen);
+  };
+  const freeze = new BattleFreeze(time, renderer, syncSuspension, signal);
+  document.addEventListener("visibilitychange", syncSuspension, { signal });
+  syncSuspension();
+
+  // Completed ticks consumed as they arrive, not as frames are drawn. A scripted
+  // advance's intermediate publications are progress reports: the crowd takes the
+  // completed result, exactly as it did when the shell ran those ticks itself.
+  let ticksSincePresentedFrame = 0;
+  let lastObservedTick = sim.tick();
+  cleanups.push(
+    sim.observe((tick) => {
+      if (sim.preparing()) return;
+      crowd.observeTick(tick);
+      // A republished tick is the same tick with an accepted order in it, not a
+      // tick the simulation advanced through.
+      if (tick > lastObservedTick) ticksSincePresentedFrame += tick - lastObservedTick;
+      lastObservedTick = tick;
+    }),
+  );
+
   const benchmark = cfg.benchmark ? new BenchmarkRun(cfg.benchmark, performance.now()) : null;
   const recording = benchmark ? new BenchmarkRecording(benchmark.scenario.durationMs) : null;
   let benchmarkIdentity: BenchmarkIdentity | null = null;
   let terminalBenchmarkReport: ReturnType<typeof createBenchmarkReport> | null = null;
+  let preparationRequested = false;
   const benchmarkReport = () => {
     if (terminalBenchmarkReport) return terminalBenchmarkReport;
     const report = createBenchmarkReport(
@@ -130,13 +171,17 @@ export function enterBattleScene(
     if (!benchmark!.active) terminalBenchmarkReport = report;
     return report;
   };
-  const cancelBenchmark = () => benchmark?.cancel(performance.now(), simTick);
+  const cancelBenchmark = () => {
+    sim.cancelScript();
+    benchmark?.cancel(performance.now(), sim.tick());
+  };
   const benchmarkPanel = benchmark
     ? mountBenchmarkPanel(benchmark, cancelBenchmark, signal, benchmarkReport)
     : null;
   if (benchmark) {
     const interrupted = () => {
-      if (document.hidden) benchmark.fail("Interrupted — tab hidden", performance.now(), simTick);
+      if (document.hidden)
+        benchmark.fail("Interrupted — tab hidden", performance.now(), sim.tick());
     };
     document.addEventListener("visibilitychange", interrupted, { signal });
     interrupted();
@@ -145,7 +190,7 @@ export function enterBattleScene(
       "resize",
       () => {
         if (benchmark.status().phase === "running")
-          benchmark.fail("Interrupted — viewport resized", performance.now(), simTick);
+          benchmark.fail("Interrupted — viewport resized", performance.now(), sim.tick());
       },
       { signal },
     );
@@ -153,7 +198,7 @@ export function enterBattleScene(
   }
 
   const showGameover = mountBattleModals(world, cleanups, restartBattle);
-  const controls = createBattleControls(world, clock, freeze);
+  const controls = createBattleControls(world, time, freeze);
   const { input, orders } = controls;
   handleCardSelect = controls.onCardSelect;
   hudBridge = createBattleHudBridge(
@@ -161,26 +206,40 @@ export function enterBattleScene(
     battleHudStore,
     {
       ...controls.toolbarCommands,
-      victor: () => game.victor(),
+      victor: () => sim.victor(),
       showGameover,
     },
     {
       classSpecs: crowd.classSpecs,
-      clock,
       controls,
       input,
+      time,
       world,
     },
   );
   handleToolbarCmd = hudBridge.onToolbarCmd;
   hudBridge.updateToolbar();
 
+  let presentationFailed = false;
+  const failPresentation = (error: unknown) => {
+    presentationFailed = true;
+    const message = error instanceof Error ? error.message : String(error);
+    if (benchmark) benchmark.fail(message, performance.now(), sim.tick());
+    else showFatalErrorSurface(canvas, fatalSurfaceFor("submission", message));
+  };
+  cleanups.push(
+    sim.onFailure((error) => {
+      if (signal.aborted) return;
+      loading.remove();
+      failPresentation(error);
+    }),
+  );
+
   // --- Main loop -----------------------------------------------------------------
   const banner = document.getElementById("banner")!;
   const selbox = document.getElementById("selbox")!;
   banner.style.display = "none";
   let lastFrame = performance.now();
-  clock.advance(lastFrame);
   let tickMsAvg = 0;
   let audioUpdateMsAvg = 0;
   let fpsAvg = 60;
@@ -208,7 +267,7 @@ export function enterBattleScene(
       timestampMs: now,
       intervalMs,
       ready: battleReady,
-      simTick,
+      simTick: sim.tick(),
       ticksAdvanced: ticks,
       simCpuMs,
       renderCpuMs,
@@ -232,22 +291,20 @@ export function enterBattleScene(
         intended,
       );
       recording!.collectGpu(renderer.gpuEventsSince(recording!.gpuEventCursor));
-      benchmark.frame(now, simTick, game.victor());
+      benchmark.frame(now, sim.tick(), sim.victor());
     }
   };
 
-  let presentationFailed = false;
   const frame = (now: number): void | Promise<void> => {
     if (signal.aborted || presentationFailed) return;
-    // Asset/GPU preparation must not spend simulation time behind the loading screen.
     if (benchmark) {
-      if (window.__gpuFatal) benchmark.fail(window.__gpuFatal.detail, now, simTick);
+      if (window.__gpuFatal) benchmark.fail(window.__gpuFatal.detail, now, sim.tick());
       if (!benchmark.active) {
         battleAudio.setSuspended(true);
         return;
       }
-      if (clock.paused || clock.frozen || clock.timeScale !== 1) {
-        benchmark.fail("Interrupted — simulation speed or pause changed", now, simTick);
+      if (time.paused || time.frozen || time.timeScale !== 1) {
+        benchmark.fail("Interrupted — simulation speed or pause changed", now, sim.tick());
         return;
       }
     }
@@ -260,9 +317,16 @@ export function enterBattleScene(
 
     // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
     applyBattleCameraRig();
-    if (benchmark && battleReady && benchmark.status().phase === "preparing") {
-      if (simTick < benchmark.scenario.startTick || benchmarkViewReady)
-        benchmark.frame(now, simTick, game.victor());
+    const preparingBenchmark = benchmark?.status().phase === "preparing";
+    if (benchmark && battleReady && preparingBenchmark) {
+      // Preparation is the authority's scripted advance; this thread only watches
+      // it arrive, so the loading window costs the main thread nothing.
+      if (!preparationRequested) {
+        preparationRequested = true;
+        void sim.advanceTo(benchmark.scenario.startTick).catch(failPresentation);
+      }
+      if (sim.tick() < benchmark.scenario.startTick || benchmarkViewReady)
+        benchmark.frame(now, sim.tick(), sim.victor());
       if (benchmark.status().phase === "running")
         recording!.start(now, renderer.gpuEventsSince(0)?.nextSequence ?? 0);
     }
@@ -273,30 +337,9 @@ export function enterBattleScene(
     battleAudio.update(camera, frameDt, now / 1000);
     audioUpdateMsAvg += (performance.now() - audioUpdateStart - audioUpdateMsAvg) * 0.05;
 
-    const preparingBenchmark = benchmark?.status().phase === "preparing";
-    if (!battleReady || preparingBenchmark) {
-      const paused = clock.paused;
-      clock.paused = true;
-      clock.advance(now);
-      clock.paused = paused;
-    }
     if (preparingBenchmark && battleReady) {
-      const prepBegan = performance.now();
-      const preparedTicks = benchmark.prepareStep(
-        simTick,
-        () => {
-          game.advance_ticks(1);
-          simTick++;
-        },
-        () => performance.now(),
-      );
-      const preparedAt = performance.now();
-      // Preparation wall time must not become live simulation catch-up.
-      clock.paused = true;
-      clock.advance(preparedAt);
-      clock.paused = false;
-      if (simTick < benchmark.scenario.startTick) {
-        completeFrame(now, intervalMs, preparedTicks, preparedAt - prepBegan, 0, cpuStartedAt);
+      if (sim.tick() < benchmark!.scenario.startTick) {
+        completeFrame(now, intervalMs, 0, 0, 0, cpuStartedAt);
         return;
       }
       applyBenchmarkCamera(camera, 0);
@@ -307,34 +350,41 @@ export function enterBattleScene(
           viewport: [innerWidth, innerHeight],
           framebuffer: [canvas.width, canvas.height],
           dpr: devicePixelRatio,
-          initialStateHash: game.state_hash().toString(),
-          soldiers: game.soldier_count(),
+          initialStateHash: sim.stateHash(),
+          soldiers: sim.soldierCount(),
           graphics: getGraphicsSettings(),
         };
       }
     }
-    const ticks = preparingBenchmark ? 0 : clock.advance(now);
-    let simCpuMs = 0;
-    if (ticks > 0) {
-      const t0 = performance.now();
-      game.advance_ticks(ticks);
-      simTick += ticks;
-      simCpuMs = performance.now() - t0;
-      tickMsAvg += (simCpuMs / ticks - tickMsAvg) * 0.1;
-    }
+
+    const telemetry = sim.telemetry(now);
+    tickMsAvg += (telemetry.workerTickMs - tickMsAvg) * 0.1;
+    const ticks = ticksSincePresentedFrame;
+    ticksSincePresentedFrame = 0;
 
     // Reinforcements: campaign battles grow units mid-fight.
-    if (game.unit_count() > knownUnits) {
-      knownUnits = game.unit_count();
+    if (sim.unitCount() > knownUnits) {
+      knownUnits = sim.unitCount();
       terrain.refreshStatic();
       hudBridge.buildCards();
     }
 
+    // Everything read out of the newest publication happens here, in one
+    // uninterrupted window, so no consumer mixes records from two ticks.
+    hudBridge.tickCards();
+    hudTimer += frameDt;
+    if (hudTimer > 0.2) {
+      hudTimer = 0;
+      orders.tickGroupAttacks();
+      hudBridge.updateHud(time.frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
+      if (!benchmark) hudBridge.checkGameover();
+      battleMinimap.drawMinimap();
+    }
+
     const renderStartedAt = performance.now();
     const presentedCrowd = crowd.prepare(
-      simTick,
-      clock.frozen,
-      clock.alpha,
+      time.presentationTick(now),
+      time.frozen,
       frameDt,
       input.selected,
     );
@@ -359,6 +409,8 @@ export function enterBattleScene(
               () => {
                 battleReady = true;
                 window.__ready = true;
+                // The battle only starts running once it is actually on screen.
+                time.setHolding(false);
                 loading.remove();
               },
               signal,
@@ -369,7 +421,7 @@ export function enterBattleScene(
       (_receipt, timing) => {
         if (
           preparingBenchmark &&
-          simTick >= benchmark!.scenario.startTick &&
+          sim.tick() >= benchmark!.scenario.startTick &&
           !benchmarkViewPending
         ) {
           benchmarkViewPending = true;
@@ -395,23 +447,12 @@ export function enterBattleScene(
         } else {
           selbox.style.display = "none";
         }
-
-        hudBridge.tickCards();
         if (signal.aborted) return;
-        hudTimer += frameDt;
-        if (hudTimer > 0.2) {
-          hudTimer = 0;
-          orders.tickGroupAttacks();
-          hudBridge.updateHud(clock.frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
-          if (!benchmark) hudBridge.checkGameover();
-          if (signal.aborted) return;
-          battleMinimap.drawMinimap();
-        }
         completeFrame(
           now,
           intervalMs,
           ticks,
-          simCpuMs,
+          telemetry.workerTickMs,
           renderCpuMs,
           cpuStartedAt,
           renderAwaitMs,
@@ -427,34 +468,29 @@ export function enterBattleScene(
   // Snapshot mode: stop the sim and pin every wall-clock-driven pixel so
   // screenshots are reproducible (see snapshot.mjs). It must not OWN the pause
   // state (an unfreeze after a user pause should stay paused).
-  const freezeAtTick = (target: number, options: { effects?: boolean } = {}) => {
-    return freeze.freezeAtTick(
-      target,
-      () => simTick,
-      (ticks) => {
-        game.advance_ticks(ticks);
-        simTick += ticks;
-      },
-      orders.tickGroupAttacks,
-      options,
-    );
+  const advanceTo = async (target: number) => {
+    await sim.advanceTo(target);
   };
+  const freezeAtTick = (target: number, options: { effects?: boolean } = {}) =>
+    freeze.freezeAtTick(target, advanceTo, orders.tickGroupAttacks, options);
   installBattleDebugApi({
     audio: battleAudio,
     camera,
-    game,
     generatedVista: generatedVistaForDebug,
     frameMetrics: () => frameMetrics,
     metrics: () => ({
       tickMs: tickMsAvg,
       audioUpdateMs: audioUpdateMsAvg,
       fps: fpsAvg,
-      clock: { alpha: clock.alpha, paused: clock.paused, frozen: clock.frozen },
+      clock: {
+        alpha: time.alphaAt(performance.now()),
+        paused: time.paused,
+        frozen: time.frozen,
+      },
     }),
     owners: {
-      advance: (n) => {
-        game.advance_ticks(n);
-        simTick += n;
+      advance: async (n) => {
+        await sim.advanceBy(n);
         orders.tickGroupAttacks();
       },
       freeze: (on) => freeze.doFreeze(on),
@@ -471,25 +507,17 @@ export function enterBattleScene(
       selected: () => input.selected.slice(),
       soldierStartOf: controls.soldierStartOf,
       terrainDebug: battleMinimap.terrainDebug,
-      tickCount: () => simTick,
       disposeRenderer: world.disposeRenderer,
       benchmark: benchmark
         ? { status: () => benchmark.status(), cancel: cancelBenchmark, report: benchmarkReport }
         : undefined,
     },
     renderer,
-    stride: STRIDE,
-    unitInfo,
-    wasm,
+    sim,
   });
   return (now) => {
     const failed = (error: unknown) =>
-      reportBattlePresentationFailure(error, signal, (error) => {
-        presentationFailed = true;
-        const message = error instanceof Error ? error.message : String(error);
-        if (benchmark) benchmark.fail(message, performance.now(), simTick);
-        else showFatalErrorSurface(canvas, fatalSurfaceFor("submission", message));
-      });
+      reportBattlePresentationFailure(error, signal, failPresentation);
     try {
       const pending = frame(now);
       if (pending) return pending.catch(failed);

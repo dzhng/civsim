@@ -85,8 +85,9 @@ export async function run(ctx) {
           "web/scenes/models/_synthetic-budget-fixture.ts",
         );
         const { SimClock } = await module("web/src/shared/simClock.ts");
-        const { BATTLE_TICK_DT, BATTLE_MAX_TICKS_PER_FRAME, BattleCameraRig } = await module(
-          "web/src/battle/battleWorld.ts",
+        const { BattleCameraRig } = await module("web/src/battle/battleWorld.ts");
+        const { BATTLE_TICK_SECONDS, BATTLE_MAX_CATCHUP_TICKS } = await module(
+          "web/src/battle/sim/simTiming.ts",
         );
         const { Camera } = await module("web/src/shared/camera.ts");
         const { generatedFormation, buildCrowdInstances } = await module(
@@ -197,8 +198,8 @@ export async function run(ctx) {
               const probe = instrumented ? new FrameBudgetProbe(device) : null;
               const samples = [];
               const clock = new SimClock({
-                tickHz: 1 / BATTLE_TICK_DT,
-                maxTicksPerFrame: BATTLE_MAX_TICKS_PER_FRAME,
+                tickHz: 1 / BATTLE_TICK_SECONDS,
+                maxTicksPerFrame: BATTLE_MAX_CATCHUP_TICKS,
               });
               let priorRaf,
                 snapshotHighWater = 0;

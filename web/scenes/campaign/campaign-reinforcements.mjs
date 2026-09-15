@@ -137,11 +137,11 @@ export async function run(ctx) {
   );
   const initialBattle = await page.evaluate(() => window.__game.stats());
   const baseSoldiers = pending.encounter.attacker.soldiers + pending.encounter.defender.soldiers;
-  const arrival = await page.evaluate((base) => {
+  const arrival = await page.evaluate(async (base) => {
     let stats = window.__game.stats();
     const trace = [{ step: 0, units: stats.units, soldiers: stats.soldiers }];
     for (let step = 1; step <= 90 && stats.soldiers <= base; step++) {
-      window.__game.advance(600);
+      await window.__game.advance(600);
       stats = window.__game.stats();
       if (step % 10 === 0 || stats.soldiers > base) {
         trace.push({ step, units: stats.units, soldiers: stats.soldiers });

@@ -51,18 +51,6 @@ export class BenchmarkRun {
     };
   }
 
-  prepareStep(tick: number, advance: () => void, now: () => number, budgetMs = 8) {
-    const began = now();
-    let advanced = 0;
-    while (this.state.phase === "preparing" && tick + advanced < this.scenario.startTick) {
-      advance();
-      advanced++;
-      // A simulation tick is indivisible; even a slow tick must finish normally.
-      if (now() - began >= budgetMs) break;
-    }
-    return advanced;
-  }
-
   frame(now: number, tick: number, victor: number) {
     if (!this.active) return;
     const previousPhase = this.state.phase;

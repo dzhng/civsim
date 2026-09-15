@@ -6,11 +6,13 @@ import {
   type BattleTerrainGrid,
 } from "@packages/game-renderer/src/battle/terrainFeatures";
 import { battleMapByWasmId } from "@packages/game-renderer/src/battle/mapCatalog";
-import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid";
 import type { BattleLakeSurfaceSpec } from "@packages/photoreal-renderer/src/battle/battleWorld";
-import type { Game } from "../wasm/game_wasm.js";
 import type { BattleAudioWaterSurface } from "./battleAudio";
-import type { BattleWorld, GeneratedBattleMapDescriptor } from "./battleWorld";
+import type { BattleWorld } from "./battleWorld";
+
+// The vista reader lives with the rest of the authority's immutable world read,
+// which is where it now runs; re-exported so the renderer lab keeps its import.
+export { readGeneratedVistaGrid } from "./sim/staticWorld";
 
 export interface BattleTerrain {
   generatedVista: BattleVistaGrid | null;
@@ -19,44 +21,38 @@ export interface BattleTerrain {
 }
 
 export function buildBattleTerrain(world: BattleWorld): BattleTerrain {
-  const { audio, cfg, game, renderer } = world;
+  const { audio, generatedMap, renderer, sim } = world;
   const refreshStatic = () => {
-    const soldierUnit = new Uint32Array(
-      world.memory.buffer,
-      game.soldier_unit_ptr(),
-      game.soldier_count(),
-    );
+    const soldierUnit = sim.soldierUnits();
     const info = world.unitInfo();
     const teams = Array.from(
-      { length: game.unit_count() },
+      { length: sim.unitCount() },
       (_, unit) => info[unit * world.stride + UNIT_INFO.team],
     );
     const classes = Array.from(
-      { length: game.unit_count() },
+      { length: sim.unitCount() },
       (_, unit) => info[unit * world.stride + UNIT_INFO.classId],
     );
     renderer.setStatic(soldierUnit, teams, classes);
   };
   refreshStatic();
 
-  const generatedVista = cfg.generatedMap
-    ? readGeneratedVistaGrid(game, world.memory, cfg.generatedMap)
-    : null;
-  const grid = readBattleTerrainGrid(game, world.memory);
-  const reliefScale = cfg.generatedMap?.reliefScale ?? BATTLE_RELIEF_EXAGGERATION;
+  const generatedVista = sim.identity.vista;
+  const grid = world.terrain;
+  const reliefScale = generatedMap?.reliefScale ?? BATTLE_RELIEF_EXAGGERATION;
   const heightForRenderer =
     reliefScale === BATTLE_RELIEF_EXAGGERATION
       ? grid.height!
       : scaleHeightForRenderer(grid.height!, reliefScale);
   const lakeSurfaces =
-    cfg.generatedMap?.lakeSurfaces?.map((lake) => ({
+    generatedMap?.lakeSurfaces?.map((lake) => ({
       ...lake,
       level: lake.level * reliefScale,
     })) ?? null;
   const terrainGrid: BattleTerrainGrid = { ...grid, height: heightForRenderer };
   renderer.setTerrain(terrainGrid, {
-    wasmMapId: cfg.wasmMapId,
-    slopeBands: cfg.generatedMap?.slopeBands ?? null,
+    wasmMapId: world.wasmMapId,
+    slopeBands: generatedMap?.slopeBands ?? null,
     vista: generatedVista,
     lakeSurfaces,
   });
@@ -68,9 +64,9 @@ export function buildBattleTerrain(world: BattleWorld): BattleTerrain {
       ox: grid.ox,
       oy: grid.oy,
       tint: grid.tint,
-      groundCover: cfg.generatedMap?.groundCover ?? "green-grass",
+      groundCover: generatedMap?.groundCover ?? "green-grass",
     },
-    buildAudioWaterSurfaces(terrainGrid, cfg.wasmMapId, generatedVista, lakeSurfaces),
+    buildAudioWaterSurfaces(terrainGrid, world.wasmMapId, generatedVista, lakeSurfaces),
   );
   return { generatedVista, grid, refreshStatic };
 }
@@ -123,43 +119,4 @@ function scaleHeightForRenderer(height: Float32Array, reliefScale: number): Floa
   const scale = reliefScale / BATTLE_RELIEF_EXAGGERATION;
   for (let index = 0; index < height.length; index++) out[index] = height[index] * scale;
   return out;
-}
-
-export function readGeneratedVistaGrid(
-  game: Game,
-  memory: WebAssembly.Memory,
-  descriptor: Pick<GeneratedBattleMapDescriptor, "vista">,
-): BattleVistaGrid | null {
-  const vista = descriptor.vista;
-  if (!vista?.bands?.length) return null;
-  const count = Math.min(game.generated_vista_band_count(), vista.bands.length);
-  const bands: BattleVistaGrid["bands"] = [];
-  for (let index = 0; index < count; index++) {
-    const meta = vista.bands[index];
-    const width = game.generated_vista_band_width(index);
-    const height = game.generated_vista_band_height(index);
-    const cell = game.generated_vista_band_cell(index);
-    const originX = game.generated_vista_band_origin_x(index);
-    const originY = game.generated_vista_band_origin_y(index);
-    const pointer = game.generated_vista_band_height_ptr(index);
-    if (!meta || width <= 0 || height <= 0 || pointer === 0) continue;
-    const heights = new Float32Array(new Float32Array(memory.buffer, pointer, width * height));
-    bands.push({
-      name: meta.name,
-      w: width,
-      h: height,
-      cell,
-      ox: originX,
-      oy: originY,
-      innerHalfW: meta.innerHalfW,
-      innerHalfH: meta.innerHalfH,
-      outerHalfW: meta.outerHalfW,
-      outerHalfH: meta.outerHalfH,
-      height: heights,
-      water: new Float32Array(
-        new Float32Array(memory.buffer, game.generated_vista_band_water_ptr(index), width * height),
-      ),
-    });
-  }
-  return bands.length > 0 ? { shape: vista.shape, bands } : null;
 }

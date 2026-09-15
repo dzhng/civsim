@@ -6,7 +6,7 @@ import type { ClassSpec } from "./classData";
 import type { BattleControls } from "./battleControls";
 import type { Input } from "./input";
 import type { BattleWorld } from "./battleWorld";
-import type { SimClock } from "../shared/simClock";
+import type { BattleTimeControl } from "./battleSimTime";
 import type { HudData, HudUnit } from "../ui/hud/HudPanel";
 import type { ToolButtonState } from "../ui/hud/Toolbar";
 import type { BattleHudHandle, BattleHudState } from "../ui/hud/BattleHud";
@@ -44,17 +44,40 @@ export function createBattleHudBridge(
   },
   view: {
     classSpecs: ClassSpec[];
-    clock: SimClock;
     controls: BattleControls;
     input: Input;
+    time: BattleTimeControl;
     world: BattleWorld;
   },
 ): BattleHudBridge {
   let ended = false;
   let cardUnits: number[] = [];
+  // The sim owns which unit is under the cursor, so the hover card shows the last
+  // answer it gave and asks again once that answer has arrived.
+  let hoverUnit = -1;
+  let hoverPending = false;
+  const refreshHover = () => {
+    const { camera, sim } = view.world;
+    if (view.input.selected.length !== 0 || view.input.mouseCss[0] < 0) {
+      hoverUnit = -1;
+      return;
+    }
+    if (hoverPending) return;
+    const dpr = window.devicePixelRatio || 1;
+    const hit = camera.screenToWorld(view.input.mouseCss[0] * dpr, view.input.mouseCss[1] * dpr);
+    if (!hit) {
+      hoverUnit = -1;
+      return;
+    }
+    hoverPending = true;
+    void sim.pick(hit[0], hit[1], 25).then((unit) => {
+      hoverPending = false;
+      hoverUnit = unit;
+    });
+  };
 
   const toolbarState = () => {
-    const { clock, controls, input, world } = view;
+    const { controls, input, time, world } = view;
     const selected = controls.myUnits(input.selected);
     const info = world.unitInfo();
     const offset = selected.length ? selected[0] * world.stride : -1;
@@ -73,20 +96,20 @@ export function createBattleHudBridge(
         on: offset >= 0 && info[offset + UNIT_INFO.evadeAuto] > 0.5,
         disabled: empty || !supports(KITE_CLASS_IDS),
       },
-      pause: { on: clock.paused, disabled: false },
-      x1: { on: !clock.paused && clock.timeScale === 1, disabled: false },
-      x3: { on: !clock.paused && clock.timeScale === 3, disabled: false },
+      pause: { on: time.paused, disabled: false },
+      x1: { on: !time.paused && time.timeScale === 1, disabled: false },
+      x3: { on: !time.paused && time.timeScale === 3, disabled: false },
       paths: { on: controls.showPaths(), disabled: false },
     } satisfies Record<string, ToolButtonState>;
   };
 
   const bridge: BattleHudBridge = {
     buildCards() {
-      const { game, stride } = view.world;
+      const { sim, stride } = view.world;
       const info = view.world.unitInfo();
       cardUnits = [];
       const cards = [];
-      for (let unit = 0; unit < game.unit_count(); unit++) {
+      for (let unit = 0; unit < sim.unitCount(); unit++) {
         if (info[unit * stride + UNIT_INFO.team] !== 0) continue;
         cardUnits.push(unit);
         cards.push({
@@ -168,22 +191,12 @@ export function createBattleHudBridge(
       );
     },
     updateHud(fps) {
-      const { camera, game, stride } = view.world;
+      const { sim, stride } = view.world;
+      refreshHover();
       let unit: HudUnit | undefined;
-      let cardUnit = -1;
-      if (view.input.selected.length === 1) cardUnit = view.input.selected[0];
-      else if (view.input.selected.length === 0 && view.input.mouseCss[0] >= 0) {
-        const dpr = window.devicePixelRatio || 1;
-        const hit = camera.screenToWorld(
-          view.input.mouseCss[0] * dpr,
-          view.input.mouseCss[1] * dpr,
-        );
-        cardUnit = hit ? game.pick_unit(...hit, 25) : -1;
-      }
+      const cardUnit = view.input.selected.length === 1 ? view.input.selected[0] : hoverUnit;
       if (cardUnit >= 0) unit = buildHudUnit(view.classSpecs, view.world, cardUnit);
-      const roster = unit
-        ? undefined
-        : armySummary(view.world.unitInfo(), game.unit_count(), stride);
+      const roster = unit ? undefined : armySummary(view.world.unitInfo(), sim.unitCount(), stride);
       const data: HudData = { unit, roster };
       hudStore.set({ info: data, fps, toolbar: toolbarState() });
     },

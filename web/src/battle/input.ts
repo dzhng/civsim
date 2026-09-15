@@ -7,7 +7,10 @@ export interface OrderSink {
   unitsInScreenRect(x0: number, y0: number, x1: number, y1: number): number[];
   /** Every living player unit (ctrl+A). */
   allUnits(): number[];
-  pickUnit(x: number, y: number): number;
+  /** Which player unit is at this world point, answered by the sim that owns the
+   * rule. It resolves a round trip later, so a press defers the decision it needs
+   * the answer for rather than guessing one here. */
+  pickUnit(x: number, y: number): Promise<number>;
   /** Drag-move: translate the whole selection, preserving facing. */
   dragMove(units: number[], dx: number, dy: number): void;
   /** Point order for the selection (move/attack/disengage + run on double). */
@@ -64,7 +67,11 @@ export class Input {
     } | null = null;
     let lastRightUp = 0;
 
-    let dragMoving = false;
+    // null while a press is still waiting on the authority's pick. The gesture
+    // behaves as a selection box meanwhile — the common case — and converts to a
+    // drag-move if the answer says the press landed on the selection.
+    let dragMoving: boolean | null = false;
+    let pickGeneration = 0;
     let mDown: [number, number] | null = null;
     canvas.addEventListener(
       "mousedown",
@@ -78,8 +85,14 @@ export class Input {
           // Starting the drag ON a selected unit grabs the whole selection
           // (Total War drag-move); anywhere else it is a selection box.
           const point = pickGround(e.clientX, e.clientY);
-          const hit = point ? sink.pickUnit(...point) : -1;
-          dragMoving = hit >= 0 && this.selected.includes(hit);
+          const generation = ++pickGeneration;
+          dragMoving = point ? null : false;
+          if (point)
+            void sink.pickUnit(...point).then((hit) => {
+              if (generation !== pickGeneration) return;
+              dragMoving = hit >= 0 && this.selected.includes(hit);
+              if (dragMoving) this.box = null;
+            });
         }
         if (e.button === 2)
           rDown = {
@@ -121,7 +134,7 @@ export class Input {
 
         if (lDown) {
           const moved = Math.hypot(e.clientX - lDown[0], e.clientY - lDown[1]);
-          if (dragMoving) {
+          if (dragMoving === true) {
             const a = pickGround(...lDown);
             const b = pickGround(e.clientX, e.clientY);
             this.dragDelta = moved > DRAG_PX && a && b ? [b[0] - a[0], b[1] - a[1]] : null;
@@ -140,19 +153,15 @@ export class Input {
         if (e.button === 0 && lDown) {
           const [sx, sy] = lDown;
           lDown = null;
-          if (dragMoving) {
-            dragMoving = false;
-            if (this.dragDelta) {
-              sink.dragMove(this.selected, this.dragDelta[0], this.dragDelta[1]);
-              this.dragDelta = null;
-            } else {
-              // A plain click on a selected unit: re-select just it.
-              const point = pickGround(sx, sy);
-              const u = point ? sink.pickUnit(...point) : -1;
-              this.selected = u >= 0 ? [u] : [];
-            }
+          const dragged = dragMoving === true && this.dragDelta !== null;
+          const generation = ++pickGeneration;
+          dragMoving = false;
+          if (dragged) {
+            sink.dragMove(this.selected, this.dragDelta![0], this.dragDelta![1]);
+            this.dragDelta = null;
             return;
           }
+          this.dragDelta = null;
           if (this.box) {
             this.selected = sink.unitsInScreenRect(
               Math.min(this.box.x0, this.box.x1),
@@ -161,11 +170,19 @@ export class Input {
               Math.max(this.box.y0, this.box.y1),
             );
             this.box = null;
-          } else {
-            const point = pickGround(sx, sy);
-            const u = point ? sink.pickUnit(...point) : -1;
-            this.selected = u >= 0 ? [u] : [];
+            return;
           }
+          // A plain click selects whatever the authority names under the press
+          // point, including re-selecting a single unit out of the selection.
+          const point = pickGround(sx, sy);
+          if (!point) {
+            this.selected = [];
+            return;
+          }
+          void sink.pickUnit(...point).then((unit) => {
+            if (generation !== pickGeneration) return;
+            this.selected = unit >= 0 ? [unit] : [];
+          });
         }
         if (e.button === 1) mDown = null;
         if (e.button === 2 && rDown) {

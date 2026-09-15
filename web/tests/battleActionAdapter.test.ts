@@ -14,6 +14,7 @@ import {
 import { sampleRigLocalPose } from "@packages/soldier-assets/src/localPose";
 import { BattleCrowd } from "../src/battle/battleCrowd";
 import { createBattleViews, createLiveObservationSource } from "../src/battle/battleViews";
+import { liveBattleSim } from "./support/liveBattleSim";
 import type { BattleWorld } from "../src/battle/battleWorld";
 import type { BattleUnitPresentation } from "../src/battle/battleUnitPresentation";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
@@ -136,10 +137,11 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
     game.advance_ticks(60);
     const views = createBattleViews(game, wasm.memory);
     const submitted: Parameters<BattleRenderer["draw"]>[2][] = [];
+    const sim = liveBattleSim(game, wasm.memory);
     const world = {
-      game,
-      memory: wasm.memory,
+      sim,
       ...views,
+      stride: game.unit_info_stride(),
       camera: { zoom: 0 },
       renderer: {
         soldierAssets: { 0: bundle },
@@ -153,8 +155,10 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       build: () => ({ standards: [], readouts: [] }),
     } as unknown as BattleUnitPresentation;
     const crowd = new BattleCrowd(world, presentation);
-    const draw = (...args: Parameters<BattleCrowd["prepare"]>) => {
-      const f = crowd.prepare(...args)!;
+    const draw = (tick: number, frozen: boolean, alpha: number) => {
+      sim.setTick(tick);
+      crowd.observeTick(tick);
+      const f = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
       (world.renderer as unknown as Pick<BattleRenderer, "draw">).draw(
         f.positions,
         f.facings,
@@ -166,7 +170,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
         f.frameDt,
       );
     };
-    draw(60, true, 0, 0, []);
+    draw(60, true, 0);
     let measuredDistance = 0;
     for (let tick = 61; tick <= 70; tick++) {
       const before = Array.from(views.positions().slice(0, 2));
@@ -176,7 +180,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
         views.positions()[1] - before[1],
       );
       views.unitInfo()[UNIT_INFO.running] = 1; // Contrary exported order, not a gait authority.
-      draw(tick, true, 0, 0, []);
+      draw(tick, true, 0);
     }
     const playback = submitted.at(-1)![0];
     const walk = bundle.animation.clips.find(
@@ -188,12 +192,12 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       Array.from(sampleRigLocalPose(bundle.rig, walk.name, playback.base.destination.phase)),
     );
     const paused = structuredClone(playback);
-    draw(70, true, 0, 0, []);
+    draw(70, true, 0);
     expect(submitted.at(-1)![0]).toEqual(paused);
     // Unqualified endpoint transport cannot keep a gait moving. Root placement
     // still follows positions; this pass does not alter that separate owner.
     views.positions()[0] += 3;
-    draw(71, true, 0, 0, []);
+    draw(71, true, 0);
     expect(submitted.at(-1)![0].base.destination.clip).toBe(
       manifest.presentation.actions.atEase.clip,
     );
@@ -227,10 +231,11 @@ test("production crowd preserves delayed positions across append and resets play
           phase: args[2][0].base.destination.phase,
         }),
     };
+    const sim = liveBattleSim(game, wasm.memory);
     const world = {
-      game,
-      memory: wasm.memory,
+      sim,
       ...views,
+      stride: game.unit_info_stride(),
       renderer,
       camera: { zoom: 0 },
     } as unknown as BattleWorld;
@@ -241,8 +246,10 @@ test("production crowd preserves delayed positions across append and resets play
       build: () => ({ standards: [], readouts: [] }),
     } as unknown as BattleUnitPresentation;
     const crowd = new BattleCrowd(world, presentation);
-    const draw = (...args: Parameters<BattleCrowd["prepare"]>) => {
-      const f = crowd.prepare(...args)!;
+    const draw = (tick: number, frozen: boolean, alpha: number) => {
+      sim.setTick(tick);
+      crowd.observeTick(tick);
+      const f = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
       (world.renderer as unknown as Pick<BattleRenderer, "draw">).draw(
         f.positions,
         f.facings,
@@ -254,23 +261,23 @@ test("production crowd preserves delayed positions across append and resets play
         f.frameDt,
       );
     };
-    draw(0, false, 0, 0, []);
+    draw(0, false, 0);
     const initialX = views.positions()[0];
     views.positions()[0] += 1;
-    draw(1, false, 0, 0, []);
+    draw(1, false, 0);
     expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     game.spawn_class(4, 0, 0, 1, 1, 0, 0);
-    draw(1, false, 0, 0, []);
+    draw(1, false, 0);
     expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     expect(submitted.at(-1)!.positions.slice(2)).toEqual(Array.from(views.positions().slice(2)));
-    draw(2, false, 0, 0, []);
+    draw(2, false, 0);
     expect(submitted.at(-1)!.positions[0]).toBeCloseTo(initialX + 1);
-    draw(3, false, 0, 0, []);
+    draw(3, false, 0);
     expect(submitted.at(-1)!.phase).toBeGreaterThan(0);
     renderer.soldierAssets = { 0: bundle };
-    draw(3, false, 0, 0, []);
+    draw(3, false, 0);
     expect(submitted.at(-1)!.phase).toBe(0);
-    draw(0, false, 0, 0, []);
+    draw(0, false, 0);
     expect(submitted.at(-1)!.positions).toEqual(Array.from(views.positions()));
   } finally {
     game.free();

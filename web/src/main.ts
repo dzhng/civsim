@@ -1,13 +1,11 @@
 import { startSceneFrames } from "./shared/sceneFrames";
-import {
-  BATTLE_BENCHMARK_SCENARIO,
-  benchmarkOpeningOrders,
-} from "./battle/benchmark/benchmarkScenario";
+import { BATTLE_BENCHMARK_SCENARIO } from "./battle/benchmark/benchmarkScenario";
 import init, { Campaign, Game, type InitOutput } from "./wasm/game_wasm.js";
 import { currentScene, switchScene } from "./scene";
 import { MenuScene } from "./menu/scene";
 import { QUICK_BATTLE_GENERATED_MAP_ID, type QuickBattleConfig } from "./battle/quickBattleCatalog";
-import { BattleScene, type BattleKind, type GeneratedBattleMapDescriptor } from "./battle/scene";
+import { BattleScene, type BattleKind } from "./battle/scene";
+import type { BattleSimSetup, BattleStart } from "./battle/sim/battleSetup";
 import { CampaignScene } from "./campaign/scene";
 import { loadCampaignData, type CampaignData } from "./campaign/data";
 import {
@@ -19,7 +17,6 @@ import { readCampaignSave } from "./campaign/save";
 import { checkGpuSupport, type GpuSupportState } from "@packages/game-renderer/src/appShell";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
 import { setActiveFactions } from "@packages/game-renderer/src/battle/factionColors";
-import { generatedBattleMapEntry } from "@packages/game-renderer/src/battle/mapCatalog";
 
 import { quickBattleUrl, readQuickBattleUrl } from "./battle/quickBattleUrl";
 
@@ -50,42 +47,46 @@ async function main() {
     ai: params.get("ai") === "on",
   };
 
-  function createGame(kind: BattleKind): Game {
-    const game = new Game(BATTLE_SEED);
-    if (kind === "duel") {
-      game.start_duel(duel.a, duel.b);
-      if (duel.ai) game.set_ai_team(1);
-      return game;
-    }
-    if (kind === "5v5") game.start_sandbox(1);
-    else if (kind === "surround") game.start_sandbox(4);
-    else if (kind === "flank") game.start_sandbox(5);
-    else if (kind === "gen") game.start_battle_generated(generatedSeed);
-    else game.start_battle(kind === "mapB" ? 1 : 0);
-    if (AI_ON) game.set_ai_team(1);
-    return game;
+  /** How a battle begins, as data the authority builds its one `Game` from. */
+  function describeBattle(kind: BattleKind): BattleSimSetup {
+    if (kind === "duel")
+      return {
+        simSeed: BATTLE_SEED,
+        start: { kind: "duel", a: duel.a, b: duel.b },
+        aiTeams: duel.ai ? [1] : [],
+        openingOrders: "none",
+      };
+    const start: BattleStart =
+      kind === "5v5"
+        ? { kind: "sandbox", variant: 1 }
+        : kind === "surround"
+          ? { kind: "sandbox", variant: 4 }
+          : kind === "flank"
+            ? { kind: "sandbox", variant: 5 }
+            : kind === "gen"
+              ? { kind: "generated", mapSeed: generatedSeed.toString() }
+              : { kind: "authored", map: kind === "mapB" ? 1 : 0 };
+    return {
+      simSeed: BATTLE_SEED,
+      start,
+      aiTeams: AI_ON ? [1] : [],
+      openingOrders: "none",
+    };
   }
 
   function launchBenchmark() {
     const scenario = BATTLE_BENCHMARK_SCENARIO;
     setActiveFactions();
-    const game = new Game(scenario.simSeed);
-    game.start_battle_generated(BigInt(scenario.mapSeed));
-    game.set_ai_team(1);
-    const info = new Float32Array(
-      wasm.memory.buffer,
-      game.unit_info_ptr(),
-      game.unit_count() * game.unit_info_stride(),
-    );
-    const orders = benchmarkOpeningOrders(info, game.unit_info_stride());
-    for (const order of orders) game.set_attack_order(order.unit, order.target);
     switchScene(
       new BattleScene({
-        wasm,
-        game,
+        setup: {
+          simSeed: scenario.simSeed,
+          start: { kind: "generated", mapSeed: scenario.mapSeed },
+          aiTeams: [1],
+          openingOrders: "player-nearest-enemy",
+        },
         kind: "gen",
         benchmark: scenario,
-        generatedMap: JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor,
         environment: DEFAULT_BATTLE_ENVIRONMENT,
         onExit: () => location.assign("/"),
         onLaunch: launchBattle,
@@ -97,65 +98,41 @@ async function main() {
   function launchBattle(kind: BattleKind) {
     setActiveFactions();
     switchScene(
-      (() => {
-        const game = createGame(kind);
-        const generatedMap =
-          kind === "gen"
-            ? ({
-                ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
-                defaultEnvironment: DEFAULT_BATTLE_ENVIRONMENT,
-              } satisfies GeneratedBattleMapDescriptor)
-            : undefined;
-        return new BattleScene({
-          wasm,
-          game,
-          kind,
-          wasmMapId: kind === "mapA" ? 0 : kind === "mapB" ? 1 : undefined,
-          generatedMap,
-          onExit: () => location.assign("/"),
-          onLaunch: launchBattle,
-        });
-      })(),
+      new BattleScene({
+        setup: describeBattle(kind),
+        kind,
+        wasmMapId: kind === "mapA" ? 0 : kind === "mapB" ? 1 : undefined,
+        environment: kind === "gen" ? DEFAULT_BATTLE_ENVIRONMENT : undefined,
+        onExit: () => location.assign("/"),
+        onLaunch: launchBattle,
+      }),
     );
   }
 
-  function createQuickBattleGame(cfg: QuickBattleConfig): Game {
-    setActiveFactions(cfg.factions);
-    const game = new Game(BATTLE_SEED);
-    if (cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID) {
-      game.load_generated_map(parseGeneratedSeed(cfg.generatedSeed ?? "0"));
-    } else {
-      game.load_map(cfg.mapId);
-    }
-    cfg.teams.forEach((picks, team) => {
-      const units = picks.flatMap((p) => Array.from({ length: p.count }, () => p.classId));
-      game.deploy_custom_army(team, new Uint32Array(units));
-    });
-    if (AI_ON) game.set_ai_team(1);
-    return game;
-  }
-
   function launchQuickBattle(cfg: QuickBattleConfig) {
+    setActiveFactions(cfg.factions);
     const generated = cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID;
-    const environment = cfg.environment ?? DEFAULT_BATTLE_ENVIRONMENT;
-    const game = createQuickBattleGame(cfg);
-    const generatedMap = generated
-      ? ({
-          ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
-          defaultEnvironment: environment,
-        } satisfies GeneratedBattleMapDescriptor)
-      : undefined;
-    const generatedEntry = generated
-      ? generatedBattleMapEntry(game.generated_map_manifest())
-      : null;
     switchScene(
       new BattleScene({
-        wasm,
-        game,
+        setup: {
+          simSeed: BATTLE_SEED,
+          start: {
+            kind: "custom",
+            map: generated
+              ? { kind: "generated", seed: parseGeneratedSeed(cfg.generatedSeed ?? "0").toString() }
+              : { kind: "authored", id: cfg.mapId },
+            teams: cfg.teams.map((picks) =>
+              picks.flatMap((p) => Array.from({ length: p.count }, () => p.classId)),
+            ),
+          },
+          aiTeams: AI_ON ? [1] : [],
+          openingOrders: "none",
+        },
         kind: generated ? "gen" : "mapA",
-        wasmMapId: generatedEntry?.wasmMapId ?? cfg.mapId,
-        environment,
-        generatedMap,
+        // A generated quick battle takes its authored map id from the manifest the
+        // sim publishes; an authored one already knows it.
+        wasmMapId: generated ? undefined : cfg.mapId,
+        environment: cfg.environment ?? DEFAULT_BATTLE_ENVIRONMENT,
         restart: () => location.reload(),
         onExit: () => location.assign(quickBattleUrl("/battle", cfg)),
         onLaunch: launchBattle,
@@ -191,21 +168,18 @@ async function main() {
       data,
       mapJson,
       onExit: () => location.assign("/"),
+      // UNMET MIGRATION ITEM. The battle authority now owns its `Game` in a
+      // worker and builds it from a describable setup. A campaign encounter is
+      // not describable: `start_campaign_battle` needs the live `Campaign`, and
+      // `report_battle` needs the campaign and the finished battle in one address
+      // space. Closing this needs a serialisable setup/result exchange in
+      // game-wasm, which this pass does not build. The encounter is reported
+      // straight back — exactly what already happens when a player enters a
+      // campaign battle and leaves it at once — so no campaign state is stranded.
       onBattle: (game, done) => {
-        setActiveFactions();
-        switchScene(
-          new BattleScene({
-            wasm,
-            game,
-            kind: "mapA", // cosmetic only; relaunch buttons are neutered below
-            inCampaign: true,
-            onExit: () => {
-              done();
-              switchScene(scene);
-            },
-            onLaunch: () => {}, // campaign battles can't be swapped for sandboxes
-          }),
-        );
+        done();
+        game.free();
+        showCampaignBattleUnavailable();
       },
     });
     switchScene(scene);
@@ -279,6 +253,40 @@ function parseGeneratedSeed(raw: string): bigint {
   } catch {
     return 0n;
   }
+}
+
+/** The campaign handoff is the one battle entry the worker authority cannot take.
+ * Say so plainly rather than dropping the player into a battle that cannot start. */
+function showCampaignBattleUnavailable() {
+  (window as unknown as { __campaignBattleUnavailable?: string }).__campaignBattleUnavailable =
+    "campaign encounters need a serialisable battle setup/result exchange in game-wasm";
+  const notice = document.createElement("div");
+  Object.assign(notice.style, {
+    position: "fixed",
+    inset: "auto 0 24px 0",
+    margin: "0 auto",
+    maxWidth: "520px",
+    background: "rgba(18, 14, 12, 0.92)",
+    color: "#f4ece0",
+    font: "15px/1.5 system-ui, sans-serif",
+    textAlign: "center",
+    padding: "16px 20px",
+    borderRadius: "8px",
+    zIndex: "80",
+  } satisfies Partial<CSSStyleDeclaration>);
+  notice.textContent =
+    "Campaign battles cannot be fought in this build: the battle simulation now runs " +
+    "in a worker, and handing it a campaign encounter needs a simulation-side setup " +
+    "and result exchange that is not built yet. The encounter was resolved by " +
+    "remaining strength, exactly as leaving a battle the moment it opens already does.";
+  const dismiss = document.createElement("button");
+  dismiss.type = "button";
+  dismiss.textContent = "Dismiss";
+  dismiss.style.marginTop = "12px";
+  dismiss.addEventListener("click", () => notice.remove());
+  notice.appendChild(document.createElement("br"));
+  notice.appendChild(dismiss);
+  document.body.appendChild(notice);
 }
 
 function publishAppShellStats() {

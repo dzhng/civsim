@@ -37,7 +37,10 @@ in TypeScript.
   rendering machinery itself lives in `packages`. How battle terrain becomes a
   place — rolling ground, sealed edges, shared scenery, and the seating
   contract — is documented in
-  [docs/battle-terrain.md](docs/battle-terrain.md).
+  [docs/battle-terrain.md](docs/battle-terrain.md). A battle's authoritative
+  `Game` runs in a worker and publishes completed ticks to the drawing thread;
+  the ownership, ordering and honesty rules of that seam are in
+  [docs/battle-authority.md](docs/battle-authority.md).
 - `web/scene.mjs` and `web/scenes/*.mjs` — Playwright browser scenes for
   addressable battle/campaign checks and screenshots; baselines are committed
   under `web/shots/` (see [Screenshot baselines](#screenshot-baselines)).

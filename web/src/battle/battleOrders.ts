@@ -5,8 +5,7 @@ import {
   currentUnitRanks,
 } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { SELECTION_GREEN } from "@packages/game-renderer/src/overlays";
-import type { Game } from "../wasm/game_wasm.js";
-import type { SimClock } from "../shared/simClock";
+import type { BattleTimeControl } from "./battleSimTime";
 import { pushDestRings, pushPie, SOLDIER_RING_RADIUS } from "../shared/overlays";
 import type { BattleFreeze } from "./battleFreeze";
 import type { Input } from "./input";
@@ -52,25 +51,25 @@ interface GroupAttack {
 }
 
 export function createBattleOrders({
-  clock,
   freeze,
   input,
   myUnits,
+  time,
   unitCenter,
   unitInfo,
   unitSnap,
   world,
 }: {
-  clock: SimClock;
   freeze: BattleFreeze;
   input: Input;
   myUnits(units: number[]): number[];
+  time: BattleTimeControl;
   unitCenter(unit: number): [number, number];
   unitInfo(): Float32Array;
   unitSnap(unit: number): UnitSnap;
   world: BattleWorld;
 }): BattleOrders {
-  const { game, stride } = world;
+  const { sim, stride } = world;
   let groupAttacks: GroupAttack[] = [];
   const detachGroupAttackUnits = (units: number[]) => {
     groupAttacks = groupAttacks
@@ -79,18 +78,17 @@ export function createBattleOrders({
   };
   const orderFlash = new Map<number, number>();
   const markFlash = (units: number[]) => {
-    const time = performance.now();
-    units.forEach((unit) => orderFlash.set(unit, time));
+    const at = performance.now();
+    units.forEach((unit) => orderFlash.set(unit, at));
   };
   const tacticalLines = createBattleTacticalLines({
-    clock,
     freeze,
     input,
     myUnits,
     orderFlash,
+    time,
     unitCenter,
     unitInfo,
-    unitSnap,
     world,
   });
 
@@ -109,8 +107,15 @@ export function createBattleOrders({
     const face = facing ?? Math.atan2(y - cy, x - cx);
     for (const destination of groupMoveDests(snaps, x, y)) {
       if (kind === "disengage")
-        game.set_disengage_order(destination.u, destination.x, destination.y);
-      else game.set_move_order_facing(destination.u, destination.x, destination.y, face);
+        sim.send({ kind: "disengage", unit: destination.u, x: destination.x, y: destination.y });
+      else
+        sim.send({
+          kind: "move",
+          unit: destination.u,
+          x: destination.x,
+          y: destination.y,
+          facing: face,
+        });
     }
     markFlash(selected);
   };
@@ -134,7 +139,7 @@ export function createBattleOrders({
       cy /= selected.length;
       const distance = Math.hypot(tx - cx, ty - cy);
       if (distance < 160) {
-        selected.forEach((unit) => game.set_attack_order(unit, attack.target));
+        selected.forEach((unit) => sim.send({ kind: "attack", unit, target: attack.target }));
         markFlash(selected);
         return false;
       }
@@ -153,14 +158,15 @@ export function createBattleOrders({
     orderLine(units, line, queued) {
       const selected = myUnits(units);
       if (!queued) detachGroupAttackUnits(selected);
-      game.order_formation_line(
-        new Uint32Array(selected),
-        line.x0,
-        line.y0,
-        line.x1,
-        line.y1,
+      sim.send({
+        kind: "formationLine",
+        units: selected,
+        x0: line.x0,
+        y0: line.y0,
+        x1: line.x1,
+        y1: line.y1,
         queued,
-      );
+      });
       markFlash(selected);
     },
     groupAttack(units, target) {
@@ -180,23 +186,15 @@ export function createBattleOrders({
 }
 
 interface TacticalLineDependencies {
-  clock: SimClock;
   freeze: BattleFreeze;
   input: Input;
   myUnits(units: number[]): number[];
   orderFlash: Map<number, number>;
+  time: BattleTimeControl;
   unitCenter(unit: number): [number, number];
   unitInfo(): Float32Array;
-  unitSnap(unit: number): UnitSnap;
   world: BattleWorld;
 }
-
-type MissileExportGame = Game & {
-  projectile_z_ptr(): number;
-  projectile_vx_ptr(): number;
-  projectile_vy_ptr(): number;
-  projectile_vz_ptr(): number;
-};
 
 interface PreviewBounds {
   unit: number;
@@ -294,14 +292,14 @@ function buildTacticalLineFrame(
   withPaths: boolean,
   soldiers: PresentedSoldiers,
 ): BattleTacticalLineFrame {
-  const { clock, freeze, input, myUnits, orderFlash, unitCenter, unitInfo, unitSnap, world } = deps;
-  const { game, stride: STRIDE } = world;
+  const { freeze, input, orderFlash, time, unitCenter, unitInfo, world } = deps;
+  const { sim, stride: STRIDE } = world;
   const info = unitInfo();
-  const n = game.unit_count();
+  const n = sim.unitCount();
   const groundCues: number[] = [];
   const rings: number[] = [];
   const effects: number[] = [];
-  const showTransient = !clock.frozen || withPaths || freeze.effects;
+  const showTransient = !time.frozen || withPaths || freeze.effects;
   for (let u = 0; u < n; u++) {
     const o = u * STRIDE;
     const [ax, ay, facing, team] = [
@@ -338,7 +336,7 @@ function buildTacticalLineFrame(
       // q1 -> ... drawn dimmer than the live leg, a small diamond at each
       // waypoint. Only the player's units ever carry a queue, so this is a
       // no-op (empty array) for everyone else.
-      const q = game.queued_orders(u);
+      const q = sim.queuedOrders(u);
       if (q.length >= 3) {
         let px = info[o + UNIT_INFO.hasTarget] > 0.5 ? info[o + UNIT_INFO.targetX] : ax;
         let py = info[o + UNIT_INFO.hasTarget] > 0.5 ? info[o + UNIT_INFO.targetY] : ay;
@@ -413,15 +411,11 @@ function buildTacticalLineFrame(
   }
   // The sim owns the same line layout for both this ghost and the released order.
   if (input.rightDrag) {
-    const sel = myUnits(input.selected);
     const line = input.rightDrag;
-    const placements = game.formation_preview(
-      new Uint32Array(sel),
-      line.x0,
-      line.y0,
-      line.x1,
-      line.y1,
-    );
+    // The sim lays the ghost out, so the placements are the ones it published for
+    // the line this frame asked about: the ghosts trail the cursor by at most one
+    // completed tick rather than being re-derived from a second layout rule here.
+    const placements = sim.formationPreview();
     const P = FORMATION_PREVIEW;
     for (let i = 0; i < placements.length; i += P.stride) {
       const alive = placements[i + P.alive],
@@ -533,18 +527,11 @@ function buildTacticalLineFrame(
 }
 
 function pushProjectiles(effects: number[], showTransient: boolean, world: BattleWorld): void {
-  const { camera, game } = world;
-  const wasm = world.cfg.wasm;
-  const pCount = showTransient ? game.projectile_count() : 0;
+  const { camera, sim } = world;
+  const flying = sim.projectiles();
+  const pCount = showTransient ? flying.count : 0;
   if (pCount > 0) {
-    const missileGame = game as MissileExportGame;
-    const px = new Float32Array(wasm.memory.buffer, game.projectile_x_ptr(), pCount);
-    const py = new Float32Array(wasm.memory.buffer, game.projectile_y_ptr(), pCount);
-    const pz = new Float32Array(wasm.memory.buffer, missileGame.projectile_z_ptr(), pCount);
-    const pvx = new Float32Array(wasm.memory.buffer, missileGame.projectile_vx_ptr(), pCount);
-    const pvy = new Float32Array(wasm.memory.buffer, missileGame.projectile_vy_ptr(), pCount);
-    const pvz = new Float32Array(wasm.memory.buffer, missileGame.projectile_vz_ptr(), pCount);
-    const pk = new Uint8Array(wasm.memory.buffer, game.projectile_kind_ptr(), pCount);
+    const { x: px, y: py, z: pz, vx: pvx, vy: pvy, vz: pvz, kind: pk } = flying;
     // Effects lines carry per-vertex z (see PhotorealLineLayer
     // perVertexZ): an arrow is a true 3D segment along its velocity —
     // no screen-space tricks, so above-horizon endpoints retain their true
@@ -633,6 +620,21 @@ function createBattleTacticalLines(deps: TacticalLineDependencies) {
   return {
     frame: (withPaths: boolean, soldiers: PresentedSoldiers) => {
       lastPreviewBounds = new Map();
+      // Only what is actually being drawn is asked for, so an idle battle
+      // publishes neither the queued-order chain nor a formation ghost.
+      const line = deps.input.rightDrag;
+      deps.world.sim.setOverlays({
+        queuedOrders: withPaths,
+        preview: line
+          ? {
+              units: deps.myUnits(deps.input.selected),
+              x0: line.x0,
+              y0: line.y0,
+              x1: line.x1,
+              y1: line.y1,
+            }
+          : null,
+      });
       return buildTacticalLineFrame(deps, lastPreviewBounds, withPaths, soldiers);
     },
     previewDebug: (unit: number) => lastPreviewBounds.get(unit) ?? null,

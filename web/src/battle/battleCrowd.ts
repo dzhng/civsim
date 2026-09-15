@@ -7,7 +7,6 @@ import {
 } from "@packages/crowd-runtime/src/actionTimeline";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { BattleActionAdapter } from "./battleActionAdapter";
-import { createLiveObservationSource } from "./battleViews";
 import type { BattleUnitPresentation } from "./battleUnitPresentation";
 import type { BattleWorld } from "./battleWorld";
 
@@ -42,6 +41,7 @@ export class BattleCrowd {
   private weapons = new Uint8Array(0);
   private units = new Uint32Array(0);
   private observations: readonly ActionObservation[] = [];
+  private catalogReplaced = false;
   get presented(): PresentedSoldiers {
     return { positions: this.renderPositions, alive: this.alive, units: this.units };
   }
@@ -53,31 +53,32 @@ export class BattleCrowd {
     private world: BattleWorld,
     private presentation: BattleUnitPresentation,
   ) {
-    this.adapter = new BattleActionAdapter(createLiveObservationSource(world.game, world.memory));
+    this.adapter = new BattleActionAdapter(world.sim.observations);
   }
 
+  /** Consume one completed tick. This runs as the publication lands, not when a
+   * frame is drawn, so a skipped draw never skips a release, a death or a weapon
+   * switch: the timeline still sees every tick's transitions in order. */
+  observeTick(tick: number): void {
+    // Before the soldier catalog exists there is no timeline to carry a
+    // transition into, and nothing is on screen for one to be missed from.
+    if (!this.readyCatalog()) return;
+    this.consume(tick);
+  }
+
+  /** Sample the observed ticks at a presentation time the camera loop chooses. */
   prepare(
-    simTick: number,
+    renderTick: number,
     frozen: boolean,
-    alpha: number,
     frameDt: number,
     selectedUnits: number[],
   ): BattleCrowdPresentation | null {
-    const assets = this.world.renderer.soldierAssets;
-    if (!assets) return null;
-    const replaced = assets !== this.catalog;
-    if (replaced) {
-      // An accepted catalog replacement cannot blend samples across different rigs.
-      this.catalog = assets;
-      this.timeline = new ActionTimeline(assets);
-    }
-    const { observations, facings } = this.adapter.read(simTick);
-    if (replaced || observations !== this.observations) {
-      this.timeline!.update(simTick, observations);
-      this.observe(simTick, observations, facings, replaced);
-    }
-    this.observations = observations;
-    const tick = frozen ? simTick : Math.max(this.left!.tick, simTick - 1 + alpha);
+    if (!this.readyCatalog()) return null;
+    // A catalog that arrived between ticks, or a first frame before any tick was
+    // consumed, still needs the newest completed tick before it can be sampled.
+    if (this.catalogReplaced || !this.left) this.consume(this.world.sim.tick());
+    if (!this.left) return null;
+    const tick = Math.max(this.left.tick, frozen ? this.right!.tick : renderTick);
     const playback: SoldierPlayback[] = this.timeline!.sample(tick);
     this.present(tick);
     const labels = this.presentation.build(selectedUnits, this.unitInfo);
@@ -86,12 +87,36 @@ export class BattleCrowd {
       facings: this.renderFacings,
       playback,
       alive: this.alive,
-      count: observations.length,
-      observationTick: simTick,
+      count: this.observations.length,
+      observationTick: this.right!.tick,
       frameDt,
       ...labels,
       triangles: this.attackArcs(frozen),
     };
+  }
+
+  /** An accepted catalog replacement cannot blend samples across different rigs. */
+  private readyCatalog(): boolean {
+    const assets = this.world.renderer.soldierAssets;
+    if (!assets) return false;
+    if (assets !== this.catalog) {
+      this.catalog = assets;
+      this.timeline = new ActionTimeline(assets);
+      this.catalogReplaced = true;
+    }
+    return true;
+  }
+
+  private consume(tick: number): void {
+    if (tick < 0) return;
+    const replaced = this.catalogReplaced;
+    this.catalogReplaced = false;
+    const { observations, facings } = this.adapter.read(tick);
+    if (replaced || observations !== this.observations) {
+      this.timeline!.update(tick, observations);
+      this.observe(tick, observations, facings, replaced);
+    }
+    this.observations = observations;
   }
 
   private observe(
@@ -100,15 +125,15 @@ export class BattleCrowd {
     facings: Float32Array,
     replaced: boolean,
   ): void {
-    const { game, memory } = this.world;
+    const { sim } = this.world;
     const count = observations.length;
     const next: CrowdEndpoint = {
       tick,
       positions: new Float32Array(this.world.positions()),
       facings: new Float32Array(facings),
       observations: observations.map((observation) => ({ ...observation })),
-      units: new Uint32Array(new Uint32Array(memory.buffer, game.soldier_unit_ptr(), count)),
-      weapons: new Uint8Array(new Uint8Array(memory.buffer, game.cur_weapon_ptr(), count)),
+      units: new Uint32Array(sim.soldierUnits().subarray(0, count)),
+      weapons: new Uint8Array(sim.weapons().subarray(0, count)),
       unitInfo: new Float32Array(this.world.unitInfo()),
     };
     const previous = this.right;
@@ -144,7 +169,7 @@ export class BattleCrowd {
     const before = tick < right.tick;
     this.unitInfo.set(right.unitInfo);
     if (before) this.unitInfo.set(left.unitInfo);
-    const unitCount = this.unitInfo.length / this.world.game.unit_info_stride();
+    const unitCount = this.unitInfo.length / this.world.stride;
     this.presentation.beginFrame(unitCount);
     for (let soldier = 0; soldier < right.observations.length; soldier++) {
       const start = soldier < left.observations.length ? left : right;

@@ -7,13 +7,17 @@ run easier. Cancel remains available. Campaign saves and custom battle setups
 are not part of the benchmark's state.
 
 Preparation advances real simulation ticks in bounded chunks while retaining a
-valid displayed frame. The initial contact view is rendered and settled before
-timing starts. Camera movement during the timed window is measured as it happens;
-newly encountered grass, model detail or shader work is not warmed away.
+valid displayed frame. Those ticks run in the battle authority (see
+[docs/battle-authority.md](battle-authority.md)), so preparation does not spend
+the drawing thread's time, and cancelling it remains serviced throughout. The
+initial contact view is rendered and settled before timing starts. Camera
+movement during the timed window is measured as it happens; newly encountered
+grass, model detail or shader work is not warmed away.
 
-The results distinguish elapsed real time from simulation time. A slow machine
-can fall behind the simulation clock; five minutes on the chart does not prove
-five minutes of simulated combat elapsed. Frame times are animation-callback
+The results distinguish elapsed real time from simulation time. Frame cadence and
+tick cadence are independent, so a smooth chart is not evidence that the
+simulation kept up. A slow machine can fall behind the simulation clock; five
+minutes on the chart does not prove five minutes of simulated combat elapsed. Frame times are animation-callback
 cadence, not a physical input-to-display measurement. FPS lows come from the
 slowest raw intervals, and chart bins preserve their minimum and maximum, so a
 single hitch cannot disappear in an average. Export JSON retains raw intervals,

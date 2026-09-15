@@ -6,6 +6,7 @@ import initWasm, { Game } from "../src/wasm/game_wasm.js";
 import { BattleCrowd } from "../src/battle/battleCrowd";
 import { BattleUnitPresentation } from "../src/battle/battleUnitPresentation";
 import { createBattleViews } from "../src/battle/battleViews";
+import { liveBattleSim } from "./support/liveBattleSim";
 import type { BattleWorld } from "../src/battle/battleWorld";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
@@ -67,10 +68,9 @@ function fixture(unitClass = 0) {
     heightAt: () => 0,
     pxPerWorldAt: () => 80,
   };
+  const sim = liveBattleSim(game, wasm.memory);
   const world = {
-    game,
-    memory: wasm.memory,
-    cfg: { wasm },
+    sim,
     ...views,
     renderer,
     stride: game.unit_info_stride(),
@@ -78,8 +78,11 @@ function fixture(unitClass = 0) {
   } as unknown as BattleWorld;
   // Real adapter, timeline and attached standard owner; only the GPU edge records submissions.
   const crowd = new BattleCrowd(world, new BattleUnitPresentation(world));
+  // Completed ticks are consumed as they land; the frame then samples between them.
   const draw = (tick: number, alpha = 0, frozen = false) => {
-    const frame = crowd.prepare(tick, frozen, alpha, 0, [])!;
+    sim.setTick(tick);
+    crowd.observeTick(tick);
+    const frame = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
     renderer.setUnitReadouts(frame.standards, frame.readouts);
     renderer.draw(
       frame.positions,
@@ -94,7 +97,7 @@ function fixture(unitClass = 0) {
     if (frame.triangles.length) renderer.drawTris(frame.triangles);
     return frames.at(-1)!;
   };
-  return { game, views, renderer, world, crowd, draw, frames, labels, arcs };
+  return { game, views, renderer, sim, world, crowd, draw, frames, labels, arcs };
 }
 
 test("live crowd uses one completed batch for root and measured gait at fractional time", () => {
@@ -157,10 +160,10 @@ test("selection rings follow the presented body while destination cues stay auth
     const clock = new SimClock({ tickHz: 30, maxTicksPerFrame: 4 });
     const input = { selected: [0] } as Parameters<typeof createBattleOrders>[0]["input"];
     const orders = createBattleOrders({
-      clock,
       freeze: new BattleFreeze(clock, f.world.renderer, () => {}),
       input,
       myUnits: (units) => units,
+      time: clock,
       unitCenter: () => [0, 0],
       unitInfo: f.views.unitInfo,
       unitSnap: () => {
@@ -429,6 +432,28 @@ test("equipment and death switch at the same endpoint as facing, root and attach
     expect(endpoint[3][0]).toBe(0);
     expect(f.labels.at(-1)).toEqual([[], []]);
     expect(f.draw(1, 0.25).slice(0, 5)).toEqual(delayed.slice(0, 5));
+  } finally {
+    f.game.free();
+  }
+});
+
+test("ticks consumed without a drawn frame still become adjacent interpolation endpoints", () => {
+  const f = fixture();
+  try {
+    f.draw(0);
+    // A non-linear walk so interpolating across the whole gap would read
+    // differently from interpolating between the two ticks that actually bound it.
+    const path = [0, 10, 10, 10, 10, 11];
+    for (let tick = 1; tick <= 5; tick++) {
+      f.views.positions()[0] = path[tick];
+      f.views.motorTravel().set([path[tick], 0, path[tick]]);
+      f.sim.setTick(tick);
+      f.crowd.observeTick(tick);
+    }
+    const frame = f.crowd.prepare(4.5, false, 0, [])!;
+    expect(frame.observationTick).toBe(5);
+    // Halfway between tick 4 and tick 5, not nine tenths of the way across 0 to 5.
+    expect(frame.positions[0]).toBeCloseTo(10.5, 6);
   } finally {
     f.game.free();
   }

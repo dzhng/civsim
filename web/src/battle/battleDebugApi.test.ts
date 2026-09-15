@@ -8,12 +8,12 @@ afterEach(() => {
 
 it("reads raw completed frame snapshots without traversing full game or renderer stats", () => {
   let current: BattleLoopFrameMetrics | null = null;
-  // Only the WASM memory boundary is needed during installation. Unused owners
-  // stay absent so accidental full-stat collection fails instead of being masked.
+  // Only the authority's published identity is needed during installation. Unused
+  // owners stay absent so accidental full-stat collection fails instead of being
+  // masked.
   installBattleDebugApi({
-    wasm: { memory: new WebAssembly.Memory({ initial: 1 }) },
     owners: {},
-    game: { state_hash: () => 18446744073709551615n },
+    sim: { stride: 35, stateHash: () => "18446744073709551615" },
     frameMetrics: () => current,
   } as unknown as Parameters<typeof installBattleDebugApi>[0]);
   const api = window.__game as {

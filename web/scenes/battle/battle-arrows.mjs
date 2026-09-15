@@ -52,7 +52,7 @@ export async function run(ctx) {
     g.set_fire_at_will?.(0, 1);
     let firstVolley = -1;
     for (let tick = 0; tick < 7200; tick++) {
-      g.advance(1);
+      await g.advance(1);
       if (g.projectileCount() > 0) {
         firstVolley = g.tickCount();
         break;

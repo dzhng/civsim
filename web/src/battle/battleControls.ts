@@ -3,12 +3,17 @@ import {
   UNIT_INFO,
   currentUnitFiles,
 } from "@packages/game-renderer/src/battle/unitInfoLayout";
-import type { SimClock } from "../shared/simClock";
+import type { BattleTimeControl } from "./battleSimTime";
 import type { BattleFreeze } from "./battleFreeze";
 import { Input, type OrderSink } from "./input";
 import { createBattleOrders, type BattleOrders } from "./battleOrders";
 import { groupMoveDests, type UnitSnap } from "./orders";
 import type { BattleWorld } from "./battleWorld";
+
+/** Radii the sim's own pick rule is asked with: selection is forgiving, naming an
+ * enemy to attack is not. Both questions go to the authority that owns the rule. */
+const SELECT_PICK_RADIUS = 30;
+const ORDER_PICK_RADIUS = 25;
 
 export interface BattleControls {
   input: Input;
@@ -33,10 +38,10 @@ export interface BattleControls {
 
 export function createBattleControls(
   world: BattleWorld,
-  clock: SimClock,
+  time: BattleTimeControl,
   freeze: BattleFreeze,
 ): BattleControls {
-  const { camera, canvas, game, signal, stride } = world;
+  const { camera, canvas, sim, signal, stride } = world;
   let showPaths = false;
   let pursueOn = false;
   let fireOn = true;
@@ -45,9 +50,9 @@ export function createBattleControls(
   window.addEventListener(
     "keydown",
     (event) => {
-      if (event.key === "p") clock.paused = !clock.paused;
-      if (event.key === "1") clock.timeScale = 1;
-      if (event.key === "3") clock.timeScale = 3;
+      if (event.key === "p") time.paused = !time.paused;
+      if (event.key === "1") time.timeScale = 1;
+      if (event.key === "3") time.timeScale = 3;
       if (event.key === " ") {
         showPaths = true;
         event.preventDefault();
@@ -93,7 +98,7 @@ export function createBattleControls(
     unitsInScreenRect: (x0: number, y0: number, x1: number, y1: number) => {
       const info = world.unitInfo();
       const units: number[] = [];
-      for (let unit = 0; unit < game.unit_count(); unit++) {
+      for (let unit = 0; unit < sim.unitCount(); unit++) {
         if (
           info[unit * stride + UNIT_INFO.team] !== 0 ||
           info[unit * stride + UNIT_INFO.alive] === 0
@@ -108,14 +113,14 @@ export function createBattleControls(
       }
       return units;
     },
-    pickUnit: (x: number, y: number) => {
-      const unit = game.pick_unit(x, y, 30);
-      return unit >= 0 && world.unitInfo()[unit * stride + 6] === 0 ? unit : -1;
+    pickUnit: async (x: number, y: number) => {
+      const unit = await sim.pick(x, y, SELECT_PICK_RADIUS);
+      return unit >= 0 && world.unitInfo()[unit * stride + UNIT_INFO.team] === 0 ? unit : -1;
     },
     allUnits: () => {
       const info = world.unitInfo();
       const units: number[] = [];
-      for (let unit = 0; unit < game.unit_count(); unit++) {
+      for (let unit = 0; unit < sim.unitCount(); unit++) {
         if (info[unit * stride + UNIT_INFO.team] === 0 && info[unit * stride + UNIT_INFO.alive] > 0)
           units.push(unit);
       }
@@ -126,10 +131,19 @@ export function createBattleControls(
       const info = world.unitInfo();
       for (const unit of selected) {
         const [x, y] = unitCenter(unit);
-        game.set_move_order_facing(unit, x + dx, y + dy, info[unit * stride + UNIT_INFO.facing]);
+        sim.send({
+          kind: "move",
+          unit,
+          x: x + dx,
+          y: y + dy,
+          facing: info[unit * stride + UNIT_INFO.facing],
+        });
       }
       orders.markFlash(selected);
     },
+    // The sim owns "which unit is at this point", so the click is resolved by the
+    // authority and the order follows on its answer. The cost is the round trip,
+    // not a second copy of the pick rule on this thread.
     orderPoint: (
       units: number[],
       x: number,
@@ -138,75 +152,91 @@ export function createBattleControls(
       double: boolean,
       alt: boolean,
     ) => {
-      const selected = myUnits(units);
-      if (selected.length === 0) return;
-      const info = world.unitInfo();
-      const target = game.pick_unit(x, y, 25);
-      const enemy =
-        target >= 0 &&
-        info[target * stride + UNIT_INFO.team] !== 0 &&
-        info[target * stride + UNIT_INFO.alive] > 0;
-      if (!shift) selected.forEach((unit) => game.set_pace(unit, double ? 1 : 0));
-      if (enemy) {
-        if (shift) {
-          selected.forEach((unit) => game.enqueue(unit, 1, target, 0, 0, 0));
+      if (myUnits(units).length === 0) return;
+      void sim.pick(x, y, ORDER_PICK_RADIUS).then((target) => {
+        if (signal.aborted) return;
+        const selected = myUnits(units);
+        if (selected.length === 0) return;
+        const info = world.unitInfo();
+        const enemy =
+          target >= 0 &&
+          info[target * stride + UNIT_INFO.team] !== 0 &&
+          info[target * stride + UNIT_INFO.alive] > 0;
+        if (!shift)
+          selected.forEach((unit) => sim.send({ kind: "pace", unit, pace: double ? 1 : 0 }));
+        if (enemy) {
+          if (shift) {
+            selected.forEach((unit) =>
+              sim.send({
+                kind: "enqueue",
+                unit,
+                mode: 1,
+                x: target,
+                y: 0,
+                facing: 0,
+                hasFacing: 0,
+              }),
+            );
+            orders.markFlash(selected);
+          } else if (selected.length === 1) {
+            sim.send({ kind: "attack", unit: selected[0], target });
+            orders.markFlash(selected);
+          } else orders.orderPointAttack(selected, target);
+        } else if (shift) {
+          const snaps = selected.map(unitSnap);
+          let centerX = 0;
+          let centerY = 0;
+          for (const snap of snaps) {
+            centerX += snap.x;
+            centerY += snap.y;
+          }
+          centerX /= snaps.length;
+          centerY /= snaps.length;
+          const facing = Math.atan2(y - centerY, x - centerX);
+          for (const destination of groupMoveDests(snaps, x, y))
+            sim.send({
+              kind: "enqueue",
+              unit: destination.u,
+              mode: alt ? 2 : 0,
+              x: destination.x,
+              y: destination.y,
+              facing,
+              hasFacing: alt ? 0 : 1,
+            });
           orders.markFlash(selected);
-        } else if (selected.length === 1) {
-          game.set_attack_order(selected[0], target);
-          orders.markFlash(selected);
-        } else orders.orderPointAttack(selected, target);
-      } else if (shift) {
-        const snaps = selected.map(unitSnap);
-        let centerX = 0;
-        let centerY = 0;
-        for (const snap of snaps) {
-          centerX += snap.x;
-          centerY += snap.y;
-        }
-        centerX /= snaps.length;
-        centerY /= snaps.length;
-        const facing = Math.atan2(y - centerY, x - centerX);
-        for (const destination of groupMoveDests(snaps, x, y))
-          game.enqueue(
-            destination.u,
-            alt ? 2 : 0,
-            destination.x,
-            destination.y,
-            facing,
-            alt ? 0 : 1,
-          );
-        orders.markFlash(selected);
-      } else orders.groupMove(selected, x, y, alt ? "disengage" : "move");
+        } else orders.groupMove(selected, x, y, alt ? "disengage" : "move");
+      });
     },
     orderLine: (units, line, queued) => orders.orderLine(units, line, queued),
     togglePace: (units: number[]) => {
       const selected = myUnits(units);
       const info = world.unitInfo();
       const anyWalk = selected.some((unit) => info[unit * stride + UNIT_INFO.running] < 0.5);
-      selected.forEach((unit) => game.set_pace(unit, anyWalk ? 1 : 0));
+      selected.forEach((unit) => sim.send({ kind: "pace", unit, pace: anyWalk ? 1 : 0 }));
     },
-    reform: (units: number[]) => myUnits(units).forEach((unit) => game.set_reform(unit)),
+    reform: (units: number[]) =>
+      myUnits(units).forEach((unit) => sim.send({ kind: "reform", unit })),
     toggleKite: (units: number[]) => {
       const selected = myUnits(units);
       const info = world.unitInfo();
       const anyOff = selected.some((unit) => info[unit * stride + UNIT_INFO.evadeAuto] < 0.5);
-      selected.forEach((unit) => game.set_evade_auto(unit, anyOff ? 1 : 0));
+      selected.forEach((unit) => sim.send({ kind: "evadeAuto", unit, on: anyOff }));
     },
     togglePursue: (units: number[]) => {
       pursueOn = !pursueOn;
-      myUnits(units).forEach((unit) => game.set_pursue(unit, pursueOn ? 1 : 0));
+      myUnits(units).forEach((unit) => sim.send({ kind: "pursue", unit, on: pursueOn }));
     },
     toggleFire: (units: number[]) => {
       fireOn = !fireOn;
-      myUnits(units).forEach((unit) => game.set_fire_at_will(unit, fireOn ? 1 : 0));
+      myUnits(units).forEach((unit) => sim.send({ kind: "fireAtWill", unit, on: fireOn }));
     },
   };
   const input = new Input(canvas, camera, sink, signal, world.cameraRig.apply);
   orders = createBattleOrders({
-    clock,
     freeze,
     input,
     myUnits,
+    time,
     unitCenter,
     unitInfo: world.unitInfo,
     unitSnap,
@@ -234,11 +264,11 @@ export function createBattleControls(
       toggleFire: sink.toggleFire,
       toggleKite: sink.toggleKite,
       togglePause: () => {
-        clock.paused = !clock.paused;
+        time.paused = !time.paused;
       },
       setSpeed: (scale) => {
-        clock.paused = false;
-        clock.timeScale = scale;
+        time.paused = false;
+        time.timeScale = scale;
       },
       togglePaths: () => {
         showPaths = !showPaths;

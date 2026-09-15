@@ -5,36 +5,6 @@ import { BATTLE_BENCHMARK_SCENARIO } from "./benchmarkScenario";
 const scenario = { ...BATTLE_BENCHMARK_SCENARIO, startTick: 6, durationMs: 300_000 };
 
 describe("battle benchmark lifecycle", () => {
-  it("yields preparation at its wall budget without dropping or splitting real ticks", () => {
-    const run = new BenchmarkRun(scenario, 0);
-    let tick = 0;
-    let now = 0;
-    const step = () =>
-      run.prepareStep(
-        tick,
-        () => {
-          tick++;
-          now += 5;
-        },
-        () => now,
-      );
-    expect(step()).toBe(2);
-    expect(tick).toBe(2);
-    run.frame(now, tick, -1);
-    expect(run.status()).toMatchObject({ phase: "preparing", preparationMs: 10, elapsedMs: 0 });
-    step();
-    step();
-    run.frame(now, tick, -1);
-    expect(run.status()).toMatchObject({
-      phase: "running",
-      startTick: 6,
-      tick: 6,
-      preparationMs: 30,
-    });
-    expect(step()).toBe(0);
-    expect(tick).toBe(6);
-  });
-
   it("counts the whole wall-clock window even when the simulation falls behind", () => {
     const run = new BenchmarkRun(scenario, 100);
     run.frame(1000, 6, -1);
@@ -62,20 +32,12 @@ describe("battle benchmark lifecycle", () => {
     expect(run.status().elapsedMs).toBe(800);
   });
 
-  it("cancels preparation and cannot advance or later claim completion", () => {
+  it("cannot leave a cancelled preparation or later claim completion", () => {
     const run = new BenchmarkRun(scenario, 0);
     run.frame(10, 2, -1);
     run.cancel(20, 2);
-    let tick = 2;
-    run.prepareStep(
-      tick,
-      () => {
-        tick++;
-      },
-      () => 21,
-    );
+    // Ticks the authority may still be finishing cannot revive a cancelled run.
     run.frame(400_000, 6, -1);
-    expect(tick).toBe(2);
     expect(run.status()).toMatchObject({
       phase: "cancelled",
       tick: 2,

@@ -1,39 +1,40 @@
-import type { SimClock } from "../shared/simClock";
 import type { BattleRendererApi } from "./battleRendererApi";
+import type { BattleTimeControl } from "./battleSimTime";
 
 export class BattleFreeze {
   private pausedBeforeFreeze = false;
   effects = false;
 
   constructor(
-    private clock: SimClock,
+    private time: BattleTimeControl,
     private renderer: BattleRendererApi,
     private syncAudioSuspension: () => void,
     private signal?: AbortSignal,
   ) {}
 
   doFreeze(on = true): void {
-    if (on && !this.clock.frozen) this.pausedBeforeFreeze = this.clock.paused;
-    this.clock.paused = on ? true : this.pausedBeforeFreeze;
-    this.clock.frozen = on;
+    if (on && !this.time.frozen) this.pausedBeforeFreeze = this.time.paused;
+    this.time.paused = on ? true : this.pausedBeforeFreeze;
+    this.time.frozen = on;
     if (!on) this.effects = false;
     this.renderer.fixedTime = on ? 0 : null;
     this.renderer.preserveFrozenEffects = on && this.effects;
     this.syncAudioSuspension();
   }
 
-  freezeAtTick(
+  /** Freeze, then have the authority run to the target tick and wait until that
+   * tick has actually been consumed here, so a capture can never read a state from
+   * before the advance it asked for. */
+  async freezeAtTick(
     target: number,
-    currentTick: () => number,
-    advance: (ticks: number) => void,
+    advanceTo: (tick: number) => Promise<void>,
     afterAdvance: () => void,
     options: { effects?: boolean } = {},
-  ) {
+  ): Promise<void> {
     this.effects = options.effects === true;
     this.doFreeze(true);
-    const ticks = target - currentTick();
-    if (ticks > 0) advance(ticks);
+    await advanceTo(target);
     afterAdvance();
-    return this.renderer.settlePresentedFrame(this.signal);
+    await this.renderer.settlePresentedFrame(this.signal);
   }
 }

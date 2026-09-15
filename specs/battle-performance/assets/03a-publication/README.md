@@ -172,3 +172,7 @@ replay; the canonical timing pair was not rerun after those changes. The orderin
 test now also verifies caller mutation cannot alter an accepted order; the new
 CLI failure test verifies missing WASM exits promptly with the original cause.
 No existing production test changed behavior or tolerance.
+
+## Browser candidate checkpoint
+
+[Candidate e71f4ac8](browser-worker-candidate.json) boots a real module worker, advances a standalone battle with matching soldier counts, and passes all seven existing hardware Chrome Menu preparation/cancel/export checks. Preparation holds the rendered battle frame while ticks advance. This candidate remains isolated: campaign encounter entry is not preserved yet and a follow-up is repairing that boundary. No live frame-rate, campaign, full five-minute or final integrated acceptance is implied. Earlier software-adapter timeouts and a local WASM serving denial are invalid hardware controls, retained separately in scratch logs.

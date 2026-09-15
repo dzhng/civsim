@@ -1,15 +1,27 @@
-import * as THREE from "three/webgpu";
+/** Read-only attribute access supports interleaved or packed renderer data. */
+export interface TerrainEdgeAttribute {
+  readonly count: number;
+  readonly itemSize: number;
+  getX(index: number): number;
+  getY(index: number): number;
+  getComponent(index: number, component: number): number;
+}
+export interface TerrainEdgeGeometry {
+  readonly attributes: Record<string, TerrainEdgeAttribute>;
+  readonly index: { readonly array: ArrayLike<number> } | null;
+  getAttribute(name: string): TerrainEdgeAttribute;
+}
 
 /** Join a terrain ring's inner boundary to the preceding mesh's outer edge.
  * Both polylines contribute their breakpoints, so different grid resolutions
  * meet without cracks or overlapping terrain. The strip carries the actual
  * edge attributes, including shoreline material, instead of hiding holes with
  * a second-sided mountain material. */
-export function joinTerrainMeshEdges(
-  outer: THREE.BufferGeometry,
-  inner: THREE.BufferGeometry,
+export function joinedTerrainEdgeData(
+  outer: TerrainEdgeGeometry,
+  inner: TerrainEdgeGeometry,
   hole: [number, number, number, number],
-): void {
+) {
   const ip = inner.getAttribute("position");
   const op = outer.getAttribute("position");
   const innerBounds = [Infinity, Infinity, -Infinity, -Infinity];
@@ -60,6 +72,7 @@ export function joinTerrainMeshEdges(
       indices.push(k, k + 1, k + 3, k, k + 3, k + 2);
     }
   }
+  const attributes: Record<string, { values: Float32Array; itemSize: number }> = {};
   for (const name of names) {
     const attr = outer.getAttribute(name);
     const values = new Float32Array(count * attr.itemSize);
@@ -67,13 +80,13 @@ export function joinTerrainMeshEdges(
       for (let c = 0; c < attr.itemSize; c++)
         values[i * attr.itemSize + c] = attr.getComponent(i, c);
     values.set(added[name], attr.count * attr.itemSize);
-    outer.setAttribute(name, new THREE.BufferAttribute(values, attr.itemSize));
+    attributes[name] = { values, itemSize: attr.itemSize };
   }
-  outer.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
+  return { attributes, indices: new Uint32Array(indices) };
 }
 
 function edge(
-  geometry: THREE.BufferGeometry,
+  geometry: TerrainEdgeGeometry,
   bounds: readonly number[],
   axis: 0 | 1,
   boundIndex: number,

@@ -1,3 +1,4 @@
+import { buildBattleVistaGeometry } from "./vistaGeometry";
 import { buildPhotorealBattleGroundMesh } from "./groundPass";
 import { buildBattleHorizonLayout } from "./horizonPass";
 import { buildBattleTerrainPresentation } from "./mapCatalog";
@@ -56,6 +57,7 @@ export function buildBattleTerrainData(
     field,
     vista,
     ground: groundData,
+    vistaMeshes: vista ? buildBattleVistaGeometry(vista, cover, groundData) : [],
     horizon,
     rect: [grid.ox, grid.oy, grid.w * grid.cell, grid.h * grid.cell] as [
       number,

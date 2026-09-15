@@ -226,20 +226,11 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
   let vistaTriangles = 0;
   if (vista) {
     sealedEdges = ["generated:vista"];
-    let innerMesh = ground;
-    for (const band of vista.bands) {
-      const mesh = createVistaMesh(
-        frame,
-        band,
-        cover,
-        {
-          slopeBands,
-          farGrass: grassTransition,
-        },
-        innerMesh,
-      );
-      if (!mesh) continue;
-      innerMesh = mesh;
+    for (const ring of data.vistaMeshes) {
+      const mesh = createVistaMesh(frame, ring.mesh, ring.name, {
+        slopeBands,
+        farGrass: grassTransition,
+      });
       vistaMeshes.push(mesh);
       vistaTriangles += (mesh.geometry.index?.count ?? 0) / 3;
     }

@@ -1,12 +1,12 @@
 # Shared landscape quality
 
-Status: implementation active; slices 01–03 and 06 complete, no production cutover yet. Updated: 2026-09-15.
+Status: implementation active; slices 01–03, 06 and 09 complete, no production cutover yet. Updated: 2026-09-15.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Water09 refinement is integrated at `92f229b7`; merged501CPU tests/typecheck pass, merged GPU controls are queued. Whole-frame review still rejects reference parity: rounded faces, sparse woodland masses and weak material separation are the main gaps. Two05 directional rock-detail experiments are rejected and removed: vertical curtains, then no material regional gain. Keep the current material while choosing a more effective intermediate-scale treatment. A separate04 ridge/valley experiment runs in `game-landscape-ridge-separation` from `92f229b7`. City12 live inputs/footprint work runs in `game-landscape-city-inputs` from `4a55e0a5`. City and ridge agents coordinate GPU captures; root merged water/composition controls follow the next available lane. Then resolve composed04/05/07/10 quality → remaining11/12 alongside13 →14 →15. Geographic contact/batching is verified with exact controls and hardware16.67ms p95/33.33ms max admission. Read [architecture](architecture.md), [validation](validation.md), and owning slice evidence; update this handoff before ending a pass. Whole-frame quality and full UI/scenery performance remain open.
+Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Finish the reviewed canopy coverage checkpoint, integrate city inputs at `a92a008e`, then complete the remaining label/crowd presentation seams in12. The crowd pass is active in `game-landscape-city-inputs`; coordinate GPU runs. Merged water09 and canopy screenshot controls pass; 501 web tests pass. Ridge04 experiments are archived as rejected evidence at `90bf707a`; directional rock05 experiments are also removed. Whole-frame quality remains below the reference, principally mountain form, material separation and vegetation edges. Continue those focused art passes alongside11/12/13, then14 and15. Read [architecture](architecture.md), [validation](validation.md), and owning slice evidence; update this handoff before ending a pass. Production cutover and full UI/scenery performance remain open.
 
 The user has authorized implementation, renderer migration, refactoring and as many reversible spikes as useful. Make these decisions without permission questions. No compatibility backend or save migration is requested. Preserve gameplay and existing save formats; this is a presentation change. Human review is a chance to steer, not a wait for approval.
 
@@ -22,7 +22,7 @@ Warnings: the regional spike remains below the whole-frame visual bar and is not
 - [x] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)
 - [ ] [07 — Forests, edges and intermediate ground detail](slices/07-ecological-placement.md)
 - [ ] [08 — Coasts, channels and river connections](slices/08-water-boundaries.md)
-- [ ] [09 — Shared water depth, surf and motion](slices/09-water-response.md)
+- [x] [09 — Shared water depth, surf and motion](slices/09-water-response.md)
 - [ ] [10 — Coherent lighting and landscape composition](slices/10-environment.md)
 - [ ] [11 — Campaign roads, ownership and fog](slices/11-campaign-geographic-layers.md)
 - [ ] [12 — Campaign entities, labels and selection](slices/12-campaign-entities-labels.md)

@@ -212,7 +212,7 @@ export function buildCampaignWoodlandCandidates(
         )
           continue;
         const fringe = forest < 0.2;
-        const height = fringe ? 0.9 + hash2(seed, 4) * 0.6 : 4 + hash2(seed, 4) * 2;
+        const height = fringe ? 0.9 + hash2(seed, 4) * 0.6 : 6 + hash2(seed, 4) * 3;
         const size = height * (fringe ? 0.85 : 0.72) * CAMPAIGN_TREE_VISUAL_SCALE;
         if (!field.renderLandAt(x, y, size * 0.5)) continue;
         trees.push({

@@ -1,0 +1,128 @@
+[
+  {
+    "preset": "alps",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "p95": 16.670000000000073,
+    "max": 16.670000000000073,
+    "state": {
+      "ok": true,
+      "route": "campaign-landscape",
+      "projection": "camera3d-viewProj-reverse-z",
+      "stats": {
+        "surface": {
+          "domains": [
+            {
+              "ox": -810,
+              "oy": 630,
+              "columns": 361,
+              "rows": 361,
+              "cell": 2,
+              "units": "kilometers"
+            }
+          ],
+          "revision": "campaign:0",
+          "centerRay": {
+            "position": [
+              -450,
+              990.023281698255,
+              43.54799751617458
+            ],
+            "normal": [
+              0.5201136418368212,
+              0.6174448694127381,
+              0.5901217101675936
+            ],
+            "revision": "campaign:0",
+            "triangle": 162754,
+            "barycentric": [
+              0.9883591508724976,
+              0.011640849127502406,
+              0
+            ]
+          }
+        },
+        "drawCalls": 16,
+        "triangles": 3094447,
+        "gpuTimeMs": 5.866745,
+        "timeSeconds": 0,
+        "device": "apple / metal-3",
+        "terrainTriangles": 321448,
+        "trees": 2216,
+        "mountainProps": 0,
+        "center": [
+          -450,
+          990
+        ],
+        "material": "shared-landscape-ground",
+        "environment": "golden"
+      }
+    },
+    "errors": []
+  },
+  {
+    "preset": "italy",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "p95": 16.670000000000073,
+    "max": 16.670000000000073,
+    "state": {
+      "ok": true,
+      "route": "campaign-landscape",
+      "projection": "camera3d-viewProj-reverse-z",
+      "stats": {
+        "surface": {
+          "domains": [
+            {
+              "ox": -686,
+              "oy": 280,
+              "columns": 361,
+              "rows": 361,
+              "cell": 2,
+              "units": "kilometers"
+            }
+          ],
+          "revision": "campaign:0",
+          "centerRay": {
+            "position": [
+              -325,
+              639.9977355931635,
+              0
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "revision": "campaign:0",
+            "triangle": 155710,
+            "barycentric": [
+              0.0011322034182512652,
+              0.49886779658174873,
+              0.5
+            ]
+          }
+        },
+        "drawCalls": 16,
+        "triangles": 1841777,
+        "gpuTimeMs": 5.040465,
+        "timeSeconds": 0,
+        "device": "apple / metal-3",
+        "terrainTriangles": 316825,
+        "trees": 1110,
+        "mountainProps": 0,
+        "center": [
+          -325,
+          640
+        ],
+        "material": "shared-landscape-ground",
+        "environment": "golden"
+      }
+    },
+    "errors": []
+  }
+]

@@ -95,3 +95,18 @@ cannot reveal it during a terrain swap. A membership-change regression exposed
 stale Three bindings after disposing/reusing geometry. Shrinking sets retain their
 capacity; growth replaces geometry identity and disposes the old buffers. The
 browser fixture exercises hiding/restoring/growth and reports no GPU errors.
+
+
+## Accepted canopy coverage checkpoint
+
+Mature trees use a larger presentation footprint on the same deterministic
+candidate lattice, source cover, cap, species and crown meshes. Existing coast,
+road and city clearances use the final footprint; fringe shrubs retain their
+size. Fresh comparison accepts the larger overlapping crowns as a meaningful
+woodland-mass improvement in both regions. Exact repeat screenshots and all
+501 web tests pass. See [evidence](../assets/slice-07/canopy-coverage/README.md).
+
+This completes only the canopy coverage checkpoint. Oversized geometric conifers,
+isolated planted clumps, exposed slope placement and missing intermediate ground
+detail keep this slice open. Further work must address those properties rather
+than increase every tree again.

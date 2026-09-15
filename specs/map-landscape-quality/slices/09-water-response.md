@@ -1,6 +1,6 @@
 # 09 — Shared water depth, surf and motion
 
-Status: material accepted and exact-repeat verified. Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
+Status: complete; material accepted, exact-repeat and merged water controls verified. Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
 
 ## Contract and owner
 
@@ -14,9 +14,9 @@ Feed independent coverage, signed shore distance and depth/proxy inputs into the
 
 ## Runnable checkpoint
 
-Planned landscape-water scene, retaining terrain-water; fixed near/deep/shore crops plus a short frozen-time sequence and looping GIF. Include a battle field-water/ocean boundary.
+The landscape-water scene and terrain-water retain fixed near/deep/shore crops plus a short frozen-time sequence and looping GIF. Include a battle field-water/ocean boundary.
 
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+Both scenes run through the existing scene runner and exact snapshot primitive.
 
 ## Verification and review
 
@@ -42,7 +42,7 @@ The existing response now lives in `landscape/waterMaterial.ts`; terrain, ocean 
 
 ## Source-distance response checkpoint
 
-The [response evidence](../assets/slice-09/response/README.md) now covers explicit source-shore capability, bounded campaign depth proxy, weak clock-driven normal detail, broken shore lace and fixed-source dry-pixel controls. CampaignWorld and the regional route consume it; battle and synthetic field fixtures retain the existing response. Seven exact repeat frames and all CPU tests pass. Regular wave bands were rejected. Independent fresh visual critique remains pending after the agent thread limit rejected both spawn attempts, so this checkpoint does not close09 or claim reference-quality acceptance.
+The [response evidence](../assets/slice-09/response/README.md) now covers explicit source-shore capability, bounded campaign depth proxy, weak clock-driven normal detail, broken shore lace and fixed-source dry-pixel controls. CampaignWorld and the regional route consume it; battle and synthetic field fixtures retain the existing response. Seven exact repeat frames and all CPU tests pass. Regular wave bands were rejected. This initial checkpoint was not visually accepted; the finish below resolves its pending critique.
 
 ## Accepted material response
 

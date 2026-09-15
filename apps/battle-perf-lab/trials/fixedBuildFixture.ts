@@ -35,21 +35,29 @@ export async function writeFixedBuildFixture(root: string) {
   const outDir = join(root, "raw");
   const publicDir = join(root, "shared-public");
   const atlasDir = join(root, "shared-atlas");
+  const soldiersDir = join(publicDir, "assets", "soldiers");
   await mkdir(join(outDir, "assets"), { recursive: true });
   await mkdir(join(publicDir, "fonts"), { recursive: true });
+  await mkdir(soldiersDir, { recursive: true });
   await mkdir(atlasDir, { recursive: true });
   const index = "<html>fixed</html>";
   const bundle = "console.log('fixed menu bundle')";
   const font = "font-bytes";
+  const soldier = "soldier-appearance-bytes";
   const catalog = '{"appearances":{"0":"a.json"}}';
   await writeFile(join(outDir, "index.html"), index);
   await writeFile(join(outDir, "assets", "menu-a1b2c3.js"), bundle);
   await writeFile(join(publicDir, "fonts", "Cinzel.ttf"), font);
+  await writeFile(join(soldiersDir, "human.png"), soldier);
   await writeFile(join(atlasDir, "catalog.json"), catalog);
   // How the served build reaches the shared trees, and the only evidence that
-  // the locally hashed bytes are the ones the server hands out.
+  // the locally hashed bytes are the ones the server hands out. `assets/` is
+  // the build's own emitted directory, so there the link is the subtree inside
+  // it — a served prefix is not a shared tree just because shared files hang
+  // below it.
   await symlink(atlasDir, join(outDir, "benchmark-atlas"));
   await symlink(join(publicDir, "fonts"), join(outDir, "fonts"));
+  await symlink(soldiersDir, join(outDir, "assets", "soldiers"));
 
   const artifactFiles = [
     { path: "index.html", bytes: index.length, sha256: fixtureSha256(index) },
@@ -57,6 +65,11 @@ export async function writeFixedBuildFixture(root: string) {
   ];
   const sharedAssetFiles = [
     { path: "public/fonts/Cinzel.ttf", bytes: font.length, sha256: fixtureSha256(font) },
+    {
+      path: "public/assets/soldiers/human.png",
+      bytes: soldier.length,
+      sha256: fixtureSha256(soldier),
+    },
     { path: "atlas/catalog.json", bytes: catalog.length, sha256: fixtureSha256(catalog) },
   ];
   const manifest = {
@@ -124,6 +137,7 @@ export async function writeFixedBuildFixture(root: string) {
   return {
     index,
     bundle,
+    soldier,
     catalog,
     renderConfig,
     manifest,
@@ -131,6 +145,7 @@ export async function writeFixedBuildFixture(root: string) {
     renderConfigPath,
     outDir,
     publicDir,
+    soldiersDir,
     atlasDir,
     served,
     requested,

@@ -1,6 +1,6 @@
 /// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
 import { mkdtempSync, rmSync } from "node:fs";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fixtureSha256, writeFixedBuildFixture } from "./fixedBuildFixture.ts";
@@ -94,7 +94,7 @@ describe("fixed-build provenance", () => {
     expect(report.issues).toEqual([]);
     expect(report.ok).toBe(true);
     expect(report.artifacts.verified).toBe(2);
-    expect(report.sharedAssets.verified).toBe(2);
+    expect(report.sharedAssets.verified).toBe(3);
     expect(report.served.indexSha256).toBe(fixtureSha256(fixture.index));
     expect(report.served.artifacts).toMatchObject({ total: 1, verified: 1, mismatches: [] });
     expect(report.configSha256).toBe(fixtureSha256(fixture.renderConfig));
@@ -194,13 +194,61 @@ describe("fixed-build provenance", () => {
     expect(report.issues.join(" ")).toContain("not the hashed shared tree");
   });
 
+  it("verifies a shared subtree linked inside a directory of emitted artifacts", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    const report = await verifyProvenance(fixture.options, fixture.fetchResource);
+    expect(report.issues).toEqual([]);
+    // `assets/` holds the build's own emitted bundle, so it is a real directory
+    // and only `assets/soldiers` is a link. Comparing the prefix above the link
+    // to the hashed tree would reject this layout, which is the one Vite emits.
+    expect(report.served.sharedTrees).toContainEqual({
+      urlPath: "/assets/soldiers/",
+      servedFrom: join(fixture.outDir, "assets", "soldiers"),
+      resolvedTo: await realpath(fixture.soldiersDir),
+      hashedTree: fixture.soldiersDir,
+      linked: true,
+      recordedFiles: 1,
+    });
+    expect(report.served.sharedTrees.map((tree) => tree.urlPath)).not.toContain("/assets/");
+  });
+
+  it("rejects a shared subtree the build linked to a tree other than the hashed one", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    const other = join(root, "other-soldiers");
+    await mkdir(other, { recursive: true });
+    // Byte-identical, so only the mapping can tell the two trees apart.
+    await writeFile(join(other, "human.png"), fixture.soldier);
+    await rm(join(fixture.outDir, "assets", "soldiers"));
+    await symlink(other, join(fixture.outDir, "assets", "soldiers"));
+    const report = await verifyProvenance(fixture.options, fixture.fetchResource);
+    expect(report.ok).toBe(false);
+    expect(report.sharedAssets.mismatches).toEqual([]);
+    expect(report.served.sharedTrees).toContainEqual(
+      expect.objectContaining({ urlPath: "/assets/soldiers/", linked: false, recordedFiles: 1 }),
+    );
+    expect(report.issues.join(" ")).toContain("not the hashed shared tree");
+  });
+
+  it("names a manifest field the producer left out rather than failing on a path argument", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    const manifest = JSON.parse(await readFile(fixture.manifestPath, "utf8"));
+    // What a generator writing its own field names instead of these produces.
+    delete manifest.sharedPublic;
+    delete manifest.sharedAtlas;
+    await writeFile(fixture.manifestPath, JSON.stringify(manifest));
+    await expect(verifyProvenance(fixture.options, fixture.fetchResource)).rejects.toThrow(
+      "build manifest is missing sharedPublic, sharedAtlas",
+    );
+  });
+
   it("rejects a shared asset that changed since the build was recorded", async () => {
     const fixture = await writeFixedBuildFixture(root);
     await writeFile(join(fixture.atlasDir, "catalog.json"), '{"appearances":{"0":"b.json"}}');
     const report = await verifyProvenance(fixture.options, fixture.fetchResource);
     expect(report.ok).toBe(false);
     expect(report.issues.join(" ")).toContain("atlas/catalog.json");
-    expect(report.sharedAssets.verified).toBe(1);
+    // Only the file that changed; the rest of the recorded trees still verify.
+    expect(report.sharedAssets).toMatchObject({ total: 3, verified: 2 });
   });
 
   it("rejects a server that is not hosting this backend's fixed build", async () => {

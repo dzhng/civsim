@@ -72,11 +72,14 @@ longer instead of matching on a truncated prefix.
 
 The shared public and atlas trees are gigabytes and are deliberately _not_
 pulled over HTTP. They are hashed where they sit, which is only evidence about
-served bytes if the server reaches those same trees: the runner resolves each
-served prefix through the build's own output directory and requires it to land on
-the tree it hashed. So the build layout is a contract — `<outDir>/<prefix>` must
-link to the shared tree serving `/<prefix>/` — and a prefix that resolves
-anywhere else is recorded as unlinked and rejects the trial rather than letting a
+served bytes if the server reaches those same trees: every recorded shared file
+is walked down its own served path until it meets the shallowest link the build
+actually made, and that link has to resolve to the tree the file was hashed in.
+The link is what the contract is on, never the served prefix above it — a build
+emits its own `assets/` directory of JS and WASM and links a shared subtree such
+as `assets/soldiers` inside it, so a served prefix is routinely part emitted and
+part shared. A recorded file that reaches no link, or one whose link lands on
+another tree, is recorded as unlinked and rejects the trial rather than letting a
 local digest quietly speak for bytes nobody checked.
 
 A mismatch rejects the trial before a browser exists, which is the only point at
@@ -147,7 +150,9 @@ filed as this one's evidence.
 
 `trials/*.test.ts` run under the lab's Vitest configuration and cover the seams
 this pass can reach without a GPU: provenance mismatch, served-bundle and
-shared-tree mismatch, read-budget and malformed-size refusals, the exit-code and
+shared-tree mismatch, a shared subtree linked inside a directory of emitted
+artifacts, a manifest missing a required field, read-budget and malformed-size
+refusals, the exit-code and
 scenario-evidence rules, declaration-versus-recording disagreement, host coverage
 and shared-process attribution, refusal to overwrite, the functional/ranking
 split, and the storage key pinned against the real settings owner. The browser

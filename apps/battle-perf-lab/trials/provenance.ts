@@ -1,5 +1,5 @@
-import { readFile, realpath, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { lstat, readFile, realpath, stat } from "node:fs/promises";
+import { join, relative } from "node:path";
 import {
   fileListSha256,
   hashBounded,
@@ -61,16 +61,22 @@ export interface ProvenanceOptions {
 }
 
 /**
- * How a served path prefix reaches the tree whose digests were verified on
- * disk. Shared assets are gigabytes, so they are hashed locally; this mapping
- * is the evidence that the local tree is the one the server hands out.
+ * How a served path reaches the tree whose digests were verified on disk.
+ * Shared assets are gigabytes, so they are hashed locally; this mapping is the
+ * evidence that the local tree is the one the server hands out.
  */
 export interface SharedTreeMapping {
+  /** The served path, as the browser asks for it. */
   urlPath: string;
+  /** Where the build's own output directory reaches it. */
   servedFrom: string;
+  /** What that path resolves to, or nothing when it does not exist. */
   resolvedTo: string | null;
-  hashedTree: string | null;
+  /** The declared tree the recorded digests under it were taken from. */
+  hashedTree: string;
   linked: boolean;
+  /** How many recorded shared files this one link stands in for. */
+  recordedFiles: number;
 }
 
 /**
@@ -113,6 +119,8 @@ export interface ProvenanceReport {
 }
 
 const SHA256 = /^[a-f0-9]{64}$/i;
+const isFileList = (value: unknown) =>
+  Array.isArray(value) && value.every((file) => typeof file?.path === "string");
 const ISOLATION_HEADERS = ["cross-origin-opener-policy", "cross-origin-embedder-policy"];
 /**
  * Ceilings on the whole sweep, not tunables: a manifest that declares far more
@@ -173,16 +181,46 @@ async function fetchFile(
   };
 }
 
-/** Shared files are recorded under a tree prefix rather than an absolute path. */
-function sharedAssetPath(manifest: FixedBuildManifest, file: ManifestFile): string | null {
-  const separator = file.path.indexOf("/");
-  const roots: Record<string, string | undefined> = {
-    public: manifest.sharedPublic,
-    atlas: manifest.sharedAtlas,
-  };
-  const root = roots[file.path.slice(0, separator)];
-  return root === undefined ? null : join(root, file.path.slice(separator + 1));
+/**
+ * One recorded shared file seen from both sides: the path the build serves it
+ * from, and the path it was hashed at. The public tree is copied to the site
+ * root, so each of its top-level entries is served from there; the atlas hangs
+ * off the prefix its catalog URL declares. Both sides are derived here together,
+ * so the served path and the hashed path can never be resolved by drifting rules.
+ */
+interface SharedBranch {
+  servedRoot: string;
+  hashedRoot: string;
+  /** Segments below both roots — every one of them a possible link. */
+  tail: string[];
 }
+
+/** Shared files are recorded under a tree prefix rather than an absolute path. */
+function sharedBranch(
+  manifest: FixedBuildManifest,
+  build: ManifestBuild,
+  file: ManifestFile,
+): SharedBranch | null {
+  const [root, ...tail] = file.path.split("/");
+  if (root === "atlas") {
+    const segment = firstSegment(manifest.atlasCatalogUrl);
+    return segment === null
+      ? null
+      : { servedRoot: join(build.outDir, segment), hashedRoot: manifest.sharedAtlas, tail };
+  }
+  if (root === "public" && tail.length > 0)
+    return {
+      servedRoot: join(build.outDir, tail[0]),
+      hashedRoot: join(manifest.sharedPublic, tail[0]),
+      tail: tail.slice(1),
+    };
+  return null;
+}
+
+const servedAt = (branch: SharedBranch, depth: number) =>
+  join(branch.servedRoot, ...branch.tail.slice(0, depth));
+const hashedAt = (branch: SharedBranch, depth: number) =>
+  join(branch.hashedRoot, ...branch.tail.slice(0, depth));
 
 const servedUrl = (base: string, path: string) =>
   new URL(path.split("/").map(encodeURIComponent).join("/"), base).href;
@@ -197,40 +235,79 @@ function firstSegment(url: string): string | null {
   }
 }
 
+/** One `lstat` per served path, however many recorded files walk through it. */
+function linkProbe(): (path: string) => Promise<boolean> {
+  const probed = new Map<string, Promise<boolean>>();
+  return (path) => {
+    let isLink = probed.get(path);
+    if (!isLink) {
+      isLink = lstat(path).then(
+        (info) => info.isSymbolicLink(),
+        () => false,
+      );
+      probed.set(path, isLink);
+    }
+    return isLink;
+  };
+}
+
+/** The shallowest step of a branch the build actually linked, if it linked one. */
+async function linkedDepth(
+  branch: SharedBranch,
+  isLink: (path: string) => Promise<boolean>,
+): Promise<number | null> {
+  for (let depth = 0; depth <= branch.tail.length; depth += 1)
+    if (await isLink(servedAt(branch, depth))) return depth;
+  return null;
+}
+
 /**
- * Which served prefixes stand in for which hashed tree. The build reaches each
- * shared tree through its own output directory, so resolving that path is what
- * lets a local digest speak for a served byte.
+ * Which served paths stand in for which hashed tree, read off the links the
+ * build actually made rather than assumed to sit at the top of each prefix: a
+ * Vite build emits its own `assets/` directory and links shared subtrees inside
+ * it, so that prefix is a real directory and only the subtree below it is a
+ * link. Every recorded shared file is walked down to the shallowest link above
+ * it; one that reaches no link at all is attributed to the prefix it should have
+ * been served through, so it is rejected there rather than going unexamined.
  */
 async function mapSharedTrees(
   manifest: FixedBuildManifest,
   build: ManifestBuild,
 ): Promise<SharedTreeMapping[]> {
-  const trees = new Map<string, string>();
-  const atlasSegment = firstSegment(manifest.atlasCatalogUrl);
-  if (atlasSegment) trees.set(atlasSegment, manifest.sharedAtlas);
+  const isLink = linkProbe();
+  const found: (Omit<SharedTreeMapping, "urlPath" | "resolvedTo" | "linked"> & {
+    /** A link with recorded files below it is a tree; one with none is a file. */
+    tree: boolean;
+  })[] = [];
   for (const file of manifest.sharedAssetFiles) {
-    const [root, segment] = file.path.split("/");
-    // The public tree is copied to the site root, so each of its top-level
-    // directories is its own served prefix.
-    if (root === "public" && segment) trees.set(segment, join(manifest.sharedPublic, segment));
+    // A path no shared tree owns is already refused by its own digest.
+    const branch = sharedBranch(manifest, build, file);
+    if (!branch) continue;
+    const depth = (await linkedDepth(branch, isLink)) ?? 0;
+    const servedFrom = servedAt(branch, depth);
+    const hashedTree = hashedAt(branch, depth);
+    // Matched on both ends, so one served path that two shared trees each claim
+    // stays two mappings and cannot pass on the strength of either.
+    const mapping = found.find(
+      (entry) => entry.servedFrom === servedFrom && entry.hashedTree === hashedTree,
+    );
+    if (mapping) mapping.recordedFiles += 1;
+    else found.push({ servedFrom, hashedTree, tree: depth < branch.tail.length, recordedFiles: 1 });
   }
-  const mappings: SharedTreeMapping[] = [];
-  for (const [segment, tree] of trees) {
-    const servedFrom = join(build.outDir, segment);
-    const [resolvedTo, hashedTree] = await Promise.all([
-      realpathOrNull(servedFrom),
-      realpathOrNull(tree),
-    ]);
-    mappings.push({
-      urlPath: `/${segment}/`,
-      servedFrom,
-      resolvedTo,
-      hashedTree,
-      linked: resolvedTo !== null && resolvedTo === hashedTree,
-    });
-  }
-  return mappings;
+  return Promise.all(
+    found.map(async ({ tree, ...mapping }) => {
+      const [resolvedTo, hashedTree] = await Promise.all([
+        realpathOrNull(mapping.servedFrom),
+        realpathOrNull(mapping.hashedTree),
+      ]);
+      return {
+        ...mapping,
+        urlPath: `/${relative(build.outDir, mapping.servedFrom)}${tree ? "/" : ""}`,
+        resolvedTo,
+        linked: resolvedTo !== null && resolvedTo === hashedTree,
+      };
+    }),
+  );
 }
 
 /** An object of empty objects declares nothing; only a leaf is a setting. */
@@ -276,6 +353,30 @@ async function readRenderConfig(path: string, issues: string[]): Promise<RenderC
 }
 
 /**
+ * Names the manifest fields the sweep resolves its paths and file lists from.
+ * Without this a field the producer left out only surfaces far inside `join` as
+ * "path must be of type string", which says nothing about which field is absent
+ * — and the answer to a manifest missing one is to record it, never to read a
+ * second field in its place.
+ */
+function requireManifestFields(manifest: FixedBuildManifest, build: ManifestBuild): void {
+  const absent = (
+    [
+      ["commit", typeof manifest.commit === "string"],
+      ["sharedPublic", typeof manifest.sharedPublic === "string"],
+      ["sharedAtlas", typeof manifest.sharedAtlas === "string"],
+      ["atlasCatalogUrl", typeof manifest.atlasCatalogUrl === "string"],
+      ["sharedAssetFiles", isFileList(manifest.sharedAssetFiles)],
+      [`builds[${build.backend}].outDir`, typeof build.outDir === "string"],
+      [`builds[${build.backend}].artifactFiles`, isFileList(build.artifactFiles)],
+    ] as const
+  )
+    .filter(([, present]) => !present)
+    .map(([field]) => field);
+  if (absent.length) throw Error(`build manifest is missing ${absent.join(", ")}`);
+}
+
+/**
  * Establishes that this trial will run the recorded fixed build over the
  * recorded shared assets, before any browser or timing work begins.
  */
@@ -290,6 +391,7 @@ export async function verifyProvenance(
     issues.push(`unsupported build manifest ${manifest.kind}/${manifest.version}`);
   const build = manifest.builds?.find((entry) => entry.backend === options.backend);
   if (!build) throw Error(`build manifest has no ${options.backend} build`);
+  requireManifestFields(manifest, build);
 
   const renderConfig = await readRenderConfig(options.renderConfigPath, issues);
 
@@ -315,7 +417,10 @@ export async function verifyProvenance(
   );
   const sharedAssets = await verifyFiles(
     manifest.sharedAssetFiles,
-    onDisk((file) => sharedAssetPath(manifest, file)),
+    onDisk((file) => {
+      const branch = sharedBranch(manifest, build, file);
+      return branch && hashedAt(branch, branch.tail.length);
+    }),
     localBudget,
   );
 
@@ -332,8 +437,9 @@ export async function verifyProvenance(
   for (const mapping of served.sharedTrees)
     if (!mapping.linked)
       issues.push(
-        `served ${mapping.urlPath} resolves to ${mapping.resolvedTo ?? "nothing"}, not the hashed` +
-          ` shared tree ${mapping.hashedTree ?? mapping.servedFrom}`,
+        `served ${mapping.urlPath} stands in for ${mapping.recordedFiles} recorded shared file(s)` +
+          ` but resolves to ${mapping.resolvedTo ?? "nothing"}, not the hashed shared tree` +
+          ` ${mapping.hashedTree}`,
       );
 
   /**

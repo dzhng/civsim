@@ -1,0 +1,131 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T02:49:11.632Z",
+  "target": "http://localhost:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "landscape-traversal",
+      "file": "campaign/landscape-traversal.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "landscape-traversal",
+      "name": "overview: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[],\"residentPayloadBytes\":0,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":351804,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":18189052,\"cpuBytes\":10389568,\"gpuBytes\":7799484,\"peakAllocationBytes\":64449365,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":7799484,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0,\"camera\":{\"x\":-100,\"y\":250,\"zoom\":0.16},\"frames\":21,\"builds\":1,\"workerCount\":1,\"workerRoundTripMs\":6.135000050067902,\"ready\":true,\"peakTotalTerrainBytes\":64449365,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "alps: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"-4:8:2\",\"-4:7:2\",\"-5:8:2\",\"-3:8:2\",\"-4:9:2\",\"-5:7:2\",\"-3:7:2\",\"-5:9:2\",\"-3:9:2\",\"-4:6:2\",\"-6:8:2\",\"-2:8:2\",\"-4:10:2\",\"-5:6:2\",\"-3:6:2\",\"-6:7:2\",\"-2:7:2\",\"-6:9:2\",\"-2:9:2\",\"-5:10:2\",\"-3:10:2\",\"-6:6:2\",\"-2:6:2\",\"-6:10:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8443296,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":47088924,\"cpuBytes\":30846144,\"gpuBytes\":16242780,\"peakAllocationBytes\":64449365,\"revision\":24,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2887484,\"lastAdmissionCpuMs\":5.580000042915344,\"camera\":{\"x\":-450,\"y\":1080,\"zoom\":1.8},\"frames\":61,\"builds\":25,\"workerCount\":1,\"workerRoundTripMs\":3.840000033378601,\"ready\":true,\"peakTotalTerrainBytes\":64449365,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "italy: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"-4:3:2\",\"-5:3:2\",\"-4:2:2\",\"-4:4:2\",\"-3:3:2\",\"-5:2:2\",\"-5:4:2\",\"-3:2:2\",\"-3:4:2\",\"-6:3:2\",\"-4:1:2\",\"-4:5:2\",\"-2:3:2\",\"-6:2:2\",\"-6:4:2\",\"-5:1:2\",\"-5:5:2\",\"-3:1:2\",\"-3:5:2\",\"-2:2:2\",\"-2:4:2\",\"-6:1:2\",\"-6:5:2\",\"-2:1:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":47798724,\"cpuBytes\":31555944,\"gpuBytes\":16242780,\"peakAllocationBytes\":67246408,\"revision\":48,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2718904,\"lastAdmissionCpuMs\":5.824999988079071,\"camera\":{\"x\":-456,\"y\":446,\"zoom\":1.8},\"frames\":106,\"builds\":49,\"workerCount\":1,\"workerRoundTripMs\":3.9449999928474426,\"ready\":true,\"peakTotalTerrainBytes\":67246408,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "distant: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"8:-6:2\",\"9:-6:2\",\"8:-5:2\",\"9:-5:2\",\"8:-7:2\",\"9:-7:2\",\"7:-6:2\",\"7:-5:2\",\"10:-6:2\",\"7:-7:2\",\"10:-5:2\",\"8:-4:2\",\"9:-4:2\",\"10:-7:2\",\"8:-8:2\",\"9:-8:2\",\"7:-4:2\",\"6:-6:2\",\"6:-5:2\",\"10:-4:2\",\"7:-8:2\",\"6:-7:2\",\"11:-6:2\",\"10:-8:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":48086024,\"cpuBytes\":31843244,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":72,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2887076,\"lastAdmissionCpuMs\":5.8299999833106995,\"camera\":{\"x\":1131,\"y\":-686,\"zoom\":1.8},\"frames\":153,\"builds\":73,\"workerCount\":1,\"workerRoundTripMs\":3.7850000262260437,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "return: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"-4:8:2\",\"-4:7:2\",\"-5:8:2\",\"-3:8:2\",\"-4:9:2\",\"-5:7:2\",\"-3:7:2\",\"-5:9:2\",\"-3:9:2\",\"-4:6:2\",\"-6:8:2\",\"-2:8:2\",\"-4:10:2\",\"-5:6:2\",\"-3:6:2\",\"-6:7:2\",\"-2:7:2\",\"-6:9:2\",\"-2:9:2\",\"-5:10:2\",\"-3:10:2\",\"-6:6:2\",\"-2:6:2\",\"-6:10:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":47088924,\"cpuBytes\":30846144,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":96,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2887484,\"lastAdmissionCpuMs\":5.310000002384186,\"camera\":{\"x\":-450,\"y\":1080,\"zoom\":1.8},\"frames\":203,\"builds\":97,\"workerCount\":1,\"workerRoundTripMs\":3.915000021457672,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "italy: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"-4:3:2\",\"-5:3:2\",\"-4:2:2\",\"-4:4:2\",\"-3:3:2\",\"-5:2:2\",\"-5:4:2\",\"-3:2:2\",\"-3:4:2\",\"-6:3:2\",\"-4:1:2\",\"-4:5:2\",\"-2:3:2\",\"-6:2:2\",\"-6:4:2\",\"-5:1:2\",\"-5:5:2\",\"-3:1:2\",\"-3:5:2\",\"-2:2:2\",\"-2:4:2\",\"-6:1:2\",\"-6:5:2\",\"-2:1:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":47798724,\"cpuBytes\":31555944,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":120,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2718904,\"lastAdmissionCpuMs\":5.444999992847443,\"camera\":{\"x\":-456,\"y\":446,\"zoom\":1.8},\"frames\":248,\"builds\":121,\"workerCount\":1,\"workerRoundTripMs\":3.89000004529953,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "distant: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"8:-6:2\",\"9:-6:2\",\"8:-5:2\",\"9:-5:2\",\"8:-7:2\",\"9:-7:2\",\"7:-6:2\",\"7:-5:2\",\"10:-6:2\",\"7:-7:2\",\"10:-5:2\",\"8:-4:2\",\"9:-4:2\",\"10:-7:2\",\"8:-8:2\",\"9:-8:2\",\"7:-4:2\",\"6:-6:2\",\"6:-5:2\",\"10:-4:2\",\"7:-8:2\",\"6:-7:2\",\"11:-6:2\",\"10:-8:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":48086024,\"cpuBytes\":31843244,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":144,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2887076,\"lastAdmissionCpuMs\":5.910000026226044,\"camera\":{\"x\":1131,\"y\":-686,\"zoom\":1.8},\"frames\":291,\"builds\":145,\"workerCount\":1,\"workerRoundTripMs\":3.875,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "return: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"-4:8:2\",\"-4:7:2\",\"-5:8:2\",\"-3:8:2\",\"-4:9:2\",\"-5:7:2\",\"-3:7:2\",\"-5:9:2\",\"-3:9:2\",\"-4:6:2\",\"-6:8:2\",\"-2:8:2\",\"-4:10:2\",\"-5:6:2\",\"-3:6:2\",\"-6:7:2\",\"-2:7:2\",\"-6:9:2\",\"-2:9:2\",\"-5:10:2\",\"-3:10:2\",\"-6:6:2\",\"-2:6:2\",\"-6:10:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":47088924,\"cpuBytes\":30846144,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":168,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2887484,\"lastAdmissionCpuMs\":5.855000019073486,\"camera\":{\"x\":-450,\"y\":1080,\"zoom\":1.8},\"frames\":334,\"builds\":169,\"workerCount\":1,\"workerRoundTripMs\":3.784999966621399,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "italy: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"-4:3:2\",\"-5:3:2\",\"-4:2:2\",\"-4:4:2\",\"-3:3:2\",\"-5:2:2\",\"-5:4:2\",\"-3:2:2\",\"-3:4:2\",\"-6:3:2\",\"-4:1:2\",\"-4:5:2\",\"-2:3:2\",\"-6:2:2\",\"-6:4:2\",\"-5:1:2\",\"-5:5:2\",\"-3:1:2\",\"-3:5:2\",\"-2:2:2\",\"-2:4:2\",\"-6:1:2\",\"-6:5:2\",\"-2:1:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":47798724,\"cpuBytes\":31555944,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":192,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2718904,\"lastAdmissionCpuMs\":5.60999995470047,\"camera\":{\"x\":-456,\"y\":446,\"zoom\":1.8},\"frames\":376,\"builds\":193,\"workerCount\":1,\"workerRoundTripMs\":3.8050000071525574,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "distant: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"8:-6:2\",\"9:-6:2\",\"8:-5:2\",\"9:-5:2\",\"8:-7:2\",\"9:-7:2\",\"7:-6:2\",\"7:-5:2\",\"10:-6:2\",\"7:-7:2\",\"10:-5:2\",\"8:-4:2\",\"9:-4:2\",\"10:-7:2\",\"8:-8:2\",\"9:-8:2\",\"7:-4:2\",\"6:-6:2\",\"6:-5:2\",\"10:-4:2\",\"7:-8:2\",\"6:-7:2\",\"11:-6:2\",\"10:-8:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":48086024,\"cpuBytes\":31843244,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":216,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2887076,\"lastAdmissionCpuMs\":5.8450000286102295,\"camera\":{\"x\":1131,\"y\":-686,\"zoom\":1.8},\"frames\":420,\"builds\":217,\"workerCount\":1,\"workerRoundTripMs\":3.775000035762787,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "return: bounded real geography admission",
+      "ok": true,
+      "detail": "{\"residentKeys\":[\"-4:8:2\",\"-4:7:2\",\"-5:8:2\",\"-3:8:2\",\"-4:9:2\",\"-5:7:2\",\"-3:7:2\",\"-5:9:2\",\"-3:9:2\",\"-4:6:2\",\"-6:8:2\",\"-2:8:2\",\"-4:10:2\",\"-5:6:2\",\"-3:6:2\",\"-6:7:2\",\"-2:7:2\",\"-6:9:2\",\"-2:9:2\",\"-5:10:2\",\"-3:10:2\",\"-6:6:2\",\"-2:6:2\",\"-6:10:2\"],\"residentPayloadBytes\":8443296,\"pendingKey\":null,\"pendingPayloadBytes\":0,\"peakPayloadBytes\":8795100,\"budgetBlockedKeys\":[],\"failed\":[],\"allocationBytes\":47088924,\"cpuBytes\":30846144,\"gpuBytes\":16242780,\"peakAllocationBytes\":67516808,\"revision\":240,\"residentTiles\":24,\"geometryBytes\":16242780,\"lastAdmissionUploadBytes\":2887484,\"lastAdmissionCpuMs\":5.3450000286102295,\"camera\":{\"x\":-450,\"y\":1080,\"zoom\":1.8},\"frames\":466,\"builds\":241,\"workerCount\":1,\"workerRoundTripMs\":3.784999966621399,\"ready\":true,\"peakTotalTerrainBytes\":67516808,\"sourceBytes\":13739366,\"sceneryInstances\":0,\"sceneryRenderedBytes\":0}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "stationary terrain does not rebuild or upload",
+      "ok": true,
+      "detail": "{\"builds\":241,\"revision\":240,\"bytes\":47088924}"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "repeat traversals plateau",
+      "ok": true,
+      "detail": "[{\"tiles\":24,\"bytes\":47088924},{\"tiles\":24,\"bytes\":47088924},{\"tiles\":24,\"bytes\":47088924},{\"tiles\":24,\"bytes\":47088924}]"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "hardware pan/zoom p95 <=33ms",
+      "ok": true,
+      "detail": "16.670000000000073ms"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "warm admission frames <=100ms",
+      "ok": true,
+      "detail": "16.670000000000073ms (15 admissions)"
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-traversal",
+      "name": "DPR2 retains world requests and bounds",
+      "ok": true,
+      "detail": "{\"dpr\":2,\"canvas\":[2560,1600],\"bytes\":64449365}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

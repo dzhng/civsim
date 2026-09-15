@@ -280,6 +280,21 @@ function inspect(input: RunInput) {
         issues.push("invalid GPU result status");
       const stages = list(result.stages, "GPU result stages").map((v) => object(v, "GPU stage"));
       if (result.status === "complete") {
+        const span = result.observedGpuSpanMs,
+          union = result.observedGpuUnionMs;
+        if (span != null || union != null) {
+          if (
+            typeof span !== "number" ||
+            typeof union !== "number" ||
+            !Number.isFinite(span) ||
+            !Number.isFinite(union) ||
+            union < 0 ||
+            span < 0 ||
+            union > span + 1e-6 ||
+            union > Number(result.measuredPassGpuMs) + 1e-6
+          )
+            issues.push("invalid observed GPU range metrics");
+        }
         if (!stages.length || result.missingQueries !== 0)
           issues.push("invalid complete GPU result");
         for (const value of [
@@ -342,14 +357,22 @@ function inspect(input: RunInput) {
     },
     gpu: {
       snapshotPresent: gpu !== null,
+      observedRangeResults: completeResults.filter((r) =>
+        [r.observedGpuSpanMs, r.observedGpuUnionMs].every(
+          (v) => typeof v === "number" && Number.isFinite(v) && v >= 0,
+        ),
+      ).length,
       available: completeResults.some(
         (r) => typeof r.measuredPassGpuMs === "number" && Number.isFinite(r.measuredPassGpuMs),
       ),
       durations: Object.fromEntries(
-        ["renderMs", "computeMs", "measuredPassGpuMs"].map((key) => [
-          key,
-          durations(completeResults.map((r) => r[key])),
-        ]),
+        [
+          "renderMs",
+          "computeMs",
+          "measuredPassGpuMs",
+          "observedGpuSpanMs",
+          "observedGpuUnionMs",
+        ].map((key) => [key, durations(completeResults.map((r) => r[key]))]),
       ),
       stages,
       trackedSubmissions: gpu?.trackedSubmissions ?? null,
@@ -415,7 +438,8 @@ export function compareRuns(
     limitations: [
       "One pair is not a repeated-run performance conclusion or a backend selection.",
       "Live simulations may advance different numbers of ticks; this is end-to-end cadence, not identical per-frame work.",
-      "GPU pass sums exclude uploads, copies, queue wait and presentation; missing coverage remains unavailable.",
+      "GPU pass sums can double-count overlapping execution intervals and are diagnostic only, not elapsed GPU time or exclusive work.",
+      "Observed GPU span includes gaps; interval union merges overlaps. Neither is physical GPU busy time or presentation latency. Missing ranges remain unavailable.",
       "Manifest declarations require external evidence; this offline report cannot establish host isolation or visual parity.",
     ],
   };

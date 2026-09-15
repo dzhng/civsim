@@ -192,6 +192,8 @@ describe("offline matched benchmark report", () => {
               backend: "raw",
               missingQueries: 0,
               measuredPassGpuMs: 8,
+              observedGpuSpanMs: 5,
+              observedGpuUnionMs: 4,
               renderMs: 6,
               computeMs: 2,
               stages: [{ label: "main", ms: 6 }],
@@ -215,6 +217,9 @@ describe("offline matched benchmark report", () => {
       p99Ms: 20,
     });
     expect(result.gpu.durations.measuredPassGpuMs).toMatchObject({ count: 1, meanMs: 8 });
+    expect(result.gpu.durations.observedGpuSpanMs).toMatchObject({ count: 1, meanMs: 5 });
+    expect(result.gpu.durations.observedGpuUnionMs).toMatchObject({ count: 1, meanMs: 4 });
+    expect(result.gpu.observedRangeResults).toBe(1);
     expect(result.gpu.stages.main).toMatchObject({ count: 1, p95Ms: 6 });
     expect(result.gpu.pendingOrMissingCount).toBe(599);
   });

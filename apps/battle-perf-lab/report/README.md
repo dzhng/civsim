@@ -36,3 +36,9 @@ crossing are checked against the recording boundaries.
 The normal lab Vitest configuration discovers these tests. The colocated TypeScript
 configuration checks this offline Node/Bun surface separately from browser GPU
 controls, so server runtime declarations do not alter their DOM types.
+
+Pass-duration sums remain diagnostic because GPU stages can overlap. The scorecard
+reports observed whole-presentation span and interval union separately when those
+ranges were captured; older or unsupported measurements remain unavailable. Span
+includes internal gaps, while union counts overlapping intervals once. Neither is
+physical GPU busy time. They cannot be reconstructed from stage sums.

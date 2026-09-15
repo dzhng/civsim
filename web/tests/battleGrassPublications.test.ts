@@ -58,6 +58,7 @@ test("publication replay preserves a pending ring until the recorded publication
   expect(published[0].records.ring!.length).toBeGreaterThan(0);
   const live = source.snapshot().ring;
   const expected = live.records!.slice(0, live.recordCount * 16);
+  const liveCount = live.recordCount;
   source.dispose();
   beginGrassPublicationReplay();
   let notifications = 0;
@@ -85,7 +86,9 @@ test("publication replay preserves a pending ring until the recorded publication
     queueGrassPublications(published);
     replay.prepareRender(camera, 900);
     assertGrassPublicationsConsumed();
-    expect(replay.snapshot().ring.records).toEqual(expected);
+    const replayed = replay.snapshot().ring;
+    expect(replayed.recordCount).toBe(liveCount);
+    expect(replayed.records!.slice(0, liveCount * 16)).toEqual(expected);
     expect(replay.stats().rebuild.pending).toBe(false);
     expect(notifications).toBe(3);
     expect(() => replay.prepareRender(camera, 900)).toThrow(/uncaptured/);
@@ -94,28 +97,50 @@ test("publication replay preserves a pending ring until the recorded publication
   }
 });
 
-// Blob round-tripping four megabytes dominates this test; the default five
-// second budget is not enough once other suites share the machine.
-test(
-  "grass record chunks preserve exact bytes without embedding a large revision in frame JSON",
-  { timeout: 20_000 },
-  async () => {
-    const { chunkGrassPublications, GRASS_CHUNK_BYTES } =
-      await import("../../apps/battle-perf-lab/src/grassRecordChunks");
-    const records = new Float32Array(GRASS_CHUNK_BYTES / 4 + 3);
-    records[0] = -0;
-    records[1] = Infinity;
-    records[records.length - 1] = 1.25;
-    const expected = new Uint8Array(records.buffer).slice();
-    const result = chunkGrassPublications([
-      { state: { base: { revision: 2 } }, records: { base: records } } as never,
-    ]);
-    expect(result.resources.map((r) => r.blob.size)).toEqual([GRASS_CHUNK_BYTES, 12]);
-    expect(JSON.stringify(result.frames).length).toBeLessThan(256);
-    records.fill(99);
-    const actual = new Uint8Array(
-      await new Blob(result.resources.map((r) => r.blob)).arrayBuffer(),
-    );
-    expect(actual).toEqual(expected);
-  },
-);
+test("grass record chunks preserve exact bytes without embedding a large revision in frame JSON", async () => {
+  const { chunkGrassPublications, GRASS_CHUNK_BYTES } =
+    await import("../../apps/battle-perf-lab/src/grassRecordChunks");
+  const records = new Float32Array(GRASS_CHUNK_BYTES / 4 + 3);
+  records[0] = -0;
+  records[1] = Infinity;
+  records[records.length - 1] = 1.25;
+  const expected = new Uint8Array(records.buffer).slice();
+  const result = chunkGrassPublications([
+    { state: { base: { revision: 2 } }, records: { base: records }, edits: {} } as never,
+  ]);
+  expect(result.resources.map((r) => r.blob.size)).toEqual([GRASS_CHUNK_BYTES, 12]);
+  expect(JSON.stringify(result.frames).length).toBeLessThan(256);
+  records.fill(99);
+  const actual = new Uint8Array(await new Blob(result.resources.map((r) => r.blob)).arrayBuffer());
+  expect(firstDifference(actual, expected)).toBe(-1);
+});
+
+/** Byte index where two buffers first differ, or -1. Four megabytes of records
+ *  are cheap to round-trip and cheap to compare, but structural equality over
+ *  four million elements is neither - and it reports a four megabyte diff. */
+function firstDifference(actual: Uint8Array, expected: Uint8Array): number {
+  if (actual.length !== expected.length) return Math.min(actual.length, expected.length);
+  for (let i = 0; i < actual.length; i++) if (actual[i] !== expected[i]) return i;
+  return -1;
+}
+
+test("a publication step is chunked as its own ranges, not as the whole field again", async () => {
+  const { chunkGrassPublications, GRASS_CHUNK_BYTES } =
+    await import("../../apps/battle-perf-lab/src/grassRecordChunks");
+  const data = new Float32Array(32).fill(3);
+  const result = chunkGrassPublications([
+    {
+      state: { base: { revision: 2 }, ring: { revision: 5 } },
+      records: {},
+      edits: { ring: { editSerial: 9, ranges: [{ start: 4, count: 2 }], data } },
+    } as never,
+  ]);
+  expect(result.resources).toHaveLength(1);
+  expect(result.resources[0].blob.size).toBe(data.byteLength);
+  expect(result.resources[0].blob.size).toBeLessThan(GRASS_CHUNK_BYTES);
+  expect(result.frames[0].edits.ring).toMatchObject({
+    editSerial: 9,
+    ranges: [{ start: 4, count: 2 }],
+    data: { grassRecord: "ring-edit-9", byteLength: data.byteLength, chunks: 1 },
+  });
+});

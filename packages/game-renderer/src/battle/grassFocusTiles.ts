@@ -5,6 +5,7 @@ import {
   type GrassFieldStats,
 } from "./grassField";
 import { hashPackedRecordsRange, hashToString } from "./bladeFieldRecordHash";
+import { tileCentreDistanceSq } from "./grassCoverage";
 
 /** A half-open record range inside the persistent focus buffer. */
 export interface GrassRecordEdit {
@@ -78,7 +79,6 @@ export class GrassFocusTileField {
   readonly tileCells: number;
   recordCount = 0;
   editSerial = 0;
-  edits: readonly GrassRecordEdit[] = [];
   cancelledTiles = 0;
   cancelledCells = 0;
   evictedTiles = 0;
@@ -101,6 +101,7 @@ export class GrassFocusTileField {
   private hashAccum = 0;
   private aggregate: GrassFieldStats | null = null;
   private center: { x: number; y: number; radius: number } | null = null;
+  private unconsumed: GrassRecordEdit[] = [];
 
   constructor(options: GrassFocusTileOptions) {
     this.options = options;
@@ -115,6 +116,26 @@ export class GrassFocusTileField {
     this.records = new Float32Array(
       this.slotCapacity * this.slotRecords * GRASS_FIELD_PACKED_STRIDE_FLOATS,
     );
+  }
+
+  /** Live records the consumer must be able to address, not just the drawn ones. */
+  get recordCapacity(): number {
+    return this.slotCapacity * this.slotRecords;
+  }
+
+  /**
+   * Ranges written since the consumer last took them. Publication stops while
+   * this is non-empty, so a consumer that skipped a render never comes back to
+   * more ranges than one step's worth.
+   */
+  get edits(): readonly GrassRecordEdit[] {
+    return this.unconsumed;
+  }
+
+  takeEdits(): readonly GrassRecordEdit[] {
+    const taken = this.unconsumed;
+    this.unconsumed = [];
+    return taken;
   }
 
   get requiredTiles(): number {
@@ -204,6 +225,10 @@ export class GrassFocusTileField {
    * time budget is gone. Returns whether the request still has work left.
    */
   step(now: () => number, budgetMs: number): boolean {
+    // One unconsumed publication at a time. Sampling callbacks are cheaper to
+    // schedule than frames are to draw, so without this the ranges handed to
+    // the GPU would be bounded per callback and unbounded per render.
+    if (this.unconsumed.length > 0) return this.pending;
     const started = now();
     const edits: GrassRecordEdit[] = [];
     this.releaseUnretained(edits);
@@ -226,21 +251,34 @@ export class GrassFocusTileField {
       if (now() - started >= budgetMs) break;
     }
     if (edits.length > 0) {
-      this.edits = edits;
+      this.unconsumed = edits;
       this.editSerial++;
     }
     return this.pending;
   }
 
-  /** Loading-only: drive the same bounded steps until the request is satisfied. */
-  settle(now: () => number): void {
+  /**
+   * Loading-only: drive the same bounded steps until the request is satisfied.
+   * There is no frame to bound here and no consumer between steps, so the
+   * ranges are dropped and the caller re-reads the settled live range whole -
+   * the one whole upload of the field's life, paid before the first frame.
+   */
+  settle(now: () => number): boolean {
     let guard =
       Math.ceil(
         (this.required.length + this.slotCapacity) / Math.max(1, this.options.publishPerStep),
       ) *
         2 +
       4;
-    while (this.pending && guard-- > 0) this.step(now, Number.POSITIVE_INFINITY);
+    let dropped = false;
+    while (this.pending && guard-- > 0) {
+      dropped ||= this.unconsumed.length > 0;
+      this.unconsumed = [];
+      this.step(now, Number.POSITIVE_INFINITY);
+    }
+    dropped ||= this.unconsumed.length > 0;
+    this.unconsumed = [];
+    return dropped;
   }
 
   dispose(): void {
@@ -249,7 +287,7 @@ export class GrassFocusTileField {
     this.slots.fill(null);
     this.usedSlots = 0;
     this.recordCount = 0;
-    this.edits = [];
+    this.unconsumed = [];
     this.clearRequest();
   }
 
@@ -413,6 +451,7 @@ export class GrassFocusTileField {
   private coverTiles(centerX: number, centerY: number, radiusM: number): RequiredTile[] {
     const [ox, oy, width, height] = this.options.terrainRect;
     const size = this.options.tileM;
+    const radiusSq = radiusM * radiusM;
     const tiles: RequiredTile[] = [];
     const i0 = Math.max(Math.floor((centerX - radiusM) / size), Math.floor(ox / size));
     const i1 = Math.min(Math.floor((centerX + radiusM) / size), Math.floor((ox + width) / size));
@@ -420,11 +459,11 @@ export class GrassFocusTileField {
     const j1 = Math.min(Math.floor((centerY + radiusM) / size), Math.floor((oy + height) / size));
     for (let tx = i0; tx <= i1; tx++) {
       for (let ty = j0; ty <= j1; ty++) {
-        const nx = Math.max(tx * size, Math.min(centerX, (tx + 1) * size));
-        const ny = Math.max(ty * size, Math.min(centerY, (ty + 1) * size));
-        const distance = Math.hypot(nx - centerX, ny - centerY);
-        if (distance > radiusM) continue;
-        tiles.push({ key: tileKey(tx, ty), tx, ty, distance });
+        // The same nearest-point test the route mask runs, so the tiles that
+        // are sampled and the tiles the GPU hands to the focus field agree.
+        const distanceSq = tileCentreDistanceSq(centerX, centerY, size, tx, ty);
+        if (distanceSq > radiusSq) continue;
+        tiles.push({ key: tileKey(tx, ty), tx, ty, distance: Math.sqrt(distanceSq) });
       }
     }
     // Nearest first: the tiles the camera is standing in become useful coverage

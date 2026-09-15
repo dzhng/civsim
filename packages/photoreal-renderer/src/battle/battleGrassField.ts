@@ -30,7 +30,6 @@ export class BattleGrassField {
   private baseRevision = 0;
   private ringRevision = -1;
   private ringBuffer: Float32Array | null = null;
-  private ringEditSerial = -1;
   constructor(
     scene: THREE.Scene,
     profile: BladeFieldProfile,
@@ -54,7 +53,6 @@ export class BattleGrassField {
       this.base.applyPackedRecords(state.base.records ?? new Float32Array(), state.base.visible);
       this.baseRevision = state.base.revision;
     }
-    this.applyRingResidency(state.ring);
     if (state.transition !== this.appliedTransition) {
       this.base.setTransition(state.transition);
       this.ring.setTransition(state.transition);
@@ -68,36 +66,37 @@ export class BattleGrassField {
     this.transition.terrainDetailStrength.value = state.terrainDetailStrength;
     this.base.setVisible(state.base.visible);
     this.ring.setVisible(state.ring.visible);
-    this.base.setRouteCullCircle(state.base.circle);
-    this.ring.setRouteCullCircle(null);
+    // One coverage, two senses: whatever the base field stops drawing is
+    // exactly what the focus field starts drawing.
+    this.base.setRouteMask(state.base.mask);
+    this.ring.setRouteMask(state.ring.mask);
   }
   /**
    * The ring's records live in one buffer the residency owns and mutates in
    * place, so publication is a set of bounded ranges rather than a replacement.
-   * `editSerial` has to advance by exactly one for those ranges to describe the
-   * whole delta; any gap (or a new buffer) falls back to re-reading the live
-   * range, which is correct without ever copying or rehashing 64 MB.
+   * Taking the ranges is what releases the next publication step, so this runs
+   * exactly once per render and the ranges it applies are bounded per render,
+   * not merely per sampling callback. A revision change - a different buffer,
+   * or a loading settle that dropped its ranges - is the only whole re-read.
    */
-  private applyRingResidency(ring: ReturnType<BattleGrassResidency["snapshot"]>["ring"]) {
+  private publishRing(ring: ReturnType<BattleGrassResidency["snapshot"]>["ring"]) {
     if (!ring.records) return;
-    if (ring.records !== this.ringBuffer) {
+    const adopted = ring.records !== this.ringBuffer;
+    const wholeRead = adopted || ring.revision !== this.ringRevision;
+    if (adopted) {
       this.ring.adoptRecordBuffer(ring.records);
       this.ringBuffer = ring.records;
-      this.ringEditSerial = ring.editSerial;
-      this.ringRevision = ring.revision;
-    }
-    const contiguous = ring.editSerial === this.ringEditSerial + 1;
-    if (!contiguous && ring.editSerial !== this.ringEditSerial) {
+    } else if (wholeRead) {
       this.ring.markWholeRecordBufferDirty();
     }
+    const edits = this.residency.takeRingEdits();
     this.ring.applyRecordEdits({
-      edits: contiguous ? ring.edits : [],
+      edits: wholeRead ? [] : edits,
       recordCount: ring.recordCount,
       visible: ring.visible,
       recordHash: ring.recordHash,
-      refreshStats: ring.revision !== this.ringRevision,
+      refreshStats: wholeRead,
     });
-    this.ringEditSerial = ring.editSerial;
     this.ringRevision = ring.revision;
   }
 
@@ -111,6 +110,11 @@ export class BattleGrassField {
     this.residency.prepareRender(camera, renderer.domElement.height);
     const state = this.residency.snapshot();
     this.ring.setRouteCullWedge(state.wedge);
+    this.publishRing(state.ring);
+    // Unconditional: a field that is not drawing this frame still has to take
+    // its ranges to the GPU, or they accumulate until the range list overflows
+    // into a whole-buffer upload.
+    this.ring.flushRecordUploads(renderer);
     const eye = eyePosition(camera);
     if (!state.base.visible) return;
     this.base.routeGpu(renderer, eye, [camera.target[0], camera.target[1]]);
@@ -127,7 +131,8 @@ export class BattleGrassField {
   }
   settle(renderer: THREE.WebGPURenderer) {
     this.residency.settle();
-    this.ring.settleRecordUpload(renderer);
+    this.publishRing(this.residency.snapshot().ring);
+    this.ring.flushRecordUploads(renderer);
   }
   stats(): BattleGrassStats {
     const state = this.residency.stats();

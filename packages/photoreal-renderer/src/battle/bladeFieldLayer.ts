@@ -1,4 +1,8 @@
 import { hashPackedRecords } from "../../../game-renderer/src/battle/bladeFieldRecordHash";
+import {
+  recordSurvivesRouteMask,
+  type GrassRouteMask,
+} from "../../../game-renderer/src/battle/grassCoverage";
 import { bladeGeometryData } from "../../../game-renderer/src/battle/bladeGeometry";
 import {
   BLADE_FIELD_LOD_TIERS,
@@ -35,6 +39,7 @@ import {
   cross,
   dot,
   float,
+  floor,
   fract,
   instanceIndex,
   instancedArray,
@@ -184,11 +189,9 @@ export interface BladeFieldStats {
   layer: "photoreal-blade-field";
   enabled: boolean;
   farTierVisible: boolean;
-  routeCullMask: {
-    enabled: boolean;
-    center: [number, number];
-    radiusSq: number;
-  };
+  /** Exactly the mask the route pass ran, so a reader can check that the two
+   *  grass fields carry one coverage with opposite senses. */
+  routeCullMask: GrassRouteMask;
   routeCullWedge: {
     enabled: boolean;
     forward: [number, number];
@@ -300,6 +303,8 @@ interface BladeFieldGpuRuntime {
   cullMaskCenter: Vec2UniformNode;
   cullMaskRadiusSq: FloatUniformNode;
   cullMaskEnabled: FloatUniformNode;
+  cullMaskTileM: FloatUniformNode;
+  cullMaskKeepInside: FloatUniformNode;
   cullWedgeForward: Vec2UniformNode;
   cullWedgeSide: Vec2UniformNode;
   cullWedgeHalfWidthSlope: FloatUniformNode;
@@ -417,6 +422,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     enabled: false,
     center: new THREE.Vector2(0, 0),
     radiusSq: 0,
+    tileM: 0,
+    keepInside: false,
   };
   private cullWedge = {
     enabled: false,
@@ -552,8 +559,10 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     );
   }
 
-  /** Loading-only: put every published edit on the GPU before the next capture. */
-  settleRecordUpload(renderer: THREE.WebGPURenderer): void {
+  /** Put every published range on the GPU. The consumer calls this once per
+   *  render, whether or not this layer routes, so ranges never queue up behind
+   *  an invisible field and collapse into a whole-buffer upload. */
+  flushRecordUploads(renderer: THREE.WebGPURenderer): void {
     this.flushRecordEdits(renderer);
   }
 
@@ -785,16 +794,21 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     }
   }
 
-  setRouteCullCircle(
-    mask: { center: readonly [number, number]; radiusSq: number; enabled: boolean } | null,
-  ): void {
+  /** The coverage this layer's half of the ground is decided by. Both grass
+   *  fields take the same mask with opposite `keepInside`, which is what makes
+   *  them a partition rather than two circles that can drift apart. */
+  setRouteMask(mask: GrassRouteMask | null): void {
     if (!mask || !mask.enabled || !Number.isFinite(mask.radiusSq) || mask.radiusSq <= 0) {
       this.cullMask.enabled = false;
       this.cullMask.radiusSq = 0;
+      this.cullMask.tileM = 0;
+      this.cullMask.keepInside = false;
     } else {
       this.cullMask.enabled = true;
       this.cullMask.center.set(mask.center[0], mask.center[1]);
       this.cullMask.radiusSq = Math.max(0, mask.radiusSq);
+      this.cullMask.tileM = Number.isFinite(mask.tileM) ? Math.max(0, mask.tileM) : 0;
+      this.cullMask.keepInside = mask.keepInside;
     }
     this.applyCullMaskToRuntime();
   }
@@ -867,19 +881,16 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     // Large fields sample a stride and scale the tallies; lab fields stay exact.
     // Records are packed in scan order, so the sample stays spatially even.
     const MIRROR_SAMPLE_CAP = 200_000;
+    const mask = this.cpuMirrorMask();
     const stride =
       this.recordCount > MIRROR_SAMPLE_CAP ? Math.ceil(this.recordCount / MIRROR_SAMPLE_CAP) : 1;
     for (let i = 0; i < this.recordCount; i += stride) {
       const o = i * GRASS_FIELD_PACKED_STRIDE_FLOATS;
       const x = this.packedRecords[o];
       const y = this.packedRecords[o + 1];
-      if (this.cullMask.enabled) {
-        const dx = x - this.cullMask.center.x;
-        const dy = y - this.cullMask.center.y;
-        if (dx * dx + dy * dy < this.cullMask.radiusSq) {
-          this.culledRecords++;
-          continue;
-        }
+      if (!recordSurvivesRouteMask(mask, x, y)) {
+        this.culledRecords++;
+        continue;
       }
       if (this.cullWedge.enabled && !recordSurvivesCullWedge(x, y, anchor, this.cullWedge)) {
         this.culledRecords++;
@@ -959,6 +970,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
           Number(this.cullMask.center.y.toFixed(3)),
         ],
         radiusSq: Number(this.cullMask.radiusSq.toFixed(3)),
+        tileM: this.cullMask.tileM,
+        keepInside: this.cullMask.keepInside,
       },
       routeCullWedge: {
         enabled: this.cullWedge.enabled,
@@ -1058,8 +1071,19 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
 
   private updatePrepassVisibility(bucket: TierBucket, visible: boolean): void {
     if (!bucket.prepassMesh) return;
-    bucket.prepassMesh.visible =
-      this.depthPrepassEnabled && this.tierVisible(bucket.spec, visible);
+    bucket.prepassMesh.visible = this.depthPrepassEnabled && this.tierVisible(bucket.spec, visible);
+  }
+
+  /** The mask the stats mirror scores against, in the shape grassCoverage owns. */
+  private cpuMirrorMask(): GrassRouteMask | null {
+    if (!this.cullMask.enabled) return null;
+    return {
+      center: [this.cullMask.center.x, this.cullMask.center.y],
+      radiusSq: this.cullMask.radiusSq,
+      tileM: this.cullMask.tileM,
+      keepInside: this.cullMask.keepInside,
+      enabled: true,
+    };
   }
 
   private applyCullMaskToRuntime(runtime = this.runtime): void {
@@ -1067,6 +1091,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     runtime.cullMaskCenter.value.copy(this.cullMask.center);
     runtime.cullMaskRadiusSq.value = this.cullMask.radiusSq;
     runtime.cullMaskEnabled.value = this.cullMask.enabled ? 1 : 0;
+    runtime.cullMaskTileM.value = this.cullMask.tileM;
+    runtime.cullMaskKeepInside.value = this.cullMask.keepInside ? 1 : 0;
   }
 
   private applyCullWedgeToRuntime(runtime = this.runtime): void {
@@ -1119,6 +1145,8 @@ function createGpuRuntime(
   const cullMaskCenter = typedUniform(new THREE.Vector2(0, 0));
   const cullMaskRadiusSq = typedUniform(0);
   const cullMaskEnabled = typedUniform(0);
+  const cullMaskTileM = typedUniform(0);
+  const cullMaskKeepInside = typedUniform(0);
   const cullWedgeForward = typedUniform(new THREE.Vector2(0, 1));
   const cullWedgeSide = typedUniform(new THREE.Vector2(1, 0));
   const cullWedgeHalfWidthSlope = typedUniform(1);
@@ -1168,9 +1196,18 @@ function createGpuRuntime(
     const d2 = data.get("data2") as { z: FloatNode };
     const pos = d0.xyz;
     const dist = length(anchor.sub(pos.xy));
-    const maskDelta = pos.xy.sub(cullMaskCenter);
-    const outsideMask = step(cullMaskRadiusSq, dot(maskDelta, maskDelta));
-    const maskSurvival = mix(1.0, outsideMask, cullMaskEnabled);
+    // grassCoverage.ts owns this rule; the CPU tile sampler and the WGSL route
+    // pass evaluate the same expression. Quantising to the residency tile is
+    // what makes the base field's hole and the focus field's coverage the same
+    // shape instead of a circle and a staircase.
+    const tileM = max(cullMaskTileM, float(1e-6));
+    const tileLow = floor(pos.xy.div(tileM)).mul(tileM);
+    const tileNearest = clamp(cullMaskCenter, tileLow, tileLow.add(vec2(tileM, tileM)));
+    const maskPoint = mix(pos.xy, tileNearest, step(float(1e-6), cullMaskTileM));
+    const maskDelta = maskPoint.sub(cullMaskCenter);
+    const covered = step(dot(maskDelta, maskDelta), cullMaskRadiusSq);
+    const maskKeep = mix(float(1.0).sub(covered), covered, cullMaskKeepInside);
+    const maskSurvival = mix(1.0, maskKeep, cullMaskEnabled);
     const wedgeDelta = pos.xy.sub(anchor);
     const wedgeDepth = dot(wedgeDelta, cullWedgeForward);
     const wedgeLateral = abs(dot(wedgeDelta, cullWedgeSide));
@@ -1220,6 +1257,8 @@ function createGpuRuntime(
     cullMaskCenter,
     cullMaskRadiusSq,
     cullMaskEnabled,
+    cullMaskTileM,
+    cullMaskKeepInside,
     cullWedgeForward,
     cullWedgeSide,
     cullWedgeHalfWidthSlope,

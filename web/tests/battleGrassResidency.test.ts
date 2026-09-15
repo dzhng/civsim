@@ -38,7 +38,14 @@ function fixture() {
     near: 0.1,
     far: 2000,
   };
-  return { owner, grid, scheduled, camera };
+  /** A sampling callback plus the consumer taking its ranges: one drawn frame. */
+  const renderSlices = (slices: number) => {
+    for (let i = 0; i < slices && scheduled.length > 0; i++) {
+      scheduled.shift()!();
+      owner.takeRingEdits();
+    }
+  };
+  return { owner, grid, scheduled, camera, renderSlices };
 }
 
 test("settled and scheduled focus sampling publish identical packed records and dedupe routing", () => {
@@ -50,16 +57,20 @@ test("settled and scheduled focus sampling publish identical packed records and 
     const base = a.owner.snapshot().base.records;
     expect(base!.length).toBeGreaterThan(0);
     a.owner.settle();
-    while (b.scheduled.length) b.scheduled.shift()!();
+    while (b.scheduled.length) b.renderSlices(1);
     expect(a.owner.snapshot().ring.records).toEqual(b.owner.snapshot().ring.records);
     expect(a.owner.snapshot().ring.records!.length).toBeGreaterThan(base!.length);
-    expect(a.owner.snapshot().base.circle).toEqual({
+    const coverage = a.owner.stats().rebuild;
+    expect(a.owner.snapshot().base.mask).toEqual({
       center: [0, 0],
-      radiusSq: 280 * 280,
+      radiusSq: coverage.coverageRadiusM * coverage.coverageRadiusM,
+      tileM: coverage.coverageTileM,
+      keepInside: false,
       enabled: true,
     });
     const revision = a.owner.snapshot().ring.revision;
     for (const callback of a.scheduled.splice(0)) callback();
+    a.owner.takeRingEdits();
     expect(a.owner.snapshot().ring.revision).toBe(revision);
     a.owner.update({ ...a.camera, target: [20, 0, 0] }, 900);
     expect(a.owner.snapshot().base.records).toBe(base);
@@ -76,6 +87,7 @@ test("hidden, replaced and disposed fields reject stale scheduled focus work", (
   const stale = scheduled.splice(0);
   owner.setVisible(false);
   for (const callback of stale) callback();
+  owner.takeRingEdits();
   // The focus buffer is allocated with the terrain and never replaced, so
   // "nothing was published" now reads as an empty live range, not a null array.
   expect(owner.snapshot().ring.recordCount).toBe(0);
@@ -106,7 +118,8 @@ test("camera detail gating retains settled records while disabling their routing
     owner.prepareRender({ ...camera, distance: 1200 }, 900);
     expect(owner.snapshot().ring.records).toBe(records);
     expect(owner.snapshot().ring.visible).toBe(false);
-    expect(owner.snapshot().base.circle).toBeNull();
+    expect(owner.snapshot().base.mask).toBeNull();
+    expect(owner.snapshot().ring.mask).toBeNull();
     expect(owner.snapshot().wedge).toBeNull();
     owner.setFarVisible(false);
     expect(owner.snapshot().terrainDetailStrength).toBe(0);

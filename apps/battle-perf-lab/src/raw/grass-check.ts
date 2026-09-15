@@ -172,7 +172,11 @@ async function run() {
       ] as const) {
         updateWindUniforms(wind, seconds);
         layer.setDepthPrepass(prepass);
-        layer.setRouteCullCircle(cull ? { center: [0, 0], radiusSq: 25, enabled: true } : null);
+        layer.setRouteMask(
+          cull
+            ? { center: [0, 0], radiusSq: 25, tileM: 0, keepInside: false, enabled: true }
+            : null,
+        );
         layer.setRouteCullWedge(
           cull
             ? {

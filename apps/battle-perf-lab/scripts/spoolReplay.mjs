@@ -343,7 +343,7 @@ try {
         publication.baseRevision,
         publication.ringRevision,
         publication.pending,
-        publication.baseCircle,
+        publication.baseMask,
       ]);
       if (key !== previousPublication) {
         history.publications.push({

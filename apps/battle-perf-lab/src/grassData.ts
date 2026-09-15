@@ -8,10 +8,8 @@ import type {
   BladeFieldTransition,
   BladeFieldThinningProfile,
 } from "../../../packages/game-renderer/src/battle/bladeFieldPolicy";
-import type {
-  BattleGrassResidency,
-  GrassResidencyLayer,
-} from "../../../packages/game-renderer/src/battle/battleGrassResidency";
+import type { BattleGrassResidency } from "../../../packages/game-renderer/src/battle/battleGrassResidency";
+import type { GrassRouteMask } from "../../../packages/game-renderer/src/battle/grassCoverage";
 
 export interface GrassGeometry {
   positions: Float32Array;
@@ -22,7 +20,7 @@ export interface GrassFrame {
   view: ArrayLike<number>;
   transition: Readonly<BladeFieldTransition>;
   thinning: BladeFieldThinningProfile;
-  mask: NonNullable<GrassResidencyLayer["circle"]>;
+  mask: GrassRouteMask;
   wedge: NonNullable<ReturnType<BattleGrassResidency["snapshot"]>["wedge"]>;
   wind: {
     direction: readonly [number, number];
@@ -36,13 +34,19 @@ export interface GrassFrame {
   rim: number;
   subsurface: number;
 }
+/** Matches `GrassParams` in shaders/grass.ts: the view matrix needs 16-byte
+ *  alignment, so it starts at float 44 and the block rounds up to 240 bytes. */
+export const GRASS_UNIFORM_VIEW_OFFSET_FLOATS = 44;
+export const GRASS_UNIFORM_FLOATS = GRASS_UNIFORM_VIEW_OFFSET_FLOATS + 16;
+export const GRASS_UNIFORM_BYTES = GRASS_UNIFORM_FLOATS * 4;
+
 export function grassUniformData(s: GrassFrame): Float32Array<ArrayBuffer> {
   const p = s.transition,
     w = s.wind,
     m = s.mask,
     c = s.wedge;
   if (s.view.length !== 16) throw new Error("Grass requires camera view matrix");
-  const values = new Float32Array(56);
+  const values = new Float32Array(GRASS_UNIFORM_FLOATS);
   values.set([
     ...s.anchor,
     p.nearTierEndM,
@@ -70,6 +74,8 @@ export function grassUniformData(s: GrassFrame): Float32Array<ArrayBuffer> {
     ...m.center,
     m.radiusSq,
     +m.enabled,
+    m.tileM,
+    +m.keepInside,
     ...c.forward,
     ...c.side,
     c.halfWidthSlope,
@@ -77,7 +83,7 @@ export function grassUniformData(s: GrassFrame): Float32Array<ArrayBuffer> {
     c.farMarginM,
     +c.enabled,
   ]);
-  values.set(s.view, 40);
+  values.set(s.view, GRASS_UNIFORM_VIEW_OFFSET_FLOATS);
   return values;
 }
 

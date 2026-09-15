@@ -4,6 +4,8 @@ const handles = vi.hoisted(
   () =>
     [] as {
       updateRecords: ReturnType<typeof vi.fn>;
+      adoptRecordCapacity: ReturnType<typeof vi.fn>;
+      writeRecordRanges: ReturnType<typeof vi.fn>;
       dispose: ReturnType<typeof vi.fn>;
       draw: ReturnType<typeof vi.fn>;
     }[],
@@ -12,6 +14,8 @@ vi.mock("../../apps/battle-perf-lab/src/raw/grass", () => ({
   createRawGrass: vi.fn(async () => {
     const value = {
       updateRecords: vi.fn(async () => {}),
+      adoptRecordCapacity: vi.fn(async () => {}),
+      writeRecordRanges: vi.fn(),
       dispose: vi.fn(),
       update: vi.fn(),
       route: vi.fn(),
@@ -92,11 +96,89 @@ test("grass publication revisions upload once and keep both pipelines alive acro
     await native.prepare({ ...camera, target: [100, 0, 0] }, 900, wind, [0, 0, 1]);
     await native.settle();
     expect(native.stats().uploads[0]).toBe(uploads[0]);
-    expect(native.stats().uploads[1]).toBe(uploads[1] + 1);
+    // This terrain is entirely resident already, so moving the published
+    // coverage across it changes a uniform. It is not a reason to resend the
+    // records, and the old generation-revision upload did exactly that.
+    expect(native.stats().uploads[1]).toBe(uploads[1]);
     expect(handles).toHaveLength(2);
     expect(handles.every((h) => h.dispose.mock.calls.length === 0)).toBe(true);
   } finally {
     native.dispose();
   }
   expect(handles.every((h) => h.dispose.mock.calls.length === 1)).toBe(true);
+});
+
+test("a travelling native consumer uploads bounded ranges, never the whole focus buffer again", async () => {
+  handles.length = 0;
+  const native = await createRawGrassField(
+    {} as GPUDevice,
+    {} as GPUBindGroupLayout,
+    {} as never,
+    productionBladeFieldProfile(),
+  );
+  const CELLS = 150;
+  const CELL = 4;
+  const ORIGIN = -(CELLS * CELL) / 2;
+  const field = flatHeightField(ORIGIN, ORIGIN, CELLS, CELLS, CELL);
+  const grid = { ...field, tint: new Uint8Array(CELLS * CELLS) };
+  const camera: Camera3DParams = {
+    target: [0, 0, 0],
+    distance: 24,
+    pitch: 0.5,
+    yaw: 0,
+    fovY: 0.8,
+    aspect: 1.5,
+    near: 0.1,
+    far: 2000,
+  };
+  const wind = {
+    direction: [1, 0] as [number, number],
+    speed: 1,
+    gustPhase: 0,
+    velocity: [1, 0] as [number, number],
+    frequency: 1,
+    sharpness: 1,
+  };
+  try {
+    native.setTerrain(grid, field, "green-grass");
+    await native.settle();
+    const [, ring] = handles;
+    // The capacity buffer and its pipelines are built in loading, sized to the
+    // whole capacity rather than to whatever happens to be live.
+    expect(ring.adoptRecordCapacity).toHaveBeenCalledTimes(1);
+    const [adopted] = ring.adoptRecordCapacity.mock.calls[0] as [Float32Array, number];
+    const capacity = native.snapshot().ring.recordCapacity;
+    expect(adopted.length / 16).toBe(capacity);
+    const adoptions = ring.adoptRecordCapacity.mock.calls.length;
+    const replacements = ring.updateRecords.mock.calls.length;
+    const bound = native.stats().residency.rebuild.publishTilesPerStep;
+    const slotRecords = native.stats().residency.rebuild.tileSlotRecords;
+    for (let step = 1; step <= 12; step++) {
+      await native.prepare({ ...camera, target: [step * 48, step * 24, 0] }, 900, wind, [0, 0, 1]);
+      // A frame boundary: the owner's scheduled sampling slice runs here, and
+      // the next prepare is the consumer that takes and uploads its ranges.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    await native.prepare({ ...camera, target: [12 * 48, 12 * 24, 0] }, 900, wind, [0, 0, 1]);
+    // Camera travel is range writes only: no second adoption, no whole-buffer
+    // replacement, and no single frame handed more than one step's ranges.
+    expect(ring.adoptRecordCapacity.mock.calls.length).toBe(adoptions);
+    expect(ring.updateRecords.mock.calls.length).toBe(replacements);
+    expect(ring.writeRecordRanges.mock.calls.length).toBeGreaterThan(0);
+    for (const [source, edits, live] of ring.writeRecordRanges.mock.calls as [
+      Float32Array,
+      { start: number; count: number }[],
+      number,
+    ][]) {
+      expect(source.length / 16).toBe(capacity);
+      expect(edits.length).toBeLessThanOrEqual(bound);
+      expect(live).toBeLessThanOrEqual(capacity);
+      for (const edit of edits) {
+        expect(edit.count).toBeLessThanOrEqual(slotRecords);
+        expect(edit.start + edit.count).toBeLessThanOrEqual(capacity);
+      }
+    }
+  } finally {
+    native.dispose();
+  }
 });

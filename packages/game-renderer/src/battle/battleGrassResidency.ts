@@ -13,6 +13,7 @@ import {
   type GrassFieldStats,
 } from "./grassField";
 import { GrassFocusTileField, type GrassRecordEdit } from "./grassFocusTiles";
+import { GRASS_COVERAGE_MARGIN_M, type GrassRouteMask } from "./grassCoverage";
 import { hashPackedRecords } from "./bladeFieldRecordHash";
 import type { BattleGroundCover, BattleTerrainGrid } from "./terrainFeatures";
 import type { TerrainHeightField } from "../terrain/heightField";
@@ -26,22 +27,29 @@ import {
 } from "./bladeFieldPolicy";
 
 export interface GrassResidencyLayer {
-  /** Bumps when `records` must be re-read whole: a new buffer, or a focus
-   *  generation becoming active. */
+  /** Bumps only when `records` must be re-read whole: a different buffer, or a
+   *  loading settle that published more ranges than it kept. Camera motion
+   *  never bumps it, so no camera gesture is a whole-buffer upload. */
   revision: number;
   /** For the focus ring this is one persistent capacity buffer, mutated in
    *  place; only `[0, recordCount)` is live. */
   records: Float32Array | null;
   recordCount: number;
+  /** Records a consumer must be able to address: the focus ring's edit ranges
+   *  reach past the live prefix, so GPU storage is sized from this. */
+  recordCapacity: number;
   /** Identity of the live range. The focus ring's is a resident-tile-set hash,
    *  so it does not depend on the order tiles happened to land in slots. */
   recordHash: string;
-  /** Bumps once per publication step. A consumer may apply `edits` when it saw
-   *  `editSerial - 1` against the same `records`; otherwise it re-reads whole. */
+  /** Bumps once per publication step. */
   editSerial: number;
+  /** Ranges written since the consumer last took them, bounded by one step.
+   *  Read here; take them with `takeRingEdits` when they will be uploaded. */
   edits: readonly GrassRecordEdit[];
   visible: boolean;
-  circle: { center: [number, number]; radiusSq: number; enabled: boolean } | null;
+  /** Which half of the ground this layer owns. Base and ring carry the same
+   *  coverage with opposite senses, so together they partition it exactly. */
+  mask: GrassRouteMask | null;
 }
 export interface GrassResidencySchedule {
   now(): number;
@@ -181,10 +189,13 @@ const MEADOW_FOCUS_RING_RADIUS_M = 300;
 const MEADOW_FOCUS_RING_SNAP_CELL_M = 48;
 const MEADOW_FOCUS_RING_FIELD_CELL_M = 0.6;
 const MEADOW_FOCUS_RING_DEDUPE_MARGIN_M = 20;
-/** The ring must cover at least the circle the base field is culled inside, or
- *  the dedupe circle would open a hole; tiles overshoot it, never undershoot. */
+/** Radius of the coverage the focus field samples around its snapped centre. */
 const MEADOW_FOCUS_RING_COVER_RADIUS_M =
   MEADOW_FOCUS_RING_RADIUS_M - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M;
+/** Radius of the coverage actually published to both route passes. It sits just
+ *  inside the sampled radius so the tiles the GPU claims are always a subset of
+ *  the tiles that were sampled. */
+const MEADOW_FOCUS_RING_MASK_RADIUS_M = MEADOW_FOCUS_RING_COVER_RADIUS_M - GRASS_COVERAGE_MARGIN_M;
 /** Residency granularity. 24 m divides the 48 m focus snap and the 0.6 m field
  *  cell, so a tile is exactly 40x40 cells and adjacent tiles partition the
  *  world. Smaller tiles track the cover circle more tightly and shrink every
@@ -254,6 +265,17 @@ export interface GrassRebuildStats {
   /** Published circles dropped because retaining them alongside the requested
    *  circle no longer fit in the slot ceiling. */
   retiredFocusGenerations: number;
+  /** Edge of the tile both route passes quantise the coverage test to, so a
+   *  reader can confirm the base field's hole and the focus field's grass are
+   *  the same shape rather than a circle and a staircase. */
+  coverageTileM: number;
+  /** Radius of the coverage handed to the route passes. */
+  coverageRadiusM: number;
+  /** Radius the tiles were sampled at. Strictly larger, so every tile the GPU
+   *  claims for the focus field was sampled. */
+  coverageSampledRadiusM: number;
+  /** Resident tiles backing the published coverage. */
+  publishedCoverageTiles: number;
   /** Every tile the published dedupe circle culls the base field inside is
    *  resident. False here would mean a hole in the ground. */
   activeCoverageResident: boolean;
@@ -287,7 +309,8 @@ interface BattleGrassView {
 }
 
 export class BattleGrassResidency {
-  private baseCircle: GrassResidencyLayer["circle"] = null;
+  private baseMask: GrassRouteMask | null = null;
+  private ringMask: GrassRouteMask | null = null;
   private baseVisible = false;
   private ringVisible = false;
   private baseRevision = 0;
@@ -356,6 +379,10 @@ export class BattleGrassResidency {
       cancelledTiles: 0,
       cancelledCells: 0,
       retiredFocusGenerations: 0,
+      coverageTileM: MEADOW_FOCUS_TILE_M,
+      coverageRadiusM: MEADOW_FOCUS_RING_MASK_RADIUS_M,
+      coverageSampledRadiusM: MEADOW_FOCUS_RING_COVER_RADIUS_M,
+      publishedCoverageTiles: 0,
       activeCoverageResident: true,
       activeFocus: null,
       pendingFocus: null,
@@ -509,6 +536,10 @@ export class BattleGrassResidency {
       cancelledTiles: tiles?.cancelledTiles ?? 0,
       cancelledCells: tiles?.cancelledCells ?? 0,
       retiredFocusGenerations: this.rebuild.retiredFocusGenerations,
+      coverageTileM: MEADOW_FOCUS_TILE_M,
+      coverageRadiusM: MEADOW_FOCUS_RING_MASK_RADIUS_M,
+      coverageSampledRadiusM: MEADOW_FOCUS_RING_COVER_RADIUS_M,
+      publishedCoverageTiles: this.baseMask ? this.activeCoverKeys.size : 0,
       activeCoverageResident:
         this.rebuild.activeFocus === null || (tiles?.hasAll(this.activeCoverKeys) ?? false),
     };
@@ -535,11 +566,16 @@ export class BattleGrassResidency {
     const started = this.clock.now();
     // Admitting a focus retires the previous circle's tiles, which is itself
     // publication work; settle until both have drained.
+    let dropped = false;
     for (let pass = 0; pass < 4 && tiles.pending; pass++) {
-      tiles.settle(() => this.clock.now());
+      dropped = tiles.settle(() => this.clock.now()) || dropped;
       this.sampleStats = tiles.sampleStats() ?? this.baseSampleStats;
       this.admitCoveredFocus();
     }
+    // Settling discarded the ranges it published, so the consumer re-reads the
+    // live range whole. This is the only path that asks for that, and it only
+    // asks when it actually dropped something.
+    if (dropped) this.ringRevision++;
     this.rebuild.lastSampleMs = Number((this.clock.now() - started).toFixed(3));
     this.updateRoutingState();
     this.rebuild.pending = tiles.pending;
@@ -550,14 +586,27 @@ export class BattleGrassResidency {
     this.focusTiles?.dispose();
     this.focusTiles = null;
     this.focusRequest = null;
+    this.rebuild.activeFocus = null;
+    this.activeCoverKeys = new Set();
+    this.baseMask = null;
+    this.ringMask = null;
+    this.baseVisible = false;
+    this.ringVisible = false;
   }
 
   private visibleNow(): boolean {
     return this.enabled && (this.view?.bladePixels ?? 0) >= GRASS_MIN_PIXELS;
   }
 
+  /** The focus field draws only published coverage, so with no admitted focus
+   *  it draws nothing and the base field owns the whole ground. */
   private ringVisibleNow(): boolean {
-    return this.visibleNow() && this.focusRingEngaged && (this.focusTiles?.recordCount ?? 0) > 0;
+    return (
+      this.visibleNow() &&
+      this.focusRingEngaged &&
+      this.rebuild.activeFocus !== null &&
+      (this.focusTiles?.recordCount ?? 0) > 0
+    );
   }
 
   private updateFocusRingDetailGate(): boolean {
@@ -705,8 +754,21 @@ export class BattleGrassResidency {
     });
   }
 
+  /**
+   * Take the ranges a consumer is about to upload. Publication is held to one
+   * unconsumed step, so this is also what lets the next one run: the per-step
+   * bound and the per-render bound are the same number only because the
+   * consumer, not the scheduler, decides when the next step may happen.
+   */
+  takeRingEdits(): readonly GrassRecordEdit[] {
+    const edits = this.focusTiles?.takeEdits() ?? NO_RECORD_EDITS;
+    this.scheduleSampleSlice();
+    return edits;
+  }
+
   private scheduleSampleSlice(): void {
-    if (this.sampleScheduled || !this.focusTiles?.pending) return;
+    const tiles = this.focusTiles;
+    if (this.sampleScheduled || !tiles?.pending || tiles.edits.length > 0) return;
     this.sampleScheduled = true;
     this.clock.schedule(() => this.runSampleSlice());
   }
@@ -735,10 +797,11 @@ export class BattleGrassResidency {
   }
 
   /**
-   * The dedupe circle may only move onto coverage that is already published, so
-   * a focus becomes active exactly when every tile of its cover circle is
-   * resident. Until then the previous circle keeps culling the base field and
-   * the newly arrived tiles simply add density.
+   * Coverage may only move onto tiles that are already resident, so a focus
+   * becomes active exactly when every tile of its cover circle has landed.
+   * Until then the previously published coverage stays in force: the tiles
+   * arriving for the new focus are resident but owned by neither field's
+   * published coverage, so they wait rather than double up on the base field.
    */
   private admitCoveredFocus(): void {
     const tiles = this.focusTiles;
@@ -752,19 +815,17 @@ export class BattleGrassResidency {
     this.rebuild.rebuilds += 1;
     this.activeCoverKeys = tiles.coverKeys(focus.x, focus.y, MEADOW_FOCUS_RING_COVER_RADIUS_M);
     tiles.protect(this.activeCoverKeys);
-    this.ringRevision++;
   }
 
-  /** Retained slots can no longer hold both circles: drop the published dedupe
-   *  circle rather than evict coverage it still claims. The base field covers
-   *  the gap at base density; nothing goes bald. */
+  /** Retained slots can no longer hold both circles: drop the published
+   *  coverage rather than evict tiles it still claims. The base field takes the
+   *  whole ground back at base density; nothing goes bald. */
   private retireActiveFocus(): void {
     if (!this.rebuild.activeFocus) return;
     this.rebuild.activeFocus = null;
     this.rebuild.retiredFocusGenerations += 1;
     this.activeCoverKeys = new Set();
     this.focusTiles?.protect(this.activeCoverKeys);
-    this.ringRevision++;
   }
 
   snapshot() {
@@ -774,21 +835,23 @@ export class BattleGrassResidency {
         revision: this.baseRevision,
         records: this.baseRecords,
         recordCount: (this.baseRecords?.length ?? 0) / GRASS_FIELD_PACKED_STRIDE_FLOATS,
+        recordCapacity: (this.baseRecords?.length ?? 0) / GRASS_FIELD_PACKED_STRIDE_FLOATS,
         recordHash: this.baseRecordHash,
         editSerial: this.baseRevision,
         edits: NO_RECORD_EDITS,
         visible: this.baseVisible,
-        circle: this.baseCircle,
+        mask: this.baseMask,
       } satisfies GrassResidencyLayer,
       ring: {
         revision: this.ringRevision,
         records: this.focusTiles?.records ?? null,
         recordCount: this.focusTiles?.recordCount ?? 0,
+        recordCapacity: this.focusTiles?.recordCapacity ?? 0,
         recordHash: this.focusTiles?.hash ?? "00000000",
         editSerial: this.focusTiles?.editSerial ?? 0,
         edits: this.focusTiles?.edits ?? NO_RECORD_EDITS,
         visible: ringVisible,
-        circle: null,
+        mask: this.ringMask,
       } satisfies GrassResidencyLayer,
       transition: this.activeTransition,
       farVisible: this.farEnabled,
@@ -799,15 +862,30 @@ export class BattleGrassResidency {
     };
   }
 
+  /**
+   * Publish one coverage to both route passes. The base drops the records it
+   * covers and the focus field keeps exactly those, so the tiles that arrived
+   * for a focus the owner has not admitted yet draw nothing - they do not sit
+   * on top of the base field at double density while the camera travels.
+   */
   private updateRoutingState(): void {
     this.baseVisible = this.visibleNow();
     this.ringVisible = this.ringVisibleNow();
-    const active = this.rebuild.activeFocus;
-    const radius = Math.max(0, MEADOW_FOCUS_RING_RADIUS_M - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M);
-    this.baseCircle =
-      this.ringVisible && active
-        ? { center: [active.x, active.y], radiusSq: radius * radius, enabled: true }
-        : null;
+    const active = this.ringVisible ? this.rebuild.activeFocus : null;
+    if (!active) {
+      this.baseMask = null;
+      this.ringMask = null;
+    } else {
+      const radiusSq = MEADOW_FOCUS_RING_MASK_RADIUS_M * MEADOW_FOCUS_RING_MASK_RADIUS_M;
+      const coverage = {
+        center: [active.x, active.y] as [number, number],
+        radiusSq,
+        tileM: MEADOW_FOCUS_TILE_M,
+        enabled: true,
+      };
+      this.baseMask = { ...coverage, keepInside: false };
+      this.ringMask = { ...coverage, keepInside: true };
+    }
     this.changed();
   }
 }

@@ -9,9 +9,15 @@ import {
   type StorageBuffer,
 } from "vgpu";
 import { beginGpuAdmission } from "../gpuAdmission";
-import { grassUniformData, type GrassFrame, type GrassGeometry } from "../grassData";
+import {
+  grassUniformData,
+  GRASS_UNIFORM_BYTES,
+  type GrassFrame,
+  type GrassGeometry,
+} from "../grassData";
+import type { GrassRecordEdit } from "../../../../packages/game-renderer/src/battle/grassFocusTiles";
 import { grassRoutingShader, grassDrawShader } from "../shaders/grassPasses";
-import { destroyVgpuStorage } from "./storageLifetime";
+import { destroyVgpuStorage, writeVgpuStorageAt } from "./storageLifetime";
 import type { VgpuEnvironment } from "./environment";
 // Keep ordinary borrowed ArrayBuffer views zero-copy; vgpu excludes SharedArrayBuffer uploads.
 function upload(v: Float32Array): Float32Array<ArrayBuffer> {
@@ -50,10 +56,17 @@ export async function createVgpuGrass(
   const native = gpu.device.gpu;
   const admit = beginGpuAdmission(native);
   try {
-    const params = gpu.device.createBuffer({ size: 224, usage: ["uniform", "copy_dst"] }),
+    const params = gpu.device.createBuffer({
+        size: GRASS_UNIFORM_BYTES,
+        usage: ["uniform", "copy_dst"],
+      }),
       active = gpu.device.createBuffer({ size: 16, usage: ["uniform", "copy_dst"] });
     other.push(params, active);
     active.write(new Uint32Array(4));
+    const setLiveCount = (n: number) => {
+      count = n;
+      active.write(new Uint32Array([n, 0, 0, 0]));
+    };
     const commands = alloc(60, true);
     const allocate = (n: number) => {
       const added: StorageBuffer[] = [];
@@ -142,47 +155,67 @@ export async function createVgpuGrass(
     reset.dispatch(1);
     route.dispatch(1);
     await admit();
-    return {
-      async updateRecords(next: Float32Array) {
-        check();
-        if (next.length % 16) throw Error("Grass expects complete records");
-        if (
-          next.byteLength > native.limits.maxStorageBufferBindingSize ||
-          next.byteLength > native.limits.maxBufferSize
-        )
-          throw Error("Grass storage limit");
-        const n = next.length / 16;
-        if (n > capacity) {
-          const finish = beginGpuAdmission(native);
-          let staged: typeof buffers | undefined;
+    const replaceRecords = async (next: Float32Array) => {
+      check();
+      if (next.length % 16) throw Error("Grass expects complete records");
+      if (
+        next.byteLength > native.limits.maxStorageBufferBindingSize ||
+        next.byteLength > native.limits.maxBufferSize
+      )
+        throw Error("Grass storage limit");
+      const n = next.length / 16;
+      if (n > capacity) {
+        const finish = beginGpuAdmission(native);
+        let staged: typeof buffers | undefined;
+        try {
+          staged = allocate(n);
+          staged.records.write(upload(next));
+          bind(staged);
+          await finish();
+          check();
+        } catch (error) {
           try {
-            staged = allocate(n);
-            staged.records.write(upload(next));
-            bind(staged);
             await finish();
-            check();
-          } catch (error) {
-            try {
-              await finish();
-            } finally {
-              if (!disposed) bind(buffers);
-              if (staged)
-                for (const b of staged.added) {
-                  destroyVgpuStorage(b);
-                  owned.delete(b);
-                }
-            }
-            throw error;
+          } finally {
+            if (!disposed) bind(buffers);
+            if (staged)
+              for (const b of staged.added) {
+                destroyVgpuStorage(b);
+                owned.delete(b);
+              }
           }
-          for (const b of buffers.added) {
-            destroyVgpuStorage(b);
-            owned.delete(b);
-          }
-          buffers = staged;
-          capacity = n;
-        } else if (n) buffers.records.write(upload(next));
-        count = n;
-        active.write(new Uint32Array([n, 0, 0, 0]));
+          throw error;
+        }
+        for (const b of buffers.added) {
+          destroyVgpuStorage(b);
+          owned.delete(b);
+        }
+        buffers = staged;
+        capacity = n;
+      } else if (n) buffers.records.write(upload(next));
+      setLiveCount(n);
+    };
+    return {
+      updateRecords: replaceRecords,
+      async adoptRecordCapacity(next: Float32Array, live: number) {
+        // Sizing from the whole capacity is what lets every later publication
+        // be a range write into storage that already exists.
+        await replaceRecords(next);
+        setLiveCount(Math.min(live, capacity));
+      },
+      writeRecordRanges(source: Float32Array, edits: readonly GrassRecordEdit[], live: number) {
+        check();
+        for (const edit of edits) {
+          if (edit.count <= 0) continue;
+          if (edit.start < 0 || edit.start + edit.count > capacity)
+            throw Error("Grass record range is outside the adopted capacity");
+          writeVgpuStorageAt(
+            buffers.records,
+            edit.start * 64,
+            upload(source.subarray(edit.start * 16, (edit.start + edit.count) * 16)),
+          );
+        }
+        setLiveCount(Math.min(live, capacity));
       },
       update(frame: GrassFrame) {
         check();

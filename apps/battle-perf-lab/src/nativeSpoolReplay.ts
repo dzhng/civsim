@@ -221,7 +221,7 @@ export async function createSpoolReplay(
             baseRevision: p.state.base.revision,
             ringRevision: p.state.ring.revision,
             pending: p.stats.rebuild.pending,
-            baseCircle: p.state.base.circle,
+            baseMask: p.state.base.mask,
             publishedLayers: Object.keys(p.records),
           })),
           source: captured.reference,

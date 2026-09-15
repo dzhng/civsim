@@ -1,4 +1,10 @@
-import { grassUniformData, type GrassFrame, type GrassGeometry } from "../grassData";
+import {
+  grassUniformData,
+  GRASS_UNIFORM_BYTES,
+  type GrassFrame,
+  type GrassGeometry,
+} from "../grassData";
+import type { GrassRecordEdit } from "../../../../packages/game-renderer/src/battle/grassFocusTiles";
 import { grassRoutingShader, grassDrawShader } from "../shaders/grassPasses";
 import type { RawEnvironment } from "./environment";
 
@@ -55,7 +61,7 @@ export async function createRawGrass(
       GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       new Uint32Array([recordCount, 0, 0, 0]),
     );
-    const params = buffer(224, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
+    const params = buffer(GRASS_UNIFORM_BYTES, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
     const commands = buffer(
       60,
       GPUBufferUsage.STORAGE | GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_SRC,
@@ -91,6 +97,10 @@ export async function createRawGrass(
         })),
       });
     let routingGroup = makeRoutingGroup(packed, visible);
+    const setLiveCount = (count: number) => {
+      recordCount = count;
+      device.queue.writeBuffer(activeCount, 0, new Uint32Array([count, 0, 0, 0]));
+    };
     const routePipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [routeLayout] });
     const [reset, route] = await Promise.all(
       ["reset", "route"].map((entryPoint) =>
@@ -164,6 +174,72 @@ export async function createRawGrass(
       pipeline("beauty", GPUColorWrite.ALL),
       pipeline("depth", 0),
     ]);
+    const replaceRecords = async (next: Float32Array) => {
+      if (disposed) throw Error("Grass is disposed");
+      if (next.length % 16 !== 0) throw Error("Grass expects complete packed records");
+      if (
+        next.byteLength > device.limits.maxStorageBufferBindingSize ||
+        next.byteLength > device.limits.maxBufferSize
+      )
+        throw Error("Grass records exceed device storage limits");
+      const count = next.length / 16;
+      if (count > capacity) {
+        device.pushErrorScope("out-of-memory");
+        device.pushErrorScope("internal");
+        device.pushErrorScope("validation");
+        const created: GPUBuffer[] = [];
+        let replacement: ReturnType<typeof makeDrawGroups> | undefined,
+          newRoute: GPUBindGroup | undefined;
+        let source: GPUBuffer | undefined;
+        const lists: GPUBuffer[] = [];
+        let failure: unknown;
+        try {
+          source = buffer(
+            next.byteLength,
+            GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+            next,
+          );
+          created.push(source);
+          for (let i = 0; i < 3; i++) {
+            const list = buffer(count * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+            lists.push(list);
+            created.push(list);
+          }
+          replacement = makeDrawGroups(source, lists);
+          newRoute = makeRoutingGroup(source, lists);
+        } catch (error) {
+          failure = error;
+        }
+        const admission = await Promise.allSettled([
+          device.popErrorScope(),
+          device.popErrorScope(),
+          device.popErrorScope(),
+        ]);
+        const errors = admission.flatMap((r) =>
+          r.status === "rejected" ? [String(r.reason)] : r.value ? [r.value.message] : [],
+        );
+        if (failure || errors.length || disposed || !source || !replacement || !newRoute) {
+          for (const b of created) {
+            b.destroy();
+            owned.delete(b);
+          }
+          throw (
+            failure ??
+            Error(disposed ? "Grass is disposed" : `Grass upload admission: ${errors.join("; ")}`)
+          );
+        }
+        for (const b of [packed, ...visible]) {
+          b.destroy();
+          owned.delete(b);
+        }
+        packed = source;
+        visible = lists;
+        groups = replacement;
+        routingGroup = newRoute;
+        capacity = count;
+      } else if (count) device.queue.writeBuffer(packed, 0, next);
+      setLiveCount(count);
+    };
     return {
       commands,
       get recordBuffer() {
@@ -175,72 +251,28 @@ export async function createRawGrass(
       stats() {
         return { recordCount, capacity, pipelineBuilds: 4 };
       },
-      async updateRecords(next: Float32Array) {
-        if (disposed) throw Error("Grass is disposed");
-        if (next.length % 16 !== 0) throw Error("Grass expects complete packed records");
-        if (
-          next.byteLength > device.limits.maxStorageBufferBindingSize ||
-          next.byteLength > device.limits.maxBufferSize
-        )
-          throw Error("Grass records exceed device storage limits");
-        const count = next.length / 16;
-        if (count > capacity) {
-          device.pushErrorScope("out-of-memory");
-          device.pushErrorScope("internal");
-          device.pushErrorScope("validation");
-          const created: GPUBuffer[] = [];
-          let replacement: ReturnType<typeof makeDrawGroups> | undefined,
-            newRoute: GPUBindGroup | undefined;
-          let source: GPUBuffer | undefined;
-          const lists: GPUBuffer[] = [];
-          let failure: unknown;
-          try {
-            source = buffer(
-              next.byteLength,
-              GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-              next,
-            );
-            created.push(source);
-            for (let i = 0; i < 3; i++) {
-              const list = buffer(count * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
-              lists.push(list);
-              created.push(list);
-            }
-            replacement = makeDrawGroups(source, lists);
-            newRoute = makeRoutingGroup(source, lists);
-          } catch (error) {
-            failure = error;
-          }
-          const admission = await Promise.allSettled([
-            device.popErrorScope(),
-            device.popErrorScope(),
-            device.popErrorScope(),
-          ]);
-          const errors = admission.flatMap((r) =>
-            r.status === "rejected" ? [String(r.reason)] : r.value ? [r.value.message] : [],
+      updateRecords: replaceRecords,
+      async adoptRecordCapacity(next: Float32Array, live: number) {
+        // Sizing from the whole capacity is what lets every later publication
+        // be a range write into storage that already exists.
+        await replaceRecords(next);
+        setLiveCount(Math.min(live, capacity));
+      },
+      writeRecordRanges(source: Float32Array, edits: readonly GrassRecordEdit[], live: number) {
+        if (disposed) throw new Error("Grass is disposed");
+        for (const edit of edits) {
+          if (edit.count <= 0) continue;
+          if (edit.start < 0 || edit.start + edit.count > capacity)
+            throw new Error("Grass record range is outside the adopted capacity");
+          device.queue.writeBuffer(
+            packed,
+            edit.start * 64,
+            source,
+            edit.start * 16,
+            edit.count * 16,
           );
-          if (failure || errors.length || disposed || !source || !replacement || !newRoute) {
-            for (const b of created) {
-              b.destroy();
-              owned.delete(b);
-            }
-            throw (
-              failure ??
-              Error(disposed ? "Grass is disposed" : `Grass upload admission: ${errors.join("; ")}`)
-            );
-          }
-          for (const b of [packed, ...visible]) {
-            b.destroy();
-            owned.delete(b);
-          }
-          packed = source;
-          visible = lists;
-          groups = replacement;
-          routingGroup = newRoute;
-          capacity = count;
-        } else if (count) device.queue.writeBuffer(packed, 0, next);
-        recordCount = count;
-        device.queue.writeBuffer(activeCount, 0, new Uint32Array([count, 0, 0, 0]));
+        }
+        setLiveCount(Math.min(live, capacity));
       },
       update(state: GrassFrame) {
         if (disposed) throw new Error("Grass is disposed");

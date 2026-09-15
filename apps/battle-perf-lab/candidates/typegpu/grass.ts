@@ -9,6 +9,7 @@ import {
 import { readU32Buffer } from "../../src/numericalReadback";
 import { beginGpuAdmission } from "../../src/gpuAdmission";
 import { grassUniformData, type GrassFrame, type GrassGeometry } from "../../src/grassData";
+import type { GrassRecordEdit } from "../../../../packages/game-renderer/src/battle/grassFocusTiles";
 import {
   GrassRecord,
   GrassParams,
@@ -219,45 +220,71 @@ export async function createTypegpuGrass(
       prepass.initAsync(),
     ]);
     await admission();
-    return {
-      async updateRecords(next: Float32Array) {
-        check();
-        if (next.length % 16) throw Error("Grass expects complete records");
-        if (
-          next.byteLength > device.limits.maxStorageBufferBindingSize ||
-          next.byteLength > device.limits.maxBufferSize
-        )
-          throw Error("Grass storage limit");
-        const n = next.length / 16;
-        if (n > capacity) {
-          const admit = beginGpuAdmission(device);
-          let staged: ReturnType<typeof allocate> | undefined;
+    const replaceRecords = async (next: Float32Array) => {
+      check();
+      if (next.length % 16) throw Error("Grass expects complete records");
+      if (
+        next.byteLength > device.limits.maxStorageBufferBindingSize ||
+        next.byteLength > device.limits.maxBufferSize
+      )
+        throw Error("Grass storage limit");
+      const n = next.length / 16;
+      if (n > capacity) {
+        const admit = beginGpuAdmission(device);
+        let staged: ReturnType<typeof allocate> | undefined;
+        try {
+          staged = allocate(n);
+          staged.records.write(bytes(next));
+          await admit();
+          check();
+        } catch (error) {
           try {
-            staged = allocate(n);
-            staged.records.write(bytes(next));
             await admit();
-            check();
-          } catch (error) {
-            try {
-              await admit();
-            } finally {
-              if (staged)
-                for (const b of staged.added) {
-                  b.destroy();
-                  owned.delete(b);
-                }
-            }
-            throw error;
+          } finally {
+            if (staged)
+              for (const b of staged.added) {
+                b.destroy();
+                owned.delete(b);
+              }
           }
-          for (const b of buffers.added) {
-            b.destroy();
-            owned.delete(b);
-          }
-          buffers = staged;
-          capacity = n;
-        } else if (n) buffers.records.write(bytes(next));
-        count = n;
-        active.write(d.vec4u(n, 0, 0, 0));
+          throw error;
+        }
+        for (const b of buffers.added) {
+          b.destroy();
+          owned.delete(b);
+        }
+        buffers = staged;
+        capacity = n;
+      } else if (n) buffers.records.write(bytes(next));
+      setLiveCount(n);
+    };
+    const setLiveCount = (n: number) => {
+      count = n;
+      active.write(d.vec4u(n, 0, 0, 0));
+    };
+    return {
+      updateRecords: replaceRecords,
+      async adoptRecordCapacity(next: Float32Array, live: number) {
+        // Sizing from the whole capacity is what lets every later publication
+        // be a range write into storage that already exists.
+        await replaceRecords(next);
+        setLiveCount(Math.min(live, capacity));
+      },
+      writeRecordRanges(source: Float32Array, edits: readonly GrassRecordEdit[], live: number) {
+        check();
+        for (const edit of edits) {
+          if (edit.count <= 0) continue;
+          if (edit.start < 0 || edit.start + edit.count > capacity)
+            throw Error("Grass record range is outside the adopted capacity");
+          device.queue.writeBuffer(
+            buffers.records.buffer,
+            edit.start * 64,
+            source,
+            edit.start * 16,
+            edit.count * 16,
+          );
+        }
+        setLiveCount(Math.min(live, capacity));
       },
       update(frame: GrassFrame) {
         check();

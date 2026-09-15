@@ -119,7 +119,10 @@ export class PresentationSpool {
     if (this.stopped || this.complete) return;
     try {
       const resourceBytes = (frame.grassPublications ?? []).reduce(
-        (sum, p) => sum + Object.values(p.records).reduce((n, a) => n + (a?.byteLength ?? 0), 0),
+        (sum, p) =>
+          sum +
+          Object.values(p.records).reduce((n, a) => n + (a?.byteLength ?? 0), 0) +
+          Object.values(p.edits).reduce((n, e) => n + (e?.data.byteLength ?? 0), 0),
         0,
       );
       if (this.retainedBytes() + resourceBytes > MEMORY_CAP)

@@ -14,6 +14,7 @@ struct GrassParams {
  sunDir:vec3f,rim:f32,
  subsurface:f32,densityRef:f32,falloff:f32,thinning:f32,
  maskCenter:vec2f,maskRadiusSq:f32,maskEnable:f32,
+ maskTileM:f32,maskKeepInside:f32,
  wedgeForward:vec2f,wedgeSide:vec2f,
  wedgeSlope:f32,wedgeBack:f32,wedgeFar:f32,wedgeEnable:f32,
  view:mat4x4f,
@@ -24,8 +25,17 @@ struct GrassVertex { world:vec3f,normal:vec3f,albedo:vec3f,lightWeights:vec2f };
 export const grassFunctions = {
   grassTier: `(record:GrassRecord,p:GrassParams)->i32 {
  let dist=length(p.anchor-record.d0.xy);
- let delta=record.d0.xy-p.maskCenter;
- let mask=mix(1.0,step(p.maskRadiusSq,dot(delta,delta)),p.maskEnable);
+ // grassCoverage.ts owns this rule; bladeFieldLayer.ts's route pass and the
+ // CPU tile sampler evaluate the same expression. Quantising to the residency
+ // tile is what keeps the base field's hole and the focus field's coverage the
+ // same shape, so no cell is drawn twice and none is left bare.
+ let tileM=max(p.maskTileM,1e-6);
+ let tileLow=floor(record.d0.xy/tileM)*tileM;
+ let tileNearest=clamp(p.maskCenter,tileLow,tileLow+vec2f(tileM,tileM));
+ let maskPoint=mix(record.d0.xy,tileNearest,vec2f(step(1e-6,p.maskTileM)));
+ let delta=maskPoint-p.maskCenter;
+ let covered=step(dot(delta,delta),p.maskRadiusSq);
+ let mask=mix(1.0,mix(1.0-covered,covered,p.maskKeepInside),p.maskEnable);
  let wedgeDelta=record.d0.xy-p.anchor;
  let depth=dot(wedgeDelta,p.wedgeForward);
  let lateral=abs(dot(wedgeDelta,p.wedgeSide));

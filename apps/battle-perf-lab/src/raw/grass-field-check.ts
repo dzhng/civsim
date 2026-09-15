@@ -266,6 +266,9 @@ async function run() {
           lone.setSunDirection(spec.sunDirection);
           lone.applyPackedRecords(liveGrassRecords(state.ring), true);
           lone.setFarTierVisible(false);
+          // The standalone copy has to route the same half of the ground: the
+          // live range holds tiles from the focus the owner has not published.
+          lone.setRouteMask(state.ring.mask);
           lone.setRouteCullWedge(state.wedge);
           lone.routeGpu(renderer, eyePosition(params), [params.target[0], params.target[1]]);
           trace.phase("standalone");

@@ -5,6 +5,7 @@ import {
   productionBladeFieldProfile,
   initialBladeFieldTransition,
 } from "@packages/game-renderer/src/battle/battleGrassResidency";
+import { recordSurvivesRouteMask } from "@packages/game-renderer/src/battle/grassCoverage";
 import { flatHeightField } from "@packages/game-renderer/src/terrain/heightField";
 import type { Camera3DParams } from "@packages/renderer-core/src/camera3d";
 
@@ -44,22 +45,46 @@ function travelFixture(msPerTick = 0.5) {
     near: 0.1,
     far: 2000,
   };
-  const runScheduled = (slices: number) => {
-    for (let i = 0; i < slices && scheduled.length > 0; i++) scheduled.shift()!();
-  };
   const at = (x: number, y: number): Camera3DParams => ({ ...camera, target: [x, y, 0] });
-  return { owner, grid, scheduled, camera, runScheduled, at };
+  /** One sampling callback followed by the consumer taking its ranges - which is
+   *  what a rendered frame does, and what releases the next publication step. */
+  const renderSlices = (slices: number) => {
+    const taken: { start: number; count: number }[] = [];
+    for (let i = 0; i < slices && scheduled.length > 0; i++) {
+      scheduled.shift()!();
+      taken.push(...owner.takeRingEdits());
+    }
+    return taken;
+  };
+  return { owner, grid, scheduled, camera, renderSlices, at };
+}
+
+/** How many of the two grass fields draw the ground at `x, y`. */
+function fieldsDrawing(owner: BattleGrassResidency, x: number, y: number): number {
+  const { base, ring } = owner.snapshot();
+  return (
+    Number(base.visible && recordSurvivesRouteMask(base.mask, x, y)) +
+    Number(ring.visible && recordSurvivesRouteMask(ring.mask, x, y))
+  );
+}
+
+/** Points spanning the published coverage, its rim and the base field beyond. */
+function samplePoints(centerX: number, centerY: number): [number, number][] {
+  const points: [number, number][] = [];
+  for (let dx = -336; dx <= 336; dx += 7)
+    for (let dy = -336; dy <= 336; dy += 7) points.push([centerX + dx, centerY + dy]);
+  return points;
 }
 
 test("sustained travel keeps publishing focus coverage instead of restarting the same prefix", () => {
-  const { owner, runScheduled, at } = travelFixture();
+  const { owner, renderSlices, at } = travelFixture();
   try {
     owner.update(at(0, 0), 900);
-    runScheduled(4);
+    renderSlices(4);
     // Travel west to east across 12 snapped focus cells, four sampling slices per step.
     for (let step = 1; step <= 12; step++) {
       owner.update(at(step * 48, 0), 900);
-      runScheduled(4);
+      renderSlices(4);
     }
     const ring = owner.snapshot().ring;
     expect(ring.records).not.toBeNull();
@@ -70,22 +95,23 @@ test("sustained travel keeps publishing focus coverage instead of restarting the
 });
 
 test("travel publishes into one persistent buffer that is never reallocated or overrun", () => {
-  const { owner, runScheduled, at } = travelFixture();
+  const { owner, renderSlices, at } = travelFixture();
   try {
     owner.update(at(0, 0), 900);
-    runScheduled(4);
+    renderSlices(4);
     const buffer = owner.snapshot().ring.records;
     expect(buffer).not.toBeNull();
     for (let step = 1; step <= 12; step++) {
       owner.update(at(step * 96, 0), 900);
-      runScheduled(4);
+      renderSlices(4);
       const ring = owner.snapshot().ring;
       const stats = owner.stats().rebuild;
       // One capacity buffer: publication never swaps a fresh allocation in, and
       // the live range only ever covers resident tiles.
       expect(ring.records).toBe(buffer);
       expect(ring.recordCount).toBe(stats.residentTiles * stats.tileSlotRecords);
-      expect(ring.recordCount).toBeLessThanOrEqual(stats.retainedRecordBytes / 64);
+      expect(ring.recordCapacity).toBe(stats.retainedRecordBytes / 64);
+      expect(ring.recordCount).toBeLessThanOrEqual(ring.recordCapacity);
     }
     expect(owner.stats().rebuild.retainedRecordBytes).toBe(buffer!.byteLength);
   } finally {
@@ -94,22 +120,24 @@ test("travel publishes into one persistent buffer that is never reallocated or o
 });
 
 test("each publication step writes a bounded number of bounded record ranges", () => {
-  const { owner, runScheduled, at } = travelFixture();
+  const { owner, renderSlices, at } = travelFixture();
   try {
     let serial = -1;
     let steps = 0;
     for (let step = 0; step <= 12; step++) {
       owner.update(at(step * 48, 0), 900);
-      runScheduled(4);
-      const ring = owner.snapshot().ring;
-      if (ring.editSerial === serial) continue;
-      serial = ring.editSerial;
-      steps++;
-      const stats = owner.stats().rebuild;
-      expect(ring.edits.length).toBeLessThanOrEqual(stats.publishTilesPerStep);
-      for (const edit of ring.edits) {
-        expect(edit.count).toBeLessThanOrEqual(stats.tileSlotRecords);
-        expect(edit.start + edit.count).toBeLessThanOrEqual(stats.retainedRecordBytes / 64);
+      for (let slice = 0; slice < 4; slice++) {
+        const stats = owner.stats().rebuild;
+        const taken = renderSlices(1);
+        const ring = owner.snapshot().ring;
+        if (ring.editSerial === serial) continue;
+        serial = ring.editSerial;
+        steps++;
+        expect(taken.length).toBeLessThanOrEqual(stats.publishTilesPerStep);
+        for (const edit of taken) {
+          expect(edit.count).toBeLessThanOrEqual(stats.tileSlotRecords);
+          expect(edit.start + edit.count).toBeLessThanOrEqual(ring.recordCapacity);
+        }
       }
     }
     expect(steps).toBeGreaterThan(0);
@@ -118,60 +146,114 @@ test("each publication step writes a bounded number of bounded record ranges", (
   }
 });
 
-test("the base dedupe circle only moves onto coverage that is already resident", () => {
-  const { owner, runScheduled, at } = travelFixture();
+test("travel never asks a consumer to re-read the whole record buffer", () => {
+  const { owner, renderSlices, at } = travelFixture();
   try {
-    let circle = JSON.stringify(owner.snapshot().base.circle);
-    for (let step = 0; step <= 12; step++) {
-      owner.update(at(step * 48, 0), 900);
-      for (let slice = 0; slice < 4; slice++) {
-        runScheduled(1);
-        const next = JSON.stringify(owner.snapshot().base.circle);
-        if (next === circle) continue;
-        circle = next;
-        if (owner.snapshot().base.circle) {
-          expect(owner.stats().rebuild.missingTiles).toBe(0);
-          expect(owner.stats().rebuild.activeCoverageResident).toBe(true);
-        }
-      }
+    owner.update(at(0, 0), 900);
+    owner.settle();
+    owner.takeRingEdits();
+    const settled = owner.snapshot().ring.revision;
+    for (let step = 1; step <= 16; step++) {
+      owner.update(at(step * 48, step * 24), 900);
+      renderSlices(4);
+      // A revision bump is the consumer's instruction to upload the live range
+      // whole. Camera motion must never be that instruction.
+      expect(owner.snapshot().ring.revision).toBe(settled);
     }
   } finally {
     owner.dispose();
   }
 });
 
-test("settling after travel completes the requested focus and centres the dedupe circle on it", () => {
-  const { owner, runScheduled, at } = travelFixture();
+test("delayed draws do not widen the ranges one take hands the consumer", () => {
+  const { owner, scheduled, at } = travelFixture();
+  try {
+    owner.update(at(0, 0), 900);
+    owner.settle();
+    owner.takeRingEdits();
+    const bound = owner.stats().rebuild.publishTilesPerStep;
+    const serialBefore = owner.snapshot().ring.editSerial;
+    // Many sampling opportunities, no rendered frame between them: the camera
+    // keeps moving and every scheduled callback is run, repeatedly.
+    for (let step = 1; step <= 40; step++) {
+      owner.update(at(step * 24, 0), 900);
+      while (scheduled.length > 0) scheduled.shift()!();
+    }
+    const ring = owner.snapshot().ring;
+    expect(ring.edits.length).toBeLessThanOrEqual(bound);
+    // At most one unconsumed publication exists, so the bound per render is the
+    // same number as the bound per sampling step.
+    expect(ring.editSerial).toBeLessThanOrEqual(serialBefore + 1);
+    expect(owner.takeRingEdits().length).toBeLessThanOrEqual(bound);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("the published coverage only moves onto tiles that are already resident", () => {
+  const { owner, scheduled, renderSlices, at } = travelFixture();
+  try {
+    let mask = JSON.stringify(owner.snapshot().base.mask);
+    for (let step = 0; step <= 12; step++) {
+      owner.update(at(step * 48, 0), 900);
+      for (let slice = 0; slice < 4; slice++) {
+        renderSlices(1);
+        const next = JSON.stringify(owner.snapshot().base.mask);
+        if (next === mask) continue;
+        mask = next;
+        if (owner.snapshot().base.mask) {
+          const stats = owner.stats().rebuild;
+          expect(stats.missingTiles).toBe(0);
+          expect(stats.activeCoverageResident).toBe(true);
+          // The coverage handed to the GPU is strictly inside the coverage that
+          // was sampled, so no tile can be claimed and then found missing.
+          expect(stats.coverageRadiusM).toBeLessThan(stats.coverageSampledRadiusM);
+        }
+      }
+      if (scheduled.length === 0 && owner.stats().rebuild.pending) break;
+    }
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("settling after travel completes the requested focus and centres the coverage on it", () => {
+  const { owner, renderSlices, at } = travelFixture();
   try {
     for (let step = 0; step <= 6; step++) {
       owner.update(at(step * 96, 0), 900);
-      runScheduled(2);
+      renderSlices(2);
     }
     owner.update(at(288, 0), 900);
     owner.settle();
     const stats = owner.stats().rebuild;
     expect(stats.missingTiles).toBe(0);
     expect(stats.pending).toBe(false);
-    expect(owner.snapshot().base.circle).toEqual({
+    const { base, ring } = owner.snapshot();
+    expect(base.mask).toEqual({
       center: [288, 0],
-      radiusSq: 280 * 280,
+      radiusSq: stats.coverageRadiusM * stats.coverageRadiusM,
+      tileM: stats.coverageTileM,
+      keepInside: false,
       enabled: true,
     });
+    // One coverage, opposite senses.
+    expect(ring.mask).toEqual({ ...base.mask, keepInside: true });
   } finally {
     owner.dispose();
   }
 });
 
 test("a focus change keeps sampled tiles and wastes at most the one tile in flight", () => {
-  const { owner, runScheduled, at } = travelFixture();
+  const { owner, renderSlices, at } = travelFixture();
   try {
     owner.update(at(0, 0), 900);
-    runScheduled(4);
+    renderSlices(4);
     const resident = owner.stats().rebuild.residentTiles;
     expect(resident).toBeGreaterThan(0);
     owner.update(at(480, 480), 900);
     expect(owner.stats().rebuild.residentTiles).toBe(resident);
-    runScheduled(4);
+    renderSlices(4);
     const stats = owner.stats().rebuild;
     expect(stats.cancelledTiles).toBeLessThanOrEqual(1);
     expect(stats.cancelledCells).toBeLessThanOrEqual(stats.tileCells);
@@ -197,25 +279,21 @@ test("reversing costs the crescent that changed, never a whole circle again", ()
     expect(returned.sampledTiles - advanced.sampledTiles).toBeLessThan(advanced.requiredTiles);
     expect(returned.missingTiles).toBe(0);
     expect(returned.activeCoverageResident).toBe(true);
-    expect(owner.snapshot().base.circle).toEqual({
-      center: [0, 0],
-      radiusSq: 280 * 280,
-      enabled: true,
-    });
+    expect(owner.snapshot().base.mask?.center).toEqual([0, 0]);
   } finally {
     owner.dispose();
   }
 });
 
 test("long travel plateaus retained tiles at the slot capacity", () => {
-  const { owner, runScheduled, at } = travelFixture();
+  const { owner, renderSlices, at } = travelFixture();
   try {
     for (let step = 0; step <= 8; step++) {
       owner.update(at(step * 96, (step % 4) * 96), 900);
-      runScheduled(6);
+      renderSlices(6);
       const stats = owner.stats().rebuild;
-      // The dedupe circle never outlives the coverage it culls the base inside.
-      if (owner.snapshot().base.circle) expect(stats.activeCoverageResident).toBe(true);
+      // The published coverage never outlives the tiles it culls the base inside.
+      if (owner.snapshot().base.mask) expect(stats.activeCoverageResident).toBe(true);
       expect(stats.residentTiles).toBeLessThanOrEqual(stats.slotCapacity);
       expect(owner.snapshot().ring.recordCount).toBe(stats.residentTiles * stats.tileSlotRecords);
     }
@@ -246,7 +324,7 @@ test("a settled focus draws exactly its own cover tiles, not the circle it repla
   }
 });
 
-test("a jump whose two circles cannot both be retained drops the dedupe circle, not coverage", () => {
+test("a jump whose two circles cannot both be retained drops the coverage, not the grass", () => {
   // Wide enough that the two circles are disjoint and together exceed the slot
   // ceiling, so retaining both is genuinely impossible.
   const w = 300;
@@ -284,14 +362,14 @@ test("a jump whose two circles cannot both be retained drops the dedupe circle, 
     owner.settle();
     const seeded = owner.stats().rebuild;
     expect(seeded.residentTiles).toBeGreaterThan(seeded.slotCapacity / 2);
-    expect(owner.snapshot().base.circle).not.toBeNull();
+    expect(owner.snapshot().base.mask).not.toBeNull();
     owner.update({ ...camera, target: [450, 0, 0] }, 900);
     owner.settle();
     const stats = owner.stats().rebuild;
     expect(stats.retiredFocusGenerations).toBe(1);
     expect(stats.residentTiles).toBeLessThanOrEqual(stats.slotCapacity);
-    // A published dedupe circle is always backed by resident coverage - the
-    // fallback drops the circle, never the grass under it.
+    // Published coverage is always backed by resident tiles - the fallback drops
+    // the coverage, never the grass under it.
     expect(stats.activeCoverageResident).toBe(true);
     expect(stats.missingTiles).toBe(0);
   } finally {
@@ -307,6 +385,7 @@ test("every slice that moves records inside the buffer also publishes their rang
   try {
     owner.update(at(0, 0), 900);
     owner.settle();
+    owner.takeRingEdits();
     let live = owner.snapshot().ring.recordCount;
     let serial = owner.snapshot().ring.editSerial;
     let shrinks = 0;
@@ -323,8 +402,95 @@ test("every slice that moves records inside the buffer also publishes their rang
       }
       live = ring.recordCount;
       serial = ring.editSerial;
+      owner.takeRingEdits();
     }
     expect(shrinks).toBeGreaterThan(0);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("the focus field draws nothing until the owner publishes coverage for it", () => {
+  const { owner, renderSlices, at } = travelFixture();
+  try {
+    owner.update(at(0, 0), 900);
+    // Tiles arrive long before the whole cover circle is resident. Drawing them
+    // as they land would put focus-density grass on top of a base field that is
+    // not culled there yet.
+    let partial = 0;
+    for (let slice = 0; slice < 6; slice++) {
+      renderSlices(1);
+      const { ring } = owner.snapshot();
+      if (owner.stats().rebuild.missingTiles === 0) break;
+      expect(ring.recordCount).toBeGreaterThan(0);
+      expect(ring.visible).toBe(false);
+      expect(ring.mask).toBeNull();
+      partial++;
+    }
+    expect(partial).toBeGreaterThan(0);
+    owner.settle();
+    expect(owner.snapshot().ring.visible).toBe(true);
+    expect(owner.snapshot().ring.mask).not.toBeNull();
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("exactly one grass field owns every point, through arrival, admission and reversal", () => {
+  const { owner, renderSlices, at } = travelFixture();
+  try {
+    const stops: [number, number][] = [
+      [0, 0],
+      [48, 0],
+      [96, 48],
+      [192, 96],
+      [96, 48],
+      [0, 0],
+    ];
+    let checked = 0;
+    for (const [x, y] of stops) {
+      owner.update(at(x, y), 900);
+      for (let slice = 0; slice < 5; slice++) {
+        renderSlices(1);
+        const active = owner.snapshot().base.mask?.center ?? [x, y];
+        for (const [px, py] of samplePoints(active[0], active[1])) {
+          // Two fields drawing the same ground doubles the authored density;
+          // neither drawing it leaves bare terrain.
+          expect(fieldsDrawing(owner, px, py)).toBe(1);
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("the coverage boundary is a tile edge, so neither field can round it differently", () => {
+  const { owner, at } = travelFixture();
+  try {
+    owner.update(at(0, 0), 900);
+    owner.settle();
+    const { base, ring } = owner.snapshot();
+    const stats = owner.stats().rebuild;
+    const tile = stats.coverageTileM;
+    expect(base.mask?.tileM).toBe(tile);
+    expect(ring.mask?.tileM).toBe(tile);
+    // Walk one tile row across the rim: ownership flips on a tile edge, and both
+    // fields flip on the same one.
+    const y = tile / 2;
+    let flips = 0;
+    for (let x = 0; x < stats.coverageRadiusM + 2 * tile; x += tile / 4) {
+      expect(fieldsDrawing(owner, x, y)).toBe(1);
+      const inside = recordSurvivesRouteMask(ring.mask, x, y);
+      const next = recordSurvivesRouteMask(ring.mask, x + tile / 4, y);
+      if (inside === next) continue;
+      flips++;
+      // The flip lands on a multiple of the tile edge, never mid-tile.
+      expect(Math.floor(x / tile)).not.toBe(Math.floor((x + tile / 4) / tile));
+    }
+    expect(flips).toBe(1);
   } finally {
     owner.dispose();
   }

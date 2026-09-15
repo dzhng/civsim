@@ -28,6 +28,8 @@ export const GrassParams = d.struct({
   maskCenter: d.vec2f,
   maskRadiusSq: d.f32,
   maskEnable: d.f32,
+  maskTileM: d.f32,
+  maskKeepInside: d.f32,
   wedgeForward: d.vec2f,
   wedgeSide: d.vec2f,
   wedgeSlope: d.f32,

@@ -1,31 +1,18 @@
+import { prepareBattleTerrain } from "../terrainScenePreparation";
+import type { BattleTerrainInput as RawBattleTerrainInput } from "../sceneTypes";
+export type { BattleTerrainInput as RawBattleTerrainInput } from "../sceneTypes";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
-import { buildBattleTerrainData } from "../../../../packages/game-renderer/src/battle/terrainSceneData";
 import {
   battleTerrainHeightAt,
   expandedBattleTerrainRect,
 } from "../../../../packages/game-renderer/src/battle/terrainSurfacePolicy";
 import { terrainBackdropStyleForZoom } from "../../../../packages/game-renderer/src/battle/terrainBackdropPolicy";
-import type {
-  BattleTerrainGrid,
-  BattleGroundCover,
-  BattleSlopeBands,
-} from "../../../../packages/game-renderer/src/battle/terrainFeatures";
-import type { BattleVistaGrid } from "../../../../packages/game-renderer/src/battle/vistaSurface";
-import type { BattleLakeSurfaceSpec } from "../../../../packages/game-renderer/src/water/battleWaterGeometry";
 import type { RawEnvironment } from "./environment";
 import { RawBattleTerrain } from "./terrain";
 import { RawBattleWater } from "./water";
 import { createRawScenery } from "./scenery";
 import { createRawBackdrop } from "./backdrop";
 import { beginGpuAdmission } from "../gpuAdmission";
-import type { BattleWaterInput } from "../waterData";
-export interface RawBattleTerrainInput {
-  grid: BattleTerrainGrid;
-  cover: BattleGroundCover;
-  vista: BattleVistaGrid | null;
-  lakes: readonly BattleLakeSurfaceSpec[];
-  slopeBands?: BattleSlopeBands | null;
-}
 type Disposable = { dispose(): void };
 /** One committed terrain presentation. Replacements never expose a partial scene. */
 export async function createRawBattleTerrainScene(
@@ -74,18 +61,7 @@ export async function createRawBattleTerrainScene(
       }
     }
     try {
-      // Source setTerrain snapshots WASM-backed arrays before deriving render data.
-      const grid: BattleTerrainGrid = {
-        ...input.grid,
-        tint: new Uint8Array(input.grid.tint),
-        height: input.grid.height?.slice(),
-        rough: input.grid.rough?.slice(),
-        speed: input.grid.speed?.slice(),
-      };
-      const cover = input.cover;
-      const lakes = input.lakes.map((l) => ({ ...l }));
-      const slopeBands = input.slopeBands ? { ...input.slopeBands } : null;
-      const data = buildBattleTerrainData(grid, cover, input.vista);
+      const { grid, cover, data, slopeBands, waterInputs } = prepareBattleTerrain(input);
       // These surfaces have no same-view equal-depth prepass; invariant clip output can
       // constrain upstream arithmetic and change grazing interpolants.
       const ground = await admitted(
@@ -121,10 +97,6 @@ export async function createRawBattleTerrainScene(
         );
         (ring.name === "farFog" ? transparentVista : opaqueVista).push(layer);
       }
-      const waterInputs: BattleWaterInput[] = [
-        ...(data.horizon?.oceanPlanes ?? []).map((spec) => ({ kind: "ocean" as const, spec })),
-        ...lakes.map((spec) => ({ kind: "lake" as const, spec, grid })),
-      ];
       const water = await admitted(
         () => new RawBattleWater(device, cameraLayout, environment, waterInputs, samples),
       );

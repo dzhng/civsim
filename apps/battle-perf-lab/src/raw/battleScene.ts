@@ -1,3 +1,5 @@
+import type { BattleSceneOptions as RawBattleSceneOptions } from "../sceneTypes";
+export type { BattleSceneOptions as RawBattleSceneOptions } from "../sceneTypes";
 import { createRawEnvironment } from "./environment";
 import { RawBattleFrame } from "./frame";
 import { RawSunShadow } from "./shadow";
@@ -9,17 +11,12 @@ import { createRawReadout } from "./readout";
 import { createRawLineLayer, createRawRingLayer, createRawTriangleLayer } from "./overlay";
 import { battleSceneCamera } from "../sceneCamera";
 import { reverseZFrustumPlanes } from "../crowdFrustum";
-import type { AppearanceBundle } from "../../../../packages/soldier-assets/src/appearanceBundle";
-import type { ImpostorAtlasData } from "../../../../packages/soldier-assets/src/impostorAtlas";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import type { CrowdProjectionView } from "../../../../packages/crowd-runtime/src/visibility";
 import type { GpuDeviceCaps } from "../../../../packages/renderer-core/src/capabilities";
 import { terrainHeightAt } from "../../../../packages/game-renderer/src/terrain/heightField";
 import { projectionFootprint } from "../../../../packages/renderer-core/src/camera3d";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
-import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
-import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
-import type { BladeFieldProfile } from "../../../../packages/game-renderer/src/battle/battleGrassResidency";
 import {
   createWindUniforms,
   updateWindUniforms,
@@ -30,25 +27,6 @@ import type {
   BattleCameraSnapshot,
   BattleTacticalLineFrame,
 } from "../../../../packages/photoreal-renderer/src/battle/battleWorld";
-
-export interface RawBattleSceneOptions {
-  environment: CivsimEnvironment;
-  assets: Record<number, AppearanceBundle>;
-  atlases: Record<number, ImpostorAtlasData>;
-  terrain: RawBattleTerrainInput;
-  grassProfile: BladeFieldProfile;
-  width: number;
-  height: number;
-  samples: 1 | 4;
-  outputFormat: GPUTextureFormat;
-  shadows: boolean;
-  grass: boolean;
-  farGrass: boolean;
-  bloom: boolean;
-  post: boolean;
-  grade: BattlePostGradeUniforms;
-  signal?: AbortSignal;
-}
 
 /** Complete native scene submission. The caller owns simulation/presentation data,
  * device and canvas; this owner owns every scene resource and final pass ordering. */

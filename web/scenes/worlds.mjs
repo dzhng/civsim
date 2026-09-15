@@ -89,10 +89,8 @@ export async function ready(page, flag, timeoutMs = 60000) {
   await page.waitForFunction((name) => window[name] === true, flag, { timeout: timeoutMs });
 }
 
-/** Battle boot contract: the page flag alone means the shell mounted; the
- *  renderer is ready only once it reports ready and has uploaded every soldier.
- *  Every battle boot waits on this so no scene freezes or shoots a half-built
- *  frame. */
+/** Require both first-frame settlement and the complete soldier upload before
+ * freezing or photographing a battle. Terminal GPU failure ends the wait. */
 export async function battleRendererReady(page, timeoutMs = 60000) {
   try {
     await page.waitForFunction(

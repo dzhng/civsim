@@ -1,0 +1,6 @@
+{
+  "passed": false,
+  "error": "Error: Backdrop validation failure: {\"rejected\":true,\"liveBuffers\":1,\"liveTextures\":0,\"errorMessage\":\"Error: In entries[1], binding index 0 already used by a previous entry\\n - While validating [BindGroupDescriptor \\\"\\\"typegpuCameraLayout\\\"\\\"] against [BindGroupLayout \\\"typegpuCameraLayout\\\"]\\n - While calling [Device].CreateBindGroup([BindGroupDescriptor \\\"\\\"typegpuCameraLayout\\\"\\\"]).\\n\"}",
+  "stack": "Error: Backdrop validation failure: {\"rejected\":true,\"liveBuffers\":1,\"liveTextures\":0,\"errorMessage\":\"Error: In entries[1], binding index 0 already used by a previous entry\\n - While validating [BindGroupDescriptor \\\"\\\"typegpuCameraLayout\\\"\\\"] against [BindGroupLayout \\\"typegpuCameraLayout\\\"]\\n - While calling [Device].CreateBindGroup([BindGroupDescriptor \\\"\\\"typegpuCameraLayout\\\"\\\"]).\\n\"}\n    at checkAdmission (http://localhost:5199/@fs/Users/david/dev/game-battle-pmrem-control/apps/battle-perf-lab/src/backdropControlBackend.ts?t=1789449997228:137:56)\n    at async createBackdropControlBackend (http://localhost:5199/@fs/Users/david/dev/game-battle-pmrem-control/apps/battle-perf-lab/src/backdropControlBackend.ts?t=1789449997228:59:22)\n    at async run (http://localhost:5199/backdrop-check.ts?t=1789449997228:38:22)",
+  "pageErrors": []
+}

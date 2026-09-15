@@ -1,3 +1,4 @@
+import { BACKDROP_INDICES, backdropVertices } from "../backdropData";
 import {
   makeIndexBuffer,
   makeVertexBuffer,
@@ -33,9 +34,7 @@ export async function createRawBackdrop(
     const terrain = own(
       makeVertexBuffer(device, "terrain underlay rectangle", new Float32Array(12)),
     );
-    const indices = own(
-      makeIndexBuffer(device, "backdrop indices", new Uint16Array([0, 1, 2, 1, 3, 2])),
-    );
+    const indices = own(makeIndexBuffer(device, "backdrop indices", BACKDROP_INDICES));
     const empty = device.createBindGroupLayout({ entries: [] }),
       emptyGroup = device.createBindGroup({ layout: empty, entries: [] });
     const layout = device.createPipelineLayout({
@@ -74,11 +73,7 @@ export async function createRawBackdrop(
           [terrain, terrainRect],
           [backdrop, backdropRect],
         ] as const)
-          device.queue.writeBuffer(
-            buffer,
-            0,
-            new Float32Array([x, y, 0, x + w, y, 0, x, y + h, 0, x + w, y + h, 0]),
-          );
+          device.queue.writeBuffer(buffer, 0, backdropVertices([x, y, w, h]));
       },
       setStyle(value: "default" | "wide-detail") {
         check();

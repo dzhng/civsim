@@ -11,13 +11,12 @@ export type BackdropKind = "backdrop" | "default" | "wide-detail";
 const rgb = (v: readonly number[]) => `vec3f(${v.join(",")})`;
 
 /** Original opaque underlay material before shared environment haze and grade. */
-export function backdropShader(environment: string, kind: BackdropKind) {
+export function backdropSurfaceWgsl(kind: BackdropKind): string {
   const style = kind === "wide-detail" ? WIDE_DETAIL_TERRAIN_STYLE : DEFAULT_TERRAIN_STYLE;
   const contrast =
     kind === "wide-detail" ? TURF_CONTRAST.quad.wideDetail : TURF_CONTRAST.quad.default;
-  const surface =
-    kind === "backdrop"
-      ? `
+  return kind === "backdrop"
+    ? `
  let broad=terrainNoise(world*0.055+vec2f(4.7,8.1));
  let mid=terrainNoise(world*0.42+vec2f(11.3,1.9));
  let speck=smoothstep(0.78,0.98,terrainNoise(world*2.8));
@@ -26,7 +25,7 @@ export function backdropShader(environment: string, kind: BackdropKind) {
  grass+=${rgb(MEADOW.quad.backdrop.fleck)}*speck;
  let normal=vec3f(0,0,1);
  let albedo=terrainLinear(grass);`
-      : `
+    : `
  let fine=terrainNoise(world*2.2);
  let mid=terrainNoise(world*0.47+vec2f(5.2,1.8));
  let broad=terrainNoise(world*0.085+vec2f(0.7,9.3));
@@ -56,25 +55,29 @@ export function backdropShader(environment: string, kind: BackdropKind) {
  grass=mix(grass,grass*${rgb(style.darkFleckColor)},darkFleck*${contrast.darkFleckStrength});
  grass=mix(grass,${rgb(MEADOW.quad.stoneFleck)},stoneFleck*${contrast.stoneFleckStrength});
  grass=mix(grass,turfCanopy(broad,mid,fine),${TURF_CONTRAST.canopy.mixStrength});
- let dust=smoothstep(18.0,96.0,v.distance)*${contrast.dustStrength};
+ let dust=smoothstep(18.0,96.0,distance)*${contrast.dustStrength};
  let albedo=terrainLinear(mix(grass,${rgb(MEADOW.quad.sunBleached)},dust));`;
+}
+export const quadGroundHeightWgsl = `(p:vec2f)->f32{
+ let broad=terrainNoise(p*0.018+vec2f(8.1,2.4))*0.58;
+ let folds=terrainRidge(vec2f(p.x*0.052+p.y*0.018,p.y*0.038-p.x*0.012))*0.26;
+ let scratch=terrainRidge(vec2f(p.x*0.42+p.y*0.09,p.y*0.26))*0.16;
+ return broad+folds+scratch;
+ }`;
+export function backdropShader(environment: string, kind: BackdropKind) {
   return `${WORLD_CAMERA_WGSL}
  ${environment}
  ${Object.entries(terrainNoiseFunctions)
    .map(([name, body]) => `fn ${name}${body}`)
    .join("\n")}
  fn turfCanopy${terrainMaterialFunctions({}).turfCanopy}
- fn quadGroundHeight(p:vec2f)->f32{
- let broad=terrainNoise(p*0.018+vec2f(8.1,2.4))*0.58;
- let folds=terrainRidge(vec2f(p.x*0.052+p.y*0.018,p.y*0.038-p.x*0.012))*0.26;
- let scratch=terrainRidge(vec2f(p.x*0.42+p.y*0.09,p.y*0.26))*0.16;
- return broad+folds+scratch;
- }
+ fn quadGroundHeight${quadGroundHeightWgsl}
  struct V{@builtin(position)clip:vec4f,@location(0)world:vec3f,@location(1)distance:f32};
  @vertex fn vertex(@location(0)p:vec3f)->V{return V(projectWorld(p),p,length(p.xy-cam.focus));}
  @fragment fn fragment(v:V)->@location(0)vec4f{
  let world=v.world.xy;
- ${surface}
+ let distance=v.distance;
+ ${backdropSurfaceWgsl(kind)}
  return shadeWorldSurface(albedo,vec3f(0),${kind === "backdrop" ? 0.98 : 0.96},0.0,0.0,1.0,normal,v.world,1.0);
  }`;
 }

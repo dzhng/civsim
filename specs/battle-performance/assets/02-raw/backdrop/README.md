@@ -7,3 +7,5 @@ All 16 one/four-sample cases pass the unchanged 1/255 HDR gate, with zero browse
 [Fresh review](visual-review/review.md) finds no visible pair difference. The isolated surfaces retain a sharp yellow/green boundary, coarse stippling and geometric edges; these are shared source characteristics. Real terrain normally covers much of this image. Full-scene composition and TypeGPU/vgpu ports remain required before ranking a backend.
 
 Static review caught an incorrect native bind-group property before acceptance. It was corrected to the actual environment binding and both complete hardware matrices were rerun successfully. The source style extraction changes no values, material algorithm or graphics setting.
+
+[Library-owned underlay ports and resource-admission evidence](../backdrop-ports/README.md) retain this source policy.

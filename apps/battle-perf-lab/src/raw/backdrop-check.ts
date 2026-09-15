@@ -1,3 +1,4 @@
+import { createBackdropControlBackend } from "../backdropControlBackend";
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "../../../../packages/photoreal-renderer/src/world";
@@ -8,9 +9,6 @@ import { BattleBackgroundQuads } from "../../../../packages/photoreal-renderer/s
 import { createBattleFrameUniforms } from "../../../../packages/photoreal-renderer/src/battle/battleTsl";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
-import { RawBattleFrame } from "./frame";
-import { createRawEnvironment } from "./environment";
-import { createRawBackdrop } from "./backdrop";
 import type { BackdropKind } from "../shaders/backdrop";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";
@@ -44,18 +42,14 @@ async function run() {
     const camera = new THREE.PerspectiveCamera(),
       post = own(new BattlePostChain(world.renderer, world.scene, camera, env.id));
     post.setBloomEnabled(false);
-    const environment = own(await createRawEnvironment(device, env, samples)),
-      frame = own(new RawBattleFrame(device, environment, width, height, samples, "rgba16float"));
+    const backend = new URL(location.href).searchParams.get("backend") ?? "raw";
+    if (backend !== "raw" && backend !== "typegpu" && backend !== "vgpu")
+      throw Error("Unknown backdrop backend");
+    const native = own(
+      await createBackdropControlBackend(backend, device, env, width, height, samples),
+    );
     const uniforms = createBattleFrameUniforms(),
       source = own(new BattleBackgroundQuads(world.scene, uniforms));
-    const native = own(await createRawBackdrop(device, frame.cameraLayout, environment, samples));
-    const output = own(
-      device.createTexture({
-        size: [width, height],
-        format: "rgba16float",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-      }),
-    );
     const reference = own(
       new THREE.RenderTarget(width, height, { type: THREE.HalfFloatType, depthBuffer: false }),
     );
@@ -97,7 +91,7 @@ async function run() {
       };
       applyCamera3d(camera, params);
       uniforms.focus.value.set(7, -3);
-      frame.setCamera(
+      native.setCamera(
         {
           camera3d: params,
           x: 7,
@@ -112,19 +106,12 @@ async function run() {
         [0, 0, 0],
         post.stats().grade.uniforms,
       );
-      const encoder = device.createCommandEncoder();
-      frame.encode(
-        encoder,
-        output.createView(),
-        (pass, group) => native.encode(pass, group, only),
-        false,
-      );
-      device.queue.submit([encoder.finish()]);
+      await native.render(only);
       await new Promise<void>((r) => requestAnimationFrame(() => r()));
       world.renderer.setRenderTarget(reference);
       post.render(world.scene, camera);
       world.renderer.setRenderTarget(null);
-      const actual = Array.from(await readHdrTexture(device, output)),
+      const actual = Array.from(await readHdrTexture(device, native.output)),
         raw = await world.renderer.readRenderTargetPixelsAsync(reference, 0, 0, width, height);
       if (!(raw instanceof Uint16Array)) throw Error("Expected half output");
       const expected = Array.from(unpackRgba16fRows(raw, width, height));
@@ -141,12 +128,11 @@ async function run() {
       });
     }
     native.dispose();
-    frame.dispose();
-    environment.dispose();
-    output.destroy();
     const liveBuffers = buffers.liveCount(),
       liveTextures = textures.liveCount();
     return {
+      backend,
+      admission: native.admission,
       samples,
       results,
       errors,

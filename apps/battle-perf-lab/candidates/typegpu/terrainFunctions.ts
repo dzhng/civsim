@@ -4,10 +4,10 @@ import {
   terrainMaterialFunctions,
   type TerrainMaterialOptions,
 } from "../../src/shaders/terrainMaterial";
-const terrainHash = tgpu.fn([d.vec2f], d.f32)(noise.terrainHash);
-const terrainNoise = tgpu.fn([d.vec2f], d.f32)(noise.terrainNoise).$uses({ terrainHash });
+export const terrainHash = tgpu.fn([d.vec2f], d.f32)(noise.terrainHash);
+export const terrainNoise = tgpu.fn([d.vec2f], d.f32)(noise.terrainNoise).$uses({ terrainHash });
 const terrainFbm = tgpu.fn([d.vec2f], d.f32)(noise.terrainFbm).$uses({ terrainNoise });
-const terrainRidge = tgpu.fn([d.vec2f], d.f32)(noise.terrainRidge).$uses({ terrainNoise });
+export const terrainRidge = tgpu.fn([d.vec2f], d.f32)(noise.terrainRidge).$uses({ terrainNoise });
 const terrainWaterHash = tgpu.fn([d.vec2f], d.f32)(noise.terrainWaterHash);
 export const terrainWaterNoise = tgpu
   .fn(

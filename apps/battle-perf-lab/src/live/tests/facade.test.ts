@@ -139,7 +139,7 @@ function fixture() {
       uploadTacticalLines: call("lines"),
       prepare: call("prepare"),
       settleGrass: call("settle"),
-      stats: () => ({ actual: true }),
+      stats: () => ({ actual: true, crowd: { instances: 0, ready: true } }),
     },
     submitPresentation: () => {
       call("submit")();
@@ -182,7 +182,7 @@ test("live facade preserves physical scale and captured time and reports actual 
   expect(result.gpuSubmission).not.toHaveProperty("threeFrameId");
   expect(state.calls.find((c) => c[0] === "prepare")[1].time).toBe(77);
   expect(f.renderer.gpuEventsSince(0)).toBeNull();
-  expect(f.renderer.stats().native).toEqual({ actual: true });
+  expect(f.renderer.stats()).toMatchObject({ ready: true, soldiers: 0, native: { actual: true } });
   f.renderer.dispose();
   expect(state.disposed).toHaveBeenCalledTimes(1);
   expect(f.device.destroy).toHaveBeenCalledTimes(1);
@@ -295,4 +295,16 @@ test("external readiness cancellation after preparation issues no extra submissi
   });
   expect(state.calls.filter((c) => c[0] === "submit")).toHaveLength(submissions);
   f.renderer.dispose();
+});
+
+test("public readiness and soldier count come from the admitted native audience", async () => {
+  const f = fixture();
+  expect(f.renderer.stats()).toMatchObject({ ready: false, soldiers: 0 });
+  await f.renderer.ready;
+  state.owner.scene.stats = () => ({ crowd: { instances: 15560, ready: true } });
+  expect(f.renderer.stats()).toMatchObject({ ready: true, soldiers: 15560 });
+  state.owner.scene.stats = () => ({ crowd: { instances: 8, ready: false } });
+  expect(f.renderer.stats()).toMatchObject({ ready: false, soldiers: 8 });
+  f.renderer.dispose();
+  expect(f.renderer.stats()).toMatchObject({ ready: false, soldiers: 0 });
 });

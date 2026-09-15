@@ -636,7 +636,10 @@ export class BattleRenderer implements BattleRendererApi {
     throw Error("Asset reload is not implemented by this functional native benchmark checkpoint");
   }
   stats(): BattleRendererStats {
+    const native = this.owner?.scene.stats() ?? null;
     return {
+      ready: this.soldierAssets !== null && native?.crowd.ready === true,
+      soldiers: native?.crowd.instances ?? 0,
       renderer: "gpu",
       device: this.deviceLabel,
       backend: this.backend,
@@ -647,7 +650,7 @@ export class BattleRenderer implements BattleRendererApi {
         frameCpuMs: this.metrics.frameCpuMs,
         gpuTimeMs: null,
       },
-      native: this.owner?.scene.stats() ?? null,
+      native,
       submission: {
         actualQueueSubmissions: this.queueSubmissions,
         readinessSubmissions: this.readinessSubmissions,

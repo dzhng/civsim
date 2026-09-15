@@ -7,7 +7,20 @@ import {
 } from "./tiledTerrain";
 import { createLandscapeGroundMaterial } from "../landscape/terrainMaterial";
 import * as THREE from "three/webgpu";
-import { attribute, varying, vec3, vec4, mix, uniform, modelNormalMatrix } from "three/tsl";
+import {
+  attribute,
+  varying,
+  vec3,
+  vec4,
+  mix,
+  uniform,
+  modelNormalMatrix,
+  texture,
+  positionWorld,
+  vec2,
+  float,
+  clamp,
+} from "three/tsl";
 import { PhotorealWorld } from "../world";
 import { applyCamera3d } from "../cameraBridge";
 import { applyCivsimEnvironment } from "../environment";
@@ -36,6 +49,13 @@ export interface CampaignWorldObject {
   label: string;
   faction: BattleFactionId;
   standardBase?: number;
+}
+
+export interface CampaignTerritoryData {
+  width: number;
+  height: number;
+  rgba: Uint8Array;
+  rect: { min: [number, number]; max: [number, number] };
 }
 
 export interface CampaignComposition {
@@ -70,6 +90,14 @@ export class PhotorealCampaignWorld {
   private selected: string | null = null;
   private fogEnabled = false;
   private readonly fogAmount = uniform(0);
+  private fogAt: (x: number, y: number) => number;
+  private readonly territoryEnabled = uniform(0);
+  private readonly territoryConfigured = uniform(0);
+  private readonly territoryOrigin = uniform(new THREE.Vector2());
+  private readonly territorySize = uniform(new THREE.Vector2(1, 1));
+  private territoryTexture = new THREE.DataTexture(new Uint8Array(4), 1, 1);
+  private readonly territorySample = texture(this.territoryTexture);
+  private visibilityRevision = 0;
   private readonly selection: THREE.Mesh;
   private readonly terrain: PhotorealTiledTerrain;
   private readonly road: THREE.Mesh;
@@ -82,6 +110,10 @@ export class PhotorealCampaignWorld {
     readonly world: PhotorealWorld,
     readonly composition: CampaignComposition,
   ) {
+    this.fogAt = composition.fogAt;
+    this.territoryTexture.minFilter = THREE.NearestFilter;
+    this.territoryTexture.magFilter = THREE.NearestFilter;
+    this.territoryTexture.needsUpdate = true;
     this.scenery = new PhotorealScenery(world.scene);
     const environment = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
       aerialObserver: vec3(this.frame.focus, 0),
@@ -154,14 +186,24 @@ export class PhotorealCampaignWorld {
   private addLandscapeFog(geometry: THREE.BufferGeometry, vertices: Float32Array) {
     const fog = new Float32Array(vertices.length / 10);
     for (let i = 0; i < fog.length; i++)
-      fog[i] = this.composition.fogAt(vertices[i * 10], vertices[i * 10 + 1]);
+      fog[i] = this.fogAt(vertices[i * 10], vertices[i * 10 + 1]);
     geometry.setAttribute("campaignFog", new THREE.BufferAttribute(fog, 1));
   }
   private colorLandscapeMaterial(material: THREE.MeshStandardNodeMaterial, territory: boolean) {
     const base = material.colorNode as THREE.Node<"vec4">;
-    const tinted = territory
-      ? mix(base.rgb, linearAlbedo(vec3(...this.composition.territory)), 0.12)
-      : base.rgb;
+    let tinted = base.rgb;
+    if (territory) {
+      const uv = positionWorld.xy.sub(this.territoryOrigin).div(this.territorySize);
+      const ownership = this.territorySample.sample(vec2(uv.x, float(1).sub(uv.y)));
+      const land = float(1).sub(clamp(varying(attribute<"float">("gWater", "float")), 0, 1));
+      const fixtureTint = mix(base.rgb, linearAlbedo(vec3(...this.composition.territory)), 0.12);
+      tinted = mix(fixtureTint, base.rgb, this.territoryConfigured);
+      tinted = mix(
+        tinted,
+        linearAlbedo(ownership.rgb),
+        ownership.a.mul(0.62).mul(land).mul(this.territoryEnabled),
+      );
+    }
     material.colorNode = vec4(
       mix(
         tinted,
@@ -207,7 +249,7 @@ export class PhotorealCampaignWorld {
   }
   private seatScenery(force = false) {
     const seated = this.sceneryCandidates.flatMap((item) => {
-      if (this.fogEnabled && this.composition.fogAt(item.x, item.y) >= 0.5) return [];
+      if (this.fogEnabled && this.fogAt(item.x, item.y) >= 0.5) return [];
       const hit = this.terrain.surface.sampleRendered(item.x, item.y);
       return hit ? [{ ...item, z: hit.position[2] }] : [];
     });
@@ -222,12 +264,52 @@ export class PhotorealCampaignWorld {
     this.sceneryUploads++;
   }
 
+  /** Replaces ownership without rebuilding the terrain graph or its geometry. */
+  setTerritory(data: CampaignTerritoryData, enabled: boolean) {
+    if (
+      this.territoryTexture.image.width !== data.width ||
+      this.territoryTexture.image.height !== data.height
+    ) {
+      const previous = this.territoryTexture;
+      this.territoryTexture = new THREE.DataTexture(data.rgba, data.width, data.height);
+      this.territoryTexture.minFilter = THREE.NearestFilter;
+      this.territoryTexture.magFilter = THREE.NearestFilter;
+      this.territorySample.value = this.territoryTexture;
+      previous.dispose();
+    } else {
+      this.territoryTexture.image.data = data.rgba;
+    }
+    this.territoryTexture.needsUpdate = true;
+    this.territoryOrigin.value.set(...data.rect.min);
+    this.territorySize.value.set(
+      data.rect.max[0] - data.rect.min[0],
+      data.rect.max[1] - data.rect.min[1],
+    );
+    this.territoryConfigured.value = 1;
+    this.territoryEnabled.value = enabled ? 1 : 0;
+  }
+
+  /** A new query may reveal different ground even when fog remains enabled. */
+  setVisibility(fogAt: (x: number, y: number) => number, enabled: boolean) {
+    this.fogAt = fogAt;
+    this.world.scene.traverse((object) => {
+      const geometry = (object as THREE.Mesh).geometry;
+      const fog = geometry?.getAttribute("campaignFog");
+      const positions = geometry?.getAttribute("position");
+      if (!fog || !positions) return;
+      for (let i = 0; i < fog.count; i++) fog.setX(i, fogAt(positions.getX(i), positions.getY(i)));
+      fog.needsUpdate = true;
+    });
+    this.visibilityRevision++;
+    this.setFog(enabled);
+  }
+
   setFog(enabled: boolean) {
     this.fogEnabled = enabled;
     this.fogAmount.value = enabled ? 1 : 0;
     this.seatScenery(true);
     for (const { input, mesh } of this.objects)
-      mesh.visible = !enabled || this.composition.fogAt(input.x, input.y) < 0.5;
+      mesh.visible = !enabled || this.fogAt(input.x, input.y) < 0.5;
     if (this.selected && !this.objects.find((o) => o.input.id === this.selected)?.mesh.visible)
       this.selected = null;
     this.updateSelection();
@@ -370,6 +452,7 @@ export class PhotorealCampaignWorld {
   stats() {
     return {
       ...this.world.stats(),
+      visibilityRevision: this.visibilityRevision,
       selected: this.selected,
       fog: this.fogEnabled,
       objects: this.objects.filter((o) => o.mesh.visible).length,
@@ -380,6 +463,7 @@ export class PhotorealCampaignWorld {
     };
   }
   dispose() {
+    this.territoryTexture.dispose();
     this.scenery.dispose();
     this.terrain.dispose();
     this.standards.dispose();

@@ -1,3 +1,4 @@
+import { smoothstep } from "@packages/renderer-core/src/math";
 import type { SceneryInstance } from "@packages/game-renderer/src/terrain/scenery";
 import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
 import { createRenderedSurface } from "@packages/game-renderer/src/terrain/surface";
@@ -9,6 +10,7 @@ import { type LabContext, publish } from "../labShell";
 
 export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
+  const geography = ctx.params.get("geography") === "1";
   const vegetation = ctx.path === "/renderer/landscape-vegetation";
   const size = 81,
     cell = 2,
@@ -124,9 +126,22 @@ export async function route(ctx: LabContext) {
         { x: -30, y: -25, size: 4, height: 3, kind: "broadleaf" },
         { x: -40, y: -40, size: 2, height: 1, kind: "bush" },
       ]
-    : [];
+    : geography
+      ? [
+          { x: 25, y: -38, size: 3, height: 4, kind: "conifer" as const },
+          { x: -40, y: -40, size: 3, height: 4, kind: "broadleaf" as const },
+        ]
+      : [];
   let world = await PhotorealCampaignWorld.create(ctx.canvas, composition);
   if (vegetation) world.setScenery(scenery);
+  const territory = {
+    width: 2,
+    height: 2,
+    // Asymmetric ownership makes either axis reversal visible.
+    rgba: new Uint8Array([180, 45, 35, 255, 40, 70, 200, 255, 50, 150, 65, 255, 0, 0, 0, 0]),
+    rect: { min: [-80, -80] as [number, number], max: [80, 80] as [number, number] },
+  };
+  if (geography) world.setScenery(scenery);
   const labels = document.createElement("div");
   labels.style.cssText = "position:absolute;inset:0;pointer-events:none";
   ctx.canvas.parentElement!.append(labels);
@@ -190,7 +205,7 @@ export async function route(ctx: LabContext) {
       world.dispose();
       return;
     }
-    if (vegetation) world.setScenery(scenery);
+    if (vegetation || geography) world.setScenery(scenery);
     world.setFog(fogEnabled);
     generation++;
     reset.disabled = false;
@@ -251,6 +266,23 @@ export async function route(ctx: LabContext) {
     __campaignComposition: {
       installDetail,
       draw,
+      ownership: (enabled: boolean, changed = false) => {
+        const rgba = territory.rgba.slice();
+        if (changed) rgba.set([185, 135, 30, 255], 8);
+        world.setTerritory({ ...territory, rgba }, enabled);
+        draw();
+        requestAnimationFrame(draw);
+      },
+      visibility: (east: boolean) => {
+        fogEnabled = true;
+        const cx = east ? 35 : -35;
+        world.setVisibility((x, y) => {
+          const distance = Math.hypot(x - cx, y + 30);
+          return smoothstep(35 * 0.72, 35 * 1.08, distance);
+        }, true);
+        draw();
+        requestAnimationFrame(draw);
+      },
       resubmitScenery: () => {
         world.setScenery([...scenery]);
         draw();

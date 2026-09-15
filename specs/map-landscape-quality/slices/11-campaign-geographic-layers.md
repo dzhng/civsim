@@ -35,3 +35,17 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: A requested ownership/fog design change would alter this slice; current behavior is the migration target.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Dynamic geography checkpoint
+
+The first vertical pass gives the physical world replaceable political ownership
+and visibility. Ownership uses the existing north-first RGBA raster contract,
+nearest faction boundaries and political wash strength; its material graph stays
+shared across tile admissions. Visibility updates both resident terrain/roads and
+entity/scenery membership, and subsequently admitted terrain samples the current
+query. Queries remain campaign policy, not a second world visibility algorithm.
+
+This does not complete 11: full-region road/sea-lane/border inputs, affected-region
+re-draping/culling, composed real-map coverage and atmosphere remain. The old
+composition fixture's constant tint is retained until its consumers move to live
+ownership at production cutover; it is not the production faction model.

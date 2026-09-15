@@ -1,0 +1,71 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-15T03:12:57.775Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 2,
+  "worstPair": "visibility",
+  "results": [
+    {
+      "id": "visibility",
+      "current": "web/shots/campaign/campaign-visibility-west.png",
+      "candidate": "web/shots/campaign/campaign-visibility-east.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.09292,
+      "grayscale": {
+        "mae": 7.96835,
+        "rmse": 19.71815,
+        "diffRatio16": 0.17055,
+        "diffRatio32": 0.13652,
+        "diffRatio64": 0.00344,
+        "pixelmatchRatio": 0.15952
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.00021,
+        "blackRatioCandidate": 0.00021,
+        "terrainLikeRatioCurrent": 0.89584,
+        "terrainLikeRatioCandidate": 0.90847,
+        "avgLuminanceCurrent": 127.44389,
+        "avgLuminanceCandidate": 127.49008,
+        "avgLuminanceDelta": 0.04619,
+        "edgeEnergyCurrent": 0.02624,
+        "edgeEnergyCandidate": 0.02595,
+        "edgeEnergyRatio": 0.98895,
+        "edgeDiffRatio32": 0.01142
+      }
+    },
+    {
+      "id": "ownership",
+      "current": "web/shots/campaign/campaign-ownership.png",
+      "candidate": "web/shots/campaign/campaign-ownership-changed.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.00351,
+      "grayscale": {
+        "mae": 0.89536,
+        "rmse": 2.32026,
+        "diffRatio16": 0,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.00021,
+        "blackRatioCandidate": 0.00021,
+        "terrainLikeRatioCurrent": 0.94745,
+        "terrainLikeRatioCandidate": 0.94745,
+        "avgLuminanceCurrent": 143.73391,
+        "avgLuminanceCandidate": 144.62923,
+        "avgLuminanceDelta": 0.89532,
+        "edgeEnergyCurrent": 0.0292,
+        "edgeEnergyCandidate": 0.02873,
+        "edgeEnergyRatio": 0.98393,
+        "edgeDiffRatio32": 4e-05
+      }
+    }
+  ]
+}

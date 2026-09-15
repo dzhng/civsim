@@ -48,3 +48,7 @@ independent baked-geometry fixture covers uniform, tall and wide rock/tree pairs
 the former code fails its precision bound while uniform scale stays exact.
 See [normal evidence](../assets/slice-10/normals/README.md). This correctness fix
 precedes environment tuning and does not complete lighting/composition acceptance.
+
+## Visible-region shadow fit experiment
+
+The initial world-sized shadow volume leaves too few texels for regional city and canopy contact. Test the existing single-sun fitting primitive over the visible ground bounds, using the canonical camera's plane intersections. Preserve environment, assets, materials and1024map size. Battle retains the previous rectangle fit exactly through the extracted primitive. This candidate is not accepted: verify close contact, caster coverage, overview transitions and pan stability before retaining it; add stabilization if the comparison exposes swimming.

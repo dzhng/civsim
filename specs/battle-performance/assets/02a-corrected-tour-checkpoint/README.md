@@ -33,7 +33,7 @@ transferred byte remains charged until disk acknowledgment. No history was dropp
 or cap enlarged. Browser page errors were empty.
 
 The full spool and full-resolution PNGs remain locally at
-`../02a-spool-corrected-tour/`; only compact evidence and hashes are committed.
+`/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/`; only compact evidence and hashes are committed.
 The persisted archive supports offline replay without repeating source preparation.
 This checkpoint proves bounded representative motion and resource fidelity to the
 corrected source, while the four zoom pixels keep exact image admission open.

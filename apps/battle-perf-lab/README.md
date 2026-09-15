@@ -116,3 +116,14 @@ remain recorded, while native shaders consume explicit recorded time/camera data
 The native mode retains strict image/count gates and makes no timing claim.
 
 The first full native history result remains [diagnostic red](../../specs/battle-performance/assets/02-preflight/raw-spool/README.md).
+
+GPU allocation accounting in [nativeGpuAllocations](src/nativeGpuAllocations.ts)
+observes public device creation and explicit destruction. Install it before the
+backend and telemetry so both are included; restore after their disposal. Live
+and peak bytes describe requested buffer sizes and known texture texel payloads,
+including mips, array layers and samples. Unknown or implementation-dependent
+formats make current totals unavailable while live, and historical peaks remain
+unavailable. Imported resources, swapchain images, driver overhead and deferred
+reclamation are excluded: these numbers are not physical VRAM. The source battle
+renderer currently exposes Three geometry/texture counts and optional program
+counts only; those counts cannot establish byte parity with native candidates.

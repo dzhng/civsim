@@ -1,22 +1,18 @@
-/** Control-only accounting on a borrowed device, restored before device teardown. */
-export function trackBufferLifetime(device: GPUDevice) {
+import { allocationLifetime } from "./allocationLifetime";
+
+/** Requested buffer bytes, not driver allocation size. */
+export function trackBufferLifetime(device: GPUDevice, changed?: () => void) {
   const original = device.createBuffer;
-  const live = new Set<GPUBuffer>();
-  let created = 0;
+  const allocations = allocationLifetime(changed);
   device.createBuffer = function (descriptor: GPUBufferDescriptor) {
     const buffer = original.call(device, descriptor);
-    const destroy = buffer.destroy;
-    live.add(buffer);
-    created++;
-    buffer.destroy = function () {
-      destroy.call(buffer);
-      live.delete(buffer);
-    };
+    allocations.add(buffer, Number.isSafeInteger(descriptor.size) ? descriptor.size : null);
     return buffer;
   };
   return {
-    liveCount: () => live.size,
-    createdCount: () => created,
+    liveCount: () => allocations.snapshot().liveCount,
+    createdCount: () => allocations.snapshot().createdCount,
+    snapshot: allocations.snapshot,
     restore() {
       device.createBuffer = original;
     },

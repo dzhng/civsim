@@ -1,0 +1,77 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T02:43:05.213Z",
+  "target": "http://localhost:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "landscape-shores",
+      "file": "campaign/landscape-shores.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "landscape-shores",
+      "name": "before has a queryable surface within the feature budget",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"landscape-shores\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"allocationBytes\":3952,\"cpuBytes\":2168,\"gpuBytes\":1784,\"peakAllocationBytes\":5736,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":1784,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0,\"typedBytes\":0,\"centerRay\":{\"position\":[15.999999999999648,16.000275985116254,1.7419362990123674e-15],\"normal\":[0.004952580464303457,0,0.999987735898168],\"revision\":\"campaign:0\",\"triangle\":19,\"barycentric\":[0.9999655018604683,4.39648317751562e-14,0.0000344981394877486]},\"triangles\":32,\"before\":true,\"real\":false}}"
+    },
+    {
+      "scenario": "landscape-shores",
+      "name": "snapshot landscape-shores-before",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-shores",
+      "name": "coarse has a queryable surface within the feature budget",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"landscape-shores\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"allocationBytes\":87337,\"cpuBytes\":48989,\"gpuBytes\":38348,\"peakAllocationBytes\":125685,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":38348,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0,\"typedBytes\":38921,\"centerRay\":{\"position\":[15.999999999999648,16.000275985116254,0],\"normal\":[0,0,1],\"revision\":\"shore\",\"triangle\":463,\"barycentric\":[3.517186542012496e-13,0.0002759851162537075,0.9997240148833946]},\"triangles\":839,\"before\":false,\"real\":false}}"
+    },
+    {
+      "scenario": "landscape-shores",
+      "name": "snapshot landscape-shores-coarse",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-shores",
+      "name": "detail has a queryable surface within the feature budget",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"landscape-shores\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"allocationBytes\":153107,\"cpuBytes\":96359,\"gpuBytes\":56748,\"peakAllocationBytes\":181575,\"revision\":1,\"residentTiles\":1,\"geometryBytes\":56748,\"lastAdmissionUploadBytes\":28468,\"lastAdmissionCpuMs\":3.2799999713897705,\"typedBytes\":38921,\"centerRay\":{\"position\":[15.999999999999648,16.000275985116254,0],\"normal\":[0,0,1],\"revision\":\"coarse:1\",\"triangle\":463,\"barycentric\":[3.517186542012496e-13,0.0002759851162537075,0.9997240148833946]},\"triangles\":839,\"before\":false,\"real\":false}}"
+    },
+    {
+      "scenario": "landscape-shores",
+      "name": "snapshot landscape-shores-detail",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "landscape-shores",
+      "name": "real has a queryable surface within the feature budget",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"landscape-shores\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"allocationBytes\":94050,\"cpuBytes\":52850,\"gpuBytes\":41200,\"peakAllocationBytes\":135250,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":41200,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0,\"typedBytes\":42002,\"centerRay\":{\"position\":[-320,639.9951125083256,0],\"normal\":[0,0,1],\"revision\":\"shore\",\"triangle\":724,\"barycentric\":[0.00030546822964794274,0.9996945317703521,0]},\"triangles\":904,\"before\":false,\"real\":true}}"
+    },
+    {
+      "scenario": "landscape-shores",
+      "name": "snapshot landscape-shores-real",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

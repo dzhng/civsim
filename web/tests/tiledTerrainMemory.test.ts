@@ -151,7 +151,11 @@ test("admits coastal detail over the full-source overview within the unchanged a
   budget.reserve(campaignLandscapeAllocation(2560, 32).typedArrayBytes);
   const built = buildCampaignLandscape(field, [0, 0], 2560, 32);
   const base = built.surface;
-  const coarse = createRenderedSurface(conformShoreline(base, mask).mesh, base.domain, "overview");
+  const coarse = createRenderedSurface(
+    conformShoreline(base, mask, 48 * 1024 * 1024).mesh,
+    base.domain,
+    "overview",
+  );
   const terrain = new PhotorealTiledTerrain(
     new THREE.Scene(),
     createLandscapeFrameUniforms(),

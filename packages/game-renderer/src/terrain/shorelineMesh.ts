@@ -8,9 +8,11 @@ export function conformShoreline(
   base: RenderedSurface,
   source: RenderMaskData,
   maxBytes = 32 * 1024 * 1024,
+  heightAt?: (x: number, y: number) => number,
 ) {
   if (!Number.isFinite(maxBytes) || maxBytes <= 0 || maxBytes > 128 * 1024 * 1024)
     throw new Error(`Invalid shoreline geometry budget: ${maxBytes}`);
+  const height = heightAt ?? ((x: number, y: number) => base.sampleRendered(x, y)!.position[2]);
   const d = base.domain;
   const cellCount = (d.columns - 1) * (d.rows - 1);
   const sx = (source.rect.max[0] - source.rect.min[0]) / source.width;
@@ -196,6 +198,83 @@ export function conformShoreline(
       });
     },
   );
+  // Adjacent adaptive rectangles must retain each other's edge vertices. A
+  // nonlinear height at an omitted vertex otherwise opens a geometric crack.
+  const rows = new Map<string, number[]>(),
+    columns = new Map<string, number[]>();
+  for (const id of points.keys()) {
+    const [x, y, water] = id.split(":").map(Number);
+    const row = `${y.toFixed(9)}:${water}`,
+      column = `${x.toFixed(9)}:${water}`;
+    if (!rows.has(row)) rows.set(row, []);
+    if (!columns.has(column)) columns.set(column, []);
+    rows.get(row)!.push(x);
+    columns.get(column)!.push(y);
+  }
+  for (const values of [...rows.values(), ...columns.values()]) values.sort((a, b) => a - b);
+  const lowerBound = (values: number[], target: number) => {
+    let lo = 0,
+      hi = values.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (values[mid] < target) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+  const conformEdges = (polygon: Point[], water: boolean) => {
+    const result: Point[] = [];
+    for (let i = 0; i < polygon.length; i++) {
+      const a = polygon[i],
+        b = polygon[(i + 1) % polygon.length];
+      result.push(a);
+      const vertical = Math.abs(a[0] - b[0]) < epsilon;
+      if (!vertical && Math.abs(a[1] - b[1]) >= epsilon) continue;
+      const axis = vertical ? 1 : 0;
+      const values =
+        (vertical ? columns : rows).get(`${a[1 - axis].toFixed(9)}:${water ? 1 : 0}`) ?? [];
+      const inside = values.slice(
+        lowerBound(values, Math.min(a[axis], b[axis]) + epsilon),
+        lowerBound(values, Math.max(a[axis], b[axis]) - epsilon),
+      );
+      if (b[axis] < a[axis]) inside.reverse();
+      for (const value of inside) {
+        const t = (value - a[axis]) / (b[axis] - a[axis]);
+        result.push([vertical ? a[0] : value, vertical ? value : a[1], a[2] + (b[2] - a[2]) * t]);
+      }
+    }
+    return result;
+  };
+  const centerOf = (polygon: Point[]): Point =>
+    polygon.reduce(
+      (sum, p) =>
+        [
+          sum[0] + p[0] / polygon.length,
+          sum[1] + p[1] / polygon.length,
+          sum[2] + p[2] / polygon.length,
+        ] as Point,
+      [0, 0, 0] as Point,
+    );
+  triangles = 0;
+  cells(
+    () => {},
+    (_i, _j, left, bottom, right, top, mixed, water) => {
+      polygons(left, bottom, right, top, mixed, water, (polygon, water) => {
+        const boundary = conformEdges(polygon, water);
+        if (boundary.length !== polygon.length) {
+          const center = centerOf(polygon),
+            id = key(center[0], center[1], water);
+          if (!points.has(id)) points.set(id, points.size);
+          triangles += boundary.length;
+        } else triangles += polygon.length - 2;
+        const bytes = points.size * 57 + triangles * 12 + (cellCount + 1) * 4;
+        if (bytes > maxBytes)
+          throw new Error(
+            `Shoreline geometry needs at least ${bytes} typed-array bytes; budget is ${maxBytes}`,
+          );
+      });
+    },
+  );
   const verticesCount = points.size;
   const typedBytes = verticesCount * 57 + triangles * 12 + (cellCount + 1) * 4;
   const mesh: LandscapeMesh = {
@@ -235,29 +314,39 @@ export function conformShoreline(
     (i, j) => {
       mesh.cellTriangles![j * (d.columns - 1) + i] = triangle;
     },
-    (i, j, left, bottom, right, top, mixed, water) => {
-      const x0 = d.ox + i * d.cell,
-        y0 = d.oy + j * d.cell;
-      const h = [
-        base.sampleRendered(x0, y0)!.position[2],
-        base.sampleRendered(x0 + d.cell, y0)!.position[2],
-        base.sampleRendered(x0, y0 + d.cell)!.position[2],
-        base.sampleRendered(x0 + d.cell, y0 + d.cell)!.position[2],
-      ];
-      const height = (x: number, y: number) => {
-        const u = (x - x0) / d.cell,
-          v = (y - y0) / d.cell;
-        return (h[0] * (1 - u) + h[1] * u) * (1 - v) + (h[2] * (1 - u) + h[3] * u) * v;
-      };
+    (_i, _j, left, bottom, right, top, mixed, water) => {
       polygons(left, bottom, right, top, mixed, water, (polygon, water) => {
-        const ids = polygon.map(([x, y, signal]) =>
+        const boundary = conformEdges(polygon, water);
+        const ids = boundary.map(([x, y, signal]) =>
           emit(x, y, water || Math.abs(signal) < 1e-8 ? 0 : height(x, y), water),
         );
-        for (let p = 1; p < ids.length - 1; p++) face(ids[0], ids[p], ids[p + 1]);
+        if (boundary.length !== polygon.length) {
+          const [x, y] = centerOf(polygon),
+            center = emit(x, y, water ? 0 : height(x, y), water);
+          for (let p = 0; p < ids.length; p++) face(center, ids[p], ids[(p + 1) % ids.length]);
+        } else for (let p = 1; p < ids.length - 1; p++) face(ids[0], ids[p], ids[p + 1]);
       });
     },
   );
   mesh.cellTriangles![cellCount] = triangle;
+  if (heightAt) {
+    // Source-gradient normals stay identical across coarse/fine topology and
+    // loaded windows; triangle-area averaging would expose cell-size seams.
+    const step = Math.min(sx, sy) / 2;
+    for (let k = 0; k < mesh.waterCoverage!.length; k++) {
+      const x = mesh.vertices[k * 10],
+        y = mesh.vertices[k * 10 + 1];
+      const dx = mesh.waterCoverage![k]
+        ? 0
+        : (heightAt(x + step, y) - heightAt(x - step, y)) / (2 * step);
+      const dy = mesh.waterCoverage![k]
+        ? 0
+        : (heightAt(x, y + step) - heightAt(x, y - step)) / (2 * step);
+      const length = Math.hypot(dx, dy, 1);
+      mesh.vertices.set([-dx / length, -dy / length, 1 / length], k * 10 + 3);
+    }
+    return { mesh, typedBytes, mixedCells };
+  }
   // Area-weighted normals belong to the final conforming faces.
   const v = mesh.vertices;
   for (let t = 0; t < mesh.indices.length; t += 3) {

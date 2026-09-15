@@ -156,3 +156,62 @@ it("connects diagonal wet source centers through a tile cut without opening a dr
       expect(surface.sampleRendered(t, t)?.position[2]).toBe(0);
     }
 });
+
+it("recovers dry source relief even when every coarse corner missed an island", () => {
+  const base = grid(8);
+  for (let i = 2; i < base.mesh.vertices.length; i += 10) base.mesh.vertices[i] = 0;
+  const result = conformShoreline(base, source, 32 * 1024 * 1024, () => 2);
+  const surface = createRenderedSurface(result.mesh, base.domain, "island-source");
+  expect(surface.sampleRendered(3.5, 4.5)!.position[2]).toBe(2);
+  expect(surface.sampleRendered(2.5, 4.5)!.position[2]).toBe(0);
+});
+
+it("uses the same dry source normal across coarse and fine shoreline topology", () => {
+  const height = (x: number, y: number) => 2 + x * 0.1 + y * 0.2;
+  for (const cell of [4, 1]) {
+    const base = grid(cell),
+      result = conformShoreline(base, source, 32 * 1024 * 1024, height);
+    const length = Math.hypot(0.1, 0.2, 1);
+    for (let k = 0; k < result.mesh.waterCoverage!.length; k++) {
+      if (result.mesh.waterCoverage![k]) continue;
+      expect(result.mesh.vertices[k * 10 + 3]).toBeCloseTo(-0.1 / length, 6);
+      expect(result.mesh.vertices[k * 10 + 4]).toBeCloseTo(-0.2 / length, 6);
+      expect(result.mesh.vertices[k * 10 + 5]).toBeCloseTo(1 / length, 6);
+    }
+  }
+});
+
+it("keeps adaptive polygon edges watertight over nonlinear source relief", () => {
+  const base = grid(8, 0, 0, 32);
+  const coast: RenderMaskData = {
+    width: 32,
+    height: 32,
+    rect: { min: [0, 0], max: [32, 32] },
+    classes: Uint8Array.from({ length: 1024 }, (_, i) => (i % 32 < 9 ? 0 : 1)),
+  };
+  const result = conformShoreline(
+    base,
+    coast,
+    32 * 1024 * 1024,
+    (x, y) => 2 + x * x * 0.1 + y * y * 0.1,
+  );
+  const { vertices: v, indices } = result.mesh;
+  for (let t = 0; t < indices.length; t += 3)
+    for (let e = 0; e < 3; e++) {
+      const a = indices[t + e] * 10,
+        b = indices[t + ((e + 1) % 3)] * 10;
+      const dx = v[b] - v[a],
+        dy = v[b + 1] - v[a + 1];
+      if ((dx !== 0 && dy !== 0) || (dx === 0 && dy === 0)) continue;
+      for (let k = 0; k < v.length; k += 10) {
+        const u = dx === 0 ? (v[k + 1] - v[a + 1]) / dy : (v[k] - v[a]) / dx;
+        if (u <= 1e-6 || u >= 1 - 1e-6) continue;
+        if (
+          Math.abs(v[k] - (v[a] + dx * u)) > 1e-6 ||
+          Math.abs(v[k + 1] - (v[a + 1] + dy * u)) > 1e-6
+        )
+          continue;
+        expect(v[k + 2]).toBeCloseTo(v[a + 2] + (v[b + 2] - v[a + 2]) * u, 5);
+      }
+    }
+});

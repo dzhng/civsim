@@ -1,3 +1,5 @@
+import { campaignRelief } from "@packages/game-renderer/src/terrain/campaignRelief";
+import { buildCampaignCoast } from "@packages/game-renderer/src/terrain/campaignCoast";
 import * as THREE from "three/webgpu";
 import { attribute, mix, vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
@@ -42,7 +44,18 @@ export async function route(ctx: LabContext) {
   const make = (cell: number, point = center, r = radius) => {
     const base = buildCampaignLandscape(field, point, r, cell).surface;
     if (before) return { surface: base, typedBytes: 0 };
-    const result = conformShoreline(base, field.renderMask);
+    const relief = campaignRelief(field, cell);
+    const halo = 24;
+    const coast = buildCampaignCoast(
+      (x, y) => !field.renderWaterAt(x, y),
+      base.domain.ox - halo,
+      base.domain.oy - halo,
+      Math.ceil((r * 2 + halo * 2) / 2) + 1,
+      2,
+    );
+    const result = conformShoreline(base, field.renderMask, 32 * 1024 * 1024, (x, y) =>
+      relief.heightAt(x, y, coast.inlandAt(x, y)),
+    );
     return { ...result, surface: createRenderedSurface(result.mesh, base.domain, "shore") };
   };
   const coarse = make(real ? 16 : 8);

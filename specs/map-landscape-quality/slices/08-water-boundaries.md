@@ -151,3 +151,16 @@ explicitly reserved using the decorator's vertex stride; the memory tests
 exercise that attribute on both fixture and full-source geometry. The full-source
 initial reservation with fog and the coarse shore array is approximately 108 MB,
 still below 128 MiB. The earlier 102.8 MB figure excluded the fog decoration.
+
+### Canonical relief and edge continuity checkpoint
+
+Source height now recovers a raised dry island even when all coarse corners are
+wet. Source-gradient normals remove topology-sized shading seams. Adaptive
+polygon edges retain shared side vertices; a nonlinear-height regression proves
+the former0.1km crack is gone. Only polygons with extra edge points receive a
+center fan, and those vertices/triangles are included before output allocation.
+The full-overview test grants48MiB to this individual mesh build while retaining
+the complete128MiB CPU/GPU/staging assertion, which passes. Tile helper defaults
+remain32MiB. Four diagnostic images repeat exactly; fresh review accepts improved
+bank continuity but keeps outline steps and residual faceting open. See
+[relief evidence](../assets/slice-08/relief/README.md).

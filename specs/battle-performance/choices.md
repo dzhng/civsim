@@ -107,3 +107,7 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 ### Completed vista geometry ownership
 
 - **Settled:** Build outer rings and seam strips in the shared CPU terrain recipe before any renderer creates geometry. Keep a small read-only attribute view so the same seam math accepts packed data; remove the old Three geometry-mutating adapter. Preserve final rendered attributes and winding exactly rather than creating a separate native terrain generator.
+
+### Native vista material integration
+
+- **Settled:** Extend the existing terrain material owner with the source vista-band policy. Only the far ring enables source-equivalent alpha blending and disables depth writes; playable terrain retains its previous configuration. Outside rings do not receive sun shadows, matching the control and keeping extra work explicit.

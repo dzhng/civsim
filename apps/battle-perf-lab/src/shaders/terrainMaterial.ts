@@ -20,6 +20,7 @@ export interface TerrainMaterialOptions {
   earthDistance?: PhotorealEarthDistanceField;
   slopeBands?: BattleSlopeBands | null;
   farGrass?: boolean;
+  vistaBand?: string;
 }
 const f = (n: number) => `${n.toExponential(16)}f`;
 const rgb = (v: readonly number[]) => `vec3f(${v.map(f).join(",")})`;
@@ -121,7 +122,7 @@ export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
  let depth=smoothstep(${f(FIELD_WATER_RAMP.depthNear)},${f(FIELD_WATER_RAMP.depthFar)},rawWater);
  let waterAlbedo=terrainLinear(mix(mix(${rgb(WATER_SHALLOW_ALBEDO)},${rgb(WATER_DEEP_ALBEDO)},depth),${rgb(WATER_FOAM_ALBEDO)},foam));
  albedo=mix(albedo,waterAlbedo,waterBlend);
- roughness=mix(roughness,mix(${f(WATER_ROUGHNESS)},${f(WATER_FOAM_ROUGHNESS)},foam),waterBlend);
+ roughness=mix(${options.vistaBand ? `max(roughness,${f(options.vistaBand === "farFog" ? 0.995 : 0.985)})` : "roughness"},mix(${f(WATER_ROUGHNESS)},${f(WATER_FOAM_ROUGHNESS)},foam),waterBlend);
  return vec4f(terrainLinear(clamp(albedo,vec3f(0),vec3f(1))),roughness);
 }`,
   };

@@ -27,6 +27,10 @@ export function terrainShaders(
     mode === "beauty"
       ? `shadeWorldSurface(surface.rgb,vec3f(0),surface.a,geometryRoughnessFromView(v.viewNormalGeometry),0.0,1.0,normalize(v.normal),v.position,terrainState.shadow${receiveSunShadow ? "*sampleSunShadow(v.position,normalize(v.normal),v.clip.xy)" : ""})`
       : "surface";
+  const output =
+    options.vistaBand === "farFog" && mode === "beauty"
+      ? `let shaded=${shade};return vec4f(shaded.rgb,1.0-smoothstep(-0.012,0.05,normalize(v.position-cam.eye).z));`
+      : `return ${shade};`;
   return {
     ground:
       common +
@@ -37,7 +41,7 @@ export function terrainShaders(
    @vertex fn vertex(@location(0) p:vec3f,@location(1) n:vec3f,@location(2) water:f32,@location(3) tint:f32,@location(4) color:vec3f)->VertexOut {return VertexOut(projectWorld(p),p,n,color,tint,water,normalize((environment.worldToView*vec4f(n,0)).xyz));}
    @fragment fn fragment(v:VertexOut)->@location(0) vec4f {
     let surface=terrainSurface(v.position,v.normal,v.color,v.tint,v.water,cam.time,cam.focus,terrainState.farStrength,earthSdf,earthSampler);
-    return ${shade};
+    ${output}
    }`,
     horizon:
       common +

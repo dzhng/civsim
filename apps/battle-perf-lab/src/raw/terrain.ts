@@ -26,7 +26,7 @@ export class RawBattleTerrain {
     private readonly device: GPUDevice,
     cameraLayout: GPUBindGroupLayout,
     private readonly environment: RawEnvironment,
-    ground: PhotorealBattleGroundMesh,
+    ground: Omit<PhotorealBattleGroundMesh, "earthDistance">,
     horizon: BattleHorizonLayout | null,
     options: TerrainMaterialOptions = {},
     mode: "beauty" | "material" = "beauty",
@@ -87,7 +87,7 @@ export class RawBattleTerrain {
         options,
         mode,
         invariantPosition,
-        environment.shadows,
+        environment.shadows && !options.vistaBand,
       );
       const pipeline = (code: string, buffers: GPUVertexBufferLayout[]) => {
         const module = device.createShaderModule({ code });
@@ -95,11 +95,35 @@ export class RawBattleTerrain {
           layout: pipelineLayout,
           multisample: { count: sampleCount },
           vertex: { module, entryPoint: "vertex", buffers },
-          fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
+          fragment: {
+            module,
+            entryPoint: "fragment",
+            targets: [
+              {
+                format: "rgba16float",
+                ...(options.vistaBand === "farFog"
+                  ? {
+                      blend: {
+                        color: {
+                          srcFactor: "src-alpha" as const,
+                          dstFactor: "one-minus-src-alpha" as const,
+                          operation: "add" as const,
+                        },
+                        alpha: {
+                          srcFactor: "one" as const,
+                          dstFactor: "one-minus-src-alpha" as const,
+                          operation: "add" as const,
+                        },
+                      },
+                    }
+                  : {}),
+              },
+            ],
+          },
           primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
           depthStencil: {
             format: "depth32float",
-            depthWriteEnabled: true,
+            depthWriteEnabled: options.vistaBand !== "farFog",
             depthCompare: "greater-equal",
           },
         });

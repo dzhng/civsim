@@ -7,6 +7,9 @@ import {
   CAMPAIGN_FIGURE_SIZE,
   campaignSettlementStandardScale,
 } from "../../../game-renderer/src/campaign/entityFrame";
+import { CampaignLabelLayer } from "./labelLayer";
+import type { CampaignLabel } from "../../../game-renderer/src/campaign/labelFrame";
+import type { CampaignLabelPlacementStyle } from "../../../game-renderer/src/campaign/labelLayout";
 import { CampaignCityLayer } from "./cityLayer";
 import { modelMesh } from "./modelMesh";
 import type { CampaignEntityInstance } from "../../../game-renderer/src/campaign/entityInstance";
@@ -92,6 +95,9 @@ export class PhotorealCampaignWorld {
   private crowd: PhotorealCrowd | null = null;
   private crowdCandidates: readonly CrowdInstance[] = [];
   private seatedCrowd: CrowdInstance[] = [];
+  private readonly labels: CampaignLabelLayer;
+  private labelInputs: CampaignLabel[] = [];
+  private labelPlacement?: CampaignLabelPlacementStyle;
   private get renderObjects() {
     return [...this.objects, ...this.cities.objects];
   }
@@ -149,6 +155,7 @@ export class PhotorealCampaignWorld {
     this.territoryTexture.needsUpdate = true;
     this.scenery = new PhotorealScenery(world.scene);
     this.cities = new CampaignCityLayer(world.scene);
+    this.labels = new CampaignLabelLayer(world.scene);
     const environment = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
       aerialObserver: vec3(this.frame.focus, 0),
     });
@@ -428,6 +435,11 @@ export class PhotorealCampaignWorld {
     this.selection.geometry.dispose();
     this.selection.geometry = colorGeometry(Float32Array.from(vertices), 7, 3);
   }
+  setLabels(labels: CampaignLabel[], placement?: CampaignLabelPlacementStyle) {
+    this.labelInputs = labels;
+    this.labelPlacement = placement;
+  }
+
   render(pose: Camera3DParams, width: number, height: number, dpr = 1, time = 0) {
     this.pose = pose;
     this.width = width;
@@ -477,6 +489,27 @@ export class PhotorealCampaignWorld {
     this.scenery.prepareRender(this.camera, height);
     this.frame.time.value = time;
     this.world.setTime(time);
+    this.labels.update(
+      this.labelInputs.filter((label) => !this.fogEnabled || this.fogAt(label.x, label.y) < 0.5),
+      {
+        camera3d: pose,
+        x: pose.target[0],
+        y: pose.target[1],
+        zoom: height / (2 * pose.distance * Math.tan(pose.fovY / 2)),
+        width: width * dpr,
+        height: height * dpr,
+      },
+      dpr,
+      this.labelPlacement,
+      (label) => {
+        const z =
+          label.kind === "sea"
+            ? 0
+            : (this.terrain.surface.sampleRendered(label.x, label.y)?.position[2] ?? 0);
+        const point = this.project(label.x, label.y, z);
+        return point?.visible ? [point.x * dpr, point.y * dpr] : null;
+      },
+    );
     this.world.render(this.camera);
   }
   project(x: number, y: number, z: number) {
@@ -553,6 +586,7 @@ export class PhotorealCampaignWorld {
         elevation: instance.elevation,
         classId: instance.classId,
       })),
+      labels: this.labels.stats(),
       visibilityRevision: this.visibilityRevision,
       selected: this.selected,
       fog: this.fogEnabled,
@@ -565,6 +599,7 @@ export class PhotorealCampaignWorld {
   }
   dispose() {
     this.crowd?.dispose();
+    this.labels.dispose();
     this.cities.dispose();
     this.geography.dispose();
     this.territoryTexture.dispose();

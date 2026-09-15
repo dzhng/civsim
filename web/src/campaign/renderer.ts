@@ -13,8 +13,8 @@ import {
   CampaignMarkerPass,
   CampaignRoadPass,
   CampaignWorldLinePass,
-  type CampaignLabel,
 } from "@packages/game-renderer/src/campaign/mapPass";
+import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 import {
   buildCampaignMapDrawData,
   type CampaignMapStats,

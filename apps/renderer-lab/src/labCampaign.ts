@@ -1,7 +1,7 @@
+import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 import { screenToWorld, world3dToScreen, worldToScreen } from "@packages/renderer-core/src/cameraUniform";
 import { Allegiance, campaignArmyStandardScale, campaignSettlementStandardScale, type ArmyView, type CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import { type CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
-import { type CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
 import { standardSeed, standardWindPhase } from "@packages/game-renderer/src/models/shared/standardAsset";
 import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";

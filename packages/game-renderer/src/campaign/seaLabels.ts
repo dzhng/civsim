@@ -1,4 +1,4 @@
-import type { CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
+import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 
 // Anchors sit at each sea's open-water center (measured against the render
 // mask, keeping anchors off shore) and angles

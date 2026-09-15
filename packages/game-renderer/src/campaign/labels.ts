@@ -1,5 +1,5 @@
 import { world3dToScreen, type CameraSnapshot } from "@packages/renderer-core/src/cameraUniform";
-import type { CampaignLabel } from "./mapPass";
+import type { CampaignLabel } from "./labelFrame";
 import {
   Allegiance,
   factionColor,

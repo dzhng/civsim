@@ -1,5 +1,5 @@
 import type { CampaignSeaLabelFit } from "@packages/game-renderer/src/campaign/labelLayout";
-import type { CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
+import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 import { fitSeaLabels } from "@packages/game-renderer/src/campaign/labelLayout";
 import { SEA_LABEL_FIT_ZOOM, seaLabels } from "@packages/game-renderer/src/campaign/seaLabels";
 

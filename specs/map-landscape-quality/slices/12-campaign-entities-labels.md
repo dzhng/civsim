@@ -106,3 +106,11 @@ updates visibility and lifecycle ownership. [Crowd evidence](../assets/slice-12-
 records the exact fixture repeat, live frame inputs, scale regression checks and
 retained paired-row readability limit. This does not complete army standards,
 carts, labels, commands or production cutover.
+## Shared label frame checkpoint
+
+The raw campaign pass and physical campaign world now consume one renderer-neutral
+atlas/layout frame. The physical world supplies canonical raised projection and
+renders accepted quads in the same canvas. Existing production label generators,
+sea fitting, hierarchy and card occupancy remain authoritative. The bounded
+[DPR and lifecycle evidence](../assets/slice-12-labels/README.md) records the
+verified city/army glyph seam and the remaining full-presentation integration.

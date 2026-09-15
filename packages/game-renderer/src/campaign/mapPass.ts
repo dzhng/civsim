@@ -5,17 +5,8 @@ import { GrowableBuffer, makeVertexBuffer } from '@packages/renderer-core/src/gp
 import { NOISE_WGSL } from '@packages/renderer-core/src/noiseWgsl';
 import { cameraOnlyPipeline } from '@packages/renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
-import {
-  blockedRectsKey,
-  buildLabelAtlas,
-  buildLabelVertices,
-  labelAtlasKey,
-  labelDebugRects,
-  labelText,
-  visibleLabels,
-  type CampaignLabelDebugRect,
-  type CampaignLabelPlacementStyle,
-} from '@packages/game-renderer/src/campaign/labelLayout';
+import { CampaignLabelFrame, type CampaignLabel, type CampaignLabelFrameStats } from './labelFrame';
+import { buildLabelVertices, type CampaignLabelPlacementStyle } from './labelLayout';
 import {
   createLightTexture,
   createRgbaTexture,
@@ -38,30 +29,6 @@ export interface CampaignMarker {
   selected?: boolean;
 }
 
-export interface CampaignLabel {
-  text: string;
-  x: number;
-  y: number;
-  kind: 'city' | 'sea' | 'army' | 'faction';
-  size: number;
-  priority: number;
-  importance?: number;
-  angle?: number;
-  curve?: number;
-  icon?: 'city' | 'army' | 'sword';
-  iconColor?: [number, number, number];
-  rightIcon?: 'sword';
-  rightIconColor?: [number, number, number];
-  sideText?: string;
-  subText?: string;
-  collisionGroup?: string;
-  screenOffsetX?: number;
-  screenOffsetY?: number;
-  screenAnchorX?: 'center' | 'left' | 'right';
-  screenAnchorY?: 'center' | 'top' | 'bottom';
-  factionRadiusKm?: number;
-  factionMinor?: boolean;
-}
 
 const MAP_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -427,21 +394,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return textureSample(labelTex, labelSampler, in.uv);
 }`;
 
-export interface CampaignLabelPassStats {
-  labels: number;
-  visibleLabels: number;
-  visibleLabelNames: string[];
-  visibleSeaLabelRects: CampaignLabelDebugRect[];
-  visibleCityLabelRects: CampaignLabelDebugRect[];
-  visibleArmyLabelRects: CampaignLabelDebugRect[];
-  visibleFactionLabelRects: CampaignLabelDebugRect[];
-  collisionCulls: number;
-  collisionCulledLabels: string[];
-  atlasWidth: number;
-  atlasHeight: number;
-  vertices: number;
-  layer: 'raw-gpu-glyph-atlas';
-}
+export type CampaignLabelPassStats = CampaignLabelFrameStats & { layer: 'raw-gpu-glyph-atlas' };
 
 export class CampaignMapPass {
   public readonly drawnCoast: CampaignDrawnCoast;
@@ -751,22 +704,7 @@ export class CampaignLabelPass {
   private texture: GPUTexture;
   private vertexBuffer: GrowableBuffer;
   private vertexCount = 0;
-  private atlasKey = '';
-  private statsValue: CampaignLabelPassStats = {
-    labels: 0,
-    visibleLabels: 0,
-    visibleLabelNames: [],
-    visibleSeaLabelRects: [],
-    visibleCityLabelRects: [],
-    visibleArmyLabelRects: [],
-    visibleFactionLabelRects: [],
-    collisionCulls: 0,
-    collisionCulledLabels: [],
-    atlasWidth: 1,
-    atlasHeight: 1,
-    vertices: 0,
-    layer: 'raw-gpu-glyph-atlas',
-  };
+  private readonly frame = new CampaignLabelFrame();
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -813,61 +751,17 @@ export class CampaignLabelPass {
     const stats = this.shell.stats();
     const dpr = Math.max(1, stats.dpr || window.devicePixelRatio || 1);
     const snapshot: CameraSnapshot = { ...camera, width: stats.width, height: stats.height };
-    const visible = visibleLabels(labels, snapshot, dpr);
-    if (visible.length === 0) {
-      this.vertexCount = 0;
-      this.atlasKey = `empty:${labels.length}:${dpr}`;
-      this.statsValue = {
-        labels: labels.length,
-        visibleLabels: 0,
-        visibleLabelNames: [],
-        visibleSeaLabelRects: [],
-        visibleCityLabelRects: [],
-        visibleArmyLabelRects: [],
-        visibleFactionLabelRects: [],
-        collisionCulls: 0,
-        collisionCulledLabels: [],
-        atlasWidth: 1,
-        atlasHeight: 1,
-        vertices: 0,
-        layer: 'raw-gpu-glyph-atlas',
-      };
-      return this.statsValue;
+    const previous = this.frame.atlas;
+    this.frame.update(labels, snapshot, dpr, placement);
+    this.vertexCount = this.frame.vertices.length / 6;
+    const atlas = this.frame.atlas;
+    if (atlas && atlas !== previous) {
+      this.ensureTexture(atlas.width, atlas.height);
+      this.shell.device.queue.writeTexture({ texture: this.texture }, atlas.pixels,
+        { bytesPerRow: atlas.width * 4, rowsPerImage: atlas.height }, [atlas.width, atlas.height]);
+      this.vertexBuffer.write(buildLabelVertices(atlas.entries));
     }
-
-    // Blocked card rects join the key: a card that moved must re-arbitrate the
-    // canvas labels even when every label input is unchanged.
-    const atlasKey = `${labelAtlasKey(visible, dpr, labels.length)}#${blockedRectsKey(placement)}`;
-    if (atlasKey === this.atlasKey) return this.statsValue;
-    this.atlasKey = atlasKey;
-    const atlas = buildLabelAtlas(visible, dpr, snapshot, placement);
-    this.ensureTexture(atlas.width, atlas.height);
-    this.shell.device.queue.writeTexture(
-      { texture: this.texture },
-      atlas.pixels,
-      { bytesPerRow: atlas.width * 4, rowsPerImage: atlas.height },
-      [atlas.width, atlas.height],
-    );
-    const vertices = buildLabelVertices(atlas.entries);
-    this.vertexCount = Math.floor(vertices.length / 6);
-    this.vertexBuffer.write(vertices);
-    const debugRects = labelDebugRects(atlas.entries, dpr);
-    this.statsValue = {
-      labels: labels.length,
-      visibleLabels: atlas.entries.length,
-      visibleLabelNames: atlas.entries.slice(0, 128).map((entry) => `${entry.label.kind}:${labelText(entry.label)}`),
-      visibleSeaLabelRects: debugRects.filter((entry) => entry.kind === 'sea'),
-      visibleCityLabelRects: debugRects.filter((entry) => entry.kind === 'city'),
-      visibleArmyLabelRects: debugRects.filter((entry) => entry.kind === 'army'),
-      visibleFactionLabelRects: debugRects.filter((entry) => entry.kind === 'faction'),
-      collisionCulls: atlas.collisionCulls,
-      collisionCulledLabels: atlas.collisionCulledLabels,
-      atlasWidth: atlas.width,
-      atlasHeight: atlas.height,
-      vertices: this.vertexCount,
-      layer: 'raw-gpu-glyph-atlas',
-    };
-    return this.statsValue;
+    return this.stats();
   }
 
   draw(pass: OverlayRenderPass) {
@@ -880,11 +774,12 @@ export class CampaignLabelPass {
   }
 
   stats() {
-    return this.statsValue;
+    return { ...this.frame.stats(), layer: 'raw-gpu-glyph-atlas' as const };
   }
 
   private ensureTexture(width: number, height: number) {
-    if (width === this.statsValue.atlasWidth && height === this.statsValue.atlasHeight) return;
+    if (width === this.texture.width && height === this.texture.height) return;
+    this.texture.destroy();
     this.texture = this.createTexture(width, height);
     this.bindGroup = this.createBindGroup();
   }

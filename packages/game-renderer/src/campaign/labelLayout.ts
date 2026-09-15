@@ -1,9 +1,5 @@
-import {
-  screenToWorld,
-  worldToScreen,
-  type CameraSnapshot,
-} from "@packages/renderer-core/src/cameraUniform";
-import type { CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
+import { worldToScreen, type CameraSnapshot } from "@packages/renderer-core/src/cameraUniform";
+import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 import type { CampaignMapDrawStyle } from "@packages/game-renderer/src/campaign/roadGeometry";
 import {
   SEA_LABEL_ACROSS_NUDGE_KM,
@@ -320,10 +316,14 @@ interface MeasuredCampaignLabel extends VisibleCampaignLabel {
 const LEAGUE_IMPORTANCE_BAR_HI = 14;
 const FACTION_RETIRE_ZOOM = 0.95;
 
+/** Device-pixel projection; null means behind the camera. */
+export type CampaignLabelProjection = (label: CampaignLabel) => [number, number] | null;
+
 export function visibleLabels(
   labels: CampaignLabel[],
   camera: CameraSnapshot,
   dpr: number,
+  project?: CampaignLabelProjection,
 ): VisibleCampaignLabel[] {
   const visible: VisibleCampaignLabel[] = [];
   for (const label of labels) {
@@ -362,7 +362,9 @@ export function visibleLabels(
         : Math.min(34, Math.max(17, screenR * 0.5));
       resolved = { ...label, size };
     }
-    const [screenX, screenY] = worldToScreen(camera, label.x, label.y);
+    const anchor = project ? project(label) : worldToScreen(camera, label.x, label.y);
+    if (!anchor) continue;
+    const [screenX, screenY] = anchor;
     if (
       screenX < -180 ||
       screenY < -80 ||
@@ -894,7 +896,7 @@ function roundPx(value: number) {
   return Number(value.toFixed(3));
 }
 
-export function buildLabelVertices(entries: AtlasEntry[]) {
+export function buildLabelVertices(entries: AtlasEntry[], screenAnchors = false) {
   const vertices = new Float32Array(entries.length * 6 * 6);
   let o = 0;
   for (const entry of entries) {
@@ -918,8 +920,8 @@ export function buildLabelVertices(entries: AtlasEntry[]) {
       const [x, y, u, v] = corner;
       const ox = x * c - y * s;
       const oy = x * s + y * c;
-      vertices[o++] = label.x;
-      vertices[o++] = label.y;
+      vertices[o++] = screenAnchors ? entry.screenX : label.x;
+      vertices[o++] = screenAnchors ? entry.screenY : label.y;
       vertices[o++] = ox + anchorOffsetX;
       vertices[o++] = oy + anchorOffsetY;
       vertices[o++] = u;

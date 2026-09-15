@@ -1,4 +1,5 @@
 import { campaignCrowdFixture } from "./campaignCrowdFixture";
+import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 import type { CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
 import { smoothstep } from "@packages/renderer-core/src/math";
 import type { SceneryInstance } from "@packages/game-renderer/src/terrain/scenery";
@@ -12,6 +13,10 @@ import { type LabContext, publish } from "../labShell";
 
 export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
+  let glyphsVisible = true;
+  let blockedRects: { x: number; y: number; w: number; h: number }[] = [];
+  const glyphLabels = ctx.params.get("labels") === "1";
+  if (glyphLabels) await document.fonts.load("600 15px Cinzel");
   const geography = ctx.params.get("geography") === "1";
   const vegetation = ctx.path === "/renderer/landscape-vegetation";
   const size = 81,
@@ -198,9 +203,36 @@ export async function route(ctx: LabContext) {
     const pose = chartCamera3d({ x: 6, y: -3, zoom: 5, pitch: 0.9 }, height);
     pose.aspect = width / height;
     pose.target = [6, -3, 8];
+    if (glyphLabels) {
+      const inputs: CampaignLabel[] = [
+        ...composition.objects.map((object) => ({
+          text: object.label,
+          x: object.x,
+          y: object.y,
+          kind: object.id === "city" ? ("city" as const) : ("army" as const),
+          size: 15,
+          priority: 3,
+          screenOffsetY: 18,
+          screenAnchorY: "top" as const,
+        })),
+        ...cities.map((city) => ({
+          text: city.label,
+          x: city.x,
+          y: city.y,
+          kind: "city" as const,
+          size: 15,
+          priority: 3,
+          icon: "city" as const,
+        })),
+      ];
+      world.setLabels(glyphsVisible ? inputs : [], {
+        renderSurfaceAt: () => "land",
+        blockedRects,
+      });
+    }
     world.render(pose, width, height, window.devicePixelRatio);
     labels.replaceChildren();
-    for (const anchor of world.anchors()) {
+    for (const anchor of glyphLabels ? [] : world.anchors()) {
       if (!anchor.visible) continue;
       const label = document.createElement("span");
       label.dataset.entity = anchor.id;
@@ -298,6 +330,14 @@ export async function route(ctx: LabContext) {
   };
   Object.assign(window, {
     __campaignComposition: {
+      glyphs: (visible: boolean) => {
+        glyphsVisible = visible;
+        draw();
+      },
+      blockers: (rects: typeof blockedRects) => {
+        blockedRects = rects;
+        draw();
+      },
       installDetail,
       crowd: (zoom = 5, empty = false, time = 0.25) => {
         if (crowdFixture) world.setCrowd(crowdFixture.frame(zoom, empty, time).crowd);

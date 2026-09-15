@@ -4,27 +4,17 @@ import {
   buildStandardMesh,
   STANDARD_VERTEX_STRIDE_FLOATS,
   STANDARD_WAVE_BACK_LOBE,
-  standardLiveryForFaction,
-  standardSeed,
-  standardWindPhase,
-  standardWindStrength,
+  STANDARD_WAVE,
 } from "../../../game-renderer/src/models/shared/standardAsset";
-import type { BattleFactionId } from "../../../game-renderer/src/battle/factionColors";
+import {
+  BATTLE_STANDARD_TIER as STANDARD_TIER,
+  STANDARD_SURFACE,
+  writeBattleStandard,
+  battleStandardCapacity,
+  type BattleStandardInstance,
+} from "../../../game-renderer/src/models/shared/battleStandardData";
 import { linearAlbedo, viewNormalNode, type FloatNode } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
-
-export interface BattleStandardInstance {
-  unitId: number;
-  x: number;
-  y: number;
-  z: number;
-  yaw: number;
-  scale: number;
-  factionId: BattleFactionId;
-  selected: boolean;
-}
-
-const STANDARD_TIER = "battle-unit";
 
 export class PhotorealStandardLayer {
   private readonly mesh: THREE.Mesh;
@@ -62,7 +52,7 @@ export class PhotorealStandardLayer {
     // attribute costs one — livery gold is a material uniform (constant
     // across factions) and selected/wind-strength share one meta slot.
     if (instances.length > this.capacity) {
-      this.capacity = Math.max(instances.length, this.capacity * 2, 32);
+      this.capacity = battleStandardCapacity(instances.length, this.capacity);
       this.pose = new Float32Array(this.capacity * 4);
       this.meta = new Float32Array(this.capacity * 4);
       this.field = new Float32Array(this.capacity * 3);
@@ -75,21 +65,7 @@ export class PhotorealStandardLayer {
     }
     for (let i = 0; i < instances.length; i++) {
       const instance = instances[i];
-      const livery = standardLiveryForFaction(instance.factionId);
-      const seed =
-        standardSeed(STANDARD_TIER, instance.factionId) ^
-        Math.imul(instance.unitId + 1, 0x9e3779b1);
-      const o4 = i * 4;
-      const o3 = i * 3;
-      this.pose[o4] = instance.x;
-      this.pose[o4 + 1] = instance.y;
-      this.pose[o4 + 2] = instance.z;
-      this.pose[o4 + 3] = instance.yaw;
-      this.meta[o4] = instance.scale;
-      this.meta[o4 + 1] = standardWindPhase(seed >>> 0);
-      this.meta[o4 + 2] = standardWindStrength(STANDARD_TIER);
-      this.meta[o4 + 3] = instance.selected ? 1 : 0;
-      this.field.set(livery.field, o3);
+      writeBattleStandard(instance, this.pose, i * 4, this.meta, i * 4, this.field, i * 3);
       if (instance.selected) this.selected++;
     }
     for (const name of ["standardPose", "standardMeta", "standardField"] as const) {
@@ -162,11 +138,24 @@ function standardMaterial(time: FloatNode): THREE.MeshStandardNodeMaterial {
 
   const weight = uvwm.z;
   // meta = (scale, windPhase, windStrength, selected).
-  const primary = sin(time.mul(2.15).add(meta.y).add(local0.x.mul(5.2)).add(local0.z.mul(1.25)));
-  const secondary = sin(
-    time.mul(3.1).add(meta.y.mul(0.71)).add(local0.x.mul(9.4)).sub(local0.z.mul(0.52)),
+  const primary = sin(
+    time
+      .mul(STANDARD_WAVE.primaryTime)
+      .add(meta.y)
+      .add(local0.x.mul(STANDARD_WAVE.primaryX))
+      .add(local0.z.mul(STANDARD_WAVE.primaryZ)),
   );
-  const wave = primary.mul(0.74).add(secondary.mul(0.26)).toVar();
+  const secondary = sin(
+    time
+      .mul(STANDARD_WAVE.secondaryTime)
+      .add(meta.y.mul(STANDARD_WAVE.secondaryPhase))
+      .add(local0.x.mul(STANDARD_WAVE.secondaryX))
+      .sub(local0.z.mul(STANDARD_WAVE.secondaryZ)),
+  );
+  const wave = primary
+    .mul(STANDARD_WAVE.primaryMix)
+    .add(secondary.mul(STANDARD_WAVE.secondaryMix))
+    .toVar();
   const shaped = mix(wave, wave.mul(STANDARD_WAVE_BACK_LOBE), step(0.0, wave));
   const local = vec3(local0.x, local0.y.add(weight.mul(meta.z).mul(shaped)), local0.z)
     .mul(meta.x)
@@ -191,9 +180,9 @@ function standardMaterial(time: FloatNode): THREE.MeshStandardNodeMaterial {
   const materialId = varying(uvwm.w);
   const selected = varying(meta.w);
   const field = varying(attribute<"vec3">("standardField", "vec3"));
-  const goldRgb = standardLiveryForFaction("azure").trim;
+  const goldRgb = STANDARD_SURFACE.gold;
   const gold = vec3(goldRgb[0], goldRgb[1], goldRgb[2]);
-  const pole = vec3(0.34, 0.22, 0.12);
+  const pole = vec3(...STANDARD_SURFACE.pole);
 
   const mPole = float(1.0).sub(step(0.5, materialId));
   const mGoldHardware = step(0.5, materialId).mul(float(1.0).sub(step(1.5, materialId)));
@@ -210,7 +199,9 @@ function standardMaterial(time: FloatNode): THREE.MeshStandardNodeMaterial {
     .toVar();
   const selectedLift = selected.mul(clothMask);
   const albedo = clamp(
-    base.mul(float(1.0).add(selectedLift.mul(0.18))).add(gold.mul(selectedLift).mul(0.12)),
+    base
+      .mul(float(1.0).add(selectedLift.mul(STANDARD_SURFACE.selectedAlbedo)))
+      .add(gold.mul(selectedLift).mul(STANDARD_SURFACE.selectedGold)),
     vec3(0.0),
     vec3(1.0),
   );
@@ -219,13 +210,20 @@ function standardMaterial(time: FloatNode): THREE.MeshStandardNodeMaterial {
   // distance haze — a hazed-out banner carries no faction identity, which is
   // the flag's whole job.
   material.emissiveNode = linearAlbedo(
-    field.mul(clothMask).mul(0.12).add(gold.mul(selectedLift).mul(0.22)),
+    field
+      .mul(clothMask)
+      .mul(STANDARD_SURFACE.clothEmission)
+      .add(gold.mul(selectedLift).mul(STANDARD_SURFACE.selectedEmission)),
   );
   material.roughnessNode = mix(
-    float(0.72),
-    float(0.48),
+    float(STANDARD_SURFACE.roughness),
+    float(STANDARD_SURFACE.metalRoughness),
     clamp(mGoldHardware.add(mTrim).add(mEmblem), 0.0, 1.0),
   );
-  material.metalnessNode = clamp(mGoldHardware.add(mTrim).add(mEmblem).mul(0.32), 0.0, 0.42);
+  material.metalnessNode = clamp(
+    mGoldHardware.add(mTrim).add(mEmblem).mul(STANDARD_SURFACE.metalness),
+    0.0,
+    STANDARD_SURFACE.maxMetalness,
+  );
   return material;
 }

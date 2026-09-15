@@ -1,0 +1,348 @@
+{
+  "buffersAfterDispose": 0,
+  "texturesAfterDispose": 0,
+  "backend": "vgpu",
+  "samples": 1,
+  "errors": [],
+  "disposedGuard": true,
+  "concurrentUploadRejected": true,
+  "passed": false,
+  "results": [
+    {
+      "name": "overlap",
+      "pixels": {
+        "maxAbs": 1.124755859375,
+        "maxRelative": 6.764502164502164,
+        "rmse": 0.0013356605007746325,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 3.248046875,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 1,
+      "outliers": [
+        {
+          "x": 304,
+          "y": 236,
+          "actual": [
+            1.521484375,
+            1.0947265625,
+            0.206298828125,
+            1
+          ],
+          "expected": [
+            0.396728515625,
+            0.1409912109375,
+            0.0740966796875,
+            1
+          ]
+        }
+      ],
+      "maxCovered": 1.124755859375,
+      "covered": 5918,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": false,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "front",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009615384615384616,
+        "rmse": 0.0000020040401743924588,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.671875,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13089,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "wave",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009615384615384616,
+        "rmse": 0.0000019804534585280597,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.671875,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13078,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "reverse",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0008873114463176575,
+        "rmse": 3.2223280163945026e-7,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.5380859375,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13445,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "selected",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009615384615384616,
+        "rmse": 0.0000015295996601434173,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.671875,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13078,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 3,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "legibility",
+      "pixels": {
+        "maxAbs": 0.00048828125,
+        "maxRelative": 0.0009216589861751152,
+        "rmse": 5.604949850243077e-7,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 5.015625,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.00048828125,
+      "covered": 5610,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "growth",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009191176470588235,
+        "rmse": 4.623107774177865e-7,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 5.796875,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 6058,
+      "counts": true,
+      "stats": {
+        "count": 40,
+        "selected": 13,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "shrink",
+      "pixels": {
+        "maxAbs": 1.124755859375,
+        "maxRelative": 6.764502164502164,
+        "rmse": 0.0013356605007746325,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 3.248046875,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 1,
+      "outliers": [
+        {
+          "x": 304,
+          "y": 236,
+          "actual": [
+            1.521484375,
+            1.0947265625,
+            0.206298828125,
+            1
+          ],
+          "expected": [
+            0.396728515625,
+            0.1409912109375,
+            0.0740966796875,
+            1
+          ]
+        }
+      ],
+      "maxCovered": 1.124755859375,
+      "covered": 5918,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": false,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "hidden",
+      "pixels": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 0,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0,
+      "covered": 0,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "empty",
+      "pixels": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 0,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0,
+      "covered": 0,
+      "counts": true,
+      "stats": {
+        "count": 0,
+        "selected": 0,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    }
+  ],
+  "scope": "Battle standards component: authored wave, livery, selection and legibility scale; no shadow, no full-scene/performance claim",
+  "pageErrors": []
+}

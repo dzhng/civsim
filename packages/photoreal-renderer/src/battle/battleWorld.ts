@@ -67,7 +67,8 @@ import {
   PhotorealTriangleLayer,
 } from "./overlayLayer";
 import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
-import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";
+import { PhotorealStandardLayer } from "./standardLayer";
+import type { BattleStandardInstance } from "../../../game-renderer/src/models/shared/battleStandardData";
 import { BattlePostChain } from "../post/postChain";
 import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
 

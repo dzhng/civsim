@@ -19,7 +19,7 @@ import {
   type GraphicsSettings,
 } from "../shared/graphicsSettings";
 import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
-import type { BattleStandardInstance } from "@packages/photoreal-renderer/src/battle/standardLayer";
+import type { BattleStandardInstance } from "@packages/game-renderer/src/models/shared/battleStandardData";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";

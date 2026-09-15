@@ -7,6 +7,7 @@ import {
   STANDARD_SIZE_TIER_IDS,
   STANDARD_VERTEX_STRIDE_FLOATS,
   STANDARD_WAVE_BACK_LOBE,
+  STANDARD_WAVE,
   type StandardLivery,
   standardLiveryForFaction,
   standardSeed,
@@ -50,9 +51,9 @@ struct VsOut {
 // back lobe (toward the pole) is quarter-amplitude so the cloth never swings
 // back far enough to pierce the pole it hangs in front of.
 fn clothWave(local: vec3f, weight: f32, phase: f32, strength: f32) -> f32 {
-  let primary = sin(cam.time * 2.15 + phase + local.x * 5.2 + local.z * 1.25);
-  let secondary = sin(cam.time * 3.1 + phase * 0.71 + local.x * 9.4 - local.z * 0.52);
-  let wave = primary * 0.74 + secondary * 0.26;
+  let primary = sin(cam.time * ${STANDARD_WAVE.primaryTime} + phase + local.x * ${STANDARD_WAVE.primaryX} + local.z * ${STANDARD_WAVE.primaryZ});
+  let secondary = sin(cam.time * ${STANDARD_WAVE.secondaryTime} + phase * ${STANDARD_WAVE.secondaryPhase} + local.x * ${STANDARD_WAVE.secondaryX} - local.z * ${STANDARD_WAVE.secondaryZ});
+  let wave = primary * ${STANDARD_WAVE.primaryMix} + secondary * ${STANDARD_WAVE.secondaryMix};
   let shaped = select(wave, wave * ${STANDARD_WAVE_BACK_LOBE}, wave > 0.0);
   return weight * strength * shaped;
 }

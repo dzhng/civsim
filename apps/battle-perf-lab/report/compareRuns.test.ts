@@ -102,6 +102,40 @@ function input(runId: string, backend: RunManifest["backend"] = "raw") {
     },
   };
 }
+/** Counters must agree with the recorded submissions: id 0 is the untimed boundary
+ * frame and 1-600 are the timed frames, so anything unresolved stays declared. */
+function withGpu(report: ReturnType<typeof input>["report"], results: ObjectValue[]) {
+  const resolved = new Set(results.map((result) => result.submissionId));
+  const unresolvedSubmissionIds = Array.from({ length: 601 }, (_, i) => i).filter(
+    (id) => !resolved.has(id),
+  );
+  return {
+    ...report,
+    gpu: {
+      trackedSubmissions: 601,
+      pendingOrMissingCount: unresolvedSubmissionIds.length,
+      unresolvedSubmissionIds,
+      cursorGapCount: 0,
+      lostEventCount: 0,
+      results,
+    },
+  };
+}
+type ObjectValue = Record<string, unknown>;
+const completeResult = (submissionId: number, fields: ObjectValue): ObjectValue => ({
+  status: "complete",
+  submissionId,
+  backend: "raw",
+  missingQueries: 0,
+  renderMs: 1,
+  computeMs: 0,
+  stages: [{ label: "main", ms: 1 }],
+  ...fields,
+});
+/** Frame index i carries elapsed (i+1)*500 ms, so 0-58 are tactical and 59 opens pan. */
+const phaseOf = (result: ReturnType<typeof compareRuns>["runs"][number], name: string) =>
+  result.phases.find((phase) => phase.name === name)!;
+
 describe("offline matched benchmark report", () => {
   test("retains existing FPS definitions and exposes missing GPU timing and unequal sim progression", () => {
     const a = input("a"),
@@ -222,6 +256,119 @@ describe("offline matched benchmark report", () => {
     expect(result.gpu.observedRangeResults).toBe(1);
     expect(result.gpu.stages.main).toMatchObject({ count: 1, p95Ms: 6 });
     expect(result.gpu.pendingOrMissingCount).toBe(599);
+  });
+  test("phase CPU distributions partition the run and follow the camera phase owner", () => {
+    const a = input("a"),
+      b = input("b");
+    Object.assign(b.report.frames[0], { simCpuMs: 4 });
+    Object.assign(b.report.frames[1], { simCpuMs: 6 });
+    Object.assign(b.report.frames[59], { simCpuMs: 20 });
+    b.report.frames[1].phase = "return";
+    const run = compareRuns(a, b).runs[1];
+    expect(run.issues).toContain("phase label disagrees with frame timestamp");
+    expect(phaseOf(run, "tactical").cpu.simCpuMs).toMatchObject({
+      count: 2,
+      meanMs: 5,
+      missingOrInvalidCount: 57,
+    });
+    expect(phaseOf(run, "pan").cpu.simCpuMs).toMatchObject({ count: 1, meanMs: 20 });
+    // The forged label named "return", whose own 61 frames stay entirely unmeasured.
+    expect(phaseOf(run, "return").cpu.simCpuMs).toMatchObject({
+      count: 0,
+      meanMs: null,
+      missingOrInvalidCount: 61,
+    });
+    expect(run.phases.reduce((total, phase) => total + phase.cpu.simCpuMs.count, 0)).toBe(
+      run.cpu.simCpuMs.count,
+    );
+    expect(
+      run.phases.reduce((total, phase) => total + phase.cpu.simCpuMs.missingOrInvalidCount, 0),
+    ).toBe(run.cpu.simCpuMs.missingOrInvalidCount);
+  });
+  test("the boundary submission belongs to the opening phase and is counted once", () => {
+    const a = input("a"),
+      b = input("b");
+    const run: RunInput = {
+      manifest: b.manifest,
+      report: withGpu(b.report, [
+        completeResult(0, { measuredPassGpuMs: 3, observedGpuSpanMs: 2, observedGpuUnionMs: 2 }),
+        completeResult(60, { measuredPassGpuMs: 9, observedGpuSpanMs: 4, observedGpuUnionMs: 3 }),
+      ]),
+    };
+    const result = compareRuns(a, run).runs[1];
+    expect(result.issues).toEqual([]);
+    const tactical = phaseOf(result, "tactical"),
+      pan = phaseOf(result, "pan");
+    expect(tactical.gpu).toMatchObject({ matchedSubmissions: 60, completeResults: 1 });
+    expect(tactical.gpu.durations.measuredPassGpuMs).toMatchObject({ count: 1, meanMs: 3 });
+    expect(pan.gpu).toMatchObject({ matchedSubmissions: 120, completeResults: 1 });
+    expect(pan.gpu.durations.measuredPassGpuMs).toMatchObject({ count: 1, meanMs: 9 });
+    expect(result.phases.reduce((total, phase) => total + phase.gpu.matchedSubmissions, 0)).toBe(
+      result.gpu.trackedSubmissions,
+    );
+    expect(result.phases.reduce((total, phase) => total + phase.gpu.completeResults, 0)).toBe(
+      result.gpu.completeResults,
+    );
+  });
+  test("phase spans and unions stay distinct from the double-counting pass sum", () => {
+    const a = input("a"),
+      b = input("b");
+    const run: RunInput = {
+      manifest: b.manifest,
+      report: withGpu(b.report, [
+        completeResult(1, {
+          renderMs: 8,
+          computeMs: 4,
+          measuredPassGpuMs: 12,
+          observedGpuSpanMs: 2,
+          observedGpuUnionMs: 1.8,
+          stages: [
+            { label: "world", ms: 8, observedGpuSpanMs: 1.2, observedGpuUnionMs: 1.2 },
+            { label: "post", ms: 4, observedGpuSpanMs: 1.1, observedGpuUnionMs: 1.1 },
+          ],
+        }),
+      ]),
+    };
+    const tactical = phaseOf(compareRuns(a, run).runs[1], "tactical");
+    expect(tactical.gpu.durations.measuredPassGpuMs).toMatchObject({ count: 1, meanMs: 12 });
+    expect(tactical.gpu.durations.observedGpuSpanMs).toMatchObject({ count: 1, meanMs: 2 });
+    expect(tactical.gpu.durations.observedGpuUnionMs).toMatchObject({ count: 1, meanMs: 1.8 });
+    expect(tactical.gpu.observedRangeResults).toBe(1);
+  });
+  test("absent, partial and unresolved phase ranges stay missing instead of zero", () => {
+    const a = input("a"),
+      b = input("b");
+    const run: RunInput = {
+      manifest: b.manifest,
+      report: withGpu(b.report, [
+        completeResult(1, {
+          measuredPassGpuMs: 5,
+          observedGpuSpanMs: null,
+          observedGpuUnionMs: null,
+        }),
+        completeResult(2, { measuredPassGpuMs: 6, observedGpuSpanMs: 3 }),
+        { status: "incomplete", submissionId: 3, backend: "raw", stages: [] },
+      ]),
+    };
+    const result = compareRuns(a, run).runs[1];
+    expect(result.issues).toContain("invalid observed GPU range metrics");
+    const tactical = phaseOf(result, "tactical");
+    expect(tactical.gpu).toMatchObject({
+      matchedSubmissions: 60,
+      completeResults: 2,
+      incompleteResults: 1,
+      unresolvedSubmissions: 57,
+      observedRangeResults: 0,
+      missingRangeResults: 2,
+    });
+    expect(tactical.gpu.durations.measuredPassGpuMs).toMatchObject({ count: 2, meanMs: 5.5 });
+    for (const key of ["observedGpuSpanMs", "observedGpuUnionMs"])
+      expect(tactical.gpu.durations[key]).toMatchObject({
+        count: 0,
+        missingOrInvalidCount: 2,
+        meanMs: null,
+        maxMs: null,
+      });
   });
   test("corrupt simulated seconds are rejected using the simulation time owner", () => {
     const a = input("a"),

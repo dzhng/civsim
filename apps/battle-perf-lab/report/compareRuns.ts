@@ -73,6 +73,42 @@ function durations(values: unknown[]) {
   };
 }
 
+const CPU_FIELDS = ["simCpuMs", "renderCpuMs", "renderAwaitMs", "renderWallMs", "loopCpuMs"];
+const GPU_PASS_FIELDS = ["renderMs", "computeMs", "measuredPassGpuMs"];
+const GPU_RANGE_FIELDS = ["observedGpuSpanMs", "observedGpuUnionMs"] as const;
+type ObservedRange = Record<(typeof GPU_RANGE_FIELDS)[number], number>;
+
+/** Whole-run and per-phase CPU distributions share one owner and one field set. */
+function cpuDistributions(samples: readonly ObjectValue[]) {
+  return Object.fromEntries(
+    CPU_FIELDS.map((key) => [key, durations(samples.map((s) => s[key]))] as const),
+  );
+}
+
+/** Observed ranges are only meaningful as a pair, so a partial, negative or
+ * union-exceeds-span record stays missing instead of half-counted. Historic
+ * recordings without ranges report null and remain unavailable, never zero. */
+function observedRange(result: ObjectValue): ObservedRange | null {
+  const { observedGpuSpanMs: span, observedGpuUnionMs: union } = result;
+  const measured = (v: unknown): v is number =>
+    typeof v === "number" && Number.isFinite(v) && v >= 0;
+  if (!measured(span) || !measured(union) || union > span + 1e-6) return null;
+  return { observedGpuSpanMs: span, observedGpuUnionMs: union };
+}
+
+/** Pass sums double-count overlapping intervals and stay diagnostic; span and
+ * union come from the recorded whole-presentation ranges and are never rebuilt
+ * from stage values. Only complete submission-matched results are included. */
+function gpuDistributions(completeResults: readonly ObjectValue[]) {
+  return Object.fromEntries([
+    ...GPU_PASS_FIELDS.map((key) => [key, durations(completeResults.map((r) => r[key]))] as const),
+    ...GPU_RANGE_FIELDS.map(
+      (key) =>
+        [key, durations(completeResults.map((r) => observedRange(r)?.[key] ?? null))] as const,
+    ),
+  ]);
+}
+
 function inspect(input: RunInput) {
   const issues: string[] = [];
   const m = object(input.manifest, "manifest");
@@ -182,23 +218,31 @@ function inspect(input: RunInput) {
   const firstRenderer = object(firstFrame.renderer, "firstFrame.renderer");
   let previousTime = 0,
     previousId = number(firstRenderer.renderedFrameId, "firstFrame.renderedFrameId");
-  const submissions = new Map<number, ObjectValue>();
-  const retainSubmission = (renderer: ObjectValue) => {
+  /** Recorded submissions and the phase that owns each of them; keying by id keeps
+   * every submission counted once, whichever recording boundary produced it. */
+  const submissions = new Map<number, { value: ObjectValue; phase: string }>();
+  /** The camera script owns which phase a timestamp belongs to; an exported label
+   * that disagrees is reported as an issue and never used for attribution. */
+  const framePhases = frames.map(
+    (f) => sampleBenchmarkCamera(number(f.elapsedMs, "frame.elapsedMs")).phase as string,
+  );
+  const retainSubmission = (renderer: ObjectValue, phase: string) => {
     if (!renderer.gpuSubmission) return;
     const value = object(renderer.gpuSubmission, "gpuSubmission");
     const id = number(value.submissionId, "submissionId");
     if (!Number.isSafeInteger(id) || id < 0 || submissions.has(id))
       issues.push("invalid or duplicate recorded submission");
-    submissions.set(id, value);
+    submissions.set(id, { value, phase });
   };
-  retainSubmission(firstRenderer);
-  for (const f of frames) {
+  /** The untimed boundary frame precedes the first interval at elapsed zero, so the
+   * camera owner assigns it the opening phase rather than a phase of its own. */
+  retainSubmission(firstRenderer, sampleBenchmarkCamera(0).phase);
+  for (const [index, f] of frames.entries()) {
     const at = number(f.elapsedMs, "frame.elapsedMs");
     const renderer = object(f.renderer, "frame.renderer");
     const id = number(renderer.renderedFrameId, "renderedFrameId");
     if (previousTime >= requested) issues.push("samples retained after terminal window boundary");
-    if (f.phase !== sampleBenchmarkCamera(at).phase)
-      issues.push("phase label disagrees with frame timestamp");
+    if (f.phase !== framePhases[index]) issues.push("phase label disagrees with frame timestamp");
     if (
       at <= previousTime ||
       Math.abs(at - previousTime - Number(f.intervalMs)) > 0.01 ||
@@ -206,7 +250,7 @@ function inspect(input: RunInput) {
       id !== previousId + 1
     )
       issues.push("nonmonotonic or inconsistent presentation history");
-    retainSubmission(renderer);
+    retainSubmission(renderer, framePhases[index]);
     previousTime = at;
     previousId = id;
     if (renderer.gpuSubmission) {
@@ -246,12 +290,7 @@ function inspect(input: RunInput) {
     issues.push("simulation did not advance from declared contact tick");
   if (Math.abs(simulatedSeconds - (endTick - startTick) * ACTION_TICK_SECONDS) > 1e-9)
     issues.push("simulated seconds disagree with tick progression");
-  const cpu = Object.fromEntries(
-    ["simCpuMs", "renderCpuMs", "renderAwaitMs", "renderWallMs", "loopCpuMs"].map((key) => [
-      key,
-      durations(frames.map((f) => f[key])),
-    ]),
-  );
+  const cpu = cpuDistributions(frames);
   const gpu = r.gpu === null ? null : object(r.gpu, "gpu");
   const results = gpu ? list(gpu.results, "gpu.results").map((v) => object(v, "gpu result")) : [];
   if (gpu) {
@@ -266,7 +305,7 @@ function inspect(input: RunInput) {
     const seen = new Set<number>();
     for (const result of results) {
       const id = number(result.submissionId, "GPU result submissionId");
-      const recorded = submissions.get(id);
+      const recorded = submissions.get(id)?.value;
       if (
         !recorded ||
         seen.has(id) ||
@@ -340,12 +379,44 @@ function inspect(input: RunInput) {
       ),
     ]),
   );
+  const resultsById = new Map<number, ObjectValue>();
+  for (const result of results) {
+    const id = number(result.submissionId, "GPU result submissionId");
+    // A duplicated identity is already an issue; the first record still counts once.
+    if (!resultsById.has(id)) resultsById.set(id, result);
+  }
+  /** Per-phase GPU covers exactly the submissions recorded inside that phase.
+   * Unresolved submissions stay counted rather than being read as zero work, and
+   * a result whose identity matched no recorded submission belongs to no phase. */
+  const phaseGpu = (name: string) => {
+    const matched = [...submissions]
+      .filter(([, recorded]) => recorded.phase === name)
+      .map(([id]) => resultsById.get(id) ?? null);
+    const complete = matched.filter((r): r is ObjectValue => r?.status === "complete");
+    return {
+      matchedSubmissions: matched.length,
+      completeResults: complete.length,
+      incompleteResults: matched.filter((r) => r !== null && r.status !== "complete").length,
+      unresolvedSubmissions: matched.filter((r) => r === null).length,
+      observedRangeResults: complete.filter((r) => observedRange(r) !== null).length,
+      missingRangeResults: complete.filter((r) => observedRange(r) === null).length,
+      durations: gpuDistributions(complete),
+    };
+  };
+  const phaseReports = phases.map((phase) => {
+    const name = String(phase.name);
+    return {
+      ...phase,
+      cpu: cpuDistributions(frames.filter((f, index) => framePhases[index] === name)),
+      gpu: phaseGpu(name),
+    };
+  });
   return {
     issues: [...new Set(issues)],
     manifest: input.manifest,
     identity,
     scenario,
-    phases,
+    phases: phaseReports,
     summary,
     cpu,
     simulation: {
@@ -357,29 +428,17 @@ function inspect(input: RunInput) {
     },
     gpu: {
       snapshotPresent: gpu !== null,
-      observedRangeResults: completeResults.filter((r) =>
-        [r.observedGpuSpanMs, r.observedGpuUnionMs].every(
-          (v) => typeof v === "number" && Number.isFinite(v) && v >= 0,
-        ),
-      ).length,
+      observedRangeResults: completeResults.filter((r) => observedRange(r) !== null).length,
       available: completeResults.some(
         (r) => typeof r.measuredPassGpuMs === "number" && Number.isFinite(r.measuredPassGpuMs),
       ),
-      durations: Object.fromEntries(
-        [
-          "renderMs",
-          "computeMs",
-          "measuredPassGpuMs",
-          "observedGpuSpanMs",
-          "observedGpuUnionMs",
-        ].map((key) => [key, durations(completeResults.map((r) => r[key]))]),
-      ),
+      durations: gpuDistributions(completeResults),
       stages,
       trackedSubmissions: gpu?.trackedSubmissions ?? null,
       pendingOrMissingCount: gpu?.pendingOrMissingCount ?? null,
       cursorGapCount: gpu?.cursorGapCount ?? null,
       lostEventCount: gpu?.lostEventCount ?? null,
-      completeResults: results.filter((r) => r.status === "complete").length,
+      completeResults: completeResults.length,
       incompleteResults: results.filter((r) => r.status !== "complete").length,
       coverage: gpu?.coverage ?? null,
       exclusions: gpu?.exclusions ?? null,
@@ -405,11 +464,9 @@ export function compareRuns(
   if (a.manifest.runId === b.manifest.runId || a.manifest.order === b.manifest.order)
     issues.push("pair requires distinct run IDs and orders");
   match("scenario", a.scenario, b.scenario);
-  match(
-    "camera phases",
-    a.phases.map(({ summary, ...p }) => p),
-    b.phases.map(({ summary, ...p }) => p),
-  );
+  const definitions = (run: typeof a) =>
+    run.phases.map(({ name, startMs, endMs }) => ({ name, startMs, endMs }));
+  match("camera phases", definitions(a), definitions(b));
   match("hardware", a.manifest.hardware, b.manifest.hardware);
   for (const key of ["assetsSha256", "wasmSha256", "configSha256"] as const)
     match(key, a.manifest[key], b.manifest[key]);
@@ -440,6 +497,7 @@ export function compareRuns(
       "Live simulations may advance different numbers of ticks; this is end-to-end cadence, not identical per-frame work.",
       "GPU pass sums can double-count overlapping execution intervals and are diagnostic only, not elapsed GPU time or exclusive work.",
       "Observed GPU span includes gaps; interval union merges overlaps. Neither is physical GPU busy time or presentation latency. Missing ranges remain unavailable.",
+      "Per-phase GPU covers only the submissions recorded during that phase; phase spans and unions describe those presentations and cannot be added into a run total.",
       "Manifest declarations require external evidence; this offline report cannot establish host isolation or visual parity.",
     ],
   };

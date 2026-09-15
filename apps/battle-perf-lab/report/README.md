@@ -42,3 +42,13 @@ reports observed whole-presentation span and interval union separately when thos
 ranges were captured; older or unsupported measurements remain unavailable. Span
 includes internal gaps, while union counts overlapping intervals once. Neither is
 physical GPU busy time. They cannot be reconstructed from stage sums.
+
+Every labeled phase carries the same CPU and GPU distributions as the whole run.
+The camera script owns which phase a timestamp belongs to, so a disagreeing
+exported label is an issue rather than an attribution. The untimed boundary frame
+precedes the first interval, so its submission belongs to the opening phase and is
+counted once. A phase covers exactly the submissions recorded during it: missing,
+unresolved and incomplete results stay counted as such instead of reading as zero
+work, and a result matching no recorded submission belongs to no phase. Phase
+spans and unions describe only those presentations; they cannot be added into a
+run total and no union can be rebuilt from stage values.

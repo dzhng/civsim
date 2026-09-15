@@ -5,7 +5,7 @@ import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environ
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
-import { fieldWaterSurfaceNodes } from "@packages/photoreal-renderer/src/battle/seaLayer";
+import { fieldWaterSurfaceNodes } from "@packages/photoreal-renderer/src/landscape/waterMaterial";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
 import { type LabContext, publish } from "../labShell";

@@ -1,0 +1,41 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T02:53:57.801Z",
+  "target": "http://localhost:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "terrain-water",
+      "file": "system/terrain-water.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "terrain-water",
+      "name": "terrain water matches standalone water under identical light",
+      "ok": true,
+      "detail": "{\"terrain\":[76,134,151],\"standalone\":[76,134,151],\"delta\":0}"
+    },
+    {
+      "scenario": "terrain-water",
+      "name": "snapshot terrain-water",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

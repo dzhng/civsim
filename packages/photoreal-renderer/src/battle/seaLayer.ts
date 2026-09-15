@@ -1,10 +1,10 @@
-// seaLayer — the ONE water seam of the photoreal battle world. The sea uses
-// the Gerstner TSL displacement source selected by the 12a verdict, shaded as
-// a standard material so Fresnel reflection and GGX sun glint come from the
-// same SkyModel LUT/IBL and sun that light the rest of the scene. Distance
-// haze comes ONLY from the shared aerial-perspective hook (scene.fogNode) —
-// the sea dissolves into the sky through it, never through an
-// inline haze mix.
+import {
+  shoreDepthNode, waterSurfaceNodes,
+  WATER_SHALLOW_ALBEDO, WATER_DEEP_ALBEDO, WATER_FOAM_ALBEDO,
+  WATER_SAND_TURBIDITY_ALBEDO, WATER_ROUGHNESS, WATER_FOAM_ROUGHNESS,
+} from "../landscape/waterMaterial";
+// Battle owns ocean/lake geometry and Gerstner displacement. Shared water
+// response receives light from the world environment and haze from scene.fogNode.
 import * as THREE from "three/webgpu";
 import {
   dot,
@@ -23,16 +23,12 @@ import { attribute } from "three/tsl";
 import { bakeGerstnerWaves } from "../../../game-renderer/src/water/gerstnerField";
 import {
   BATTLE_OCEAN_RAMP,
-  FIELD_WATER_RAMP,
   type WaterShoreRamp,
 } from "../../../game-renderer/src/water/waterShoreRamp";
 import type { BattleOceanPlaneSpec } from "../../../game-renderer/src/battle/horizonPass";
 import type { BattleTerrainGrid } from "../../../game-renderer/src/battle/terrainFeatures";
 import {
   fnoiseN,
-  linearAlbedo,
-  rgbNode,
-  saturateN,
   smoothstepN,
   type LandscapeFrameUniforms,
   type FloatNode,
@@ -40,17 +36,6 @@ import {
   type Vec3Node,
 } from "../landscape/shaderNodes";
 
-// The neutral scattering colour the sea contributes beneath its sky reflection.
-// These are display-authored effective albedos: pale Aegean turquoise in the
-// shallows and a restrained deep-water blue offshore under the golden preset.
-const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.22, 0.58, 0.6];
-const WATER_DEEP_ALBEDO: [number, number, number] = [0.025, 0.095, 0.22];
-const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
-const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.4];
-// Calm water is glossy: the sun track is standard-material GGX specular from
-// the live environment sun; foam stays matte.
-const WATER_ROUGHNESS = 0.105;
-const WATER_FOAM_ROUGHNESS = 0.78;
 // 12b trap: the sea looked right nearby but sparkled like aliasing in the
 // grazing upper band. Fade normal detail with distance from the battle focus;
 // aerial haze remains owned by scene.fogNode.
@@ -89,8 +74,6 @@ const LAKE_NORMAL_DETAIL_FAR = 0.08;
 // alias into blue/white cobblestone blobs at ~600m (compose rounds 1-2).
 const LAKE_NORMAL_DETAIL_FADE_START = 120;
 const LAKE_NORMAL_DETAIL_FADE_END = 420;
-const FIELD_WATER_DETAIL_FADE_START = LAKE_NORMAL_DETAIL_FADE_START;
-const FIELD_WATER_DETAIL_FADE_END = LAKE_NORMAL_DETAIL_FADE_END;
 const WATER_TINT = 1;
 
 export interface BattleLakeSurfaceSpec {
@@ -317,65 +300,6 @@ function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
     );
   }
   return h;
-}
-
-/** waterShoreRamp(shoreDist) → depth01 (the haze leg of the shared ramp
- *  table is a bespoke-WGSL knob; photoreal haze is the aerial owner's). */
-function shoreDepthNode(ramp: WaterShoreRamp, shoreDist: FloatNode): FloatNode {
-  return smoothstepN(ramp.depthNear, ramp.depthFar, shoreDist);
-}
-
-interface WaterSurfaceNodes {
-  /** Neutral albedo (depth-graded blue + foam). */
-  albedo: Vec3Node;
-  foam: FloatNode;
-  roughness: FloatNode;
-}
-
-/** The one civsim water surface response: every photoreal water surface
- *  (ocean planes, on-field water in the ground material) composes through
- *  this, so shorelines cannot show a stripe. Neutral albedo — the environment
- *  lights it, the aerial owner hazes it. */
-function waterSurfaceNodes(
-  depth01: FloatNode,
-  foamRaw: FloatNode,
-  shoreTurbidity: FloatNode | null = null,
-): WaterSurfaceNodes {
-  const foam = saturateN(foamRaw).toVar();
-  const shallow = shoreTurbidity
-    ? mix(rgbNode(WATER_SAND_TURBIDITY_ALBEDO), rgbNode(WATER_SHALLOW_ALBEDO), shoreTurbidity)
-    : rgbNode(WATER_SHALLOW_ALBEDO);
-  let albedo = mix(shallow, rgbNode(WATER_DEEP_ALBEDO), depth01);
-  albedo = mix(albedo, rgbNode(WATER_FOAM_ALBEDO), foam);
-  albedo = linearAlbedo(albedo);
-  const roughness = mix(float(WATER_ROUGHNESS), float(WATER_FOAM_ROUGHNESS), foam);
-  return { albedo, foam, roughness };
-}
-
-/** fieldWaterWgsl fieldWaterColor's surface terms — the on-field battle water
- *  (calm: swash lace pinned to the waterline, no swell), keyed on the
- *  box-filtered water weight. The ground material blends these over turf by
- *  the same weight. */
-export function fieldWaterSurfaceNodes(
-  frame: LandscapeFrameUniforms,
-  p: Vec2Node,
-  shoreDist: FloatNode,
-): WaterSurfaceNodes {
-  const swash = smoothstepN(0.16, 0.02, shoreDist).mul(smoothstepN(0.006, 0.03, shoreDist));
-  const viewDist = length(p.sub(vec2(frame.focus))).toVar();
-  const detailFade = smoothstepN(
-    FIELD_WATER_DETAIL_FADE_START,
-    FIELD_WATER_DETAIL_FADE_END,
-    viewDist,
-  );
-  const detail = float(1.0).sub(detailFade).toVar();
-  const lace = fnoiseN(p.mul(1.2).add(vec2(frame.time.mul(0.05), 0.0)))
-    .mul(0.28)
-    .add(0.72);
-  return waterSurfaceNodes(
-    shoreDepthNode(FIELD_WATER_RAMP, shoreDist),
-    swash.mul(lace).mul(0.7).mul(detail),
-  );
 }
 
 /** One battle ocean-edge plane (waterPlanePass battle mode): the displaced

@@ -90,3 +90,5 @@ explicitly delegated by the slice and are not additional architecture choices.
 
 - **Sound, high confidence — retain adaptive edge vertices.** Neighbouring shoreline polygons must agree along shared edges even over nonlinear relief. Existing source edge points are inserted into larger neighbours; only affected polygons add a center fan. This prevents geometric cracks without refining the whole map interior.
 - **Sound, high confidence — total allocation governs the overview.** The full overview receives a larger individual mesh-build allowance than a small tile, while the unchanged total128MiB reservation covers all retained and transient resources. Per-build allowance is not a second total budget.
+
+- **Sound, high confidence — one terrain material for each tiled world.** When a tile arrives, its geometry changes but its lighting and surface response do not. The world therefore keeps one configured material until disposal; eviction releases only tile geometry. The plan required bounded admissions but did not prescribe shader graph lifetime. This avoids rebuilding Three node graphs on every admission and leaves fog as a per-geometry attribute.

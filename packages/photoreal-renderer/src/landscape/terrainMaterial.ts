@@ -28,7 +28,7 @@ import {
   TERRAIN_MATERIAL,
   type TerrainProfile,
 } from "../../../game-renderer/src/terrain/materialProfile";
-import { fieldWaterSurfaceNodes } from "../battle/seaLayer";
+import { fieldWaterSurfaceNodes } from "./waterMaterial";
 import {
   fbmN,
   linearAlbedo,

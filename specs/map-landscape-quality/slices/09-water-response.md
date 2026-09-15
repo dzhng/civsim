@@ -1,6 +1,6 @@
 # 09 — Shared water depth, surf and motion
 
-Status: pending. Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
+Status: in progress. Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
 
 ## Contract and owner
 
@@ -35,3 +35,7 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: Preference for calmer/brighter water changes the water profile. The reference remains the baseline for depth and shore articulation.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Shared owner checkpoint
+
+The existing response now lives in `landscape/waterMaterial.ts`; terrain, ocean and lake consumers import it directly. Geometry and displacement remain mode-specific. The [extraction control](../assets/slice-09/owner/README.md) preserves the prior water output. Next add separate campaign coverage/shore/depth inputs and review the composed water; this extraction alone does not complete09.

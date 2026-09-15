@@ -45,3 +45,10 @@ export function battleGroundInputs(ground: ReturnType<typeof buildBattleTerrainD
     },
   };
 }
+
+export function terrainPickingMeshes(data: ReturnType<typeof prepareBattleTerrain>["data"]) {
+  return [data.ground, ...data.vistaMeshes.map((ring) => ring.mesh)].map((mesh) => ({
+    vertices: mesh.vertices,
+    indices: frontSideGroundIndices(mesh.indices),
+  }));
+}

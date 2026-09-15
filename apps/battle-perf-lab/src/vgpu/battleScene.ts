@@ -148,6 +148,7 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
     return {
+      pickingMeshes: () => terrain.pickingMeshes(),
       groundInputs: () => terrain.groundInputs(),
       grassReplayState: () => grass.snapshot(),
       readGrassDiagnostics: () => grass.readDiagnostics(),

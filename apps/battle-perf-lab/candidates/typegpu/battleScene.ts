@@ -161,6 +161,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
     return {
+      pickingMeshes: () => terrain.pickingMeshes(),
       groundInputs: () => terrain.groundInputs(),
       grassReplayState: () => grass.snapshot(),
       readGrassDiagnostics: () => grass.readDiagnostics(),

@@ -155,6 +155,7 @@ export async function createRawBattleScene(
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
     return {
+      pickingMeshes: () => terrain.pickingMeshes(),
       groundInputs: () => terrain.groundInputs(),
       grassReplayState: () => grass.snapshot(),
       grassRoutingBuffers: () => grass.routingBuffers(),

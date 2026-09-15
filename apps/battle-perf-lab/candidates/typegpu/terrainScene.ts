@@ -1,4 +1,8 @@
-import { prepareBattleTerrain, battleGroundInputs } from "../../src/terrainScenePreparation";
+import {
+  prepareBattleTerrain,
+  terrainPickingMeshes,
+  battleGroundInputs,
+} from "../../src/terrainScenePreparation";
 import type { BattleTerrainInput } from "../../src/sceneTypes";
 import {
   battleTerrainHeightAt,
@@ -156,6 +160,7 @@ export async function createTypegpuBattleTerrainScene(
     grid: () => current().grid,
     cover: () => current().cover,
     field: () => current().data.field,
+    pickingMeshes: () => terrainPickingMeshes(current().data),
     groundInputs: () => battleGroundInputs(current().data.ground),
     heightAt: (x: number, y: number) => {
       const d = current().data;

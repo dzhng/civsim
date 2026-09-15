@@ -6,7 +6,7 @@ Can the selected renderer share identical material image storage across appearan
 
 The [source hardware allocation control](../assets/03b-image-residency/source-gpu-allocation-summary.json) now confirms 60 distinct live WebGPU image textures, each 2048² with 12 mips: 20 sRGB and 40 linear. Their logical payload agrees with the earlier resource report. This proves duplicate allocations exist, while physical VRAM and performance effects remain unmeasured. An isolated source candidate may establish sharing and lifetime correctness before backend selection; it cannot alter fixed comparison inputs or settle the backend decision.
 
-Production integration follows slice 03's backend ownership decision. This is an independent optimization track alongside grass and crowd work, and joins final acceptance in 10. Preserve the fixed comparison baseline. A no-change result needs evidence that existing resources are already shared or that the proposed ownership is unsound; do not add a cache merely to close the slice.
+The verified incumbent implementation may integrate before slice 03 without choosing a backend: original fixed comparison builds remain immutable, and final selected-renderer controls must include equivalent image ownership. This brings a proven resource reduction into the working game while comparison timing remains open. This is an independent optimization track alongside grass and crowd work, and joins final acceptance in 10. Preserve the fixed comparison baseline. A no-change result needs evidence that existing resources are already shared or that the proposed ownership is unsound; do not add a cache merely to close the slice.
 
 ## Ownership seam
 

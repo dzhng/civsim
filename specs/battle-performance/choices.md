@@ -199,3 +199,11 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Sound — high confidence:** vgpu's depth-only horizon caster declares a position-only geometry view borrowing the existing beauty mesh's buffers. A shader's consumed attributes define its view; inventing unused shader inputs or bypassing library validation would preserve the wrong contract. The beauty geometry retains buffer ownership. The small exported caster helper lets the library-backed regression test exercise this same pass; no production renderer switch is added.
 
 - **Sound — high confidence:** completed-tick observation input exposes a cheap count before raw-view construction. This preserves the existing unchanged-tick fast path while keeping WASM and published-buffer reading behind the same typed input. Count access also enforces held-publication lifetime, so cached presentation cannot conceal a released buffer. The original eager-read draft was corrected before integration.
+
+### Integrate verified incumbent image ownership before selection
+
+- **When:** source image-sharing integration, 2026-09-15.
+- **Choice:** Stop allocating the same soldier texture separately for every appearance in the current renderer now. Renderer comparison continues against the preserved fixed builds; if a different renderer wins, its final resource ownership must meet the same contract. Waiting for selection would leave a verified memory reduction unused without improving the comparison.
+- **Gap:** The original slice order deferred all integration until backend selection; actual hardware now proves the duplicate allocation and safe replacement lifetime independently of timing.
+- **Reach:** This changes the working incumbent, adds no renderer switch or compatibility path, and requires refreshed final comparisons. It does not close the motion or performance gates.
+- **Verdict:** Sound, medium confidence. The ordering is reversible and fixed experimental inputs remain intact; the final renderer is still undecided.

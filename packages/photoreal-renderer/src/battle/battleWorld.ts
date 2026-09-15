@@ -69,7 +69,8 @@ import {
   type MarkerInstance,
 } from "./overlayLayer";
 import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
-import { PhotorealStandardLayer, type StandardDrawInstance } from "../landscape/standardLayer";
+import { PhotorealStandardLayer } from "../landscape/standardLayer";
+import type { StandardInstance } from "../../../game-renderer/src/models/shared/standardInstance";
 import { BattlePostChain } from "../post/postChain";
 import type { BattlePostGradeUniforms } from "../post/postChain";
 
@@ -466,12 +467,12 @@ export class PhotorealBattleWorld {
   }
 
   uploadUnitReadouts(
-    standards: readonly StandardDrawInstance[],
+    standards: readonly StandardInstance[],
     readouts: readonly BattleReadoutInstance[],
   ): void {
     this.standardLayer.upload(standards);
     this.readoutLayer.upload(readouts);
-    this.lastStandards = standards.map((s) => ({ unitId: s.unitId, x: s.x, y: s.y, z: s.z }));
+    this.lastStandards = standards.flatMap((s) => s.unitId === undefined ? [] : [{ unitId: s.unitId, x: s.x, y: s.y, z: s.z ?? 0 }]);
   }
   private lastStandards: { unitId: number; x: number; y: number; z: number }[] = [];
 

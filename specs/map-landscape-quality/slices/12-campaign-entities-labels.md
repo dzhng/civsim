@@ -42,3 +42,16 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 A correct center anchor does not guarantee a seated city footprint. The actual largest normal city mesh extends 6.092 campaign render kilometres from its anchor; the smaller tier extends 5.109. The closest real city pairs are Perge/Attalea and Cyrene/Apollonia, so oversized flat pads also interact. These are exaggerated presentation units, not real geographic building sizes.
 
 The [401-site measurements](../assets/slice-04/README.md#deferred-local-foundations) preserve the old and retained-relief residuals, wet-foot samples and the rejected flat-foundation experiment. Flat cores eliminated detailed 2 km foot residuals but produced circular shelves/depressions in clay views; the 8 km experiment still left 373/401 nonflat. That implementation was rejected and its code removed. The retained relief still needs footprint grounding here. Keep node XY and water at zero, inspect actual model feet at final scale, and resolve the visible contact problem without punching circular holes through ranges. Use the measured close pairs and diagonal coast at Scodra as regression cases.
+
+## Shared standard instance checkpoint
+
+The standard presentation contract now belongs beside its shared asset, not to
+one GPU renderer. Campaign tiers, custom field/trim/emblem colors and explicit
+wind values flow through the same physical layer as battle standards. Battle
+still supplies its unit identity and selection; zero wind is an explicit value,
+not a request for a default. Tiers select mesh buckets while one material owns
+lighting and cloth response.
+
+This checkpoint does not complete dynamic city/crowd/label migration, footprint
+grounding, or production cutover. The raw standard pass remains only for its
+unmigrated consumers and reads the same instance/default owner.

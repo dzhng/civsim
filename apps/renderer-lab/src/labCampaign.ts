@@ -3,7 +3,7 @@ import { Allegiance, campaignArmyStandardScale, campaignSettlementStandardScale,
 import { type CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityPass";
 import { type CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
 import { standardSeed, standardWindPhase } from "@packages/game-renderer/src/models/shared/standardAsset";
-import { type StandardInstance } from "@packages/game-renderer/src/models/shared/standardPass";
+import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
 import { type CampaignSelectionInstance } from "@packages/game-renderer/src/campaign/selectionPass";
 import { type CampaignData } from "../../../web/src/campaign/data";

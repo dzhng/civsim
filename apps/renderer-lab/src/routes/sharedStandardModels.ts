@@ -1,5 +1,6 @@
 import { STANDARD_SIZE_TIER_IDS, standardSeed, standardWindPhase, standardWindStrength, type StandardSizeTier } from "@packages/game-renderer/src/models/shared/standardAsset";
-import { SharedStandardPass, type StandardInstance } from "@packages/game-renderer/src/models/shared/standardPass";
+import { SharedStandardPass } from "@packages/game-renderer/src/models/shared/standardPass";
+import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
 import { type LabContext, LabGroundPass, createConfiguredShell, labGroundFramePass, numberParam, publish, reportTable } from "../labShell";
 

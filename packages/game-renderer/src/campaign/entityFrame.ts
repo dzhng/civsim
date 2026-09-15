@@ -7,7 +7,7 @@ import type { CampaignEntityInstance } from "./entityPass";
 
 import type { CampaignSelectionInstance } from "./selectionPass";
 import { standardSeed, standardWindPhase } from "../models/shared/standardAsset";
-import type { StandardInstance } from "../models/shared/standardPass";
+import type { StandardInstance } from "../models/shared/standardInstance";
 import type { CampaignFogSource } from "./atmospherePass";
 import { SELECTION_GREEN } from "../overlays";
 import { hash2, smoothstep } from "../../../renderer-core/src/math";

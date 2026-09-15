@@ -1,3 +1,7 @@
+import {
+  standardInstanceAppearance,
+  type StandardInstance,
+} from "../../../game-renderer/src/models/shared/standardInstance";
 import * as THREE from "three/webgpu";
 import { attribute, clamp, float, mix, normalize, sin, step, varying, vec3, vec4 } from "three/tsl";
 import {
@@ -6,118 +10,127 @@ import {
   STANDARD_VERTEX_STRIDE_FLOATS,
   STANDARD_WAVE_BACK_LOBE,
   standardLiveryForFaction,
-  standardSeed,
-  standardWindPhase,
-  standardWindStrength,
 } from "../../../game-renderer/src/models/shared/standardAsset";
-import type { BattleFactionId } from "../../../game-renderer/src/battle/factionColors";
 import { linearAlbedo, viewNormalNode, type FloatNode } from "../landscape/shaderNodes";
 import { RENDER_ORDER } from "../renderOrder";
 
-export interface StandardDrawInstance {
-  unitId: number;
-  x: number;
-  y: number;
-  z: number;
-  yaw: number;
-  scale: number;
-  factionId: BattleFactionId;
-  selected: boolean;
-}
+type StandardBucket = {
+  mesh: THREE.Mesh;
+  geometry: THREE.InstancedBufferGeometry;
+  capacity: number;
+};
 
 export class PhotorealStandardLayer {
-  private readonly mesh: THREE.Mesh;
-  private readonly geometry: THREE.InstancedBufferGeometry;
-  private capacity = 0;
-  private pose = new Float32Array(0);
-  private meta = new Float32Array(0);
-  private field = new Float32Array(0);
+  private readonly buckets = new Map<StandardSizeTier, StandardBucket>();
+  private readonly material: THREE.MeshStandardNodeMaterial;
   private count = 0;
   private selected = 0;
 
   constructor(
-    scene: THREE.Scene,
+    private readonly scene: THREE.Scene,
     time: FloatNode,
-    private readonly tier: StandardSizeTier = "battle-unit",
   ) {
-    this.geometry = standardGeometry(tier);
-    this.mesh = new THREE.Mesh(this.geometry, standardMaterial(time));
-    this.mesh.name = `${tier}-3d-standards`;
-    this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
-    // No shadows: at far zoom the legibility floor scales the standard well
-    // past body size, and a building-length flag shadow betrays the trick.
-    this.mesh.castShadow = false;
-    this.mesh.receiveShadow = false;
-    this.mesh.visible = false;
-    scene.add(this.mesh);
+    this.material = standardMaterial(time);
   }
 
-  upload(instances: readonly StandardDrawInstance[]): void {
+  upload(instances: readonly StandardInstance[]): void {
     this.count = instances.length;
-    this.selected = 0;
-    this.mesh.visible = instances.length > 0;
-    if (instances.length === 0) {
-      this.geometry.instanceCount = 0;
-      return;
+    this.selected = instances.filter((instance) => instance.selected).length;
+    const byTier = new Map<StandardSizeTier, StandardInstance[]>();
+    for (const instance of instances) {
+      const bucket = byTier.get(instance.tier) ?? [];
+      bucket.push(instance);
+      byTier.set(instance.tier, bucket);
     }
-    // Attribute budget: WebGPU caps a pipeline at 8 vertex buffers and every
-    // attribute costs one — livery gold is a material uniform (constant
-    // across factions) and selected/wind-strength share one meta slot.
-    if (instances.length > this.capacity) {
-      this.capacity = Math.max(instances.length, this.capacity * 2, 32);
-      this.pose = new Float32Array(this.capacity * 4);
-      this.meta = new Float32Array(this.capacity * 4);
-      this.field = new Float32Array(this.capacity * 3);
-      this.geometry.setAttribute("standardPose", new THREE.InstancedBufferAttribute(this.pose, 4));
-      this.geometry.setAttribute("standardMeta", new THREE.InstancedBufferAttribute(this.meta, 4));
-      this.geometry.setAttribute(
-        "standardField",
-        new THREE.InstancedBufferAttribute(this.field, 3),
-      );
+    for (const [tier, values] of byTier) {
+      let bucket = this.buckets.get(tier);
+      if (!bucket) {
+        const geometry = standardGeometry(tier);
+        const mesh = new THREE.Mesh(geometry, this.material);
+        mesh.name = `${tier}-3d-standards`;
+        mesh.frustumCulled = false;
+        mesh.renderOrder = RENDER_ORDER.worldOpaque;
+        // Standards use a screen legibility floor; exaggerated shadows expose it.
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+        this.scene.add(mesh);
+        bucket = { mesh, geometry, capacity: 0 };
+        this.buckets.set(tier, bucket);
+      }
+      if (values.length > bucket.capacity) {
+        const previous = bucket.geometry;
+        bucket.geometry = previous.clone();
+        bucket.capacity = Math.max(values.length, bucket.capacity * 2, 32);
+        for (const [name, size] of [
+          ["standardPose", 4],
+          ["standardMeta", 4],
+          ["standardField", 3],
+          ["standardTrim", 3],
+          ["standardEmblem", 3],
+        ] as const)
+          bucket.geometry.setAttribute(
+            name,
+            new THREE.InstancedBufferAttribute(new Float32Array(bucket.capacity * size), size),
+          );
+        bucket.mesh.geometry = bucket.geometry;
+        previous.dispose();
+      }
+      const geometry = bucket.geometry;
+      const pose = geometry.getAttribute("standardPose") as THREE.InstancedBufferAttribute;
+      const meta = geometry.getAttribute("standardMeta") as THREE.InstancedBufferAttribute;
+      const field = geometry.getAttribute("standardField") as THREE.InstancedBufferAttribute;
+      const trim = geometry.getAttribute("standardTrim") as THREE.InstancedBufferAttribute;
+      const emblem = geometry.getAttribute("standardEmblem") as THREE.InstancedBufferAttribute;
+      for (let i = 0; i < values.length; i++) {
+        const instance = values[i],
+          appearance = standardInstanceAppearance(instance);
+        pose.setXYZW(i, instance.x, instance.y, instance.z ?? 0, instance.yaw ?? 0);
+        meta.setXYZW(
+          i,
+          instance.scale ?? 1,
+          appearance.windPhase,
+          appearance.windStrength,
+          instance.selected ? 1 : 0,
+        );
+        field.setXYZ(i, ...appearance.field);
+        trim.setXYZ(i, ...appearance.trim);
+        emblem.setXYZ(i, ...appearance.emblem);
+      }
+      for (const attribute of [pose, meta, field, trim, emblem]) attribute.needsUpdate = true;
+      geometry.instanceCount = values.length;
     }
-    for (let i = 0; i < instances.length; i++) {
-      const instance = instances[i];
-      const livery = standardLiveryForFaction(instance.factionId);
-      const seed =
-        standardSeed(this.tier, instance.factionId) ^ Math.imul(instance.unitId + 1, 0x9e3779b1);
-      const o4 = i * 4;
-      const o3 = i * 3;
-      this.pose[o4] = instance.x;
-      this.pose[o4 + 1] = instance.y;
-      this.pose[o4 + 2] = instance.z;
-      this.pose[o4 + 3] = instance.yaw;
-      this.meta[o4] = instance.scale;
-      this.meta[o4 + 1] = standardWindPhase(seed >>> 0);
-      this.meta[o4 + 2] = standardWindStrength(this.tier);
-      this.meta[o4 + 3] = instance.selected ? 1 : 0;
-      this.field.set(livery.field, o3);
-      if (instance.selected) this.selected++;
+    for (const [tier, bucket] of this.buckets) {
+      bucket.mesh.visible = byTier.has(tier);
+      if (!bucket.mesh.visible) bucket.geometry.instanceCount = 0;
     }
-    for (const name of ["standardPose", "standardMeta", "standardField"] as const) {
-      (this.geometry.getAttribute(name) as THREE.InstancedBufferAttribute).needsUpdate = true;
-    }
-    this.geometry.instanceCount = instances.length;
   }
 
   stats() {
+    const tiers = [...this.buckets.keys()];
+    const tier = tiers.length === 1 ? tiers[0] : "mixed";
     return {
       standards: this.count,
       selected: this.selected,
-      tier: this.tier,
+      tier,
       layer:
-        this.tier === "battle-unit"
+        tier === "battle-unit"
           ? "photoreal-battle-3d-standards"
           : "photoreal-campaign-3d-standards",
       waveContract: "PhotorealWorld.uTime + deterministic per-unit phase + strength" as const,
-      legibility: this.tier === "battle-unit" ? "measured cloth-width floor from battle scene standardScale" : "campaign tier dimensions and grounded per-object scale",
+      legibility:
+        tier === "battle-unit"
+          ? "measured cloth-width floor from battle scene standardScale"
+          : "campaign tier dimensions and grounded per-object scale",
     };
   }
 
   dispose(): void {
-    this.mesh.removeFromParent();
-    this.geometry.dispose();
-    (this.mesh.material as THREE.Material).dispose();
+    for (const bucket of this.buckets.values()) {
+      bucket.mesh.removeFromParent();
+      bucket.geometry.dispose();
+    }
+    this.buckets.clear();
+    this.material.dispose();
   }
 }
 
@@ -196,6 +209,8 @@ function standardMaterial(time: FloatNode): THREE.MeshStandardNodeMaterial {
   const materialId = varying(uvwm.w);
   const selected = varying(meta.w);
   const field = varying(attribute<"vec3">("standardField", "vec3"));
+  const trim = varying(attribute<"vec3">("standardTrim", "vec3")).setInterpolation("flat");
+  const emblem = varying(attribute<"vec3">("standardEmblem", "vec3")).setInterpolation("flat");
   const goldRgb = standardLiveryForFaction("azure").trim;
   const gold = vec3(goldRgb[0], goldRgb[1], goldRgb[2]);
   const pole = vec3(0.34, 0.22, 0.12);
@@ -208,10 +223,10 @@ function standardMaterial(time: FloatNode): THREE.MeshStandardNodeMaterial {
   const clothMask = clamp(mCloth.add(mTrim).add(mEmblem), 0.0, 1.0);
   const base = pole
     .mul(mPole)
-    .add(gold.mul(mGoldHardware))
+    .add(trim.mul(mGoldHardware))
     .add(field.mul(mCloth))
-    .add(gold.mul(mTrim))
-    .add(gold.mul(mEmblem))
+    .add(trim.mul(mTrim))
+    .add(emblem.mul(mEmblem))
     .toVar();
   const selectedLift = selected.mul(clothMask);
   const albedo = clamp(

@@ -1,3 +1,4 @@
+import { route as routeLandscapeStandards } from "./routes/landscapeStandards";
 import { route as routeSceneryNormals } from "./routes/sceneryNormals";
 import { route as routeLandscapeMaterials } from "./routes/landscapeMaterials";
 import { route as routeLandscapeShores } from "./routes/landscapeShores";
@@ -73,6 +74,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/campaign-ui": routeCampaignUi,
   "/renderer/campaign-models": routeCampaignModelShots,
   "/renderer/shared-prop-models": routeSharedPropModelShots,
+  "/renderer/landscape-standards": routeLandscapeStandards,
   "/renderer/shared-standard-models": routeSharedStandardModelShots,
   "/renderer/world-camera": routeWorldCamera,
   "/renderer/card-bar": routeCardBar,

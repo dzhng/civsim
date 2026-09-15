@@ -21,7 +21,7 @@ import {
   type GraphicsSettings,
 } from "../shared/graphicsSettings";
 import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
-import type { StandardDrawInstance } from "@packages/photoreal-renderer/src/landscape/standardLayer";
+import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
@@ -270,7 +270,7 @@ export class BattleRenderer {
   }
 
   setUnitReadouts(
-    standards: readonly StandardDrawInstance[],
+    standards: readonly StandardInstance[],
     readouts: readonly BattleReadoutInstance[],
   ) {
     if (!this.world) return;
@@ -437,12 +437,13 @@ function frozenSelectionGroundCues(verts: Float32Array) {
 }
 
 function readoutsKey(
-  standards: readonly StandardDrawInstance[],
+  standards: readonly StandardInstance[],
   readouts: readonly BattleReadoutInstance[],
 ) {
   let key = `${standards.length}/${readouts.length}`;
   for (const standard of standards) {
-    key += `|${standard.unitId}:${Math.round(standard.x * 10)},${Math.round(standard.y * 10)},${Math.round(standard.z * 10)},${Math.round(standard.yaw * 100)},${Math.round(standard.scale * 100)},${standard.factionId},${standard.selected ? 1 : 0}`;
+    key += `|${standard.unitId}:${Math.round(standard.x * 10)},${Math.round(standard.y * 10)},${Math.round((standard.z ?? 0) * 10)},${Math.round((standard.yaw ?? 0) * 100)},${Math.round((standard.scale ?? 1) * 100)},${standard.factionId},${standard.selected ? 1 : 0}`;
+    key += `:${standard.tier}:${standard.windPhase ?? ""}:${standard.windStrength ?? ""}:${JSON.stringify(standard.livery ?? null)}`;
   }
   for (const readout of readouts) {
     key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;

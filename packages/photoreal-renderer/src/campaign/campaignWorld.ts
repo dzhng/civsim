@@ -154,7 +154,7 @@ export class PhotorealCampaignWorld {
       this.add(mesh);
       this.objects.push({ input, mesh });
     }
-    this.standards = new PhotorealStandardLayer(world.scene, world.uTime, "campaign-army");
+    this.standards = new PhotorealStandardLayer(world.scene, world.uTime);
     // Tiles share one graph: Three's node-builder cache keys include node identity.
     const terrainMaterial = createLandscapeGroundMaterial(this.frame);
     this.colorLandscapeMaterial(terrainMaterial, true);
@@ -374,6 +374,7 @@ export class PhotorealCampaignWorld {
       this.objects
         .filter((o) => o.mesh.visible)
         .map(({ input, mesh }, i) => ({
+          tier: "campaign-army" as const,
           unitId: i,
           x: input.x,
           y: input.y,

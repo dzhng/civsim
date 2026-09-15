@@ -2,7 +2,7 @@ import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { factionForTeam } from "@packages/game-renderer/src/battle/factionColors";
 import { STANDARD_SIZE_TIERS } from "@packages/game-renderer/src/models/shared/standardAsset";
 import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
-import type { StandardDrawInstance } from "@packages/photoreal-renderer/src/landscape/standardLayer";
+import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "./classData";
 import { READOUT_GALLERY, type BannerChip } from "./readoutState";
 import type { BattleWorld } from "./battleWorld";
@@ -67,7 +67,7 @@ export class BattleUnitPresentation {
     const { camera, renderer, stride } = this.world;
     const selected = selectedUnits.length > 0 ? selectedUnits[0] : -1;
     const showReadouts = camera.zoom > READOUT_TACTICAL_ZOOM;
-    const standards: StandardDrawInstance[] = [];
+    const standards: StandardInstance[] = [];
     const readouts: BattleReadoutInstance[] = [];
     for (let unit = 0; unit < info.length / stride; unit++) {
       const offset = unit * stride;
@@ -85,6 +85,7 @@ export class BattleUnitPresentation {
       const scale = standardScale(pxPerClothWidth, isSelected);
       if (pxPerClothWidth * STANDARD_MIN_SCALE > STANDARD_NEAR_HIDE_PX) continue;
       standards.push({
+        tier: "battle-unit",
         unitId: unit,
         x: anchorX,
         y: anchorY,

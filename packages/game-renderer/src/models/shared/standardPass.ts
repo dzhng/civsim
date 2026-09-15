@@ -1,3 +1,4 @@
+import { standardInstanceAppearance, type StandardInstance } from "./standardInstance";
 import type { RawFrameShell, WorldRenderPass } from '../../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../../renderer-core/src/cameraWgsl';
 import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from '../../../../renderer-core/src/gpuBuffers';
@@ -7,34 +8,9 @@ import {
   STANDARD_SIZE_TIER_IDS,
   STANDARD_VERTEX_STRIDE_FLOATS,
   STANDARD_WAVE_BACK_LOBE,
-  type StandardLivery,
-  standardLiveryForFaction,
-  standardSeed,
-  standardWindPhase,
-  standardWindStrength,
   type StandardMeshData,
   type StandardSizeTier,
 } from './standardAsset';
-import type { BattleFactionId } from '../../battle/factionColors';
-
-export interface StandardInstance {
-  x: number;
-  y: number;
-  z?: number;
-  tier: StandardSizeTier;
-  factionId: BattleFactionId;
-  livery?: StandardInstanceLivery;
-  yaw?: number;
-  scale?: number;
-  windPhase?: number;
-  windStrength?: number;
-}
-
-interface StandardInstanceLivery {
-  field: readonly [number, number, number];
-  trim?: readonly [number, number, number];
-  emblem?: readonly [number, number, number];
-}
 
 const STANDARD_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -269,30 +245,20 @@ function packInstances(instances: readonly StandardInstance[]) {
   const data = new Float32Array(instances.length * 16);
   for (let i = 0; i < instances.length; i++) {
     const instance = instances[i];
-    const livery = instanceLivery(instance, standardLiveryForFaction(instance.factionId));
-    const seed = standardSeed(instance.tier, instance.factionId);
+    const livery = standardInstanceAppearance(instance);
     const offset = i * 16;
     data[offset] = instance.x;
     data[offset + 1] = instance.y;
     data[offset + 2] = instance.z ?? 0;
     data[offset + 3] = instance.yaw ?? 0;
     data.set(livery.field, offset + 4);
-    data[offset + 7] = instance.windPhase ?? standardWindPhase(seed);
+    data[offset + 7] = livery.windPhase;
     data.set(livery.trim, offset + 8);
-    data[offset + 11] = instance.windStrength ?? standardWindStrength(instance.tier);
+    data[offset + 11] = livery.windStrength;
     data.set(livery.emblem, offset + 12);
     data[offset + 15] = instance.scale ?? 1;
   }
   return data;
-}
-
-function instanceLivery(instance: StandardInstance, fallback: StandardLivery): StandardLivery {
-  return {
-    id: fallback.id,
-    field: instance.livery?.field ?? fallback.field,
-    trim: instance.livery?.trim ?? fallback.trim,
-    emblem: instance.livery?.emblem ?? fallback.emblem,
-  };
 }
 
 function standardTierRecord<T>(build: (tier: StandardSizeTier) => T): Record<StandardSizeTier, T> {

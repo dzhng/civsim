@@ -1,0 +1,25 @@
+Full suite: 96 files, 520 tests pass. TypeScript: pass. Focused terrainScenery: 8 tests pass.
+
+Red before cap change:
+$ vitest run tests/terrainScenery.test.ts
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-landscape-acceptance/web
+
+ ❯ tests/terrainScenery.test.ts (8 tests | 1 failed) 23ms
+     × growing a connected forest preserves density and identities in its existing area 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/terrainScenery.test.ts > production battle forest placement > growing a connected forest preserves density and identities in its existing area
+     46|   });
+     47|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  14:23:32
+   Duration  149ms (transform 27ms, setup 46ms, import 23ms, tests 23ms, environment 0ms)
+
+error: script "test" exited with code 1

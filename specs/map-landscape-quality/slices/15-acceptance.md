@@ -35,3 +35,5 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: User feedback can change the art target at any checkpoint, but silence does not block implementation. Missing hardware evidence is reported as unverified, never accepted by assumption.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+Pending battle verification follow-up: full-frame hardware bronze-cardbar drift remains separate from zero-difference forest-world captures. Preserve canonical tolerances. The standing 30k scene's close zoom 24/28 requests settle at 8; correct its actual camera coverage before claiming those close-stop budgets. See the [density evidence](../assets/slice-07/battle-density/README.md).

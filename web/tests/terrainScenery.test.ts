@@ -35,6 +35,16 @@ function cellAt(g: BattleTerrainGrid, x: number, y: number) {
 }
 
 describe("production battle forest placement", () => {
+  test("growing a connected forest preserves density and identities in its existing area", () => {
+    const small = grid((x, y) => (x < 12 && y < 12 ? 4 : 0));
+    const large = grid(() => 4);
+    const sort = (items: ReturnType<typeof trees>) => items.sort((a, b) => a.x - b.x || a.y - b.y);
+    const existing = sort(trees(small));
+    const retained = sort(trees(large).filter((t) => small.tint[cellAt(small, t.x, t.y)] === 4));
+    expect(existing.length).toBeGreaterThan(100);
+    expect(retained).toEqual(existing);
+  });
+
   test("concave forests keep their clearing and populate arms beyond the equivalent-area disc", () => {
     const g = grid((x, y) => (x < 5 || x >= 19 || y >= 19 ? 4 : 0));
     const forest = extractBattleTerrainFeatures(g, 11).find((f) => f.kind === "forest")!;

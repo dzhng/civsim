@@ -1,0 +1,34 @@
+{
+  "fixture": "generated seed8 source forest center",
+  "camera": {
+    "x": -531.4144746768596,
+    "y": -56.35075189860686,
+    "zoom": 7.8,
+    "pitch": 0.45,
+    "yaw": -1.5707963267948966
+  },
+  "panAmplitudeM": 8,
+  "warmupFrames": 60,
+  "sampleFrames": 120,
+  "rafMs": {
+    "median": 16.665000000000873,
+    "p95": 16.670000000000073,
+    "max": 16.670000000000073
+  },
+  "gpuMs": {
+    "median": 10.926625,
+    "p95": 11.357369,
+    "max": 11.492158
+  },
+  "soldiers": 15560,
+  "scenery": 3495,
+  "drawCalls": 58,
+  "triangles": 119187373,
+  "terrainHash": "0x7055cdf3eac03c64",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  }
+}

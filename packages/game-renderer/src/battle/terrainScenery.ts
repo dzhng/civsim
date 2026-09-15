@@ -7,7 +7,9 @@ import type { BattleTerrainFeature, BattleTerrainGrid } from "./terrainFeatures"
 // Forest occupancy and clearings come from the physical tint grid. The scatter
 // only chooses visual instances; it never modifies terrain or gameplay.
 const TREE_SPACING = 9.6;
-const MAX_TREES_PER_FOREST = 240;
+// Preserve lattice density across the curated forest areas while bounding
+// exceptional components (4096 lattice sites span about 0.38 km²).
+const MAX_TREES_PER_FOREST = 4096;
 // Trees avoid faces steeper than roughly 35 degrees on the rendered surface.
 const MIN_TREE_UP_NORMAL = 0.82;
 const ROCKS_PER_RADIUS = 0.07;

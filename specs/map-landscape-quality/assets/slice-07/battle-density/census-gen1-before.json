@@ -1,0 +1,245 @@
+{
+  "fixture": "gen1",
+  "cap": 240,
+  "rasterResolutionM": 0.5,
+  "manifest": {
+    "edgeSeals": {
+      "composition": {
+        "east": "waterReach",
+        "west": "cliffRun"
+      },
+      "expectedRoles": {
+        "east": "ocean",
+        "west": "cliff"
+      }
+    },
+    "edges": {
+      "east": "ocean",
+      "north": "open-fog",
+      "south": "open-fog",
+      "west": "cliff"
+    },
+    "featureSummary": {
+      "lakeCells": 1568,
+      "mudCells": 4982,
+      "passableForestCells": 3213,
+      "playableLakeCells": 1568,
+      "roughFieldCells": 9409,
+      "screeCells": 13019,
+      "streamCells": 147,
+      "streams": 3
+    },
+    "groundCover": "green-grass",
+    "recipeClass": "full",
+    "seed": 1,
+    "seedHex": "0x0000000000000001",
+    "terrainHash": "0x35787940547b4e73"
+  },
+  "descriptor": {
+    "edgeSeals": {
+      "composition": {
+        "east": "waterReach",
+        "west": "cliffRun"
+      },
+      "expectedRoles": {
+        "east": "ocean",
+        "west": "cliff"
+      },
+      "weights": {
+        "cliffRun": 6,
+        "forestBelt": 2,
+        "waterReach": 2
+      }
+    },
+    "featureSummary": {
+      "lakeCells": 1568,
+      "mudCells": 4982,
+      "passableForestCells": 3213,
+      "playableLakeCells": 1568,
+      "roughFieldCells": 9409,
+      "screeCells": 13019,
+      "streamCells": 147,
+      "streams": 3
+    },
+    "groundCover": "green-grass",
+    "lakeSurfaces": [
+      {
+        "cells": 1568,
+        "id": 0,
+        "level": -4.778225898742676,
+        "maxCellX": 228,
+        "maxCellY": 149,
+        "maxX": -284,
+        "maxY": -200,
+        "minCellX": 184,
+        "minCellY": 107,
+        "minX": -464,
+        "minY": -372
+      }
+    ],
+    "reliefScale": 1,
+    "seed": 1,
+    "seedHex": "0x0000000000000001",
+    "slopeBands": {
+      "cliffDilateCells": 6,
+      "cliffMin": 0.3199999928474426,
+      "flatMax": 0.03500000014901161,
+      "highlandCapMinM": 35,
+      "rollingMax": 0.11500000208616257,
+      "slowMin": 0.13500000536441803
+    },
+    "terrainHash": "0x35787940547b4e73",
+    "vista": {
+      "bands": [
+        {
+          "cell": 16,
+          "height": 201,
+          "innerHalfH": 800,
+          "innerHalfW": 1200,
+          "name": "vista",
+          "originX": -2400,
+          "originY": -1600,
+          "outerHalfH": 1600,
+          "outerHalfW": 2400,
+          "width": 301
+        },
+        {
+          "cell": 64,
+          "height": 90,
+          "innerHalfH": 1600,
+          "innerHalfW": 2400,
+          "name": "farFog",
+          "originX": -4208,
+          "originY": -2848,
+          "outerHalfH": 2800,
+          "outerHalfW": 4200,
+          "width": 133
+        }
+      ],
+      "shape": "two full vertex-sample height bands; renderer cuts the inner rect per band"
+    }
+  },
+  "method": "CPU, actual wasm physical source, production extraction seed0x5eed/scatter seed0x77 and placement. Candidate counters mirror predicates and reconcile actual outputs. Canopy footprint rasterizes actual coarse opaque model XY triangles at the recorded raster resolution cell centers, with production variant/yaw/scale; union clipped to each exact source forest component. This measures top-down geometric footprint, not perspective visible pixels or leaf transparency.",
+  "totalSourceForestCells": 3213,
+  "totals": {
+    "sourceCells": 3207,
+    "areaM2": 51312,
+    "latticeCandidates": 756,
+    "membershipRejected": 197,
+    "membershipAccepted": 559,
+    "slopeRejected": 0,
+    "eligible": 559,
+    "placed": 559,
+    "capRejected": 0,
+    "summedTreeProjectedFootprintM2": 15023.5,
+    "unionCanopyOverOwnForestM2": 14273.75,
+    "canopyCoverageFraction": 0.27765620136943664
+  },
+  "forests": [
+    {
+      "index": 0,
+      "sourceCells": 977,
+      "areaM2": 15632,
+      "bounds": [
+        -288,
+        -392,
+        -132,
+        -252
+      ],
+      "latticeCandidates": 239,
+      "membershipRejected": 72,
+      "membershipAccepted": 167,
+      "slopeRejected": 0,
+      "eligible": 167,
+      "placed": 167,
+      "capRejected": 0,
+      "summedTreeProjectedFootprintM2": 4467.75,
+      "unionCanopyOverOwnForestM2": 4207.25,
+      "canopyCoverageFraction": 0.26914342374616174
+    },
+    {
+      "index": 1,
+      "sourceCells": 420,
+      "areaM2": 6720,
+      "bounds": [
+        -300,
+        -248,
+        -196,
+        -164
+      ],
+      "latticeCandidates": 95,
+      "membershipRejected": 19,
+      "membershipAccepted": 76,
+      "slopeRejected": 0,
+      "eligible": 76,
+      "placed": 76,
+      "capRejected": 0,
+      "summedTreeProjectedFootprintM2": 2020.5,
+      "unionCanopyOverOwnForestM2": 1920.75,
+      "canopyCoverageFraction": 0.2858258928571429
+    },
+    {
+      "index": 2,
+      "sourceCells": 622,
+      "areaM2": 9952,
+      "bounds": [
+        160,
+        -112,
+        256,
+        32
+      ],
+      "latticeCandidates": 150,
+      "membershipRejected": 43,
+      "membershipAccepted": 107,
+      "slopeRejected": 0,
+      "eligible": 107,
+      "placed": 107,
+      "capRejected": 0,
+      "summedTreeProjectedFootprintM2": 2953.25,
+      "unionCanopyOverOwnForestM2": 2846.75,
+      "canopyCoverageFraction": 0.2860480305466238
+    },
+    {
+      "index": 3,
+      "sourceCells": 739,
+      "areaM2": 11824,
+      "bounds": [
+        216,
+        124,
+        324,
+        268
+      ],
+      "latticeCandidates": 165,
+      "membershipRejected": 37,
+      "membershipAccepted": 128,
+      "slopeRejected": 0,
+      "eligible": 128,
+      "placed": 128,
+      "capRejected": 0,
+      "summedTreeProjectedFootprintM2": 3414.5,
+      "unionCanopyOverOwnForestM2": 3266.75,
+      "canopyCoverageFraction": 0.27628129228687415
+    },
+    {
+      "index": 4,
+      "sourceCells": 449,
+      "areaM2": 7184,
+      "bounds": [
+        -216,
+        272,
+        -116,
+        368
+      ],
+      "latticeCandidates": 107,
+      "membershipRejected": 26,
+      "membershipAccepted": 81,
+      "slopeRejected": 0,
+      "eligible": 81,
+      "placed": 81,
+      "capRejected": 0,
+      "summedTreeProjectedFootprintM2": 2167.5,
+      "unionCanopyOverOwnForestM2": 2032.25,
+      "canopyCoverageFraction": 0.282885579064588
+    }
+  ]
+}

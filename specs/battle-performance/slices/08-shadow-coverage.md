@@ -10,6 +10,8 @@ At the screenshot's projected soldier size, do visible sun-direction shadows gro
 
 The [canonical terrain diagnostic](../assets/08-shadow-fit/canonical-default.json) queries the production Game's generated terrain and calls the current shared fit owner: a 2400×1600 world produces a 2964.441-unit light-space extent, or 2.894962 world units per texel at 1024². Normal bias is 0.6 world units. This is CPU geometry evidence for testing a view-focused fit, not measured shadow readability, a projected footprint, or a selected resolution. No combat pre-roll or GPU run was needed, and production defaults remain unchanged.
 
+The [production tactical controls](../assets/08-tactical-shadow-controls/README.md) now show the default front rank effectively unchanged from shadows-off. Existing CSM is visibly less wrong in contact but remains blurred/merged, retains the full caster audience, and has no accepted cost or motion verdict. Keep it as a control; do not promote it by toggle alone.
+
 Use the equal-quality shadow probes from 02. Default proposed strategy: a view-relevant fitted directional map, adding cascades only if one map cannot cover readable tactical receivers at adequate texel density. Evaluate one-map vs two-cascade cost with identical contact criteria. Select and record the fit/resolution/bias in this slice; delegate numerical tuning to measured image/perf comparison. No fixed whole-map 1024 assumption and no blanket CSM toggle. Keep offscreen casters, terrain elevation and environment softness. Grass need not individually cast if it does not today; unit and scenery grounding are mandatory. Blob-only grounding does not satisfy the directional-shadow requirement at this framing.
 
 ## Artifact and verification

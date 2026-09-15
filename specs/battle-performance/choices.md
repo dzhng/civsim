@@ -191,3 +191,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Immutable image residency
 
 - **Provisional, verify in 03b:** Share identical immutable GPU material images within the selected world/catalog preparation, while preserving appearance-specific material tables and renderer lifetime. The catalog exposes 60 definitions of three image/sampler combinations; actual unique allocations and visual equivalence decide the implementation, not the definition count alone.
+
+### Publication consumer feasibility
+
+- **Provisional, delete at the production observation seam:** A lab-only snapshot reader presents one owned buffer to the existing action adapter's pointer-shaped constructor. It never owns a Game or implements action priorities. Short consumer tests extend the transport proof; they do not replace canonical contact-window, worker/browser, HUD or throughput verification.

@@ -18,12 +18,34 @@ try {
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 2,
   });
-  page.on("pageerror", (e) => pageErrors.push(e.message));
+  page.on("pageerror", (e) => {
+    pageErrors.push(e.message);
+    console.error(e.message);
+  });
   page.on("console", (message) => {
+    if (message.text().startsWith("scene:")) console.log(message.text());
     if (["warning", "error"].includes(message.type())) pageErrors.push(message.text());
   });
   await page.goto(url);
-  await page.waitForFunction(() => window.__sceneCheck !== undefined, null, { timeout: 600000 });
+  try {
+    await page.waitForFunction(() => window.__sceneCheck !== undefined, null, {
+      timeout: Number(process.env.SCENE_TIMEOUT_MS ?? 600000),
+    });
+  } catch (error) {
+    await writeFile(
+      resolve(directory, "report.json"),
+      JSON.stringify(
+        {
+          error: String(error),
+          pageErrors,
+          url,
+        },
+        null,
+        2,
+      ) + "\n",
+    );
+    throw error;
+  }
   const result = await page.evaluate(() => window.__sceneCheck);
   await browser.close();
   for (const pair of result.results ?? []) {

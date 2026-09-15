@@ -1,4 +1,5 @@
 import { createRawBattleScene } from "./battleScene";
+import type { BattleSceneOptions } from "../sceneTypes";
 import { PhotorealBattleWorld } from "../../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { loadAppearanceCatalog } from "../../../../packages/soldier-assets/src/appearanceBundle";
 import {
@@ -26,9 +27,14 @@ async function run() {
     const width = 1440,
       height = 900,
       ratio = 2;
-    const atlasPath = new URLSearchParams(location.search).get("atlasCatalog");
+    const params = new URLSearchParams(location.search);
+    const backend = params.get("backend") ?? "raw";
+    if (!["raw", "typegpu", "vgpu"].includes(backend)) throw Error(`Unknown backend ${backend}`);
+    const atlasPath = params.get("atlasCatalog");
     if (!atlasPath) throw Error("Scene control requires the prepared full atlas catalog URL");
     const atlasUrl = new URL(atlasPath, location.href);
+    const stage = (name: string) => console.info(`scene:${backend}:${name}`);
+    stage("load-assets");
     // A bounded full-catalog scene; live simulation and exact recorded replay are separate gates.
     const assets = await loadAppearanceCatalog(
       new URL("/assets/soldiers/catalog.json", location.href).href,
@@ -55,6 +61,7 @@ async function run() {
     const sourceCanvas = document.createElement("canvas"),
       actualCanvas = document.createElement("canvas");
     document.body.append(sourceCanvas, actualCanvas);
+    stage("source-create");
     const source = own(
       await PhotorealBattleWorld.create(sourceCanvas, {
         environment: "golden-hour",
@@ -79,35 +86,34 @@ async function run() {
     });
     actualCanvas.width = width * ratio;
     actualCanvas.height = height * ratio;
-    const context = actualCanvas.getContext("webgpu")!;
     const format = navigator.gpu.getPreferredCanvasFormat();
-    context.configure({ device, format, alphaMode: "opaque" });
-    release.push(() => context.unconfigure());
-    const scene = own(
-      await createRawBattleScene(device, caps, {
-        environment: CIVSIM_ENVIRONMENTS.golden,
-        assets,
-        atlases,
-        terrain: { grid, cover: "green-grass", vista: null, lakes: [] },
-        grassProfile: productionBladeFieldProfile("standard"),
-        width: width * ratio,
-        height: height * ratio,
-        samples: 1,
-        outputFormat: format,
-        shadows: true,
-        grass: true,
-        farGrass: true,
-        bloom: true,
-        post: true,
-        grade: {
-          strength: 1,
-          saturationBoost: 1.15,
-          contrast: 0.16,
-          splitTone: 0.85,
-          shadowLift: 1,
-        },
-      }),
-    );
+    const options: BattleSceneOptions = {
+      environment: CIVSIM_ENVIRONMENTS.golden,
+      assets,
+      atlases,
+      terrain: { grid, cover: "green-grass", vista: null, lakes: [] },
+      grassProfile: productionBladeFieldProfile("standard"),
+      width: width * ratio,
+      height: height * ratio,
+      samples: 1,
+      outputFormat: format,
+      shadows: true,
+      grass: true,
+      farGrass: true,
+      bloom: true,
+      post: true,
+      grade: {
+        strength: 1,
+        saturationBoost: 1.15,
+        contrast: 0.16,
+        splitTone: 0.85,
+        shadowLift: 1,
+      },
+    };
+    stage("candidate-create");
+    const candidate = await createCandidate(backend, device, caps, actualCanvas, options, release);
+    const scene = own(candidate.scene);
+    stage("candidate-ready");
     // Start source residency only after both runtimes finish allocating resources.
     source.setTerrain(grid);
     const instances = Object.keys(assets)
@@ -176,6 +182,7 @@ async function run() {
           near: 0.5,
         },
       };
+      stage(`${label}:source-upload`);
       source.setTime(0);
       source.drawInstances(instances, camera);
       const readouts: BattleReadoutInstance[] = standards.map((s) => ({
@@ -191,17 +198,18 @@ async function run() {
       source.drawTacticalLines(lines, camera);
       const sourceInitial = sourceCanvas.toDataURL();
       const sourceInitialStats = source.stats();
-      scene.uploadCrowd(instances, camera, 0);
+      stage(`${label}:candidate-upload`);
+      await scene.uploadCrowd(instances, camera, 0);
       await scene.uploadReadouts(standards, readouts);
-      scene.uploadTriangles(attack);
-      scene.uploadTacticalLines(lines);
+      await scene.uploadTriangles(attack);
+      await scene.uploadTacticalLines(lines);
       const input = { camera, time: 0 };
       const present = async () => {
+        stage(`${label}:candidate-prepare`);
         await scene.prepare(input);
-        const encoder = device!.createCommandEncoder();
-        scene.encode(encoder, context.getCurrentTexture().createView());
-        device!.queue.submit([encoder.finish()]);
+        const submitted = candidate.submit();
         const image = actualCanvas.toDataURL();
+        await submitted;
         const stats = scene.stats();
         await device!.queue.onSubmittedWorkDone();
         return { image, stats };
@@ -214,10 +222,12 @@ async function run() {
         sourceStats: sourceInitialStats,
         actualStats: actualInitial.stats,
       });
+      stage(`${label}:source-settle`);
       await source.settlePresentedFrame();
       source.render();
       const sourceSettled = sourceCanvas.toDataURL();
       const sourceSettledStats = source.stats();
+      stage(`${label}:candidate-settle`);
       await scene.settleGrass();
       await present();
       // Both owners submit a settlement frame and an explicit stable capture frame.
@@ -230,14 +240,65 @@ async function run() {
         actualStats: actualSettled.stats,
       });
     }
-    scene.dispose();
+    stage("dispose");
+    for (const fn of release.splice(0).reverse()) fn();
     const remaining = { textures: textures.liveCount(), buffers: buffers.liveCount() };
-    return { results, errors, remaining, instances: instances.length, rankable: false };
+    return { backend, results, errors, remaining, instances: instances.length, rankable: false };
   } finally {
     for (const fn of release.reverse()) fn();
     device?.destroy();
   }
 }
+async function createCandidate(
+  backend: string,
+  device: GPUDevice,
+  caps: ReturnType<typeof resolveDeviceCaps>,
+  canvas: HTMLCanvasElement,
+  options: BattleSceneOptions,
+  release: (() => void)[],
+) {
+  if (backend === "vgpu") {
+    const { initFromDevice, surface } = await import("vgpu");
+    const { createVgpuBattleScene } = await import("../vgpu/battleScene");
+    const gpu = await initFromDevice(device);
+    release.push(() => gpu.dispose());
+    const output = surface(gpu, canvas, {
+      size: [options.width, options.height],
+      dpr: 1,
+      autoResize: false,
+      format: options.outputFormat,
+      alphaMode: "opaque",
+    });
+    release.push(() => output.dispose());
+    const scene = await createVgpuBattleScene(gpu, options);
+    return { scene, submit: () => scene.render(output) };
+  }
+  const context = canvas.getContext("webgpu")!;
+  context.configure({ device, format: options.outputFormat, alphaMode: "opaque" });
+  release.push(() => context.unconfigure());
+  if (backend === "typegpu") {
+    const { createTypegpuBattleScene } = await import("../../candidates/typegpu/battleScene");
+    const scene = await createTypegpuBattleScene(device, options);
+    return {
+      scene,
+      submit() {
+        const encoder = scene.createCommandEncoder();
+        scene.encode(encoder, context.getCurrentTexture().createView());
+        encoder.submit();
+      },
+    };
+  }
+  const scene = await createRawBattleScene(device, caps, options);
+  return {
+    scene,
+    submit() {
+      const encoder = device.createCommandEncoder();
+      scene.encode(encoder, context.getCurrentTexture().createView());
+      device.queue.submit([encoder.finish()]);
+    },
+  };
+}
+
 run()
   .then((result) => Object.assign(window, { __sceneCheck: result }))
   .catch((error) => Object.assign(window, { __sceneCheck: { error: String(error) } }));

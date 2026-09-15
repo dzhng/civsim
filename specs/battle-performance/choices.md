@@ -148,3 +148,8 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 
 - **Settled:** All comparison backends consume one terrain snapshot recipe and one scene input contract; callers import those types directly. Share the output-conversion math unchanged, while each runtime still owns its actual resources and submissions.
 - **Settled:** An asynchronous scene operation owns its resources until its promise settles. Disposal closes the scene immediately but defers resource destruction until that operation finishes; overlapping mutations are rejected. Preserve an original operation failure even if cleanup also fails.
+
+### Complete library control ownership
+
+- **Settled:** Keep one full-scene fixture across comparison backends and use their actual public submission APIs. Capture at final submission before asynchronous validation can release the canvas image, then await validation before the next update. All runtime-owned caches and the presentation surface are included in teardown accounting.
+- **Settled:** Keep numerical failures and the unexplained TypeGPU timeout visible even when later images look equivalent. Successful stills do not waive motion, lifecycle, loading or live performance requirements.

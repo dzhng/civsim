@@ -1,0 +1,14 @@
+{
+  "baseCommit": "356e7f51323126ae9c4519dedc947c04bb5b9596",
+  "uncommittedControlSha256": {
+    "apps/battle-perf-lab/src/raw/scene-check.ts": "b822c72a100aea0af0f2d42ffd1e40b0abf24e98396c6fe92d5620765ae4c2ed",
+    "apps/battle-perf-lab/src/raw/verify-scene.mjs": "0b96672a9ea1c502fc947aec0bd4f4dd173d4b31fc528dc72b5f5e5d435fa58f",
+    "apps/battle-perf-lab/src/raw/tsconfig.json": "884f73c13ef8dbea74e40df3a1091324f8ceaf483e773452df64b8594cc48673"
+  },
+  "successfulRuns": [
+    "raw",
+    "typegpu",
+    "vgpu"
+  ],
+  "initialTypegpuAttempt": "Earlier base47cb0890; stage telemetry and immutable control-file hashes were not recorded for the timed-out attempt. Preserve as unresolved reliability evidence, not timing comparison."
+}

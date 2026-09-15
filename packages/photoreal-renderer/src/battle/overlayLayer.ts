@@ -8,6 +8,15 @@
 // bespoke swapchain); the frame is tonemapped sRGB (AgX), so
 // each overlay linearizes through the one linearAlbedo seam, so authored overlay
 // colors keep their hue through the transform.
+import {
+  prepareBattleLineVertices,
+  writeBattleLineVertices,
+  writeBattleTriangleVertices,
+  writeBattleRingInstances,
+  writeBattleMarkerInstances,
+  type BattleLinePlacement,
+  type MarkerInstance,
+} from "../../../game-renderer/src/battle/overlayData";
 import * as THREE from "three/webgpu";
 import {
   attribute,
@@ -28,15 +37,6 @@ import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
-export interface MarkerInstance {
-  x: number;
-  y: number;
-  facing?: number;
-  faction?: 0 | 1 | 2;
-  size?: number;
-  lod?: number;
-}
-
 /** A growable line-list layer fed by (x, y, r, g, b, a)-stride vertex arrays —
  *  the BattleGroundCuePass upload contract; the per-vertex alpha scales the
  *  layer alpha so transient cues fade to transparent. With `perVertexZ` the
@@ -50,12 +50,11 @@ export class PhotorealLineLayer {
   private readonly lines: THREE.LineSegments;
   private capacity = 0;
   private vertexCount = 0;
-  private readonly perVertexZ: boolean;
-  private readonly drape?: { heightAt: (x: number, y: number) => number; step: number };
+  private readonly placement: BattleLinePlacement;
 
   constructor(
     scene: THREE.Scene,
-    private readonly z: number,
+    z: number,
     opts: {
       alpha: number;
       depthTest: boolean;
@@ -64,8 +63,7 @@ export class PhotorealLineLayer {
       drape?: { heightAt: (x: number, y: number) => number; step: number };
     },
   ) {
-    this.perVertexZ = opts.perVertexZ ?? false;
-    this.drape = opts.perVertexZ ? undefined : opts.drape;
+    this.placement = { z, perVertexZ: opts.perVertexZ, drape: opts.drape };
     const material = new THREE.LineBasicNodeMaterial({ transparent: true });
     material.depthTest = opts.depthTest;
     material.depthWrite = false;
@@ -93,10 +91,7 @@ export class PhotorealLineLayer {
   /** Same contract as the bespoke passes: floor(len / stride) vertices of
    *  (x, y, rgb, a) or (x, y, z, rgb) with perVertexZ. */
   upload(vertices: Float32Array): void {
-    const src = this.drape ? this.drapeSegments(vertices) : vertices;
-    // Internal layouts: perVertexZ (x,y,z,rgb) · drape (x,y,z,rgb,a) · flat (x,y,rgb,a).
-    const stride = this.drape ? 7 : 6;
-    const zOff = this.perVertexZ || this.drape ? 1 : 0;
+    const { source: src, stride, zOff } = prepareBattleLineVertices(vertices, this.placement);
     const count = Math.floor(src.length / stride);
     this.vertexCount = count;
     this.lines.visible = count > 0;
@@ -111,46 +106,11 @@ export class PhotorealLineLayer {
     const pos = position.array as Float32Array;
     const col = color.array as Float32Array;
     const alp = alpha.array as Float32Array;
-    for (let i = 0; i < count; i++) {
-      const o = i * stride;
-      pos[i * 3] = src[o];
-      pos[i * 3 + 1] = src[o + 1];
-      pos[i * 3 + 2] = zOff ? src[o + 2] + this.z : this.z;
-      col[i * 3] = src[o + 2 + zOff];
-      col[i * 3 + 1] = src[o + 3 + zOff];
-      col[i * 3 + 2] = src[o + 4 + zOff];
-      alp[i] = this.perVertexZ ? 1 : src[o + 5 + zOff];
-    }
+    writeBattleLineVertices(src, stride, zOff, this.placement, pos, col, alp);
     position.needsUpdate = true;
     color.needsUpdate = true;
     alpha.needsUpdate = true;
     this.lines.geometry.setDrawRange(0, count);
-  }
-
-  /** Resample (x, y, rgb, a) segments onto the terrain surface: split anything
-   *  longer than the drape step and give every vertex the sampled ground z
-   *  (the layer z is added as lift in upload). Output stride is 7. */
-  private drapeSegments(vertices: Float32Array): Float32Array {
-    const { heightAt, step } = this.drape!;
-    const out: number[] = [];
-    for (let i = 0; i + 12 <= vertices.length; i += 12) {
-      const x0 = vertices[i];
-      const y0 = vertices[i + 1];
-      const x1 = vertices[i + 6];
-      const y1 = vertices[i + 7];
-      const pieces = Math.max(1, Math.min(96, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step)));
-      for (let s = 0; s < pieces; s++) {
-        const ta = s / pieces;
-        const tb = (s + 1) / pieces;
-        const ax = x0 + (x1 - x0) * ta;
-        const ay = y0 + (y1 - y0) * ta;
-        const bx = x0 + (x1 - x0) * tb;
-        const by = y0 + (y1 - y0) * tb;
-        out.push(ax, ay, heightAt(ax, ay), vertices[i + 2], vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-        out.push(bx, by, heightAt(bx, by), vertices[i + 8], vertices[i + 9], vertices[i + 10], vertices[i + 11]);
-      }
-    }
-    return new Float32Array(out);
   }
 
   stats() {
@@ -207,16 +167,7 @@ export class PhotorealTriangleLayer {
     const color = this.mesh.geometry.getAttribute("triColor") as THREE.BufferAttribute;
     const pos = position.array as Float32Array;
     const col = color.array as Float32Array;
-    for (let i = 0; i < count; i++) {
-      const o = i * 6;
-      pos[i * 3] = vertices[o];
-      pos[i * 3 + 1] = vertices[o + 1];
-      pos[i * 3 + 2] = 0;
-      col[i * 4] = vertices[o + 2];
-      col[i * 4 + 1] = vertices[o + 3];
-      col[i * 4 + 2] = vertices[o + 4];
-      col[i * 4 + 3] = vertices[o + 5];
-    }
+    writeBattleTriangleVertices(vertices, pos, col);
     position.needsUpdate = true;
     color.needsUpdate = true;
     this.mesh.geometry.setDrawRange(0, count);
@@ -316,19 +267,7 @@ export class PhotorealRingLayer {
       this.geometry.setAttribute("ringInst", new THREE.InstancedBufferAttribute(this.inst, 4));
       this.geometry.setAttribute("ringColor", new THREE.InstancedBufferAttribute(this.tint, 4));
     }
-    for (let i = 0; i < count; i++) {
-      const o = i * 7;
-      const x = rings[o];
-      const y = rings[o + 1];
-      this.inst[i * 4] = x;
-      this.inst[i * 4 + 1] = y;
-      this.inst[i * 4 + 2] = this.heightAt(x, y) + this.lift;
-      this.inst[i * 4 + 3] = rings[o + 2];
-      this.tint[i * 4] = rings[o + 3];
-      this.tint[i * 4 + 1] = rings[o + 4];
-      this.tint[i * 4 + 2] = rings[o + 5];
-      this.tint[i * 4 + 3] = rings[o + 6];
-    }
+    writeBattleRingInstances(rings, this.heightAt, this.lift, this.inst, this.tint);
     for (const name of ["ringInst", "ringColor"] as const) {
       (this.geometry.getAttribute(name) as THREE.InstancedBufferAttribute).needsUpdate = true;
     }
@@ -426,16 +365,7 @@ export class PhotorealMarkerLayer {
       this.geometry.setAttribute("markerInst", new THREE.InstancedBufferAttribute(this.inst, 4));
       this.geometry.setAttribute("markerMeta", new THREE.InstancedBufferAttribute(this.meta, 4));
     }
-    for (let i = 0; i < markers.length; i++) {
-      const m = markers[i];
-      const o = i * 4;
-      this.inst[o] = m.x;
-      this.inst[o + 1] = m.y;
-      this.inst[o + 2] = m.facing ?? 0;
-      this.inst[o + 3] = m.faction ?? 0;
-      this.meta[o] = m.size ?? 1;
-      this.meta[o + 1] = m.lod ?? 0;
-    }
+    writeBattleMarkerInstances(markers, this.inst, this.meta);
     for (const name of ["markerInst", "markerMeta"] as const) {
       (this.geometry.getAttribute(name) as THREE.InstancedBufferAttribute).needsUpdate = true;
     }

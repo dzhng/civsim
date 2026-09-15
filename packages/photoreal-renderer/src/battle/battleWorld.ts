@@ -1,3 +1,4 @@
+import type { MarkerInstance } from "../../../game-renderer/src/battle/overlayData";
 import {
   resolveSunShadowMode,
   type SunShadowMode,
@@ -64,7 +65,6 @@ import {
   PhotorealMarkerLayer,
   PhotorealRingLayer,
   PhotorealTriangleLayer,
-  type MarkerInstance,
 } from "./overlayLayer";
 import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
 import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";

@@ -111,3 +111,7 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 ### Native vista material integration
 
 - **Settled:** Extend the existing terrain material owner with the source vista-band policy. Only the far ring enables source-equivalent alpha blending and disables depth writes; playable terrain retains its previous configuration. Outside rings do not receive sun shadows, matching the control and keeping extra work explicit.
+
+### Shared overlay preparation
+
+- **Settled:** Keep tactical geometry placement and marker packing in shared CPU data while each renderer retains its growable arrays. Preserve source draping, partial-input behavior and defaults exactly so a backend comparison cannot silently change visible cues or their upload workload.

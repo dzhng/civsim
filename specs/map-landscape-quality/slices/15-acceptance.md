@@ -46,3 +46,12 @@ reference probe collects outer worlds but retains their disposed Three renderers
 Resolve the measured retaining path before claiming stable whole-game lifetime.
 Do not substitute timestamp-map counts or disposal events for retained-size
 measurement. Diagnostic boundaries live in the production journey evidence.
+
+The heap now identifies shared Three texture and quad-geometry dispose listeners
+as retaining paths to retired renderers. Correct the dependency's resource-owner
+disposal, preserving simultaneous live worlds. Prefer a small reproducible patch
+of the pinned package over an application-side listener cleanup system or a
+renderer upgrade. The patch must cover the package's actually imported bundles,
+be installed through the package manager, and have a removal condition when the
+upstream version fixes the same defect. Re-run weak-reference and memory cycles,
+plus rendering and lifecycle guards; listener removal alone is not acceptance.

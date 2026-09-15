@@ -1,12 +1,16 @@
+import {
+  impostorAtlasLayout,
+  type ImpostorAtlasData,
+} from "../../../../packages/soldier-assets/src/impostorAtlas";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
-import { packImpostors, type ImpostorAtlasData, type ImpostorView } from "../impostorData";
+import { packImpostors, type ImpostorView } from "../impostorData";
 import { GrowableBuffer } from "../../../../packages/renderer-core/src/gpuBuffers";
 import { GPU_DEPTH_FORMAT } from "../../../../packages/renderer-core/src/depthContract";
 import { impostorShader } from "../shaders/impostor";
 import type { RawEnvironment } from "./environment";
 
-/** Owns uploaded captured atlas mips and buffers; device, camera, environment and attachments are borrowed.
- * Native atlas baking remains a separate admission gate; no Three runtime is used here. */
+/** Owns uploaded property atlas mips and buffers; device, camera, environment and attachments are borrowed.
+ * The shared offline artifact loader supplies verified bytes; no Three runtime is used here. */
 export async function createRawImpostors(
   device: GPUDevice,
   atlas: ImpostorAtlasData,
@@ -14,6 +18,7 @@ export async function createRawImpostors(
   environment: RawEnvironment,
   sampleCount = 4,
 ) {
+  const placement = impostorAtlasLayout(atlas);
   const textures: GPUTexture[] = [];
   let instances: GrowableBuffer | undefined;
   let viewBuffer: GPUBuffer | undefined;
@@ -144,7 +149,7 @@ export async function createRawImpostors(
     return {
       update(source: readonly CrowdInstance[], view: ImpostorView) {
         assertLive();
-        const data = packImpostors(atlas, source, view);
+        const data = packImpostors(placement, source, view);
         instanceBuffer.write(data);
         count = source.length;
         device.queue.writeBuffer(
@@ -171,7 +176,7 @@ export async function createRawImpostors(
         clipInvariant,
         castShadow: false,
         receiveShadow: false,
-        atlasSource: "captured full mip chain",
+        atlasSource: "prepared full mip chain",
       }),
       dispose,
     };

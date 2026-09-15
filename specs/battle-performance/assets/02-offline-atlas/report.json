@@ -1,0 +1,814 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "id": 0,
+      "decodedBytes": 9437160,
+      "verifiedFreshSource": true,
+      "sourceComparison": {
+        "exact": true,
+        "inputHash": "be225594288c91daf76dc924eadac5cf7161e95c6218a1d5a06f0270a36c7544",
+        "storedHash": "b06854eb52f05a4add0373fd6a7bded422ade820cfc3710030a5106991117404",
+        "freshHash": "b06854eb52f05a4add0373fd6a7bded422ade820cfc3710030a5106991117404",
+        "storedCenter": [
+          0.006525009870529175,
+          0.29432184994220734,
+          0.8679889170016395
+        ],
+        "freshCenter": [
+          0.006525009870529175,
+          0.29432184994220734,
+          0.8679889170016395
+        ],
+        "storedSpan": 2.5001630574462435,
+        "freshSpan": 2.5001630574462435,
+        "perMip": [
+          {
+            "channel": "albedo",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          }
+        ]
+      },
+      "fresh": null,
+      "cached": true,
+      "manifest": "be225594288c91daf76dc924eadac5cf7161e95c6218a1d5a06f0270a36c7544.json",
+      "runtimeContentHash": "b06854eb52f05a4add0373fd6a7bded422ade820cfc3710030a5106991117404"
+    },
+    {
+      "id": 3,
+      "decodedBytes": 9437160,
+      "verifiedFreshSource": true,
+      "sourceComparison": {
+        "exact": true,
+        "inputHash": "f3b22a6caaa4e4fea14350b20047298561512ec2ea1289061abfc06c4205c793",
+        "storedHash": "e9abbc3b557c7d484526d6cd86e9b168caaa596ac41050609edf8c43349d1aa9",
+        "freshHash": "e9abbc3b557c7d484526d6cd86e9b168caaa596ac41050609edf8c43349d1aa9",
+        "storedCenter": [
+          0.0817730724811554,
+          1.4548970460891724,
+          0.9214656317199115
+        ],
+        "freshCenter": [
+          0.0817730724811554,
+          1.4548970460891724,
+          0.9214656317199115
+        ],
+        "storedSpan": 7.0791856262721975,
+        "freshSpan": 7.0791856262721975,
+        "perMip": [
+          {
+            "channel": "albedo",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          }
+        ]
+      },
+      "fresh": null,
+      "cached": true,
+      "manifest": "f3b22a6caaa4e4fea14350b20047298561512ec2ea1289061abfc06c4205c793.json",
+      "runtimeContentHash": "e9abbc3b557c7d484526d6cd86e9b168caaa596ac41050609edf8c43349d1aa9"
+    },
+    {
+      "id": 6,
+      "decodedBytes": 9437160,
+      "verifiedFreshSource": true,
+      "sourceComparison": {
+        "exact": true,
+        "inputHash": "07822e2592a827b1ee50bcf1a380cf0618c2f21e91d65d0290a99745e5698461",
+        "storedHash": "74efabd948cf265552ce9a5feb2627053d01b51be4ce8b9f8057d0bd563efd0a",
+        "freshHash": "74efabd948cf265552ce9a5feb2627053d01b51be4ce8b9f8057d0bd563efd0a",
+        "storedCenter": [
+          0.01510193943977356,
+          0.6197320222854614,
+          1.290092083858326
+        ],
+        "freshCenter": [
+          0.01510193943977356,
+          0.6197320222854614,
+          1.290092083858326
+        ],
+        "storedSpan": 4.813796478150806,
+        "freshSpan": 4.813796478150806,
+        "perMip": [
+          {
+            "channel": "albedo",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "albedo",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "normal",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 0,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 1,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 2,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 3,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 4,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 5,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 6,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 7,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 8,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          },
+          {
+            "channel": "orm",
+            "mip": 9,
+            "differingBytes": 0,
+            "maxByteDifference": 0,
+            "alphaDifferences": 0,
+            "first": []
+          }
+        ]
+      },
+      "fresh": null,
+      "cached": true,
+      "manifest": "07822e2592a827b1ee50bcf1a380cf0618c2f21e91d65d0290a99745e5698461.json",
+      "runtimeContentHash": "74efabd948cf265552ce9a5feb2627053d01b51be4ce8b9f8057d0bd563efd0a"
+    }
+  ],
+  "browserErrors": [],
+  "scope": "Exact offline property mip payloads; no complete-scene or performance claim"
+}

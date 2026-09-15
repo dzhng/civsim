@@ -24,3 +24,7 @@ this transport contract, not the finished art-quality target.
 Generated placeholders remain catalog entries until deliberately replaced. Source
 candidates use a separate catalog for review through the same production loader
 and renderer; reviewing a candidate never promotes it to the default roster.
+
+The fixed far pose can be prepared as a [verified offline property atlas](../bake/impostors/README.md).
+Its content identity follows posed geometry and authored material inputs; runtime
+renderers consume the shared mip-byte contract without loading the authoring renderer.

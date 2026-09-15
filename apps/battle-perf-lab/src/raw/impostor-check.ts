@@ -1,3 +1,11 @@
+import { referenceAtlasTextures } from "../../../../packages/soldier-assets/bake/impostors/reference";
+import type { WorldSurfaceDiagnostic } from "../shaders/environment";
+import { captureMipChain } from "../../../../packages/soldier-assets/bake/impostors/capture";
+import {
+  loadImpostorAtlas,
+  packImpostorAtlas,
+  type ImpostorAtlasData,
+} from "../../../../packages/soldier-assets/src/impostorAtlas";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
 import { encodeRgba8Base64 } from "../imageTransport";
 import * as THREE from "three/webgpu";
@@ -33,51 +41,11 @@ import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/envi
 import { eyePosition, type Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
 import { createImpostorControlBackend, type ImpostorBackend } from "../impostorControlBackend";
-import type { WorldSurfaceDiagnostic } from "../shaders/environment";
-import type { ImpostorAtlasData, ImpostorView } from "../impostorData";
+import type { ImpostorView } from "../impostorData";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 
 const W = 640,
   H = 480;
-async function captureMipChain(
-  renderer: THREE.WebGPURenderer,
-  texture: THREE.Texture,
-): Promise<Uint8Array[]> {
-  // Control-only readback: the native renderer never depends on Three backend resources.
-  const backend = renderer.backend as unknown as {
-    device: GPUDevice;
-    get(texture: THREE.Texture): { texture: GPUTexture };
-  };
-  const native = backend.get(texture).texture,
-    result: Uint8Array[] = [];
-  for (let mip = 0; mip < native.mipLevelCount; mip++) {
-    const width = Math.max(1, native.width >> mip),
-      height = Math.max(1, native.height >> mip),
-      stride = Math.ceil((width * 4) / 256) * 256;
-    const buffer = backend.device.createBuffer({
-      size: stride * height,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-    try {
-      const encoder = backend.device.createCommandEncoder();
-      encoder.copyTextureToBuffer(
-        { texture: native, mipLevel: mip },
-        { buffer, bytesPerRow: stride },
-        [width, height],
-      );
-      backend.device.queue.submit([encoder.finish()]);
-      await buffer.mapAsync(GPUMapMode.READ);
-      const mapped = new Uint8Array(buffer.getMappedRange()),
-        bytes = new Uint8Array(width * height * 4);
-      for (let y = 0; y < height; y++)
-        bytes.set(mapped.subarray(y * stride, y * stride + width * 4), y * width * 4);
-      result.push(bytes);
-    } finally {
-      buffer.destroy();
-    }
-  }
-  return result;
-}
 function rgba(p: number[]) {
   const bytes = Uint8Array.from(p, (v, i) =>
     Math.round(
@@ -91,6 +59,16 @@ function rgba(p: number[]) {
 }
 async function run() {
   const query = new URLSearchParams(location.search);
+  const artifactCatalogPath = query.get("atlasCatalog");
+  const artifactCatalogUrl = artifactCatalogPath
+    ? new URL(artifactCatalogPath, location.href).href
+    : null;
+  const artifactCatalog = artifactCatalogUrl
+    ? await fetch(artifactCatalogUrl).then((r) => {
+        if (!r.ok) throw Error(`Atlas catalog HTTP ${r.status}`);
+        return r.json();
+      })
+    : null;
   const samples = query.get("samples") === "4" ? 4 : 1;
   const canonicalProjection = query.has("canonical");
   const selectedBackend = query.get("candidate") ?? "raw";
@@ -146,6 +124,7 @@ async function run() {
     cleanup.push(() => reference.dispose());
     const camera = new THREE.PerspectiveCamera();
     const results = [];
+    const sourceAtlasComparisons = [];
     const lifecycle = [];
     const appearances = await loadAppearanceCatalog(
       new URL("/assets/soldiers/catalog.json", location.href).href,
@@ -167,7 +146,7 @@ async function run() {
         const atlas = await createSoldierImpostorAtlas(renderer, bundle.farMesh, palette, surface);
         let layer: OctahedralImpostorLayer | undefined;
         classCleanup.push(() => (layer ? layer.dispose() : atlas.dispose()));
-        const data: ImpostorAtlasData = {
+        const captured: ImpostorAtlasData = {
           columns: atlas.columns,
           rows: atlas.rows,
           tileSize: atlas.tileSize,
@@ -177,6 +156,40 @@ async function run() {
           normal: await captureMipChain(renderer, atlas.textures.normal),
           orm: await captureMipChain(renderer, atlas.textures.orm),
         };
+        if (artifactCatalog && !artifactCatalog.appearances[classId])
+          throw Error(`Missing offline atlas ${classId}`);
+        const data = artifactCatalog
+          ? await loadImpostorAtlas(
+              new URL(artifactCatalog.appearances[classId], artifactCatalogUrl!).href,
+              bundle,
+            )
+          : captured;
+        if (artifactCatalog) {
+          const expected = packImpostorAtlas(captured),
+            actual = packImpostorAtlas(data);
+          let differingBytes = 0,
+            maxByteDifference = 0;
+          for (let i = 0; i < actual.length; i++)
+            if (actual[i] !== expected[i]) {
+              differingBytes++;
+              maxByteDifference = Math.max(maxByteDifference, Math.abs(actual[i] - expected[i]));
+            }
+          const anchorEqual =
+            data.worldSpan === captured.worldSpan &&
+            data.center.every((v, i) => v === captured.center[i]);
+          sourceAtlasComparisons.push({
+            classId,
+            exact: differingBytes === 0 && anchorEqual,
+            differingBytes,
+            maxByteDifference,
+            anchorEqual,
+          });
+          const reference = referenceAtlasTextures(data);
+          classCleanup.push(reference.dispose);
+          atlas.textures = reference.textures;
+          atlas.center.set(...data.center);
+          atlas.worldSpan = data.worldSpan;
+        }
         layer = new OctahedralImpostorLayer(world.scene, atlas);
         let rejectedIncompleteMips = false;
         try {
@@ -393,6 +406,8 @@ async function run() {
     candidate.dispose();
     const texturesAfterBackendDispose = textures.liveCount();
     return {
+      atlasSource: artifactCatalog ? "verified-offline" : "control-capture",
+      sourceAtlasComparisons,
       texturesAfterBackendDispose,
       adapter: {
         vendor: adapter.info.vendor,
@@ -416,7 +431,9 @@ async function run() {
           (r) => r.rejectedIncompleteMips && r.emptyDraw && r.disposedGuard && r.borrowedAlive,
         ) &&
         errors.length === 0,
-      scope: "Captured production atlas mip chains; native bake and full renderer parity pending",
+      scope: artifactCatalog
+        ? "Identical persisted property bytes across candidate and Three; source-self comparison is separate; full renderer parity pending"
+        : "Captured production atlas mip chains; full renderer parity pending",
     };
   } finally {
     for (const release of cleanup.reverse()) release();

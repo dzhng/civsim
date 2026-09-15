@@ -20,6 +20,7 @@ import {
   corpsePresentationStrength,
   type CrowdInstance,
 } from "../../../crowd-runtime/src/instanceData";
+import { IMPOSTOR_ATLAS_POLICY } from "../../../soldier-assets/src/impostorAtlas";
 import type { SoldierMeshData } from "../../../soldier-assets/src/mesh";
 import { poseSoldierMesh } from "../../../soldier-assets/src/skin";
 import {
@@ -62,9 +63,9 @@ export async function createSoldierImpostorAtlas(
   await renderer.init();
   opts.assertUsable?.();
   const started = performance.now();
-  const columns = opts.columns ?? 8;
-  const rows = opts.rows ?? 8;
-  const tileSize = opts.tileSize ?? 96;
+  const columns = opts.columns ?? IMPOSTOR_ATLAS_POLICY.columns;
+  const rows = opts.rows ?? IMPOSTOR_ATLAS_POLICY.rows;
+  const tileSize = opts.tileSize ?? IMPOSTOR_ATLAS_POLICY.tileSize;
   const posedMesh = poseSoldierMesh(mesh, palette);
   const flat = hemiOctTileDirections(columns, rows);
   const directions: THREE.Vector3[] = [];

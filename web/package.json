@@ -31,6 +31,7 @@
     "verify:full": "VERIFY_GPU=1 node scene.mjs battle-renderer-default battle-smoke battle-lod battle-selection battle-3d-standards banner-gallery battle-cavalry-plow battle-ai",
     "verify:campaign": "VERIFY_GPU=1 node scene.mjs campaign-lod campaign-map-alignment campaign-visual",
     "probe:renderer": "node probe-renderer.mjs",
+    "bake:impostors": "node ../packages/soldier-assets/bake/impostors.mjs",
     "bake:roster": "node ../packages/soldier-assets/bake/roster.mjs --out ../packages/soldier-assets/assets && node ../packages/soldier-assets/bake/roster.mjs --out public/assets/soldiers",
     "bake:roster:test": "node ../packages/soldier-assets/bake/roster.mjs --out ../packages/soldier-assets/assets --check && node ../packages/soldier-assets/bake/roster.mjs --out public/assets/soldiers --check && node ../packages/soldier-assets/bake/roster.test.mjs public/assets/soldiers",
     "bake:anim": "bun run bake:roster && bun run bake:fixtures",

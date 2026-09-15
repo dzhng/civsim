@@ -1,6 +1,10 @@
-import { draw, geometry, texture, sampler, uniforms, type Gpu, type FramePass } from "vgpu";
+import {
+  impostorAtlasLayout,
+  type ImpostorAtlasData,
+} from "../../../../packages/soldier-assets/src/impostorAtlas";
+import { draw, geometry, texture, sampler, type Gpu, type FramePass } from "vgpu";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
-import { packImpostors, type ImpostorAtlasData, type ImpostorView } from "../impostorData";
+import { packImpostors, type ImpostorView } from "../impostorData";
 import { impostorShader } from "../shaders/impostor";
 import type { VgpuEnvironment } from "./environment";
 
@@ -12,6 +16,7 @@ export async function createVgpuImpostors(
   camera: ReturnType<Gpu["device"]["createBuffer"]>,
   samples: 1 | 4 = 4,
 ) {
+  const placement = impostorAtlasLayout(atlas);
   const owned: { destroy(): void }[] = [];
   let disposed = false,
     count = 0,
@@ -117,7 +122,7 @@ export async function createVgpuImpostors(
     return {
       update(source: readonly CrowdInstance[], view: ImpostorView) {
         assertLive();
-        const packed = packImpostors(atlas, source, view);
+        const packed = packImpostors(placement, source, view);
         count = source.length;
         if (count > capacity) {
           mesh.destroy();
@@ -139,7 +144,7 @@ export async function createVgpuImpostors(
         clipInvariant: false,
         castShadow: false,
         receiveShadow: false,
-        atlasSource: "captured full mip chain",
+        atlasSource: "prepared full mip chain",
       }),
       dispose,
     };

@@ -1,3 +1,4 @@
+import type { ImpostorAtlasLayout } from "../../../packages/soldier-assets/src/impostorAtlas";
 import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
 import { corpsePresentationStrength } from "../../../packages/crowd-runtime/src/instanceData";
 import {
@@ -5,17 +6,6 @@ import {
   nearestHemiOctTile,
 } from "../../../packages/photoreal-renderer/src/battle/impostorTile";
 
-export interface ImpostorAtlasData {
-  columns: number;
-  rows: number;
-  tileSize: number;
-  center: readonly [number, number, number];
-  worldSpan: number;
-  /** Complete, tightly packed RGBA8 mip chains, including level zero. Albedo is sRGB. */
-  albedo: readonly Uint8Array[];
-  normal: readonly Uint8Array[];
-  orm: readonly Uint8Array[];
-}
 export interface ImpostorView {
   right: readonly [number, number, number];
   up: readonly [number, number, number];
@@ -24,7 +14,7 @@ export interface ImpostorView {
 }
 /** Mirrors the authored billboard policy. Visibility and LOD selection belong to the caller. */
 export function packImpostors(
-  atlas: ImpostorAtlasData,
+  atlas: ImpostorAtlasLayout,
   instances: readonly CrowdInstance[],
   view: ImpostorView,
 ): Float32Array<ArrayBuffer> {

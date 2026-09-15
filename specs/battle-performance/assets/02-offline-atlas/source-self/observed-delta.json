@@ -1,0 +1,360 @@
+{
+  "exact": false,
+  "inputHash": "be225594288c91daf76dc924eadac5cf7161e95c6218a1d5a06f0270a36c7544",
+  "storedHash": "b06854eb52f05a4add0373fd6a7bded422ade820cfc3710030a5106991117404",
+  "freshHash": "cafa9a2b1267e352d3dfe8ddcaf14c53606fdbba076679e51c2d0f2c8b00f89c",
+  "source": "Complete16-byte readback delta from strict fresh check; reconstructed losslessly and verified against its observed content hash.",
+  "differingBytes": 16,
+  "maxByteDifference": 1,
+  "anchorEqual": true,
+  "alphaDifferences": 0,
+  "perMip": [
+    {
+      "channel": "albedo",
+      "mip": 0,
+      "width": 768,
+      "height": 768,
+      "changes": [
+        {
+          "offset": 2154860,
+          "stored": 117,
+          "fresh": 118,
+          "x": 347,
+          "y": 701,
+          "component": 0
+        },
+        {
+          "offset": 2231612,
+          "stored": 119,
+          "fresh": 118,
+          "x": 335,
+          "y": 726,
+          "component": 0
+        }
+      ]
+    },
+    {
+      "channel": "albedo",
+      "mip": 1,
+      "width": 384,
+      "height": 384,
+      "changes": [
+        {
+          "offset": 2897588,
+          "stored": 117,
+          "fresh": 118,
+          "x": 173,
+          "y": 350,
+          "component": 0
+        }
+      ]
+    },
+    {
+      "channel": "albedo",
+      "mip": 2,
+      "width": 192,
+      "height": 192,
+      "changes": []
+    },
+    {
+      "channel": "albedo",
+      "mip": 3,
+      "width": 96,
+      "height": 96,
+      "changes": []
+    },
+    {
+      "channel": "albedo",
+      "mip": 4,
+      "width": 48,
+      "height": 48,
+      "changes": []
+    },
+    {
+      "channel": "albedo",
+      "mip": 5,
+      "width": 24,
+      "height": 24,
+      "changes": []
+    },
+    {
+      "channel": "albedo",
+      "mip": 6,
+      "width": 12,
+      "height": 12,
+      "changes": []
+    },
+    {
+      "channel": "albedo",
+      "mip": 7,
+      "width": 6,
+      "height": 6,
+      "changes": []
+    },
+    {
+      "channel": "albedo",
+      "mip": 8,
+      "width": 3,
+      "height": 3,
+      "changes": []
+    },
+    {
+      "channel": "albedo",
+      "mip": 9,
+      "width": 1,
+      "height": 1,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 0,
+      "width": 768,
+      "height": 768,
+      "changes": [
+        {
+          "offset": 5297508,
+          "stored": 59,
+          "fresh": 58,
+          "x": 347,
+          "y": 700,
+          "component": 0
+        },
+        {
+          "offset": 5297509,
+          "stored": 219,
+          "fresh": 218,
+          "x": 347,
+          "y": 700,
+          "component": 1
+        },
+        {
+          "offset": 5300580,
+          "stored": 64,
+          "fresh": 63,
+          "x": 347,
+          "y": 701,
+          "component": 0
+        },
+        {
+          "offset": 5377329,
+          "stored": 85,
+          "fresh": 86,
+          "x": 334,
+          "y": 726,
+          "component": 1
+        }
+      ]
+    },
+    {
+      "channel": "normal",
+      "mip": 1,
+      "width": 384,
+      "height": 384,
+      "changes": [
+        {
+          "offset": 6043308,
+          "stored": 77,
+          "fresh": 76,
+          "x": 173,
+          "y": 350,
+          "component": 0
+        },
+        {
+          "offset": 6043309,
+          "stored": 231,
+          "fresh": 230,
+          "x": 173,
+          "y": 350,
+          "component": 1
+        }
+      ]
+    },
+    {
+      "channel": "normal",
+      "mip": 2,
+      "width": 192,
+      "height": 192,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 3,
+      "width": 96,
+      "height": 96,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 4,
+      "width": 48,
+      "height": 48,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 5,
+      "width": 24,
+      "height": 24,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 6,
+      "width": 12,
+      "height": 12,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 7,
+      "width": 6,
+      "height": 6,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 8,
+      "width": 3,
+      "height": 3,
+      "changes": []
+    },
+    {
+      "channel": "normal",
+      "mip": 9,
+      "width": 1,
+      "height": 1,
+      "changes": []
+    },
+    {
+      "channel": "orm",
+      "mip": 0,
+      "width": 768,
+      "height": 768,
+      "changes": [
+        {
+          "offset": 8440148,
+          "stored": 164,
+          "fresh": 165,
+          "x": 345,
+          "y": 699,
+          "component": 0
+        },
+        {
+          "offset": 8523049,
+          "stored": 142,
+          "fresh": 141,
+          "x": 334,
+          "y": 726,
+          "component": 1
+        },
+        {
+          "offset": 8523050,
+          "stored": 165,
+          "fresh": 166,
+          "x": 334,
+          "y": 726,
+          "component": 2
+        },
+        {
+          "offset": 8523054,
+          "stored": 173,
+          "fresh": 172,
+          "x": 335,
+          "y": 726,
+          "component": 2
+        }
+      ]
+    },
+    {
+      "channel": "orm",
+      "mip": 1,
+      "width": 384,
+      "height": 384,
+      "changes": [
+        {
+          "offset": 9187488,
+          "stored": 164,
+          "fresh": 165,
+          "x": 172,
+          "y": 349,
+          "component": 0
+        }
+      ]
+    },
+    {
+      "channel": "orm",
+      "mip": 2,
+      "width": 192,
+      "height": 192,
+      "changes": [
+        {
+          "offset": 9374536,
+          "stored": 82,
+          "fresh": 83,
+          "x": 86,
+          "y": 174,
+          "component": 0
+        }
+      ]
+    },
+    {
+      "channel": "orm",
+      "mip": 3,
+      "width": 96,
+      "height": 96,
+      "changes": [
+        {
+          "offset": 9421596,
+          "stored": 89,
+          "fresh": 90,
+          "x": 43,
+          "y": 87,
+          "component": 0
+        }
+      ]
+    },
+    {
+      "channel": "orm",
+      "mip": 4,
+      "width": 48,
+      "height": 48,
+      "changes": []
+    },
+    {
+      "channel": "orm",
+      "mip": 5,
+      "width": 24,
+      "height": 24,
+      "changes": []
+    },
+    {
+      "channel": "orm",
+      "mip": 6,
+      "width": 12,
+      "height": 12,
+      "changes": []
+    },
+    {
+      "channel": "orm",
+      "mip": 7,
+      "width": 6,
+      "height": 6,
+      "changes": []
+    },
+    {
+      "channel": "orm",
+      "mip": 8,
+      "width": 3,
+      "height": 3,
+      "changes": []
+    },
+    {
+      "channel": "orm",
+      "mip": 9,
+      "width": 1,
+      "height": 1,
+      "changes": []
+    }
+  ],
+  "browserErrors": []
+}

@@ -22,7 +22,7 @@ try {
   const result = await page.evaluate(() => window.__impostorCheck);
   await browser.close();
   const directory = new URL(
-    `../../../../specs/battle-performance/assets/02-${result.backend ?? selected}/impostor/samples-${result.samples ?? "error"}${result.canonicalProjection ? "-canonical" : ""}${result.diagnostic ? "-" + result.diagnostic : ""}${result.focused ? "-focused" : ""}/`,
+    `../../../../specs/battle-performance/assets/02-${result.backend ?? selected}/impostor/samples-${result.samples ?? "error"}${result.canonicalProjection ? "-canonical" : ""}${result.diagnostic ? "-" + result.diagnostic : ""}${result.focused ? "-focused" : ""}${result.atlasSource === "verified-offline" ? "-offline" : ""}/`,
     import.meta.url,
   );
   await mkdir(directory, { recursive: true });

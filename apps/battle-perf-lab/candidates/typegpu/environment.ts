@@ -1,3 +1,4 @@
+import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d } from "typegpu";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
@@ -75,7 +76,7 @@ export async function createTypegpuEnvironment(
       .createTexture({ size: [DFG_LUT_SIZE, DFG_LUT_SIZE], format: "rg16float" })
       .$usage("sampled");
     owned.push(dfg);
-    dfg.write(DFG_LUT_DATA);
+    dfg.write(typegpuTextureBytes(DFG_LUT_DATA));
     const data = root.createBuffer(Environment).$usage("uniform");
     owned.push(data);
     const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" });

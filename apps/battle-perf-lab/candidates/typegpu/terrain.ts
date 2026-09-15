@@ -1,3 +1,4 @@
+import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d, std, type TgpuRenderPass } from "typegpu";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
@@ -80,7 +81,7 @@ export async function createTypegpuTerrain(
         .createTexture({ size: [sdf?.width ?? 1, sdf?.height ?? 1], format: "rg8unorm" })
         .$usage("sampled");
     owned.push(earth);
-    earth.write(sdf?.data ?? new Uint8Array([0, 0]));
+    earth.write(typegpuTextureBytes(sdf?.data ?? new Uint8Array([0, 0])));
     const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" }),
       group = root.createBindGroup(terrainLayout, { state, earth: earth.createView(), linear });
     const surface = createTerrainSurface(options);

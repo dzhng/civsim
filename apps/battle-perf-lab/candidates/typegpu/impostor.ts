@@ -1,7 +1,12 @@
+import { typegpuTextureBytes } from "./textureUpload";
+import {
+  impostorAtlasLayout,
+  type ImpostorAtlasData,
+} from "../../../../packages/soldier-assets/src/impostorAtlas";
 import { tgpu, d, std, type TgpuBindGroup, type TgpuRenderCommands } from "typegpu";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import { GPU_DEPTH_FORMAT } from "../../../../packages/renderer-core/src/depthContract";
-import { packImpostors, type ImpostorAtlasData, type ImpostorView } from "../../src/impostorData";
+import { packImpostors, type ImpostorView } from "../../src/impostorData";
 import { impostorVertexWgsl, impostorSurfaceWgsl } from "../../src/shaders/impostor";
 import { linearAlbedoWgsl, factionAccentWgsl } from "../../src/shaders/soldierFaction";
 import { typegpuCameraLayout } from "./camera";
@@ -45,6 +50,7 @@ export async function createTypegpuImpostors(
   samples = 4,
 ) {
   const root = tgpu.initFromDevice({ device });
+  const placement = impostorAtlasLayout(atlas);
   const owned: { destroy(): void }[] = [];
   let disposed = false,
     count = 0,
@@ -93,7 +99,7 @@ export async function createTypegpuImpostors(
       chain.forEach((bytes, mip) => {
         if (bytes.length !== Math.max(1, width >> mip) * Math.max(1, height >> mip) * 4)
           throw new Error("Impostor mip dimensions mismatch");
-        texture.write(bytes, mip);
+        texture.write(typegpuTextureBytes(bytes), mip);
       });
       return texture;
     };
@@ -189,7 +195,7 @@ export async function createTypegpuImpostors(
     return {
       update(source: readonly CrowdInstance[], view: ImpostorView) {
         assertLive();
-        const packed = packImpostors(atlas, source, view);
+        const packed = packImpostors(placement, source, view);
         count = source.length;
         if (count > capacity) {
           instances.destroy();
@@ -211,7 +217,7 @@ export async function createTypegpuImpostors(
         clipInvariant: false,
         castShadow: false,
         receiveShadow: false,
-        atlasSource: "captured full mip chain",
+        atlasSource: "prepared full mip chain",
       }),
       dispose,
     };

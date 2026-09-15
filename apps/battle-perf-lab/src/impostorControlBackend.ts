@@ -1,3 +1,4 @@
+import type { ImpostorAtlasData } from "../../../packages/soldier-assets/src/impostorAtlas";
 import { tgpu } from "typegpu";
 import { initFromDevice, target, frame } from "vgpu";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
@@ -5,7 +6,7 @@ import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instance
 import { cameraUniformData } from "../../../packages/renderer-core/src/cameraUniform";
 import { viewMatrix, type Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
 import { GPU_DEPTH_FORMAT } from "../../../packages/renderer-core/src/depthContract";
-import type { ImpostorAtlasData, ImpostorView } from "./impostorData";
+import type { ImpostorView } from "./impostorData";
 import type { WorldSurfaceDiagnostic } from "./shaders/environment";
 import { createRawEnvironment, rawEnvironmentWgsl } from "./raw/environment";
 import { createRawImpostors } from "./raw/impostor";

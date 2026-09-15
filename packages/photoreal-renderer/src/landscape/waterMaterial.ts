@@ -1,6 +1,7 @@
 import {
   cos,
   float,
+  fwidth,
   length,
   max,
   mix,
@@ -15,6 +16,7 @@ import {
   type WaterShoreRamp,
 } from "../../../game-renderer/src/water/waterShoreRamp";
 import {
+  fbmN,
   fnoiseN,
   linearAlbedo,
   rgbNode,
@@ -108,18 +110,28 @@ export function campaignWaterSurfaceNodes(
   signedShore: FloatNode,
 ) {
   const offshore = max(signedShore.negate(), 0).toVar();
-  const depthProxy = smoothstepN(0.25, 12, offshore).mul(0.82).toVar();
+  // Multi-scale scattering breaks the flat distance halo while preserving the
+  // source shore. Fine variation keeps broad interiors from becoming flat fills.
+  const shoal = fbmN(p.mul(0.16)).toVar();
+  const scatteringScale = shoal.mul(1.5).add(0.45);
+  const depth = smoothstepN(0, 12, offshore.mul(scatteringScale)).toVar();
   const phase = frame.time.mod(8).mul(Math.PI / 4);
-  const lace = smoothstepN(0.36, 0.72, fnoiseN(p.mul(1.7))).toVar();
-  const pulse = sin(offshore.mul(5).sub(phase)).mul(0.12).add(0.88);
-  const surf = float(1)
-    .sub(smoothstepN(0.05, 0.85, offshore))
-    .mul(lace)
-    .mul(pulse)
-    .mul(0.35);
-  const water = waterSurfaceNodes(depthProxy, surf);
-  const detail = smoothstepN(0.4, 4, offshore).mul(0.008);
   const drift = vec2(sin(phase), cos(phase)).mul(0.35);
+  const texture = fbmN(p.mul(1.2).add(drift)).sub(0.5);
+  const depthProxy = saturateN(depth.mul(0.82).add(texture.mul(0.09))).toVar();
+  // The source distance is sampled on a kilometre lattice; a sub-kilometre
+  // foam band disappears at regional scale and leaves isolated square flecks.
+  const lace = fbmN(p.mul(1.4).add(drift)).toVar();
+  const surfWidth = lace.mul(2.8).add(0.7);
+  // Preserve foam contrast as a broken band becomes only a few pixels wide;
+  // close views keep blue channel interiors rather than filling with white.
+  const surfStrength = mix(float(0.42), float(0.9), smoothstepN(0.2, 0.5, length(fwidth(p))));
+  const surf = float(1)
+    .sub(smoothstepN(0, 1, offshore.div(surfWidth)))
+    .mul(smoothstepN(0.38, 0.7, lace))
+    .mul(surfStrength);
+  const water = waterSurfaceNodes(depthProxy, surf);
+  const detail = smoothstepN(0.4, 4, offshore).mul(0.014);
   const ripples = p.mul(0.75).add(drift);
   const normal = transformNormalToView(
     normalize(

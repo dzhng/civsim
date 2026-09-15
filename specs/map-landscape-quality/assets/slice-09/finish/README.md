@@ -1,0 +1,17 @@
+# Shore response review
+
+The target is a readable turquoise shallow domain, restrained offshore texture and broken surf over fixed geometry. A constant-distance color ramp made the prior sea look like a blurred outline. Single-scale foam noise left isolated square dabs and disappeared at the regional camera. The shared water response now uses the existing multiscale noise owner to vary scattering and break up a wider surf band, without changing colors, terrain, shoreline coverage or environment.
+
+The first correction was rejected by fresh critique: finer foam remained invisible regionally. The second made the regional sea meaningfully reference-directed, but the fresh reviewer found excess foam filling the narrow fixture inlet and pond. The final correction reduces foam occupancy and opacity while retaining that regional depth treatment. The retained rejected full frames and comparison metrics document those decisions.
+
+The source distance is a visual proxy from the existing kilometre lattice, not bathymetry. No hydrology, water-body classifications, textures, dependencies or additional renderer owners were introduced. The fixed water mesh remains the coverage boundary; time still comes only from the injectable eight-second clock.
+
+The [final fresh critique](critique-final.md) accepts this material pass with no high-confidence blocker. Owner inspection agrees: the candidate is less wrong than the prior response, especially in broken shore articulation and offshore texture. It is not whole-landscape parity; reference surf remains sharper, and composition remains slice10.
+
+[Comparison telemetry](comparison/visual-parity-diff.json) measures the same fixed camera/geometry/environment against the prior response. Italy grayscale MAE is 0.97489 and edge-energy ratio 1.13291; Alps MAE is 0.15307 and edge ratio 1.00906. Italy distance from the prior image moved from 0.02829 before footprint contrast to 0.03111 afterward, toward readable regional surf. The close fixture remained exact through that adjustment ([control](close-footprint-control.json)). Scores locate differences; the reference and direct visual review determine acceptance.
+
+The [behavior ledger](change-ledger.md) accounts for every updated snapshot. Typecheck and all 497 CPU tests pass. Independent Codex code review found only the pending intentional baselines; those are now updated through snapCheck from the inspected actual captures. Shape review retains one water response owner and adds no state, resource, texture or dependency. No test threshold was relaxed.
+
+A further unprimed review found that globally lowering foam corrected the close fixture but weakened regional surf. The final response therefore adjusts surf contrast by screen footprint: blue close-water interiors remain restrained, while an otherwise subpixel broken surf edge stays readable regionally. Scattering width, palette and coverage do not change with this adjustment.
+
+The [strict repeat](repeat.json) passes all seven snapshots with zero pixel differences: two regions, four phases and unchanged terrain-water. All 206,090 dry fixture pixels remain identical at every phase, source data remains unchanged, shallow/deep separation passes, and t8 returns exactly to t0. No page errors or GPU validation warnings occurred. The [loop](water-loop.gif) presents every frozen phase in order; close phase pixels also match the lower-contrast fixture exactly before and after the footprint correction.

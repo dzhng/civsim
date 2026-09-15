@@ -1,6 +1,6 @@
 # 09 — Shared water depth, surf and motion
 
-Status: in progress. Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
+Status: material accepted and exact-repeat verified. Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
 
 ## Contract and owner
 
@@ -43,3 +43,7 @@ The existing response now lives in `landscape/waterMaterial.ts`; terrain, ocean 
 ## Source-distance response checkpoint
 
 The [response evidence](../assets/slice-09/response/README.md) now covers explicit source-shore capability, bounded campaign depth proxy, weak clock-driven normal detail, broken shore lace and fixed-source dry-pixel controls. CampaignWorld and the regional route consume it; battle and synthetic field fixtures retain the existing response. Seven exact repeat frames and all CPU tests pass. Regular wave bands were rejected. Independent fresh visual critique remains pending after the agent thread limit rejected both spawn attempts, so this checkpoint does not close09 or claim reference-quality acceptance.
+
+## Accepted material response
+
+The [focused finish evidence](../assets/slice-09/finish/README.md) resolves the fresh critique of uniform shallow halos and isolated foam dabs. Existing multiscale noise varies scattering and surf; screen-footprint contrast keeps regional surf readable while close narrow-water interiors stay blue. The final independent review accepts the material pass, with softer western-coast surf documented as an acceptable simplification. Geometry, palette and environment remain fixed; whole-landscape acceptance stays with slice10.

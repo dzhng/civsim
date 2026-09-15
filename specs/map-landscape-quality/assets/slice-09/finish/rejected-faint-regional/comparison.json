@@ -1,0 +1,183 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-15T04:05:24.763Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 6,
+  "worstPair": "landscape-water-t4",
+  "results": [
+    {
+      "id": "landscape-water-t4",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.03624,
+      "grayscale": {
+        "mae": 0.84626,
+        "rmse": 3.18593,
+        "diffRatio16": 0.01352,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00447
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.83052,
+        "terrainLikeRatioCandidate": 0.83041,
+        "avgLuminanceCurrent": 156.45707,
+        "avgLuminanceCandidate": 156.01827,
+        "avgLuminanceDelta": -0.4388,
+        "edgeEnergyCurrent": 0.01545,
+        "edgeEnergyCandidate": 0.01806,
+        "edgeEnergyRatio": 1.16899,
+        "edgeDiffRatio32": 0.00536
+      }
+    },
+    {
+      "id": "landscape-water-t2",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.03598,
+      "grayscale": {
+        "mae": 0.84663,
+        "rmse": 3.18067,
+        "diffRatio16": 0.01347,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00438
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.83028,
+        "terrainLikeRatioCandidate": 0.83025,
+        "avgLuminanceCurrent": 156.45675,
+        "avgLuminanceCandidate": 156.01518,
+        "avgLuminanceDelta": -0.44157,
+        "edgeEnergyCurrent": 0.01546,
+        "edgeEnergyCandidate": 0.01805,
+        "edgeEnergyRatio": 1.16772,
+        "edgeDiffRatio32": 0.00532
+      }
+    },
+    {
+      "id": "landscape-water-t6",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.03583,
+      "grayscale": {
+        "mae": 0.84878,
+        "rmse": 3.1992,
+        "diffRatio16": 0.01362,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00462
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.83051,
+        "terrainLikeRatioCandidate": 0.83091,
+        "avgLuminanceCurrent": 156.46096,
+        "avgLuminanceCandidate": 156.0226,
+        "avgLuminanceDelta": -0.43837,
+        "edgeEnergyCurrent": 0.01551,
+        "edgeEnergyCandidate": 0.01809,
+        "edgeEnergyRatio": 1.16639,
+        "edgeDiffRatio32": 0.00546
+      }
+    },
+    {
+      "id": "landscape-water-t0",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.0358,
+      "grayscale": {
+        "mae": 0.84747,
+        "rmse": 3.18782,
+        "diffRatio16": 0.0135,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00444
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.83047,
+        "terrainLikeRatioCandidate": 0.83055,
+        "avgLuminanceCurrent": 156.46074,
+        "avgLuminanceCandidate": 156.01901,
+        "avgLuminanceDelta": -0.44173,
+        "edgeEnergyCurrent": 0.01552,
+        "edgeEnergyCandidate": 0.01811,
+        "edgeEnergyRatio": 1.16684,
+        "edgeDiffRatio32": 0.00522
+      }
+    },
+    {
+      "id": "landscape-italy",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.02829,
+      "grayscale": {
+        "mae": 0.93775,
+        "rmse": 3.12386,
+        "diffRatio16": 0.01229,
+        "diffRatio32": 0.00027,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.005
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.57782,
+        "terrainLikeRatioCandidate": 0.57786,
+        "avgLuminanceCurrent": 97.40236,
+        "avgLuminanceCandidate": 96.91456,
+        "avgLuminanceDelta": -0.4878,
+        "edgeEnergyCurrent": 0.06882,
+        "edgeEnergyCandidate": 0.07735,
+        "edgeEnergyRatio": 1.12382,
+        "edgeDiffRatio32": 0.00676
+      }
+    },
+    {
+      "id": "landscape-alps",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.00142,
+      "grayscale": {
+        "mae": 0.11035,
+        "rmse": 1.09308,
+        "diffRatio16": 0.00132,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00036
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.8933,
+        "terrainLikeRatioCandidate": 0.89333,
+        "avgLuminanceCurrent": 111.29037,
+        "avgLuminanceCandidate": 111.27334,
+        "avgLuminanceDelta": -0.01703,
+        "edgeEnergyCurrent": 0.10745,
+        "edgeEnergyCandidate": 0.10785,
+        "edgeEnergyRatio": 1.00371,
+        "edgeDiffRatio32": 0.0021
+      }
+    }
+  ]
+}

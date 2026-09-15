@@ -1,5 +1,7 @@
 # Campaign water response checkpoint
 
+This checkpoint is superseded for material acceptance by the [focused finish review](../finish/README.md). Its matched battle controls remain the preservation evidence.
+
 The source-conforming campaign surface now consumes the same linear water albedo owner as battle, with a distinct kilometre-scale depth proxy. Wet coverage comes from the mesh, signed shore distance stays separate, and the bounded offshore ramp is explicitly a visual proxy rather than bathymetry. Narrow water stays shallow and its normal motion fades away. No source heights, indices, coverage, physics, geography or battle water palette changed in this pass.
 
 Material creation declares whether the source provides shore distance. Existing synthetic field fixtures and battle consumers retain their prior filtered-water response without requiring a missing vertex attribute. CampaignWorld shares one material across tiles. Its optional injected render time updates both the existing landscape frame and world clock; zero remains the default for frozen callers.

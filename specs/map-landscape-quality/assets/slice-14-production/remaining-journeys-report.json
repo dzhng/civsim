@@ -1,0 +1,261 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T09:38:15.192Z",
+  "target": "http://127.0.0.1:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "campaign-conquest",
+      "file": "campaign/campaign-conquest.mjs",
+      "kind": "flow",
+      "tier": "full"
+    },
+    {
+      "name": "campaign-reinforcements",
+      "file": "campaign/campaign-reinforcements.mjs",
+      "kind": "flow",
+      "tier": "full"
+    },
+    {
+      "name": "menu-renderer-shell",
+      "file": "ui/menu-renderer-shell.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-conquest",
+      "name": "found an independent city near Roma",
+      "ok": true,
+      "detail": "Spoletium at 97km"
+    },
+    {
+      "scenario": "campaign-conquest",
+      "name": "real campaign starts through the shared physical world",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"cityEntities\":401,\"armyEntities\":12,\"armies\":12,\"mine\":2,\"cityCount\":401}"
+    },
+    {
+      "scenario": "campaign-conquest",
+      "name": "move order accepted for nearest independent city",
+      "ok": true,
+      "detail": "Spoletium"
+    },
+    {
+      "scenario": "campaign-conquest",
+      "name": "march leads to a pending garrison battle",
+      "ok": true,
+      "detail": "{\"eid\":0,\"spent\":855,\"encounter\":{\"ambush\":false,\"attacker\":{\"faction\":0,\"garrison\":false,\"id\":0,\"soldiers\":2550},\"defender\":{\"faction\":52,\"garrison\":true,\"id\":12,\"soldiers\":680},\"id\":0,\"no_retreat\":[false,false],\"player_faction\":0,\"reinforcements\":0}}"
+    },
+    {
+      "scenario": "campaign-conquest",
+      "name": "initiation modal shows both sides over the WebGPU campaign",
+      "ok": true,
+      "detail": "{\"text\":\"BattleAttackerRome2550 soldiersDefender (garrison)Ancona680 soldiersFightAuto-resolve\",\"paused\":true,\"renderer\":\"renderer-campaign\"}"
+    },
+    {
+      "scenario": "campaign-conquest",
+      "name": "auto-resolve consumes the pending battle and returns to a savable WebGPU campaign",
+      "ok": true,
+      "detail": {
+        "renderer": "renderer-campaign",
+        "ready": -1,
+        "currentTick": 856,
+        "armyCount": 2,
+        "saveLength": 170001
+      },
+      "originalDetailSha256": "7b52cd22a45bc7da182facd730eec8da08116c8ca08b88e0cc64b43aaa6086b4"
+    },
+    {
+      "scenario": "campaign-reinforcements",
+      "name": "found a reinforcement approach to an independent city near Roma",
+      "ok": true,
+      "detail": "Spoletium at 97km, edge 308"
+    },
+    {
+      "scenario": "campaign-reinforcements",
+      "name": "split detaches and stages a nearby reinforcement stack",
+      "ok": true,
+      "detail": "{\"splitOk\":true,\"before\":12,\"after\":13,\"mainId\":0,\"detachmentId\":1,\"mainSoldiers\":2050,\"detachmentSoldiers\":2400,\"distance\":9.46186574601125}"
+    },
+    {
+      "scenario": "campaign-reinforcements",
+      "name": "campaign forms a pending battle with reinforcements",
+      "ok": true,
+      "detail": "{\"eid\":0,\"encounter\":{\"ambush\":false,\"attacker\":{\"faction\":0,\"garrison\":false,\"id\":0,\"soldiers\":2050},\"defender\":{\"faction\":52,\"garrison\":true,\"id\":13,\"soldiers\":680},\"id\":0,\"no_retreat\":[false,false],\"player_faction\":0,\"reinforcements\":1}}"
+    },
+    {
+      "scenario": "campaign-reinforcements",
+      "name": "initiation modal announces reinforcements",
+      "ok": true,
+      "detail": "BattleAttackerRome2050 soldiersDefender (garrison)Ancona680 soldiers1 nearby armies will join with delayFightAuto-resolve"
+    },
+    {
+      "scenario": "campaign-reinforcements",
+      "name": "reinforcement column arrives and renders in the WebGPU battle",
+      "ok": true,
+      "detail": {
+        "units": [
+          7,
+          13
+        ],
+        "soldiers": [
+          2730,
+          5130
+        ],
+        "baseSoldiers": 2730,
+        "trace": [
+          {
+            "step": 0,
+            "units": 7,
+            "soldiers": 2730
+          },
+          {
+            "step": 10,
+            "units": 7,
+            "soldiers": 2730
+          },
+          {
+            "step": 20,
+            "units": 7,
+            "soldiers": 2730
+          },
+          {
+            "step": 30,
+            "units": 7,
+            "soldiers": 2730
+          },
+          {
+            "step": 40,
+            "units": 7,
+            "soldiers": 2730
+          },
+          {
+            "step": 45,
+            "units": 13,
+            "soldiers": 5130
+          }
+        ]
+      },
+      "originalDetailSha256": "748e4dc1ea7384806877b11db48f9bc5aaf486d51c2bb91e9410fb97935bfad0"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "unsupported WebGPU fixture shows a blocking menu message",
+      "ok": true,
+      "detail": "{\"stats\":{\"gpu\":{\"checked\":true,\"ok\":false,\"adapter\":\"\",\"reason\":\"WebGPU support was disabled for this verification run.\",\"message\":\"WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.\"},\"postCutoverScreenshots\":\"renderer-only\"},\"statusText\":\"WebGPU unavailable: WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.\",\"launchButtons\":[{\"id\":\"menu-new-campaign\",\"disabled\":true,\"title\":\"WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.\"},{\"id\":\"menu-load-save\",\"disabled\":true,\"title\":\"WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.\"},{\"id\":\"menu-quick-battle\",\"disabled\":true,\"title\":\"WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.\"}],\"removedBattleButtons\":0}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "unsupported fixture keeps non-renderer menu surfaces usable",
+      "ok": true,
+      "detail": "{\"display\":\"block\",\"chars\":11296,\"ready\":false,\"campaignReady\":false}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "unsupported WebGPU blocks renderer deep links at the app shell",
+      "ok": true,
+      "detail": "{\"menu\":\"flex\",\"ready\":false,\"campaignReady\":false,\"statusText\":\"WebGPU unavailable: WebGPU support was disabled for this verification run. The WebGPU build requires a browser and GPU adapter that expose WebGPU.\"}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "normal boot opens WebGPU-ready menu shell with Custom Battle as the only battle entry",
+      "ok": true,
+      "detail": "{\"stats\":{\"gpu\":{\"checked\":true,\"ok\":true,\"adapter\":\"apple / metal-3\",\"reason\":\"\",\"message\":\"WebGPU ready: apple / metal-3\"},\"postCutoverScreenshots\":\"renderer-only\"},\"menuDisplay\":\"flex\",\"statusText\":\"WebGPU ready: apple / metal-3\",\"battleButtons\":[\"menu-quick-battle\"],\"removedBattleButtons\":0,\"launchDisabled\":false}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "graphics settings modal opens from the main menu and persists across reload",
+      "ok": true,
+      "detail": "{\"mainSettingsDefault\":{\"modal\":true,\"bloom\":true},\"mainSettingsPersisted\":{\"modal\":true,\"bloom\":false,\"stored\":\"{\\\"shadows\\\":\\\"single\\\",\\\"grassQuality\\\":\\\"standard\\\",\\\"grass\\\":true,\\\"farGrass\\\":true,\\\"bloom\\\":false,\\\"audio\\\":{\\\"masterVolume\\\":0.55,\\\"muted\\\":true,\\\"birds\\\":true,\\\"water\\\":true}}\"}}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "Custom Battle setup is catalog-driven with live army validation",
+      "ok": true,
+      "detail": "{\"open\":true,\"maps\":[\"Shore & Crags\",\"Highland Vale\",\"Wooded Pass\",\"Generated\"],\"randomButton\":\"Random Map\",\"cards\":15,\"weather\":{\"value\":\"golden-hour\",\"labels\":[\"Golden Hour\",\"Overcast\",\"Noon\",\"Dusk\"],\"values\":[\"golden-hour\",\"overcast-highland\",\"noon\",\"dusk\"]},\"factions\":[{\"value\":\"azure\",\"options\":[\"azure\",\"crimson\"]},{\"value\":\"crimson\",\"options\":[\"azure\",\"crimson\"]}],\"defaultValid\":true,\"overInvalid\":true}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "Custom Battle launches through the selected WebGPU battle renderer weather",
+      "ok": true,
+      "detail": {
+        "soldiers": 14300,
+        "units": 34,
+        "renderer": "gpu"
+      },
+      "originalDetailSha256": "4a220ce7059370a04d4783bccfd51194fa1519edb1fa74ab47774cd987558845"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "Custom Battle deploys role lines through the wasm formation seam",
+      "ok": true,
+      "detail": "{\"teams\":[{\"team\":0,\"counts\":{\"front\":10,\"second\":2,\"third\":3,\"cavalry\":2},\"linesOrdered\":true,\"cavalryFlanks\":true,\"left\":{\"unit\":15,\"team\":0,\"cls\":6,\"x\":-314,\"y\":-592.80078125,\"line\":\"cavalry\",\"score\":-592.80078125},\"right\":{\"unit\":16,\"team\":0,\"cls\":6,\"x\":314,\"y\":-592.80078125,\"line\":\"cavalry\",\"score\":-592.80078125},\"frontRear\":-578.5,\"secondFront\":-602.38671875,\"secondRear\":-602.38671875,\"thirdFront\":-641.9388427734375},{\"team\":1,\"counts\":{\"front\":10,\"second\":2,\"third\":3,\"cavalry\":2},\"linesOrdered\":true,\"cavalryFlanks\":true,\"left\":{\"unit\":33,\"team\":1,\"cls\":6,\"x\":-314,\"y\":592.80078125,\"line\":\"cavalry\",\"score\":-592.80078125},\"right\":{\"unit\":32,\"team\":1,\"cls\":6,\"x\":314,\"y\":592.80078125,\"line\":\"cavalry\",\"score\":-592.80078125},\"frontRear\":-578.5,\"secondFront\":-602.38671875,\"secondRear\":-602.38671875,\"thirdFront\":-641.9388427734375}]}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "graphics settings opens from the battle menu",
+      "ok": true,
+      "detail": "{\"pause\":\"flex\",\"panel\":true,\"bloom\":true}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "menu manual opens before entering a renderer",
+      "ok": true,
+      "detail": "{\"display\":\"block\",\"chars\":11296}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "Escape closes menu manual",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "menu starts the normal WebGPU campaign route",
+      "ok": true,
+      "detail": {
+        "renderer": "renderer-campaign",
+        "substrate": "threejs-webgpu-tsl",
+        "projection": "camera3d",
+        "environment": "golden",
+        "depth": {
+          "owner": "three-webgpu",
+          "reversed": true
+        },
+        "ready": true,
+        "cityEntities": 401,
+        "armyEntities": 12
+      },
+      "originalDetailSha256": "5232a591c2060d2dcd1c0c17ddc4b0bbaaf212a86c976a75099acb430d3b0819"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "graphics settings opens from the campaign menu",
+      "ok": true,
+      "detail": "{\"menu\":true,\"panel\":true}"
+    },
+    {
+      "scenario": "menu-renderer-shell",
+      "name": "campaign exits back to the same WebGPU-aware menu shell",
+      "ok": true,
+      "detail": "{\"menu\":\"flex\",\"shell\":{\"gpu\":{\"checked\":true,\"ok\":true,\"adapter\":\"apple / metal-3\",\"reason\":\"\",\"message\":\"WebGPU ready: apple / metal-3\"},\"postCutoverScreenshots\":\"renderer-only\"}}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": [],
+  "evidenceScope": "Compact report: large diagnostic payloads reduced to relevant journey scalars; original detail hashes retained. No checks omitted.",
+  "sourceReportSha256": "ae63250fcfa9137371543f0518fe2b9cade2b54b0b12e6e975d272c4306d0032"
+}

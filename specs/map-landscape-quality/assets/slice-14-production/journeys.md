@@ -106,3 +106,17 @@ animation cancellation complete; pending timestamp work drains. Timestamp maps
 are too small to plausibly account for roughly180MB growth. This rejects the
 deferred-disposal hypothesis for the observed runs. A heap retaining path is
 required before implementing a lifetime correction.
+
+## Remaining hardware journeys
+
+The integrated source passes all 26 checks across `campaign-conquest`,
+`campaign-reinforcements`, and `menu-renderer-shell` on installed Chrome with
+Apple Metal WebGPU, with zero page errors. Conquest returns from auto-resolve
+to a savable campaign; reinforcements arrive and match the uploaded battle crowd;
+menu, graphics settings, custom battle and campaign transitions remain functional.
+No scene assertions, timeouts, or production code changed for this run. The
+[compact report](remaining-journeys-report.json) preserves every check and key
+journey values, with hashes for the omitted large diagnostic payloads.
+
+These routes use real campaign geography. Controlled-fixture visual acceptance
+and the handoff rerun after its semantic bitmap correction remain separate.

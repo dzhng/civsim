@@ -1,5 +1,5 @@
 import { PNG } from "pngjs";
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 import { hasCampaignWorldDepthContract } from "../_renderer-contract.mjs";
 export const meta = {
   name: "campaign-physical-overview",
@@ -27,10 +27,7 @@ export async function run(ctx) {
     window.__campaign.factionView(true);
     window.__campaign.cam(-100, 250, 0.18);
   });
-  await page.waitForFunction(() => window.__campaignGpuStats?.residency?.ready, undefined, {
-    timeout: 120000,
-  });
-  await page.evaluate(() => document.fonts.ready);
+  await campaignPresentationReady(page);
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check("real campaign shares the physical world", hasCampaignWorldDepthContract(stats));
   ctx.check(

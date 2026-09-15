@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { PNG } from "pngjs";
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 const CAMPAIGN_MAP_JSON = new URL("../../public/data/campaign-map.json", import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
@@ -82,7 +82,6 @@ export async function run(ctx) {
   const page = await campaign(ctx, "new", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-lod",
-    timeout: 30000,
   });
   await page.evaluate(() => window.__campaign.freeze());
 
@@ -276,7 +275,7 @@ async function snapCampaign(
   { before, stats, checkStructure = false, realItalyAlignment = null, greenTerrainFloor = null },
 ) {
   await before();
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   const gpuStats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(`${name} stats match LoD contract`, stats(gpuStats), JSON.stringify(gpuStats));
   const shot = await page.screenshot();

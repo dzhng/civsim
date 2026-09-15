@@ -1,4 +1,4 @@
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 // One occupancy authority covers canvas
 // labels and DOM cards — nothing readable overlaps. Asserts the arbitration
@@ -38,7 +38,6 @@ export async function run(ctx) {
   const page = await campaign(ctx, "new", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-collision",
-    timeout: 30000,
   });
   await page.evaluate(() => {
     window.__campaign.freeze(true);
@@ -49,7 +48,7 @@ export async function run(ctx) {
 
   // ---- Overview: faction labels join the arbitration ----------------------
   await page.evaluate((camera) => window.__campaign.cam(...camera), WHOLE_MAP_CAMERA);
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   const overview = await collectCollisionState(page);
   const arverni = overview.labels.find(
     (label) => label.kind === "faction" && label.text === "ARVERNI",
@@ -119,7 +118,7 @@ export async function run(ctx) {
     }),
   );
 
-  await page.waitForTimeout(200);
+  await campaignPresentationReady(page);
   const cluster = await collectCollisionState(page);
   const clusterNames = cluster.cards.map((card) => card.name);
   // Past the full-tilt zoom every own-city card MUST be visible: fixed-size
@@ -144,7 +143,7 @@ export async function run(ctx) {
   ctx.check("campaign map has Pella", Boolean(pella), JSON.stringify(pella));
   if (pella) {
     await page.evaluate((pos) => window.__campaign.cam(pos[0], pos[1], 3.0), pella);
-    await page.waitForTimeout(300);
+    await campaignPresentationReady(page);
     checkNoReadableOverlap(ctx, "collision pella", await collectCollisionState(page));
   }
 

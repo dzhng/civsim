@@ -55,6 +55,25 @@ export async function campaign(ctx, kind, opts = {}) {
   return page;
 }
 
+/** Settle physical terrain before measuring or photographing a campaign view.
+ * Keep this outside immediate-frame assertions: those deliberately observe the
+ * frame just submitted by cam(), not a later settled frame. */
+export async function campaignPresentationReady(page, timeout = 120000) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  });
+  await page.waitForFunction(
+    () =>
+      window.__campaignGpuStats?.residency?.ready ||
+      window.__campaignGpuStats?.residency?.failed?.length,
+    undefined,
+    { timeout },
+  );
+  const failed = await page.evaluate(() => window.__campaignGpuStats.residency.failed);
+  if (failed.length) throw new Error(`Campaign terrain failed: ${JSON.stringify(failed)}`);
+}
+
 export async function labRoute(ctx, route, query = "") {
   const page = await ctx.newPage({
     viewport: { width: 900, height: 620 },
@@ -75,17 +94,52 @@ export async function ready(page, flag, timeoutMs = 60000) {
  *  Every battle boot waits on this so no scene freezes or shoots a half-built
  *  frame. */
 export async function battleRendererReady(page, timeoutMs = 60000) {
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: timeoutMs },
-  );
+  try {
+    await page.waitForFunction(
+      () => {
+        const stats = window.__game?.stats?.();
+        return (
+          window.__gpuFatal ||
+          (window.__ready === true &&
+            stats?.renderer === "gpu" &&
+            stats.renderStats?.ready === true &&
+            stats.renderStats.soldiers === stats.soldiers)
+        );
+      },
+      undefined,
+      { timeout: timeoutMs },
+    );
+  } catch (error) {
+    // A blocked page must not make timeout diagnosis itself unbounded.
+    let timer;
+    let state;
+    try {
+      state = await Promise.race([
+        page
+          .evaluate(() => {
+            const stats = window.__game?.stats?.();
+            return {
+              ready: window.__ready,
+              fatal: window.__gpuFatal,
+              renderer: stats?.renderer,
+              renderReady: stats?.renderStats?.ready,
+              soldiers: stats?.soldiers,
+              uploaded: stats?.renderStats?.soldiers,
+              loading: document.getElementById("battle-loading")?.textContent,
+            };
+          })
+          .catch((reason) => ({ snapshotError: String(reason) })),
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve({ unresponsive: true }), 5000);
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
+    throw new Error(`${error.message}; battle readiness state: ${JSON.stringify(state)}`, {
+      cause: error,
+    });
+  }
+  const fatal = await page.evaluate(() => window.__gpuFatal);
+  if (fatal) throw new Error(`Battle renderer failed: ${JSON.stringify(fatal)}`);
 }

@@ -1,8 +1,10 @@
 import type { SceneryInstance } from "../../../packages/game-renderer/src/terrain/scenery";
 import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import type { Territory } from "./territory";
+import type { CampaignRenderer } from "./renderer";
 
 export interface CampaignDebugApi {
+  rendererOwner(): CampaignRenderer;
   tick(n: number): void;
   orderMove(army: number, kind: number, a: number, b: number): boolean;
   place(army: number, kind: number, a: number, b: number): void;

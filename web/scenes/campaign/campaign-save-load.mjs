@@ -7,7 +7,7 @@ export const meta = {
   world: "campaign-real",
   tier: "quick",
   snapshots: [],
-  describe: "Normal menu campaign save/load round-trips into the raw-WebGPU campaign adapter.",
+  describe: "Normal menu campaign save/load round-trips into the shared physical campaign world.",
 };
 
 export async function run(ctx) {
@@ -54,7 +54,7 @@ export async function run(ctx) {
   );
 
   await page.click("#menu-new-campaign");
-  await ready(page, "__campaignReady", 30000);
+  await ready(page, "__campaignReady");
   const initial = await page.evaluate(() => ({
     renderer: window.__campaignGpuStats?.renderer,
     gpu: window.__campaignGpuStats,
@@ -108,7 +108,7 @@ export async function run(ctx) {
   );
 
   await page.click("#menu-load-save");
-  await ready(page, "__campaignReady", 30000);
+  await ready(page, "__campaignReady");
   const loaded = await page.evaluate(
     (savedText) => ({
       renderer: window.__campaignGpuStats?.renderer,
@@ -122,7 +122,7 @@ export async function run(ctx) {
     saved,
   );
   ctx.check(
-    "loaded save returns to a live raw-WebGPU campaign",
+    "loaded save returns to a live physical campaign",
     loaded.renderer === "renderer-campaign" &&
       hasCampaignWorldDepthContract(loaded.gpu) &&
       loaded.cityEntities > 100 &&

@@ -1,5 +1,5 @@
 import { PNG } from "pngjs";
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 // The camera must never see past the map edge.
 // At the max-zoom-out floor the four corners of the map viewport must be map
@@ -33,7 +33,7 @@ export async function run(ctx) {
 }
 
 async function snapFrame(ctx, name, viewport) {
-  const page = await campaign(ctx, "new", { viewport, errorPrefix: name, timeout: 30000 });
+  const page = await campaign(ctx, "new", { viewport, errorPrefix: name });
   await page.evaluate(() => window.__campaign.freeze());
   await page.evaluate(
     ([cx, cy, scale]) => {
@@ -45,7 +45,7 @@ async function snapFrame(ctx, name, viewport) {
     },
     [...CENTER, TINY_SCALE],
   );
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
 
   const shot = await page.screenshot();
   const png = PNG.sync.read(shot);

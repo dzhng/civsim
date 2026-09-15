@@ -206,6 +206,7 @@ export class CampaignScene implements Scene {
     }
     // Debug/verify hook (mirrors the battle scene's window.__game).
     installCampaignDebugApi({
+      rendererOwner: () => this.renderer,
       tick: (n: number) => {
         this.cfg.campaign.tick(n);
         this.refreshViews();

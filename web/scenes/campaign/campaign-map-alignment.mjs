@@ -1,5 +1,5 @@
 import { PNG } from "pngjs";
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-map-alignment",
@@ -48,7 +48,6 @@ export async function run(ctx) {
   const page = await campaign(ctx, "alignment", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-map-alignment",
-    timeout: 30000,
   });
   await page.evaluate(() => {
     window.__campaign.freeze(true);
@@ -80,7 +79,7 @@ export async function run(ctx) {
 
   for (const [name, x, y, scale] of CAMERAS) {
     await page.evaluate(([cx, cy, zoom]) => window.__campaign.cam(cx, cy, zoom), [x, y, scale]);
-    await page.waitForTimeout(320);
+    await campaignPresentationReady(page);
     const pixels = await sampleFrame(page);
     ctx.check(
       `${name} camera keeps land visibly non-water and sea visibly blue`,

@@ -3,7 +3,7 @@ import {
   hasBattleWorldDepthContract,
   hasCampaignWorldDepthContract,
 } from "../_renderer-contract.mjs";
-import { campaign, ready } from "../worlds.mjs";
+import { battleRendererReady, campaign, ready } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-handoff",
@@ -18,7 +18,6 @@ export async function run(ctx) {
   const page = await campaign(ctx, "handoff", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-handoff",
-    timeout: 18000,
   });
   await page.evaluate(() => {
     window.__campaign.freeze(true);
@@ -75,19 +74,7 @@ export async function run(ctx) {
 
   const launched = await page.evaluate(() => window.__campaign.fightReady());
   ctx.check("fightReady launches the pending encounter", launched === true, String(launched));
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 22000 },
-  );
+  await battleRendererReady(page);
   await page.waitForFunction(
     () => document.querySelector("#pause-exit")?.textContent?.includes("Campaign") === true,
     undefined,
@@ -123,7 +110,7 @@ export async function run(ctx) {
 
   await page.click("#btn-menu");
   await page.click("#pause-exit");
-  await ready(page, "__campaignReady", 22000);
+  await ready(page, "__campaignReady");
   await page.waitForFunction(() => window.__ready === false, undefined, { timeout: 22000 });
   await page.waitForTimeout(260);
   const returned = await page.evaluate(() => ({

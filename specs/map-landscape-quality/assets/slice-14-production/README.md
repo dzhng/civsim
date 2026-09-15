@@ -106,3 +106,6 @@ policy belongs to the separately reviewed army/cart input commit.
 The legacy campaign visual, LOD and map-alignment assertions now name the shared
 owners. Their full journeys and replacement image baselines, along with the
 remaining save/handoff/lifecycle and hardware gates, remain open in slice14.
+
+[Journey settlement and lifetime evidence](journeys.md) covers the remaining
+verification migration without changing immediate-frame contracts.

@@ -1,5 +1,5 @@
 import { PNG } from "pngjs";
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 // Campaign-polish road-continuity fixture.
 // The `alignment` fixture is Roma with three roads radiating to Tibur, Narnia,
@@ -61,7 +61,6 @@ export async function run(ctx) {
   const page = await campaign(ctx, "alignment", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-polish-roads",
-    timeout: 30000,
   });
   await page.evaluate((camera) => {
     window.__campaign.freeze(true);
@@ -72,7 +71,7 @@ export async function run(ctx) {
     window.__campaign.select(-1);
     window.__campaign.cam(...camera);
   }, CAMERA);
-  await page.waitForTimeout(320);
+  await campaignPresentationReady(page);
 
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   // Own cities render as DOM map cards (spec campaign-map-polish 17), so

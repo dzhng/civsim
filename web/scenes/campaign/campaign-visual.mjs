@@ -1,4 +1,4 @@
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-visual",
@@ -16,7 +16,7 @@ export const meta = {
     "tiny-army-neutral-city",
   ],
   describe:
-    "Controlled campaign marker and UI snapshots on the production raw-WebGPU campaign adapter.",
+    "Controlled campaign marker and UI snapshots on the production shared physical campaign world.",
 };
 
 const UI_SHOTS = new URL("../../shots/ui/", import.meta.url).pathname;
@@ -35,7 +35,6 @@ export async function run(ctx) {
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 2,
     errorPrefix: "campaign-visual",
-    timeout: 30000,
   });
   await page.waitForFunction(
     () =>
@@ -55,7 +54,7 @@ export async function run(ctx) {
   );
   const gpuStats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
-    "controlled campaign visual route uses raw WebGPU",
+    "controlled campaign visual route uses the shared physical world",
     gpuStats?.renderer === "renderer-campaign" &&
       gpuStats?.labelLayer === "physical-gpu-glyph-atlas" &&
       gpuStats?.labelVertices > 0,
@@ -63,22 +62,22 @@ export async function run(ctx) {
   );
 
   await page.evaluate(() => window.__campaign.cam(0, 450, 16));
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   await ctx.snap(page, "tiny-overview");
 
   await page.click("#cmp-classes-btn");
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   await ctx.snap(page, "ui-class-builder", { baseDir: UI_SHOTS });
   await page.click("#cmp-classes-btn");
 
   await page.click("#cmp-diplo-btn");
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   await ctx.snap(page, "ui-diplomacy", { baseDir: UI_SHOTS });
   await page.click("#cmp-diplo-btn");
 
   await page.evaluate(() => window.__campaign.place(0, 1, 0, 4));
   await page.evaluate(() => window.__campaign.openCity(0));
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   await ctx.snap(page, "ui-city-panel", { baseDir: UI_SHOTS });
 
   const armyClick = await page.evaluate(() => {
@@ -86,7 +85,7 @@ export async function run(ctx) {
     return window.__campaign.project(selectedArmy.x, selectedArmy.y);
   });
   await page.mouse.click(armyClick[0], armyClick[1]);
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   await ctx.snap(page, "ui-army-replenish-toggle", { baseDir: UI_SHOTS });
 
   await pose(page, ctx, "army-our-city", { kind: 0, a: 0, b: 0 }, -25);
@@ -99,6 +98,6 @@ export async function run(ctx) {
 async function pose(page, ctx, name, place, camX) {
   await page.evaluate((p) => window.__campaign.place(0, p.kind, p.a, p.b), place);
   await page.evaluate((x) => window.__campaign.cam(x, 450, 20), camX);
-  await page.waitForTimeout(300);
+  await campaignPresentationReady(page);
   await ctx.snap(page, `tiny-${name}`);
 }

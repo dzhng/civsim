@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 import { hasCampaignWorldDepthContract } from "../_renderer-contract.mjs";
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-production",
@@ -38,14 +38,7 @@ async function runDpr(ctx, dpr) {
     window.__campaign.freeze(true);
     window.__campaign.cam(0, 450, 6 * dpr);
   }, dpr);
-  await page.waitForFunction(
-    () =>
-      window.__campaignGpuStats?.residency?.ready ||
-      window.__campaignGpuStats?.residency?.failed?.length,
-    undefined,
-    { timeout: 120000 },
-  );
-  await page.evaluate(() => document.fonts.ready);
+  await campaignPresentationReady(page);
   ctx.check(
     "campaign terrain residency completed without worker failure",
     await page.evaluate(() => window.__campaignGpuStats.residency.ready),

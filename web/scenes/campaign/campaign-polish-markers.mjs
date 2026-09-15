@@ -1,5 +1,5 @@
 import { PNG } from "pngjs";
-import { campaign } from "../worlds.mjs";
+import { campaign, campaignPresentationReady } from "../worlds.mjs";
 
 // Campaign-polish workbench: city-label spacing and green-terrain swatch.
 // The `test` fixture is a clean two-city green stage (Roma — road — Neapolis)
@@ -31,7 +31,6 @@ export async function run(ctx) {
   const page = await campaign(ctx, "test", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-polish-markers",
-    timeout: 30000,
   });
 
   // ---- Label spacing -----------------------------------------------------
@@ -45,7 +44,7 @@ export async function run(ctx) {
     window.__campaign.select(-1);
     window.__campaign.cam(0, 450, 18);
   });
-  await page.waitForTimeout(320);
+  await campaignPresentationReady(page);
   const labelStats = await page.evaluate(() => window.__campaignGpuStats);
   const cardNames = await visibleMapCardNames(page);
   ctx.check(
@@ -63,7 +62,7 @@ export async function run(ctx) {
     window.__campaign.place(0, 0, 0, 0); // garrison the army back at Roma, off-screen here
     window.__campaign.cam(0, 440, 30);
   });
-  await page.waitForTimeout(320);
+  await campaignPresentationReady(page);
   const swatch = PNG.sync.read(await page.screenshot());
   const metrics = greenSwatchMetrics(swatch);
   ctx.check(

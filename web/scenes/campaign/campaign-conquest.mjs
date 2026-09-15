@@ -43,7 +43,7 @@ export async function run(ctx) {
   });
   await page.evaluate(() => localStorage.removeItem("campaign-save"));
   await page.click("#menu-new-campaign");
-  await ready(page, "__campaignReady", 30000);
+  await ready(page, "__campaignReady");
 
   const initial = await page.evaluate(() => ({
     renderer: window.__campaignGpuStats?.renderer,
@@ -55,7 +55,7 @@ export async function run(ctx) {
   }));
   const mine = initial.armies.filter((army) => army.mine);
   ctx.check(
-    "real campaign starts through the raw-WebGPU adapter",
+    "real campaign starts through the shared physical world",
     initial.renderer === "renderer-campaign" &&
       hasCampaignWorldDepthContract(initial.gpu) &&
       initial.cityEntities > 100 &&

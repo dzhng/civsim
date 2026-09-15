@@ -1,0 +1,341 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T08:12:49.756Z",
+  "target": "http://localhost:5194",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "renderer-lifecycle",
+      "file": "system/renderer-lifecycle.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 creates an encounter",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":1},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":1,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":323902288,\"userAgentBreakdown\":[{\"bytes\":302820977,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":139272,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":2516486,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900969,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":16691200,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 creates an encounter",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":2},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":2,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":414301949,\"userAgentBreakdown\":[{\"bytes\":398915319,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":12902400,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":901849,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":605453,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":143544,\"types\":[\"DOM\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 creates an encounter",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":3},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":3,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":508186938,\"userAgentBreakdown\":[{\"bytes\":492504318,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":900701,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":147840,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":591095,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":13209600,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 creates an encounter",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":4},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":4,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":602606695,\"userAgentBreakdown\":[{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":152688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":586412217,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":13516800,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":790637,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900969,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 creates an encounter",
+      "ok": true,
+      "detail": "4"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":5},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":5,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":696749440,\"userAgentBreakdown\":[{\"bytes\":897373,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":680221708,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":13824000,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":160656,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":812319,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 creates an encounter",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":6},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":6,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":790254427,\"userAgentBreakdown\":[{\"bytes\":161808,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":901173,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":14131200,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":773441133,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":785729,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 creates an encounter",
+      "ok": true,
+      "detail": "6"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":7},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":7,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":883985602,\"userAgentBreakdown\":[{\"bytes\":900905,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":866869356,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":166080,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":14438400,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":777477,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 creates an encounter",
+      "ok": true,
+      "detail": "7"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":8},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":8,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":977704745,\"userAgentBreakdown\":[{\"bytes\":14745600,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":960326890,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":170352,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":727614,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900905,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 creates an encounter",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":9},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":9,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":1071748612,\"userAgentBreakdown\":[{\"bytes\":901917,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":911735,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":1053874152,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":174624,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":15052800,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 creates an encounter",
+      "ok": true,
+      "detail": "9"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":10},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":10,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":1161221039,\"userAgentBreakdown\":[{\"bytes\":1147228039,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":11264000,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":178896,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":897349,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":819371,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "renderer counters stay flat across dispose cycles",
+      "ok": true,
+      "detail": "[{\"cycle\":1,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":323902288,\"userAgentBreakdown\":[{\"bytes\":302820977,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":139272,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":2516486,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900969,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":16691200,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]},{\"cycle\":2,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":414301949,\"userAgentBreakdown\":[{\"bytes\":398915319,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":12902400,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":901849,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":605453,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":143544,\"types\":[\"DOM\"],\"urls\":[]}]},{\"cycle\":3,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":508186938,\"userAgentBreakdown\":[{\"bytes\":492504318,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":900701,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":147840,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":591095,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":13209600,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]}]},{\"cycle\":4,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":602606695,\"userAgentBreakdown\":[{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":152688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":586412217,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":13516800,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":790637,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900969,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]}]},{\"cycle\":5,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":696749440,\"userAgentBreakdown\":[{\"bytes\":897373,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":680221708,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":13824000,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":160656,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":812319,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":6,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":790254427,\"userAgentBreakdown\":[{\"bytes\":161808,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":901173,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":14131200,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":773441133,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":785729,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":7,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":883985602,\"userAgentBreakdown\":[{\"bytes\":900905,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":866869356,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":166080,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":14438400,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":777477,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":8,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":977704745,\"userAgentBreakdown\":[{\"bytes\":14745600,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":960326890,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":170352,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":727614,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900905,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]},{\"cycle\":9,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":1071748612,\"userAgentBreakdown\":[{\"bytes\":901917,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":911735,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":1053874152,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":174624,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":15052800,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]}]},{\"cycle\":10,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":1161221039,\"userAgentBreakdown\":[{\"bytes\":1147228039,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":11264000,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":178896,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":897349,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":819371,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "user-agent memory series is available",
+      "ok": true,
+      "detail": "[{\"cycle\":1,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":323902288,\"userAgentBreakdown\":[{\"bytes\":302820977,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":139272,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":2516486,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900969,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":16691200,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]},{\"cycle\":2,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":414301949,\"userAgentBreakdown\":[{\"bytes\":398915319,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":12902400,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":901849,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":605453,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":143544,\"types\":[\"DOM\"],\"urls\":[]}]},{\"cycle\":3,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":508186938,\"userAgentBreakdown\":[{\"bytes\":492504318,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":900701,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":147840,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":591095,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":13209600,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]}]},{\"cycle\":4,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":602606695,\"userAgentBreakdown\":[{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":152688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":586412217,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":13516800,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":790637,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900969,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]}]},{\"cycle\":5,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":696749440,\"userAgentBreakdown\":[{\"bytes\":897373,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":680221708,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":13824000,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":160656,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":812319,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":6,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":790254427,\"userAgentBreakdown\":[{\"bytes\":161808,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":901173,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":14131200,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":773441133,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":785729,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":7,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":883985602,\"userAgentBreakdown\":[{\"bytes\":900905,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":866869356,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":166080,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":14438400,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":777477,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":8,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":977704745,\"userAgentBreakdown\":[{\"bytes\":14745600,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":960326890,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":170352,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":727614,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":900905,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]},{\"cycle\":9,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":1071748612,\"userAgentBreakdown\":[{\"bytes\":901917,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":911735,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":1053874152,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]},{\"bytes\":174624,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":15052800,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]}]},{\"cycle\":10,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":1161221039,\"userAgentBreakdown\":[{\"bytes\":1147228039,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":11264000,\"types\":[\"Canvas\"],\"urls\":[\"http://localhost:5194/?campaign=handoff\"]},{\"bytes\":178896,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":897349,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/@fs/Users/david/dev/game-landscape-journeys/packages/photoreal-renderer/src/campaign/terrainWorkerEntry.ts?worker_file&type=module\"]},{\"bytes\":819371,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":833384,\"types\":[\"JavaScript\"],\"urls\":[\"http://localhost:5194/src/campaign/ai-worker.ts?worker_file&type=module\"]}]}]"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

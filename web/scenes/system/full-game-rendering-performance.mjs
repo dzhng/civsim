@@ -5,7 +5,7 @@ import {
   hasBattleWorldDepthContract,
   hasCampaignWorldDepthContract,
 } from "../_renderer-contract.mjs";
-import { campaign, ready } from "../worlds.mjs";
+import { campaign, campaignPresentationReady, ready } from "../worlds.mjs";
 
 export const meta = {
   name: "full-game-rendering-performance",
@@ -193,13 +193,13 @@ async function measureCampaign(ctx) {
     window.__campaign.freeze(true);
     window.__campaign.cam(-100, 250, 0.18);
   });
-  await page.waitForTimeout(200);
+  await campaignPresentationReady(page);
   const frame = await sampleRaf(page, 60);
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   const memory = await sampleMemory(page);
   await page.close();
   ctx.check(
-    "perf campaign measures the normal raw-WebGPU campaign route",
+    "perf campaign measures the shared physical campaign world",
     stats.renderer === "renderer-campaign" &&
       stats.cityEntities > 20 &&
       // Roads are triangle meshes; line segments now describe only sea lanes.
@@ -213,7 +213,7 @@ async function measureCampaign(ctx) {
     id: "campaign-whole-map",
     label: "Campaign whole map",
     route: "/ -> New Campaign",
-    renderer: "raw-renderer-campaign",
+    renderer: "physical-renderer-campaign",
     frame,
     startupMs,
     memory,
@@ -289,7 +289,7 @@ async function measureHandoff(ctx) {
     id: "campaign-battle-handoff",
     label: "Campaign to battle handoff",
     route: "/?campaign=handoff",
-    renderer: "raw-renderer-campaign-to-battle",
+    renderer: "physical-renderer-campaign-to-battle",
     frame,
     startupMs: handoffMs,
     memory,

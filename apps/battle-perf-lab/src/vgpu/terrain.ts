@@ -11,7 +11,7 @@ export async function createVgpuTerrain(
   gpu: Gpu,
   camera: ReturnType<Gpu["device"]["createBuffer"]>,
   environment: VgpuEnvironment,
-  ground: PhotorealBattleGroundMesh,
+  ground: Omit<PhotorealBattleGroundMesh, "earthDistance">,
   horizon: BattleHorizonLayout | null,
   options: TerrainMaterialOptions = {},
   mode: "beauty" | "material" = "beauty",
@@ -44,7 +44,13 @@ export async function createVgpuTerrain(
       [sdf?.width ?? 1, sdf?.height ?? 1],
     );
     const linear = sampler(gpu, { minFilter: "linear", magFilter: "linear" });
-    const shaders = terrainShaders(environment.shader, options, mode, false, environment.shadows);
+    const shaders = terrainShaders(
+      environment.shader,
+      options,
+      mode,
+      false,
+      environment.shadows && !options.vistaBand,
+    );
     const groundGeometry = geometry(gpu, {
       buffers: [
         {
@@ -80,7 +86,23 @@ export async function createVgpuTerrain(
         set: bindings,
         cull: "back",
         frontFace: "ccw",
-        depth: { write: true, compare: "greater-equal" },
+        depth: { write: options.vistaBand !== "farFog", compare: "greater-equal" },
+        ...(options.vistaBand === "farFog"
+          ? {
+              blend: {
+                color: {
+                  src: "src-alpha" as const,
+                  dst: "one-minus-src-alpha" as const,
+                  op: "add" as const,
+                },
+                alpha: {
+                  src: "one" as const,
+                  dst: "one-minus-src-alpha" as const,
+                  op: "add" as const,
+                },
+              },
+            }
+          : {}),
       }),
     ];
     if (horizon?.mesh.indices.length) {

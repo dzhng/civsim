@@ -1,3 +1,4 @@
+import { createVistaControlBackend } from "../vistaControlBackend";
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "../../../../packages/photoreal-renderer/src/world";
@@ -44,10 +45,14 @@ async function run() {
     applyCivsimEnvironment(world, env, { aerialObserver: vec3(0, 0, 0) });
     const camera = new THREE.PerspectiveCamera(),
       post = own(new BattlePostChain(world.renderer, world.scene, camera, env.id));
-    const environment = own(await createRawEnvironment(device, env, samples));
-    const frame = own(
-      new RawBattleFrame(device, environment, width, height, samples, "rgba16float"),
-    );
+    const backend = new URLSearchParams(location.search).get("backend") ?? "raw";
+    if (backend !== "raw" && backend !== "typegpu" && backend !== "vgpu")
+      throw Error("Unknown vista backend");
+    const environment =
+      backend === "raw" ? own(await createRawEnvironment(device, env, samples)) : undefined;
+    const frame = environment
+      ? own(new RawBattleFrame(device, environment, width, height, samples, "rgba16float"))
+      : undefined;
     const grid = {
       w: 32,
       h: 32,
@@ -98,34 +103,41 @@ async function run() {
         if (texture instanceof THREE.Texture) texture.dispose();
       });
     }
-    const layers = [
-      own(
-        new RawBattleTerrain(
-          device,
-          frame.cameraLayout,
-          environment,
-          data.ground,
-          null,
-          { earthDistance: data.ground.earthDistance },
-          "beauty",
-          samples,
-        ),
-      ),
-      ...data.vistaMeshes.map((r) =>
-        own(
-          new RawBattleTerrain(
-            device,
-            frame.cameraLayout,
-            environment,
-            r.mesh,
-            null,
-            { vistaBand: r.name },
-            "beauty",
-            samples,
-          ),
-        ),
-      ),
-    ];
+    const driver =
+      backend === "raw"
+        ? undefined
+        : own(await createVistaControlBackend(backend, device, env, data, width, height, samples));
+    const layers =
+      frame && environment
+        ? [
+            own(
+              new RawBattleTerrain(
+                device,
+                frame.cameraLayout,
+                environment,
+                data.ground,
+                null,
+                { earthDistance: data.ground.earthDistance },
+                "beauty",
+                samples,
+              ),
+            ),
+            ...data.vistaMeshes.map((r) =>
+              own(
+                new RawBattleTerrain(
+                  device,
+                  frame.cameraLayout,
+                  environment,
+                  r.mesh,
+                  null,
+                  { vistaBand: r.name },
+                  "beauty",
+                  samples,
+                ),
+              ),
+            ),
+          ]
+        : [];
     const output = own(
       device.createTexture({
         size: [width, height],
@@ -153,7 +165,7 @@ async function run() {
         far: 5000,
       };
       applyCamera3d(camera, params);
-      frame.setCamera(
+      (driver ?? frame!).setCamera(
         {
           camera3d: params,
           x: 0,
@@ -170,21 +182,24 @@ async function run() {
       );
       for (const bloom of [false, true]) {
         post.setBloomEnabled(bloom);
-        const encoder = device.createCommandEncoder();
-        frame.encode(
-          encoder,
-          output.createView(),
-          (pass, group) => {
-            for (const layer of layers) layer.encode(pass, group);
-          },
-          bloom,
-        );
-        device.queue.submit([encoder.finish()]);
+        if (driver) await driver.render(bloom);
+        else {
+          const encoder = device.createCommandEncoder();
+          frame!.encode(
+            encoder,
+            output.createView(),
+            (pass, group) => {
+              for (const layer of layers) layer.encode(pass, group);
+            },
+            bloom,
+          );
+          device.queue.submit([encoder.finish()]);
+        }
         await new Promise<void>((r) => requestAnimationFrame(() => r()));
         world.renderer.setRenderTarget(reference);
         post.render(world.scene, camera);
         world.renderer.setRenderTarget(null);
-        const actual = Array.from(await readHdrTexture(device, output));
+        const actual = Array.from(await readHdrTexture(device, driver?.output ?? output));
         const raw = await world.renderer.readRenderTargetPixelsAsync(
           reference,
           0,
@@ -209,11 +224,13 @@ async function run() {
       }
     }
     for (const layer of layers) layer.dispose();
-    frame.dispose();
-    environment.dispose();
+    driver?.dispose();
+    frame?.dispose();
+    environment?.dispose();
     output.destroy();
     const liveTextures = lifetime.liveCount();
     return {
+      backend,
       samples,
       results,
       errors,

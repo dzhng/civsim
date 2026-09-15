@@ -29,11 +29,13 @@ export function terrainShaders(
       : "surface";
   const output =
     options.vistaBand === "farFog" && mode === "beauty"
-      ? `let shaded=${shade};return vec4f(shaded.rgb,1.0-smoothstep(-0.012,0.05,normalize(v.position-cam.eye).z));`
+      ? `let shaded=${shade};return vec4f(shaded.rgb,vistaOpacity(v.position,cam.eye));`
       : `return ${shade};`;
+  const vistaOpacity = `fn vistaOpacity${vistaOpacityWgsl}`;
   return {
     ground:
       common +
+      vistaOpacity +
       Object.entries(terrainMaterialFunctions(options))
         .map(([name, body]) => `fn ${name}${body}`)
         .join("\n") +
@@ -51,3 +53,5 @@ export function terrainShaders(
    `,
   };
 }
+
+export const vistaOpacityWgsl = `(position:vec3f,eye:vec3f)->f32{return 1.0-smoothstep(-0.012,0.05,normalize(position-eye).z);}`;

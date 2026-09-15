@@ -1,3 +1,4 @@
+import { vistaOpacityWgsl } from "../../src/shaders/terrain";
 import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d, std, type TgpuRenderPass } from "typegpu";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
@@ -56,7 +57,7 @@ export async function createTypegpuTerrain(
   device: GPUDevice,
   cameraBuffer: GPUBuffer,
   environment: TypegpuEnvironment,
-  ground: PhotorealBattleGroundMesh,
+  ground: Omit<PhotorealBattleGroundMesh, "earthDistance">,
   horizon: BattleHorizonLayout | null,
   options: TerrainMaterialOptions = {},
   mode: "beauty" | "material" = "beauty",
@@ -116,6 +117,9 @@ export async function createTypegpuTerrain(
           )(
             "(surface:vec4f,normal:vec3f,position:vec3f,eye:vec3f,shadow:f32,viewNormal:vec3f)->vec4f{return surface;}",
           );
+    const vistaOpacity = tgpu.fn([d.vec3f, d.vec3f], d.f32)(vistaOpacityWgsl);
+    const farFog = options.vistaBand === "farFog" && mode === "beauty";
+    const receiveShadow = !options.vistaBand;
     const groundShade = tgpu.fragmentFn({ in: FragmentIn, out: d.vec4f })((v) => {
       "use gpu";
       const s = surface(
@@ -130,14 +134,16 @@ export async function createTypegpuTerrain(
         terrainLayout.$.earth,
         terrainLayout.$.linear,
       );
-      return finish(
+      const lit = finish(
         s,
         v.normal,
         v.position,
         cameraLayout.$.cam.eye,
-        terrainLayout.$.state.y * sampleSunShadow(v.position, std.normalize(v.normal), v.clip.xy),
+        terrainLayout.$.state.y *
+          (receiveShadow ? sampleSunShadow(v.position, std.normalize(v.normal), v.clip.xy) : 1),
         v.viewNormalGeometry,
       );
+      return d.vec4f(lit.rgb, farFog ? vistaOpacity(v.position, cameraLayout.$.cam.eye) : lit.a);
     });
     const vertex = tgpu.vertexFn({
       in: { position: d.vec3f, normal: d.vec3f, color: d.vec3f, tint: d.f32, water: d.f32 },
@@ -157,7 +163,25 @@ export async function createTypegpuTerrain(
       };
     });
     const pipelineState = {
-      targets: { format: "rgba16float" as const },
+      targets: {
+        format: "rgba16float" as const,
+        ...(options.vistaBand === "farFog"
+          ? {
+              blend: {
+                color: {
+                  srcFactor: "src-alpha" as const,
+                  dstFactor: "one-minus-src-alpha" as const,
+                  operation: "add" as const,
+                },
+                alpha: {
+                  srcFactor: "one" as const,
+                  dstFactor: "one-minus-src-alpha" as const,
+                  operation: "add" as const,
+                },
+              },
+            }
+          : {}),
+      },
       primitive: {
         topology: "triangle-list" as const,
         cullMode: "back" as const,
@@ -165,7 +189,7 @@ export async function createTypegpuTerrain(
       },
       depthStencil: {
         format: "depth32float" as const,
-        depthWriteEnabled: true,
+        depthWriteEnabled: options.vistaBand !== "farFog",
         depthCompare: "greater-equal" as const,
       },
       multisample: { count: sampleCount },

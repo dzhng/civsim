@@ -175,3 +175,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Phase attribution and missing timing
 
 - **Settled:** Attribute CPU samples and recorded GPU submissions using the canonical camera script, including the untimed opening submission once. Report span and union only as a valid pair; partial or missing measurements remain unavailable. Phase reports reuse the whole-run distribution owners and do not infer GPU time from stage sums.
+
+### Component report scope
+
+- **Settled:** Keep library version identity separate from test scope. A preflight or sky control states only the work it observes; it does not declare global full-scene eligibility or carry a stale missing-pass inventory.

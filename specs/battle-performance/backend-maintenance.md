@@ -17,7 +17,7 @@ The shared native benchmark facade explicitly rejects CSM, block-debug rendering
 
 The raw scene has inline lifecycle state while TypeGPU/vgpu use the shared asynchronous lifecycle owner. Review this against their synchronous/asynchronous contracts during migration; different spelling alone does not prove a correctness defect or justify a wrapper. Existing lifecycle tests remain required.
 
-The vgpu preflight identity still lists the full scene as missing, although the full scene is implemented. It is only consumed by older preflight/sky controls; it must not be cited as current full-scene eligibility. Clean that stale metadata before finalizing the decision report.
+The stale vgpu preflight identity has been corrected: package identity contains version information only, and each control states the limited work it actually checks. Neither an old missing-pass list nor a passing component control is current full-scene eligibility.
 
 ## Findings not adopted
 

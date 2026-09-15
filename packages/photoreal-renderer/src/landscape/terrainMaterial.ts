@@ -16,7 +16,9 @@ import {
   mix,
   normalize,
   positionView,
+  positionWorld,
   sign,
+  texture,
   transformNormalToView,
   varying,
   vec2,
@@ -223,17 +225,39 @@ export function applyTerrainSurface(
   );
 }
 
+/** Shared world lookup avoids coverage seams between coarse and fine terrain.
+ * The source grades a mountain altitude band; only its high interior adds
+ * slope-independent rock, leaving lower shelves to the slope response. */
+export function createSourceCoverSampler(raster: {
+  data: Uint8Array;
+  width: number;
+  height: number;
+  rect: { min: [number, number]; max: [number, number] };
+}) {
+  const map = new THREE.DataTexture(raster.data, raster.width, raster.height, THREE.RedFormat);
+  map.minFilter = THREE.LinearFilter;
+  map.magFilter = THREE.LinearFilter;
+  map.needsUpdate = true;
+  const { min, max } = raster.rect;
+  const uv = positionWorld.xy.sub(vec2(min[0], min[1])).div(vec2(max[0] - min[0], max[1] - min[1]));
+  // Source rows start north. Filter the band before classifying exposure.
+  const band = texture(map).sample(vec2(uv.x, float(1).sub(uv.y))).r;
+  return { map, cover: smoothstepN(0.74, 1, band).toVar() };
+}
+
 /** Campaign consumes neutral source coverage, never battle physical tint IDs. */
 export function createLandscapeGroundMaterial(
   frame: LandscapeFrameUniforms,
   profile: TerrainProfile = CAMPAIGN_TERRAIN_PROFILE,
-  options: { sourceShore?: boolean } = {},
+  options: { sourceShore?: boolean; rockCover?: FloatNode } = {},
 ) {
   const surface = terrainSignals(profile.detailScale);
   const masks = terrainSlopeMasks(
     clamp(surface.worldNormal.z, 0, 1),
     surface.waterBlend,
-    float(0),
+    // Absent source cover leaves the slope-only response unchanged. Loose stone
+    // has no source channel; scree still comes from slope inside these masks.
+    options.rockCover ?? float(0),
     float(0),
     profile.slopeBands,
   );

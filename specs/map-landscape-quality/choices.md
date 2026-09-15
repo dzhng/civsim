@@ -165,3 +165,10 @@ before/after visual evidence.
   competed with the mountain surface; deletion keeps woodland unchanged and
   removes an obsolete placement loop. Battle and authored-stage rock assets
   remain. The resulting bare slopes still need coherent surface detail.
+
+- **Sound, medium confidence — interpret the existing mountain band before using
+  it as rock exposure.** A source-resolution byte texture adds no terrain-tile
+  buffers and gives every tile the same world lookup. Limiting unconditional
+  exposure to the band’s upper part preserves lower green ground better than
+  treating the whole range as bare stone. Frozen production comparisons favor
+  it, while high gullies and face detail still need work.

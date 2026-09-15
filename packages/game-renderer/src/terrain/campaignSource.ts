@@ -193,6 +193,33 @@ export function snapshotCampaignLandscape(
   };
 }
 
+/** One world raster per source signal: single channel plus the rect it covers. */
+export interface CampaignSourceRaster {
+  data: Uint8Array;
+  width: number;
+  height: number;
+  rect: BgWorldRect;
+}
+
+/** The mountain band biome channel 2 already grades (a ramp over a range's
+ * height, not a bare-stone verdict), lifted out at source resolution so every
+ * consumer reads one graded band independently of its own vertex spacing. Row 0
+ * stays north, matching every other source raster. */
+export function campaignMountainBandRaster(
+  source: Pick<CampaignLandscapeSnapshot, "w" | "h" | "cell" | "minX" | "maxY" | "biome">,
+): CampaignSourceRaster {
+  const { w, h, cell, minX, maxY, biome } = source;
+  if (biome.length < w * h * 4) throw new Error("Source biome raster is smaller than its grid");
+  const data = new Uint8Array(w * h);
+  for (let i = 0; i < data.length; i++) data[i] = biome[i * 4 + 2];
+  return {
+    data,
+    width: w,
+    height: h,
+    rect: { min: [minX, maxY - h * cell], max: [minX + w * cell, maxY] },
+  };
+}
+
 export function campaignLandscapeSource(snapshot: CampaignLandscapeSnapshot) {
   return {
     ...snapshot,

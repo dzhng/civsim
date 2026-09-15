@@ -9,7 +9,11 @@ import { PHOTOREAL_SUBSTRATE, PHOTOREAL_PROJECTION } from "../stats";
 import { CampaignMarkerLayer } from "./markerLayer";
 import type { CampaignMarker } from "../../../game-renderer/src/campaign/marker";
 import { CampaignTerrainResidency, prepareCampaignTerrain } from "./terrainResidency";
-import type { CampaignLandscapeSnapshot } from "../../../game-renderer/src/terrain/campaignSource";
+import {
+  campaignMountainBandRaster,
+  type CampaignLandscapeSnapshot,
+  type CampaignSourceRaster,
+} from "../../../game-renderer/src/terrain/campaignSource";
 import { PhotorealCrowd } from "../crowd/crowdLayer";
 import { CROWD_SHADOW_LAYER } from "../crowd/crowdAudience";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
@@ -34,7 +38,10 @@ import {
   PhotorealTiledTerrain,
   type TerrainTileSurface,
 } from "./tiledTerrain";
-import { createLandscapeGroundMaterial } from "../landscape/terrainMaterial";
+import {
+  createLandscapeGroundMaterial,
+  createSourceCoverSampler,
+} from "../landscape/terrainMaterial";
 import * as THREE from "three/webgpu";
 import {
   attribute,
@@ -83,6 +90,8 @@ export interface CampaignTerritoryData {
 
 export interface CampaignComposition {
   surface: RenderedSurface;
+  /** Source mountain band; absent leaves the shared material slope-only. */
+  mountainBand?: CampaignSourceRaster;
   appearances?: Record<number, AppearanceBundle>;
   objects: readonly CampaignWorldObject[];
   geography: CampaignGeography;
@@ -141,18 +150,22 @@ export class PhotorealCampaignWorld {
   private entityFrame: CampaignEntityFrame | null = null;
   private seatedStandards: CampaignStandardInstance[] = [];
   private readonly terrain: PhotorealTiledTerrain;
+  private readonly mountainBandTexture?: THREE.DataTexture;
   private readonly geography: CampaignGeographicLayer;
 
   static async createLandscape(
     canvas: HTMLCanvasElement,
     source: CampaignLandscapeSnapshot,
-    composition: Omit<CampaignComposition, "surface" | "terrainAllocation">,
+    composition: Omit<CampaignComposition, "surface" | "terrainAllocation" | "mountainBand">,
   ) {
+    // Lift the band out before the worker takes ownership of the source.
+    const mountainBand = campaignMountainBandRaster(source);
     const boot = await prepareCampaignTerrain(source);
     try {
       const world = await PhotorealCampaignWorld.create(canvas, {
         ...composition,
         surface: boot.surface,
+        mountainBand,
         terrainAllocation: { budget: boot.allocation },
       });
       world.residency = new CampaignTerrainResidency(world, boot);
@@ -248,8 +261,11 @@ export class PhotorealCampaignWorld {
     }
     this.standards = new PhotorealStandardLayer(world.scene, world.uTime);
     // Tiles share one graph: Three's node-builder cache keys include node identity.
+    const cover = composition.mountainBand && createSourceCoverSampler(composition.mountainBand);
+    this.mountainBandTexture = cover?.map;
     const terrainMaterial = createLandscapeGroundMaterial(this.frame, undefined, {
       sourceShore: !!composition.surface.mesh.shoreDistance,
+      rockCover: cover?.cover,
     });
     this.colorLandscapeMaterial(terrainMaterial, true);
     this.terrain = new PhotorealTiledTerrain(
@@ -740,6 +756,7 @@ export class PhotorealCampaignWorld {
     this.cities.dispose();
     this.geography.dispose();
     this.territoryTexture.dispose();
+    this.mountainBandTexture?.dispose();
     this.scenery.dispose();
     this.terrain.dispose();
     this.standards.dispose();

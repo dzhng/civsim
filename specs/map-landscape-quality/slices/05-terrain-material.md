@@ -97,3 +97,10 @@ Fresh review and root also find lost green shelf/valley separation: broad source
 mountain coverage becomes too uniformly bare when used as full rock exposure.
 Refine that material interpretation before repeat/adoption. Do not alter terrain,
 planting, palette or lighting to hide the coverage tradeoff.
+
+The [refined source-band checkpoint](../assets/slice-05/source-cover/README.md)
+is retained after three zero-difference repeats and asymmetric GPU sampling /
+filtering / disposal checks. It restores some lower green ground while keeping
+rocky range continuity. Source band semantics are now explicit; no tile buffers
+or battle material behavior change. Barren high gullies and cloudy face detail
+remain open, so this does not complete05.

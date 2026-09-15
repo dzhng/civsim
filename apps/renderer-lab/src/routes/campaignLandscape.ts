@@ -6,11 +6,13 @@ import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import {
   createLandscapeGroundMaterial,
   createLandscapeGroundMesh,
+  createSourceCoverSampler,
 } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { PhotorealScenery } from "@packages/photoreal-renderer/src/landscape/sceneryLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { buildCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignLandscape";
+import { campaignMountainBandRaster } from "@packages/game-renderer/src/terrain/campaignSource";
 import { createSurfaceView } from "@packages/game-renderer/src/terrain/surface";
 import { LANDSCAPE_REGIONS, coastalRidgeFixture } from "./landscapeFixtures";
 import { chartCamera3d, screenRay } from "@packages/renderer-core/src/camera3d";
@@ -59,11 +61,13 @@ export async function route(ctx: LabContext) {
   const env = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
     aerialObserver: vec3(frame.focus, 0),
   });
-  const terrainMaterial = clay
-    ? new THREE.MeshStandardNodeMaterial({ color: 0x9c967f, roughness: 0.95 })
-    : createLandscapeGroundMaterial(frame, undefined, {
+  const cover = clay ? null : createSourceCoverSampler(campaignMountainBandRaster(field));
+  const terrainMaterial = cover
+    ? createLandscapeGroundMaterial(frame, undefined, {
         sourceShore: !!landscapes[0].surface.mesh.shoreDistance,
-      });
+        rockCover: cover.cover,
+      })
+    : new THREE.MeshStandardNodeMaterial({ color: 0x9c967f, roughness: 0.95 });
   const grounds = landscapes.map((landscape) => {
     const ground = createLandscapeGroundMesh(landscape.surface.mesh, terrainMaterial);
     ground.name = "campaign-continuous-landscape";
@@ -142,6 +146,7 @@ export async function route(ctx: LabContext) {
         ground.geometry.dispose();
       }
       terrainMaterial.dispose();
+      cover?.map.dispose();
       world.dispose();
     },
     { once: true },

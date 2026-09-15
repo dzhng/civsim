@@ -66,3 +66,14 @@ pixel differences against the immutable first captures. The browser exited
 successfully with no page errors; all 33 recorded checks per run include
 three evidence snapshot writes and the original unchanged scene checks.
 City-body geometry is unchanged; candidate published geometry repeats exactly.
+
+## CHANGE LEDGER
+
+| Test | Previous behavior | New behavior | Why |
+|---|---|---|---|
+| border-fog Tibur placement regression | Tier-first packing puts Tibur at y=458.480837, 199.684455 px below its desired position. | Top-to-bottom packing leaves Tibur at y=258.796382 beneath its own city. | Spatial ordering prevents a southern card from pushing a northern one through the cluster. **moved** |
+| border-fog placement bounds | Tier order can move a northern card beyond lower cards that desired a southern position. | The captured frame's displacement stays bounded by previously placed northern cards. | The same one-direction packing policy now follows screen order. **moved** |
+
+Two additional focused guards preserve all 15 cards, disjoint current rectangles
+and neighbor-anchor clearance, and the original tier-based culling at lower zoom.
+Existing browser collision assertions and canonical baselines are unchanged.

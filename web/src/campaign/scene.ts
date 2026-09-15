@@ -17,7 +17,7 @@ import type { CampaignTopBarActions, CampaignTopBarState } from "../ui/campaign/
 import { createHudStore } from "../ui/hudStore";
 import { nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
-import { rectsOverlap, type ScreenRect } from "@packages/game-renderer/src/campaign/labelLayout";
+import { resolveMapCards, type MapCardCandidate } from "./cardLayout";
 import {
   CAMPAIGN_FULL_TILT_ZOOM,
   CampaignRenderer,
@@ -528,13 +528,10 @@ export class CampaignScene implements Scene {
     this.updateArmyPanel();
   }
 
-  /** Lay the DOM map cards out for this frame: anchor each card directly under
-   *  its city/army, then resolve overlaps against already-claimed ground.
-   *  Below the full-tilt zoom the loser hides; once the camera rides fully
-   *  tilted every city card must stay visible (that close, hiding reads as a
-   *  missing city — Ostia next to Roma), so a colliding city card slides
-   *  straight down below the claimed ground instead. The visible rects and
-   *  culls are REPORTED to the renderer: cards report, the label authority
+  /** Project the DOM map cards for this frame: each card wants to sit directly
+   *  under its city model / army marker against this frame's pinned camera.
+   *  cardLayout resolves the overlaps from there. The visible rects and culls
+   *  are REPORTED to the renderer: cards report, the label authority
    *  arbitrates labels. */
   private layoutMapCards(): {
     positions: MapCardPosition[];
@@ -550,23 +547,7 @@ export class CampaignScene implements Scene {
     const pf = this.playerFaction();
     for (const [id, size] of hud.measureMapCards()) this.cardSizeCache.set(id, size);
     const cardSizes = this.cardSizeCache;
-    interface CardLayout {
-      id: string;
-      name: string;
-      /** Who wins ground: cities above armies, higher tier above lower. */
-      priority: number;
-      /** City cards at full-tilt zoom nudge on collision; everything else culls. */
-      city: boolean;
-      /** The city's own screen anchor (model base) — other cards must not
-       *  cover it (the campaign-lod "does not bury its own marker" contract). */
-      anchor?: [number, number];
-      x: number;
-      y: number;
-      size: { w: number; h: number } | undefined;
-      visible: boolean;
-      rect?: ScreenRect;
-    }
-    const entries: CardLayout[] = [];
+    const entries: MapCardCandidate[] = [];
     for (const [node, city] of this.cities) {
       if (city.owner !== pf) continue;
       const mapNode = this.cfg.data.map.nodes[node];
@@ -613,57 +594,7 @@ export class CampaignScene implements Scene {
         visible: this.cam.scale > 0.35 && onScreen(x, y, width, height),
       });
     }
-    // Card-vs-card: claim ground in priority order (emitter order breaks
-    // ties — deterministic per frame). A card not yet measured (first DOM
-    // frame) can't claim or yield; it joins next frame.
-    const cityCardsMustShow = this.cam.scale >= CAMPAIGN_FULL_TILT_ZOOM;
-    const claimed: ScreenRect[] = [];
-    const culls: string[] = [];
-    const contenders = entries
-      .map((entry, seq) => ({ entry, seq }))
-      .filter(({ entry }) => entry.visible && entry.size)
-      .sort((a, b) => b.entry.priority - a.entry.priority || a.seq - b.seq)
-      .map(({ entry }) => entry);
-    for (const entry of contenders) {
-      const size = entry.size!;
-      let rect = cardRectAt(entry.x, entry.y, size);
-      if (cityCardsMustShow && entry.city) {
-        // Slide below the claimed ground — other cards AND other cities'
-        // anchors (a card over a neighbour's model base buries its marker) —
-        // until free. Each step permanently clears at least one obstacle
-        // (y only grows), so the obstacle count bounds the loop.
-        const anchors = contenders
-          .filter((other) => other.city && other !== entry && other.anchor)
-          .map((other) => other.anchor!);
-        for (let i = 0; i < claimed.length + anchors.length; i++) {
-          const rectHits = claimed.filter((other) => rectsOverlap(rect, other));
-          const anchorHits = anchors.filter(
-            ([x, y]) =>
-              x >= rect.x - ANCHOR_CLEAR_PX &&
-              x <= rect.x + rect.w + ANCHOR_CLEAR_PX &&
-              y >= rect.y - ANCHOR_CLEAR_PX &&
-              y <= rect.y + rect.h,
-          );
-          if (rectHits.length === 0 && anchorHits.length === 0) break;
-          entry.y =
-            Math.max(
-              ...rectHits.map((other) => other.y + other.h),
-              ...anchorHits.map(([, y]) => y + ANCHOR_CLEAR_PX),
-            ) + CARD_NUDGE_GAP_PX;
-          rect = cardRectAt(entry.x, entry.y, size);
-        }
-        entry.rect = rect;
-        claimed.push(rect);
-        continue;
-      }
-      if (!claimed.some((other) => rectsOverlap(rect, other))) {
-        entry.rect = rect;
-        claimed.push(rect);
-        continue;
-      }
-      entry.visible = false;
-      culls.push(`card:${entry.name}`);
-    }
+    const { culls } = resolveMapCards(entries, this.cam.scale >= CAMPAIGN_FULL_TILT_ZOOM);
     return {
       positions: entries.map(({ id, x, y, visible }) => ({ id, x, y, visible })),
       rects: entries
@@ -1352,17 +1283,6 @@ function cityCardOffsetY(zoom: number, tier: number) {
   return 7.5 + Math.min(4, zoom * 1.1);
 }
 
-/** Breathing room between a nudged city card and the rect it slid below. */
-const CARD_NUDGE_GAP_PX = 4;
-/** Clearance a nudged card keeps around a neighbour city's anchor point. */
-const ANCHOR_CLEAR_PX = 6;
-
 function onScreen(x: number, y: number, width: number, height: number) {
   return x >= -160 && y >= -90 && x <= width + 160 && y <= height + 120;
-}
-
-/** DOM card rect (CSS px): cards render top-center anchored
- *  (translate3d(x,y) translate(-50%,0) in MapCards). */
-function cardRectAt(x: number, y: number, size: { w: number; h: number }): ScreenRect {
-  return { x: x - size.w / 2, y, w: size.w, h: size.h };
 }

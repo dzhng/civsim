@@ -126,3 +126,14 @@ records the combined fixture and the deliberate garrison policy: city/banner
 representation replaces figures intersecting roofs, without moving the shared
 garrison anchor or changing field-army crowd/troop state. Selection style is
 retained. Production interaction and overview screen markers remain separate.
+
+## Spatial card placement
+
+At the full-tilt zoom where all own city cards must show, cards now pack from
+top to bottom rather than by city tier. This prevents a northern low-tier card
+from cascading beneath an entire southern cluster. The scene retains projection
+and measurement; one pure placement owner computes final rectangles. The lower
+zoom culling band keeps its tier policy. [Actual-scene evidence](../assets/slice-14-production/remaining-acceptance/card-placement-control/README.md)
+records Tibur's 199.684 px correction, unchanged city bodies, all original
+collision/visibility checks, and three exact repeats. Offshore Ostia and general
+card/model association remain limited by the existing downward-only policy.

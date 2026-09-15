@@ -130,3 +130,11 @@ by fresh review in both regions, but neither clears bounded form acceptance:
 Alps retains congested gullies/walls and Italy's foothill fringe loses definition.
 The2km mesh and height-scale measurements are explicit in the elevation evidence.
 No further scale sweep, city-apron acceptance or runtime adoption follows.
+
+The [natural5× DEM/clearance control](../assets/slice-04/elevation-natural/README.md)
+is rejected under fresh regional and supplemental closer-Alps review. Existing
+city-apron policy is equivalent before its constructor blur, and actual city
+models use shared surface contact, but the candidate loses dominant regional
+relief and shows repetitive grooves. Tree occlusion prevents a city-contact
+acceptance claim. Production terrain and its loader remain unchanged; no further
+form/scale sweep follows this natural-composition diagnostic.

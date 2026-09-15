@@ -1,0 +1,17 @@
+[
+  {
+    "region": "alps",
+    "changedPixelFraction": 0.96434765625,
+    "meanChannelDifference": 17.753744466145832
+  },
+  {
+    "region": "italy",
+    "changedPixelFraction": 0.594052734375,
+    "meanChannelDifference": 10.351088216145833
+  },
+  {
+    "region": "alps-close",
+    "changedPixelFraction": 0.99963671875,
+    "meanChannelDifference": 28.9425205078125
+  }
+]

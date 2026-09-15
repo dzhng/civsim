@@ -20,6 +20,7 @@ export async function createSpoolReplay(
   inputsText: string,
   sink: string,
   resources: Record<string, { sha256: string }>,
+  diagnostic = false,
 ) {
   const { assets, settings } = decodeReplayText<{
     assets: BattleReplayAssets;
@@ -98,7 +99,40 @@ export async function createSpoolReplay(
           ),
         );
       }
+      let localization;
+      if (diagnostic && packet.selection.snapshot && packet.selection.window === "zoom-crossing") {
+        const x = packet.selection.windowIndex === 0 ? 1500 : 1529,
+          y = packet.selection.windowIndex === 0 ? 786 : 1105;
+        const crop = async (blob: Blob) => {
+          const bitmap = await createImageBitmap(blob);
+          const target = document.createElement("canvas");
+          target.width = 65;
+          target.height = 65;
+          const context = target.getContext("2d")!;
+          context.drawImage(bitmap, x - 32, y - 32, 65, 65, 0, 0, 65, 65);
+          bitmap.close();
+          return {
+            png: target.toDataURL("image/png").split(",")[1],
+            pixel: Array.from(context.getImageData(32, 32, 1, 1).data),
+          };
+        };
+        const snapshot = () =>
+          new Promise<Blob>((resolve, reject) =>
+            canvas.toBlob(
+              (b) => (b ? resolve(b) : reject(Error("Diagnostic snapshot failed"))),
+              "image/png",
+            ),
+          );
+        const original = await crop(image!);
+        control.redrawPrepared(false);
+        const repeated = await crop(await snapshot());
+        control.redrawPrepared(true);
+        const grassHidden = await crop(await snapshot());
+        control.redrawPrepared(false);
+        localization = { x, y, original, repeated, grassHidden };
+      }
       return {
+        localization,
         selection: packet.selection,
         frameId: captured.frame.frameId,
         simTick: captured.frame.simTick,

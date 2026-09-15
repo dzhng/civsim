@@ -1,0 +1,1234 @@
+[
+  {
+    "name": "pan-publication-00",
+    "window": "pan-publication",
+    "elapsedMs": 36048.55499999999,
+    "frameId": 176,
+    "simTick": 9614,
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 213.82507053709605,
+        "fovY": 0.6035644930299304,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          7.623943794293865,
+          -88.52478875885878,
+          -4.432582184975843
+        ],
+        "yaw": -1.6388512674468474
+      },
+      "x": 7.623943794293865,
+      "y": -88.52478875885878,
+      "zoom": 7.7715174667567855,
+      "zoomT": 0.9664774661650882
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.93,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          341765,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          220,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          220,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35531,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35531,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          266662,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          341765,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          220,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          220,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35531,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35531,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          266662,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.93,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8254,
+      "l1": 1056,
+      "l2": 0,
+      "l3": 388
+    },
+    "replayCrowd": {
+      "l0": 8254,
+      "l1": 1056,
+      "l2": 0,
+      "l3": 388
+    },
+    "frameHash": "5f1807e187063cab4450b560d51335965d1a146a878f3b919019f4d9377e6e96"
+  },
+  {
+    "name": "pan-publication-29",
+    "window": "pan-publication",
+    "elapsedMs": 44431.56,
+    "frameId": 205,
+    "simTick": 9730,
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 219.99164141510073,
+        "fovY": 0.6007005880245683,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -84.8746225281387,
+          -70.02507549437226,
+          -5.247907889360647
+        ],
+        "yaw": -1.7498495470337665
+      },
+      "x": -84.8746225281387,
+      "y": -70.02507549437226,
+      "zoom": 7.767932770599146,
+      "zoomT": 0.9659515261882917
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 5.365,
+      "lastSampleMs": 6412.61,
+      "lastSlices": 23,
+      "pending": false,
+      "rebuilds": 3,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          332146,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          218,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          218,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35525,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35525,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          315066,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          332146,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          218,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          218,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35525,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35525,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          315066,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+015a0d5a",
+    "replayGrassRecordHash": "e891a94b+015a0d5a",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 5.365,
+      "lastSampleMs": 6412.61,
+      "lastSlices": 23,
+      "pending": false,
+      "rebuilds": 3,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 6203,
+      "l1": 1152,
+      "l2": 0,
+      "l3": 83
+    },
+    "replayCrowd": {
+      "l0": 6203,
+      "l1": 1152,
+      "l2": 0,
+      "l3": 83
+    },
+    "frameHash": "756864baf4d91bcd5024e6a29ce91ee3de44fc4406c4ea9a0d22488d48604652"
+  },
+  {
+    "name": "zoom-crossing-00",
+    "window": "zoom-crossing",
+    "elapsedMs": 95296.19,
+    "frameId": 331,
+    "simTick": 10234,
+    "changedPixels": 1,
+    "rgbMae": 1.3503086419753086e-06,
+    "maxChannelDifference": 7,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 103.76806874878866,
+        "fovY": 0.6809396014995915,
+        "near": 1,
+        "pitch": 0.4947872078418714,
+        "target": [
+          103.79148831367486,
+          -101.89574415683742,
+          -2.6985435134895397
+        ],
+        "yaw": -1.3189574415683742
+      },
+      "x": 103.79148831367486,
+      "y": -101.89574415683742,
+      "zoom": 7.846920183574853,
+      "zoomT": 0.9775404130341483
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 36.245,
+      "lastSampleMs": 6412.61,
+      "lastSlices": 22,
+      "pending": true,
+      "rebuilds": 3,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          336464,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          215,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          215,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          28606,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          28606,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          299170,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          336464,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          215,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          215,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          28606,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          28606,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          299170,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+015a0d5a",
+    "replayGrassRecordHash": "e891a94b+015a0d5a",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 36.245,
+      "lastSampleMs": 6412.61,
+      "lastSlices": 22,
+      "pending": true,
+      "rebuilds": 3,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 5792,
+      "l1": 901,
+      "l2": 0,
+      "l3": 0
+    },
+    "replayCrowd": {
+      "l0": 5792,
+      "l1": 901,
+      "l2": 0,
+      "l3": 0
+    },
+    "frameHash": "1fb4e29757231a21783418a3dc08971e5a64b0bdd79de5ece90b8e80cb7de902"
+  },
+  {
+    "name": "zoom-crossing-23",
+    "window": "zoom-crossing",
+    "elapsedMs": 107662.35999999999,
+    "frameId": 354,
+    "simTick": 10326,
+    "changedPixels": 1,
+    "rgbMae": 1.0931069958847736e-06,
+    "maxChannelDifference": 11,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 232.082230123317,
+        "fovY": 0.5953704701015865,
+        "near": 1,
+        "pitch": 0.6281490595350734,
+        "target": [
+          72.6221128557912,
+          -90.87403761859707,
+          -3.940010061256544
+        ],
+        "yaw": -1.4825192476280586
+      },
+      "x": 72.6221128557912,
+      "y": -90.87403761859707,
+      "zoom": 7.76103523910646,
+      "zoomT": 0.9649395331507546
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 36.245,
+      "lastSampleMs": 13679.675,
+      "lastSlices": 28,
+      "pending": false,
+      "rebuilds": 4,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          341366,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          34851,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          34851,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          240868,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          341366,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          34851,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          34851,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          240868,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 36.245,
+      "lastSampleMs": 13679.675,
+      "lastSlices": 28,
+      "pending": false,
+      "rebuilds": 4,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8034,
+      "l1": 967,
+      "l2": 0,
+      "l3": 63
+    },
+    "replayCrowd": {
+      "l0": 8034,
+      "l1": 967,
+      "l2": 0,
+      "l3": 63
+    },
+    "frameHash": "e705817aad1dd3e474261792b970b25b5df5f5def893f10fa0300381f9056ff3"
+  }
+]

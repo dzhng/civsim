@@ -93,3 +93,8 @@ statistics are inputs, not independent validation. Actual active layer record
 hashes and endpoint GPU indirect commands are checked separately. The native live
 benchmark still runs the real shared residency owner; only render-only correctness
 replay consumes these resolved publications.
+
+The optional `localize` replay diagnostic stops after the recorded zoom endpoints
+and saves small target crops. It compares the original submission with a redraw
+of the prepared public scene and a temporary grass-hidden redraw. These altered
+scenes attribute pixel contributions; they never replace source parity gates.

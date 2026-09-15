@@ -103,6 +103,22 @@ export class ThreeControl {
     return { frameId: frame.frameId, simTick: frame.simTick, stats: this.world.stats() };
   }
 
+  /** Diagnostic only: redraw the prepared scene without advancing simulation or residency. */
+  redrawPrepared(hideGrass: boolean) {
+    const changed: { object: import("three/webgpu").Object3D; visible: boolean }[] = [];
+    this.world.world.scene.traverse((object) => {
+      if (hideGrass && object.name.startsWith("battle-grass")) {
+        changed.push({ object, visible: object.visible });
+        object.visible = false;
+      }
+    });
+    try {
+      this.world.world.render(this.world.camera);
+    } finally {
+      for (const row of changed) row.object.visible = row.visible;
+    }
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;

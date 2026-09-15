@@ -15,6 +15,7 @@ const output =
 const windows = process.argv[4]
   ? JSON.parse(process.argv[4])
   : [{ name: "origin-motion", startMs: 0, frameLimit: 6 }];
+const diagnostic = process.argv[7] === "localize";
 const replayOnly = process.argv[5] === "replay-only";
 const archive = replayOnly ? process.argv[6] : output;
 if (replayOnly && (!archive || resolve(archive) === resolve(output)))
@@ -204,15 +205,16 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
   await page.evaluate(
-    async ({ url, inputs, sinkUrl, resources }) => {
+    async ({ url, inputs, sinkUrl, resources, diagnostic }) => {
       const { createSpoolReplay } = await import(url);
-      window.__spoolReplay = await createSpoolReplay(inputs, sinkUrl, resources);
+      window.__spoolReplay = await createSpoolReplay(inputs, sinkUrl, resources, diagnostic);
     },
     {
       url: "/@fs/" + fileURLToPath(new URL("apps/battle-perf-lab/src/spoolReplay.ts", root)),
       inputs,
       sinkUrl,
       resources,
+      diagnostic,
     },
   );
   if (createHash("sha256").update(inputs).digest("hex") !== identity.inputsHash)
@@ -226,6 +228,7 @@ try {
   const replayDeadline = Date.now() + 600000;
   let lastReplayLog = 0;
   for (const packet of packets) {
+    if (diagnostic && packet.id > 354) break;
     if (Date.now() > replayDeadline) throw Error("Offline replay exceeded 10 minutes");
     const compressed = await readFile(`${archive}/${packet.name}.json.gz`);
     if (createHash("sha256").update(compressed).digest("hex") !== packet.sha256)
@@ -370,7 +373,17 @@ try {
       replayCrowd: item.summary.replay.crowd.visibleTierHistogram,
       frameHash: createHash("sha256").update(item.frame).digest("hex"),
     };
-    if (sourceBytes && replayBytes) {
+    if (result.localization) {
+      for (const key of ["original", "repeated", "grassHidden"]) {
+        await boundedWrite(
+          `${name}-${key}-crop.png`,
+          Buffer.from(result.localization[key].png, "base64"),
+        );
+        delete result.localization[key].png;
+      }
+      await boundedWrite(`${name}-localization.json`, JSON.stringify(result.localization, null, 2));
+    }
+    if (sourceBytes && replayBytes && !diagnostic) {
       await boundedWrite(`${name}-source.png`, sourceBytes);
       await boundedWrite(`${name}-replay.png`, replayBytes);
     }

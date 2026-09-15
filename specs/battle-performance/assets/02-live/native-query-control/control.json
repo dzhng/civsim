@@ -1,0 +1,3015 @@
+{
+  "scope": "Instrumented frozen-state hardware correctness control; no overhead timing or motion verdict",
+  "checks": [
+    {
+      "name": "snapshot raw-enabled-0",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot raw-enabled-1",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "raw/enabled device retains timestamp feature",
+      "ok": true,
+      "detail": [
+        [
+          "timestamp-query"
+        ]
+      ]
+    },
+    {
+      "name": "raw/enabled reports compiled mode",
+      "ok": true,
+      "detail": {
+        "backend": "raw",
+        "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+        "timingQueries": "enabled",
+        "scope": "compile-time default: this observer's timestamp queries, resolve/copy submission and readback are active"
+      }
+    },
+    {
+      "name": "raw/enabled no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "raw enabled control exercises actual queries",
+      "ok": true,
+      "detail": {
+        "features": [
+          [
+            "timestamp-query"
+          ]
+        ],
+        "querySets": 2,
+        "queryBuffers": 2,
+        "timestampWrites": 153,
+        "resolves": 7,
+        "maps": 7,
+        "submits": 80
+      }
+    },
+    {
+      "name": "raw/enabled actual submission identity remains",
+      "ok": true,
+      "detail": {
+        "submissionId": 79,
+        "backend": "raw",
+        "source": "battle-draw"
+      }
+    },
+    {
+      "name": "snapshot raw-disabled-0",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot raw-disabled-1",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "raw/disabled device retains timestamp feature",
+      "ok": true,
+      "detail": [
+        [
+          "timestamp-query"
+        ]
+      ]
+    },
+    {
+      "name": "raw/disabled reports compiled mode",
+      "ok": true,
+      "detail": {
+        "backend": "raw",
+        "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+        "timingQueries": "disabled",
+        "scope": "compile-time control: no timestamp query sets, no injected timestampWrites, no query resolve/copy submission and no timestamp readback; GPU timing is unavailable, never zero. CPU submission observation, admission scopes, device features and drawing are unchanged, so this is an incremental query/readback overhead control, not an uninstrumented renderer"
+      }
+    },
+    {
+      "name": "raw/disabled no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "raw disabled query operations are absent",
+      "ok": true,
+      "detail": {
+        "features": [
+          [
+            "timestamp-query"
+          ]
+        ],
+        "querySets": 0,
+        "queryBuffers": 0,
+        "timestampWrites": 0,
+        "resolves": 0,
+        "maps": 0,
+        "submits": 73
+      }
+    },
+    {
+      "name": "raw/disabled actual submission identity remains",
+      "ok": true,
+      "detail": {
+        "submissionId": 73,
+        "backend": "raw",
+        "source": "battle-draw"
+      }
+    },
+    {
+      "name": "snapshot typegpu-enabled-0",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot typegpu-enabled-1",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "typegpu/enabled device retains timestamp feature",
+      "ok": true,
+      "detail": [
+        [
+          "timestamp-query"
+        ]
+      ]
+    },
+    {
+      "name": "typegpu/enabled reports compiled mode",
+      "ok": true,
+      "detail": {
+        "backend": "typegpu",
+        "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+        "timingQueries": "enabled",
+        "scope": "compile-time default: this observer's timestamp queries, resolve/copy submission and readback are active"
+      }
+    },
+    {
+      "name": "typegpu/enabled no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "typegpu enabled control exercises actual queries",
+      "ok": true,
+      "detail": {
+        "features": [
+          [
+            "timestamp-query"
+          ]
+        ],
+        "querySets": 2,
+        "queryBuffers": 2,
+        "timestampWrites": 153,
+        "resolves": 7,
+        "maps": 7,
+        "submits": 80
+      }
+    },
+    {
+      "name": "typegpu/enabled actual submission identity remains",
+      "ok": true,
+      "detail": {
+        "submissionId": 79,
+        "backend": "typegpu",
+        "source": "battle-draw"
+      }
+    },
+    {
+      "name": "snapshot typegpu-disabled-0",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot typegpu-disabled-1",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "typegpu/disabled device retains timestamp feature",
+      "ok": true,
+      "detail": [
+        [
+          "timestamp-query"
+        ]
+      ]
+    },
+    {
+      "name": "typegpu/disabled reports compiled mode",
+      "ok": true,
+      "detail": {
+        "backend": "typegpu",
+        "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+        "timingQueries": "disabled",
+        "scope": "compile-time control: no timestamp query sets, no injected timestampWrites, no query resolve/copy submission and no timestamp readback; GPU timing is unavailable, never zero. CPU submission observation, admission scopes, device features and drawing are unchanged, so this is an incremental query/readback overhead control, not an uninstrumented renderer"
+      }
+    },
+    {
+      "name": "typegpu/disabled no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "typegpu disabled query operations are absent",
+      "ok": true,
+      "detail": {
+        "features": [
+          [
+            "timestamp-query"
+          ]
+        ],
+        "querySets": 0,
+        "queryBuffers": 0,
+        "timestampWrites": 0,
+        "resolves": 0,
+        "maps": 0,
+        "submits": 73
+      }
+    },
+    {
+      "name": "typegpu/disabled actual submission identity remains",
+      "ok": true,
+      "detail": {
+        "submissionId": 73,
+        "backend": "typegpu",
+        "source": "battle-draw"
+      }
+    },
+    {
+      "name": "vgpu/enabled completed",
+      "ok": false,
+      "detail": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded."
+    },
+    {
+      "name": "vgpu/disabled completed",
+      "ok": false,
+      "detail": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded."
+    }
+  ],
+  "pixelDiagnostics": [
+    {
+      "backend": "raw",
+      "enabledRepeat": {
+        "pixels": 0,
+        "max": 0
+      },
+      "disabledRepeat": {
+        "pixels": 0,
+        "max": 0
+      },
+      "betweenModes": {
+        "pixels": 1,
+        "max": 4
+      }
+    },
+    {
+      "backend": "typegpu",
+      "enabledRepeat": {
+        "pixels": 0,
+        "max": 0
+      },
+      "disabledRepeat": {
+        "pixels": 0,
+        "max": 0
+      },
+      "betweenModes": {
+        "pixels": 3,
+        "max": 13
+      }
+    }
+  ],
+  "rows": [
+    {
+      "backend": "raw",
+      "mode": "enabled",
+      "state": {
+        "trace": {
+          "features": [
+            [
+              "timestamp-query"
+            ]
+          ],
+          "querySets": 2,
+          "queryBuffers": 2,
+          "timestampWrites": 153,
+          "resolves": 7,
+          "maps": 7,
+          "submits": 80
+        },
+        "pose": {
+          "x": 20,
+          "y": -633.3477178262027,
+          "zoom": 7.884922988636199,
+          "yaw": -1.5707963267948966,
+          "pitchBias": 0,
+          "lookElevation": 0,
+          "freeLook": false
+        },
+        "tick": 30,
+        "stats": {
+          "ready": true,
+          "soldiers": 15560,
+          "renderer": "gpu",
+          "device": "apple metal-3",
+          "backend": "raw",
+          "performance": {
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0.004999995231628418,
+            "gpuTimeMs": null
+          },
+          "native": {
+            "prepared": false,
+            "camera": {
+              "x": 20,
+              "y": -625,
+              "zoom": 7.884922988636199,
+              "zoomT": 0.9831161141628401,
+              "camera3d": {
+                "target": [
+                  20,
+                  -625,
+                  0
+                ],
+                "distance": 63.516250620779374,
+                "pitch": 0.4526155476213974,
+                "yaw": -1.5707963267948966,
+                "fovY": 0.7337360991336745,
+                "aspect": 1.6,
+                "near": 1
+              }
+            },
+            "crowd": {
+              "instances": 15560,
+              "mainVisible": 1651,
+              "shadowOnly": 13909,
+              "ready": true,
+              "visibleTierHistogram": {
+                "l0": 1651,
+                "l1": 0,
+                "l2": 0,
+                "l3": 0
+              },
+              "shadowTierHistogram": {
+                "l0": 0,
+                "l1": 0,
+                "l2": 15560,
+                "l3": 0
+              },
+              "mesh": {
+                "mainTriangles": 13162914,
+                "shadowTriangles": 12414400,
+                "mainDraws": 5,
+                "shadowDraws": 9,
+                "impostorsPending": 0,
+                "pose": [
+                  {
+                    "instances": 5000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "paletteBytes": 8320000,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 400000,
+                    "peakPaletteBytes": 8320000,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 3000,
+                    "residentSnapshots": 4,
+                    "snapshotUploadBytes": 4992,
+                    "paletteBytes": 4992000,
+                    "snapshotBytes": 4992,
+                    "controlBytes": 240000,
+                    "peakPaletteBytes": 4992000,
+                    "peakSnapshotBytes": 4992
+                  },
+                  {
+                    "instances": 700,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "paletteBytes": 1164800,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 56000,
+                    "peakPaletteBytes": 1164800,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 3328000,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 160000,
+                    "peakPaletteBytes": 3328000,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 2100,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "paletteBytes": 3897600,
+                    "snapshotBytes": 2784,
+                    "controlBytes": 168000,
+                    "peakPaletteBytes": 3897600,
+                    "peakSnapshotBytes": 2784
+                  },
+                  {
+                    "instances": 1400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2688,
+                    "paletteBytes": 2508800,
+                    "snapshotBytes": 2688,
+                    "controlBytes": 112000,
+                    "peakPaletteBytes": 2508800,
+                    "peakSnapshotBytes": 2688
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4704,
+                    "paletteBytes": 1254400,
+                    "snapshotBytes": 4704,
+                    "controlBytes": 32000,
+                    "peakPaletteBytes": 1254400,
+                    "peakSnapshotBytes": 4704
+                  },
+                  {
+                    "instances": 160,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "paletteBytes": 296960,
+                    "snapshotBytes": 2784,
+                    "controlBytes": 12800,
+                    "peakPaletteBytes": 296960,
+                    "peakSnapshotBytes": 2784
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 800,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4512,
+                    "paletteBytes": 2406400,
+                    "snapshotBytes": 4512,
+                    "controlBytes": 64000,
+                    "peakPaletteBytes": 2406400,
+                    "peakSnapshotBytes": 4512
+                  },
+                  {
+                    "instances": 2000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "paletteBytes": 3328000,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 160000,
+                    "peakPaletteBytes": 3328000,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  }
+                ]
+              },
+              "impostors": {
+                "0": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "1": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "2": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "3": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "4": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "5": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "6": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "7": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "8": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "9": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "10": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "11": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "12": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "13": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "14": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "15": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "16": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "17": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "18": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "19": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                }
+              }
+            },
+            "grass": {
+              "residency": {
+                "productionSamplingProfile": {
+                  "quality": "standard",
+                  "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+                  "seed": 1588011046,
+                  "vistaVisibleRadiusM": 260,
+                  "vistaTransitionDefaults": {
+                    "edgeSinkStartM": 380,
+                    "denseBladeEndM": 143,
+                    "farGrassStartM": 260,
+                    "farGrassEndM": 480,
+                    "farSoftWidthScale": 1.6
+                  },
+                  "closeVisibleRadiusM": 40,
+                  "rebuildMarginM": 48,
+                  "fieldCellSize": 0.42,
+                  "snapCellSize": 48,
+                  "clumpCellSize": 1.55,
+                  "maxRecords": 160000,
+                  "minActiveRecords": 18000,
+                  "closeDensityReferenceRecords": 42000,
+                  "closeDensityReferenceRadiusM": 64,
+                  "lodStratifiedBudget": true,
+                  "density": 1,
+                  "jitter": 0.72,
+                  "minNormalZ": 0.45,
+                  "lodNearRadiusM": 5,
+                  "lodMidRadiusM": 20,
+                  "baseHeight": 0.26,
+                  "heightJitter": 0.62,
+                  "baseWidth": 0.004,
+                  "widthJitter": 0.2,
+                  "baseBend": 0.62,
+                  "bendJitter": 0.45,
+                  "tiers": [
+                    {
+                      "id": "near",
+                      "lodTier": 0,
+                      "segments": 4,
+                      "minDistanceM": 0,
+                      "maxDistanceM": 5
+                    },
+                    {
+                      "id": "mid",
+                      "lodTier": 1,
+                      "segments": 2,
+                      "minDistanceM": 5,
+                      "maxDistanceM": 20
+                    },
+                    {
+                      "id": "far",
+                      "lodTier": 2,
+                      "segments": 2,
+                      "minDistanceM": 20,
+                      "maxDistanceM": 480
+                    }
+                  ]
+                },
+                "detail": {
+                  "bladePixels": 9.587403179858018,
+                  "baseMinPixels": 0.5,
+                  "ringMinPixels": 1.5,
+                  "ringReleasePixels": 1,
+                  "focusRingActive": true
+                },
+                "transitionOwner": "battleGrassResidency.update",
+                "activeTransition": {
+                  "denseBladeEndM": 49.5,
+                  "farGrassStartM": 90,
+                  "farGrassEndM": 1250,
+                  "nearTierEndM": 49.5,
+                  "midTierEndM": 64,
+                  "farSoftWidthScale": 3,
+                  "nearCoverageWidthScale": 1,
+                  "lowerFarWidthScale": 1.35,
+                  "lowerFarWidthEndM": 112,
+                  "terrainDetailStrength": 1,
+                  "edgeSinkStartM": 1120
+                },
+                "sample": {
+                  "seed": 1588011046,
+                  "snapX": 0,
+                  "snapY": -672,
+                  "snapCellSize": 48,
+                  "fieldCellSize": 0.6,
+                  "clumpCellSize": 1.55,
+                  "minNormalZ": 0.45,
+                  "lodNearRadius": 0.016666666666666666,
+                  "lodMidRadius": 0.06666666666666667,
+                  "lodStratifiedBudget": false,
+                  "candidateCells": 785411,
+                  "acceptedRecords": 599338,
+                  "recordCapacity": 1000000,
+                  "cappedRecords": 0,
+                  "outOfBoundsCells": 186073,
+                  "rejectedTintCells": 0,
+                  "rejectedSlopeCells": 0,
+                  "rejectedDensityCells": 0,
+                  "openGrassCells": 599338,
+                  "forestCells": 0,
+                  "roughCells": 0,
+                  "lodCandidateCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "lodBudgetQuotas": [
+                    480000,
+                    370000,
+                    150000
+                  ],
+                  "lodDroppedByBudget": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "lodCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "packedStrideFloats": 16,
+                  "packedStrideBytes": 64,
+                  "packedBytes": 38357632
+                },
+                "rebuild": {
+                  "strategy": "static-whole-map+camera-focus-ring",
+                  "activeRecordBudget": 2000000,
+                  "vistaRecordBudget": 160000,
+                  "areaBudgetScale": 1,
+                  "pending": false,
+                  "rebuilds": 1,
+                  "lastSampleMs": 163.65,
+                  "lastSlices": 120,
+                  "lastMaxSliceMs": 5.21
+                }
+              },
+              "uploads": [
+                1,
+                1
+              ],
+              "layers": [
+                {
+                  "recordCount": 1000000,
+                  "capacity": 1000000,
+                  "pipelineBuilds": 4
+                },
+                {
+                  "recordCount": 599338,
+                  "capacity": 599338,
+                  "pipelineBuilds": 4
+                }
+              ]
+            },
+            "standards": {
+              "count": 40,
+              "selected": 0,
+              "capacity": 64,
+              "pipelines": 1
+            },
+            "readouts": {
+              "readouts": 0,
+              "chips": 0,
+              "atlasUploads": 1,
+              "atlasUploadBytes": 4,
+              "instanceUploadBytes": 0,
+              "atlasWidth": 1,
+              "atlasHeight": 1
+            }
+          },
+          "submission": {
+            "actualQueueSubmissions": 80,
+            "readinessSubmissions": 4,
+            "latest": {
+              "submissionId": 79,
+              "backend": "raw",
+              "source": "battle-draw"
+            }
+          },
+          "gpuTiming": {
+            "supported": true,
+            "timingQueries": "enabled",
+            "availability": "available",
+            "submissionCount": 80,
+            "outsideSubmissionPasses": 686,
+            "querySlots": 2,
+            "busyQuerySlots": 0
+          },
+          "labBuild": {
+            "backend": "raw",
+            "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+            "timingQueries": "enabled",
+            "scope": "compile-time default: this observer's timestamp queries, resolve/copy submission and readback are active"
+          },
+          "allocations": {
+            "scope": "requested buffer and texture bytes, including telemetry; not physical VRAM",
+            "buffers": {
+              "liveCount": 567,
+              "createdCount": 643,
+              "currentBytes": 212899300,
+              "peakBytes": 212911588,
+              "unknownCount": 0
+            },
+            "textures": {
+              "liveCount": 162,
+              "createdCount": 162,
+              "currentBytes": 1639379416,
+              "peakBytes": 1639379416,
+              "unknownCount": 0
+            },
+            "currentBytes": 1852278716,
+            "peakBytes": 1852291004
+          },
+          "cpuCoverage": "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+          "picking": {
+            "triangles": 120000
+          }
+        },
+        "frame": {
+          "frameId": 111,
+          "timestampMs": 7987.51,
+          "intervalMs": 16.670000000000073,
+          "ready": true,
+          "simTick": 30,
+          "ticksAdvanced": 0,
+          "simCpuMs": 0,
+          "renderCpuMs": 0.8199999928474426,
+          "renderAwaitMs": 0.1850000023841858,
+          "renderWallMs": 1.0049999952316284,
+          "loopCpuMs": 0.8650000095367432,
+          "renderer": {
+            "renderedFrameId": 3,
+            "gpuSubmission": {
+              "submissionId": 79,
+              "backend": "raw",
+              "source": "battle-draw"
+            },
+            "skippedFrozenFrame": true,
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0.004999995231628418
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "backend": "raw",
+      "mode": "disabled",
+      "state": {
+        "trace": {
+          "features": [
+            [
+              "timestamp-query"
+            ]
+          ],
+          "querySets": 0,
+          "queryBuffers": 0,
+          "timestampWrites": 0,
+          "resolves": 0,
+          "maps": 0,
+          "submits": 73
+        },
+        "pose": {
+          "x": 20,
+          "y": -633.3477178262027,
+          "zoom": 7.884922988636199,
+          "yaw": -1.5707963267948966,
+          "pitchBias": 0,
+          "lookElevation": 0,
+          "freeLook": false
+        },
+        "tick": 30,
+        "stats": {
+          "ready": true,
+          "soldiers": 15560,
+          "renderer": "gpu",
+          "device": "apple metal-3",
+          "backend": "raw",
+          "performance": {
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0,
+            "gpuTimeMs": null
+          },
+          "native": {
+            "prepared": false,
+            "camera": {
+              "x": 20,
+              "y": -625,
+              "zoom": 7.884922988636199,
+              "zoomT": 0.9831161141628401,
+              "camera3d": {
+                "target": [
+                  20,
+                  -625,
+                  0
+                ],
+                "distance": 63.516250620779374,
+                "pitch": 0.4526155476213974,
+                "yaw": -1.5707963267948966,
+                "fovY": 0.7337360991336745,
+                "aspect": 1.6,
+                "near": 1
+              }
+            },
+            "crowd": {
+              "instances": 15560,
+              "mainVisible": 1651,
+              "shadowOnly": 13909,
+              "ready": true,
+              "visibleTierHistogram": {
+                "l0": 1651,
+                "l1": 0,
+                "l2": 0,
+                "l3": 0
+              },
+              "shadowTierHistogram": {
+                "l0": 0,
+                "l1": 0,
+                "l2": 15560,
+                "l3": 0
+              },
+              "mesh": {
+                "mainTriangles": 13162914,
+                "shadowTriangles": 12414400,
+                "mainDraws": 5,
+                "shadowDraws": 9,
+                "impostorsPending": 0,
+                "pose": [
+                  {
+                    "instances": 5000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "paletteBytes": 8320000,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 400000,
+                    "peakPaletteBytes": 8320000,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 3000,
+                    "residentSnapshots": 4,
+                    "snapshotUploadBytes": 4992,
+                    "paletteBytes": 4992000,
+                    "snapshotBytes": 4992,
+                    "controlBytes": 240000,
+                    "peakPaletteBytes": 4992000,
+                    "peakSnapshotBytes": 4992
+                  },
+                  {
+                    "instances": 700,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "paletteBytes": 1164800,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 56000,
+                    "peakPaletteBytes": 1164800,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 3328000,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 160000,
+                    "peakPaletteBytes": 3328000,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 2100,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "paletteBytes": 3897600,
+                    "snapshotBytes": 2784,
+                    "controlBytes": 168000,
+                    "peakPaletteBytes": 3897600,
+                    "peakSnapshotBytes": 2784
+                  },
+                  {
+                    "instances": 1400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2688,
+                    "paletteBytes": 2508800,
+                    "snapshotBytes": 2688,
+                    "controlBytes": 112000,
+                    "peakPaletteBytes": 2508800,
+                    "peakSnapshotBytes": 2688
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4704,
+                    "paletteBytes": 1254400,
+                    "snapshotBytes": 4704,
+                    "controlBytes": 32000,
+                    "peakPaletteBytes": 1254400,
+                    "peakSnapshotBytes": 4704
+                  },
+                  {
+                    "instances": 160,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "paletteBytes": 296960,
+                    "snapshotBytes": 2784,
+                    "controlBytes": 12800,
+                    "peakPaletteBytes": 296960,
+                    "peakSnapshotBytes": 2784
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 800,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4512,
+                    "paletteBytes": 2406400,
+                    "snapshotBytes": 4512,
+                    "controlBytes": 64000,
+                    "peakPaletteBytes": 2406400,
+                    "peakSnapshotBytes": 4512
+                  },
+                  {
+                    "instances": 2000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "paletteBytes": 3328000,
+                    "snapshotBytes": 2496,
+                    "controlBytes": 160000,
+                    "peakPaletteBytes": 3328000,
+                    "peakSnapshotBytes": 2496
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "paletteBytes": 64,
+                    "snapshotBytes": 32,
+                    "controlBytes": 16,
+                    "peakPaletteBytes": 64,
+                    "peakSnapshotBytes": 32
+                  }
+                ]
+              },
+              "impostors": {
+                "0": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "1": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "2": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "3": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "4": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "5": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "6": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "7": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "8": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "9": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "10": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "11": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "12": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "13": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "14": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "15": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "16": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "17": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "18": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "19": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                }
+              }
+            },
+            "grass": {
+              "residency": {
+                "productionSamplingProfile": {
+                  "quality": "standard",
+                  "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+                  "seed": 1588011046,
+                  "vistaVisibleRadiusM": 260,
+                  "vistaTransitionDefaults": {
+                    "edgeSinkStartM": 380,
+                    "denseBladeEndM": 143,
+                    "farGrassStartM": 260,
+                    "farGrassEndM": 480,
+                    "farSoftWidthScale": 1.6
+                  },
+                  "closeVisibleRadiusM": 40,
+                  "rebuildMarginM": 48,
+                  "fieldCellSize": 0.42,
+                  "snapCellSize": 48,
+                  "clumpCellSize": 1.55,
+                  "maxRecords": 160000,
+                  "minActiveRecords": 18000,
+                  "closeDensityReferenceRecords": 42000,
+                  "closeDensityReferenceRadiusM": 64,
+                  "lodStratifiedBudget": true,
+                  "density": 1,
+                  "jitter": 0.72,
+                  "minNormalZ": 0.45,
+                  "lodNearRadiusM": 5,
+                  "lodMidRadiusM": 20,
+                  "baseHeight": 0.26,
+                  "heightJitter": 0.62,
+                  "baseWidth": 0.004,
+                  "widthJitter": 0.2,
+                  "baseBend": 0.62,
+                  "bendJitter": 0.45,
+                  "tiers": [
+                    {
+                      "id": "near",
+                      "lodTier": 0,
+                      "segments": 4,
+                      "minDistanceM": 0,
+                      "maxDistanceM": 5
+                    },
+                    {
+                      "id": "mid",
+                      "lodTier": 1,
+                      "segments": 2,
+                      "minDistanceM": 5,
+                      "maxDistanceM": 20
+                    },
+                    {
+                      "id": "far",
+                      "lodTier": 2,
+                      "segments": 2,
+                      "minDistanceM": 20,
+                      "maxDistanceM": 480
+                    }
+                  ]
+                },
+                "detail": {
+                  "bladePixels": 9.587403179858018,
+                  "baseMinPixels": 0.5,
+                  "ringMinPixels": 1.5,
+                  "ringReleasePixels": 1,
+                  "focusRingActive": true
+                },
+                "transitionOwner": "battleGrassResidency.update",
+                "activeTransition": {
+                  "denseBladeEndM": 49.5,
+                  "farGrassStartM": 90,
+                  "farGrassEndM": 1250,
+                  "nearTierEndM": 49.5,
+                  "midTierEndM": 64,
+                  "farSoftWidthScale": 3,
+                  "nearCoverageWidthScale": 1,
+                  "lowerFarWidthScale": 1.35,
+                  "lowerFarWidthEndM": 112,
+                  "terrainDetailStrength": 1,
+                  "edgeSinkStartM": 1120
+                },
+                "sample": {
+                  "seed": 1588011046,
+                  "snapX": 0,
+                  "snapY": -672,
+                  "snapCellSize": 48,
+                  "fieldCellSize": 0.6,
+                  "clumpCellSize": 1.55,
+                  "minNormalZ": 0.45,
+                  "lodNearRadius": 0.016666666666666666,
+                  "lodMidRadius": 0.06666666666666667,
+                  "lodStratifiedBudget": false,
+                  "candidateCells": 785411,
+                  "acceptedRecords": 599338,
+                  "recordCapacity": 1000000,
+                  "cappedRecords": 0,
+                  "outOfBoundsCells": 186073,
+                  "rejectedTintCells": 0,
+                  "rejectedSlopeCells": 0,
+                  "rejectedDensityCells": 0,
+                  "openGrassCells": 599338,
+                  "forestCells": 0,
+                  "roughCells": 0,
+                  "lodCandidateCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "lodBudgetQuotas": [
+                    480000,
+                    370000,
+                    150000
+                  ],
+                  "lodDroppedByBudget": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "lodCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "packedStrideFloats": 16,
+                  "packedStrideBytes": 64,
+                  "packedBytes": 38357632
+                },
+                "rebuild": {
+                  "strategy": "static-whole-map+camera-focus-ring",
+                  "activeRecordBudget": 2000000,
+                  "vistaRecordBudget": 160000,
+                  "areaBudgetScale": 1,
+                  "pending": false,
+                  "rebuilds": 1,
+                  "lastSampleMs": 154.29,
+                  "lastSlices": 120,
+                  "lastMaxSliceMs": 5.505
+                }
+              },
+              "uploads": [
+                1,
+                1
+              ],
+              "layers": [
+                {
+                  "recordCount": 1000000,
+                  "capacity": 1000000,
+                  "pipelineBuilds": 4
+                },
+                {
+                  "recordCount": 599338,
+                  "capacity": 599338,
+                  "pipelineBuilds": 4
+                }
+              ]
+            },
+            "standards": {
+              "count": 40,
+              "selected": 0,
+              "capacity": 64,
+              "pipelines": 1
+            },
+            "readouts": {
+              "readouts": 0,
+              "chips": 0,
+              "atlasUploads": 1,
+              "atlasUploadBytes": 4,
+              "instanceUploadBytes": 0,
+              "atlasWidth": 1,
+              "atlasHeight": 1
+            }
+          },
+          "submission": {
+            "actualQueueSubmissions": 73,
+            "readinessSubmissions": 4,
+            "latest": {
+              "submissionId": 73,
+              "backend": "raw",
+              "source": "battle-draw"
+            }
+          },
+          "gpuTiming": {
+            "supported": false,
+            "timingQueries": "disabled",
+            "availability": "disabled-by-lab-control",
+            "submissionCount": 73,
+            "outsideSubmissionPasses": 0,
+            "querySlots": 0,
+            "busyQuerySlots": 0
+          },
+          "labBuild": {
+            "backend": "raw",
+            "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+            "timingQueries": "disabled",
+            "scope": "compile-time control: no timestamp query sets, no injected timestampWrites, no query resolve/copy submission and no timestamp readback; GPU timing is unavailable, never zero. CPU submission observation, admission scopes, device features and drawing are unchanged, so this is an incremental query/readback overhead control, not an uninstrumented renderer"
+          },
+          "allocations": {
+            "scope": "requested buffer and texture bytes, including telemetry; not physical VRAM",
+            "buffers": {
+              "liveCount": 563,
+              "createdCount": 639,
+              "currentBytes": 212895204,
+              "peakBytes": 212907492,
+              "unknownCount": 0
+            },
+            "textures": {
+              "liveCount": 162,
+              "createdCount": 162,
+              "currentBytes": 1639379416,
+              "peakBytes": 1639379416,
+              "unknownCount": 0
+            },
+            "currentBytes": 1852274620,
+            "peakBytes": 1852286908
+          },
+          "cpuCoverage": "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+          "picking": {
+            "triangles": 120000
+          }
+        },
+        "frame": {
+          "frameId": 90,
+          "timestampMs": 6309.26,
+          "intervalMs": 16.670000000000073,
+          "ready": true,
+          "simTick": 30,
+          "ticksAdvanced": 0,
+          "simCpuMs": 0,
+          "renderCpuMs": 1.9549999833106995,
+          "renderAwaitMs": 0.1850000023841858,
+          "renderWallMs": 2.1449999809265137,
+          "loopCpuMs": 2,
+          "renderer": {
+            "renderedFrameId": 3,
+            "gpuSubmission": {
+              "submissionId": 73,
+              "backend": "raw",
+              "source": "battle-draw"
+            },
+            "skippedFrozenFrame": true,
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "backend": "typegpu",
+      "mode": "enabled",
+      "state": {
+        "trace": {
+          "features": [
+            [
+              "timestamp-query"
+            ]
+          ],
+          "querySets": 2,
+          "queryBuffers": 2,
+          "timestampWrites": 153,
+          "resolves": 7,
+          "maps": 7,
+          "submits": 80
+        },
+        "pose": {
+          "x": 20,
+          "y": -633.3477178262027,
+          "zoom": 7.884922988636199,
+          "yaw": -1.5707963267948966,
+          "pitchBias": 0,
+          "lookElevation": 0,
+          "freeLook": false
+        },
+        "tick": 30,
+        "stats": {
+          "ready": true,
+          "soldiers": 15560,
+          "renderer": "gpu",
+          "device": "apple metal-3",
+          "backend": "typegpu",
+          "performance": {
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0,
+            "gpuTimeMs": null
+          },
+          "native": {
+            "prepared": false,
+            "camera": {
+              "x": 20,
+              "y": -625,
+              "zoom": 7.884922988636199,
+              "zoomT": 0.9831161141628401,
+              "camera3d": {
+                "target": [
+                  20,
+                  -625,
+                  0
+                ],
+                "distance": 63.516250620779374,
+                "pitch": 0.4526155476213974,
+                "yaw": -1.5707963267948966,
+                "fovY": 0.7337360991336745,
+                "aspect": 1.6,
+                "near": 1
+              }
+            },
+            "crowd": {
+              "instances": 15560,
+              "mainVisible": 1651,
+              "shadowOnly": 13909,
+              "ready": true,
+              "visibleTierHistogram": {
+                "l0": 1651,
+                "l1": 0,
+                "l2": 0,
+                "l3": 0
+              },
+              "shadowTierHistogram": {
+                "l0": 0,
+                "l1": 0,
+                "l2": 15560,
+                "l3": 0
+              },
+              "mesh": {
+                "clipInvariant": false,
+                "mainTriangles": 13162914,
+                "shadowTriangles": 12414400,
+                "mainDraws": 5,
+                "shadowDraws": 9,
+                "impostorsPending": 0,
+                "pose": [
+                  {
+                    "instances": 5000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "controlBytes": 400000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 8320000
+                  },
+                  {
+                    "instances": 3000,
+                    "residentSnapshots": 4,
+                    "snapshotUploadBytes": 4992,
+                    "controlBytes": 240000,
+                    "snapshotBytes": 4992,
+                    "paletteBytes": 4992000
+                  },
+                  {
+                    "instances": 700,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "controlBytes": 56000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 1164800
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 160000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 3328000
+                  },
+                  {
+                    "instances": 2100,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "controlBytes": 168000,
+                    "snapshotBytes": 2784,
+                    "paletteBytes": 3897600
+                  },
+                  {
+                    "instances": 1400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2688,
+                    "controlBytes": 112000,
+                    "snapshotBytes": 2688,
+                    "paletteBytes": 2508800
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4704,
+                    "controlBytes": 32000,
+                    "snapshotBytes": 4704,
+                    "paletteBytes": 1254400
+                  },
+                  {
+                    "instances": 160,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "controlBytes": 12800,
+                    "snapshotBytes": 2784,
+                    "paletteBytes": 296960
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 800,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4512,
+                    "controlBytes": 64000,
+                    "snapshotBytes": 4512,
+                    "paletteBytes": 2406400
+                  },
+                  {
+                    "instances": 2000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "controlBytes": 160000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 3328000
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  }
+                ]
+              },
+              "impostors": {
+                "0": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "1": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "2": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "3": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "4": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "5": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "6": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "7": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "8": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "9": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "10": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "11": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "12": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "13": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "14": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "15": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "16": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "17": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "18": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "19": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                }
+              }
+            },
+            "grass": {
+              "residency": {
+                "productionSamplingProfile": {
+                  "quality": "standard",
+                  "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+                  "seed": 1588011046,
+                  "vistaVisibleRadiusM": 260,
+                  "vistaTransitionDefaults": {
+                    "edgeSinkStartM": 380,
+                    "denseBladeEndM": 143,
+                    "farGrassStartM": 260,
+                    "farGrassEndM": 480,
+                    "farSoftWidthScale": 1.6
+                  },
+                  "closeVisibleRadiusM": 40,
+                  "rebuildMarginM": 48,
+                  "fieldCellSize": 0.42,
+                  "snapCellSize": 48,
+                  "clumpCellSize": 1.55,
+                  "maxRecords": 160000,
+                  "minActiveRecords": 18000,
+                  "closeDensityReferenceRecords": 42000,
+                  "closeDensityReferenceRadiusM": 64,
+                  "lodStratifiedBudget": true,
+                  "density": 1,
+                  "jitter": 0.72,
+                  "minNormalZ": 0.45,
+                  "lodNearRadiusM": 5,
+                  "lodMidRadiusM": 20,
+                  "baseHeight": 0.26,
+                  "heightJitter": 0.62,
+                  "baseWidth": 0.004,
+                  "widthJitter": 0.2,
+                  "baseBend": 0.62,
+                  "bendJitter": 0.45,
+                  "tiers": [
+                    {
+                      "id": "near",
+                      "lodTier": 0,
+                      "segments": 4,
+                      "minDistanceM": 0,
+                      "maxDistanceM": 5
+                    },
+                    {
+                      "id": "mid",
+                      "lodTier": 1,
+                      "segments": 2,
+                      "minDistanceM": 5,
+                      "maxDistanceM": 20
+                    },
+                    {
+                      "id": "far",
+                      "lodTier": 2,
+                      "segments": 2,
+                      "minDistanceM": 20,
+                      "maxDistanceM": 480
+                    }
+                  ]
+                },
+                "detail": {
+                  "bladePixels": 9.587403179858018,
+                  "baseMinPixels": 0.5,
+                  "ringMinPixels": 1.5,
+                  "ringReleasePixels": 1,
+                  "focusRingActive": true
+                },
+                "transitionOwner": "battleGrassResidency.update",
+                "activeTransition": {
+                  "denseBladeEndM": 49.5,
+                  "farGrassStartM": 90,
+                  "farGrassEndM": 1250,
+                  "nearTierEndM": 49.5,
+                  "midTierEndM": 64,
+                  "farSoftWidthScale": 3,
+                  "nearCoverageWidthScale": 1,
+                  "lowerFarWidthScale": 1.35,
+                  "lowerFarWidthEndM": 112,
+                  "terrainDetailStrength": 1,
+                  "edgeSinkStartM": 1120
+                },
+                "sample": {
+                  "seed": 1588011046,
+                  "snapX": 0,
+                  "snapY": -672,
+                  "snapCellSize": 48,
+                  "fieldCellSize": 0.6,
+                  "clumpCellSize": 1.55,
+                  "minNormalZ": 0.45,
+                  "lodNearRadius": 0.016666666666666666,
+                  "lodMidRadius": 0.06666666666666667,
+                  "lodStratifiedBudget": false,
+                  "candidateCells": 785411,
+                  "acceptedRecords": 599338,
+                  "recordCapacity": 1000000,
+                  "cappedRecords": 0,
+                  "outOfBoundsCells": 186073,
+                  "rejectedTintCells": 0,
+                  "rejectedSlopeCells": 0,
+                  "rejectedDensityCells": 0,
+                  "openGrassCells": 599338,
+                  "forestCells": 0,
+                  "roughCells": 0,
+                  "lodCandidateCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "lodBudgetQuotas": [
+                    480000,
+                    370000,
+                    150000
+                  ],
+                  "lodDroppedByBudget": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "lodCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "packedStrideFloats": 16,
+                  "packedStrideBytes": 64,
+                  "packedBytes": 38357632
+                },
+                "rebuild": {
+                  "strategy": "static-whole-map+camera-focus-ring",
+                  "activeRecordBudget": 2000000,
+                  "vistaRecordBudget": 160000,
+                  "areaBudgetScale": 1,
+                  "pending": false,
+                  "rebuilds": 1,
+                  "lastSampleMs": 244.77,
+                  "lastSlices": 121,
+                  "lastMaxSliceMs": 7.745
+                }
+              },
+              "uploads": [
+                1,
+                1
+              ],
+              "layers": [
+                {
+                  "recordCount": 1000000,
+                  "capacity": 1000000,
+                  "pipelineBuilds": 4
+                },
+                {
+                  "recordCount": 599338,
+                  "capacity": 599338,
+                  "pipelineBuilds": 4
+                }
+              ]
+            },
+            "standards": {
+              "count": 40,
+              "selected": 0,
+              "capacity": 64,
+              "pipelines": 1
+            },
+            "readouts": {
+              "readouts": 0,
+              "chips": 0,
+              "atlasWidth": 64,
+              "atlasHeight": 8,
+              "atlasUploads": 1,
+              "atlasUploadBytes": 2048,
+              "instanceUploadBytes": 0,
+              "instanceBufferBytes": 12288
+            }
+          },
+          "submission": {
+            "actualQueueSubmissions": 80,
+            "readinessSubmissions": 4,
+            "latest": {
+              "submissionId": 79,
+              "backend": "typegpu",
+              "source": "battle-draw"
+            }
+          },
+          "gpuTiming": {
+            "supported": true,
+            "timingQueries": "enabled",
+            "availability": "available",
+            "submissionCount": 80,
+            "outsideSubmissionPasses": 686,
+            "querySlots": 2,
+            "busyQuerySlots": 0
+          },
+          "labBuild": {
+            "backend": "typegpu",
+            "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+            "timingQueries": "enabled",
+            "scope": "compile-time default: this observer's timestamp queries, resolve/copy submission and readback are active"
+          },
+          "allocations": {
+            "scope": "requested buffer and texture bytes, including telemetry; not physical VRAM",
+            "buffers": {
+              "liveCount": 406,
+              "createdCount": 409,
+              "currentBytes": 212427652,
+              "peakBytes": 212427652,
+              "unknownCount": 0
+            },
+            "textures": {
+              "liveCount": 162,
+              "createdCount": 162,
+              "currentBytes": 1639381460,
+              "peakBytes": 1639381460,
+              "unknownCount": 0
+            },
+            "currentBytes": 1851809112,
+            "peakBytes": 1851809112
+          },
+          "cpuCoverage": "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+          "picking": {
+            "triangles": 120000
+          }
+        },
+        "frame": {
+          "frameId": 85,
+          "timestampMs": 7394.515,
+          "intervalMs": 16.664999999999964,
+          "ready": true,
+          "simTick": 30,
+          "ticksAdvanced": 0,
+          "simCpuMs": 0,
+          "renderCpuMs": 2.2050000429153442,
+          "renderAwaitMs": 0.22999995946884155,
+          "renderWallMs": 2.439999997615814,
+          "loopCpuMs": 2.2700000405311584,
+          "renderer": {
+            "renderedFrameId": 3,
+            "gpuSubmission": {
+              "submissionId": 79,
+              "backend": "typegpu",
+              "source": "battle-draw"
+            },
+            "skippedFrozenFrame": true,
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "backend": "typegpu",
+      "mode": "disabled",
+      "state": {
+        "trace": {
+          "features": [
+            [
+              "timestamp-query"
+            ]
+          ],
+          "querySets": 0,
+          "queryBuffers": 0,
+          "timestampWrites": 0,
+          "resolves": 0,
+          "maps": 0,
+          "submits": 73
+        },
+        "pose": {
+          "x": 20,
+          "y": -633.3477178262027,
+          "zoom": 7.884922988636199,
+          "yaw": -1.5707963267948966,
+          "pitchBias": 0,
+          "lookElevation": 0,
+          "freeLook": false
+        },
+        "tick": 30,
+        "stats": {
+          "ready": true,
+          "soldiers": 15560,
+          "renderer": "gpu",
+          "device": "apple metal-3",
+          "backend": "typegpu",
+          "performance": {
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0.004999995231628418,
+            "gpuTimeMs": null
+          },
+          "native": {
+            "prepared": false,
+            "camera": {
+              "x": 20,
+              "y": -625,
+              "zoom": 7.884922988636199,
+              "zoomT": 0.9831161141628401,
+              "camera3d": {
+                "target": [
+                  20,
+                  -625,
+                  0
+                ],
+                "distance": 63.516250620779374,
+                "pitch": 0.4526155476213974,
+                "yaw": -1.5707963267948966,
+                "fovY": 0.7337360991336745,
+                "aspect": 1.6,
+                "near": 1
+              }
+            },
+            "crowd": {
+              "instances": 15560,
+              "mainVisible": 1651,
+              "shadowOnly": 13909,
+              "ready": true,
+              "visibleTierHistogram": {
+                "l0": 1651,
+                "l1": 0,
+                "l2": 0,
+                "l3": 0
+              },
+              "shadowTierHistogram": {
+                "l0": 0,
+                "l1": 0,
+                "l2": 15560,
+                "l3": 0
+              },
+              "mesh": {
+                "clipInvariant": false,
+                "mainTriangles": 13162914,
+                "shadowTriangles": 12414400,
+                "mainDraws": 5,
+                "shadowDraws": 9,
+                "impostorsPending": 0,
+                "pose": [
+                  {
+                    "instances": 5000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "controlBytes": 400000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 8320000
+                  },
+                  {
+                    "instances": 3000,
+                    "residentSnapshots": 4,
+                    "snapshotUploadBytes": 4992,
+                    "controlBytes": 240000,
+                    "snapshotBytes": 4992,
+                    "paletteBytes": 4992000
+                  },
+                  {
+                    "instances": 700,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "controlBytes": 56000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 1164800
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 160000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 3328000
+                  },
+                  {
+                    "instances": 2100,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "controlBytes": 168000,
+                    "snapshotBytes": 2784,
+                    "paletteBytes": 3897600
+                  },
+                  {
+                    "instances": 1400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2688,
+                    "controlBytes": 112000,
+                    "snapshotBytes": 2688,
+                    "paletteBytes": 2508800
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 400,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4704,
+                    "controlBytes": 32000,
+                    "snapshotBytes": 4704,
+                    "paletteBytes": 1254400
+                  },
+                  {
+                    "instances": 160,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2784,
+                    "controlBytes": 12800,
+                    "snapshotBytes": 2784,
+                    "paletteBytes": 296960
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 800,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 4512,
+                    "controlBytes": 64000,
+                    "snapshotBytes": 4512,
+                    "paletteBytes": 2406400
+                  },
+                  {
+                    "instances": 2000,
+                    "residentSnapshots": 2,
+                    "snapshotUploadBytes": 2496,
+                    "controlBytes": 160000,
+                    "snapshotBytes": 2496,
+                    "paletteBytes": 3328000
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  },
+                  {
+                    "instances": 0,
+                    "residentSnapshots": 0,
+                    "snapshotUploadBytes": 0,
+                    "controlBytes": 16,
+                    "snapshotBytes": 32,
+                    "paletteBytes": 64
+                  }
+                ]
+              },
+              "impostors": {
+                "0": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "1": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "2": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "3": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "4": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "5": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "6": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "7": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "8": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "9": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "10": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "11": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "12": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "13": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "14": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "15": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "16": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "17": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "18": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                },
+                "19": {
+                  "instances": 0,
+                  "draws": 0,
+                  "clipInvariant": false,
+                  "castShadow": false,
+                  "receiveShadow": false,
+                  "atlasSource": "prepared full mip chain"
+                }
+              }
+            },
+            "grass": {
+              "residency": {
+                "productionSamplingProfile": {
+                  "quality": "standard",
+                  "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+                  "seed": 1588011046,
+                  "vistaVisibleRadiusM": 260,
+                  "vistaTransitionDefaults": {
+                    "edgeSinkStartM": 380,
+                    "denseBladeEndM": 143,
+                    "farGrassStartM": 260,
+                    "farGrassEndM": 480,
+                    "farSoftWidthScale": 1.6
+                  },
+                  "closeVisibleRadiusM": 40,
+                  "rebuildMarginM": 48,
+                  "fieldCellSize": 0.42,
+                  "snapCellSize": 48,
+                  "clumpCellSize": 1.55,
+                  "maxRecords": 160000,
+                  "minActiveRecords": 18000,
+                  "closeDensityReferenceRecords": 42000,
+                  "closeDensityReferenceRadiusM": 64,
+                  "lodStratifiedBudget": true,
+                  "density": 1,
+                  "jitter": 0.72,
+                  "minNormalZ": 0.45,
+                  "lodNearRadiusM": 5,
+                  "lodMidRadiusM": 20,
+                  "baseHeight": 0.26,
+                  "heightJitter": 0.62,
+                  "baseWidth": 0.004,
+                  "widthJitter": 0.2,
+                  "baseBend": 0.62,
+                  "bendJitter": 0.45,
+                  "tiers": [
+                    {
+                      "id": "near",
+                      "lodTier": 0,
+                      "segments": 4,
+                      "minDistanceM": 0,
+                      "maxDistanceM": 5
+                    },
+                    {
+                      "id": "mid",
+                      "lodTier": 1,
+                      "segments": 2,
+                      "minDistanceM": 5,
+                      "maxDistanceM": 20
+                    },
+                    {
+                      "id": "far",
+                      "lodTier": 2,
+                      "segments": 2,
+                      "minDistanceM": 20,
+                      "maxDistanceM": 480
+                    }
+                  ]
+                },
+                "detail": {
+                  "bladePixels": 9.587403179858018,
+                  "baseMinPixels": 0.5,
+                  "ringMinPixels": 1.5,
+                  "ringReleasePixels": 1,
+                  "focusRingActive": true
+                },
+                "transitionOwner": "battleGrassResidency.update",
+                "activeTransition": {
+                  "denseBladeEndM": 49.5,
+                  "farGrassStartM": 90,
+                  "farGrassEndM": 1250,
+                  "nearTierEndM": 49.5,
+                  "midTierEndM": 64,
+                  "farSoftWidthScale": 3,
+                  "nearCoverageWidthScale": 1,
+                  "lowerFarWidthScale": 1.35,
+                  "lowerFarWidthEndM": 112,
+                  "terrainDetailStrength": 1,
+                  "edgeSinkStartM": 1120
+                },
+                "sample": {
+                  "seed": 1588011046,
+                  "snapX": 0,
+                  "snapY": -672,
+                  "snapCellSize": 48,
+                  "fieldCellSize": 0.6,
+                  "clumpCellSize": 1.55,
+                  "minNormalZ": 0.45,
+                  "lodNearRadius": 0.016666666666666666,
+                  "lodMidRadius": 0.06666666666666667,
+                  "lodStratifiedBudget": false,
+                  "candidateCells": 785411,
+                  "acceptedRecords": 599338,
+                  "recordCapacity": 1000000,
+                  "cappedRecords": 0,
+                  "outOfBoundsCells": 186073,
+                  "rejectedTintCells": 0,
+                  "rejectedSlopeCells": 0,
+                  "rejectedDensityCells": 0,
+                  "openGrassCells": 599338,
+                  "forestCells": 0,
+                  "roughCells": 0,
+                  "lodCandidateCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "lodBudgetQuotas": [
+                    480000,
+                    370000,
+                    150000
+                  ],
+                  "lodDroppedByBudget": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "lodCounts": [
+                    220,
+                    3276,
+                    595842
+                  ],
+                  "packedStrideFloats": 16,
+                  "packedStrideBytes": 64,
+                  "packedBytes": 38357632
+                },
+                "rebuild": {
+                  "strategy": "static-whole-map+camera-focus-ring",
+                  "activeRecordBudget": 2000000,
+                  "vistaRecordBudget": 160000,
+                  "areaBudgetScale": 1,
+                  "pending": false,
+                  "rebuilds": 1,
+                  "lastSampleMs": 148.515,
+                  "lastSlices": 119,
+                  "lastMaxSliceMs": 6.27
+                }
+              },
+              "uploads": [
+                1,
+                1
+              ],
+              "layers": [
+                {
+                  "recordCount": 1000000,
+                  "capacity": 1000000,
+                  "pipelineBuilds": 4
+                },
+                {
+                  "recordCount": 599338,
+                  "capacity": 599338,
+                  "pipelineBuilds": 4
+                }
+              ]
+            },
+            "standards": {
+              "count": 40,
+              "selected": 0,
+              "capacity": 64,
+              "pipelines": 1
+            },
+            "readouts": {
+              "readouts": 0,
+              "chips": 0,
+              "atlasWidth": 64,
+              "atlasHeight": 8,
+              "atlasUploads": 1,
+              "atlasUploadBytes": 2048,
+              "instanceUploadBytes": 0,
+              "instanceBufferBytes": 12288
+            }
+          },
+          "submission": {
+            "actualQueueSubmissions": 73,
+            "readinessSubmissions": 4,
+            "latest": {
+              "submissionId": 73,
+              "backend": "typegpu",
+              "source": "battle-draw"
+            }
+          },
+          "gpuTiming": {
+            "supported": false,
+            "timingQueries": "disabled",
+            "availability": "disabled-by-lab-control",
+            "submissionCount": 73,
+            "outsideSubmissionPasses": 0,
+            "querySlots": 0,
+            "busyQuerySlots": 0
+          },
+          "labBuild": {
+            "backend": "typegpu",
+            "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+            "timingQueries": "disabled",
+            "scope": "compile-time control: no timestamp query sets, no injected timestampWrites, no query resolve/copy submission and no timestamp readback; GPU timing is unavailable, never zero. CPU submission observation, admission scopes, device features and drawing are unchanged, so this is an incremental query/readback overhead control, not an uninstrumented renderer"
+          },
+          "allocations": {
+            "scope": "requested buffer and texture bytes, including telemetry; not physical VRAM",
+            "buffers": {
+              "liveCount": 402,
+              "createdCount": 405,
+              "currentBytes": 212423556,
+              "peakBytes": 212423556,
+              "unknownCount": 0
+            },
+            "textures": {
+              "liveCount": 162,
+              "createdCount": 162,
+              "currentBytes": 1639381460,
+              "peakBytes": 1639381460,
+              "unknownCount": 0
+            },
+            "currentBytes": 1851805016,
+            "peakBytes": 1851805016
+          },
+          "cpuCoverage": "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+          "picking": {
+            "triangles": 120000
+          }
+        },
+        "frame": {
+          "frameId": 88,
+          "timestampMs": 6860.715,
+          "intervalMs": 16.664999999999964,
+          "ready": true,
+          "simTick": 30,
+          "ticksAdvanced": 0,
+          "simCpuMs": 0,
+          "renderCpuMs": 0.7400000095367432,
+          "renderAwaitMs": 0.22999995946884155,
+          "renderWallMs": 0.9649999737739563,
+          "loopCpuMs": 0.7950000166893005,
+          "renderer": {
+            "renderedFrameId": 3,
+            "gpuSubmission": {
+              "submissionId": 73,
+              "backend": "typegpu",
+              "source": "battle-draw"
+            },
+            "skippedFrozenFrame": true,
+            "buildMs": 0,
+            "uploadMs": 0,
+            "drawMs": 0,
+            "frameCpuMs": 0.004999995231628418
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "backend": "vgpu",
+      "mode": "enabled",
+      "error": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded."
+    },
+    {
+      "backend": "vgpu",
+      "mode": "disabled",
+      "error": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded."
+    }
+  ]
+}

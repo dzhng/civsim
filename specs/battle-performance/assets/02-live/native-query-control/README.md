@@ -1,0 +1,9 @@
+# Native timing-query hardware control
+
+The fixed enabled/disabled builds were run on the actual map-A route at frozen tick 30, 1440×900 CSS pixels and DPR 2. An extra public-WebGPU observer counted requested features, query resources, timestamp writes, resolves, maps and submissions. This is instrumented correctness evidence, not a query-overhead or frame-rate measurement.
+
+[The control](control.json) passes for raw WebGPU and TypeGPU: both keep the timestamp-query device feature; enabled modes exercise real queries, and disabled modes allocate no query resources and issue no timestamp writes, resolves or maps. Actual submission identity survives. Each mode has identical repeat captures. Cross-launch comparisons differ by one raw pixel and three TypeGPU pixels, so strict cross-mode pixel equality does not pass. [Capture hashes](capture-hashes.json) identify the scratch images; no visual or motion acceptance follows from these diagnostics.
+
+Both vgpu modes fail startup. [The diagnostic rerun](vgpu-failure.json) records the visible app error, `VGPU-MESH-ATTRIBUTE-UNMATCHED: Geometry attribute 'n' has no shader input.`, with no page/console error. Readiness is false and no soldiers are admitted. Failure cleanup reports zero retained tracked allocations. The terrain horizon shadow draw supplies a position-only shader with a geometry that also declares normal and color attributes; its per-pass contract is being corrected in an isolated candidate. Neither vgpu mode is validated by this control, and earlier Menu-flow evidence cannot stand in for this failed map-A startup.
+
+These builds remain immutable in the dedicated builds worktree, from source a72bb34310f3cbecc70c2171b14d299702c5d24f; the enabled/disabled trial manifests identify emitted hashes. The affected vgpu build and correctness controls must be refreshed after the fix. Quiet paired overhead and backend comparisons remain open for every candidate.

@@ -92,3 +92,17 @@ acceptance remains open.
 Merged checkpoint: root adopts the journey preparation and lifecycle probe with
 signed shores and categorical cover. All521 web tests and typecheck pass on the
 combined tree. This CPU result does not close the unrun broader browser gates.
+
+## Follow-up diagnostic boundaries
+
+A tick-only handoff comparison was invalid: the campaign constructor also uses
+a random seed. Pin both in the temporary diagnostic and compare save/manifest
+hashes before interpreting backend timing. No timeout increase follows an
+unmatched run.
+
+The three-cycle retention probe finds all six outer world objects collected,
+but their Three renderers still alive after GC. Actual renderer disposal and
+animation cancellation complete; pending timestamp work drains. Timestamp maps
+are too small to plausibly account for roughly180MB growth. This rejects the
+deferred-disposal hypothesis for the observed runs. A heap retaining path is
+required before implementing a lifetime correction.

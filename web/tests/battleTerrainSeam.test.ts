@@ -1,3 +1,7 @@
+import {
+  productionBladeFieldProfile,
+  initialBladeFieldTransition,
+} from "../../packages/game-renderer/src/battle/battleGrassResidency";
 // @vitest-environment node
 import * as THREE from "three/webgpu";
 import { expect, test } from "vitest";
@@ -7,10 +11,7 @@ import {
 } from "@packages/photoreal-renderer/src/battle/battleTerrainBuild";
 import { createBattleFrameUniforms } from "@packages/photoreal-renderer/src/battle/battleTsl";
 import { createSeaDisplacementSource } from "@packages/photoreal-renderer/src/battle/seaLayer";
-import {
-  productionBladeFieldProfile,
-  initialBladeFieldTransition,
-} from "@packages/photoreal-renderer/src/battle/battleGrassField";
+
 import { createBladeFieldTransitionUniforms } from "@packages/photoreal-renderer/src/battle/bladeFieldLayer";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 

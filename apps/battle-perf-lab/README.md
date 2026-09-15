@@ -45,3 +45,14 @@ readback gives actual grass draw counts; Three's triangle counters use CPU insta
 capacity for indirect draws and accumulate until its animation callback resets
 stats, while the grass CPU tier mirror is cached and sampled. Neither estimate is
 an emitted-work floor.
+
+Grass sampling history belongs to the renderer-independent
+[residency owner](../../packages/game-renderer/src/battle/battleGrassResidency.ts).
+It retains the production whole-map base and focus-ring scheduling, cancellation,
+hysteresis and synchronous settling rules. Its snapshots lend packed records with
+revisions plus visibility, transition and cull state; consumers upload only changed
+revisions and must not mutate the borrowed arrays. The Three adapter owns its
+materials, uploads and GPU stats. Other runtimes consume the same residency owner
+without importing Three or reconstructing focus history from a final camera.
+This extraction preserves the existing work budgets; it does not optimize sampling
+or establish grass performance parity for a complete scene.

@@ -2,6 +2,12 @@ import {
   resolveSunShadowMode,
   type SunShadowMode,
 } from "../../../game-renderer/src/battle/shadowPolicy";
+import {
+  initialBladeFieldTransition,
+  productionBladeFieldProfile,
+  type BattleGrassQuality,
+  type BladeFieldProfile,
+} from "../../../game-renderer/src/battle/battleGrassResidency";
 import type { WorldRay } from "../../../renderer-core/src/camera3d";
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
@@ -43,13 +49,7 @@ import {
   type BladeFieldWindUniforms,
   type BladeFieldTransitionUniforms,
 } from "./bladeFieldLayer";
-import {
-  BattleGrassField,
-  initialBladeFieldTransition,
-  productionBladeFieldProfile,
-  type BattleGrassQuality,
-  type BladeFieldProfile,
-} from "./battleGrassField";
+import { BattleGrassField } from "./battleGrassField";
 import {
   BattleTerrainSurface,
   buildBattleTerrain,

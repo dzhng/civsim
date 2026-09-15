@@ -69,6 +69,8 @@ Within one catalog load, texture filenames emitted by the baker contain their
 full content hash, allowing identical atlases in different appearance directories
 to share one download. Ordinary image URLs retain their own identity. GPU
 resources still belong to each renderer and are prepared again after navigation.
+The [Three dependency patch](web/patches/README.md) preserves that lifetime when
+internal textures and geometry are shared across renderers.
 
 ## Formatting
 

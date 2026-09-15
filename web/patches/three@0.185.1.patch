@@ -1,0 +1,383 @@
+diff --git a/build/three.webgpu.js b/build/three.webgpu.js
+index 2e490796d4d4aa9479b04a5c46ddbf31cc05b1a1..d795f738a96cdf0ac2f31615ec845ac7da8eab76 100644
+--- a/build/three.webgpu.js
++++ b/build/three.webgpu.js
+@@ -30565,9 +30565,9 @@ class RenderObject {
+ 	}
+ 
+ 	/**
+-	 * Frees internal resources.
++	 * Removes resource listeners without releasing renderer backend state.
+ 	 */
+-	dispose() {
++	detachListeners() {
+ 
+ 		this.material.removeEventListener( 'dispose', this.onMaterialDispose );
+ 		this.geometry.removeEventListener( 'dispose', this.onGeometryDispose );
+@@ -30578,6 +30578,11 @@ class RenderObject {
+ 
+ 		}
+ 
++	}
++
++	dispose() {
++
++		this.detachListeners();
+ 		this.onDispose();
+ 
+ 	}
+@@ -30654,6 +30659,7 @@ class RenderObjects {
+ 		 * @type {Object<string,ChainMap>}
+ 		 */
+ 		this.chainMaps = {};
++		this._renderObjects = new Set();
+ 
+ 	}
+ 
+@@ -30755,6 +30761,13 @@ class RenderObjects {
+ 	 */
+ 	dispose() {
+ 
++		for ( const renderObject of this._renderObjects ) {
++
++			renderObject.detachListeners();
++
++		}
++
++		this._renderObjects.clear();
+ 		this.chainMaps = {};
+ 
+ 	}
+@@ -30781,8 +30794,12 @@ class RenderObjects {
+ 
+ 		const renderObject = new RenderObject( nodes, geometries, renderer, object, material, scene, camera, lightsNode, renderContext, clippingContext );
+ 
++		this._renderObjects.add( renderObject );
++
+ 		renderObject.onDispose = () => {
+ 
++			this._renderObjects.delete( renderObject );
++
+ 			this.pipelines.delete( renderObject );
+ 			this.bindings.deleteForRender( renderObject );
+ 			this.nodes.delete( renderObject );
+@@ -34021,6 +34038,8 @@ class Textures extends DataMap {
+ 		 */
+ 		this._htmlTextures = new Set();
+ 
++		this._disposeListeners = new Map();
++
+ 	}
+ 
+ 	/**
+@@ -34154,6 +34173,7 @@ class Textures extends DataMap {
+ 			};
+ 
+ 			renderTarget.addEventListener( 'dispose', renderTargetData.onDispose );
++			this._disposeListeners.set( renderTarget, renderTargetData.onDispose );
+ 
+ 		}
+ 
+@@ -34374,6 +34394,7 @@ class Textures extends DataMap {
+ 			};
+ 
+ 			texture.addEventListener( 'dispose', textureData.onDispose );
++			this._disposeListeners.set( texture, textureData.onDispose );
+ 
+ 		}
+ 
+@@ -34525,6 +34546,7 @@ class Textures extends DataMap {
+ 			//
+ 
+ 			renderTarget.removeEventListener( 'dispose', renderTargetData.onDispose );
++			this._disposeListeners.delete( renderTarget );
+ 
+ 			//
+ 
+@@ -34564,6 +34586,7 @@ class Textures extends DataMap {
+ 			//
+ 
+ 			texture.removeEventListener( 'dispose', textureData.onDispose );
++			this._disposeListeners.delete( texture );
+ 
+ 			// if a texture is not ready for use, it falls back to a default texture so it's possible
+ 			// to use it for rendering. If a texture in this state is disposed, it's important to
+@@ -34617,6 +34640,20 @@ class Textures extends DataMap {
+ 
+ 	}
+ 
++	dispose() {
++
++		for ( const [ resource, onDispose ] of this._disposeListeners ) {
++
++			resource.removeEventListener( 'dispose', onDispose );
++
++		}
++
++		this._disposeListeners.clear();
++		this._htmlTextures.clear();
++		super.dispose();
++
++	}
++
+ }
+ 
+ /**
+diff --git a/build/three.webgpu.nodes.js b/build/three.webgpu.nodes.js
+index f707acc24f5711fdae065ce920b08435b0869c1b..25603cba4948fb1e08bd1903a38ccf8da7831fd9 100644
+--- a/build/three.webgpu.nodes.js
++++ b/build/three.webgpu.nodes.js
+@@ -30565,9 +30565,9 @@ class RenderObject {
+ 	}
+ 
+ 	/**
+-	 * Frees internal resources.
++	 * Removes resource listeners without releasing renderer backend state.
+ 	 */
+-	dispose() {
++	detachListeners() {
+ 
+ 		this.material.removeEventListener( 'dispose', this.onMaterialDispose );
+ 		this.geometry.removeEventListener( 'dispose', this.onGeometryDispose );
+@@ -30578,6 +30578,11 @@ class RenderObject {
+ 
+ 		}
+ 
++	}
++
++	dispose() {
++
++		this.detachListeners();
+ 		this.onDispose();
+ 
+ 	}
+@@ -30654,6 +30659,7 @@ class RenderObjects {
+ 		 * @type {Object<string,ChainMap>}
+ 		 */
+ 		this.chainMaps = {};
++		this._renderObjects = new Set();
+ 
+ 	}
+ 
+@@ -30755,6 +30761,13 @@ class RenderObjects {
+ 	 */
+ 	dispose() {
+ 
++		for ( const renderObject of this._renderObjects ) {
++
++			renderObject.detachListeners();
++
++		}
++
++		this._renderObjects.clear();
+ 		this.chainMaps = {};
+ 
+ 	}
+@@ -30781,8 +30794,12 @@ class RenderObjects {
+ 
+ 		const renderObject = new RenderObject( nodes, geometries, renderer, object, material, scene, camera, lightsNode, renderContext, clippingContext );
+ 
++		this._renderObjects.add( renderObject );
++
+ 		renderObject.onDispose = () => {
+ 
++			this._renderObjects.delete( renderObject );
++
+ 			this.pipelines.delete( renderObject );
+ 			this.bindings.deleteForRender( renderObject );
+ 			this.nodes.delete( renderObject );
+@@ -34021,6 +34038,8 @@ class Textures extends DataMap {
+ 		 */
+ 		this._htmlTextures = new Set();
+ 
++		this._disposeListeners = new Map();
++
+ 	}
+ 
+ 	/**
+@@ -34154,6 +34173,7 @@ class Textures extends DataMap {
+ 			};
+ 
+ 			renderTarget.addEventListener( 'dispose', renderTargetData.onDispose );
++			this._disposeListeners.set( renderTarget, renderTargetData.onDispose );
+ 
+ 		}
+ 
+@@ -34374,6 +34394,7 @@ class Textures extends DataMap {
+ 			};
+ 
+ 			texture.addEventListener( 'dispose', textureData.onDispose );
++			this._disposeListeners.set( texture, textureData.onDispose );
+ 
+ 		}
+ 
+@@ -34525,6 +34546,7 @@ class Textures extends DataMap {
+ 			//
+ 
+ 			renderTarget.removeEventListener( 'dispose', renderTargetData.onDispose );
++			this._disposeListeners.delete( renderTarget );
+ 
+ 			//
+ 
+@@ -34564,6 +34586,7 @@ class Textures extends DataMap {
+ 			//
+ 
+ 			texture.removeEventListener( 'dispose', textureData.onDispose );
++			this._disposeListeners.delete( texture );
+ 
+ 			// if a texture is not ready for use, it falls back to a default texture so it's possible
+ 			// to use it for rendering. If a texture in this state is disposed, it's important to
+@@ -34617,6 +34640,20 @@ class Textures extends DataMap {
+ 
+ 	}
+ 
++	dispose() {
++
++		for ( const [ resource, onDispose ] of this._disposeListeners ) {
++
++			resource.removeEventListener( 'dispose', onDispose );
++
++		}
++
++		this._disposeListeners.clear();
++		this._htmlTextures.clear();
++		super.dispose();
++
++	}
++
+ }
+ 
+ /**
+diff --git a/src/renderers/common/RenderObject.js b/src/renderers/common/RenderObject.js
+index c900fa4c9654f8cf3512e96de52a2c1c83e189a6..5b1abee77ae77f1e75b293ea03e8c1e2b8c9b92d 100644
+--- a/src/renderers/common/RenderObject.js
++++ b/src/renderers/common/RenderObject.js
+@@ -953,9 +953,9 @@ class RenderObject {
+ 	}
+ 
+ 	/**
+-	 * Frees internal resources.
++	 * Removes resource listeners without releasing renderer backend state.
+ 	 */
+-	dispose() {
++	detachListeners() {
+ 
+ 		this.material.removeEventListener( 'dispose', this.onMaterialDispose );
+ 		this.geometry.removeEventListener( 'dispose', this.onGeometryDispose );
+@@ -966,6 +966,11 @@ class RenderObject {
+ 
+ 		}
+ 
++	}
++
++	dispose() {
++
++		this.detachListeners();
+ 		this.onDispose();
+ 
+ 	}
+diff --git a/src/renderers/common/RenderObjects.js b/src/renderers/common/RenderObjects.js
+index 676cc2bd4169427ed420f2467b1e6684bd2aeebc..8dd460b94a0d80f78c194cd4ccdb59bd5fa43d7e 100644
+--- a/src/renderers/common/RenderObjects.js
++++ b/src/renderers/common/RenderObjects.js
+@@ -71,6 +71,7 @@ class RenderObjects {
+ 		 * @type {Object<string,ChainMap>}
+ 		 */
+ 		this.chainMaps = {};
++		this._renderObjects = new Set();
+ 
+ 	}
+ 
+@@ -172,6 +173,13 @@ class RenderObjects {
+ 	 */
+ 	dispose() {
+ 
++		for ( const renderObject of this._renderObjects ) {
++
++			renderObject.detachListeners();
++
++		}
++
++		this._renderObjects.clear();
+ 		this.chainMaps = {};
+ 
+ 	}
+@@ -198,8 +206,12 @@ class RenderObjects {
+ 
+ 		const renderObject = new RenderObject( nodes, geometries, renderer, object, material, scene, camera, lightsNode, renderContext, clippingContext );
+ 
++		this._renderObjects.add( renderObject );
++
+ 		renderObject.onDispose = () => {
+ 
++			this._renderObjects.delete( renderObject );
++
+ 			this.pipelines.delete( renderObject );
+ 			this.bindings.deleteForRender( renderObject );
+ 			this.nodes.delete( renderObject );
+diff --git a/src/renderers/common/Textures.js b/src/renderers/common/Textures.js
+index f42b90eac69ca042c39e7999773d6b8303fc3dd0..ded501ee4e3db8c5ab4ebd965758f368b1c00e2b 100644
+--- a/src/renderers/common/Textures.js
++++ b/src/renderers/common/Textures.js
+@@ -55,6 +55,8 @@ class Textures extends DataMap {
+ 		 */
+ 		this._htmlTextures = new Set();
+ 
++		this._disposeListeners = new Map();
++
+ 	}
+ 
+ 	/**
+@@ -188,6 +190,7 @@ class Textures extends DataMap {
+ 			};
+ 
+ 			renderTarget.addEventListener( 'dispose', renderTargetData.onDispose );
++			this._disposeListeners.set( renderTarget, renderTargetData.onDispose );
+ 
+ 		}
+ 
+@@ -408,6 +411,7 @@ class Textures extends DataMap {
+ 			};
+ 
+ 			texture.addEventListener( 'dispose', textureData.onDispose );
++			this._disposeListeners.set( texture, textureData.onDispose );
+ 
+ 		}
+ 
+@@ -559,6 +563,7 @@ class Textures extends DataMap {
+ 			//
+ 
+ 			renderTarget.removeEventListener( 'dispose', renderTargetData.onDispose );
++			this._disposeListeners.delete( renderTarget );
+ 
+ 			//
+ 
+@@ -598,6 +603,7 @@ class Textures extends DataMap {
+ 			//
+ 
+ 			texture.removeEventListener( 'dispose', textureData.onDispose );
++			this._disposeListeners.delete( texture );
+ 
+ 			// if a texture is not ready for use, it falls back to a default texture so it's possible
+ 			// to use it for rendering. If a texture in this state is disposed, it's important to
+@@ -651,6 +657,20 @@ class Textures extends DataMap {
+ 
+ 	}
+ 
++	dispose() {
++
++		for ( const [ resource, onDispose ] of this._disposeListeners ) {
++
++			resource.removeEventListener( 'dispose', onDispose );
++
++		}
++
++		this._disposeListeners.clear();
++		this._htmlTextures.clear();
++		super.dispose();
++
++	}
++
+ }
+ 
+ export default Textures;

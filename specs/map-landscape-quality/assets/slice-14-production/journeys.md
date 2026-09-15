@@ -88,3 +88,7 @@ bounded as reported above.
 No baseline has been intentionally repinned by this preparation pass; differing
 legacy images require individual inspection and fresh critique. Full slice14
 acceptance remains open.
+
+Merged checkpoint: root adopts the journey preparation and lifecycle probe with
+signed shores and categorical cover. All521 web tests and typecheck pass on the
+combined tree. This CPU result does not close the unrun broader browser gates.

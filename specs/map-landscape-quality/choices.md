@@ -130,3 +130,10 @@ before/after visual evidence.
 
 - **Sound, high confidence:** Share battle's existing sun-rectangle fit and retain its battle behavior. Campaign supplies its visible ground footprint, improving nearby contact without another light, larger shadow texture or new quality setting.
 - **Sound, high confidence:** Keep the full view extent across map boundaries and snap the sun/target together to shadow texels. Trimming the rectangle to the map changed shadow resolution during panning and defeated stabilization.
+
+## Battle landscape integration
+
+- **Sound, medium confidence — retain the existing tree lattice and raise its component cap.** Large forests lost most candidates to the same cap used for small groves. The larger bounded cap restores woodland presence without a new placement algorithm. Physical clearings remain authoritative; under-canopy troop visibility still needs full composition review.
+- **Sound, high confidence — carry continuous shoreline distance to the material.** The existing vista float buffer now carries signed world metres instead of binary water. This preserves interpolation across coarse triangles without adding a buffer, changing terrain heights or adding a compatibility getter.
+- **Sound, high confidence — interpolate material coverage, never category numbers.** Grass and forest IDs numerically bracket rock, so blending IDs invented a rock border. The battle geometry boundary decodes independent coverage before seam or fragment interpolation. Two extra floats per terrain vertex replace the categorical GPU input; simulation tint IDs remain untouched.
+- **Provisional, medium confidence — evaluate a pre-baked elevation asset before another procedural form algorithm.** Repeated local noise variants lost readable mountains. Actual elevation provides branching, but its raw sampled detail is too fragmented at the current mesh scale. This remains a reversible asset experiment, not an adopted runtime dependency or source contract.

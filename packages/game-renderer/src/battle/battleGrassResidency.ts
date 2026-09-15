@@ -7,10 +7,13 @@ import {
   type Camera3DParams,
 } from "../../../renderer-core/src/camera3d";
 import {
+  GRASS_FIELD_PACKED_STRIDE_FLOATS,
   createGrassFieldSampler,
-  type GrassFieldSampler,
+  type GrassFieldCellRange,
   type GrassFieldStats,
 } from "./grassField";
+import { GrassFocusTileField, type GrassRecordEdit } from "./grassFocusTiles";
+import { hashPackedRecords } from "./bladeFieldRecordHash";
 import type { BattleGroundCover, BattleTerrainGrid } from "./terrainFeatures";
 import type { TerrainHeightField } from "../terrain/heightField";
 import {
@@ -23,8 +26,20 @@ import {
 } from "./bladeFieldPolicy";
 
 export interface GrassResidencyLayer {
+  /** Bumps when `records` must be re-read whole: a new buffer, or a focus
+   *  generation becoming active. */
   revision: number;
+  /** For the focus ring this is one persistent capacity buffer, mutated in
+   *  place; only `[0, recordCount)` is live. */
   records: Float32Array | null;
+  recordCount: number;
+  /** Identity of the live range. The focus ring's is a resident-tile-set hash,
+   *  so it does not depend on the order tiles happened to land in slots. */
+  recordHash: string;
+  /** Bumps once per publication step. A consumer may apply `edits` when it saw
+   *  `editSerial - 1` against the same `records`; otherwise it re-reads whole. */
+  editSerial: number;
+  edits: readonly GrassRecordEdit[];
   visible: boolean;
   circle: { center: [number, number]; radiusSq: number; enabled: boolean } | null;
 }
@@ -163,16 +178,32 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, BladeFieldProf
 const STATIC_GRASS_FIELD_CELL_M = 1.5;
 const STATIC_GRASS_MAX_RECORDS = 1_000_000;
 const MEADOW_FOCUS_RING_RADIUS_M = 300;
-const MEADOW_FOCUS_RING_REBUILD_HYSTERESIS_M = 80;
 const MEADOW_FOCUS_RING_SNAP_CELL_M = 48;
 const MEADOW_FOCUS_RING_FIELD_CELL_M = 0.6;
-const MEADOW_FOCUS_RING_MAX_RECORDS = 1_000_000;
 const MEADOW_FOCUS_RING_DEDUPE_MARGIN_M = 20;
+/** The ring must cover at least the circle the base field is culled inside, or
+ *  the dedupe circle would open a hole; tiles overshoot it, never undershoot. */
+const MEADOW_FOCUS_RING_COVER_RADIUS_M =
+  MEADOW_FOCUS_RING_RADIUS_M - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M;
+/** Residency granularity. 24 m divides the 48 m focus snap and the 0.6 m field
+ *  cell, so a tile is exactly 40x40 cells and adjacent tiles partition the
+ *  world. Smaller tiles track the cover circle more tightly and shrink every
+ *  per-frame bound; larger ones waste records on the rim. */
+const MEADOW_FOCUS_TILE_M = 24;
+/** Retained slot ceiling: 640 x 1600 records x 64 B = 65.5 MB, and above the
+ *  616-tile worst case of one cover circle plus a 48 m step. */
+const MEADOW_FOCUS_TILE_SLOTS = 640;
+/** How far past a snap boundary the camera must travel before the request
+ *  follows it, so hovering on the boundary cannot thrash the two circles. */
+const MEADOW_FOCUS_SNAP_DEADBAND_M = 12;
+/** Tiles copied, hashed and uploaded per publication step. */
+const MEADOW_FOCUS_TILE_PUBLISH_PER_STEP = 8;
 const MEADOW_RING_MIN_PIXELS = 1.5;
 const MEADOW_RING_RELEASE_PIXELS = 1;
 const GRASS_SAMPLE_SLICE_CELLS = 16384;
 const GRASS_SAMPLE_SLICE_BUDGET_MS = 4;
 const GRASS_MIN_PIXELS = 0.5;
+const NO_RECORD_EDITS: readonly GrassRecordEdit[] = [];
 
 interface GrassSampleFocus {
   x: number;
@@ -181,17 +212,15 @@ interface GrassSampleFocus {
   maxRecords: number;
 }
 
-interface GrassSampleTask {
-  key: string;
-  focus: GrassSampleFocus;
-  sampler: GrassFieldSampler;
-  startedAt: number;
-  slices: number;
-  maxSliceMs: number;
+/** The snapped centre of a focus generation. Its coverage is a tile set, not a
+ *  sampler disc, so it carries no capacity of its own. */
+interface GrassFocusCenter {
+  x: number;
+  y: number;
 }
 
 export interface GrassRebuildStats {
-  strategy: "static-whole-map+camera-focus-ring";
+  strategy: "static-whole-map+camera-focus-tiles";
   activeRecordBudget: number;
   vistaRecordBudget: number;
   areaBudgetScale: number;
@@ -200,13 +229,39 @@ export interface GrassRebuildStats {
   lastSampleMs: number;
   lastSlices: number;
   lastMaxSliceMs: number;
+  /** Bumps per coalesced camera demand; `activeGeneration` trails it until the
+   *  cover circle is entirely resident. */
+  requestedGeneration: number;
+  activeGeneration: number;
+  pendingAgeMs: number;
+  requiredTiles: number;
+  residentTiles: number;
+  missingTiles: number;
+  /** Fixed work bounds, so a reader can check the per-step ceiling directly. */
+  publishTilesPerStep: number;
+  tileSlotRecords: number;
+  tileCells: number;
+  slotCapacity: number;
+  retainedRecordBytes: number;
+  /** Actual work, separated from work thrown away. */
+  sampledTiles: number;
+  sampledCells: number;
+  publishedRecords: number;
+  publishedBytes: number;
+  evictedTiles: number;
+  cancelledTiles: number;
+  cancelledCells: number;
+  /** Published circles dropped because retaining them alongside the requested
+   *  circle no longer fit in the slot ceiling. */
+  retiredFocusGenerations: number;
+  /** Every tile the published dedupe circle culls the base field inside is
+   *  resident. False here would mean a hole in the ground. */
+  activeCoverageResident: boolean;
 }
 
 interface GrassRebuildState extends GrassRebuildStats {
-  activeFocus: GrassSampleFocus | null;
-  pendingFocus: GrassSampleFocus | null;
-  inProgressCells: number;
-  totalCells: number;
+  activeFocus: GrassFocusCenter | null;
+  pendingFocus: GrassFocusCenter | null;
 }
 
 export interface GrassResidencyStats {
@@ -244,12 +299,13 @@ export class BattleGrassResidency {
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
   private baseTerrainKey: string | null = null;
   private baseRecords: Float32Array | null = null;
+  private baseRecordHash = "00000000";
   private baseSampleStats: GrassFieldStats | null = null;
-  private focusTerrainKey: string | null = null;
-  private focusRecords: Float32Array | null = null;
-  private focusSampleStats: GrassFieldStats | null = null;
-  private pendingTerrainKey: string | null = null;
-  private sampleTask: GrassSampleTask | null = null;
+  private focusTiles: GrassFocusTileField | null = null;
+  private focusRequest: GrassFocusCenter | null = null;
+  private activeCoverKeys: ReadonlySet<number> = new Set();
+  private sampleScheduled = false;
+  private requestedAt = 0;
   private sampleStats: GrassFieldStats | null = null;
   private enabled = true;
   private focusRingEngaged = false;
@@ -272,7 +328,7 @@ export class BattleGrassResidency {
       ),
     );
     this.rebuild = {
-      strategy: "static-whole-map+camera-focus-ring",
+      strategy: "static-whole-map+camera-focus-tiles",
       activeRecordBudget: profile.maxRecords,
       vistaRecordBudget: profile.maxRecords,
       areaBudgetScale: 1,
@@ -281,10 +337,28 @@ export class BattleGrassResidency {
       lastSampleMs: 0,
       lastSlices: 0,
       lastMaxSliceMs: 0,
+      requestedGeneration: 0,
+      activeGeneration: 0,
+      pendingAgeMs: 0,
+      requiredTiles: 0,
+      residentTiles: 0,
+      missingTiles: 0,
+      publishTilesPerStep: MEADOW_FOCUS_TILE_PUBLISH_PER_STEP,
+      tileSlotRecords: 0,
+      tileCells: 0,
+      slotCapacity: 0,
+      retainedRecordBytes: 0,
+      sampledTiles: 0,
+      sampledCells: 0,
+      publishedRecords: 0,
+      publishedBytes: 0,
+      evictedTiles: 0,
+      cancelledTiles: 0,
+      cancelledCells: 0,
+      retiredFocusGenerations: 0,
+      activeCoverageResident: true,
       activeFocus: null,
       pendingFocus: null,
-      inProgressCells: 0,
-      totalCells: 0,
     };
   }
 
@@ -295,18 +369,19 @@ export class BattleGrassResidency {
     this.terrainRect = [grid.ox, grid.oy, grid.w * grid.cell, grid.h * grid.cell];
     this.baseTerrainKey = null;
     this.baseRecords = null;
+    this.baseRecordHash = "00000000";
     this.baseSampleStats = null;
-    this.focusTerrainKey = null;
-    this.focusRecords = null;
-    this.focusSampleStats = null;
-    this.pendingTerrainKey = null;
-    this.sampleTask = null;
     this.sampleStats = null;
+    // The capacity buffer, its GPU mirror and the shared materials are all
+    // built with the terrain, so no zoom gesture pays for a large allocation.
+    this.focusTiles = this.createFocusTiles();
+    this.focusRequest = null;
+    this.activeCoverKeys = new Set();
+    this.sampleScheduled = false;
     this.rebuild.pending = false;
     this.rebuild.activeFocus = null;
     this.rebuild.pendingFocus = null;
-    this.rebuild.inProgressCells = 0;
-    this.rebuild.totalCells = 0;
+    this.rebuild.activeGeneration = 0;
     this.baseVisible = false;
     this.ringVisible = false;
     this.baseRevision++;
@@ -336,37 +411,45 @@ export class BattleGrassResidency {
     );
     this.ensureBaseRecords();
     const focusRingActive = this.updateFocusRingDetailGate();
+    const focusRecordCapacity = this.focusTiles
+      ? this.focusTiles.slotCapacity * this.focusTiles.slotRecords
+      : 0;
     this.rebuild.activeRecordBudget = focusRingActive
-      ? STATIC_GRASS_MAX_RECORDS + MEADOW_FOCUS_RING_MAX_RECORDS
+      ? STATIC_GRASS_MAX_RECORDS + focusRecordCapacity
       : STATIC_GRASS_MAX_RECORDS;
-    this.sampleStats =
-      focusRingActive && this.focusSampleStats ? this.focusSampleStats : this.baseSampleStats;
+    this.sampleStats = focusRingActive
+      ? (this.focusTiles?.sampleStats() ?? this.baseSampleStats)
+      : this.baseSampleStats;
     this.updateRoutingState();
 
     if (!focusRingActive) {
-      this.sampleTask = null;
-      this.pendingTerrainKey = null;
+      this.focusTiles?.clearRequest();
+      this.focusRequest = null;
       this.rebuild.pending = false;
       this.rebuild.pendingFocus = null;
       this.sampleStats = this.baseSampleStats;
-      this.updateRoutingState();
       return;
     }
 
+    const tiles = this.focusTiles;
+    if (!tiles) return;
     const focus = this.focusRingForCamera(view.x, view.y);
-    const key = this.sampleKey("focus", focus);
-    const active = this.rebuild.activeFocus;
-    const pending = this.rebuild.pendingFocus;
-    if (!active) {
-      if (key !== this.pendingTerrainKey) this.startSampleTask(focus, key);
-      return;
+    if (!this.focusRequest || this.focusRequest.x !== focus.x || this.focusRequest.y !== focus.y) {
+      // Coalesce to the latest demand. Resident tiles satisfy it immediately and
+      // the tile in flight only restarts if the new circle no longer wants it,
+      // so travel re-sorts the request instead of replaying its prefix.
+      this.focusRequest = focus;
+      this.requestedAt = this.clock.now();
+      this.rebuild.lastSlices = 0;
+      this.rebuild.lastMaxSliceMs = 0;
+      tiles.request(focus.x, focus.y, MEADOW_FOCUS_RING_COVER_RADIUS_M);
+      this.rebuild.requestedGeneration += 1;
+      this.rebuild.pendingFocus = focus;
+      this.admitCoveredFocus();
+      this.updateRoutingState();
     }
-    const currentCenter = pending ?? active;
-    const moved =
-      Math.hypot(view.x - currentCenter.x, view.y - currentCenter.y) >
-      MEADOW_FOCUS_RING_REBUILD_HYSTERESIS_M;
-    if (!moved || key === this.focusTerrainKey || key === this.pendingTerrainKey) return;
-    this.startSampleTask(focus, key);
+    this.rebuild.pending = tiles.pending;
+    this.scheduleSampleSlice();
   }
 
   prepareRender(camera: Camera3DParams, viewportHeight: number): void {
@@ -386,15 +469,15 @@ export class BattleGrassResidency {
     this.enabled = visible;
     this.updateRoutingState();
     if (visible) return;
-    this.sampleTask = null;
-    this.pendingTerrainKey = null;
+    // Resident tiles stay: they are the cache a re-engaged camera reuses.
+    this.focusTiles?.clearRequest();
+    this.focusRequest = null;
     this.rebuild.pending = false;
     this.rebuild.pendingFocus = null;
-    this.rebuild.inProgressCells = 0;
-    this.rebuild.totalCells = 0;
   }
 
   stats(): GrassResidencyStats {
+    const tiles = this.focusTiles;
     const rebuild: GrassRebuildStats = {
       strategy: this.rebuild.strategy,
       activeRecordBudget: this.rebuild.activeRecordBudget,
@@ -405,6 +488,29 @@ export class BattleGrassResidency {
       lastSampleMs: this.rebuild.lastSampleMs,
       lastSlices: this.rebuild.lastSlices,
       lastMaxSliceMs: this.rebuild.lastMaxSliceMs,
+      requestedGeneration: this.rebuild.requestedGeneration,
+      activeGeneration: this.rebuild.activeGeneration,
+      pendingAgeMs: this.rebuild.pending
+        ? Number((this.clock.now() - this.requestedAt).toFixed(3))
+        : 0,
+      requiredTiles: tiles?.requiredTiles ?? 0,
+      residentTiles: tiles?.residentTiles ?? 0,
+      missingTiles: tiles?.missingTiles ?? 0,
+      publishTilesPerStep: MEADOW_FOCUS_TILE_PUBLISH_PER_STEP,
+      tileSlotRecords: tiles?.slotRecords ?? 0,
+      tileCells: tiles?.tileCells ?? 0,
+      slotCapacity: tiles?.slotCapacity ?? 0,
+      retainedRecordBytes: tiles?.records.byteLength ?? 0,
+      sampledTiles: tiles?.sampledTiles ?? 0,
+      sampledCells: tiles?.sampledCells ?? 0,
+      publishedRecords: tiles?.publishedRecords ?? 0,
+      publishedBytes: (tiles?.publishedRecords ?? 0) * 64,
+      evictedTiles: tiles?.evictedTiles ?? 0,
+      cancelledTiles: tiles?.cancelledTiles ?? 0,
+      cancelledCells: tiles?.cancelledCells ?? 0,
+      retiredFocusGenerations: this.rebuild.retiredFocusGenerations,
+      activeCoverageResident:
+        this.rebuild.activeFocus === null || (tiles?.hasAll(this.activeCoverKeys) ?? false),
     };
     return {
       productionSamplingProfile: this.profile,
@@ -422,23 +528,28 @@ export class BattleGrassResidency {
     };
   }
 
+  /** Loading-only: drive the same bounded publication steps to completion. */
   settle(): void {
-    const task = this.sampleTask;
-    if (task) {
-      while (task === this.sampleTask && !task.sampler.step(GRASS_SAMPLE_SLICE_CELLS)) {
-        task.slices += 1;
-      }
-      if (task === this.sampleTask) {
-        task.slices += 1;
-        this.completeSampleTask(task);
-      }
+    const tiles = this.focusTiles;
+    if (!tiles || !this.enabled || !this.focusRingEngaged) return;
+    const started = this.clock.now();
+    // Admitting a focus retires the previous circle's tiles, which is itself
+    // publication work; settle until both have drained.
+    for (let pass = 0; pass < 4 && tiles.pending; pass++) {
+      tiles.settle(() => this.clock.now());
+      this.sampleStats = tiles.sampleStats() ?? this.baseSampleStats;
+      this.admitCoveredFocus();
     }
+    this.rebuild.lastSampleMs = Number((this.clock.now() - started).toFixed(3));
+    this.updateRoutingState();
+    this.rebuild.pending = tiles.pending;
   }
 
   dispose(): void {
-    this.sampleTask = null;
     this.baseRecords = null;
-    this.focusRecords = null;
+    this.focusTiles?.dispose();
+    this.focusTiles = null;
+    this.focusRequest = null;
   }
 
   private visibleNow(): boolean {
@@ -446,12 +557,7 @@ export class BattleGrassResidency {
   }
 
   private ringVisibleNow(): boolean {
-    return (
-      this.visibleNow() &&
-      this.focusRingEngaged &&
-      this.focusRecords !== null &&
-      this.rebuild.activeFocus !== null
-    );
+    return this.visibleNow() && this.focusRingEngaged && (this.focusTiles?.recordCount ?? 0) > 0;
   }
 
   private updateFocusRingDetailGate(): boolean {
@@ -472,19 +578,26 @@ export class BattleGrassResidency {
     };
   }
 
-  private focusRingForCamera(x: number, y: number): GrassSampleFocus {
-    return {
-      x: snapToGrassFocusGrid(x),
-      y: snapToGrassFocusGrid(y),
-      radius: MEADOW_FOCUS_RING_RADIUS_M,
-      maxRecords: MEADOW_FOCUS_RING_MAX_RECORDS,
-    };
+  private focusRingForCamera(x: number, y: number): GrassFocusCenter {
+    const current = this.focusRequest;
+    // A camera hovering on a snap boundary must not flip the request every
+    // frame: each flip retires the other circle's tiles and re-samples them.
+    if (
+      current &&
+      Math.max(
+        Math.abs(x - (current.x + MEADOW_FOCUS_RING_SNAP_CELL_M / 2)),
+        Math.abs(y - (current.y + MEADOW_FOCUS_RING_SNAP_CELL_M / 2)),
+      ) <
+        MEADOW_FOCUS_RING_SNAP_CELL_M / 2 + MEADOW_FOCUS_SNAP_DEADBAND_M
+    ) {
+      return current;
+    }
+    return { x: snapToGrassFocusGrid(x), y: snapToGrassFocusGrid(y) };
   }
 
-  private sampleKey(kind: "base" | "focus", focus: GrassSampleFocus): string {
+  private sampleKey(kind: "base", focus: GrassSampleFocus): string {
     if (!this.terrainGrid) return "";
-    const fieldCellSize =
-      kind === "focus" ? MEADOW_FOCUS_RING_FIELD_CELL_M : STATIC_GRASS_FIELD_CELL_M;
+    const fieldCellSize = STATIC_GRASS_FIELD_CELL_M;
     return [
       kind,
       this.terrainGrid.w,
@@ -536,8 +649,9 @@ export class BattleGrassResidency {
     if (!snapshot) return;
     this.baseTerrainKey = key;
     this.baseRecords = snapshot.packedRecords;
+    this.baseRecordHash = hashPackedRecords(snapshot.packedRecords);
     this.baseSampleStats = snapshot.stats;
-    this.sampleStats = this.focusSampleStats ?? this.baseSampleStats;
+    this.sampleStats = this.focusTiles?.sampleStats() ?? this.baseSampleStats;
     this.rebuild.lastSampleMs = Number((this.clock.now() - started).toFixed(3));
     this.rebuild.lastSlices = 1;
     this.rebuild.lastMaxSliceMs = this.rebuild.lastSampleMs;
@@ -545,90 +659,112 @@ export class BattleGrassResidency {
     this.updateRoutingState();
   }
 
-  private startSampleTask(focus: GrassSampleFocus, key: string): void {
-    if (!this.terrainGrid || !this.heightField) return;
-    const sampler = createGrassFieldSampler(this.terrainGrid, this.heightField, {
-      seed: this.profile.seed,
-      focus,
+  /** One sampler per residency tile: the ring's parameters live here, the
+   *  persistent store owns which tile is next and where it lands. */
+  private createFocusTiles(): GrassFocusTileField | null {
+    const grid = this.terrainGrid;
+    const field = this.heightField;
+    if (!grid || !field) return null;
+    return new GrassFocusTileField({
+      tileM: MEADOW_FOCUS_TILE_M,
       fieldCellSize: MEADOW_FOCUS_RING_FIELD_CELL_M,
-      snapCellSize: MEADOW_FOCUS_RING_SNAP_CELL_M,
-      clumpCellSize: this.profile.clumpCellSize,
-      maxRecords: focus.maxRecords,
-      lodStratifiedBudget: false,
-      density: 1,
-      jitter: this.profile.jitter,
-      minNormalZ: this.profile.minNormalZ,
-      lodNearRadius: this.profile.lodNearRadiusM / focus.radius,
-      lodMidRadius: this.profile.lodMidRadiusM / focus.radius,
-      baseHeight: this.profile.baseHeight,
-      heightJitter: this.profile.heightJitter,
-      baseWidth: this.profile.baseWidth,
-      widthJitter: this.profile.widthJitter,
-      baseBend: this.profile.baseBend,
-      bendJitter: this.profile.bendJitter,
+      slotLimit: MEADOW_FOCUS_TILE_SLOTS,
+      publishPerStep: MEADOW_FOCUS_TILE_PUBLISH_PER_STEP,
+      terrainRect: this.terrainRect,
+      sampleTile: (
+        cells: GrassFieldCellRange,
+        centerX: number,
+        centerY: number,
+        slotRecords: number,
+      ) =>
+        createGrassFieldSampler(grid, field, {
+          seed: this.profile.seed,
+          // Placement is cell-derived, so a tile sampled once stays valid for
+          // every later focus. Only `lodTier` bands off this centre, and no
+          // shader reads it.
+          focus: { x: centerX, y: centerY, radius: MEADOW_FOCUS_RING_RADIUS_M },
+          cells,
+          fieldCellSize: MEADOW_FOCUS_RING_FIELD_CELL_M,
+          snapCellSize: MEADOW_FOCUS_RING_FIELD_CELL_M,
+          clumpCellSize: this.profile.clumpCellSize,
+          maxRecords: slotRecords,
+          lodStratifiedBudget: false,
+          density: 1,
+          jitter: this.profile.jitter,
+          minNormalZ: this.profile.minNormalZ,
+          lodNearRadius: this.profile.lodNearRadiusM / MEADOW_FOCUS_RING_RADIUS_M,
+          lodMidRadius: this.profile.lodMidRadiusM / MEADOW_FOCUS_RING_RADIUS_M,
+          baseHeight: this.profile.baseHeight,
+          heightJitter: this.profile.heightJitter,
+          baseWidth: this.profile.baseWidth,
+          widthJitter: this.profile.widthJitter,
+          baseBend: this.profile.baseBend,
+          bendJitter: this.profile.bendJitter,
+        }),
+      releaseProtection: () => this.retireActiveFocus(),
     });
-    const task: GrassSampleTask = {
-      key,
-      focus,
-      sampler,
-      startedAt: this.clock.now(),
-      slices: 0,
-      maxSliceMs: 0,
-    };
-    this.sampleTask = task;
-    this.pendingTerrainKey = key;
-    this.rebuild.pending = true;
-    this.rebuild.pendingFocus = focus;
-    this.rebuild.totalCells = sampler.totalCells;
-    this.rebuild.inProgressCells = 0;
-    this.clock.schedule(() => this.runSampleSlice(task));
   }
 
-  private runSampleSlice(task: GrassSampleTask): void {
-    if (task !== this.sampleTask || !this.enabled || !this.focusRingEngaged) return;
-    const sliceStarted = this.clock.now();
-    let done = false;
-    do {
-      done = task.sampler.step(GRASS_SAMPLE_SLICE_CELLS);
-    } while (!done && this.clock.now() - sliceStarted < GRASS_SAMPLE_SLICE_BUDGET_MS);
-    const sliceMs = this.clock.now() - sliceStarted;
-    task.slices += 1;
-    task.maxSliceMs = Math.max(task.maxSliceMs, sliceMs);
-    this.rebuild.inProgressCells = task.sampler.cellsProcessed;
-    this.rebuild.totalCells = task.sampler.totalCells;
-    this.rebuild.lastSlices = task.slices;
-    this.rebuild.lastMaxSliceMs = Number(task.maxSliceMs.toFixed(3));
-    if (done) this.completeSampleTask(task);
-    else this.clock.schedule(() => this.runSampleSlice(task));
+  private scheduleSampleSlice(): void {
+    if (this.sampleScheduled || !this.focusTiles?.pending) return;
+    this.sampleScheduled = true;
+    this.clock.schedule(() => this.runSampleSlice());
   }
 
-  private completeSampleTask(task: GrassSampleTask): void {
-    if (task !== this.sampleTask) return;
-    const snapshot = task.sampler.finish();
-    if (!snapshot) {
-      this.sampleTask = null;
-      this.pendingTerrainKey = null;
-      this.rebuild.pending = false;
-      this.rebuild.pendingFocus = null;
-      return;
-    }
-    this.focusSampleStats = snapshot.stats;
-    this.focusRecords = snapshot.packedRecords;
-    this.sampleStats = snapshot.stats;
-    this.focusTerrainKey = task.key;
-    this.pendingTerrainKey = null;
-    this.sampleTask = null;
-    this.rebuild.activeFocus = task.focus;
-    this.rebuild.pendingFocus = null;
-    this.rebuild.pending = false;
-    this.rebuild.rebuilds += 1;
-    this.rebuild.lastSampleMs = Number((this.clock.now() - task.startedAt).toFixed(3));
-    this.rebuild.lastSlices = task.slices;
-    this.rebuild.lastMaxSliceMs = Number(task.maxSliceMs.toFixed(3));
-    this.rebuild.inProgressCells = task.sampler.cellsProcessed;
-    this.rebuild.totalCells = task.sampler.totalCells;
-    this.ringRevision++;
+  private runSampleSlice(): void {
+    this.sampleScheduled = false;
+    const tiles = this.focusTiles;
+    if (!tiles || !this.enabled || !this.focusRingEngaged) return;
+    const started = this.clock.now();
+    const serial = tiles.editSerial;
+    const remaining = tiles.step(() => this.clock.now(), GRASS_SAMPLE_SLICE_BUDGET_MS);
+    const sliceMs = this.clock.now() - started;
+    this.rebuild.lastSlices += 1;
+    this.rebuild.lastSampleMs = Number(sliceMs.toFixed(3));
+    this.rebuild.lastMaxSliceMs = Math.max(this.rebuild.lastMaxSliceMs, Number(sliceMs.toFixed(3)));
+    if (tiles.editSerial !== serial) this.onFocusTilesPublished();
+    this.rebuild.pending = remaining;
+    if (remaining) this.scheduleSampleSlice();
+    else this.changed();
+  }
+
+  private onFocusTilesPublished(): void {
+    this.sampleStats = this.focusTiles?.sampleStats() ?? this.baseSampleStats;
+    this.admitCoveredFocus();
     this.updateRoutingState();
+  }
+
+  /**
+   * The dedupe circle may only move onto coverage that is already published, so
+   * a focus becomes active exactly when every tile of its cover circle is
+   * resident. Until then the previous circle keeps culling the base field and
+   * the newly arrived tiles simply add density.
+   */
+  private admitCoveredFocus(): void {
+    const tiles = this.focusTiles;
+    const focus = this.focusRequest;
+    if (!tiles || !focus || tiles.missingTiles > 0) return;
+    const active = this.rebuild.activeFocus;
+    if (active && active.x === focus.x && active.y === focus.y) return;
+    this.rebuild.activeFocus = focus;
+    this.rebuild.activeGeneration = this.rebuild.requestedGeneration;
+    this.rebuild.pendingFocus = null;
+    this.rebuild.rebuilds += 1;
+    this.activeCoverKeys = tiles.coverKeys(focus.x, focus.y, MEADOW_FOCUS_RING_COVER_RADIUS_M);
+    tiles.protect(this.activeCoverKeys);
+    this.ringRevision++;
+  }
+
+  /** Retained slots can no longer hold both circles: drop the published dedupe
+   *  circle rather than evict coverage it still claims. The base field covers
+   *  the gap at base density; nothing goes bald. */
+  private retireActiveFocus(): void {
+    if (!this.rebuild.activeFocus) return;
+    this.rebuild.activeFocus = null;
+    this.rebuild.retiredFocusGenerations += 1;
+    this.activeCoverKeys = new Set();
+    this.focusTiles?.protect(this.activeCoverKeys);
+    this.ringRevision++;
   }
 
   snapshot() {
@@ -637,12 +773,20 @@ export class BattleGrassResidency {
       base: {
         revision: this.baseRevision,
         records: this.baseRecords,
+        recordCount: (this.baseRecords?.length ?? 0) / GRASS_FIELD_PACKED_STRIDE_FLOATS,
+        recordHash: this.baseRecordHash,
+        editSerial: this.baseRevision,
+        edits: NO_RECORD_EDITS,
         visible: this.baseVisible,
         circle: this.baseCircle,
       } satisfies GrassResidencyLayer,
       ring: {
         revision: this.ringRevision,
-        records: this.focusRecords,
+        records: this.focusTiles?.records ?? null,
+        recordCount: this.focusTiles?.recordCount ?? 0,
+        recordHash: this.focusTiles?.hash ?? "00000000",
+        editSerial: this.focusTiles?.editSerial ?? 0,
+        edits: this.focusTiles?.edits ?? NO_RECORD_EDITS,
         visible: ringVisible,
         circle: null,
       } satisfies GrassResidencyLayer,

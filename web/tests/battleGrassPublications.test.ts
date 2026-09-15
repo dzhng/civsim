@@ -56,7 +56,8 @@ test("publication replay preserves a pending ring until the recorded publication
   source.prepareRender(camera, 900);
   const published = takeGrassPublications();
   expect(published[0].records.ring!.length).toBeGreaterThan(0);
-  const expected = source.snapshot().ring.records;
+  const live = source.snapshot().ring;
+  const expected = live.records!.slice(0, live.recordCount * 16);
   source.dispose();
   beginGrassPublicationReplay();
   let notifications = 0;
@@ -93,20 +94,28 @@ test("publication replay preserves a pending ring until the recorded publication
   }
 });
 
-test("grass record chunks preserve exact bytes without embedding a large revision in frame JSON", async () => {
-  const { chunkGrassPublications, GRASS_CHUNK_BYTES } =
-    await import("../../apps/battle-perf-lab/src/grassRecordChunks");
-  const records = new Float32Array(GRASS_CHUNK_BYTES / 4 + 3);
-  records[0] = -0;
-  records[1] = Infinity;
-  records[records.length - 1] = 1.25;
-  const expected = new Uint8Array(records.buffer).slice();
-  const result = chunkGrassPublications([
-    { state: { base: { revision: 2 } }, records: { base: records } } as never,
-  ]);
-  expect(result.resources.map((r) => r.blob.size)).toEqual([GRASS_CHUNK_BYTES, 12]);
-  expect(JSON.stringify(result.frames).length).toBeLessThan(256);
-  records.fill(99);
-  const actual = new Uint8Array(await new Blob(result.resources.map((r) => r.blob)).arrayBuffer());
-  expect(actual).toEqual(expected);
-});
+// Blob round-tripping four megabytes dominates this test; the default five
+// second budget is not enough once other suites share the machine.
+test(
+  "grass record chunks preserve exact bytes without embedding a large revision in frame JSON",
+  { timeout: 20_000 },
+  async () => {
+    const { chunkGrassPublications, GRASS_CHUNK_BYTES } =
+      await import("../../apps/battle-perf-lab/src/grassRecordChunks");
+    const records = new Float32Array(GRASS_CHUNK_BYTES / 4 + 3);
+    records[0] = -0;
+    records[1] = Infinity;
+    records[records.length - 1] = 1.25;
+    const expected = new Uint8Array(records.buffer).slice();
+    const result = chunkGrassPublications([
+      { state: { base: { revision: 2 } }, records: { base: records } } as never,
+    ]);
+    expect(result.resources.map((r) => r.blob.size)).toEqual([GRASS_CHUNK_BYTES, 12]);
+    expect(JSON.stringify(result.frames).length).toBeLessThan(256);
+    records.fill(99);
+    const actual = new Uint8Array(
+      await new Blob(result.resources.map((r) => r.blob)).arrayBuffer(),
+    );
+    expect(actual).toEqual(expected);
+  },
+);

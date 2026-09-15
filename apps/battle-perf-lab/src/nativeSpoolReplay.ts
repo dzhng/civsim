@@ -26,6 +26,7 @@ import {
 } from "../../../packages/game-renderer/src/environment/postParameters";
 import { resolveDeviceCaps } from "../../../packages/renderer-core/src/capabilities";
 import { hashPackedRecords } from "../../../packages/game-renderer/src/battle/bladeFieldRecordHash";
+import { liveGrassRecords } from "./grassField";
 
 /** Native replay shares the exact packet/resource decoder with the Three control.
  * One awaited packet at a time; no simulation or source recapture occurs here. */
@@ -184,7 +185,9 @@ export async function createSpoolReplay(
         const pendingDiagnostics = selection.snapshot
           ? backendRenderer.readDiagnostics()
           : undefined;
-        const cpuHashes = [recordHash(state.base.records), recordHash(state.ring.records)];
+        const cpuHashes = [liveGrassRecords(state.base), liveGrassRecords(state.ring)].map(
+          recordHash,
+        );
         const diagnostics = (await pendingDiagnostics) ?? [];
         const commands = diagnostics.map((layer) => layer.commands);
         const gpuHashes = diagnostics.map((layer) => hashPackedRecords(layer.records));

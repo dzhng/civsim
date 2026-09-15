@@ -1,4 +1,5 @@
 import { BattleGrassResidency as ProductionResidency } from "../../../packages/game-renderer/src/battle/battleGrassResidency";
+import { GRASS_FIELD_PACKED_STRIDE_FLOATS } from "../../../packages/game-renderer/src/battle/grassField";
 export * from "../../../packages/game-renderer/src/battle/battleGrassResidency";
 
 type State = ReturnType<ProductionResidency["snapshot"]>;
@@ -81,8 +82,16 @@ export class BattleGrassResidency extends ProductionResidency {
       }
       this.resolved = {
         ...publication.state,
-        base: { ...publication.state.base, records: this.records.base },
-        ring: { ...publication.state.ring, records: this.records.ring },
+        base: {
+          ...publication.state.base,
+          records: this.records.base,
+          recordCount: (this.records.base?.length ?? 0) / GRASS_FIELD_PACKED_STRIDE_FLOATS,
+        },
+        ring: {
+          ...publication.state.ring,
+          records: this.records.ring,
+          recordCount: (this.records.ring?.length ?? 0) / GRASS_FIELD_PACKED_STRIDE_FLOATS,
+        },
       };
       this.resolvedStats = publication.stats;
       this.notify();
@@ -94,8 +103,13 @@ export class BattleGrassResidency extends ProductionResidency {
     const records: GrassPublication["records"] = {};
     for (const layer of ["base", "ring"] as const) {
       if (this.revisions[layer] !== state[layer].revision) {
-        records[layer] = state[layer].records;
-        this.revisions[layer] = state[layer].revision;
+        // The focus buffer is owner-mutated in place, so a publication has to
+        // carry a copy of its live range, not a view of the live buffer.
+        const part = state[layer];
+        records[layer] = part.records
+          ? part.records.slice(0, part.recordCount * GRASS_FIELD_PACKED_STRIDE_FLOATS)
+          : null;
+        this.revisions[layer] = part.revision;
       }
     }
     const { records: _base, ...base } = state.base;

@@ -18,9 +18,23 @@ interface GrassFieldFocus {
   radius: number;
 }
 
+/** Inclusive world-cell index bounds. */
+export interface GrassFieldCellRange {
+  startX: number;
+  endX: number;
+  startY: number;
+  endY: number;
+}
+
 export interface GrassFieldConfig {
   seed?: number;
   focus: GrassFieldFocus;
+  /** Sample exactly these world cells instead of the cells the focus disc covers,
+   *  and skip the disc rejection. Adjacent ranges therefore partition the world
+   *  with no duplicate or missing cell, which is what lets a moving focus reuse
+   *  ranges it already sampled. `focus` still bands `lodTier` and the stratified
+   *  budget; every placement-derived field stays focus-independent. */
+  cells?: GrassFieldCellRange;
   fieldCellSize?: number;
   snapCellSize?: number;
   clumpCellSize?: number;
@@ -163,6 +177,7 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
   private readonly widthJitter: number;
   private readonly baseBend: number;
   private readonly bendJitter: number;
+  private readonly clipToFocus: boolean;
   private readonly startX: number;
   private readonly endX: number;
   private readonly startY: number;
@@ -173,11 +188,7 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
   private candidates: GrassFieldCandidate[] = [];
   // Accepted-candidate counter for the flat path's reservoir (Algorithm R).
   private flatSeen = 0;
-  private stratifiedBins: [
-    GrassFieldCandidate[][],
-    GrassFieldCandidate[][],
-    GrassFieldCandidate[][],
-  ];
+  private stratifiedBins: StratifiedTiers;
   // Per-bin index of the currently-kept candidate with the largest `order`
   // key (-1 until the bin fills). Lets the reservoir replace the weakest
   // survivor in O(1) instead of rescanning every full bin per candidate.
@@ -259,18 +270,30 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
       packedStrideBytes: GRASS_FIELD_PACKED_BYTES,
       packedBytes: 0,
     };
-    this.startX = Math.floor((snapX - this.radius) / this.fieldCellSize);
-    this.endX = Math.floor((snapX + this.radius) / this.fieldCellSize);
-    this.startY = Math.floor((snapY - this.radius) / this.fieldCellSize);
-    this.endY = Math.floor((snapY + this.radius) / this.fieldCellSize);
+    const cells = config.cells;
+    this.clipToFocus = cells === undefined;
+    this.startX = cells
+      ? Math.floor(cells.startX)
+      : Math.floor((snapX - this.radius) / this.fieldCellSize);
+    this.endX = cells
+      ? Math.floor(cells.endX)
+      : Math.floor((snapX + this.radius) / this.fieldCellSize);
+    this.startY = cells
+      ? Math.floor(cells.startY)
+      : Math.floor((snapY - this.radius) / this.fieldCellSize);
+    this.endY = cells
+      ? Math.floor(cells.endY)
+      : Math.floor((snapY + this.radius) / this.fieldCellSize);
     this.gx = this.startX;
     this.gy = this.startY;
-    this.stratifiedBins = [createStratifiedBins(), createStratifiedBins(), createStratifiedBins()];
-    this.stratifiedBinMaxIdx = [
-      createStratifiedMaxIdx(),
-      createStratifiedMaxIdx(),
-      createStratifiedMaxIdx(),
-    ];
+    // A cell-range sampler is built once per residency tile, so only the
+    // stratified path pays for its 3 x 512 bins.
+    this.stratifiedBins = this.lodStratifiedBudget
+      ? createStratifiedTiers()
+      : EMPTY_STRATIFIED_TIERS;
+    this.stratifiedBinMaxIdx = this.lodStratifiedBudget
+      ? createStratifiedMaxIdxTiers()
+      : EMPTY_STRATIFIED_MAX_IDX;
     this.stratifiedBinCapacity = Math.max(
       1,
       Math.ceil((this.recordCapacity * STRATIFIED_STREAM_OVERSAMPLE) / STRATIFIED_STREAM_BINS),
@@ -278,7 +301,8 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     this.totalCells =
       Math.max(0, this.endX - this.startX + 1) * Math.max(0, this.endY - this.startY + 1);
     if (
-      this.radius <= 0 ||
+      this.totalCells <= 0 ||
+      (this.clipToFocus && this.radius <= 0) ||
       this.density <= 0 ||
       this.recordCapacity <= 0 ||
       grid.w <= 0 ||
@@ -328,7 +352,7 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     const x = centerX + jitterX;
     const y = centerY + jitterY;
     const dist = Math.hypot(x - this.stats.snapX, y - this.stats.snapY);
-    if (dist > this.radius) return;
+    if (this.clipToFocus && dist > this.radius) return;
     this.stats.candidateCells++;
 
     const terrainCell = terrainCellAt(this.grid, x, y);
@@ -514,12 +538,8 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     }
     this.packedRecords = new Float32Array(this.records.length * GRASS_FIELD_PACKED_STRIDE_FLOATS);
     this.candidates = [];
-    this.stratifiedBins = [createStratifiedBins(), createStratifiedBins(), createStratifiedBins()];
-    this.stratifiedBinMaxIdx = [
-      createStratifiedMaxIdx(),
-      createStratifiedMaxIdx(),
-      createStratifiedMaxIdx(),
-    ];
+    this.stratifiedBins = EMPTY_STRATIFIED_TIERS;
+    this.stratifiedBinMaxIdx = EMPTY_STRATIFIED_MAX_IDX;
     this.selectionQuotas = null;
     this.selectionFlat = null;
     this.phase = "pack";
@@ -542,6 +562,19 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     this.phase = "done";
     this.done = true;
   }
+}
+
+type StratifiedTiers = [GrassFieldCandidate[][], GrassFieldCandidate[][], GrassFieldCandidate[][]];
+
+const EMPTY_STRATIFIED_TIERS: StratifiedTiers = [[], [], []];
+const EMPTY_STRATIFIED_MAX_IDX: [number[], number[], number[]] = [[], [], []];
+
+function createStratifiedTiers(): StratifiedTiers {
+  return [createStratifiedBins(), createStratifiedBins(), createStratifiedBins()];
+}
+
+function createStratifiedMaxIdxTiers(): [number[], number[], number[]] {
+  return [createStratifiedMaxIdx(), createStratifiedMaxIdx(), createStratifiedMaxIdx()];
 }
 
 function createStratifiedBins(): GrassFieldCandidate[][] {

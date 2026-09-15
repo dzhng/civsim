@@ -25,6 +25,7 @@ import {
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
 import { createGrassBackendControl } from "../grassBackendControl";
 import { grassGeometries } from "../grassData";
+import { liveGrassRecords } from "../grassField";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 const W = 480,
   H = 320;
@@ -233,7 +234,7 @@ async function run() {
           throw Error("Missing material storage attributes");
         const boundRecords = new Float32Array(await renderer.getArrayBufferAsync(attr));
         const boundVisible = new Uint32Array(await renderer.getArrayBufferAsync(visibleAttr));
-        const expectedRecords = state.ring.records!;
+        const expectedRecords = liveGrassRecords(state.ring);
         effective = {
           sourceTransition: sourceTransition.transition(),
           nativeTransition: state.transition,
@@ -263,7 +264,7 @@ async function run() {
         );
         try {
           lone.setSunDirection(spec.sunDirection);
-          lone.applyPackedRecords(state.ring.records!, true);
+          lone.applyPackedRecords(liveGrassRecords(state.ring), true);
           lone.setFarTierVisible(false);
           lone.setRouteCullWedge(state.wedge);
           lone.routeGpu(renderer, eyePosition(params), [params.target[0], params.target[1]]);

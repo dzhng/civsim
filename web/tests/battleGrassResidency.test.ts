@@ -76,7 +76,9 @@ test("hidden, replaced and disposed fields reject stale scheduled focus work", (
   const stale = scheduled.splice(0);
   owner.setVisible(false);
   for (const callback of stale) callback();
-  expect(owner.snapshot().ring.records).toBeNull();
+  // The focus buffer is allocated with the terrain and never replaced, so
+  // "nothing was published" now reads as an empty live range, not a null array.
+  expect(owner.snapshot().ring.recordCount).toBe(0);
   expect(owner.stats().rebuild.pending).toBe(false);
   owner.setVisible(true);
   owner.update(camera, 900);
@@ -85,7 +87,7 @@ test("hidden, replaced and disposed fields reject stale scheduled focus work", (
   for (const callback of replaced) callback();
   expect(owner.snapshot().base.records).toBeNull();
   expect(owner.snapshot().base.visible).toBe(false);
-  expect(owner.snapshot().ring.records).toBeNull();
+  expect(owner.snapshot().ring.recordCount).toBe(0);
   owner.update(camera, 900);
   owner.dispose();
   for (const callback of scheduled.splice(0)) callback();

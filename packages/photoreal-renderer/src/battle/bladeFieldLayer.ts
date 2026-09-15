@@ -1,8 +1,4 @@
-import {
-  hashPackedRecords,
-  hashPackedRecordsRange,
-  hashToString,
-} from "../../../game-renderer/src/battle/bladeFieldRecordHash";
+import { hashPackedRecords } from "../../../game-renderer/src/battle/bladeFieldRecordHash";
 import { bladeGeometryData } from "../../../game-renderer/src/battle/bladeGeometry";
 import {
   BLADE_FIELD_LOD_TIERS,
@@ -202,10 +198,12 @@ export interface BladeFieldStats {
     farMarginM: number;
   };
   packedUpload: {
-    mode: "idle" | "chunking";
-    targetFrames: number;
+    mode: "idle" | "edits";
     uploadedRecords: number;
     totalRecords: number;
+    /** Records and ranges written by the most recent edit flush. */
+    editedRecords?: number;
+    editRanges?: number;
   };
   depthPrepass: {
     enabled: boolean;
@@ -309,7 +307,8 @@ interface BladeFieldGpuRuntime {
   cullWedgeFarMarginM: FloatUniformNode;
   cullWedgeEnabled: FloatUniformNode;
   reset: Parameters<THREE.WebGPURenderer["compute"]>[0];
-  route: Parameters<THREE.WebGPURenderer["compute"]>[0];
+  /** `count` is the dispatch size: the live record prefix, not the capacity. */
+  route: Parameters<THREE.WebGPURenderer["compute"]>[0] & { count: number };
   uploadTouch: Parameters<THREE.WebGPURenderer["compute"]>[0];
   routed: boolean;
   grassData: StorageNodeWithValue;
@@ -351,17 +350,6 @@ interface StorageNodeWithValue<Value = StorageUploadAttribute> {
   element(index: unknown): any;
 }
 
-interface PendingPackedRecordUpload {
-  source: Float32Array;
-  visible: boolean;
-  runtime: BladeFieldGpuRuntime;
-  uploadedFloats: number;
-  floatsPerFrame: number;
-  hashState: number;
-  hashComplete: string | null;
-  recordCount: number;
-}
-
 const grassStorageStruct = struct({
   data0: "vec4",
   data1: "vec4",
@@ -376,7 +364,6 @@ const drawIndirectStruct = struct({
   offset: "uint",
 });
 const SEED24_MASK = 0x00ff_ffff;
-const BLADE_FIELD_PACKED_UPLOAD_FRAMES = 6;
 const BLADE_FIELD_PREPASS_TIERS = new Set<BladeFieldTierId>(["near", "mid"]);
 const BLADE_FIELD_PREPASS_RENDER_ORDER = RENDER_ORDER.worldOpaque - 0.01;
 
@@ -386,9 +373,24 @@ interface BladeFieldLayerOptions {
   nameSuffix?: string;
 }
 
-interface BladeFieldPackedRecordApplyOptions {
-  incremental?: boolean;
+/** A half-open record range inside the adopted buffer. */
+export interface BladeFieldRecordEdit {
+  start: number;
+  count: number;
 }
+
+export interface BladeFieldRecordEditApply {
+  edits: readonly BladeFieldRecordEdit[];
+  recordCount: number;
+  visible: boolean;
+  recordHash: string;
+  /** Refresh the sampled CPU tier mirror. Only the owner's generation changes
+   *  set this; a per-frame tile edit must not put that scan on every frame. */
+  refreshStats?: boolean;
+}
+
+/** Collapse to one whole-buffer range rather than tracking an unbounded list. */
+const BLADE_FIELD_MAX_DIRTY_RANGES = 64;
 
 export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private readonly buckets: TierBucket[];
@@ -400,8 +402,12 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private recordHash = "00000000";
   private enabled = true;
   private runtime: BladeFieldGpuRuntime | null = null;
-  private pendingPackedUpload: PendingPackedRecordUpload | null = null;
   private packedRecords: Float32Array<ArrayBufferLike> = new Float32Array();
+  private adoptedBuffer: Float32Array | null = null;
+  private dirtyRecordRanges: BladeFieldRecordEdit[] = [];
+  private dirtyAllRecords = false;
+  private uploadedRecordsLastFlush = 0;
+  private uploadedRecordRanges = 0;
   private statsDirty = false;
   private culledRecords = 0;
   private thinnedRecords = 0;
@@ -528,23 +534,15 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     return this.tiers.length + this.tiers.filter((tier) => BLADE_FIELD_PREPASS_TIERS.has(tier.id)).length;
   }
 
-  applyPackedRecords(
-    packedRecords: Float32Array,
-    visible = true,
-    options: BladeFieldPackedRecordApplyOptions = {},
-  ): void {
+  /** Whole-field replacement, for fields their owner builds once: the lab
+   *  routes and the static base layer. A field whose owner republishes as the
+   *  camera moves adopts a capacity buffer and edits it instead. */
+  applyPackedRecords(packedRecords: Float32Array, visible = true): void {
     if (packedRecords.length % GRASS_FIELD_PACKED_STRIDE_FLOATS !== 0) {
       throw new Error(
         `blade field expected ${GRASS_FIELD_PACKED_STRIDE_FLOATS}-float records, got ${packedRecords.length}`,
       );
     }
-    if (options.incremental && packedRecords.length > 0) {
-      if (this.pendingPackedUpload) disposeGpuRuntime(this.pendingPackedUpload.runtime);
-      this.startIncrementalPackedRecordUpload(packedRecords, visible);
-      return;
-    }
-    if (this.pendingPackedUpload) disposeGpuRuntime(this.pendingPackedUpload.runtime);
-    this.pendingPackedUpload = null;
     const copiedRecords = new Float32Array(packedRecords);
     this.activatePackedRecords(
       copiedRecords,
@@ -554,8 +552,99 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     );
   }
 
-  settlePackedRecordUpload(renderer: THREE.WebGPURenderer): void {
-    while (this.pendingPackedUpload) this.advancePendingPackedRecordUpload(renderer);
+  /** Loading-only: put every published edit on the GPU before the next capture. */
+  settleRecordUpload(renderer: THREE.WebGPURenderer): void {
+    this.flushRecordEdits(renderer);
+  }
+
+  /**
+   * Take a persistent capacity buffer the record owner mutates in place. The
+   * storage buffer, the three index buffers and the material binding are built
+   * once here - with the terrain - so no later publication reallocates, and no
+   * camera gesture is the frame that first pays for them.
+   */
+  adoptRecordBuffer(buffer: Float32Array): void {
+    if (this.adoptedBuffer === buffer && this.runtime) return;
+    if (buffer.length % GRASS_FIELD_PACKED_STRIDE_FLOATS !== 0) {
+      throw new Error(
+        `blade field expected ${GRASS_FIELD_PACKED_STRIDE_FLOATS}-float records, got ${buffer.length}`,
+      );
+    }
+    const previousRuntime = this.runtime;
+    const runtime = createGpuRuntime(buffer, this.buckets, this.transitionUniforms, this.thinning);
+    runtime.recordData.setUsage?.(THREE.DynamicDrawUsage);
+    this.adoptedBuffer = buffer;
+    this.packedRecords = buffer;
+    this.recordHash = "00000000";
+    this.runtime = runtime;
+    this.dirtyRecordRanges = [];
+    this.dirtyAllRecords = false;
+    this.bindRuntime(runtime, this.enabled);
+    this.setLiveRecordCount(0);
+    if (previousRuntime && previousRuntime !== runtime) disposeGpuRuntime(previousRuntime);
+  }
+
+  /** Apply the owner's bounded in-place edits. No copy, no rehash, no
+   *  allocation: only the named ranges are uploaded, and the live prefix that
+   *  the route pass dispatches over moves with them. */
+  applyRecordEdits(apply: BladeFieldRecordEditApply): void {
+    if (!this.adoptedBuffer || !this.runtime) return;
+    for (const edit of apply.edits) this.markRecordsDirty(edit);
+    this.recordHash = apply.recordHash;
+    this.enabled = apply.visible;
+    this.setLiveRecordCount(apply.recordCount);
+    if (apply.refreshStats) this.statsDirty = true;
+  }
+
+  /** Re-read the whole live range: used when a consumer misses an edit step. */
+  markWholeRecordBufferDirty(): void {
+    this.dirtyAllRecords = true;
+    this.dirtyRecordRanges = [];
+  }
+
+  private markRecordsDirty(edit: BladeFieldRecordEdit): void {
+    if (this.dirtyAllRecords || edit.count <= 0) return;
+    this.dirtyRecordRanges.push(edit);
+    if (this.dirtyRecordRanges.length > BLADE_FIELD_MAX_DIRTY_RANGES) {
+      this.markWholeRecordBufferDirty();
+    }
+  }
+
+  private flushRecordEdits(renderer: THREE.WebGPURenderer): void {
+    const runtime = this.runtime;
+    if (!runtime || !this.adoptedBuffer) return;
+    if (!this.dirtyAllRecords && this.dirtyRecordRanges.length === 0) return;
+    let records = 0;
+    if (!this.dirtyAllRecords) {
+      for (const edit of this.dirtyRecordRanges) {
+        runtime.recordData.addUpdateRange(
+          edit.start * GRASS_FIELD_PACKED_STRIDE_FLOATS,
+          edit.count * GRASS_FIELD_PACKED_STRIDE_FLOATS,
+        );
+        records += edit.count;
+      }
+    } else {
+      // No ranges means "write the whole buffer" to three.
+      runtime.recordData.clearUpdateRanges();
+      records = this.adoptedBuffer.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+    }
+    runtime.recordData.needsUpdate = true;
+    this.uploadedRecordsLastFlush = records;
+    this.uploadedRecordRanges = this.dirtyAllRecords ? 1 : this.dirtyRecordRanges.length;
+    this.dirtyRecordRanges = [];
+    this.dirtyAllRecords = false;
+    renderer.compute(runtime.uploadTouch);
+  }
+
+  private setLiveRecordCount(count: number): void {
+    this.recordCount = count;
+    if (this.runtime) this.runtime.route.count = count;
+    for (const bucket of this.buckets) {
+      // Capacity, not the drawn count (see activatePackedRecords).
+      bucket.mesh.geometry.instanceCount = count;
+      bucket.mesh.visible = count > 0 && this.tierVisible(bucket.spec, this.enabled);
+      this.updatePrepassVisibility(bucket, count > 0 && this.enabled);
+    }
   }
 
   private activatePackedRecords(
@@ -588,11 +677,16 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     }
     this.runtime = runtime;
     this.statsDirty = true;
+    this.bindRuntime(runtime, visible);
+    if (previousRuntime && previousRuntime !== runtime) disposeGpuRuntime(previousRuntime);
+  }
+
+  private bindRuntime(runtime: BladeFieldGpuRuntime, visible: boolean): void {
     this.applyCullMaskToRuntime();
     this.applyCullWedgeToRuntime();
     this.materials.tiers ??= createBladeFieldMaterialTiers(
       this.buckets,
-      this.runtime,
+      runtime,
       this.transitionUniforms,
       this.thinning.survivorAlbedoBlend,
       this.materials,
@@ -623,10 +717,10 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       // instanceCount decides what draws, but three skips geometry with
       // instanceCount 0 before the indirect path is consulted.
       bucket.mesh.geometry.instanceCount = this.recordCount;
-      bucket.mesh.visible = this.tierVisible(bucket.spec, visible);
-      this.updatePrepassVisibility(bucket, visible);
+      bucket.mesh.visible = this.recordCount > 0 && this.tierVisible(bucket.spec, visible);
+      this.updatePrepassVisibility(bucket, this.recordCount > 0 && visible);
     }
-    if (previousRuntime && previousRuntime !== runtime) disposeGpuRuntime(previousRuntime);
+    runtime.route.count = this.recordCount;
   }
 
   routeGpu(
@@ -634,8 +728,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     eye: readonly [number, number, number],
     anchor: readonly [number, number] = [eye[0], eye[1]],
   ): void {
-    this.advancePendingPackedRecordUpload(renderer);
-    if (!this.runtime) return;
+    this.flushRecordEdits(renderer);
+    if (!this.runtime || this.recordCount === 0) return;
     this.runtime.camera.value.set(eye[0], eye[1], eye[2]);
     this.runtime.anchor.value.set(anchor[0], anchor[1]);
     if (this.statsDirty) {
@@ -880,20 +974,15 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         backMarginM: Number(this.cullWedge.backMarginM.toFixed(3)),
         farMarginM: Number(this.cullWedge.farMarginM.toFixed(3)),
       },
-      packedUpload: this.pendingPackedUpload
+      packedUpload: this.adoptedBuffer
         ? {
-            mode: "chunking",
-            targetFrames: BLADE_FIELD_PACKED_UPLOAD_FRAMES,
-            uploadedRecords:
-              this.pendingPackedUpload.uploadedFloats / GRASS_FIELD_PACKED_STRIDE_FLOATS,
-            totalRecords: this.pendingPackedUpload.recordCount,
-          }
-        : {
-            mode: "idle",
-            targetFrames: BLADE_FIELD_PACKED_UPLOAD_FRAMES,
+            mode: "edits",
             uploadedRecords: this.recordCount,
-            totalRecords: this.recordCount,
-          },
+            totalRecords: this.adoptedBuffer.length / GRASS_FIELD_PACKED_STRIDE_FLOATS,
+            editedRecords: this.uploadedRecordsLastFlush,
+            editRanges: this.uploadedRecordRanges,
+          }
+        : { mode: "idle", uploadedRecords: this.recordCount, totalRecords: this.recordCount },
       depthPrepass: {
         enabled: this.depthPrepassEnabled,
         tiers: prepassTiers,
@@ -943,14 +1032,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   }
 
   dispose(): void {
-    const runtimes = new Set(
-      [this.runtime, this.pendingPackedUpload?.runtime ?? null].filter(
-        (runtime): runtime is BladeFieldGpuRuntime => runtime !== null,
-      ),
-    );
-    for (const runtime of runtimes) {
-      disposeGpuRuntime(runtime);
-    }
+    if (this.runtime) disposeGpuRuntime(this.runtime);
     for (const bucket of this.buckets) {
       bucket.mesh.removeFromParent();
       bucket.prepassMesh?.removeFromParent();
@@ -966,7 +1048,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     }
     for (const material of this.placeholderMaterials) material.dispose();
     this.runtime = null;
-    this.pendingPackedUpload = null;
+    this.adoptedBuffer = null;
+    this.dirtyRecordRanges = [];
   }
 
   private tierVisible(spec: BladeFieldTierSpec, visible: boolean): boolean {
@@ -996,59 +1079,6 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     runtime.cullWedgeEnabled.value = this.cullWedge.enabled ? 1 : 0;
   }
 
-  private startIncrementalPackedRecordUpload(
-    packedRecords: Float32Array,
-    visible: boolean,
-  ): void {
-    const target = new Float32Array(packedRecords.length);
-    const runtime = createGpuRuntime(target, this.buckets, this.transitionUniforms, this.thinning);
-    runtime.recordData.setUsage?.(THREE.DynamicDrawUsage);
-    this.applyCullMaskToRuntime(runtime);
-    this.applyCullWedgeToRuntime(runtime);
-    const floatsPerRecord = GRASS_FIELD_PACKED_STRIDE_FLOATS;
-    const recordsPerFrame = Math.max(
-      1,
-      Math.ceil(
-        packedRecords.length / floatsPerRecord / BLADE_FIELD_PACKED_UPLOAD_FRAMES,
-      ),
-    );
-    this.pendingPackedUpload = {
-      source: packedRecords,
-      visible,
-      runtime,
-      uploadedFloats: 0,
-      floatsPerFrame: recordsPerFrame * floatsPerRecord,
-      hashState: 0x811c9dc5,
-      hashComplete: null,
-      recordCount: packedRecords.length / floatsPerRecord,
-    };
-  }
-
-  private advancePendingPackedRecordUpload(renderer: THREE.WebGPURenderer): void {
-    const pending = this.pendingPackedUpload;
-    if (!pending) return;
-    const start = pending.uploadedFloats;
-    const end = Math.min(pending.source.length, start + pending.floatsPerFrame);
-    if (end > start) {
-      pending.runtime.recordData.array.set(pending.source.subarray(start, end), start);
-      pending.runtime.recordData.addUpdateRange(start, end - start);
-      pending.runtime.recordData.needsUpdate = true;
-      pending.hashState = hashPackedRecordsRange(pending.source, start, end, pending.hashState);
-      pending.uploadedFloats = end;
-      const compute = renderer.compute.bind(renderer);
-      compute(pending.runtime.uploadTouch);
-    }
-    if (pending.uploadedFloats < pending.source.length) return;
-    pending.hashComplete ??= hashToString(pending.hashState);
-    this.pendingPackedUpload = null;
-    this.activatePackedRecords(
-      pending.runtime.recordData.array,
-      pending.visible,
-      pending.runtime,
-      pending.hashComplete,
-    );
-  }
-
   private applyTransitionProfile(
     profile: BladeFieldTransitionProfile,
   ): Readonly<BladeFieldTransition> {
@@ -1065,8 +1095,8 @@ function disposeGpuRuntime(runtime: BladeFieldGpuRuntime): void {
   for (const attribute of runtime.storage) attribute.dispose();
 }
 
-function bladeGeometry(segments:number,bladesPerRecord:number):THREE.InstancedBufferGeometry {
- const {positions,normals,uvs,indices}=bladeGeometryData(segments,bladesPerRecord);
+function bladeGeometry(segments: number, bladesPerRecord: number): THREE.InstancedBufferGeometry {
+  const { positions, normals, uvs, indices } = bladeGeometryData(segments, bladesPerRecord);
   const geometry = new THREE.InstancedBufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
@@ -1199,7 +1229,7 @@ function createGpuRuntime(
     reset: resetFn().compute(1).setName("PhotorealBladeFieldResetIndirect"),
     route: routeFn()
       .compute(packedRecords.length / 16)
-      .setName("PhotorealBladeFieldRouteLod"),
+      .setName("PhotorealBladeFieldRouteLod") as BladeFieldGpuRuntime["route"],
     uploadTouch: uploadTouchFn().compute(1).setName("PhotorealBladeFieldUploadTouch"),
     routed: false,
     grassData,
@@ -1314,9 +1344,7 @@ function createUnboundBladeFieldMaterialTiers(
 ): Record<BladeFieldTierId, BladeFieldMaterialTier> {
   return Object.fromEntries(
     tiers.map((tier) => {
-      const grassData = createGrassStorageNode(
-        new Float32Array(GRASS_FIELD_PACKED_STRIDE_FLOATS),
-      );
+      const grassData = createGrassStorageNode(new Float32Array(GRASS_FIELD_PACKED_STRIDE_FLOATS));
       const visibleIndices = instancedArray(new Uint32Array(1), "uint").setName(
         `PhotorealBladeFieldMaterialVisible${tier.id}`,
       ) as StorageNodeWithValue;
@@ -1362,9 +1390,7 @@ function bindBladeFieldMaterialTier(
 ): void {
   if (!runtime || !bucket.visibleIndices) return;
   materials.grassData.value = runtime.grassData.value;
-  materials.visibleIndices.value = (
-    bucket.visibleIndices as StorageNodeWithValue
-  ).value;
+  materials.visibleIndices.value = (bucket.visibleIndices as StorageNodeWithValue).value;
   materials.anchor.value.copy(runtime.anchor.value);
 }
 
@@ -1536,11 +1562,7 @@ function createBladeFieldMaterial(
         ? smoothstep(fadeEnd.mul(0.45), fadeEnd, length(cameraPosition.sub(base)))
         : float(1.0);
     const nearEyeFade = nearEyeDissolve.mul(behindCull);
-    const translucencyNearFade = mix(
-      BLADE_FIELD_TRANSLUCENCY.nearDissolveFloor,
-      1.0,
-      nearEyeFade,
-    );
+    const translucencyNearFade = mix(BLADE_FIELD_TRANSLUCENCY.nearDissolveFloor, 1.0, nearEyeFade);
     // Coverage-edge dissolve: blades SINK into the turf across the last
     // stretch of the far transition instead of stopping full-height at a
     // hard radius (the "visible from across the room" cutoff critique).
@@ -1583,10 +1605,8 @@ function createBladeFieldMaterial(
       .add(sin(bandCross.mul(0.045)).mul(0.85))
       .add(sin(bandAlong.add(bandCross.mul(0.55)).mul(0.019)).mul(0.3));
     const bandWave = sin(bandPhase).toVar();
-    const gustPeak = pow(smoothstep(float(0.05), float(1.0), bandWave), wind.bandSharpness)
-      .toVar();
-    const gustTrough = pow(smoothstep(float(0.05), float(1.0), bandWave.mul(-1.0)), 1.2)
-      .toVar();
+    const gustPeak = pow(smoothstep(float(0.05), float(1.0), bandWave), wind.bandSharpness).toVar();
+    const gustTrough = pow(smoothstep(float(0.05), float(1.0), bandWave.mul(-1.0)), 1.2).toVar();
     const gustBand = clamp(gustPeak.mul(1.8).sub(gustTrough.mul(0.85)), -0.8, 1.8).toVar();
     const windJitter = fanHashA.sub(0.5).mul(0.22).add(clumpSeed01.sub(0.5).mul(0.08));
     const jitterCos = cos(windJitter);
@@ -1602,10 +1622,7 @@ function createBladeFieldMaterial(
     const bandModulation = clamp(float(0.55).add(gustBand.mul(0.72)), 0.3, 1.8).toVar();
     const windAmplitude = heightWindProfile.mul(windSpeed).mul(bandModulation).mul(0.018).toVar();
     const windWave = sin(
-      phase
-        .add(bandPhase.mul(0.8))
-        .add(clumpSeed01.mul(1.7))
-        .sub(t.mul(0.75)),
+      phase.add(bandPhase.mul(0.8)).add(clumpSeed01.mul(1.7)).sub(t.mul(0.75)),
     ).toVar();
     const windOffset = windDir.mul(windWave).mul(height).mul(windAmplitude).toVar();
     const clumpBend = mix(0.76, 1.18, clumpWeight);
@@ -1683,11 +1700,7 @@ function createBladeFieldMaterial(
       const sheen = rgbNode(BLADE_FIELD_PALETTE.sheen);
       const body = mix(
         mix(
-          mix(
-            mix(baseColor, low, smoothstepN(0.0, 0.28, t)),
-            mid,
-            smoothstepN(0.18, 0.54, t),
-          ),
+          mix(mix(baseColor, low, smoothstepN(0.0, 0.28, t)), mid, smoothstepN(0.18, 0.54, t)),
           upper,
           smoothstepN(0.46, 0.78, t),
         ),
@@ -1732,9 +1745,7 @@ function createBladeFieldMaterial(
         .mul(translucencyNearFade)
         .mul(edgeSink)
         .mul(distanceFalloff);
-      beautyVaryings.lightWeights.assign(
-        vec2(translucencyWeight, windFlash),
-      );
+      beautyVaryings.lightWeights.assign(vec2(translucencyWeight, windFlash));
     }
 
     return world;
@@ -1773,9 +1784,7 @@ function createBladeFieldMaterial(
   );
   beautyMaterial.emissiveNode = linearAlbedo(
     rgbNode(BLADE_FIELD_PALETTE.trans).mul(emissiveDisplayStrength),
-  ).add(
-    linearAlbedo(rgbNode(BLADE_FIELD_PALETTE.sheen).mul(windFlash)),
-  );
+  ).add(linearAlbedo(rgbNode(BLADE_FIELD_PALETTE.sheen).mul(windFlash)));
   return beautyMaterial;
 }
 
@@ -1803,9 +1812,7 @@ function sameTransition(
   a: Readonly<BladeFieldTransition>,
   b: Readonly<BladeFieldTransition>,
 ): boolean {
-  return (Object.keys(a) as Array<keyof BladeFieldTransition>).every(
-    (key) => a[key] === b[key],
-  );
+  return (Object.keys(a) as Array<keyof BladeFieldTransition>).every((key) => a[key] === b[key]);
 }
 
 function bladeSurvivesDistanceThinning(

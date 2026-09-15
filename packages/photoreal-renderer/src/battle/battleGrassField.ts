@@ -28,7 +28,9 @@ export class BattleGrassField {
   private appliedTransition: ReturnType<BattleGrassResidency["snapshot"]>["transition"];
   private farVisible = true;
   private baseRevision = 0;
-  private ringRevision = 0;
+  private ringRevision = -1;
+  private ringBuffer: Float32Array | null = null;
+  private ringEditSerial = -1;
   constructor(
     scene: THREE.Scene,
     profile: BladeFieldProfile,
@@ -52,12 +54,7 @@ export class BattleGrassField {
       this.base.applyPackedRecords(state.base.records ?? new Float32Array(), state.base.visible);
       this.baseRevision = state.base.revision;
     }
-    if (state.ring.revision !== this.ringRevision) {
-      this.ring.applyPackedRecords(state.ring.records ?? new Float32Array(), state.ring.visible, {
-        incremental: false,
-      });
-      this.ringRevision = state.ring.revision;
-    }
+    this.applyRingResidency(state.ring);
     if (state.transition !== this.appliedTransition) {
       this.base.setTransition(state.transition);
       this.ring.setTransition(state.transition);
@@ -74,6 +71,36 @@ export class BattleGrassField {
     this.base.setRouteCullCircle(state.base.circle);
     this.ring.setRouteCullCircle(null);
   }
+  /**
+   * The ring's records live in one buffer the residency owns and mutates in
+   * place, so publication is a set of bounded ranges rather than a replacement.
+   * `editSerial` has to advance by exactly one for those ranges to describe the
+   * whole delta; any gap (or a new buffer) falls back to re-reading the live
+   * range, which is correct without ever copying or rehashing 64 MB.
+   */
+  private applyRingResidency(ring: ReturnType<BattleGrassResidency["snapshot"]>["ring"]) {
+    if (!ring.records) return;
+    if (ring.records !== this.ringBuffer) {
+      this.ring.adoptRecordBuffer(ring.records);
+      this.ringBuffer = ring.records;
+      this.ringEditSerial = ring.editSerial;
+      this.ringRevision = ring.revision;
+    }
+    const contiguous = ring.editSerial === this.ringEditSerial + 1;
+    if (!contiguous && ring.editSerial !== this.ringEditSerial) {
+      this.ring.markWholeRecordBufferDirty();
+    }
+    this.ring.applyRecordEdits({
+      edits: contiguous ? ring.edits : [],
+      recordCount: ring.recordCount,
+      visible: ring.visible,
+      recordHash: ring.recordHash,
+      refreshStats: ring.revision !== this.ringRevision,
+    });
+    this.ringEditSerial = ring.editSerial;
+    this.ringRevision = ring.revision;
+  }
+
   setTerrain(grid: BattleTerrainGrid, field: TerrainHeightField, cover: BattleGroundCover) {
     this.residency.setTerrain(grid, field, cover);
   }
@@ -100,7 +127,7 @@ export class BattleGrassField {
   }
   settle(renderer: THREE.WebGPURenderer) {
     this.residency.settle();
-    this.ring.settlePackedRecordUpload(renderer);
+    this.ring.settleRecordUpload(renderer);
   }
   stats(): BattleGrassStats {
     const state = this.residency.stats();

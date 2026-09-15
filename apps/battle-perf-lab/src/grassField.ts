@@ -14,7 +14,14 @@ import type {
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import type { TerrainHeightField } from "../../../packages/game-renderer/src/terrain/heightField";
 import { viewMatrix, type Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
+import { GRASS_FIELD_PACKED_STRIDE_FLOATS } from "../../../packages/game-renderer/src/battle/grassField";
+import type { GrassResidencyLayer } from "../../../packages/game-renderer/src/battle/battleGrassResidency";
 import type { GrassFrame } from "./grassData";
+
+export function liveGrassRecords(layer: GrassResidencyLayer): Float32Array {
+  if (!layer.records) return new Float32Array();
+  return layer.records.subarray(0, layer.recordCount * GRASS_FIELD_PACKED_STRIDE_FLOATS);
+}
 
 export interface GrassLayerRuntime<Encoder, Pass, Camera> {
   updateRecords(records: Float32Array): Promise<void>;
@@ -53,9 +60,12 @@ export function createGrassField<
     const job = pending.then(async () => {
       if (disposed) throw Error("Grass field disposed");
       const snapshot = owner.snapshot();
+      // These backends replace their whole record buffer, so they follow the
+      // owner's generation revision rather than its per-step edits. The owner
+      // mutates the focus buffer in place, so read only the live range.
       for (const [index, part] of [snapshot.base, snapshot.ring].entries())
         if (revisions[index] !== part.revision) {
-          await layers[index].updateRecords(part.records ?? new Float32Array());
+          await layers[index].updateRecords(liveGrassRecords(part));
           revisions[index] = part.revision;
           uploads[index]++;
         }

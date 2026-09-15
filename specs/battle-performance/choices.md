@@ -135,3 +135,11 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 ### Complete-scene requirements follow live owners, not unused APIs
 
 A caller audit found the legacy battle marker layer only received empty arrays; far-LOD soldiers already render through crowd impostors. Retire that empty source layer and the newly added native marker/control scaffolding rather than porting a test-only scene component to more backends. Historical marker images remain evidence of the superseded experiment. Live ground/effect lines, rings and debug triangles share staging and shader policy across all three runtimes; actual crowd L3 rendering remains mandatory. See [the overlay correction ledger](assets/02-preflight/overlay-ports/change-ledger.md).
+
+### Native scene publication boundaries
+
+- **Settled:** Keep crowd updates, in-scene UI uploads and final presentation as distinct operations. Submit pose work for every recorded draw; render-only calls refresh billboard camera state without advancing crowd history. The native comparison therefore preserves real command history instead of collapsing unused intermediate updates into a cheaper workload.
+- **Settled:** Share the terrain owner's captured grid with grass sampling, so asynchronous work never reads caller-reused input arrays or a different terrain generation. Renderer resources remain separately owned and dispose together at scene teardown.
+
+- **Settled:** A failed staged terrain allocation retains the prepared scene. If terrain has already committed and a dependent grass/shadow update fails, terminate that scene instead of allowing mixed terrain generations to render. Ordinary camera updates do not replace terrain generations.
+- **Settled:** Use ordinary vertex positions for composed terrain, which has no equal-depth prepass. Keep invariant positions where a separate matching depth pass requires them; do not impose that constraint on unrelated geometry.

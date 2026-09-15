@@ -75,6 +75,10 @@ export function createGrassField<
     setFarVisible(value: boolean) {
       owner.setFarVisible(value);
     },
+    update(camera: Camera3DParams, height: number) {
+      if (disposed) throw Error("Grass field disposed");
+      owner.update(camera, height);
+    },
     async settle() {
       owner.settle();
       await sync();

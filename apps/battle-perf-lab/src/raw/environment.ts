@@ -176,7 +176,7 @@ export async function createRawEnvironment(
       exposure: spec.exposure,
       shader: rawEnvironmentWgsl(env, undefined, Boolean(shadow)),
       /** View matrix must come from renderer-core camera3d; observer is the exact
-       * camera ground target, including its terrain elevation. */
+       * source aerial observer; live battle uses focus XY at zero elevation. */
       setView(worldToView: ArrayLike<number>, observer: readonly [number, number, number]) {
         if (disposed) throw new Error("Raw environment is disposed");
         if (worldToView.length !== 16) throw new Error("Expected a camera view matrix");

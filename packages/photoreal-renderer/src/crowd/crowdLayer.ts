@@ -124,7 +124,7 @@ export function createCrowdDrawMesh(
   audience: CrowdAudience,
 ) {
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = `battle-crowd-${classId}-${audience}-lod${lod}`;
+  mesh.name = `physical-crowd-${classId}-${audience}-lod${lod}`;
   mesh.frustumCulled = false;
   mesh.renderOrder = RENDER_ORDER.worldOpaque;
   mesh.castShadow = audience === "shadow" && lod <= COARSEST_SHADOW_LOD;
@@ -161,7 +161,10 @@ export class PhotorealCrowd {
   private sourceInstances: CrowdInstance[] = [];
   private uploadFailed = false;
 
-  private constructor(private readonly assets: Record<number, AppearanceBundle>) {}
+  private constructor(
+    private readonly assets: Record<number, AppearanceBundle>,
+    private readonly modelScale: number,
+  ) {}
 
   /** A borrowed world/renderer must remain usable across preparation's async boundaries. */
   static async create(
@@ -169,8 +172,9 @@ export class PhotorealCrowd {
     scene: THREE.Scene,
     assets: Record<number, AppearanceBundle>,
     assertUsable?: () => void,
+    modelScale = 1,
   ): Promise<PhotorealCrowd> {
-    const crowd = new PhotorealCrowd(assets);
+    const crowd = new PhotorealCrowd(assets, modelScale);
     await crowd.initialize(renderer, scene, assertUsable);
     return crowd;
   }
@@ -270,7 +274,7 @@ export class PhotorealCrowd {
           assertUsable,
         });
         assertUsable?.();
-        this.impostors[classId] = new OctahedralImpostorLayer(scene, atlas);
+        this.impostors[classId] = new OctahedralImpostorLayer(scene, atlas, this.modelScale);
         atlas = null;
       }
     } catch (error) {
@@ -337,6 +341,7 @@ export class PhotorealCrowd {
           undefined,
           this.previousShadowLevels,
           this.lodBuffers,
+          this.modelScale,
         )
       : {
           levels: this.lodBuffers.levels.fill(0, 0, instances.length),
@@ -464,7 +469,7 @@ export class PhotorealCrowd {
       bucket.inst0[o + 1] = inst.y;
       bucket.inst0[o + 2] = inst.facing;
       bucket.inst0[o + 3] = inst.faction;
-      bucket.inst1[o] = 1; // size
+      bucket.inst1[o] = this.modelScale;
       bucket.inst1[o + 1] = bucket.paletteIndices[i];
       bucket.inst1[o + 2] = 0;
       bucket.inst1[o + 3] = 0;
@@ -504,6 +509,7 @@ export class PhotorealCrowd {
     };
     return {
       instances: this.instanceCount,
+      modelScale: this.modelScale,
       visible: this.culling.visible,
       culled: this.culling.culled,
       drawCalls: meshDrawCalls + impostors.impostorDrawCalls,

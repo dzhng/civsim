@@ -27,8 +27,8 @@ import * as THREE from "three/webgpu";
 import { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
 import { projectionFootprint } from "../../../renderer-core/src/camera3d";
-import type { CrowdProjectionView } from "./crowdLod";
-import { CROWD_SHADOW_LAYER } from "./crowdAudience";
+import type { CrowdProjectionView } from "../crowd/crowdLod";
+import { CROWD_SHADOW_LAYER } from "../crowd/crowdAudience";
 
 export type SunShadowMode = "csm" | "single" | "off";
 

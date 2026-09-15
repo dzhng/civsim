@@ -44,6 +44,7 @@ export function planPhotorealCrowdLods(
   policy = DEFAULT_LOD_POLICY,
   prevShadowLevels?: ArrayLike<number>,
   out?: CrowdLodBuffers,
+  modelScale = 1,
 ) {
   const sphere = new THREE.Sphere();
   const buffers =
@@ -56,14 +57,15 @@ export function planPhotorealCrowdLods(
     shadowOnly = 0;
   for (let index = 0; index < instances.length; index++) {
     const inst = instances[index];
-    const { center, radius } = assets[inst.classId].manifest.bounds;
+    const { center, radius: localRadius } = assets[inst.classId].manifest.bounds;
+    const radius = localRadius * modelScale;
     const angle = inst.facing - Math.PI / 2;
     const cosAngle = Math.cos(angle),
       sinAngle = Math.sin(angle);
     sphere.center.set(
-      inst.x + center[0] * cosAngle - center[1] * sinAngle,
-      inst.y + center[0] * sinAngle + center[1] * cosAngle,
-      (inst.elevation ?? 0) + center[2],
+      inst.x + (center[0] * cosAngle - center[1] * sinAngle) * modelScale,
+      inst.y + (center[0] * sinAngle + center[1] * cosAngle) * modelScale,
+      (inst.elevation ?? 0) + center[2] * modelScale,
     );
     sphere.radius = radius;
     let viewPixels = 0,
@@ -80,7 +82,7 @@ export function planPhotorealCrowdLods(
       const pixels =
         depth - radius <= view.projection.near
           ? Infinity
-          : instanceScreenSize(inst, view.projection);
+          : instanceScreenSize(inst, view.projection, modelScale);
       if (view.shadow) shadowPixels = Math.max(policy.minScreenPixels, shadowPixels, pixels);
       else viewPixels = Math.max(viewPixels, pixels);
     }

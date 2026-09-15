@@ -24,7 +24,7 @@ export async function run(ctx) {
     const report = await page.evaluate(async (root) => {
       const module = (path) => import(`/@fs${root}${path}`);
       const { SoldierPosePalette } = await module(
-        "packages/photoreal-renderer/src/battle/posePalette.ts",
+        "packages/photoreal-renderer/src/crowd/posePalette.ts",
       );
       const threeUrl = performance
         .getEntriesByType("resource")

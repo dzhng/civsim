@@ -14,7 +14,7 @@ import { SimClock } from "../src/shared/simClock";
 import { BattleFreeze } from "../src/battle/battleFreeze";
 import * as THREE from "three/webgpu";
 import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
-import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/battle/crowdLod";
+import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/crowd/crowdLod";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
 

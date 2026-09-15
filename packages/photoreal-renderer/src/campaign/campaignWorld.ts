@@ -1,4 +1,12 @@
-import { campaignSettlementStandardScale } from "../../../game-renderer/src/campaign/entityFrame";
+import { PhotorealCrowd } from "../crowd/crowdLayer";
+import { CROWD_SHADOW_LAYER } from "../crowd/crowdAudience";
+import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
+import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+import { projectionFootprint } from "../../../renderer-core/src/camera3d";
+import {
+  CAMPAIGN_FIGURE_SIZE,
+  campaignSettlementStandardScale,
+} from "../../../game-renderer/src/campaign/entityFrame";
 import { CampaignCityLayer } from "./cityLayer";
 import { modelMesh } from "./modelMesh";
 import type { CampaignEntityInstance } from "../../../game-renderer/src/campaign/entityInstance";
@@ -62,6 +70,7 @@ export interface CampaignTerritoryData {
 
 export interface CampaignComposition {
   surface: RenderedSurface;
+  appearances?: Record<number, AppearanceBundle>;
   objects: readonly CampaignWorldObject[];
   geography: CampaignGeography;
   terrainAllocation?: {
@@ -80,6 +89,9 @@ export class PhotorealCampaignWorld {
   private readonly standards: PhotorealStandardLayer;
   private readonly scenery: PhotorealScenery;
   private readonly cities: CampaignCityLayer;
+  private crowd: PhotorealCrowd | null = null;
+  private crowdCandidates: readonly CrowdInstance[] = [];
+  private seatedCrowd: CrowdInstance[] = [];
   private get renderObjects() {
     return [...this.objects, ...this.cities.objects];
   }
@@ -108,7 +120,24 @@ export class PhotorealCampaignWorld {
   private readonly geography: CampaignGeographicLayer;
 
   static async create(canvas: HTMLCanvasElement, composition: CampaignComposition) {
-    return new PhotorealCampaignWorld(await PhotorealWorld.create(canvas), composition);
+    const world = await PhotorealWorld.create(canvas);
+    let campaign: PhotorealCampaignWorld | undefined;
+    try {
+      campaign = new PhotorealCampaignWorld(world, composition);
+      if (composition.appearances)
+        campaign.crowd = await PhotorealCrowd.create(
+          world.renderer,
+          world.scene,
+          composition.appearances,
+          undefined,
+          CAMPAIGN_FIGURE_SIZE,
+        );
+      return campaign;
+    } catch (error) {
+      if (campaign) campaign.dispose();
+      else world.dispose();
+      throw error;
+    }
   }
   private constructor(
     readonly world: PhotorealWorld,
@@ -145,6 +174,7 @@ export class PhotorealCampaignWorld {
       far: extent * 5,
     });
     sun.shadow.camera.updateProjectionMatrix();
+    sun.shadow.camera.layers.enable(CROWD_SHADOW_LAYER);
     sun.shadow.normalBias = 0.08;
     // Deliberately submit objects before terrain: the common depth buffer must
     // still hide their rear faces and any objects behind raised ground.
@@ -227,6 +257,7 @@ export class PhotorealCampaignWorld {
   installTerrain(tile: TerrainTileSurface, evictedKeys: readonly string[]) {
     const changed = this.terrain.install(tile, evictedKeys);
     this.seatScenery();
+    this.seatCrowd();
     const surface = this.terrain.surface;
     for (const { input, mesh } of this.objects)
       mesh.position.z = surface.sampleRendered(input.x, input.y)!.position[2];
@@ -242,6 +273,21 @@ export class PhotorealCampaignWorld {
       instances.find((city) => city.selected)?.id.toString() ??
       (this.objects.some((object) => object.input.id === this.selected) ? this.selected : null);
     this.setFog(this.fogEnabled);
+  }
+
+  /** Existing campaign frame owns figure classes, allegiance and animation. */
+  setCrowd(instances: readonly CrowdInstance[]) {
+    if (!this.crowd && instances.length)
+      throw new Error("Campaign crowd requires appearance assets");
+    this.crowdCandidates = instances;
+    this.seatCrowd();
+  }
+  private seatCrowd() {
+    this.seatedCrowd = this.crowdCandidates.flatMap((instance) => {
+      if (this.fogEnabled && this.fogAt(instance.x, instance.y) >= 0.5) return [];
+      const hit = this.terrain.surface.sampleRendered(instance.x, instance.y);
+      return hit ? [{ ...instance, elevation: hit.position[2] }] : [];
+    });
   }
 
   setGeography(data: CampaignGeography) {
@@ -320,6 +366,7 @@ export class PhotorealCampaignWorld {
     this.fogEnabled = enabled;
     this.fogAmount.value = enabled ? 1 : 0;
     this.seatScenery(true);
+    this.seatCrowd();
     for (const { input, mesh } of this.renderObjects)
       mesh.visible = !enabled || this.fogAt(input.x, input.y) < 0.5;
     if (
@@ -406,6 +453,27 @@ export class PhotorealCampaignWorld {
           selected: input.id === this.selected,
         })),
     );
+    if (this.crowd) {
+      const sun = this.world.sunLight!;
+      sun.updateMatrixWorld();
+      sun.target.updateMatrixWorld();
+      sun.shadow.updateMatrices(sun);
+      const views = [this.camera, sun.shadow.camera].map((camera, index) => ({
+        frustum: new THREE.Frustum().setFromProjectionMatrix(
+          new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+          camera.coordinateSystem,
+          camera.reversedDepth,
+        ),
+        projection: projectionFootprint(
+          camera.matrixWorldInverse.elements,
+          camera.projectionMatrix.elements,
+          index === 0 ? this.world.renderer.domElement.height : sun.shadow.mapSize.height,
+          camera.near,
+        ),
+        shadow: index === 1,
+      }));
+      this.crowd.upload(this.seatedCrowd, { camera: this.camera, views });
+    }
     this.scenery.prepareRender(this.camera, height);
     this.frame.time.value = time;
     this.world.setTime(time);
@@ -478,6 +546,13 @@ export class PhotorealCampaignWorld {
       ...this.world.stats(),
       geography: this.geography.stats(),
       cities: this.cities.stats(),
+      crowd: this.crowd?.stats() ?? null,
+      crowdSeating: this.seatedCrowd.map((instance) => ({
+        x: instance.x,
+        y: instance.y,
+        elevation: instance.elevation,
+        classId: instance.classId,
+      })),
       visibilityRevision: this.visibilityRevision,
       selected: this.selected,
       fog: this.fogEnabled,
@@ -489,6 +564,7 @@ export class PhotorealCampaignWorld {
     };
   }
   dispose() {
+    this.crowd?.dispose();
     this.cities.dispose();
     this.geography.dispose();
     this.territoryTexture.dispose();

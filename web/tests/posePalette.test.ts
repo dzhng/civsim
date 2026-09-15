@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
 import * as THREE from "three/webgpu";
-import { SoldierPosePalette } from "@packages/photoreal-renderer/src/battle/posePalette";
+import { SoldierPosePalette } from "@packages/photoreal-renderer/src/crowd/posePalette";
 import { bakeLocalAnimation, packLocalPose } from "@packages/soldier-assets/src/localAnimation";
 import { mat4Identity } from "@packages/soldier-assets/src/localPose";
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
-import { queueCrowdInstance } from "@packages/photoreal-renderer/src/battle/crowdLayer";
+import { queueCrowdInstance } from "@packages/photoreal-renderer/src/crowd/crowdLayer";
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
 

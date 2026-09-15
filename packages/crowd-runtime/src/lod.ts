@@ -42,8 +42,9 @@ export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_
 export function instanceScreenSize(
   instance: CrowdInstance,
   projection: ProjectionFootprint,
+  modelScale = 1,
 ): number {
-  const span = 1.8 * (instance.mounted ? 1.45 : 1);
+  const span = 1.8 * (instance.mounted ? 1.45 : 1) * modelScale;
   return projectedSpanPixels(
     projection,
     instance.x,

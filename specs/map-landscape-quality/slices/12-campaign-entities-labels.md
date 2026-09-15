@@ -26,7 +26,7 @@ of this migration, not new frameworks. Landscape art stays frozen throughout.
 The source seams are the existing [campaign frame adapter](../../../web/src/campaign/renderer.ts),
 [CPU label layout](../../../packages/game-renderer/src/campaign/labelLayout.ts),
 [city asset](../../../packages/game-renderer/src/models/campaign/campaignEntityModels.ts),
-and [physical crowd layer](../../../packages/photoreal-renderer/src/battle/crowdLayer.ts).
+and [physical crowd layer](../../../packages/photoreal-renderer/src/crowd/crowdLayer.ts).
 Inspect their current contracts before changing them. Label data types must not
 remain owned by a retired raw GPU pass. Preserve the established text hierarchy,
 water fitting and card occupancy; the composition fixture's simple DOM labels are
@@ -96,3 +96,13 @@ entity/input pass: army/crowd/cart inputs, accepted label layout, interaction
 policy and production integration remain open. Preserve the recorded coastal
 footprint and steep-selection limitations; map-wide physical sun-shadow fitting
 belongs to the environment pass.
+
+## Shared physical crowd checkpoint
+
+Campaign representative figures now consume the existing physical crowd with the
+campaign figure scale applied consistently to meshes, LOD/culling and impostors.
+The campaign world seats incoming frame figures on its presented surface and
+updates visibility and lifecycle ownership. [Crowd evidence](../assets/slice-12-crowd/README.md)
+records the exact fixture repeat, live frame inputs, scale regression checks and
+retained paired-row readability limit. This does not complete army standards,
+carts, labels, commands or production cutover.

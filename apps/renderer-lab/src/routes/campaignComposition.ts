@@ -1,3 +1,4 @@
+import { campaignCrowdFixture } from "./campaignCrowdFixture";
 import type { CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
 import { smoothstep } from "@packages/renderer-core/src/math";
 import type { SceneryInstance } from "@packages/game-renderer/src/terrain/scenery";
@@ -158,8 +159,12 @@ export async function route(ctx: LabContext) {
           { x: -40, y: -40, size: 3, height: 4, kind: "broadleaf" as const },
         ]
       : [];
-  let world = await PhotorealCampaignWorld.create(ctx.canvas, composition);
+  const crowdFixture = ctx.params.get("crowd") === "1" ? await campaignCrowdFixture(surface) : null;
+  if (crowdFixture) composition.objects = [];
+  const physicalComposition = { ...composition, appearances: crowdFixture?.appearances };
+  let world = await PhotorealCampaignWorld.create(ctx.canvas, physicalComposition);
   if (cities.length) world.setCities(cities);
+  if (crowdFixture) world.setCrowd(crowdFixture.frame().crowd);
   if (vegetation) world.setScenery(scenery);
   const territory = {
     width: 2,
@@ -227,8 +232,9 @@ export async function route(ctx: LabContext) {
     reset.disabled = true;
     rebuilding = true;
     world.dispose();
-    world = await PhotorealCampaignWorld.create(ctx.canvas, composition);
+    world = await PhotorealCampaignWorld.create(ctx.canvas, physicalComposition);
     if (cities.length) world.setCities(cities);
+    if (crowdFixture) world.setCrowd(crowdFixture.frame().crowd);
     if (!alive) {
       world.dispose();
       return;
@@ -293,6 +299,11 @@ export async function route(ctx: LabContext) {
   Object.assign(window, {
     __campaignComposition: {
       installDetail,
+      crowd: (zoom = 5, empty = false, time = 0.25) => {
+        if (crowdFixture) world.setCrowd(crowdFixture.frame(zoom, empty, time).crowd);
+        draw();
+        requestAnimationFrame(draw);
+      },
       draw,
       ownership: (enabled: boolean, changed = false) => {
         const rgba = territory.rgba.slice();

@@ -1,7 +1,7 @@
 import * as THREE from "three/webgpu";
 
 import { attribute, cos, mix, positionLocal, sin, varying, vec3, vec4 } from "three/tsl";
-import { PhotorealCrowd } from "@packages/photoreal-renderer/src/battle/crowdLayer";
+import { PhotorealCrowd } from "@packages/photoreal-renderer/src/crowd/crowdLayer";
 import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 

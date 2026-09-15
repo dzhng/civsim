@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { afterEach, expect, test, vi } from "vitest";
 import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
-import { PhotorealCrowd } from "@packages/photoreal-renderer/src/battle/crowdLayer";
+import { PhotorealCrowd } from "@packages/photoreal-renderer/src/crowd/crowdLayer";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 

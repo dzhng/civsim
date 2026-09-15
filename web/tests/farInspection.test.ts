@@ -5,7 +5,7 @@ import * as THREE from "three/webgpu";
 import { farAdmissionCamera } from "../scenes/models/_far-inspection";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
-import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/battle/crowdLod";
+import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/crowd/crowdLod";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 import type { BattleCameraSnapshot } from "@packages/photoreal-renderer/src/battle/battleWorld";
 

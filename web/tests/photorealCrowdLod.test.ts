@@ -9,10 +9,10 @@ import {
   planPhotorealCrowdLods,
   createCrowdLodBuffers,
   type CrowdProjectionView,
-} from "@packages/photoreal-renderer/src/battle/crowdLod";
+} from "@packages/photoreal-renderer/src/crowd/crowdLod";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
-import { createCrowdDrawMesh } from "@packages/photoreal-renderer/src/battle/crowdLayer";
+import { createCrowdDrawMesh } from "@packages/photoreal-renderer/src/crowd/crowdLayer";
 import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import type { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
@@ -375,4 +375,27 @@ test("projected LOD reuses both audience buffers and clears only the active visi
   assert.deepEqual(Array.from(reused.visibility.slice(0, 2)), [1, 1]);
   assert.deepEqual(reused.counts, expected.counts);
   assert.deepEqual(reused.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
+});
+
+test("campaign scale grows projected figures and admits their scaled off-axis bounds", () => {
+  const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 100);
+  camera.position.set(0, 0, 30);
+  camera.lookAt(0, 0, 0);
+  const view = projectionView(camera, 100);
+  const instances = [body(0, 0), body(11.5, 0)];
+  const normal = planPhotorealCrowdLods(instances, [view], assets);
+  const campaign = planPhotorealCrowdLods(
+    instances,
+    [view],
+    assets,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    2.4,
+  );
+  assert.equal(normal.visibility[1], 0);
+  assert.equal(campaign.visibility[1], 1);
+  assert.ok(campaign.levels[0] < normal.levels[0]);
+  assert.ok(Math.abs(campaign.screenSizes[0] / normal.screenSizes[0] - 2.4) < 1e-9);
 });

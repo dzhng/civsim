@@ -185,6 +185,7 @@ export class OctahedralImpostorLayer {
   constructor(
     scene: THREE.Scene,
     private readonly atlas: ImpostorAtlas,
+    private readonly modelScale = 1,
   ) {
     this.tileDirs = hemiOctTileDirections(atlas.columns, atlas.rows);
     this.geometry = new THREE.InstancedBufferGeometry();
@@ -247,7 +248,7 @@ export class OctahedralImpostorLayer {
     );
 
     this.mesh = new THREE.Mesh(this.geometry, material);
-    this.mesh.name = "battle-crowd-far-impostors";
+    this.mesh.name = "physical-crowd-far-impostors";
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
     this.mesh.castShadow = false;
@@ -279,13 +280,15 @@ export class OctahedralImpostorLayer {
       const o = i * 4;
       const angle = src.facing - Math.PI / 2;
       const center = this.atlas.center;
-      this.inst[o] = src.x + center.x * Math.cos(angle) - center.y * Math.sin(angle);
-      this.inst[o + 1] = src.y + center.x * Math.sin(angle) + center.y * Math.cos(angle);
-      this.inst[o + 2] = (src.elevation ?? 0) + center.z;
+      this.inst[o] =
+        src.x + (center.x * Math.cos(angle) - center.y * Math.sin(angle)) * this.modelScale;
+      this.inst[o + 1] =
+        src.y + (center.x * Math.sin(angle) + center.y * Math.cos(angle)) * this.modelScale;
+      this.inst[o + 2] = (src.elevation ?? 0) + center.z * this.modelScale;
       this.inst[o + 3] = src.faction;
       this.meta[o] = 0;
-      this.meta[o + 1] = this.atlas.worldSpan;
-      this.meta[o + 2] = this.atlas.worldSpan;
+      this.meta[o + 1] = this.atlas.worldSpan * this.modelScale;
+      this.meta[o + 2] = this.atlas.worldSpan * this.modelScale;
       this.meta[o + 3] = angle;
       this.living[i] = 1 - corpsePresentationStrength(src);
     }
@@ -328,11 +331,11 @@ export class OctahedralImpostorLayer {
       // visible blob instead of sub-pixel-vanishing through the alpha-tested
       // mip chain. screenFraction is the projected height as a fraction of the
       // viewport (perspective: worldHeight / (2 · depth · tan(fovY/2))).
-      let scale = 1;
+      let scale = this.modelScale;
       if (tanHalfFov > 0 && dist > 0) {
-        const screenFraction = this.atlas.worldSpan / (2 * dist * tanHalfFov);
+        const screenFraction = (this.atlas.worldSpan * this.modelScale) / (2 * dist * tanHalfFov);
         if (screenFraction < IMPOSTOR_MIN_SCREEN_FRACTION)
-          scale = IMPOSTOR_MIN_SCREEN_FRACTION / screenFraction;
+          scale *= IMPOSTOR_MIN_SCREEN_FRACTION / screenFraction;
       }
       this.meta[o + 1] = this.atlas.worldSpan * scale;
       this.meta[o + 2] = this.atlas.worldSpan * scale;

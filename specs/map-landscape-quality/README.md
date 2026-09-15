@@ -16,7 +16,7 @@ non-label regional/Alpine pixels. The unchanged regional label floor still fails
 because visible glyph coverage is sparse; do not lower it. See
 [production UI evidence](assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md).
 
-**Current pickup:** finish merged UI output/lifecycle verification, then review
+**Current pickup:** review
 Claude's painted-label bounds correction (it detects the real Alpine halo
 collision) and adopt the shared rock-height texture in both production maps.
 The texture prototype improves three real-terrain views with exact repeats;
@@ -29,8 +29,9 @@ until their results are integrated; retired spike worktrees have been removed.
 Then rerun canonical campaign acceptance with the shared natural-ground/cart
 verifiers, the controlled-fixture battle handoff, and battle acceptance. Profile
 the closest performance view: the actual10m camera misses the unchanged33ms p95
-limit at33.74ms. Earlier ten-cycle production lifecycle passes at296–303MB, but
-that proof predates the added UI attachment and must be renewed. The26 hardware
+limit at33.74ms. The [renewed UI lifecycle proof](assets/slice-15-retention/screen-ui-production10/README.md)
+passes all82 checks over ten production cycles, with memory at296–305MB and all
+retired UI resources collected. It does not cover the pending rock texture. The26 hardware
 map/menu journey checks pass; corrected lowland fixtures have ten reviewed,
 exact-repeat captures. Owning slice evidence carries the detailed limits.
 

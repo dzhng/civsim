@@ -1,0 +1,1052 @@
+{
+  "originalScene": "/Users/david/dev/game-map-landscape-quality/web/scenes/system/renderer-lifecycle.mjs",
+  "originalSceneSha256": "b524ff4565432a94e04b0c14a169d380f1b8cbbe9d15904b97787a441734793e",
+  "cycles": 10,
+  "originalAssertions": "unaltered; only UI observer/check additions",
+  "adapter": {
+    "requested": "hardware",
+    "channel": "chrome",
+    "observedVendor": null,
+    "observedArchitecture": null,
+    "limitation": "Adapter identity was not sampled; another run cannot substitute."
+  },
+  "channel": "chrome",
+  "preview": "http://127.0.0.1:5220",
+  "distFiles": {
+    "assets/ai-worker-CYxAfDoY.js": {
+      "bytes": 15515,
+      "sha256": "d679da3bc19583a15c960521ed8ec1b9a12e99da37257e7dbcc00429b3312e2c"
+    },
+    "assets/capabilities-BsohdeJF.js": {
+      "bytes": 1574837,
+      "sha256": "2805f0a70512b38ec58544509e50209ffb00ea3b25575b9da708e8634ce3aa92"
+    },
+    "assets/game_wasm-Cmwp_S2x.js": {
+      "bytes": 244,
+      "sha256": "ab2910bb4bb398009d8c5b784b0ae43f32c7d77b0f28a5c8ff0b0e345c6e8e4a"
+    },
+    "assets/game_wasm-P8Z_yJ5I.js": {
+      "bytes": 15943,
+      "sha256": "34f2b46658f237d85c12261c718f45fcf7c7ca135798cfa8b7c1cda304aadd98"
+    },
+    "assets/game_wasm_bg-Cnos3K1H.wasm": {
+      "bytes": 1023869,
+      "sha256": "6446e3f9c6231e3beb13128ce05d6c90dce763db643f1710fc346fec0ff47a9b"
+    },
+    "assets/index-jv4Qrpgq.js": {
+      "bytes": 153534,
+      "sha256": "6d827d8ffd80c6f9ceececd26551c82e7d4ecd9b4f6ebc0d4a69ed27aab2064f"
+    },
+    "assets/router-9sDgK4Wn.js": {
+      "bytes": 282899,
+      "sha256": "15b500c7f2491378f8e196906fd919c8583b2ee3100cc59a02771c3f033aebe2"
+    },
+    "assets/terrainWorkerEntry-BIBs1--1.js": {
+      "bytes": 14474,
+      "sha256": "94377e7a6d640f1ea50565ab26466481e464df0fea7e420e5742a226075ed077"
+    },
+    "index.html": {
+      "bytes": 33836,
+      "sha256": "e50dd8bfde2dd0eb48b0af456e842a5708d836aca80384b199cf02c4b54614b3"
+    }
+  },
+  "pageErrors": [],
+  "fullOriginal": {
+    "path": "/Users/david/dev/game-campaign-remaining-acceptance/throwaway/ui-lifetime-report.json",
+    "sha256": "c4521a02f38faee8f4f2a09160c000e1b781563a16a73eb1a6c2f0d6288b114f",
+    "bytes": 101627
+  },
+  "buildVerification": {
+    "unchanged": true
+  },
+  "checks": [
+    {
+      "name": "cycle 1 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 1 creates an encounter",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "cycle 1 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 1 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":1},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 1 disposes UI display resources exactly once",
+      "ok": true,
+      "detail": "[{\"id\":1,\"requested\":true,\"finished\":true,\"hadDisplay\":true,\"targetDisposals\":1,\"materialDisposals\":1,\"compositionCleared\":true,\"alive\":{\"phase\":false,\"display\":false,\"texture\":false,\"material\":false,\"copy\":false}},{\"id\":2,\"requested\":true,\"finished\":true,\"hadDisplay\":false,\"targetDisposals\":0,\"materialDisposals\":0,\"compositionCleared\":true,\"alive\":{\"phase\":false}}]"
+    },
+    {
+      "name": "cycle 1 collects every retired UI phase and display resource",
+      "ok": true,
+      "detail": "[{\"id\":1,\"requested\":true,\"finished\":true,\"hadDisplay\":true,\"targetDisposals\":1,\"materialDisposals\":1,\"compositionCleared\":true,\"alive\":{\"phase\":false,\"display\":false,\"texture\":false,\"material\":false,\"copy\":false}},{\"id\":2,\"requested\":true,\"finished\":true,\"hadDisplay\":false,\"targetDisposals\":0,\"materialDisposals\":0,\"compositionCleared\":true,\"alive\":{\"phase\":false}}]"
+    },
+    {
+      "name": "cycle 1 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 1 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":1,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":295909883,\"userAgentBreakdown\":[{\"bytes\":285615258,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/?campaign=handoff\"]},{\"bytes\":578720,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5220/?campaign=handoff\"]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":129976,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":473140,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/assets/ai-worker-CYxAfDoY.js\"]}]}"
+    },
+    {
+      "name": "cycle 2 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 2 creates an encounter",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "cycle 2 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 2 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":2},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 2 disposes UI display resources exactly once",
+      "ok": true,
+      "detail": "[{\"id\":1,\"requested\":true,\"finished\":true,\"hadDisplay\":true,\"targetDisposals\":1,\"materialDisposals\":1,\"compositionCleared\":true,\"alive\":{\"phase\":false,\"display\":false,\"texture\":false,\"material\":false,\"copy\":false}},{\"id\":2,\"requested\":true,\"finished\":true,\"hadDisplay\":false,\"targetDisposals\":0,\"materialDisposals\":0,\"compositionCleared\":true,\"alive\":{\"phase\":false}},{\"id\":3,\"requested\":true,\"finished\":true,\"hadDisplay\":true,\"targetDisposals\":1,\"materialDisposals\":1,\"compositionCleared\":true,\"alive\":{\"phase\":false,\"display\":false,\"texture\":false,\"material\":false,\"copy\":false}},{\"id\":4,\"requested\":true,\"finished\":true,\"hadDisplay\":false,\"targetDisposals\":0,\"materialDisposals\":0,\"compositionCleared\":true,\"alive\":{\"phase\":false}}]"
+    },
+    {
+      "name": "cycle 2 collects every retired UI phase and display resource",
+      "ok": true,
+      "detail": "[{\"id\":1,\"requested\":true,\"finished\":true,\"hadDisplay\":true,\"targetDisposals\":1,\"materialDisposals\":1,\"compositionCleared\":true,\"alive\":{\"phase\":false,\"display\":false,\"texture\":false,\"material\":false,\"copy\":false}},{\"id\":2,\"requested\":true,\"finished\":true,\"hadDisplay\":false,\"targetDisposals\":0,\"materialDisposals\":0,\"compositionCleared\":true,\"alive\":{\"phase\":false}},{\"id\":3,\"requested\":true,\"finished\":true,\"hadDisplay\":true,\"targetDisposals\":1,\"materialDisposals\":1,\"compositionCleared\":true,\"alive\":{\"phase\":false,\"display\":false,\"texture\":false,\"material\":false,\"copy\":false}},{\"id\":4,\"requested\":true,\"finished\":true,\"hadDisplay\":false,\"targetDisposals\":0,\"materialDisposals\":0,\"compositionCleared\":true,\"alive\":{\"phase\":false}}]"
+    },
+    {
+      "name": "cycle 2 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 2 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":2,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":305033236,\"userAgentBreakdown\":[{\"bytes\":130600,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":286484720,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/?campaign=handoff\"]},{\"bytes\":473140,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/assets/ai-worker-CYxAfDoY.js\"]},{\"bytes\":16691200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5220/?campaign=handoff\"]},{\"bytes\":639987,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]}]}"
+    },
+    {
+      "name": "cycle 3 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 3 creates an encounter",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "name": "cycle 3 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 3 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":3},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 3 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "019a99a2bf2d75a61e9969b6ac88b501b71bd1c53c0748b681629da96d293a66",
+      "detailLocation": "fullOriginal.checks[20].detail"
+    },
+    {
+      "name": "cycle 3 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "019a99a2bf2d75a61e9969b6ac88b501b71bd1c53c0748b681629da96d293a66",
+      "detailLocation": "fullOriginal.checks[21].detail"
+    },
+    {
+      "name": "cycle 3 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 3 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":3,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":301233982,\"userAgentBreakdown\":[{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5220/?campaign=handoff\"]},{\"bytes\":473140,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/assets/ai-worker-CYxAfDoY.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":130024,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":586336,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":286835693,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5220/?campaign=handoff\"]}]}"
+    },
+    {
+      "name": "cycle 4 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 4 creates an encounter",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "name": "cycle 4 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 4 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":4},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 4 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "f626a39044a82ddaccc497a45ae172695e4163c6fc0f4eb8fe4b1852ca7b1a5c",
+      "detailLocation": "fullOriginal.checks[28].detail"
+    },
+    {
+      "name": "cycle 4 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "f626a39044a82ddaccc497a45ae172695e4163c6fc0f4eb8fe4b1852ca7b1a5c",
+      "detailLocation": "fullOriginal.checks[29].detail"
+    },
+    {
+      "name": "cycle 4 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 4 samples renderer resources",
+      "ok": true,
+      "detailOriginalSha256": "066d1101985be284eade9c8e861390206ff09b535a9c052b2362f4df819ae696",
+      "detailLocation": "fullOriginal.checks[31].detail"
+    },
+    {
+      "name": "cycle 5 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 5 creates an encounter",
+      "ok": true,
+      "detail": "4"
+    },
+    {
+      "name": "cycle 5 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 5 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":5},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 5 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "97960c8b46b0712c5011b1b5fc6127000b005fad466e1530062c63dc81510897",
+      "detailLocation": "fullOriginal.checks[36].detail"
+    },
+    {
+      "name": "cycle 5 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "97960c8b46b0712c5011b1b5fc6127000b005fad466e1530062c63dc81510897",
+      "detailLocation": "fullOriginal.checks[37].detail"
+    },
+    {
+      "name": "cycle 5 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 5 samples renderer resources",
+      "ok": true,
+      "detailOriginalSha256": "d025189dd0741e547e6f25f96e3d5d3c40fc4e6e283c13e235fa08e1b575296a",
+      "detailLocation": "fullOriginal.checks[39].detail"
+    },
+    {
+      "name": "cycle 6 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 6 creates an encounter",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "name": "cycle 6 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 6 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":6},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 6 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "727229213f112bc3a7c49891f38966935ea85e26864948778611a824a152d305",
+      "detailLocation": "fullOriginal.checks[44].detail"
+    },
+    {
+      "name": "cycle 6 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "727229213f112bc3a7c49891f38966935ea85e26864948778611a824a152d305",
+      "detailLocation": "fullOriginal.checks[45].detail"
+    },
+    {
+      "name": "cycle 6 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 6 samples renderer resources",
+      "ok": true,
+      "detailOriginalSha256": "41c3121ab6a447373a490b0a059414e02b4e7234b76c0aff93d08278f64648ea",
+      "detailLocation": "fullOriginal.checks[47].detail"
+    },
+    {
+      "name": "cycle 7 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 7 creates an encounter",
+      "ok": true,
+      "detail": "6"
+    },
+    {
+      "name": "cycle 7 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 7 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":7},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 7 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "8fe768c6f1953b072fa3de4f0d04d1ff3cb031c05ed200e260a090c2136c820a",
+      "detailLocation": "fullOriginal.checks[52].detail"
+    },
+    {
+      "name": "cycle 7 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "8fe768c6f1953b072fa3de4f0d04d1ff3cb031c05ed200e260a090c2136c820a",
+      "detailLocation": "fullOriginal.checks[53].detail"
+    },
+    {
+      "name": "cycle 7 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 7 samples renderer resources",
+      "ok": true,
+      "detailOriginalSha256": "467333aed539aa883f8bdebb5fcf79ac11c414a10e9c50d34b9373e239c8e8dd",
+      "detailLocation": "fullOriginal.checks[55].detail"
+    },
+    {
+      "name": "cycle 8 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 8 creates an encounter",
+      "ok": true,
+      "detail": "7"
+    },
+    {
+      "name": "cycle 8 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 8 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":8},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 8 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "79febece7c31a54ff372b746791984757d4be9713b7d5be7a600c9ad64a8e4e2",
+      "detailLocation": "fullOriginal.checks[60].detail"
+    },
+    {
+      "name": "cycle 8 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "79febece7c31a54ff372b746791984757d4be9713b7d5be7a600c9ad64a8e4e2",
+      "detailLocation": "fullOriginal.checks[61].detail"
+    },
+    {
+      "name": "cycle 8 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 8 samples renderer resources",
+      "ok": true,
+      "detailOriginalSha256": "1111d1fce278375f44b796b67b7967b90012eaeb35510de11cba6426a93a29b5",
+      "detailLocation": "fullOriginal.checks[63].detail"
+    },
+    {
+      "name": "cycle 9 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 9 creates an encounter",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "name": "cycle 9 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 9 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":9},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 9 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "19e0373db3b224cf115ef532367bacee80ce167932722a0311720cbc86de52b4",
+      "detailLocation": "fullOriginal.checks[68].detail"
+    },
+    {
+      "name": "cycle 9 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "19e0373db3b224cf115ef532367bacee80ce167932722a0311720cbc86de52b4",
+      "detailLocation": "fullOriginal.checks[69].detail"
+    },
+    {
+      "name": "cycle 9 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 9 samples renderer resources",
+      "ok": true,
+      "detailOriginalSha256": "4b0b2ff65a475d5bac8e9942a97bb9df0827dc97f3e7087e71f54b55b36379b8",
+      "detailLocation": "fullOriginal.checks[71].detail"
+    },
+    {
+      "name": "cycle 10 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cycle 10 creates an encounter",
+      "ok": true,
+      "detail": "9"
+    },
+    {
+      "name": "cycle 10 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "cycle 10 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":10},\"workersClosed\":true}"
+    },
+    {
+      "name": "cycle 10 disposes UI display resources exactly once",
+      "ok": true,
+      "detailOriginalSha256": "3003224b00576b1fa5a870ef1af38a24a328d460cfefd427450885b6748ff52e",
+      "detailLocation": "fullOriginal.checks[76].detail"
+    },
+    {
+      "name": "cycle 10 collects every retired UI phase and display resource",
+      "ok": true,
+      "detailOriginalSha256": "3003224b00576b1fa5a870ef1af38a24a328d460cfefd427450885b6748ff52e",
+      "detailLocation": "fullOriginal.checks[77].detail"
+    },
+    {
+      "name": "cycle 10 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "name": "cycle 10 samples renderer resources",
+      "ok": true,
+      "detailOriginalSha256": "63df7653eb73ece08b7d748b89f176e408436abea125ea19a54bdeed6a3d9f7f",
+      "detailLocation": "fullOriginal.checks[79].detail"
+    },
+    {
+      "name": "renderer counters stay flat across dispose cycles",
+      "ok": true,
+      "detailOriginalSha256": "c4c441ea1ea1354d959b9531e54581ffeea04d7c9e98c30ddd200078cb8f01d7",
+      "detailLocation": "fullOriginal.checks[80].detail"
+    },
+    {
+      "name": "user-agent memory series is available",
+      "ok": true,
+      "detailOriginalSha256": "c4c441ea1ea1354d959b9531e54581ffeea04d7c9e98c30ddd200078cb8f01d7",
+      "detailLocation": "fullOriginal.checks[81].detail"
+    }
+  ],
+  "failures": [],
+  "memorySeries": [
+    {
+      "cycle": 1,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 295909883
+    },
+    {
+      "cycle": 2,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 305033236
+    },
+    {
+      "cycle": 3,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 301233982
+    },
+    {
+      "cycle": 4,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 297756066
+    },
+    {
+      "cycle": 5,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 302186306
+    },
+    {
+      "cycle": 6,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 302501464
+    },
+    {
+      "cycle": 7,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 298713062
+    },
+    {
+      "cycle": 8,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 302646220
+    },
+    {
+      "cycle": 9,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 303135274
+    },
+    {
+      "cycle": 10,
+      "reactRefresh": false,
+      "geometries": 33,
+      "textures": 181,
+      "programs": null,
+      "wasmMemoryBytes": 12910592,
+      "userAgentBytes": 303182994
+    }
+  ],
+  "collectionByCycle": [
+    {
+      "cycle": 1,
+      "uiRecords": 2,
+      "campaignDisplays": 1,
+      "targetDisposals": 1,
+      "copyMaterialDisposals": 1,
+      "aliveUiResources": 0,
+      "retiredWorlds": 2,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        1
+      ]
+    },
+    {
+      "cycle": 2,
+      "uiRecords": 4,
+      "campaignDisplays": 2,
+      "targetDisposals": 2,
+      "copyMaterialDisposals": 2,
+      "aliveUiResources": 0,
+      "retiredWorlds": 4,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        3
+      ]
+    },
+    {
+      "cycle": 3,
+      "uiRecords": 6,
+      "campaignDisplays": 3,
+      "targetDisposals": 3,
+      "copyMaterialDisposals": 3,
+      "aliveUiResources": 0,
+      "retiredWorlds": 6,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        5
+      ]
+    },
+    {
+      "cycle": 4,
+      "uiRecords": 8,
+      "campaignDisplays": 4,
+      "targetDisposals": 4,
+      "copyMaterialDisposals": 4,
+      "aliveUiResources": 0,
+      "retiredWorlds": 8,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        7
+      ]
+    },
+    {
+      "cycle": 5,
+      "uiRecords": 10,
+      "campaignDisplays": 5,
+      "targetDisposals": 5,
+      "copyMaterialDisposals": 5,
+      "aliveUiResources": 0,
+      "retiredWorlds": 10,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        9
+      ]
+    },
+    {
+      "cycle": 6,
+      "uiRecords": 12,
+      "campaignDisplays": 6,
+      "targetDisposals": 6,
+      "copyMaterialDisposals": 6,
+      "aliveUiResources": 0,
+      "retiredWorlds": 12,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        11
+      ]
+    },
+    {
+      "cycle": 7,
+      "uiRecords": 14,
+      "campaignDisplays": 7,
+      "targetDisposals": 7,
+      "copyMaterialDisposals": 7,
+      "aliveUiResources": 0,
+      "retiredWorlds": 14,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        13
+      ]
+    },
+    {
+      "cycle": 8,
+      "uiRecords": 16,
+      "campaignDisplays": 8,
+      "targetDisposals": 8,
+      "copyMaterialDisposals": 8,
+      "aliveUiResources": 0,
+      "retiredWorlds": 16,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        15
+      ]
+    },
+    {
+      "cycle": 9,
+      "uiRecords": 18,
+      "campaignDisplays": 9,
+      "targetDisposals": 9,
+      "copyMaterialDisposals": 9,
+      "aliveUiResources": 0,
+      "retiredWorlds": 18,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        17
+      ]
+    },
+    {
+      "cycle": 10,
+      "uiRecords": 20,
+      "campaignDisplays": 10,
+      "targetDisposals": 10,
+      "copyMaterialDisposals": 10,
+      "aliveUiResources": 0,
+      "retiredWorlds": 20,
+      "aliveWorlds": 0,
+      "aliveRendererIndices": [
+        19
+      ]
+    }
+  ],
+  "finalUiRecords": [
+    {
+      "id": 1,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 2,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 3,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 4,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 5,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 6,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 7,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 8,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 9,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 10,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 11,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 12,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 13,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 14,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 15,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 16,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 17,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 18,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    },
+    {
+      "id": 19,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": true,
+      "targetDisposals": 1,
+      "materialDisposals": 1,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false,
+        "display": false,
+        "texture": false,
+        "material": false,
+        "copy": false
+      }
+    },
+    {
+      "id": 20,
+      "requested": true,
+      "finished": true,
+      "hadDisplay": false,
+      "targetDisposals": 0,
+      "materialDisposals": 0,
+      "compositionCleared": true,
+      "alive": {
+        "phase": false
+      }
+    }
+  ],
+  "probeSources": {
+    "ui-lifetime-scene.mjs": {
+      "path": "/Users/david/dev/game-campaign-remaining-acceptance/throwaway/ui-lifetime-scene.mjs",
+      "sha256": "29f303d42a482aca209d90ca6156568669690fadb4c15896f0410587adb2709d"
+    },
+    "ui-lifetime-run.mjs": {
+      "path": "/Users/david/dev/game-campaign-remaining-acceptance/throwaway/ui-lifetime-run.mjs",
+      "sha256": "abf9491a12c80f05dbc42ad27f499b09025abd14b44785f358efd250811abe22"
+    },
+    "prepare-ui-lifetime.py": {
+      "path": "/Users/david/dev/game-campaign-remaining-acceptance/throwaway/prepare-ui-lifetime.py",
+      "sha256": "3935a59fc5f5c7cf85b7bfd92f356cf8d7e1172181f61fb0810f9bb98303789d"
+    }
+  },
+  "sourceHashesObservedAfterRun": {
+    "packages/photoreal-renderer/src/post/screenUiPhase.ts": "e95279a84121c3639da1faa0e41dc6ddb2e2d36f0528011fcf62373ecc19df51",
+    "packages/photoreal-renderer/src/world.ts": "9eb130d3dac73f5ffec2cceccc977f6a9c3e830b1e601067f105266aa3b578be",
+    "web/scenes/system/renderer-lifecycle.mjs": "b524ff4565432a94e04b0c14a169d380f1b8cbbe9d15904b97787a441734793e"
+  },
+  "boundedVerdict": {
+    "status": "pass",
+    "cycles": 10,
+    "checksPassed": 82,
+    "originalChecksUnchanged": 62,
+    "additionalUiChecks": 20,
+    "pageErrors": 0,
+    "allRetiredUiCollected": true,
+    "all20RetiredWorldsCollected": true,
+    "latestBattleRendererException": "Only latest renderer is permitted; every older renderer must collect, unchanged from canonical gate.",
+    "gpuDisposalVsCollection": "Target/material dispose events establish requests exactly once; weak references after GC establish JS object collection. No direct driver allocation measurement is claimed.",
+    "observerAudit": "Records contain scalars and WeakRefs only; temporary disposal listeners removed in finally; phase prototype restored before browser closes. No retained UI object was observed.",
+    "memoryBytes": {
+      "min": 295909883,
+      "max": 305033236,
+      "final": 303182994
+    },
+    "flatCounters": {
+      "geometries": 33,
+      "textures": 181,
+      "programs": null
+    },
+    "programsLimitation": "Original gate compares equality; null means program count unavailable, not zero programs.",
+    "productionReactRefresh": false,
+    "memoryBound": "Original proof has an availability gate and flat renderer counters, no absolute UA-memory cap; this is a bounded ten-cycle observation.",
+    "browserClosed": true
+  }
+}

@@ -110,5 +110,6 @@ The corrected phase is integrated after the
 It preserves the existing source colors, camera and label placement. Regional
 bright-pixel coverage remains below the unchanged floor even with restored ink;
 that is an open typography/coverage contract, not permission to distort grading.
-The added attachment must pass merged lifecycle and DPR/performance checks before
-whole-game acceptance. Battle currently contributes no screen-phase members.
+The [added attachment retirement proof](../assets/slice-15-retention/screen-ui-production10/README.md)
+passes ten production cycles; DPR/performance checks remain before whole-game
+acceptance. Battle currently contributes no screen-phase members.

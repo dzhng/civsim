@@ -32,3 +32,6 @@ The existing `renderer-lifecycle` scene now guards collection directly. Run it
 against a production preview for production memory evidence; its report also
 records whether React Refresh is present. The independent reviews found no
 introduced ownership or oracle-retention defects. No simulation tests changed.
+
+The [screen UI production replay](screen-ui-production10/README.md) extends the
+retirement proof to the added display texture and copy resources.

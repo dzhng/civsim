@@ -1,3 +1,4 @@
+import { PresentationSpool, validateSpoolWindows, type SpoolWindow } from "./PresentationSpool";
 import { readGrassDraws, readGroundInputs } from "./threeInspection";
 import {
   capturedWorld,
@@ -37,16 +38,22 @@ const benchmarkApi = () =>
 
 type Draw = Parameters<ProductionBattleRenderer["draw"]>;
 export interface CapturedReplayFrame {
+  animationFrame: number;
   frame: BattleReplayFrame;
   reference: ReturnType<ProductionBattleRenderer["stats"]>;
 }
 
 /** Installed only by the lab Vite config; ordinary builds perform no capture copies. */
 export class BattleRenderer extends ProductionBattleRenderer {
+  declare readonly ready: Promise<void>;
+  private sourceReady = false;
   private staticCapture: Pick<BattleReplayAssets, "soldierUnit" | "teams" | "classes"> | null =
     null;
   private terrainCapture: Pick<BattleReplayAssets, "terrain" | "terrainOptions"> | null = null;
   private simTick = 0;
+  private spoolArmed: readonly SpoolWindow[] | null = null;
+  private spool: PresentationSpool | null = null;
+  private spoolSink = "";
   private commands: BattleReplayCommand[] = [];
   private active: {
     benchmark: ReplayManifest["benchmark"];
@@ -87,19 +94,63 @@ export class BattleRenderer extends ProductionBattleRenderer {
     private readonly captureOptions: BattleRendererOptions = {},
   ) {
     super(captureCanvas, captureOptions);
+    const productionReady = this.ready;
+    this.ready = productionReady.then(() => {
+      this.sourceReady = true;
+      if (this.spoolArmed) {
+        this.startSpool();
+      }
+    });
     this.stopObserving = observePresentations(captureCanvas, {
       command: (command) => {
-        if (this.active || this.armed) this.commands.push(command);
+        if (this.active || this.armed || this.spoolArmed || this.spool) this.commands.push(command);
       },
       presented: (event) => this.capturePresentation(event),
     });
     this.api = {
+      spool: (windows: readonly SpoolWindow[], sink: string) => {
+        if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(sink))
+          throw Error("Spool requires a local disk sink");
+        this.spoolSink = sink;
+        validateSpoolWindows(windows);
+        if (
+          this.sourceReady ||
+          hasPresented(captureCanvas) ||
+          this.active ||
+          this.armed ||
+          this.spool ||
+          this.spoolArmed
+        )
+          throw new Error(
+            "Arm spool capture before the first presentation, without another capture",
+          );
+        this.spoolArmed = structuredClone(windows);
+      },
+      spoolStatus: () => this.spool?.status() ?? { armed: this.spoolArmed !== null },
+      spoolInputs: () => this.spool?.inputs ?? null,
+      spoolIdentity: async () => {
+        if (!this.spool?.status().sourceComplete || this.spool.status().queued)
+          throw new Error("Drain the completed source recording before hashing assets");
+        const appearances = await hashLoadedAppearances(this.soldierAssets!);
+        const ground = encodeReplayValue(readGroundInputs(capturedWorld(this.captureCanvas)));
+        return {
+          appearances,
+          groundHash: await hashReplayBlob(ground),
+          groundBytes: ground.size,
+          inputsHash: await hashReplayBlob(this.spool.inputs),
+          benchmark: benchmarkApi()?.status(),
+        };
+      },
+      stopSpool: () => {
+        this.spoolArmed = null;
+        this.spool?.dispose();
+      },
       start: (frameLimit = 30, byteLimit = 64 * 1024 * 1024) =>
         this.startCapture(frameLimit, byteLimit),
       prelude: () => {
         if (hasPresented(captureCanvas))
           throw new Error("Arm the prelude before the first presentation");
-        if (this.active || this.armed || this.finishing)
+        if (this.active || this.armed || this.finishing || this.spoolArmed || this.spool)
           throw new Error("Capture already in progress");
         return new Promise<ReplayManifest>((resolve, reject) => {
           this.armed = { resolve, reject };
@@ -152,7 +203,39 @@ export class BattleRenderer extends ProductionBattleRenderer {
     super.draw(...args);
   }
 
+  private startSpool() {
+    const { assets, settings } = this.captureInputs();
+    this.spool = new PresentationSpool(
+      this.captureCanvas,
+      assets,
+      settings,
+      this.spoolArmed!,
+      () => benchmarkApi()?.cancel(),
+      this.spoolSink,
+    );
+    this.spoolArmed = null;
+  }
+
   private capturePresentation(event: PresentationEvent) {
+    if (this.spool && this.commands.length) {
+      const reference = this.stats();
+      const benchmark = benchmarkApi()?.status();
+      this.spool.offer(
+        {
+          frame: {
+            frameId: event.sequence,
+            simTick: this.simTick,
+            timeSeconds: reference.standards!.timeSeconds,
+            camera: reference.camera!,
+            commands: this.commands,
+          },
+          reference,
+          animationFrame: event.animationFrame,
+        },
+        benchmark?.elapsedMs ?? 0,
+        benchmark?.phase === "running",
+      );
+    }
     if (this.armed && this.commands.length) {
       const armed = this.armed;
       this.armed = null;
@@ -182,6 +265,7 @@ export class BattleRenderer extends ProductionBattleRenderer {
         let stopped: ReplayManifest["stopped"] | "recording" = this.active.window.append({
           frame,
           reference,
+          animationFrame: event.animationFrame,
         } satisfies CapturedReplayFrame);
         if (
           stopped === "recording" &&
@@ -215,7 +299,8 @@ export class BattleRenderer extends ProductionBattleRenderer {
     byteLimit: number,
     stopAtRunning = false,
   ): Promise<ReplayManifest> {
-    if (this.active || this.finishing) throw new Error("Capture already in progress");
+    if (this.active || this.finishing || this.spoolArmed || this.spool)
+      throw new Error("Capture already in progress");
     if (!this.staticCapture || !this.terrainCapture || !this.soldierAssets || !this.stats().ready)
       throw new Error("Battle renderer is not ready for capture");
     if (this.fixedTime !== null || new URLSearchParams(location.search).get("debug") === "blocks")
@@ -233,33 +318,7 @@ export class BattleRenderer extends ProductionBattleRenderer {
       !(stopAtRunning && benchmark.phase === "preparing")
     )
       throw new Error("Wait for the benchmark's running phase before capture");
-    const stats = this.stats();
-    const params = new URLSearchParams(location.search);
-    const graphics = resolveGraphicsSettings(
-      location.search,
-      this.captureOptions.graphics ?? getGraphicsSettings(),
-    );
-    const settings: BattleReplaySettings = {
-      shadows: stats.shadows!.mode,
-      grassQuality: stats.terrain!.grass.productionSamplingProfile.quality,
-      grass: graphics.grass,
-      farGrass: graphics.farGrass,
-      bloom: stats.post!.bloom.enabled,
-      environment: resolveBattleEnvironment(params.get("env") ?? this.captureOptions.environment)
-        .id,
-      post: stats.post!.enabled,
-      postGrade: stats.post!.grade.uniforms,
-      viewport: {
-        width: this.captureCanvas.clientWidth,
-        height: this.captureCanvas.clientHeight,
-        pixelRatio: window.devicePixelRatio || 1,
-      },
-    };
-    const assets: BattleReplayAssets = {
-      ...this.staticCapture,
-      ...this.terrainCapture,
-      soldierCatalogUrl: "/assets/soldiers/catalog.json",
-    };
+    const { assets, settings } = this.captureInputs();
     const assetBlob = encodeReplayValue(assets);
     const settingsBlob = encodeReplayValue(settings);
     const groundBlob = encodeReplayValue(readGroundInputs(capturedWorld(this.captureCanvas)));
@@ -289,6 +348,37 @@ export class BattleRenderer extends ProductionBattleRenderer {
         reject,
       };
     });
+  }
+
+  private captureInputs() {
+    const stats = this.stats();
+    const params = new URLSearchParams(location.search);
+    const graphics = resolveGraphicsSettings(
+      location.search,
+      this.captureOptions.graphics ?? getGraphicsSettings(),
+    );
+    const settings: BattleReplaySettings = {
+      shadows: stats.shadows!.mode,
+      grassQuality: stats.terrain!.grass.productionSamplingProfile.quality,
+      grass: graphics.grass,
+      farGrass: graphics.farGrass,
+      bloom: stats.post!.bloom.enabled,
+      environment: resolveBattleEnvironment(params.get("env") ?? this.captureOptions.environment)
+        .id,
+      post: stats.post!.enabled,
+      postGrade: stats.post!.grade.uniforms,
+      viewport: {
+        width: this.captureCanvas.clientWidth,
+        height: this.captureCanvas.clientHeight,
+        pixelRatio: window.devicePixelRatio || 1,
+      },
+    };
+    const assets: BattleReplayAssets = {
+      ...this.staticCapture!,
+      ...this.terrainCapture!,
+      soldierCatalogUrl: "/assets/soldiers/catalog.json",
+    };
+    return { assets, settings };
   }
 
   private async finishCapture(
@@ -393,6 +483,8 @@ export class BattleRenderer extends ProductionBattleRenderer {
 
   override dispose() {
     this.stopObserving();
+    this.spoolArmed = null;
+    this.spool?.dispose();
     this.armed?.reject(new Error("Renderer disposed before prelude"));
     this.armed = null;
     if (this.active) {

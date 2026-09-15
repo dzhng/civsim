@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
-import { decodeReplayValue, encodeReplayValue } from "../../apps/battle-perf-lab/src/replayArchive";
+import {
+  decodeReplayValue,
+  decodeReplayPoses,
+  encodeReplayValue,
+} from "../../apps/battle-perf-lab/src/replayArchive";
 
 test("archive encoding preserves typed-array bytes and detaches live source storage", async () => {
   const source = new Float32Array([1.25, NaN, -0, Infinity]);
@@ -50,7 +54,8 @@ test("immutable frozen poses are stored once across soldiers and frames within t
   window.append({ frameId: 1, sources: [source, source] });
   window.append({ frameId: 2, sources: [source] });
   expect(window.poses).toHaveLength(1);
-  const poses = await Promise.all(window.poses.map((blob) => decodeReplayValue<number[]>(blob)));
+  const poses = await decodeReplayPoses(window.poses);
+  expect(Object.isFrozen(poses[0])).toBe(true);
   const decoded = await decodeReplayValue<{ sources: { kind: string; locals: number[] }[] }>(
     window.frames[0],
     poses,

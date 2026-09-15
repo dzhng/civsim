@@ -4,6 +4,7 @@ import type { BattleReplayCommand, BattleReplayMethod } from "./fixture";
 
 export interface PresentationEvent {
   sequence: number;
+  animationFrame: number;
 }
 interface CaptureObserver {
   command(command: BattleReplayCommand): void;
@@ -54,7 +55,12 @@ export function registerCaptureWorld(canvas: HTMLCanvasElement, world: Photoreal
         const result = Reflect.apply(original, world, args);
         if (method === "render") {
           entry.sequence++;
-          observers.get(canvas)?.presented({ sequence: entry.sequence });
+          observers
+            .get(canvas)
+            ?.presented({
+              sequence: entry.sequence,
+              animationFrame: world.world.renderer.info.frame,
+            });
         }
         return result;
       } finally {

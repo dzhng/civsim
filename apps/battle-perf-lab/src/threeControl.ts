@@ -58,7 +58,7 @@ export class ThreeControl {
     return readGroundInputs(this.world);
   }
 
-  async render(frame: BattleReplayFrame) {
+  async submit(frame: BattleReplayFrame) {
     if (this.disposed) throw new Error("Three control is disposed");
     for (const command of frame.commands) {
       switch (command.method) {
@@ -85,8 +85,21 @@ export class ThreeControl {
           break;
       }
     }
-    // Queue completion does not introduce extra renders or change residency.
-    await this.world.world.settlePresentedFrame();
+    return { frameId: frame.frameId, simTick: frame.simTick, stats: this.world.stats() };
+  }
+
+  get animationFrame() {
+    return this.world.world.renderer.info.frame;
+  }
+
+  waitForSubmittedWork() {
+    return this.world.world.settlePresentedFrame();
+  }
+
+  async render(frame: BattleReplayFrame) {
+    await this.submit(frame);
+    // Explicit diagnostic drain; continuous replay only waits at captured settle commands.
+    await this.waitForSubmittedWork();
     return { frameId: frame.frameId, simTick: frame.simTick, stats: this.world.stats() };
   }
 

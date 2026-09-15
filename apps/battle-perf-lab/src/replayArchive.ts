@@ -54,7 +54,11 @@ export async function decodeReplayValue<T>(
   blob: Blob,
   poses: readonly (readonly number[])[] = [],
 ): Promise<T> {
-  return JSON.parse(await blob.text(), (_key, item) => {
+  return decodeReplayText<T>(await blob.text(), poses);
+}
+
+export function decodeReplayText<T>(text: string, poses: readonly (readonly number[])[] = []): T {
+  return JSON.parse(text, (_key, item) => {
     if (item && typeof item === "object" && "frozenPose" in item) {
       if (!Number.isInteger(item.frozenPose) || !poses[item.frozenPose])
         throw new Error("Missing frozen pose in replay dictionary");
@@ -69,6 +73,20 @@ export async function decodeReplayValue<T>(
     const decoded = new constructor(bytes.buffer);
     return item.numericArray ? Array.from(decoded) : decoded;
   });
+}
+
+/** One asynchronous read for a bounded dictionary; Blob parts retain their existing bytes. */
+export async function decodeReplayPoses(
+  blobs: readonly Blob[],
+): Promise<readonly (readonly number[])[]> {
+  const parts: BlobPart[] = ["["];
+  blobs.forEach((blob, index) => {
+    if (index) parts.push(",");
+    parts.push(blob);
+  });
+  parts.push("]");
+  const poses = await decodeReplayValue<number[][]>(new Blob(parts, { type: "application/json" }));
+  return Object.freeze(poses.map((pose) => Object.freeze(pose)));
 }
 
 export async function hashReplayBlob(blob: Blob): Promise<string> {

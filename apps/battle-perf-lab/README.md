@@ -56,3 +56,26 @@ materials, uploads and GPU stats. Other runtimes consume the same residency owne
 without importing Three or reconstructing focus history from a final camera.
 This extraction preserves the existing work budgets; it does not optimize sampling
 or establish grass performance parity for a complete scene.
+
+The motion correctness driver (`scripts/spoolReplay.mjs`) records every actual
+presentation from preparation through the last selected window into lossless gzip
+packets. Source capture finishes and its page closes before Three replay begins.
+This avoids a second world competing with the actual menu presentation stream.
+Compression and transport still alter cadence, so this is never a timing oracle.
+
+A single lab worker compresses packets and posts them directly to a localhost disk
+sink. Source-page polling carries status only; packet writes do not depend on
+main-thread browser automation. The source retains at most 32 packets and 128 MiB of encoded inputs, compression
+reservations and endpoint images. A packet stays owned until the disk writer
+acknowledges it. Total compressed recording is capped at 1 GiB; cap and deadline
+failures are durable errors. Frozen poses share one dictionary within each packet,
+and offline replay decodes one packet at a time. The complete actual command prefix
+is retained, so later windows do not depend on guessed initialization state.
+
+Every selected command frame and its source/replay counts are retained. Only the
+first and last frames of each window receive PNG comparisons. Actual source Three
+frame-clock groups are recorded, and replay waits for a new public frame clock only
+when a new source group requires it. Async grass publication timing remains a
+correctness gate; retaining commands alone is not a claim that all temporal state
+is already reproduced. Nonzero endpoint differences and mismatched counts remain
+failed gates, not performance results.

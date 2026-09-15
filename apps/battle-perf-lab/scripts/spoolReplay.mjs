@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdir, writeFile, readFile, readdir } from "node:fs/promises";
 import { gzipSync, gunzipSync } from "node:zlib";
@@ -14,8 +15,12 @@ const output =
 const windows = process.argv[4]
   ? JSON.parse(process.argv[4])
   : [{ name: "origin-motion", startMs: 0, frameLimit: 6 }];
+const replayOnly = process.argv[5] === "replay-only";
+const archive = replayOnly ? process.argv[6] : output;
+if (replayOnly && (!archive || resolve(archive) === resolve(output)))
+  throw Error("Replay requires a separate archive input and empty output directory");
 await mkdir(output, { recursive: true });
-if (process.argv[5] !== "replay-only" && (await readdir(output)).length)
+if ((await readdir(output)).length)
   throw Error("Use an empty output directory for a new bounded recording");
 const browser = await chromium.launch({
   channel: "chrome",
@@ -51,7 +56,7 @@ const sink = createServer(async (request, response) => {
     try {
       const name = `resource-${resource[1]}.bin.gz`;
       if (request.method === "GET") {
-        response.end(await readFile(`${output}/${name}`));
+        response.end(await readFile(`${archive}/${name}`));
         return;
       }
       if (request.method !== "POST" || resources[resource[1]])
@@ -125,14 +130,14 @@ try {
   let page;
   let inputs;
   let identity;
-  if (process.argv[5] === "replay-only") {
-    const manifest = JSON.parse(await readFile(`${output}/manifest.json`, "utf8"));
+  if (replayOnly) {
+    const manifest = JSON.parse(await readFile(`${archive}/manifest.json`, "utf8"));
     packets.push(...manifest.packets);
     status = manifest.status;
     identity = manifest.identity;
     Object.assign(resources, manifest.resources);
-    diskBytes = manifest.diskBytes;
-    inputs = gunzipSync(await readFile(`${output}/inputs.json.gz`), {
+    diskBytes = 0;
+    inputs = gunzipSync(await readFile(`${archive}/inputs.json.gz`), {
       maxOutputLength: 128 * 1024 * 1024,
     }).toString();
   } else {
@@ -222,7 +227,7 @@ try {
   let lastReplayLog = 0;
   for (const packet of packets) {
     if (Date.now() > replayDeadline) throw Error("Offline replay exceeded 10 minutes");
-    const compressed = await readFile(`${output}/${packet.name}.json.gz`);
+    const compressed = await readFile(`${archive}/${packet.name}.json.gz`);
     if (createHash("sha256").update(compressed).digest("hex") !== packet.sha256)
       throw Error("Packet hash changed");
     const text = gunzipSync(compressed, { maxOutputLength: 128 * 1024 * 1024 }).toString();
@@ -295,7 +300,7 @@ try {
       summary: { ...result, ...result.selection, elapsedMs: result.selection.elapsedMs },
       frame: text,
       source: packet.snapshot
-        ? (await readFile(`${output}/${packet.name}-source.png`)).toString("base64")
+        ? (await readFile(`${archive}/${packet.name}-source.png`)).toString("base64")
         : null,
       replay: result.png,
     };

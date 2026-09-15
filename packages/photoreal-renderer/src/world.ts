@@ -9,6 +9,7 @@
 // snapCheck baselines stay byte-stable.
 import * as THREE from 'three/webgpu';
 import { GpuTelemetry, timestampBackend } from './gpuTelemetry';
+import { disposeSourceTimestampRanges } from './sourceTimestampRanges';
 import { uniform } from 'three/tsl';
 import type { CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
 
@@ -219,6 +220,8 @@ export class PhotorealWorld {
   }
 
   dispose(): void {
+    const device = timestampBackend(this.renderer).device;
+    if (device) disposeSourceTimestampRanges(device);
     this.environmentDisposer?.();
     this.environmentDisposer = null;
     const context = (this.renderer.backend as unknown as { context?: GPUCanvasContext }).context;

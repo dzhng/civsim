@@ -1,3 +1,13 @@
+import {
+  summarizeGpuTimestampRanges,
+  type GpuTimestampRange,
+} from "../../renderer-core/src/gpuTimestampRanges";
+import {
+  sourceTimestampRangesEnabled,
+  sourceTimestampRange,
+  sourceTimestampRangeOverflow,
+  pruneSourceTimestampRanges,
+} from "./sourceTimestampRanges";
 import { InspectorBase, type Camera, type Scene, type WebGPURenderer } from "three/webgpu";
 
 export type GpuScope = "pose" | "grass" | "output" | "other";
@@ -8,6 +18,7 @@ interface PassSample {
   label: string;
   finished: boolean;
   ms: number | null;
+  range?: GpuTimestampRange;
 }
 interface Submission {
   submissionId: number;
@@ -17,6 +28,7 @@ interface Submission {
   terminal: boolean;
   reason: string | null;
   passes: PassSample[];
+  rangesRequired: boolean;
 }
 
 // These are retention limits, not rendering or timing budgets.
@@ -29,10 +41,24 @@ function summarize(record: Submission) {
     record.closed &&
     record.reason === null &&
     record.passes.length > 0 &&
-    record.passes.every((pass) => pass.finished && pass.ms !== null);
+    record.passes.every(
+      (pass) =>
+        pass.finished && pass.ms !== null && (!record.rangesRequired || pass.range !== undefined),
+    );
   const sum = (kind: QueryKind) =>
     record.passes.reduce((total, pass) => total + (pass.kind === kind ? (pass.ms ?? 0) : 0), 0);
+  const ranges =
+    complete && record.rangesRequired
+      ? summarizeGpuTimestampRanges(
+          record.passes.flatMap((pass) => (pass.range ? [pass.range] : [])),
+        )
+      : null;
+  const rangeMetrics: { observedGpuSpanMs?: number | null; observedGpuUnionMs?: number | null } = {
+    observedGpuSpanMs: ranges?.observedGpuSpanMs ?? null,
+    observedGpuUnionMs: ranges?.observedGpuUnionMs ?? null,
+  };
   return {
+    ...rangeMetrics,
     submissionId: record.submissionId,
     source: record.source,
     threeFrameId: record.threeFrameId,
@@ -58,6 +84,8 @@ interface GpuTerminalEvent extends Omit<ReturnType<typeof summarize>, "status"> 
     queries: number;
     missingQueries: number;
     ms: number | null;
+    observedGpuSpanMs?: number | null;
+    observedGpuUnionMs?: number | null;
   }[];
 }
 
@@ -65,6 +93,7 @@ interface GpuTerminalEvent extends Omit<ReturnType<typeof summarize>, "status"> 
  * Only timestamp RESULTS are pruned; query sets, offsets and buffers are untouched. */
 export interface TimestampBackend {
   hasTimestamp: boolean;
+  device?: object;
   timestampQueryPool: Record<QueryKind, { timestamps: Map<string, number> } | null>;
   hasTimestampQuery(uid: string): boolean;
   getTimestamp(uid: string): number;
@@ -116,6 +145,7 @@ export class GpuTelemetry extends InspectorBase {
       terminal: false,
       reason: null,
       passes: [],
+      rangesRequired: sourceTimestampRangesEnabled(),
     };
     this.records.push(this.active);
   }
@@ -203,6 +233,21 @@ export class GpuTelemetry extends InspectorBase {
         if (!pass.uid.startsWith(pass.kind === "render" ? "r:" : "c:")) continue;
         if (!backend.timestampQueryPool[pass.kind] || !backend.hasTimestampQuery(pass.uid))
           continue;
+        if (record.rangesRequired) {
+          const range = backend.device
+            ? sourceTimestampRange(backend.device, pass.kind, pass.uid)
+            : null;
+          if (backend.device && sourceTimestampRangeOverflow(backend.device))
+            record.reason = "range-retention-overflow";
+          else if (!range) record.reason = "timestamp-range-missing";
+          else if (
+            range.beginNs < 0n ||
+            range.endNs < range.beginNs ||
+            (range.beginNs === 0n && range.endNs === 0n)
+          )
+            record.reason = "invalid-timestamp-range";
+          else pass.range = range;
+        }
         const ms = backend.getTimestamp(pass.uid);
         if (Number.isFinite(ms) && ms >= 0) pass.ms = ms;
         else record.reason = "invalid-query-result";
@@ -218,6 +263,19 @@ export class GpuTelemetry extends InspectorBase {
           record.passes.filter((pass) => pass.ms === null).map((pass) => pass.uid),
         ),
     );
+    if (backend.device)
+      pruneSourceTimestampRanges(
+        backend.device,
+        new Set(
+          this.records
+            .filter((record) => !record.terminal)
+            .flatMap((record) =>
+              record.passes
+                .filter((pass) => pass.ms === null)
+                .map((pass) => `${pass.kind}:${pass.uid}`),
+            ),
+        ),
+      );
     for (const kind of ["render", "compute"] as const) {
       const results = backend.timestampQueryPool[kind]?.timestamps;
       if (results) for (const uid of results.keys()) if (!needed.has(uid)) results.delete(uid);
@@ -242,6 +300,16 @@ export class GpuTelemetry extends InspectorBase {
       stage.ms = (stage.ms ?? 0) + (pass.ms ?? 0);
     }
     if (summary.status !== "complete") for (const stage of stages) stage.ms = null;
+    else if (record.rangesRequired)
+      for (const stage of stages) {
+        const ranges = summarizeGpuTimestampRanges(
+          record.passes
+            .filter((pass) => pass.kind === stage.kind && pass.label === stage.label)
+            .flatMap((pass) => (pass.range ? [pass.range] : [])),
+        );
+        stage.observedGpuSpanMs = ranges?.observedGpuSpanMs ?? null;
+        stage.observedGpuUnionMs = ranges?.observedGpuUnionMs ?? null;
+      }
     if (this.events.length === MAX_EVENTS) this.events.shift();
     this.events.push({
       ...summary,
@@ -290,7 +358,12 @@ export class GpuTelemetry extends InspectorBase {
       maxPassesPerSubmission: MAX_PASSES,
       submissions: this.records.map((record) => ({
         ...summarize(record),
-        passes: record.passes.map((pass) => ({ ...pass })),
+        passes: record.passes.map((pass) => ({
+          ...pass,
+          range: pass.range
+            ? { beginNs: pass.range.beginNs.toString(), endNs: pass.range.endNs.toString() }
+            : undefined,
+        })),
       })),
     };
   }

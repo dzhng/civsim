@@ -48,6 +48,8 @@ it("waits for every exact UID instead of summing latest render and stale compute
     renderMs: 4,
     computeMs: 2,
     measuredPassGpuMs: 6,
+    observedGpuSpanMs: null,
+    observedGpuUnionMs: null,
   });
 });
 

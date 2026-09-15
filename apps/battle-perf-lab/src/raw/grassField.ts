@@ -33,7 +33,7 @@ export async function createRawGrassField(
         (typeof layers)[number]
       >(profile, [layers[0], layers[1]]),
       routingBuffers: () =>
-        layers.map((layer) => ({ commands: layer.commands, visible: layer.visible })),
+        layers.map((layer) => ({ commands: layer.commands, visible: layer.visible, records: layer.recordBuffer, recordCount: layer.stats().recordCount })),
     };
   } catch (error) {
     for (const layer of layers) layer.dispose();

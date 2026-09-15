@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import base from './pmrem.vite.config.mts';
+import base from './crowd.vite.config.mts';
 
 const field = fileURLToPath(new URL('../grassField.ts', import.meta.url));
 const provider = fileURLToPath(new URL('../CaptureGrassResidency.ts', import.meta.url));
@@ -28,8 +28,10 @@ export default {
   build: {
     outDir: fileURLToPath(new URL('../../../../throwaway/native-replay/dist', import.meta.url)),
     emptyOutDir: true,
+    copyPublicDir: false,
     lib: {
       entry: {
+        spool: fileURLToPath(new URL('./spoolReplay.ts', import.meta.url)),
         control: fileURLToPath(new URL('./replayControl.ts', import.meta.url)),
         scene: fileURLToPath(new URL('./battleScene.ts', import.meta.url)),
         publications: provider,

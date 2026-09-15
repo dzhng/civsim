@@ -84,7 +84,8 @@ is already reproduced. Nonzero endpoint differences and mismatched counts remain
 failed gates, not performance results.
 
 For resolved grass replay, the lab config substitutes the shared residency import
-only inside Three's grass adapter. Live capture delegates every owner method and
+only inside Three's grass adapter for capture. The native replay config applies
+the same provider inside the lab's shared grass field. Live capture delegates every owner method and
 records its snapshot after each actual `prepareRender`. Record arrays are copied
 only when base/ring revisions change; other routing and transition state is kept
 per boundary. Replay consumes this stream through the same Three upload consumer,
@@ -98,3 +99,20 @@ The optional `localize` replay diagnostic stops after the recorded zoom endpoint
 and saves small target crops. It compares the original submission with a redraw
 of the prepared public scene and a temporary grass-hidden redraw. These altered
 scenes attribute pixel contributions; they never replace source parity gates.
+
+Native recorded replay uses the same packet/pose/resource decoder and archive loop.
+Run the replay Vite config, then select `raw` after the archive argument of
+`scripts/spoolReplay.mjs` (the next optional argument is the prepared atlas catalog
+URL). Native mode requires `replay-only` and a fresh output directory; it never
+captures source state, rebakes atlases or copies the archive. The input/catalog,
+packet and resource hashes remain admission gates.
+
+The native adapter preserves each crowd upload separately from render-only
+presentations. Resolved grass records are checked against the source diagnostic
+hash through one shared algorithm; selected endpoints additionally read actual
+GPU record prefixes and indirect command buffers before the next presentation.
+CPU recipe identity is reported separately from GPU readback. Source clock groups
+remain recorded, while native shaders consume explicit recorded time/camera data.
+The native mode retains strict image/count gates and makes no timing claim.
+
+The first full native history result remains [diagnostic red](../../specs/battle-performance/assets/02-preflight/raw-spool/README.md).

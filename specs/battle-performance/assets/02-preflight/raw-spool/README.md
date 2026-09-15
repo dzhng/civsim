@@ -1,0 +1,13 @@
+# Raw recorded-history admission
+
+[The report](report.json) records the first complete native replay of the existing corrected source archive. The strict image gate remains **red**; this checkpoint admits matching recorded inputs and measured work, not visual parity or performance.
+
+The shared decoder verifies the original packet and resource hashes. Source and native loaded appearance identities and generated terrain recipe identities matched. All 433 presentation boundaries matched camera, visible/shadow crowd tier counts, and the production grass diagnostic record hash. All six image endpoints also matched actual GPU indirect draw commands and active packed GPU record hashes. The publication sequence includes pending generation and completed ring replacements. Record hashes preserve the source's quantized diagnostic algorithm; packet/resource SHA256 is the byte-integrity check.
+
+The original archive remains read-only. This run wrote only native endpoint PNGs and compact diagnostics to a fresh ignored output directory. The report records image paths and hashes rather than duplicating the archive or its images. RGB MAE is measured in 0–255 channel codes. All six endpoints differ; aggregate counts do not establish equal shading, coverage, or primitive ordering. Fresh image review is pending separately.
+
+Reproduce using the native replay Vite config and the existing spool CLI's `replay-only` mode with `raw` after the archive argument. Prepared atlas assets are loaded, never baked. A sparse checkout can override `publicDir` in an ignored Vite config to reference the primary checkout's existing public assets. The complete argument owner and bounds remain in the [CLI](../../../../../apps/battle-perf-lab/scripts/spoolReplay.mjs).
+
+CPU verification passed 19 focused tests across packet decoding/resource rejection, production record hashing, recorded command control, alias scoping, crowd history, and mutable grass records. The narrow replay TypeScript check and coordinated ES build passed. The emitted-graph check proved a single publication provider shared transitively by spool, control, scene and public provider entries; it also executed the bundled publication/control boundary. Hardware completed with no browser or WebGPU errors. The source has no MSAA and this control uses one sample at the recorded 2880×1800 framebuffer.
+
+Review kept one packet/resource decoder and one production hash algorithm. GPU buffer diagnostics read the current owner and only the active prefix. A final queue drain now shares the replay deadline; it cannot leave the bounded CLI waiting indefinitely. No simulation, source renderer policy, expected image, or acceptance gate changed.

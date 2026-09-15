@@ -47,7 +47,7 @@ export async function createRawGrass(
     let capacity = Math.max(1, recordCount);
     let packed = buffer(
       capacity * 64,
-      GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
       records.length ? records : undefined,
     );
     const activeCount = buffer(
@@ -166,6 +166,9 @@ export async function createRawGrass(
     ]);
     return {
       commands,
+      get recordBuffer() {
+        return packed;
+      },
       get visible() {
         return visible;
       },
@@ -194,7 +197,7 @@ export async function createRawGrass(
           try {
             source = buffer(
               next.byteLength,
-              GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+              GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
               next,
             );
             created.push(source);

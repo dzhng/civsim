@@ -16,12 +16,18 @@ const providers = files.filter(name =>
 );
 assert.equal(providers.length, 1, 'one emitted publication provider');
 const provider = providers[0];
-for (const entry of ['control.mjs', 'scene.mjs', 'publications.mjs']) {
-  assert.ok(
-    code[entry]?.includes(`"./${provider}"`),
-    `${entry} must import the shared provider chunk`,
-  );
-}
+const reachable = (entry, seen = new Set()) => {
+  if (seen.has(entry)) return seen;
+  assert.ok(code[entry], `missing emitted module ${entry}`);
+  seen.add(entry);
+  for (const match of code[entry].matchAll(/from ["']\.\/([^"']+\.mjs)["']/g)) reachable(match[1], seen);
+  return seen;
+};
+const entries = ['control.mjs', 'scene.mjs', 'publications.mjs', 'spool.mjs'];
+for (const entry of entries)
+  assert.ok(reachable(entry).has(provider), `${entry} must reach the shared provider chunk`);
+const sceneModule = [...reachable('scene.mjs')].find(name => code[name].includes('apps/battle-perf-lab/src/grassField.ts'));
+assert.ok(sceneModule, 'actual native field is present in scene graph');
 const imports = entry => {
   const line = code[entry].split('\n').find(line => line.includes(`"./${provider}"`));
   return Object.fromEntries(
@@ -34,7 +40,7 @@ const imports = entry => {
       }),
   );
 };
-const sceneConstructor = code['scene.mjs'].match(
+const sceneConstructor = code[sceneModule].match(
   /#region apps\/battle-perf-lab\/src\/grassField\.ts[\s\S]*?\bnew\s+(\w+)\(/,
 )?.[1];
 const publicConstructor = code['publications.mjs'].match(/(\w+) as BattleGrassResidency/)?.[1];
@@ -43,7 +49,7 @@ assert.ok(
   'native field and public provider constructors are emitted',
 );
 assert.equal(
-  imports('scene.mjs')[sceneConstructor],
+  imports(sceneModule)[sceneConstructor],
   imports('publications.mjs')[publicConstructor],
   'native field constructs the public replay provider, not a separate sampler',
 );
@@ -130,7 +136,7 @@ try {
   console.log(
     JSON.stringify(
       {
-        entries: ['control.mjs', 'scene.mjs', 'publications.mjs'],
+        entries,
         provider,
         emittedModules: files.length,
         nativeFieldUsesPublicProvider: true,

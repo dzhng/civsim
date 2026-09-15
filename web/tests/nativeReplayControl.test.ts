@@ -81,8 +81,9 @@ function fixture(publicationCount: number) {
     },
     setVisibility: (v: unknown) => log.push(['visibility', v]),
     seatingHeightAt: (x: number, y: number) => x + y,
-    uploadCrowd: (instances: CrowdInstance[], c: unknown, time: number) =>
-      log.push(['crowd', structuredClone(instances), c, time]),
+    uploadCrowd: (instances: CrowdInstance[], c: unknown, time: number): void | Promise<void> => {
+      log.push(['crowd', structuredClone(instances), c, time]);
+    },
     uploadReadouts: async (...args: unknown[]) => {
       log.push(['readouts', ...args]);
     },
@@ -252,10 +253,10 @@ test('awaits asynchronous crowd upload before a later upload or presentation', a
   const original = f.scene.uploadCrowd;
   let release!: () => void;
   const gate = new Promise<void>(resolve => { release = resolve; });
-  f.scene.uploadCrowd = (async (...args: Parameters<typeof original>) => {
+  f.scene.uploadCrowd = async (...args: Parameters<typeof original>) => {
     await gate;
     return original(...args);
-  }) as typeof original;
+  };
   const control = await attach(f);
   try {
     const submitted = control.submit(frame([draw(5), { method: 'render', args: [] }]), f.publications);

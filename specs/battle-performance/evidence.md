@@ -43,3 +43,5 @@ The independent [canonical worker consumer run](assets/03a-publication/canonical
 The [corrected vgpu map-A control](assets/02-live/native-query-control/vgpu-fixed.json) passes enabled/disabled readiness, query operations and submission identity on fixed1356d6a7 builds. Integrated19864817; root120 lab tests pass. Cross-mode one-pixel difference retained; no timing or visual acceptance claim.
 
 [Source image-sharing tactical control](assets/03b-image-residency/tactical-control/README.md): actual60→3 GPU images,95% logical payload reduction; independent visual tie, cross-launch pixel differences retained. The material scene fails the same stale AO-oracle access on baseline and candidate; no full material or performance acceptance yet.
+
+The [typed observation-source rerun](assets/03a-publication/canonical-observation-seam.json) passes309 ticks with zero mismatches and is [identical to the prior consumer evidence](assets/03a-publication/canonical-seam-comparison.json) for both arms, identity and resource accounting. The Game-shaped proxy is deleted; unchanged-tick reads avoid raw-view construction. Actual browser worker scheduling remains in progress.

@@ -88,54 +88,26 @@ remain separate and unwaived.
 
 ## Consumer verification
 
-Byte parity is not consumer parity, so three checks in
-`apps/battle-perf-lab/simulation/publicationConsumer.test.ts` run the existing
-`BattleActionAdapter` over published buffers, with the same adapter reading the live
-`Game` as the oracle. A lab-only `snapshotReader.ts` presents one held snapshot in the
-adapter's current `Game`/`Memory` pointer shape; every `*_ptr` resolves through the
-published layout, and it is deleted with these runners when the real observation seam
-lands. The immutable metadata the adapter needs at construction (class specs, loosing
-duration) now comes from one owner, `presentationMetadata`, which the direct and worker
-identities already reported.
+`BattleActionAdapter` accepts the typed observation source owned by `battleViews.ts`.
+The live producer reads current WASM views; the lab's `publishedObservations.ts` reads
+one held publication through the shared layout reader. Metadata parsing/validation has
+one owner. The former Game/Memory-shaped proxy is deleted; no compatibility overload
+or alternate action timeline remains.
 
-The canonical battle prepares 88 ticks with the unchanged 30-tick calls, then publishes
-ticks 88–95 one tick at a time. At every tick the adapter over the published buffer
-returned observations and facings identical to the adapter over the live `Game`, with
-matching tick, state hash, soldier count, `unit_info` and projectile records; real
-`guardedFacing` transitions occur inside that window. Two small spawned fixture battles
-cover what an approach window cannot reach: real archer releases drive the real
-`ActionTimeline` to its `bow_release` clip through published observations, and a pike
-soldier's hedge→sidearm weapon switch, posture change, fighting flag and release TTL
-decode identically through the publication, including the `sidearm` appearance switch.
-Repeated reads and a republished identical tick return the same observations instance;
-a rewound tick re-derives. Returning the credit leaves the reader holding nothing, its
-next read fails explicitly, the returned buffer transfers and detaches, and the
-consumer's last presentation survives it — today's adapter already copies out and
-retains no view into the publication buffer. The producer then reuses the credited
-buffer and the consumer recovers. Flipping one posture bit in a published buffer fails
-all three checks.
+The source exposes a cheap completed-tick count separately from raw view construction.
+The adapter can therefore reuse an unchanged tick without constructing discarded typed
+arrays. Growth, shrink, rewind and release still invalidate or reject the appropriate
+read. Retained presentation owns its copies; no typed view may survive return of the
+publication buffer.
 
-Run from the repository root with the lab config:
-
-```sh
-web/node_modules/.bin/vitest run --config apps/battle-perf-lab/vitest.config.mts simulation/
-```
-
-The full lab suite is 116 tests in about 1.5 s. (Sparse worktrees need the placeholder
-soldier fixtures and the soldier card manifest checked out; the adapter imports both.)
-
-These are still lab checks of the publication layout. They deliberately avoid the
-9000-tick preparation, so contact-only branches are pinned here by fixture battles and
-controlled WASM boundary samples, the idiom the existing adapter tests already use; the
-canonical window and the real transport belong to the heavy run below. No worker,
-browser, renderer, HUD widget, camera, timing or throughput claim is made here, and
-`BattleCrowd`, its interpolation endpoints and the HUD bridge remain unverified.
-The reader is not the production seam: integration still has to separate raw observation
-reading from WASM pointer ownership inside the adapter itself.
+Focused tests exercise the actual adapter on both sources, real release transitions
+through `ActionTimeline`, posture/weapon changes and storage ownership. The canonical
+entry below proves transport and consumer parity together. Production worker scheduling,
+HUD/input, interpolation and long-window playback remain later integration gates.
 
 ## Canonical window through the worker
 
-[The clean root verification](canonical-consumer.json) passes all 309 completed ticks
+[The typed-source root verification](canonical-observation-seam.json) passes all 309 completed ticks
 from 9000 through 9308 with zero mismatches. It exercises the actual single-credit
 worker and existing `BattleActionAdapter`, with a direct `Game` as the oracle in a
 separate serial arm. Worker identity metadata, raw observations, render facings,
@@ -150,8 +122,10 @@ application ownership bounds, not physical memory measurements.
 The heavy entry is `apps/battle-perf-lab/simulation/publicationConsumer.canonical.ts`,
 run through `vitest.canonical.config.mts` with an absolute
 `PUBLICATION_CANONICAL_REPORT` output path. It stays outside the fast default suite.
-The earlier implementation run had a report collision and was discarded; the linked
-artifact is the independent serial rerun of integrated commit `14c97a68`.
+The earlier implementation run had a report collision and was discarded; the earlier clean
+artifact remains retained as `canonical-consumer.json`. The typed-source rerun at
+`235886dc` matches its worker rows, direct rows, identity and resource results exactly;
+[the comparison](canonical-seam-comparison.json) records that cross-version check.
 
 This proves CPU publication consumer correctness. The command remains idempotent;
 browser input/HUD/rendering, long-window `ActionTimeline` playback, interpolation and

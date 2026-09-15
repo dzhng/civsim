@@ -12,3 +12,10 @@ checkout, Chrome hardware GPU, 1440×900 CSS at DPR 2. A private Vite dependency
 cache avoids shared-worktree dependency churn. Shared production assets and
 verified offline atlas artifacts are read-only. These are functional controls
 under shared host load, not performance rankings; native GPU timing is pending.
+
+At `d934c150`, the corrected raw Menu cancellation/export flow passes all seven
+checks. Its full five-minute Menu run passes all ten checks, including canonical
+contact hash `9928381812590497427`, live simulation, all camera phases/extremes,
+new primary submissions, matching run clock/interval totals, visible result
+actions, and full JSON export. Both browser runs report zero page errors. The
+complete raw measurement is retained without a performance acceptance claim.

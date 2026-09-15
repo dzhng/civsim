@@ -176,8 +176,8 @@ prevents dry-side normals from tilting wet faces during morph. The full-source
 16 km overview refuses its initial allocation; 32 km preserves source coast detail
 and admits a coastal tile within 128 MiB. See [adoption evidence](../assets/slice-08/adoption/README.md).
 
-The production application still uses the legacy renderer pending the planned
-cutover. Source-scale shore steps and angular bank faces remain open; functional
+The production application now consumes this terrain through the shared physical
+world. Source-scale shore steps and angular bank faces remain open; functional
 adoption does not close this slice's visual acceptance.
 
 ### Integrated bounded residency

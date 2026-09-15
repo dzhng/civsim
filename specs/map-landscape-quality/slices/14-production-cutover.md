@@ -1,6 +1,6 @@
 # 14 — Production cutover and owner retirement
 
-Status: in progress; first production adapter checkpoint. Dependencies: [11](11-campaign-geographic-layers.md), [12](12-campaign-entities-labels.md), [13](13-battle-adoption.md).
+Status: adapter adopted; broader journey/lifecycle and hardware acceptance in progress. Dependencies: [11](11-campaign-geographic-layers.md), [12](12-campaign-entities-labels.md), [13](13-battle-adoption.md).
 
 ## Contract and owner
 
@@ -28,9 +28,9 @@ renderer adapter or permanent backend selector survives the cutover.
 
 ## Runnable checkpoint
 
-The normal campaign entry point now supports pan/zoom, movement, selection, fog/political views, save/load, encounters and return from battle on the shared world.
+The normal campaign entry uses the shared world. Controlled pan/zoom, selection, fog/political views and save/load verification pass. Encounter handoff and return from battle remain required acceptance checks; current handoff diagnosis reaches full soldier upload but has not completed presented-frame settlement within the existing guard.
 
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+Use the existing scene runner and snapshot primitive to verify the remaining journeys.
 
 ## Verification and review
 

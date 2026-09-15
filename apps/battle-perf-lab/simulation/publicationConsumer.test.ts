@@ -175,7 +175,7 @@ test("a published release transition reaches the real action timeline", async ()
   }
 });
 
-test("published weapon, posture and release transitions decode exactly, and unchanged ticks reuse", () => {
+test("published transitions decode exactly; only an unchanged held publication is reused", () => {
   const game = new Game(37);
   const run = { game, memory: wasm.memory };
   const { publication, live, published, publish } = consumer(run);
@@ -251,6 +251,22 @@ test("published weapon, posture and release transitions decode exactly, and unch
     // The producer reuses the credited buffer and the consumer recovers.
     publication.adopt(snapshot(run, 2, credit));
     expect(published.read(2).observations).toEqual(live.read(2).observations);
+
+    // Reuse follows the count of the publication actually held, not the observations
+    // already derived: a shorter publication of the same tick shrinks the presentation.
+    const shorter = snapshot(run, 2, new ArrayBuffer(CAPACITY));
+    game.spawn_class(4, 0, 0, 1, 1, 3, 0);
+    publication.adopt(snapshot(run, 2, new ArrayBuffer(CAPACITY)));
+    expect(published.read(2).observations).toHaveLength(2);
+    publication.adopt(shorter);
+    const shrunk = published.read(2);
+    expect(shrunk.observations).toHaveLength(1);
+    expect(shrunk.facings).toHaveLength(1);
+
+    // Returning the credit ends ownership for the tick just read too: the consumer fails
+    // explicitly instead of answering that tick from what it derived while it held one.
+    publication.release();
+    expect(() => published.read(2)).toThrow(/publication buffer was returned/);
   } finally {
     game.free();
   }

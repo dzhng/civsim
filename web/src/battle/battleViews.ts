@@ -38,11 +38,11 @@ export interface BattleObservationMetadata {
   readonly releaseDuration: number;
 }
 
-/** The raw soldier records of ONE completed tick, every array from that same tick.
+/** The raw soldier records of ONE completed tick, every array from that same tick and
+ * sized by that tick's soldier count, which the source answers separately.
  * The views are borrowed for the read that returned them: whoever produced them may
  * rewrite, relocate or detach the storage afterwards, so copy anything you keep. */
 export interface RawBattleObservation {
-  readonly soldiers: number;
   readonly unitInfoStride: number;
   readonly facings: Float32Array;
   readonly motorTravel: Float64Array;
@@ -59,10 +59,14 @@ export interface RawBattleObservation {
 }
 
 /** Where completed-tick observations come from, so reading them is not the same
- * concern as owning the WASM they were computed in. A source that holds no completed
- * tick throws from `raw()` rather than answering with stale or detached records. */
+ * concern as owning the WASM they were computed in. `soldiers()` is the completed tick's
+ * count read straight from the header its producer already owns, so a consumer can judge
+ * what changed before paying to materialise records; `raw()` then answers that same
+ * completed tick. A source that holds no completed tick throws from either rather than
+ * answering with stale or detached records. */
 export interface BattleObservationSource {
   readonly metadata: BattleObservationMetadata;
+  soldiers(): number;
   raw(): RawBattleObservation;
 }
 
@@ -87,10 +91,10 @@ export function createLiveObservationSource(
     new Uint8Array(memory.buffer, pointer, soldiers);
   return {
     metadata: battleObservationMetadata(game.class_specs(), game.loosing_duration()),
+    soldiers: () => game.soldier_count(),
     raw() {
       const soldiers = game.soldier_count();
       return {
-        soldiers,
         unitInfoStride: game.unit_info_stride(),
         facings: views.facings(),
         motorTravel: views.motorTravel(),

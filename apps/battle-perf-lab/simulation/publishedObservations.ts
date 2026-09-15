@@ -32,10 +32,10 @@ export function createPublishedObservationSource(
   };
   return {
     metadata,
+    soldiers: () => current().soldiers,
     raw() {
       const published = current();
       return {
-        soldiers: published.soldiers,
         unitInfoStride: published.stride,
         facings: field(published, "facings", Float32Array),
         motorTravel: field(published, "motor_travel", Float64Array),

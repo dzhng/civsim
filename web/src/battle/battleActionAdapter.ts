@@ -32,8 +32,8 @@ export class BattleActionAdapter {
   }
 
   read(tick: number) {
-    const raw = this.source.raw();
-    const count = raw.soldiers;
+    // The count alone decides reuse, so an unchanged tick never materialises raw records.
+    const count = this.source.soldiers();
     if (tick < this.tick || count < this.observations.length) this.reset();
     if (tick === this.tick && count === this.observations.length)
       return { observations: this.observations, facings: this.facings };
@@ -50,7 +50,7 @@ export class BattleActionAdapter {
       units,
       unitInfo: info,
       unitInfoStride: stride,
-    } = raw;
+    } = this.source.raw();
     const elapsed = (tick - this.tick) * ACTION_TICK_SECONDS;
     const previousCount = this.motorTravel.length / MOTOR_TRAVEL.stride;
     const observations: ActionObservation[] = [];

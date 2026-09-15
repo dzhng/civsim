@@ -318,6 +318,46 @@ test("observation histories survive append and memory growth, but reset on rewin
   }
 });
 
+test("an unchanged tick is answered without materialising the tick's raw records", () => {
+  const game = new Game(41);
+  try {
+    game.spawn_class(0, 0, 0, 2, 1, 0, 0);
+    const live = createLiveObservationSource(game, wasm.memory);
+    let materialised = 0;
+    // The real producer, with only its record construction counted: what a repeated read
+    // must avoid is building this tick's typed-array views over the soldier arrays again.
+    const adapter = new BattleActionAdapter({
+      ...live,
+      raw: () => {
+        materialised++;
+        return live.raw();
+      },
+    });
+    const first = adapter.read(7);
+    expect(first.observations).toHaveLength(2);
+    expect(materialised).toBe(1);
+    const again = adapter.read(7);
+    expect(materialised).toBe(1);
+    expect(again.observations).toBe(first.observations);
+    expect(again.facings).toBe(first.facings);
+    // Growth inside the same tick is still real work: the new soldier has to be derived.
+    game.spawn_class(4, 0, 0, 1, 1, 0, 0);
+    const grown = adapter.read(7);
+    expect(materialised).toBe(2);
+    expect(grown.observations).toHaveLength(3);
+    expect(grown.observations[0]).toBe(first.observations[0]);
+    expect(adapter.read(7).observations).toBe(grown.observations);
+    expect(materialised).toBe(2);
+    // A rewind re-derives from a cleared baseline rather than reusing a later tick.
+    const rewound = adapter.read(6);
+    expect(materialised).toBe(3);
+    expect(rewound.observations[0]).not.toBe(grown.observations[0]);
+    expect(rewound.observations[0].speedMps).toBe(0);
+  } finally {
+    game.free();
+  }
+});
+
 test("motion retains forward and lateral signs in the presented facing basis", () => {
   const game = new Game(53);
   try {

@@ -1,5 +1,5 @@
 import { chromium } from "../../../../web/node_modules/playwright/index.mjs";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { GPU_HARDWARE_FLAGS } from "../../../../web/renderer-probe-lib.mjs";
 
 // Requires the coordinated GPU slot; numerical correctness, not a timing run.
@@ -32,10 +32,12 @@ try {
     passed: reports.every((r) => r.passed && !r.pageErrors.length && !r.warnings.length),
     reports,
   };
-  await writeFile(
-    new URL("./evidence/post.json", import.meta.url),
-    JSON.stringify(report, null, 2) + "\n",
+  const directory = new URL(
+    "../../../../specs/battle-performance/assets/02-raw/frame-lifecycle/",
+    import.meta.url,
   );
+  await mkdir(directory, { recursive: true });
+  await writeFile(new URL("post.json", directory), JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report, null, 2));
   if (!report.passed) process.exitCode = 1;
 } finally {

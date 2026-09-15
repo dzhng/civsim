@@ -8,7 +8,7 @@ import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer
 
 export interface PostAdapter {
   setGrade(grade: BattlePostGradeUniforms, exposure: number): void;
-  render(bloom?: boolean): Promise<GPUTexture>;
+  render(bloom?: boolean, enabled?: boolean): Promise<GPUTexture>;
   dispose(): void;
 }
 export type PostFactory = (
@@ -107,6 +107,9 @@ export async function runPostControl(factory: PostFactory, backend: string) {
     type: THREE.HalfFloatType,
     depthBuffer: false,
   });
+  const directTexels = texels.slice();
+  for (let i = 3; i < directTexels.length; i += 4)
+    directTexels[i] = THREE.DataUtils.toHalfFloat((Math.floor(i / 4) % WIDTH) / (WIDTH - 1));
   const results = [];
   try {
     for (const env of Object.values(CIVSIM_ENVIRONMENTS)) {
@@ -125,12 +128,29 @@ export async function runPostControl(factory: PostFactory, backend: string) {
           const exposure = env.physical.exposure * (changed ? 0.67 : 1);
           renderer.toneMappingExposure = exposure;
           raw.setGrade(control.stats().grade.uniforms, exposure);
-          for (const bloom of [false, true, false]) {
+          const modes = [false, true, false].map((bloom) => ({ bloom, enabled: true }));
+          if (backend === "raw") modes.push({ bloom: true, enabled: false });
+          for (const { bloom, enabled } of modes) {
             control.setBloomEnabled(bloom);
-            const output = await raw.render(bloom);
-            renderer.setRenderTarget(reference);
+            control.enabled = enabled;
+            if (!enabled) {
+              device.queue.writeTexture(
+                { texture: input },
+                directTexels,
+                { bytesPerRow: WIDTH * 8 },
+                [WIDTH, HEIGHT],
+              );
+              dataTexture.image.data = directTexels;
+              dataTexture.needsUpdate = true;
+            }
+            const output = await raw.render(bloom, enabled);
+            // Direct source rendering needs the public output target to retain its
+            // AgX/sRGB output pass. An ordinary render target deliberately omits it.
+            if (enabled) renderer.setRenderTarget(reference);
+            else renderer.setOutputRenderTarget(reference);
             control.render(scene, quad.camera);
             renderer.setRenderTarget(null);
+            renderer.setOutputRenderTarget(null);
             // Pinned Three preserves 256-byte row padding in public readback.
             const expectedRaw = (await renderer.readRenderTargetPixelsAsync(
               reference,
@@ -144,8 +164,17 @@ export async function runPostControl(factory: PostFactory, backend: string) {
               preset: env.id,
               changed,
               bloom,
+              enabled,
               ...compare(await readHdrTexture(device, output), expected),
             });
+            if (!enabled) {
+              device.queue.writeTexture({ texture: input }, texels, { bytesPerRow: WIDTH * 8 }, [
+                WIDTH,
+                HEIGHT,
+              ]);
+              dataTexture.image.data = texels;
+              dataTexture.needsUpdate = true;
+            }
           }
         }
       } finally {

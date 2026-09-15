@@ -19,14 +19,18 @@ Three's public readback returns GPU-aligned rows, which the harness strips befor
 comparison. Recreating the pass across presets reuses the same borrowed input,
 checking that disposal preserves caller-owned resources.
 
-From the repository root, start `bun run --cwd web vite --config
-vite.postcheck.config.ts --host 127.0.0.1 --port 5188`, then obtain the coordinated
+The [native frame lifecycle extension](../../../../specs/battle-performance/assets/02-raw/frame-lifecycle/README.md)
+adds direct-render bypass checks with fractional alpha while retaining these opaque
+post-chain cases. Its verifier records new evidence under the spec assets; the
+older result above remains historical.
+
+From the repository root, start `web/node_modules/.bin/vite --config
+apps/battle-perf-lab/candidates/raw-post/post.vite.config.mts --host 127.0.0.1 --port 5188`, then obtain the coordinated
 GPU slot before running `node apps/battle-perf-lab/candidates/raw-post/verify.mjs`.
 The factory adapter keeps one fixture/control owner for all three runtimes; the shared
 shader source is used only by candidates, leaving Three independent. The standalone
 config and Three control remain lab-only. The verifier closes its
 browser even when an assertion fails.
-
 
 The adapter returns a completed candidate output texture for shared readback. Each
 backend owns its output and submission API: vgpu uses its public frame/target

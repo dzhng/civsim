@@ -25,7 +25,13 @@ const factories: Record<string, PostFactory> = {
     };
   },
 };
-function native(factory: typeof createTypegpuPost): PostFactory {
+function native(
+  factory: (...args: Parameters<typeof createTypegpuPost>) => Promise<{
+    setGrade: RawBattlePost["setGrade"];
+    encode: RawBattlePost["encode"];
+    dispose(): void;
+  }>,
+): PostFactory {
   return async (device, input, width, height, format) => {
     const post = await factory(device, input, width, height, format);
     const output = device.createTexture({
@@ -35,9 +41,9 @@ function native(factory: typeof createTypegpuPost): PostFactory {
     });
     return {
       setGrade: (grade, exposure) => post.setGrade(grade, exposure),
-      async render(bloom = true) {
+      async render(bloom = true, enabled = true) {
         const encoder = device.createCommandEncoder();
-        post.encode(encoder, output.createView(), bloom);
+        post.encode(encoder, output.createView(), bloom, enabled);
         device.queue.submit([encoder.finish()]);
         return output;
       },

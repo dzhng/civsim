@@ -12,6 +12,20 @@ Slice variable: **Complete production behavior on the new rendering owner.**
 
 Connect the complete renderer to campaign scene input, graphics settings and lifecycle. Make the landscape preview a thin production-world fixture. Delete raw campaign material/world passes after their final callers migrate, remove campaign mountain-prop placement, and retire the old relief/lighting route. Preserve CPU map data, road geometry, territory calculation and label layout if still useful. Audit other raw renderer consumers before deleting shared infrastructure. Do not retain a runtime backend flag, compatibility wrapper, second terrain store or fallback canvas. Existing save and battle setup formats stay unchanged.
 
+## Adapter boundary
+
+Preserve the application-facing draw and camera semantics of
+[the campaign renderer](../../../web/src/campaign/renderer.ts). The scene prepares
+the camera before placing cards; projection must therefore describe the pose that
+the next draw will use. Continue consuming the existing entity frame, scenery,
+cart and label policy owners. Move the proven terrain scheduling out of the lab
+route into this production composition, then make the route consume it.
+
+Delete each old GPU owner after its last real or lab consumer migrates. Audit raw
+model/standard and battle consumers before deleting shared raw infrastructure;
+campaign cutover alone does not authorize breaking their active routes. No copied
+renderer adapter or permanent backend selector survives the cutover.
+
 ## Runnable checkpoint
 
 The normal campaign entry point now supports pan/zoom, movement, selection, fog/political views, save/load, encounters and return from battle on the shared world.

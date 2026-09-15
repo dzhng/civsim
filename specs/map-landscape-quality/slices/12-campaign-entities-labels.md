@@ -1,6 +1,6 @@
 # 12 — Campaign entities, labels and selection
 
-Status: pending. Dependencies: [11](11-campaign-geographic-layers.md).
+Status: in progress; shared standards checkpoint verified, remaining passes below. Dependencies: [11](11-campaign-geographic-layers.md).
 
 ## Contract and owner
 
@@ -11,6 +11,30 @@ Slice variable: **Entity grounding, text hierarchy and interactive selection.**
 ## Work
 
 Seat cities, representative soldiers, army standards, carts and selection on the same presented surface as roads. Port screen text/markers without discarding the established label hierarchy or DOM card behavior. Use the canonical camera for screen anchors and rendered-surface rays for interaction. Keep fog hiding, faction/allegiance treatments, selected entity hierarchy and city labels readable under taller relief. Preserve troop model/animation ownership rather than building a second crowd pipeline. Add disposal and scene-entry/exit paths.
+
+## Remaining passes and decision boundaries
+
+Complete these in order, with a focused artifact at each boundary. They are parts
+of this migration, not new frameworks. Landscape art stays frozen throughout.
+
+| Pass | One question and seam | Acceptance artifact |
+|---|---|---|
+| Entity input and grounding | Can live campaign city, army and cart inputs use existing physical model layers and the presented surface? Keep campaign frame construction in its existing owner; extend the shared crowd size input rather than making a campaign crowd renderer. | Actual city feet at final scale, representative soldiers and cart contact before/after a tile replacement; fog and selected state update without stale instances. Include Perge/Attalea, Cyrene/Apollonia and Scodra. |
+| Label projection and layout | Can the existing CPU atlas and collision policy use the same raised anchors as the rendered entities? Give layout access to canonical projection; render its accepted glyph quads in the existing world. | Raised city and army labels at DPR1/DPR2 with DOM card blockers, sea-name fitting and faction hierarchy preserved. Compare the actual accepted ink rectangles with drawn glyphs after resize and tile replacement. |
+| Interaction and lifecycle | Do commands still target the visible entities with the complete presentation attached? Keep proximity and command policy in the application; use presented-surface rays for ground coordinates. | Independent clicks on visible raised markers, selection/cards after fog changes, scene exit/re-entry and return from battle. No extra canvas or surviving listeners/resources. |
+
+The source seams are the existing [campaign frame adapter](../../../web/src/campaign/renderer.ts),
+[CPU label layout](../../../packages/game-renderer/src/campaign/labelLayout.ts),
+[city asset](../../../packages/game-renderer/src/models/campaign/campaignEntityModels.ts),
+and [physical crowd layer](../../../packages/photoreal-renderer/src/battle/crowdLayer.ts).
+Inspect their current contracts before changing them. Label data types must not
+remain owned by a retired raw GPU pass. Preserve the established text hierarchy,
+water fitting and card occupancy; the composition fixture's simple DOM labels are
+not their replacement.
+
+Each pass uses the comparison and final unprimed critique below. A failure in
+foot contact returns to grounding; a failure in layout returns to projection/layout.
+Do not hide either with terrain flattening, a new UI style or a second camera.
 
 ## Runnable checkpoint
 

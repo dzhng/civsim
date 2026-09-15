@@ -1,6 +1,6 @@
 # 11 — Campaign roads, ownership and fog
 
-Status: pending. Dependencies: [02](02-campaign-composition-proof.md), [03](03-bounded-terrain.md), [08](08-water-boundaries.md), [10](10-environment.md).
+Status: in progress; live ownership/visibility checkpoint verified. Dependencies: [02](02-campaign-composition-proof.md), [03](03-bounded-terrain.md), [08](08-water-boundaries.md), [10](10-environment.md).
 
 ## Contract and owner
 
@@ -49,3 +49,18 @@ This does not complete 11: full-region road/sea-lane/border inputs, affected-reg
 re-draping/culling, composed real-map coverage and atmosphere remain. The old
 composition fixture's constant tint is retained until its consumers move to live
 ownership at production cutover; it is not the production faction model.
+
+## Next bounded pass: live geographic lines
+
+Reuse the existing [CPU geometry builder](../../../packages/game-renderer/src/campaign/roadGeometry.ts)
+and campaign border construction. The world receives their geometry and geographic
+identity; it does not recalculate connectivity or ownership. Replace resident line
+inputs when campaign state changes, and seat draped vertices on the same presented
+revision as terrain. Surface admission only re-drapes intersecting line regions;
+visibility changes retain the existing campaign query as policy.
+
+Freeze terrain, water response and entity art. The first artifact must include an
+actual road junction, coastal sea lane and ownership boundary, then replace both
+geographic inputs and an intersecting terrain tile. Check joins, clipping, depth,
+fog and disposal before expanding to full-map culling/performance. Keep this pass
+separate from label projection and city-foot grounding in 12.

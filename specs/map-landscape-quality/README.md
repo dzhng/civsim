@@ -6,7 +6,7 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Source-conforming terrain now runs through the actual builder/worker. Packed attributes,16 nearby detail tiles and a32km overview fit129,293,648B peak reservation; complete hardware traversal passes16.67ms p95 and warm admission, with stable returns and DPR2. Next integrate geographic inputs `8dcffbb6`, authored battle material `035a353a`, and shared standards `7c60969a`, preserving the mesh-owned shore signal and removed external source-buffer argument. Then implement09 campaign depth/surf from separate coverage and signed shore distance. Geometry outline steps and bank faceting remain open for composed review. Prioritize09 and composed10 → remaining11/12 alongside13 →14 →15. Read [architecture](architecture.md) and [validation](validation.md), and update this handoff before ending a pass.
+Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Source-conforming terrain now runs through the actual builder/worker. Packed attributes,16 nearby detail tiles and a32km overview fit129,293,648B peak reservation; complete hardware traversal passes16.67ms p95 and warm admission, with stable returns and DPR2. Live geographic ownership/visibility, authored battle slope response, and shared standard instances are integrated at `31cb9a00`, `247546af`, and `56780095`. All 497 CPU tests, typecheck, and merged composition/geography/material/standard GPU controls pass. Continue09 campaign depth/surf from separate coverage and signed shore distance; its focused implementation and captures are underway in the water-response worktree. Preserve the mesh-owned shore signal and removed external source-buffer argument. Geometry outline steps and bank faceting remain open for composed review. Prioritize09 and composed10 → remaining11/12 alongside13 →14 →15. Read [architecture](architecture.md) and [validation](validation.md), and update this handoff before ending a pass.
 
 The user has authorized implementation, renderer migration, refactoring and as many reversible spikes as useful. Make these decisions without permission questions. No compatibility backend or save migration is requested. Preserve gameplay and existing save formats; this is a presentation change. Human review is a chance to steer, not a wait for approval.
 
@@ -59,6 +59,7 @@ Production acceptance requires campaign interaction, overlay depth, labels, save
 - [Draft synthesis and fog audit](drafting.md): independent alternatives and decisions.
 - [Reference image](assets/landscape-reference.png), [current Alpine spike](assets/spikes/current-alps.png), [current Italian spike](assets/spikes/current-italy.png).
 - [Spike verification](verification.md): measured results and outstanding visual defects.
+- [Merged presentation controls](assets/integration/geography-battle-standards/README.md): integration evidence for the current ownership, battle-material and standard checkpoints.
 - [Superseded exploration](exploration.md): historical discoveries; this README owns the next action.
 
 After all slices ship, use close-spec to archive the ladder as durable rationale. Do not mark the feature complete merely because the spec or regional spike is complete.

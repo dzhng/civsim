@@ -37,6 +37,22 @@ Content-addressed files are written before the catalog switches, and a failed
 appearance prevents that switch while preserving a failure report. Selected-class
 runs do not claim that a full catalog exists or has been verified.
 
+Each appearance has a two-minute deadline covering input hashing, baking, disk
+publication and loader verification. Timeout aborts that appearance, closes the
+authoring browser and stops the sequence; aborted work cannot begin another write,
+and a late completion cannot switch the catalog.
+Fresh writes are charged against a 400 MiB run quota, including temporary output,
+with 4 MiB reserved for failure evidence. Quota exhaustion stops the run before
+replacing the catalog. Only this run's uniquely named temporary files are cleaned
+up; prior content-addressed assets remain untouched. These limits can be supplied
+explicitly with `--timeout-ms` and `--max-output-mib`.
+
+Full-catalog GPU residency is the sum of the complete property mip payloads.
+Loading appearances sequentially bounds preparation memory; it does not remove
+that full-catalog GPU residency cost. The report records selected appearance count, decoded bytes and charged
+fresh output separately. Previously written versions can occupy additional disk
+space because this tool does not garbage-collect authored assets.
+
 `loadImpostorAtlas` is the shared runtime path for all three candidate backends.
 It fetches compressed bytes, bounds decompression to the exact expected size,
 checks both identities and exposes mip views into one payload buffer. Runtime

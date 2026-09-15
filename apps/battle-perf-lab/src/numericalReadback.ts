@@ -82,3 +82,19 @@ export function unpackRgba16fRows(raw: Uint16Array, width: number, height: numbe
     decodeFloat16(raw[Math.floor(i / (width * 4)) * stride + (i % (width * 4))]),
   );
 }
+
+export async function readU32Buffer(device: GPUDevice, source: GPUBuffer) {
+  const b = device.createBuffer({
+    size: source.size,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  try {
+    const e = device.createCommandEncoder();
+    e.copyBufferToBuffer(source, 0, b, 0, source.size);
+    device.queue.submit([e.finish()]);
+    await b.mapAsync(GPUMapMode.READ);
+    return new Uint32Array(b.getMappedRange().slice(0));
+  } finally {
+    b.destroy();
+  }
+}

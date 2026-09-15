@@ -21,8 +21,8 @@ struct GrassParams {
 struct GrassVertex { world:vec3f,normal:vec3f,albedo:vec3f,lightWeights:vec2f };
 `;
 
-export const grassRoutingWGSL = `
-fn grassTier(record:GrassRecord,p:GrassParams)->i32 {
+export const grassFunctions = {
+  grassTier: `(record:GrassRecord,p:GrassParams)->i32 {
  let dist=length(p.anchor-record.d0.xy);
  let delta=record.d0.xy-p.maskCenter;
  let mask=mix(1.0,step(p.maskRadiusSq,dot(delta,delta)),p.maskEnable);
@@ -41,11 +41,8 @@ fn grassTier(record:GrassRecord,p:GrassParams)->i32 {
   if(dist<farEnd){return 2;}
  }
  return -1;
-}
-`;
-
-export const grassVertexWGSL = `
-fn grassVertex(record:GrassRecord,local:vec3f,p:GrassParams,eye:vec3f,view:mat4x4f)->GrassVertex {
+}`,
+  grassVertex: `(record:GrassRecord,local:vec3f,p:GrassParams,eye:vec3f,view:mat4x4f)->GrassVertex {
  let d0=record.d0;let d1=record.d1;let d2=record.d2;let d3=record.d3;
  var base=d0.xyz;
  let eyeDist=length(p.anchor-base.xy);
@@ -121,16 +118,20 @@ fn grassVertex(record:GrassRecord,local:vec3f,p:GrassParams,eye:vec3f,view:mat4x
  let albedo=clamp(mix(sheen,${rgb(MEADOW.blade.ringMeadow)},farSoft*p.survivor),vec3f(0),vec3f(1));
  let falloff=1.0-smoothstep(p.nearEnd,p.midEnd,length(eye.xy-base.xy));
  return GrassVertex(world,normal,albedo,vec2f(tipWeight*heightAo*transNear*edgeSink*falloff,clamp(flash*0.24,0.0,0.22)));
-}
-fn grassLinear(display:vec3f)->vec3f {
+}`,
+  grassLinear: `(display:vec3f)->vec3f {
  return select(pow(display*0.9478672986+vec3f(0.0521327014),vec3f(2.4)),display*0.0773993808,display<=vec3f(0.04045));
-}
-fn grassEmissive(normal:vec3f,world:vec3f,weights:vec2f,p:GrassParams,eye:vec3f)->vec3f {
+}`,
+  grassEmissive: `(normal:vec3f,world:vec3f,weights:vec2f,p:GrassParams,eye:vec3f)->vec3f {
  let viewDir=normalize(eye-world);let sun=normalize(p.sunDir);
  let backLight=clamp(dot(viewDir,-sun),0.0,1.0);
  let fresnel=pow(1.0-clamp(dot(normalize(normal),viewDir),0.0,1.0),4.2);
  let rim=smoothstep(0.05,0.85,backLight)*fresnel*weights.x*p.rim;
  let subsurface=pow(backLight,3.2)*pow(clamp(1.0-abs(dot(normalize(normal),sun)),0.0,1.0),2.2)*weights.x*p.subsurface;
  return grassLinear(${rgb(MEADOW.blade.trans)}*clamp(rim+subsurface,0.0,1.25))+grassLinear(${rgb(MEADOW.blade.sheen)}*weights.y);
-}
-`;
+}`,
+};
+export const grassRoutingWGSL = `fn grassTier${grassFunctions.grassTier}`;
+export const grassVertexWGSL = ["grassVertex", "grassLinear", "grassEmissive"]
+  .map((name) => `fn ${name}${grassFunctions[name as keyof typeof grassFunctions]}`)
+  .join("\n");

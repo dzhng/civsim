@@ -23,27 +23,16 @@ import {
   type Camera3DParams,
 } from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
-import { createRawEnvironment } from "./environment";
-import { createRawGrassField } from "./grassField";
+import { createGrassBackendControl } from "../grassBackendControl";
+import { grassGeometries } from "../grassData";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 const W = 480,
   H = 320;
-async function words(device: GPUDevice, source: GPUBuffer) {
-  const b = device.createBuffer({
-    size: source.size,
-    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-  });
-  try {
-    const e = device.createCommandEncoder();
-    e.copyBufferToBuffer(source, 0, b, 0, source.size);
-    device.queue.submit([e.finish()]);
-    await b.mapAsync(GPUMapMode.READ);
-    return new Uint32Array(b.getMappedRange().slice(0));
-  } finally {
-    b.destroy();
-  }
-}
 async function run() {
+  const search = new URLSearchParams(location.search),
+    kind = search.get("backend") ?? "raw";
+  if (kind !== "raw" && kind !== "typegpu" && kind !== "vgpu") throw Error("Unknown grass backend");
+  const samples: 1 | 4 = search.get("samples") === "4" ? 4 : 1;
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) throw Error("No WebGPU");
   const device = await adapter.requestDevice();
@@ -70,47 +59,29 @@ async function run() {
     const source = new BattleGrassField(world.scene, profile, sourceTransition, wind);
     release.push(() => source.dispose());
     source.setSunDirection(new THREE.Vector3(...spec.sunDirection));
-    const lighting = await createRawEnvironment(device, env);
-    release.push(lighting.dispose);
-    const cameraBuffer = device.createBuffer({
-      size: 192,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-    release.push(() => cameraBuffer.destroy());
-    const layout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          buffer: { type: "uniform" },
-        },
-      ],
-    });
-    const cameraGroup = device.createBindGroup({
-      layout,
-      entries: [{ binding: 0, resource: { buffer: cameraBuffer } }],
-    });
-    const native = await createRawGrassField(device, layout, lighting, profile);
-    release.push(native.dispose);
+    const backend = await createGrassBackendControl(
+      kind,
+      device,
+      env,
+      grassGeometries(profile),
+      new Float32Array(),
+      [W, H],
+      samples,
+      (message) => errors.push(message),
+      profile,
+    );
+    release.push(backend.dispose);
+    const native = backend.field;
+    if (!native) throw Error("Missing field controller");
     let field = flatHeightField(-64, -64, 32, 32, 4),
       grid = { ...field, tint: new Uint8Array(1024) };
     source.setTerrain(grid, field, "green-grass");
     native.setTerrain(grid, field, "green-grass");
-    const output = device.createTexture({
-      size: [W, H],
-      format: "rgba16float",
-      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-    });
-    release.push(() => output.destroy());
-    const depth = device.createTexture({
-      size: [W, H],
-      format: "depth32float",
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-    release.push(() => depth.destroy());
+    const output = backend.output;
     const reference = new THREE.RenderTarget(W, H, {
       type: THREE.HalfFloatType,
       depthBuffer: true,
+      samples: samples === 4 ? 4 : 0,
     });
     release.push(() => reference.dispose());
     const camera = new THREE.PerspectiveCamera(),
@@ -164,10 +135,8 @@ async function run() {
       await native.settle();
       source.prepareRender(renderer, params);
       await native.prepare(params, H, w, spec.sunDirection);
-      lighting.setView(viewMatrix(params), [0, 0, 0]);
-      device.queue.writeBuffer(
-        cameraBuffer,
-        0,
+      backend.setView(viewMatrix(params), [0, 0, 0]);
+      backend.writeCamera(
         cameraUniformData({
           camera3d: params,
           x: 0,
@@ -179,27 +148,7 @@ async function run() {
           sunElevation: 0,
         }),
       );
-      const e = device.createCommandEncoder();
-      native.route(e);
-      const pass = e.beginRenderPass({
-        colorAttachments: [
-          {
-            view: output.createView(),
-            loadOp: "clear",
-            storeOp: "store",
-            clearValue: [0, 0, 0, 0],
-          },
-        ],
-        depthStencilAttachment: {
-          view: depth.createView(),
-          depthClearValue: 0,
-          depthLoadOp: "clear",
-          depthStoreOp: "store",
-        },
-      });
-      native.draw(pass, cameraGroup);
-      pass.end();
-      device.queue.submit([e.finish()]);
+      await backend.render();
       if (label === "interior-far-hidden") {
         trace.clear();
         trace.phase("combined");
@@ -216,10 +165,11 @@ async function run() {
       renderer.render(world.scene, camera);
       renderer.setRenderTarget(null);
       const routes = [];
+      const nativeRoutes = await backend.readFieldRoutes();
       const state = native.snapshot();
       for (const [i, part] of [state.base, state.ring].entries())
         if (part.visible) {
-          const commands = await words(device, native.routingBuffers()[i].commands);
+          const commands = nativeRoutes[i].commands;
           for (const [tier, name] of ["near", "mid", "far"].entries()) {
             const mesh = world.scene.children.find(
               (c) =>
@@ -406,6 +356,8 @@ async function run() {
       });
     }
     return {
+      backend: kind,
+      samples,
       results,
       errors,
       passed: results.every((r) => r.passed) && errors.length === 0,

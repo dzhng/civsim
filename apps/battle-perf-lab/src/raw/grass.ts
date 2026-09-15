@@ -1,75 +1,7 @@
-import { WORLD_CAMERA_WGSL } from "../../../../packages/renderer-core/src/cameraWgsl";
-import type { BladeFieldStats } from "../../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
-import { grassTypesWGSL, grassRoutingWGSL, grassVertexWGSL } from "../shaders/grass";
+import { grassUniformData, type GrassFrame, type GrassGeometry } from "../grassData";
+import { grassRoutingShader, grassDrawShader } from "../shaders/grassPasses";
 import type { RawEnvironment } from "./environment";
 
-export interface GrassGeometry {
-  positions: Float32Array;
-  indices: Uint16Array;
-}
-export interface GrassFrame {
-  anchor: readonly [number, number];
-  view: ArrayLike<number>;
-  transition: BladeFieldStats["transition"];
-  thinning: BladeFieldStats["thinning"];
-  mask: BladeFieldStats["routeCullMask"];
-  wedge: BladeFieldStats["routeCullWedge"];
-  wind: {
-    direction: readonly [number, number];
-    speed: number;
-    gustPhase: number;
-    velocity: readonly [number, number];
-    frequency: number;
-    sharpness: number;
-  };
-  sun: readonly [number, number, number];
-  rim: number;
-  subsurface: number;
-}
-export function grassUniformData(s: GrassFrame): Float32Array<ArrayBuffer> {
-  const p = s.transition,
-    w = s.wind,
-    m = s.mask,
-    c = s.wedge;
-  if (s.view.length !== 16) throw new Error("Grass requires camera view matrix");
-  const values = new Float32Array(56);
-  values.set([
-    ...s.anchor,
-    p.nearTierEndM,
-    p.midTierEndM,
-    p.farGrassStartM,
-    p.farGrassEndM,
-    p.farSoftWidthScale,
-    p.edgeSinkStartM ?? Math.max(0, p.farGrassEndM - 0.001),
-    p.nearCoverageWidthScale,
-    p.lowerFarWidthScale,
-    p.lowerFarWidthEndM,
-    s.thinning.survivorAlbedoBlend,
-    ...w.direction,
-    w.speed,
-    w.gustPhase,
-    ...w.velocity,
-    w.frequency,
-    w.sharpness,
-    ...s.sun,
-    s.rim,
-    s.subsurface,
-    s.thinning.densityReferenceM,
-    s.thinning.falloffPower,
-    +s.thinning.enabled,
-    ...m.center,
-    m.radiusSq,
-    +m.enabled,
-    ...c.forward,
-    ...c.side,
-    c.halfWidthSlope,
-    c.backMarginM,
-    c.farMarginM,
-    +c.enabled,
-  ]);
-  values.set(s.view, 40);
-  return values;
-}
 /** Published records and exact source geometry are inputs; no CPU placement/residency owner here.
  * Device/camera/environment/attachments are borrowed. GPU append order is never reordered. */
 export async function createRawGrass(
@@ -136,28 +68,7 @@ export async function createRawGrass(
     );
     const indices = tiers.map((t) => buffer(t.indices.byteLength, GPUBufferUsage.INDEX, t.indices));
     const routeModule = device.createShaderModule({
-      code:
-        grassTypesWGSL +
-        grassRoutingWGSL +
-        `
-struct Command { indexCount:u32,instanceCount:atomic<u32>,firstIndex:u32,baseVertex:i32,firstInstance:u32 };
-@group(0) @binding(0) var<storage,read> records:array<GrassRecord>;
-@group(0) @binding(1) var<uniform> params:GrassParams;
-@group(0) @binding(2) var<storage,read_write> commands:array<Command,3>;
-@group(0) @binding(3) var<storage,read_write> nearList:array<u32>;
-@group(0) @binding(4) var<storage,read_write> midList:array<u32>;
-@group(0) @binding(5) var<storage,read_write> farList:array<u32>;
-@group(0) @binding(6) var<uniform> activeCount:vec4u;
-@compute @workgroup_size(1) fn reset(){
- let counts=array<u32,3>(${tiers.map((t) => `${t.indices.length}u`).join(",")});
- for(var i=0u;i<3u;i++){commands[i].indexCount=counts[i];atomicStore(&commands[i].instanceCount,0u);commands[i].firstIndex=0u;commands[i].baseVertex=0;commands[i].firstInstance=0u;}
-}
-@compute @workgroup_size(64) fn route(@builtin(global_invocation_id) id:vec3u){
- if(id.x>=activeCount.x){return;}
- let tier=grassTier(records[id.x],params);if(tier<0){return;}
- let slot=atomicAdd(&commands[u32(tier)].instanceCount,1u);
- if(tier==0){nearList[slot]=id.x;}else if(tier==1){midList[slot]=id.x;}else{farList[slot]=id.x;}
-}`,
+      code: grassRoutingShader(tiers.map((t) => t.indices.length)),
     });
     const routeLayout = device.createBindGroupLayout({
       entries: [
@@ -220,28 +131,7 @@ struct Command { indexCount:u32,instanceCount:atomic<u32>,firstIndex:u32,baseVer
       layout: paramsLayout,
       entries: [{ binding: 0, resource: { buffer: params } }],
     });
-    const shader =
-      WORLD_CAMERA_WGSL +
-      grassTypesWGSL +
-      grassVertexWGSL +
-      environment.shader +
-      `
-@group(1) @binding(0) var<storage,read> records:array<GrassRecord>;
-@group(1) @binding(1) var<storage,read> visible:array<u32>;
-@group(2) @binding(0) var<uniform> grass:GrassParams;
-struct VertexOut {@builtin(position) @invariant position:vec4f,@location(0) world:vec3f,@location(1) normal:vec3f,@location(2) albedo:vec3f,@location(3) weights:vec2f};
-@vertex fn vertex(@location(0) local:vec3f,@builtin(instance_index) instance:u32)->VertexOut {
- let v=grassVertex(records[visible[instance]],local,grass,cam.eye,grass.view);
- return VertexOut(projectWorld(v.world),v.world,v.normal,v.albedo,v.lightWeights);
-}
-@fragment fn beauty(v:VertexOut)->@location(0) vec4f {
- let normal=normalize(v.normal);
- // Production blade geometry has constant (0,0,1) attribute normals; authored
- // shading normals do not feed Three's normalViewGeometry roughness derivative.
- return shadeWorldSurface(grassLinear(v.albedo),grassEmissive(normal,v.world,v.weights,grass,cam.eye),0.96,0.0,0.0,1.0,normal,v.world,1.0);
-}
-@fragment fn depth(v:VertexOut)->@location(0) vec4f {return vec4f(0,0,0,1);}
-`;
+    const shader = grassDrawShader(environment.shader);
     // Invariant clip positions keep optional depth and beauty passes bit-identical
     // despite the driver's different dead-varying optimization of each pipeline.
     const module = device.createShaderModule({ code: shader });

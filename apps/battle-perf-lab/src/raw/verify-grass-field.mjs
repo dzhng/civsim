@@ -14,15 +14,14 @@ try {
   page.on("console", (m) => {
     if (["error", "warning"].includes(m.type())) pageErrors.push(m.text());
   });
-  await page.goto(
-    process.env.GRASS_FIELD_CHECK_URL ?? "http://127.0.0.1:5203/grass-field-check.html",
-  );
+  const url = process.env.GRASS_FIELD_CHECK_URL ?? "http://127.0.0.1:5203/grass-field-check.html";
+  await page.goto(url);
   await page.waitForFunction(() => window.__grassFieldCheck !== undefined, null, {
     timeout: 120000,
   });
   const report = { ...(await page.evaluate(() => window.__grassFieldCheck)), pageErrors };
   const dir = new URL(
-    "../../../../specs/battle-performance/assets/02-raw/grass-residency/",
+    `../../../../specs/battle-performance/assets/02-raw/grass-residency/${new URL(url).searchParams.has("backend") ? `${new URL(url).searchParams.get("backend")}-${new URL(url).searchParams.get("samples") ?? "1"}x/` : ""}`,
     import.meta.url,
   );
   await mkdir(dir, { recursive: true });

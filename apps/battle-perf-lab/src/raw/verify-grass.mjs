@@ -19,7 +19,7 @@ try {
   await page.waitForFunction(() => window.__grassCheck !== undefined, null, { timeout: 120000 });
   const result = await page.evaluate(() => window.__grassCheck);
   const directory = new URL(
-    `../../../../specs/battle-performance/assets/02-raw/grass/${new URL(url).searchParams.has("mutable") ? "mutable-runtime/" : ""}`,
+    `../../../../specs/battle-performance/assets/02-raw/grass/${new URL(url).searchParams.has("backend") ? `${new URL(url).searchParams.get("backend")}-${new URL(url).searchParams.get("samples") ?? "1"}x/` : new URL(url).searchParams.has("mutable") ? "mutable-runtime/" : ""}`,
     import.meta.url,
   );
   await mkdir(directory, { recursive: true });

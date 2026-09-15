@@ -81,6 +81,7 @@ export async function run(ctx) {
     { timeout: 8000 },
   );
   await page.waitForTimeout(300);
+  await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
   const battleStats = await page.evaluate(() => ({
     ready: window.__ready,
     game: window.__game.stats(),

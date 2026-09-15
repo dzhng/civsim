@@ -154,6 +154,8 @@ export function enterBattleScene(
       clock.advance(now);
       clock.paused = paused;
     }
+    // Let the first presented frame drain instead of queueing copies behind it.
+    if (preparingFrame && !battleReady) return;
     const ticks = clock.advance(now);
     if (ticks > 0) {
       const t0 = performance.now();

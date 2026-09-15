@@ -183,3 +183,7 @@ adoption does not close this slice's visual acceptance.
 ### Integrated bounded residency
 
 The source-conforming builder/worker now drives campaign terrain. Packed color replaces redundant overrides; shore data belongs to the mesh. The16-tile working set and32km overview pass full hardware traversal within128MiB. [Layout and timing evidence](../assets/slice-08/layout/README.md) retains the rejected24-tile workload and dense-query profile. [Fresh visual review](../assets/slice-08/adoption/visual/README.md) confirms continuity but keeps stepped outlines and coarse bank shading open. Do not treat this bounded integration as whole-frame visual acceptance.
+
+## Composed battle audit follow-up
+
+The [current full battle coast](../assets/slice-13/composed/README.md) exposes a repeated stair-step water/vista seam and green lip, confirmed by fresh image critique. This is a battle presentation/topology boundary follow-up, not a request to regenerate physical terrain or change water semantics. Whole shared-water acceptance remains open.

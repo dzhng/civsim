@@ -4,7 +4,7 @@ Status: in progress; shared owners and authored material checkpoint implemented.
 
 ## Contract and owner
 
-Battle consumes the same shared material/water/scenery owners through battleTerrainBuild and battleTerrain. Existing campaign battlegen and battle descriptors remain the source of local character.
+Battle consumes the same shared material/water/scenery owners through battleTerrainBuild and terrainLayer. Existing campaign battlegen and battle descriptors remain the source of local character.
 
 Slice variable: **Consistency of terrain character and visual integration in battle.**
 
@@ -14,9 +14,9 @@ Apply the accepted physical materials, cover transitions and scale-appropriate s
 
 ## Runnable checkpoint
 
-Planned battle-landscape-character scene plus existing generated highland/wooded/coastal and authored battle routes, and actual campaign handoffs.
+Prepared additions to battle-landscape-character preserve isolated authored A/C controls and include full compositions (application A; existing shared-world lab C). The existing battle-genmap-curated scene owns the pinned highland, wooded and coastal production worlds; prepared forest-edge and water-join cameras inspect source features outside the corridor-facing army vista. Actual campaign handoffs remain part of final integration verification.
 
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+The [composed audit](../assets/slice-13/composed/README.md) records nine exact-repeat hardware captures and remaining defects. Canonical baselines and full visual acceptance remain pending. A named map or green certificate alone does not prove the intended feature is visible in the image.
 
 ## Verification and review
 
@@ -39,3 +39,5 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 ## Authored material checkpoint
 
 The current audit found that null gameplay slope descriptors disable physical rock response on authored templates. The focused checkpoint resolves a visual default inside the existing material, preserving semantic tint and all physical inputs. Existing shared scenery and forest membership/slope work is already adopted. See [evidence and corrected cover audit](../assets/slice-13/README.md). Full slice acceptance remains pending.
+
+Fresh composed-image critique keeps acceptance open: forest density and boundary transitions belong to 07, water/vista seam to 08, and heavy distant haze to 10. Battle-specific integration must address isolated cool rock props on beige patches and the weak visible join between playable field and distant relief using material/vista presentation, preserving physical terrain and gameplay. The hardware audit is archived; scene edits await canonical baseline delivery.

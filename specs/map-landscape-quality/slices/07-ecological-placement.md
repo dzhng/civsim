@@ -110,3 +110,7 @@ This completes only the canopy coverage checkpoint. Oversized geometric conifers
 isolated planted clumps, exposed slope placement and missing intermediate ground
 detail keep this slice open. Further work must address those properties rather
 than increase every tree again.
+
+## Composed battle audit follow-up
+
+The [battle audit and census](../assets/slice-13/composed/README.md) finds a sparse western forest and an outlined angular forest-floor transition. In real seed 8, the large connected forest has 2,873 eligible candidates and no slope removals, but its per-feature 240 cap removes 2,633; measured coarse canopy coverage is 2.348%, versus 26–29% in uncapped small components. Investigate area-stable visual density and shared budget policy while preserving physical membership/clearings. The cap is a measured thinning cause; it does not by itself explain the material boundary. Full ecological acceptance remains open.

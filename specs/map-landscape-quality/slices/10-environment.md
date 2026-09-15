@@ -58,3 +58,7 @@ existing fit is preserved. Matched city comparisons, exact repeats and sampled
 hardware edge/interior pans accept the bounded improvement in attached shadows.
 See [evidence](../assets/slice-10/shadow-fit/README.md). Roof banding, full canopy
 composition, overview transitions and the complete environment target remain open.
+
+## Composed battle audit follow-up
+
+The [current battle vistas](../assets/slice-13/composed/README.md) retain readable near formations but fresh critique finds yellow haze suppressing far terrain and enemy lines, with a weak visible transition from battlefield to distant walls. Investigate atmosphere/material/vista presentation together while preserving playable terrain. Exact-repeat captures prove deterministic output, not final environment quality.

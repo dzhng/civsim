@@ -1,0 +1,7 @@
+{
+  "problem": "Vite retained an external wasm symlink resolution and rejected the @fs binary URL with HTTP403.",
+  "resolution": "Local copy of the same prebuilt wasm and Vite restart; startup has no failed resources.",
+  "sha256_original_and_local": "ffd7a918715590608f2bfbbc9281c3da8d0d9e2842d76f520818940616a9de95",
+  "http_local": 200,
+  "source_changed": false
+}

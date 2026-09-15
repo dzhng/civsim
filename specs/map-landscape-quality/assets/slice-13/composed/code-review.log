@@ -1,0 +1,6 @@
+The added snapshots lack committed regression baselines. Review was static only; no browser/GPU execution or visual verification was performed.
+
+Review comment:
+
+- [P2] Commit baselines for the four added snapshots — /Users/david/dev/game-battle-landscape-acceptance/web/scenes/battle/battle-landscape-character.mjs:10-13
+  The two composed snapshots and the new forest-edge/water-join snapshots have no corresponding PNGs under `web/shots/battle/`. `snapCheck` creates missing baselines and reports success even without `UPDATE_SHOTS`, so a fresh checkout will accept whatever these views render rather than detect regressions. Include the reviewed baselines with these scene changes, as required by [write-scene](.agents/skills/write-scene/SKILL.md#L238-L239).

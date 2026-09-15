@@ -1,0 +1,526 @@
+{
+  "results": [
+    {
+      "backend": "typegpu",
+      "colorSpace": "srgb",
+      "width": 32,
+      "height": 16,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "srgb",
+      "width": 32,
+      "height": 16,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "typegpu",
+      "colorSpace": "srgb",
+      "width": 33,
+      "height": 3,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "srgb",
+      "width": 33,
+      "height": 3,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "typegpu",
+      "colorSpace": "srgb",
+      "width": 1,
+      "height": 17,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "srgb",
+      "width": 1,
+      "height": 17,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "typegpu",
+      "colorSpace": "srgb",
+      "width": 19,
+      "height": 1,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "srgb",
+      "width": 19,
+      "height": 1,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "typegpu",
+      "colorSpace": "linear",
+      "width": 32,
+      "height": 16,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "linear",
+      "width": 32,
+      "height": 16,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "typegpu",
+      "colorSpace": "linear",
+      "width": 33,
+      "height": 3,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "linear",
+      "width": 33,
+      "height": 3,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        },
+        {
+          "mip": 5,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "typegpu",
+      "colorSpace": "linear",
+      "width": 1,
+      "height": 17,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "linear",
+      "width": 1,
+      "height": 17,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "typegpu",
+      "colorSpace": "linear",
+      "width": 19,
+      "height": 1,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    },
+    {
+      "backend": "vgpu",
+      "colorSpace": "linear",
+      "width": 19,
+      "height": 1,
+      "mips": [
+        {
+          "mip": 0,
+          "maxDifference": 0
+        },
+        {
+          "mip": 1,
+          "maxDifference": 0
+        },
+        {
+          "mip": 2,
+          "maxDifference": 0
+        },
+        {
+          "mip": 3,
+          "maxDifference": 0
+        },
+        {
+          "mip": 4,
+          "maxDifference": 0
+        }
+      ],
+      "maxDifference": 0,
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "liveTextures": 0,
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "description": ""
+  },
+  "passed": true,
+  "pageErrors": [],
+  "capturedAt": "2026-09-15T02:40:30.257Z"
+}

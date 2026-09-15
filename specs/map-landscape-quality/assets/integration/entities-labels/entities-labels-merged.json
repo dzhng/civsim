@@ -1,0 +1,269 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T05:31:18.355Z",
+  "target": "http://127.0.0.1:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "campaign-entity-inputs",
+      "file": "campaign/campaign-entity-inputs.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "campaign-raised-labels",
+      "file": "campaign/campaign-raised-labels.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "fixture loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "garrison frame retains one city and two army standards",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "standard identity and actual faction livery survive",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "existing scenery pipeline draws generated road carts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "new frame replaces selected army and ring kind",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "drawing preserves current selection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "snapshot campaign-entity-inputs-coarse",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "eastern army standard follows terrain replacement",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "terrain update preserves cart membership and clearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "snapshot campaign-entity-inputs-raised",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "campaign time moves carts without changing their source",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "fog clears hidden selected army and standard",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "reveal does not resurrect cleared selection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "empty frame clears cities standards crowds selections and carts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "recreation restores one shared world",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "snapshot campaign-entity-inputs-cart",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-entity-inputs",
+      "name": "no GPU warnings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 atlas draws accepted labels",
+      "ok": true,
+      "detail": "{\"labels\":3,\"visibleLabels\":3,\"visibleLabelNames\":[\"city:Ridge settlement\",\"army:Field army\",\"army:Rear army\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"Ridge settlement\",\"kind\":\"city\",\"opacity\":1,\"box\":{\"x\":327.535,\"y\":530.298,\"w\":183,\"h\":42},\"corners\":[[327.535,530.298],[510.535,530.298],[510.535,572.298],[327.535,572.298]],\"padPx\":8,\"inkRect\":{\"x\":335.535,\"y\":538.298,\"w\":167,\"h\":26}}],\"visibleArmyLabelRects\":[{\"text\":\"Field army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":746.7,\"y\":476.187,\"w\":98,\"h\":34},\"corners\":[[746.7,476.187],[844.7,476.187],[844.7,510.187],[746.7,510.187]],\"padPx\":6,\"inkRect\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22}},{\"text\":\"Rear army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":564.578,\"y\":339.584,\"w\":95,\"h\":34},\"corners\":[[564.578,339.584],[659.578,339.584],[659.578,373.584],[564.578,373.584]],\"padPx\":6,\"inkRect\":{\"x\":570.578,\"y\":345.584,\"w\":83,\"h\":22}}],\"visibleFactionLabelRects\":[],\"collisionCulls\":0,\"collisionCulledLabels\":[],\"atlasWidth\":1024,\"atlasHeight\":64,\"vertices\":18,\"layer\":\"physical-gpu-glyph-atlas\"}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 no DOM label substitute",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "snapshot campaign-raised-labels-dpr1",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 accepted ink is actually drawn: Ridge settlement",
+      "ok": true,
+      "detail": "2236 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 accepted ink is actually drawn: Field army",
+      "ok": true,
+      "detail": "981 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 accepted ink is actually drawn: Rear army",
+      "ok": true,
+      "detail": "991 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 card occupancy culls army label",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 replacement moves accepted army ink",
+      "ok": true,
+      "detail": "{\"before\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22},\"after\":{\"x\":755.688,\"y\":449.013,\"w\":86,\"h\":22}}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 resize refreshes ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 fog removes hidden army ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 recreated world retains one canvas and visible labels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 atlas draws accepted labels",
+      "ok": true,
+      "detail": "{\"labels\":3,\"visibleLabels\":3,\"visibleLabelNames\":[\"city:Ridge settlement\",\"army:Field army\",\"army:Rear army\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"Ridge settlement\",\"kind\":\"city\",\"opacity\":1,\"box\":{\"x\":328.285,\"y\":530.298,\"w\":181.5,\"h\":41},\"corners\":[[328.285,530.298],[509.785,530.298],[509.785,571.298],[328.285,571.298]],\"padPx\":7.5,\"inkRect\":{\"x\":335.785,\"y\":537.798,\"w\":166.5,\"h\":26}}],\"visibleArmyLabelRects\":[{\"text\":\"Field army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":746.7,\"y\":476.187,\"w\":98,\"h\":34},\"corners\":[[746.7,476.187],[844.7,476.187],[844.7,510.187],[746.7,510.187]],\"padPx\":6,\"inkRect\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22}},{\"text\":\"Rear army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":564.578,\"y\":339.584,\"w\":95,\"h\":34},\"corners\":[[564.578,339.584],[659.578,339.584],[659.578,373.584],[564.578,373.584]],\"padPx\":6,\"inkRect\":{\"x\":570.578,\"y\":345.584,\"w\":83,\"h\":22}}],\"visibleFactionLabelRects\":[],\"collisionCulls\":0,\"collisionCulledLabels\":[],\"atlasWidth\":1024,\"atlasHeight\":128,\"vertices\":18,\"layer\":\"physical-gpu-glyph-atlas\"}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 no DOM label substitute",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "snapshot campaign-raised-labels-dpr2",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 accepted ink is actually drawn: Ridge settlement",
+      "ok": true,
+      "detail": "8048 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 accepted ink is actually drawn: Field army",
+      "ok": true,
+      "detail": "3725 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 accepted ink is actually drawn: Rear army",
+      "ok": true,
+      "detail": "3528 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 card occupancy culls army label",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 replacement moves accepted army ink",
+      "ok": true,
+      "detail": "{\"before\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22},\"after\":{\"x\":755.688,\"y\":449.013,\"w\":86,\"h\":22}}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 resize refreshes ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 fog removes hidden army ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 recreated world retains one canvas and visible labels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

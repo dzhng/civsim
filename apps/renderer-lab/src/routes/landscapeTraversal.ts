@@ -1,3 +1,4 @@
+import { TerrainAllocationBudget } from "@packages/photoreal-renderer/src/campaign/tiledTerrain";
 import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
 import { createTerrainTiles } from "@packages/photoreal-renderer/src/campaign/terrainTiles";
 import {
@@ -27,13 +28,14 @@ export async function route(ctx: LabContext) {
       Math.max(source.renderMask.rect.max[0] - minX, source.renderMask.rect.max[1] - minY) / 128,
     ) * 128;
   const bootAllocation = campaignLandscapeAllocation(size / 2, 16);
-  if (bootAllocation.typedArrayBytes > 128 * 1024 * 1024)
-    throw new Error("Coarse build exceeds terrain budget");
+  const allocation = new TerrainAllocationBudget();
+  allocation.reserve(bootAllocation.typedArrayBytes);
   const worker = createCampaignTerrainWorker(source);
   const coarse = await worker.build({ key: "overview", minX, minY, size, cell: 16 });
   const surface = createRenderedSurface(coarse.mesh, coarse.domain, "overview");
   const world = await PhotorealCampaignWorld.create(ctx.canvas, {
     surface,
+    terrainAllocation: { budget: allocation, sourceBuffers: [coarse.shoreDistance.buffer] },
     objects: [],
     roads: new Float32Array(),
     territory: [0.48, 0.48, 0.35],
@@ -44,7 +46,6 @@ export async function route(ctx: LabContext) {
     frames = 0,
     stopped = false,
     workerRoundTripMs = 0;
-  let peakAllocationBytes = bootAllocation.typedArrayBytes;
   let lastFrame = 0,
     previousAdmitted = false;
   const frameTimes: number[] = [],
@@ -54,28 +55,15 @@ export async function route(ctx: LabContext) {
     build: async (request) => {
       const bound =
         world.stats().terrain.allocationBytes +
-        scheduler.snapshot().residentPayloadBytes +
         campaignLandscapeAllocation(request.size / 2, request.cell).typedArrayBytes;
-      if (bound > 128 * 1024 * 1024)
-        throw new Error("Terrain build exceeds total allocation budget");
-      peakAllocationBytes = Math.max(peakAllocationBytes, bound);
+      allocation.reserve(bound);
       builds++;
       const started = performance.now();
       const result = await worker.build(request);
       workerRoundTripMs = performance.now() - started;
       return result;
     },
-    install: (tile, evicted) => {
-      const bound =
-        world.stats().terrain.allocationBytes * 2 +
-        tile.payloadBytes * 6 +
-        scheduler.snapshot().residentPayloadBytes +
-        coarse.shoreDistance.byteLength;
-      if (bound > 128 * 1024 * 1024)
-        throw new Error("Terrain swap exceeds total allocation budget");
-      peakAllocationBytes = Math.max(peakAllocationBytes, bound);
-      world.installTerrain(tile, evicted);
-    },
+    install: (tile, evicted) => world.installTerrain(tile, evicted),
   });
   const stats = () => {
     const tiles = scheduler.snapshot(),
@@ -93,10 +81,7 @@ export async function route(ctx: LabContext) {
       workerCount: 1,
       workerRoundTripMs,
       ready: wanted.every((r) => tiles.residentKeys.includes(r.key)),
-      peakTotalTerrainBytes: Math.max(
-        peakAllocationBytes,
-        terrain.peakAllocationBytes + tiles.residentPayloadBytes + coarse.shoreDistance.byteLength,
-      ),
+      peakTotalTerrainBytes: Math.max(allocation.peakBytes, terrain.allocationBytes),
       sourceBytes: sourceBytes * 2,
       sceneryInstances: 0,
       sceneryRenderedBytes: 0,

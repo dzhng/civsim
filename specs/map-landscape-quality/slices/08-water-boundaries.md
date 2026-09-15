@@ -109,3 +109,45 @@ remain unchanged. Focused suite: 15 passed; TypeScript check passed.
 Independent Codex code review found no actionable regressions; it independently
 ran focused shoreline/tile tests and both web and renderer-lab TypeScript checks.
 It did not rerun browser captures.
+
+### Allocation follow-up — 2026-09-15
+
+The preceding overview refusal was a conservative reservation error, not a need
+to raise the budget. Admission now retains the old revision and reserves the
+possible new arrays: masked coarse indices; mutable fine vertices/color/tint;
+incoming source buffers not already held; the new tile's reversed indices and
+GPU buffers; and one full copy of all potentially uploaded ranges. Immutable
+coarse vertex/GPU buffers and fine topology are shared, not reserved twice.
+Existing unchanged geometry arrays remain in the unique-buffer inventory. Fine
+morph buffers and upload spans reserve their full size even when only an edge
+changes; this remains a conservative bound within the fixed ceiling.
+
+`TerrainAllocationBudget` applies one unchanged 128 MiB ceiling across coarse
+build, initial GPU upload, worker generation, and swaps. Traversal supplies the
+coarse shore array as retained source storage; tile shore arrays are also counted.
+Scheduler source mesh/shore buffers already held by terrain are not added again.
+Global geography snapshots remain separately reported, as the architecture
+requires. Generation still reserves both output and temporary distance grids;
+transferred worker buffers do not acquire a fictitious second CPU copy.
+
+The same full-source overview now admits a coastal detail tile. Before the
+coarse shore array is included, measured steady resources are 78,809,079 bytes
+and the swap reservation is 86,293,159 bytes, including 7,484,080 upload bytes.
+The initial-upload reservation is larger than this later swap: approximately
+102.8 MB including the coarse shore array. These are typed resource reservations,
+not measured driver-internal allocations or GPU frame times. No global geometry
+adoption or bank-quality claim follows from this allocation fix.
+
+Two new memory checks independently inventory old/new unique buffers plus GPU
+storage/upload bytes, including retained shore arrays, and run the actual source
+overview through shared generation rejection and successful detail admission.
+The original retained-query-array test stays green. The real-source regression
+previously failed the blanket admission guard; it now retains queryable detail
+and masked coarse coverage within the unchanged ceiling.
+
+Independent allocation review found that the campaign fog decorator creates an
+additional Float32 vertex attribute. Its CPU, GPU and staging bytes are now
+explicitly reserved using the decorator's vertex stride; the memory tests
+exercise that attribute on both fixture and full-source geometry. The full-source
+initial reservation with fog and the coarse shore array is approximately 108 MB,
+still below 128 MiB. The earlier 102.8 MB figure excluded the fog decoration.

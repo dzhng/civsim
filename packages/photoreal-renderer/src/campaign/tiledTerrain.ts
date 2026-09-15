@@ -13,9 +13,21 @@ import {
 } from "../../../game-renderer/src/terrain/surfaceTiles";
 import type { TerrainTile } from "./terrainTiles";
 
-export type TerrainTileSurface = Pick<TerrainTile, "request" | "domain" | "mesh">;
+export type TerrainTileSurface = Pick<TerrainTile, "request" | "domain" | "mesh"> &
+  Partial<Pick<TerrainTile, "shoreDistance">>;
 
-type Entry = { source: RenderedSurface; ground: THREE.Mesh };
+type Entry = { source: RenderedSurface; ground: THREE.Mesh; shoreDistance?: Float32Array };
+
+/** One ceiling for generation, residency, frame swaps and upload staging. */
+export class TerrainAllocationBudget {
+  peakBytes = 0;
+
+  reserve(bytes: number) {
+    if (!Number.isFinite(bytes) || bytes < 0 || bytes > 128 * 1024 * 1024)
+      throw new Error("Terrain allocation exceeds total 128 MiB budget");
+    this.peakBytes = Math.max(this.peakBytes, bytes);
+  }
+}
 
 /** One presented terrain revision owns both GPU coverage and CPU queries.
  * Scheduler admission happens before render; neighbor edge updates join that swap. */
@@ -25,7 +37,6 @@ export class PhotorealTiledTerrain {
   private revision = 0;
   private uploadedBytes = 0;
   private admissionCpuMs = 0;
-  private peakAllocationBytes = 0;
   surface: ReturnType<typeof createSurfaceView>;
 
   constructor(
@@ -33,7 +44,20 @@ export class PhotorealTiledTerrain {
     private readonly frame: LandscapeFrameUniforms,
     private readonly coarse: RenderedSurface,
     private readonly decorate?: (ground: THREE.Mesh, surface: RenderedSurface) => void,
+    private readonly budget = new TerrainAllocationBudget(),
+    private readonly sourceBuffers: readonly ArrayBufferLike[] = [],
+    private readonly decorationBytesPerVertex = 0,
   ) {
+    if (!Number.isFinite(decorationBytesPerVertex) || decorationBytesPerVertex < 0)
+      throw new Error("Terrain decoration needs a finite nonnegative vertex stride");
+    const buffers = new Set(sourceBuffers);
+    addMeshBuffers(buffers, coarse.mesh);
+    const decorationBytes = (coarse.mesh.vertices.length / 10) * decorationBytesPerVertex;
+    const geometry = mutableBytes(coarse.mesh) + coarse.mesh.indices.byteLength + decorationBytes;
+    // Initial geometry also owns reversed indices, GPU storage and upload staging.
+    budget.reserve(
+      bufferBytes(buffers) + coarse.mesh.indices.byteLength + decorationBytes + geometry * 2,
+    );
     this.coarseGround = this.ground(coarse);
     scene.add(this.coarseGround);
     this.surface = createSurfaceView(coarse);
@@ -48,12 +72,36 @@ export class PhotorealTiledTerrain {
 
   install(tile: TerrainTileSurface, evictedKeys: readonly string[]) {
     const started = performance.now();
-    // Reserve the old revision, a complete replacement revision, incoming source,
-    // and upload staging before allocating or mutating visible coverage.
-    const admissionBound = this.stats().allocationBytes * 2 + meshBytes(tile.mesh) * 6;
-    if (admissionBound > 128 * 1024 * 1024)
-      throw new Error("Terrain admission exceeds total 128 MiB allocation budget");
-    this.peakAllocationBytes = Math.max(this.peakAllocationBytes, admissionBound);
+    // Retain the current revision through the swap, but do not duplicate its
+    // immutable coarse vertices or GPU buffers. Reserve every new CPU array,
+    // the added tile's GPU buffers, and one full upload staging copy.
+    const current = this.resources();
+    const incoming = new Set(current.cpu);
+    addMeshBuffers(incoming, tile.mesh);
+    if (tile.shoreDistance) incoming.add(tile.shoreDistance.buffer);
+    const incomingBytes = bufferBytes(incoming) - bufferBytes(current.cpu);
+    const remaining = [...this.entries].filter(([key]) => !evictedKeys.includes(key));
+    const morphBytes =
+      mutableBytes(tile.mesh) +
+      remaining.reduce((sum, [, entry]) => sum + mutableBytes(entry.source.mesh), 0);
+    const decorationBytes = (tile.mesh.vertices.length / 10) * this.decorationBytesPerVertex;
+    const addedGpuBytes = mutableBytes(tile.mesh) + tile.mesh.indices.byteLength + decorationBytes;
+    const coarseIndexBytes = this.coarse.mesh.indices.byteLength;
+    const stagingBytes =
+      coarseIndexBytes +
+      addedGpuBytes +
+      remaining.reduce((sum, [, entry]) => sum + mutableBytes(entry.source.mesh), 0);
+    const admissionBound =
+      bufferBytes(current.cpu) +
+      current.gpuBytes +
+      incomingBytes +
+      coarseIndexBytes +
+      morphBytes +
+      tile.mesh.indices.byteLength +
+      decorationBytes +
+      addedGpuBytes +
+      stagingBytes;
+    this.budget.reserve(admissionBound);
     const revision = this.revision + 1;
     const sources = new Map(
       [...this.entries]
@@ -95,7 +143,11 @@ export class PhotorealTiledTerrain {
         this.uploadedBytes += updateGround(previous.ground.geometry, surface);
       } else {
         this.scene.add(added);
-        this.entries.set(key, { source: sources.get(key)!, ground: added });
+        this.entries.set(key, {
+          source: sources.get(key)!,
+          ground: added,
+          shoreDistance: tile.shoreDistance,
+        });
       }
     }
     this.surface = createSurfaceView(coarse, [...presented.values()]);
@@ -103,21 +155,14 @@ export class PhotorealTiledTerrain {
     this.admissionCpuMs = performance.now() - started;
   }
 
-  stats() {
-    const cpu = new Set<ArrayBufferLike>();
-    const addMesh = (mesh: RenderedSurface["mesh"]) => {
-      for (const array of [
-        mesh.vertices,
-        mesh.surfaceColor,
-        mesh.tint,
-        mesh.indices,
-        mesh.cellTriangles,
-        mesh.waterCoverage,
-      ])
-        if (array) cpu.add(array.buffer);
-    };
+  private resources() {
+    const cpu = new Set<ArrayBufferLike>(this.sourceBuffers);
+    const addMesh = (mesh: RenderedSurface["mesh"]) => addMeshBuffers(cpu, mesh);
     addMesh(this.coarse.mesh);
-    for (const entry of this.entries.values()) addMesh(entry.source.mesh);
+    for (const entry of this.entries.values()) {
+      addMesh(entry.source.mesh);
+      if (entry.shoreDistance) cpu.add(entry.shoreDistance.buffer);
+    }
     addMesh(this.surface.coarse.mesh);
     for (const surface of this.surface.details) addMesh(surface.mesh);
     // Unchanged geometry may retain an older array than the current query view.
@@ -126,13 +171,18 @@ export class PhotorealTiledTerrain {
       for (const buffer of geometryBuffers(ground.geometry)) cpu.add(buffer);
       gpuBytes += geometryBytes(ground.geometry);
     }
-    const cpuBytes = [...cpu].reduce((sum, buffer) => sum + buffer.byteLength, 0);
+    return { cpu, gpuBytes };
+  }
+
+  stats() {
+    const { cpu, gpuBytes } = this.resources();
+    const cpuBytes = bufferBytes(cpu);
     const allocationBytes = cpuBytes + gpuBytes;
     return {
       allocationBytes,
       cpuBytes,
       gpuBytes,
-      peakAllocationBytes: Math.max(allocationBytes, this.peakAllocationBytes),
+      peakAllocationBytes: Math.max(allocationBytes, this.budget.peakBytes),
       revision: this.revision,
       residentTiles: this.entries.size,
       geometryBytes:
@@ -211,13 +261,23 @@ function updateArray(
 function geometryBytes(geometry: THREE.BufferGeometry) {
   return [...geometryBuffers(geometry)].reduce((sum, array) => sum + array.byteLength, 0);
 }
-function meshBytes(mesh: RenderedSurface["mesh"]) {
-  return (
-    mesh.vertices.byteLength +
-    mesh.surfaceColor.byteLength +
-    mesh.tint.byteLength +
-    mesh.indices.byteLength +
-    (mesh.cellTriangles?.byteLength ?? 0) +
-    (mesh.waterCoverage?.byteLength ?? 0)
-  );
+/** Arrays copied by morphTileSurface; topology and wet coverage stay shared. */
+function mutableBytes(mesh: RenderedSurface["mesh"]) {
+  return mesh.vertices.byteLength + mesh.surfaceColor.byteLength + mesh.tint.byteLength;
+}
+
+function addMeshBuffers(buffers: Set<ArrayBufferLike>, mesh: RenderedSurface["mesh"]) {
+  for (const array of [
+    mesh.vertices,
+    mesh.surfaceColor,
+    mesh.tint,
+    mesh.indices,
+    mesh.cellTriangles,
+    mesh.waterCoverage,
+  ])
+    if (array) buffers.add(array.buffer);
+}
+
+function bufferBytes(buffers: Set<ArrayBufferLike>) {
+  return [...buffers].reduce((sum, buffer) => sum + buffer.byteLength, 0);
 }

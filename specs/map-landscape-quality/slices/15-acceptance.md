@@ -53,3 +53,8 @@ acceptance above remains open.
 paths, reports, memory samples and the separate development React Refresh catalog
 retention. No React or application cleanup workaround was added. The dependency
 patch documents its upstream removal condition and covers the imported bundles.
+
+The [camera coverage audit](../assets/slice-15-camera/README.md) replaces the
+unsupported close dial labels with two physical views through the existing
+camera owner and adds settled-framing assertions. CPU checks and hardware framing assertions pass; the closest 10m view records
+33.74ms rAF p95 against the unchanged 33ms limit, so performance remains open.

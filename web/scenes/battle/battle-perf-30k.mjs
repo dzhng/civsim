@@ -41,7 +41,9 @@ const PAN_DISTANCE_M = 200;
 const PAN_DURATION_MS = 3000;
 const WHEEL_BURST_EVENTS = 30;
 const WHEEL_BURST_DURATION_MS = 1000;
-const CLOSE_ZOOM_FILL_STOPS = [24, 28];
+// Physical close stops: formation detail and the production 10m endpoint.
+// Old dial values 24/28 both clamped to 8 and measured the same frame.
+const CLOSE_FILL_DISTANCES_M = [24, 10];
 
 // Same production rig zooms as battle-camera-zoom: playable mid and the
 // low-oblique cinematic vista (zoomT = 1), where grass density peaks. Both
@@ -49,7 +51,7 @@ const CLOSE_ZOOM_FILL_STOPS = [24, 28];
 // soldiers on screen, not an empty field.
 const STOPS = [
   { name: "mid", zoom: 3.0, center: [0, -310] },
-  { name: "vista", zoom: 9.5, center: [0, -310] },
+  { name: "vista", zoom: 8, center: [0, -310] },
 ];
 
 const WARMUP_FRAMES = 60;
@@ -223,12 +225,14 @@ export async function run(ctx) {
         grassActiveRecordBudget: grass?.rebuild?.activeRecordBudget ?? 0,
         grassAreaBudgetScale: grass?.rebuild?.areaBudgetScale ?? 0,
         grassVistaRecordBudget: grass?.rebuild?.vistaRecordBudget ?? 0,
+        camera: { zoom: window.__cam.zoom, ...window.__cam.params() },
         device: s.renderStats.device,
       };
     });
     table.push({
       stop: stop.name,
-      zoom: stop.zoom,
+      requestedZoom: stop.zoom,
+      camera: stats.camera,
       soldiers: stats.renderSoldiers,
       scenery: stats.scenery,
       grassRecords: stats.grassRecords,
@@ -266,6 +270,21 @@ export async function run(ctx) {
   console.log(`battle-perf-30k pan table:\n${JSON.stringify(pan, null, 2)}`);
   console.log(`battle-perf-30k wheel-burst table:\n${JSON.stringify(wheelBurst, null, 2)}`);
   console.log(`battle-perf-30k close-zoom-fill table:\n${JSON.stringify(closeZoomFill, null, 2)}`);
+
+  ctx.check(
+    "static stops reach their requested production camera framing",
+    table.every((row) => Math.abs(row.camera.zoom - row.requestedZoom) < 1e-6) &&
+      mid.camera.distance > vista.camera.distance,
+    JSON.stringify(
+      table.map(({ stop, requestedZoom, camera }) => ({ stop, requestedZoom, camera })),
+    ),
+  );
+  ctx.check(
+    "close fill measures two distinct physical camera distances",
+    closeZoomFill.every((row) => Math.abs(row.camera.distance - row.requestedDistanceM) < 0.01) &&
+      closeZoomFill[0].camera.distance > closeZoomFill[1].camera.distance * 2,
+    JSON.stringify(closeZoomFill),
+  );
 
   // --- The load is real and may never shrink -------------------------------
   ctx.check(
@@ -381,7 +400,7 @@ export async function run(ctx) {
       JSON.stringify(wheelBurst),
     );
     ctx.check(
-      `close zoom ${CLOSE_ZOOM_FILL_STOPS.join("/")} grass-on fill keeps rAF p95 within the ${BUDGET_MS} ms budget`,
+      `close distance ${CLOSE_FILL_DISTANCES_M.join("/")}m grass-on fill keeps rAF p95 within the ${BUDGET_MS} ms budget`,
       closeZoomFill.every((row) => row.rafP95Ms !== null && row.rafP95Ms <= BUDGET_MS),
       JSON.stringify(closeZoomFill),
     );
@@ -411,17 +430,18 @@ export async function run(ctx) {
 
 async function sampleCloseZoomFill(page, hardware) {
   const out = [];
-  for (const zoom of CLOSE_ZOOM_FILL_STOPS) {
+  for (const distanceM of CLOSE_FILL_DISTANCES_M) {
     await page.evaluate(
-      async ({ zoom }) => {
+      async ({ distanceM }) => {
         const cam = window.__cam;
-        cam.zoom = zoom;
+        const canvas = document.querySelector("#battlefield");
+        cam.zoomAt(canvas.width / 2, canvas.height / 2, cam.params().distance / distanceM);
         cam.clampView?.();
         cam.setViewCenter(0, -310);
         cam.clampView?.();
         await new Promise((resolve) => setTimeout(resolve, 120));
       },
-      { zoom },
+      { distanceM },
     );
     await waitForGrassReady(page);
     const sampled = await page.evaluate(
@@ -440,7 +460,7 @@ async function sampleCloseZoomFill(page, hardware) {
         const grass = s.renderStats.terrain?.grass;
         return {
           raf: frameMs,
-          settledZoom: window.__cam.zoom,
+          camera: { zoom: window.__cam.zoom, ...window.__cam.params() },
           grassEnabled: grass?.enabled === true,
           recordCount: grass?.recordCount ?? 0,
           activeBudget: grass?.rebuild?.activeRecordBudget ?? 0,
@@ -451,8 +471,8 @@ async function sampleCloseZoomFill(page, hardware) {
       { warmup: hardware ? 30 : 3, frames: hardware ? 90 : 10 },
     );
     out.push({
-      zoom,
-      settledZoom: round(sampled.settledZoom),
+      requestedDistanceM: distanceM,
+      camera: sampled.camera,
       grassEnabled: sampled.grassEnabled,
       recordCount: sampled.recordCount,
       activeBudget: sampled.activeBudget,
@@ -499,9 +519,9 @@ async function sampleCameraZoomSweep(page, hardware) {
       for (let i = 0; i < frames; i++) {
         const now = performance.now();
         const t = Math.min(1, (now - started) / durationMs);
-        // 3.0 -> 9.0 -> 3.0 triangle sweep across the playable zoom band.
+        // 3.0 -> 8.0 -> 3.0 triangle sweep across the playable zoom band.
         const tri = t < 0.5 ? t * 2 : 2 - t * 2;
-        cam.zoom = 3.0 + 6.0 * tri;
+        cam.zoom = 3.0 + 5.0 * tri;
         cam.clampView?.();
         await raf();
         const next = performance.now();
@@ -672,7 +692,7 @@ async function sampleWheelBurst(page, hardware) {
     finalZoom: round(sampled.finalZoom),
     settledZoom: round(after.zoom),
     minZoom: 0.4,
-    maxZoom: 60,
+    maxZoom: 8,
     rafMedianMs: round(median(sampled.raf)),
     rafP95Ms: round(percentile(sampled.raf, 0.95)),
     rebuildsBefore: before.rebuilds,

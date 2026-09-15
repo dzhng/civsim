@@ -119,12 +119,56 @@ test("GPU hover uses the selected submission instead of the latest asynchronous 
       ]}
       phases={[]}
       gpuResults={[
-        { submissionId: 102, status: "complete", measuredPassGpuMs: 8 },
-        { submissionId: 101, status: "complete", measuredPassGpuMs: 3 },
+        { submissionId: 102, status: "complete", observedGpuSpanMs: 5 },
+        { submissionId: 101, status: "complete", observedGpuSpanMs: 2 },
       ]}
     />,
   );
-  expect(screen.getByRole("status")).toHaveTextContent("Matched GPU passes 3.00 ms");
+  expect(screen.getByRole("status")).toHaveTextContent("GPU span (includes gaps) 2.00 ms");
   fireEvent.keyDown(screen.getByRole("group", { name: "Frame time chart" }), { key: "End" });
-  expect(screen.getByRole("status")).toHaveTextContent("Matched GPU passes 8.00 ms");
+  expect(screen.getByRole("status")).toHaveTextContent("GPU span (includes gaps) 5.00 ms");
+});
+
+test.each([
+  { status: "complete", observedGpuSpanMs: null },
+  { status: "complete", observedGpuSpanMs: undefined },
+  { status: "complete", observedGpuSpanMs: NaN },
+  { status: "complete", observedGpuSpanMs: -1 },
+  { status: "incomplete", observedGpuSpanMs: 2 },
+])(
+  "GPU span stays unavailable for $status / $observedGpuSpanMs instead of using pass totals",
+  (result) => {
+    const gpuResults = [{ submissionId: 101, measuredPassGpuMs: 17, ...result }];
+    render(
+      <BenchmarkFrameChart
+        samples={[
+          { elapsedMs: 10, intervalMs: 10, renderer: { gpuSubmission: { submissionId: 101 } } },
+        ]}
+        phases={[]}
+        gpuResults={gpuResults}
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("GPU span (includes gaps) unavailable");
+    expect(screen.getByRole("status")).not.toHaveTextContent("17.00 ms");
+  },
+);
+
+test("missing GPU result is unavailable and a measured zero span is retained", () => {
+  const samples = [
+    { elapsedMs: 10, intervalMs: 10, renderer: { gpuSubmission: { submissionId: 101 } } },
+  ];
+  const { rerender } = render(
+    <BenchmarkFrameChart samples={[{ elapsedMs: 10, intervalMs: 10 }]} phases={[]} />,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("GPU span (includes gaps) unavailable");
+  rerender(<BenchmarkFrameChart samples={samples} phases={[]} />);
+  expect(screen.getByRole("status")).toHaveTextContent("GPU span (includes gaps) unavailable");
+  rerender(
+    <BenchmarkFrameChart
+      samples={samples}
+      phases={[]}
+      gpuResults={[{ submissionId: 101, status: "complete", observedGpuSpanMs: 0 }]}
+    />,
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("GPU span (includes gaps) 0.00 ms");
 });

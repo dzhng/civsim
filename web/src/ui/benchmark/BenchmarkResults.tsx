@@ -105,7 +105,9 @@ export function BenchmarkResults({ report }: { report: BenchmarkReport }) {
             <p>
               GPU results: {report.gpu.results.length} terminal · {report.gpu.pendingOrMissingCount}{" "}
               pending or missing at run end · {report.gpu.lostEventCount} events lost across{" "}
-              {report.gpu.cursorGapCount} cursor gaps. {report.gpu.exclusions}.
+              {report.gpu.cursorGapCount} cursor gaps. {report.gpu.exclusions}. GPU span runs from
+              the first measured pass to the last, including gaps. Exported pass totals can overlap
+              and are not elapsed GPU time.
             </p>
           )}
           <p>

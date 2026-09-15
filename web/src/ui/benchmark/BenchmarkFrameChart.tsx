@@ -33,7 +33,7 @@ export interface BenchmarkFrameChartProps {
   gpuResults?: readonly {
     submissionId: number;
     status: string;
-    measuredPassGpuMs: number | null;
+    observedGpuSpanMs?: number | null;
   }[];
 }
 
@@ -251,15 +251,16 @@ export function BenchmarkFrameChart({ samples, phases, gpuResults }: BenchmarkFr
             {selected.loopCpuMs !== undefined && (
               <> · Callback CPU {Number(selected.loopCpuMs.toFixed(2))} ms</>
             )}
-            {gpuSubmission && (
-              <>
-                {" "}
-                · Matched GPU passes{" "}
-                {selectedGpu?.status === "complete" && selectedGpu.measuredPassGpuMs !== null
-                  ? `${selectedGpu.measuredPassGpuMs.toFixed(2)} ms`
-                  : (selectedGpu?.status ?? "pending or missing at run end")}
-              </>
-            )}
+            <>
+              {" "}
+              · GPU span (includes gaps){" "}
+              {selectedGpu?.status === "complete" &&
+              typeof selectedGpu.observedGpuSpanMs === "number" &&
+              Number.isFinite(selectedGpu.observedGpuSpanMs) &&
+              selectedGpu.observedGpuSpanMs >= 0
+                ? `${selectedGpu.observedGpuSpanMs.toFixed(2)} ms`
+                : "unavailable"}
+            </>
             {selected.camera && (
               <>
                 {" "}

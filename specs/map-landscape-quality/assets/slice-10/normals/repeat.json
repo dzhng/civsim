@@ -1,0 +1,101 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T02:28:52.674Z",
+  "target": "http://localhost:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "scenery-normals",
+      "file": "campaign/scenery-normals.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "scenery-normals",
+      "name": "snapshot scenery-normals-uniform",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "uniform/instance: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "uniform/baked: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "uniform: instance matches inverse-transpose reference",
+      "ok": true,
+      "detail": "0 different RGBA pixels; maxDelta=0; channelDelta=0"
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "snapshot scenery-normals-tall",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "tall/instance: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "tall/baked: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "tall: instance matches inverse-transpose reference",
+      "ok": true,
+      "detail": "2528 different RGBA pixels; maxDelta=3; channelDelta=3596"
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "snapshot scenery-normals-wide",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "wide/instance: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "wide/baked: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "scenery-normals",
+      "name": "wide: instance matches inverse-transpose reference",
+      "ok": true,
+      "detail": "8218 different RGBA pixels; maxDelta=2; channelDelta=10896"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

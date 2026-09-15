@@ -85,3 +85,5 @@ explicitly delegated by the slice and are not additional architecture choices.
 - **Sound, high confidence — preserve strategic river semantics.** Water classification is a separate query from territory-worthy land. Rivers can remain strategic land while rejecting vegetation and supplying continuous water-body identity.
 
 - **Provisional, medium confidence — face-oriented procedural rock.** Shared rock detail follows projected surface faces instead of horizontal height contours. This removes drawn crack networks and gives vertical faces a consistent scale; its soft close appearance remains a material refinement rather than a reason to restore the contour artifacts.
+
+- **Sound, high confidence — scale normals with the same transform as props.** Tall and wide tree/rock instances use inverse-transpose normal scaling before yaw; an unscaled normal gives the wrong illumination. The independent CPU-baked comparison permits only measured quantization while the production snapshot repeat remains exact.

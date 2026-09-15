@@ -334,7 +334,8 @@ function sceneryMaterial(leafMap: THREE.DataTexture): THREE.MeshStandardNodeMate
   const rnormal = vec3(
     normal.x.mul(cy).sub(normal.y.mul(sy)),
     normal.x.mul(sy).add(normal.y.mul(cy)),
-    normal.z,
+    // Common XY inverse scale cancels on normalization; uniform scale stays exact.
+    normal.z.mul(scale.div(heightScale)),
   );
   material.normalNode = viewNormalNode(normalize(rnormal));
   const vColor = varying(colorAndAlpha.rgb);

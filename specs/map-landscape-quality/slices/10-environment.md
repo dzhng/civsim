@@ -39,3 +39,12 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 ## Normal-transform audit before lighting tuning
 
 The current scenery position shader scales XY by instance size and Z by optional instance height, but rotates its authored normal without the corresponding inverse scale. Audit this when height and width differ, as they do in campaign planting. Correct that shared normal transform before compensating with environment values; preserve deliberate crown/card normal direction and verify both uniform and nonuniform instances.
+
+
+### Instance normal checkpoint
+
+The shared instance shader now applies inverse-transpose scale before yaw. The
+independent baked-geometry fixture covers uniform, tall and wide rock/tree pairs;
+the former code fails its precision bound while uniform scale stays exact.
+See [normal evidence](../assets/slice-10/normals/README.md). This correctness fix
+precedes environment tuning and does not complete lighting/composition acceptance.

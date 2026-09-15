@@ -3,8 +3,10 @@
 The [native live entry](src/live/README.md) runs candidate renderers through the
 actual game Menu and benchmark. Use live runs for cadence and recorded replay for
 matching rendering history; capture work is excluded from timing. The
-[offline scorecard](report/README.md) validates paired Menu exports and their
-experiment manifests without choosing a renderer.
+[trial runner](trials/README.md) drives one already-built Menu artifact through
+that same benchmark and archives its provenance and host evidence, and the
+[offline scorecard](report/README.md) validates the resulting paired Menu exports
+and experiment manifests without choosing a renderer.
 
 The capture lab build runs the actual menu, battle loop and crowd presentation. Its
 importer-scoped Vite substitutions wrap the original renderer and real world

@@ -64,8 +64,11 @@ This avoids a second world competing with the actual menu presentation stream.
 Compression and transport still alter cadence, so this is never a timing oracle.
 
 A single lab worker compresses packets and posts them directly to a localhost disk
-sink. Source-page polling carries status only; packet writes do not depend on
-main-thread browser automation. The source retains at most 32 packets and 128 MiB of encoded inputs, compression
+sink. Its bounded ordered queue drains all delivered packets without another
+main-thread dispatch, with one compression operation at a time. Source-page
+polling carries status only. Transferred input bytes remain charged until the
+worker acknowledges their disk write; encoded PNGs replace their larger pending
+reservations once their actual size is known. The source retains at most 32 packets and 128 MiB of encoded inputs, compression
 reservations and endpoint images. A packet stays owned until the disk writer
 acknowledges it. Total compressed recording is capped at 1 GiB; cap and deadline
 failures are durable errors. Frozen poses share one dictionary within each packet,

@@ -1,14 +1,14 @@
-self.onmessage = async ({
-  data,
-}: MessageEvent<{
+import { orderedSpoolQueue } from "./orderedSpoolQueue";
+interface Packet {
   id: number;
   blob: Blob;
   png?: Blob;
   draws?: unknown;
   resources?: { id: string; blob: Blob }[];
   sink: string;
-}>) => {
-  try {
+}
+const queue = orderedSpoolQueue<Packet>(
+  async (data) => {
     let resourceBytes = 0;
     while (data.resources?.length) {
       const resource = data.resources.shift()!;
@@ -36,7 +36,14 @@ self.onmessage = async ({
       if (!response.ok) throw Error(`Spool disk write failed: ${await response.text()}`);
     }
     self.postMessage({ id: data.id, bytes: resourceBytes + blob.size + (data.png?.size ?? 0) });
+  },
+  (error) => self.postMessage({ error: String(error) }),
+);
+self.onmessage = ({ data }: MessageEvent<Packet>) => {
+  try {
+    queue.offer(data.id, data);
   } catch (error) {
-    self.postMessage({ id: data.id, error: String(error) });
+    queue.stop();
+    self.postMessage({ error: String(error) });
   }
 };

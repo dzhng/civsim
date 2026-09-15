@@ -46,7 +46,6 @@ interface Packet {
 export class PresentationSpool {
   readonly inputs: Blob;
   private packets: Packet[] = [];
-  private pumping = false;
   private stopped = false;
   private complete = false;
   private error: string | null = null;
@@ -56,34 +55,42 @@ export class PresentationSpool {
   private peakBytes = 0;
   private selected = new Map<string, number>();
   private compressor: Worker | null = null;
-  private compression: { resolve: (bytes: number) => void; reject: (error: Error) => void } | null =
-    null;
-  private compress(packet: Packet, png?: Blob, draws?: unknown): Promise<number> {
-    this.compressor ??= new Worker(new URL("./spoolCompression.worker.ts", import.meta.url), {
+  private worker() {
+    if (this.compressor) return this.compressor;
+    const worker = new Worker(new URL("./spoolCompression.worker.ts", import.meta.url), {
       type: "module",
     });
-    return new Promise((resolve, reject) => {
-      this.compression = { resolve, reject };
-      this.compressor!.onmessage = ({ data }) => {
+    worker.onmessage = ({ data }) => {
+      if (this.stopped) return;
+      try {
+        if (data.error) throw Error(data.error);
+        const packet = this.packets[0];
+        if (!packet || packet.id !== data.id)
+          throw Error("Worker acknowledgment sequence mismatch");
         if (data.progress !== undefined) {
           const resource = packet.resources.shift();
-          if (!resource || resource.id !== data.progress) {
-            reject(Error("Resource acknowledgment mismatch"));
-            return;
-          }
+          if (!resource || resource.id !== data.progress)
+            throw Error("Resource acknowledgment mismatch");
           packet.reservedBytes -= resource.blob.size;
-          return;
+        } else {
+          if (this.diskBytes + data.bytes > DISK_CAP)
+            throw Error("Source spool reached its 1 GiB compressed disk cap");
+          this.diskBytes += data.bytes;
+          this.acknowledge(packet.id);
         }
-        this.compression = null;
-        if (data.id !== packet.id) reject(Error("Compression reply id mismatch"));
-        else if (data.error) reject(Error(data.error));
-        else resolve(data.bytes);
-      };
-      this.compressor!.onerror = (event) => {
-        this.compression = null;
-        reject(Error(event.message));
-      };
-      this.compressor!.postMessage({
+      } catch (error) {
+        this.fail(error);
+      }
+    };
+    worker.onerror = (event) => this.fail(Error(event.message));
+    this.compressor = worker;
+    return worker;
+  }
+  private async dispatch(packet: Packet) {
+    try {
+      const [png, draws] = await Promise.all([packet.sourceImage, packet.sourceDraws]);
+      if (this.stopped) return;
+      this.worker().postMessage({
         id: packet.id,
         blob: packet.raw,
         resources: packet.resources,
@@ -91,7 +98,9 @@ export class PresentationSpool {
         draws,
         sink: this.sink,
       });
-    });
+    } catch (error) {
+      this.fail(error);
+    }
   }
   constructor(
     private readonly source: HTMLCanvasElement,
@@ -126,6 +135,7 @@ export class PresentationSpool {
         : undefined;
       const windowIndex = window ? (this.selected.get(window.name) ?? 0) : -1;
       const snapshot = !!window && (windowIndex === 0 || windowIndex === window.frameLimit - 1);
+      const imageReservation = snapshot ? this.source.width * this.source.height * 4 + 1048576 : 0;
       const parts: BlobPart[] = ['{"frame":', encoded.frames[0], ',"poses":['];
       encoded.poses.forEach((pose, i) => {
         if (i) parts.push(",");
@@ -138,11 +148,7 @@ export class PresentationSpool {
       );
       const raw = new Blob(parts);
       // Compression retains its input and may produce an incompressible output.
-      const reservedBytes =
-        resourceBytes +
-        raw.size +
-        65536 +
-        (snapshot ? this.source.width * this.source.height * 4 + 1048576 : 0);
+      const reservedBytes = resourceBytes + raw.size + 65536 + imageReservation;
       const packet: Packet = {
         id: this.offered + 1,
         raw,
@@ -161,7 +167,12 @@ export class PresentationSpool {
             (blob) => (blob ? resolve(blob) : reject(Error("Source snapshot failed"))),
             "image/png",
           ),
-        );
+        ).then((blob) => {
+          packet.reservedBytes += blob.size - imageReservation;
+          if (this.retainedBytes() > MEMORY_CAP)
+            throw Error("Encoded endpoint image exceeded the retained byte cap");
+          return blob;
+        });
         void packet.sourceImage.catch((error) => this.fail(error));
       }
       if (window) this.selected.set(window.name, windowIndex + 1);
@@ -170,31 +181,9 @@ export class PresentationSpool {
         this.complete = true;
         this.cancelSource();
       }
-      void this.pump();
+      void this.dispatch(packet);
     } catch (error) {
       this.fail(error);
-    }
-  }
-  private async pump() {
-    if (this.pumping || this.stopped) return;
-    this.pumping = true;
-    try {
-      while (!this.stopped) {
-        const packet = this.packets[0];
-        if (!packet) break;
-        const [png, draws] = await Promise.all([packet.sourceImage, packet.sourceDraws]);
-        if (this.stopped) break;
-        const bytes = await this.compress(packet, png, draws);
-        if (this.stopped) break;
-        if (this.diskBytes + bytes > DISK_CAP)
-          throw Error("Source spool reached its 1 GiB compressed disk cap");
-        this.diskBytes += bytes;
-        this.acknowledge(packet.id);
-      }
-    } catch (error) {
-      this.fail(error);
-    } finally {
-      this.pumping = false;
     }
   }
   private acknowledge(id: number) {
@@ -236,8 +225,6 @@ export class PresentationSpool {
   }
   dispose() {
     this.stopped = true;
-    this.compression?.reject(Error(this.error ?? "Spool disposed"));
-    this.compression = null;
     this.compressor?.terminate();
     this.compressor = null;
     this.packets = [];

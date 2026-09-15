@@ -253,7 +253,9 @@ export async function run(ctx) {
         if (mode === "normal")
           ctx.check(
             `${tier}: normal PNG transported`,
-            state.images.length === 1 && state.images[0].channel === "normal",
+            state.images.allocatedImages === 1 &&
+              state.images.references === 1 &&
+              state.images.allocated[0].channel === "normal",
             JSON.stringify(state.images),
           );
       }

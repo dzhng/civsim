@@ -517,15 +517,20 @@ export async function run(ctx) {
           row.samples.some((s) => s.activeRiderOverlays > 0),
           { framesWithOverlay: row.samples.filter((s) => s.activeRiderOverlays > 0).length },
         );
-      if (textureSize)
+      if (textureSize) {
+        // Images are shared per channel and one appearance is loaded, so the
+        // three requested maps stay three allocations holding one binding each.
+        const surfaceImages = row.stats.crowd.surfaceImages;
         ctx.check(
           `${name}: requested diagnostic maps uploaded`,
-          row.stats.crowd.surfaceImages.length === 3 &&
-            row.stats.crowd.surfaceImages.every(
+          surfaceImages.allocatedImages === 3 &&
+            surfaceImages.references === 3 &&
+            surfaceImages.allocated.every(
               (image) => image.width === textureSize && image.height === textureSize,
             ),
-          row.stats.crowd.surfaceImages,
+          surfaceImages,
         );
+      }
       const percentile = (values, fraction) =>
         [...values].sort((a, b) => a - b)[
           Math.min(values.length - 1, Math.floor(values.length * fraction))

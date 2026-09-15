@@ -77,3 +77,17 @@ pass, and the final unprimed critique accepts this contact/clipping checkpoint.
 Full-region spatial grouping/culling and hardware cost are the next11 contract.
 Keep the accepted regional geometry/pixels fixed while reducing global scans and
 draw submissions. This checkpoint is not full11 or production acceptance.
+
+### Regional grouping checkpoint
+
+[Regional evidence](../assets/slice-11/grouping/README.md) proves offscreen frustum
+culling and pre-vertex rejection of distant updates with the same geographic
+triangles. Explicit crossing order removes dependence on transparent batch centers.
+Both regional repeats and prior composition/anchor controls pass exactly; all501
+CPU tests/typecheck and final code/visual reviews pass. Hardware warm traversal
+measures16.67ms p95 and33.33ms maximum admission frame across11admissions.
+
+Remaining11work: full geographic fog/overview-atmosphere behavior, input/lifecycle
+integration with complete entities/UI and final hardware acceptance. Geometry is
+still resident globally; its CPU/GPU allocations are reported separately from the
+bounded terrain budget. Do not call full11complete from this checkpoint alone.

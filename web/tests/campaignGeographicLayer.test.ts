@@ -66,6 +66,8 @@ test("live geographic ribbons preserve builder clearances through surface update
   };
   layer.upload(input, plane(50));
   const meshes = scene.children as THREE.Mesh[];
+  expect(meshes[2].renderOrder).toBeLessThan(meshes[0].renderOrder);
+  expect(meshes[0].renderOrder).toBeLessThan(meshes[1].renderOrder);
   let releases = 0;
   for (const [index, mesh] of meshes.entries()) {
     mesh.geometry.addEventListener("dispose", () => releases++);
@@ -156,4 +158,44 @@ test("wide border ends clip to the rendered coast without moving the dry centerl
   }
   expect(farthest).toBeGreaterThan(0.999);
   expect(Math.min(...Array.from(geometry).filter((_, i) => i % 7 === 0))).toBe(-4);
+});
+
+test("distant geographic regions are neither scanned nor uploaded during local terrain admission", () => {
+  const data = buildCampaignMapDrawData({
+    map: {
+      nodes: [],
+      factions: [],
+      edges: [
+        {
+          kind: "road",
+          via: [
+            [-40, -30],
+            [-20, -30],
+          ],
+        },
+        {
+          kind: "road",
+          via: [
+            [540, 530],
+            [560, 530],
+          ],
+        },
+      ],
+    },
+  });
+  const scene = new THREE.Scene();
+  const layer = new CampaignGeographicLayer(scene, new THREE.MeshBasicMaterial(), () => 0);
+  layer.upload({ ...data, borderVertices: new Float32Array() }, plane(50));
+  expect(scene.children).toHaveLength(2);
+  const distant = (scene.children[1] as THREE.Mesh).geometry.getAttribute(
+    "position",
+  ) as THREE.BufferAttribute;
+  const before = distant.array.slice(),
+    version = distant.version;
+  layer.seat(plane(60), [{ ox: -60, oy: -60, columns: 2, rows: 2, cell: 50, units: "kilometers" }]);
+  expect(layer.stats().visitedVertices).toBe(layer.stats().vertices / 2);
+  expect(layer.stats().sampledVertices).toBe(layer.stats().visitedVertices);
+  expect(distant.array).toEqual(before);
+  expect(distant.version).toBe(version);
+  layer.dispose();
 });

@@ -35,7 +35,8 @@ export async function run(ctx) {
     ctx.check(
       `${region}: live geometry and bounded re-seating`,
       state.renderer.geography.vertices > 0 &&
-        state.renderer.geography.sampledVertices < state.renderer.geography.vertices &&
+        state.renderer.geography.sampledVertices <= state.renderer.geography.visitedVertices &&
+        state.renderer.geography.visitedVertices < state.renderer.geography.vertices &&
         !state.failed.length,
       JSON.stringify(state.renderer.geography),
     );

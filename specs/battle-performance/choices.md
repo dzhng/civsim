@@ -207,3 +207,11 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Gap:** The original slice order deferred all integration until backend selection; actual hardware now proves the duplicate allocation and safe replacement lifetime independently of timing.
 - **Reach:** This changes the working incumbent, adds no renderer switch or compatibility path, and requires refreshed final comparisons. It does not close the motion or performance gates.
 - **Verdict:** Sound, medium confidence. The ordering is reversible and fixed experimental inputs remain intact; the final renderer is still undecided.
+
+### Evaluate only contributing endpoint poses
+
+- **When:** 06a endpoint integration.
+- **Choice:** At the instant a transition has finished, sample its destination and do not read the old pose. At its exact start, retain the source result without sampling the unused destination. A frozen source that contributes still must fit the skeleton. Each returned pose remains independently owned.
+- **Gap:** The plan requires equivalent poses but leaves evaluation strategy open; removing unused reads also removes their incidental validation. Keeping validation only on contributing data preserves useful failure checks without performing discarded work.
+- **Reach:** This engine-independent change enters the working branch before backend selection; fixed builds remain untouched and final comparisons must all include it. It creates no cache, mode, dependency or extra timeline.
+- **Verdict:** Sound, high confidence. Exact differential and ownership checks support the behavior; live timing remains an open gate.

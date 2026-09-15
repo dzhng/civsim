@@ -4,7 +4,7 @@
 
 Can observation and transition preparation cost less while producing the same authored poses? The live CPU profile identifies `ActionTimeline.update`, especially frozen-pose capture, as substantial work before `BattleRenderer.draw`. Camera-only invalidation cannot remove this cost: real combat changes observations with a stationary camera too.
 
-After 03 selects the backend, this slice owns the engine-independent observation → transition → presented-state boundary, before the existing crowd-state/visibility work. The current semantic owners are `BattleActionAdapter`, `ActionTimeline` and `BattleCrowd`; retain one owner for each responsibility. Choose the optimization from measured work rather than prescribing a cache, pooling scheme or GPU move. Shared campaign consumers must remain correct.
+This slice owns the engine-independent observation → transition → presented-state boundary, before the existing crowd-state/visibility work. The current semantic owners are `BattleActionAdapter`, `ActionTimeline` and `BattleCrowd`; retain one owner for each responsibility. Choose the optimization from measured work rather than prescribing a cache, pooling scheme or GPU move. Shared campaign consumers must remain correct.
 
 ## Invariants
 
@@ -22,3 +22,9 @@ Frozen sources remain stable for every consumer that retains them. Reusing stora
 All backend candidates in a comparison round consume the same shared preparation implementation/version. If preparation changes after the original scorecard, refresh the Three control and affected candidate measurements. Presented-frame replay may exclude upstream preparation only when explicitly labeled; the live result always includes it. Do not credit an engine with work merely moved outside its timer.
 
 The exit is a measured preparation improvement with pose equivalence, or a closed hypothesis without production edits. Follow the root review gates and verify shared consumers. Record the three failures reproduced on untouched `c924e5ce` separately as known baseline reds; do not re-bless them, weaken thresholds or treat them as permission for new regressions.
+
+## Integrated endpoint checkpoint
+
+Exact zero/one blend endpoints now evaluate only the pose that contributes to the output. Mid-transition blending and mounted composition are unchanged. The differential test covers 192 playbacks against the former unconditional recipe with exact equality, and ownership tests ensure returned poses cannot mutate a retained source or another result. Frozen-source layout is checked wherever that source contributes; a discarded source is not read.
+
+Root and independent review both pass 64 focused action-timeline tests; web typechecking passes. This small engine-independent optimization integrates before selection while fixed comparison builds remain unchanged. It is not the exit gate: contact-window preparation cost, full animation motion, allocation/GC and final combined performance remain to be measured. All compared backends must consume the same implementation in the refreshed final round.

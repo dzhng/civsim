@@ -53,3 +53,7 @@ woven scratches; shorter transverse noise was only slightly preferred close up
 and lost identity regionally. Both are rejected and their code removed. Shared
 consumer/source/water controls remained green. Further anisotropy alone is not
 the next material solution; regional geological readability remains open.
+
+## Next material decision
+
+The directional-face probes changed fine texture without improving regional geological readability. Freeze geometry and address irregular grass/scree/rock transitions and their color separation in the existing shared response before adding more directional noise. Campaign and battle must still produce identical results for equivalent inputs; preserve water and authored tint semantics. A regional improvement must survive both Italy and Alps framing as well as the near fixture.

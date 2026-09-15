@@ -1,6 +1,6 @@
 # 13 — Battle presentation adopts the shared landscape
 
-Status: pending. Dependencies: [05](05-terrain-material.md), [06](06-crown-shapes.md), [07](07-ecological-placement.md), [09](09-water-response.md), [10](10-environment.md).
+Status: in progress; shared owners and authored material checkpoint implemented. Dependencies: [05](05-terrain-material.md), [06](06-crown-shapes.md), [07](07-ecological-placement.md), [09](09-water-response.md), [10](10-environment.md).
 
 ## Contract and owner
 

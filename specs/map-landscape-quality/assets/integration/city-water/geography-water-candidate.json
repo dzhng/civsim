@@ -1,0 +1,77 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T04:54:43.846Z",
+  "target": "http://127.0.0.1:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "landscape-geography",
+      "file": "campaign/landscape-geography.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "landscape-geography",
+      "name": "snapshot landscape-geography-italy",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "italy: live geometry and bounded re-seating",
+      "ok": true,
+      "detail": "{\"vertices\":2486148,\"cpuBytes\":89501328,\"gpuBytes\":79556736,\"sampledVertices\":297,\"visitedVertices\":6099,\"regions\":735}"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "italy: geographic inputs visibly reach the world",
+      "ok": true,
+      "detail": "37404 pixels"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "italy: replacement restores exact geography",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "snapshot landscape-geography-alps",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "alps: live geometry and bounded re-seating",
+      "ok": true,
+      "detail": "{\"vertices\":2486148,\"cpuBytes\":89501328,\"gpuBytes\":79556736,\"sampledVertices\":44676,\"visitedVertices\":94011,\"regions\":735}"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "alps: geographic inputs visibly reach the world",
+      "ok": true,
+      "detail": "63263 pixels"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "alps: replacement restores exact geography",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

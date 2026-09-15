@@ -45,8 +45,8 @@ shared across tile admissions. Visibility updates both resident terrain/roads an
 entity/scenery membership, and subsequently admitted terrain samples the current
 query. Queries remain campaign policy, not a second world visibility algorithm.
 
-This does not complete 11: full-region road/sea-lane/border inputs, affected-region
-re-draping/culling, composed real-map coverage and atmosphere remain. The old
+This checkpoint supplies dynamic ownership and visibility. The later line and
+regional grouping checkpoints below supply live geometry and bounded updates. The old
 composition fixture's constant tint is retained until its consumers move to live
 ownership at production cutover; it is not the production faction model.
 
@@ -74,9 +74,8 @@ through mountains; subdivision restores continuity, and source-mask clipping
 trims wet coastal tips. Both regional repeats are pixel-identical, all500 CPU tests and both typechecks
 pass, and the final unprimed critique accepts this contact/clipping checkpoint.
 
-Full-region spatial grouping/culling and hardware cost are the next11 contract.
-Keep the accepted regional geometry/pixels fixed while reducing global scans and
-draw submissions. This checkpoint is not full11 or production acceptance.
+Regional grouping below completes the line-culling contract. This contact
+checkpoint alone does not establish full11 or production acceptance.
 
 ### Regional grouping checkpoint
 

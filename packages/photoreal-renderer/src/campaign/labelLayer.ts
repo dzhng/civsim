@@ -47,13 +47,17 @@ export class CampaignLabelLayer {
     const atlas = this.frame.atlas;
     this.mesh.visible = !!atlas && this.frame.vertices.length > 0;
     if (!atlas || atlas === previous) return;
-    this.atlas.dispose();
-    this.atlas = new THREE.DataTexture(atlas.pixels, atlas.width, atlas.height);
-    this.atlas.colorSpace = THREE.SRGBColorSpace;
-    this.atlas.minFilter = THREE.LinearFilter;
-    this.atlas.magFilter = THREE.LinearFilter;
+    if (this.atlas.image.width !== atlas.width || this.atlas.image.height !== atlas.height) {
+      this.atlas.dispose();
+      this.atlas = new THREE.DataTexture(atlas.pixels, atlas.width, atlas.height);
+      this.atlas.colorSpace = THREE.SRGBColorSpace;
+      this.atlas.minFilter = THREE.LinearFilter;
+      this.atlas.magFilter = THREE.LinearFilter;
+      this.sample.value = this.atlas;
+    } else {
+      this.atlas.image.data = atlas.pixels;
+    }
     this.atlas.needsUpdate = true;
-    this.sample.value = this.atlas;
     const vertices = this.frame.vertices;
     const positions = new Float32Array(vertices.length / 2);
     const uvs = new Float32Array(vertices.length / 3);

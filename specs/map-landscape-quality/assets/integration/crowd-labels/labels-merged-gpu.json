@@ -1,0 +1,289 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T05:15:21.663Z",
+  "target": "http://127.0.0.1:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "campaign-collision",
+      "file": "campaign/campaign-collision.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    },
+    {
+      "name": "campaign-raised-labels",
+      "file": "campaign/campaign-raised-labels.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "campaign-visual",
+      "file": "campaign/campaign-visual.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-collision",
+      "name": "overview shows LONDINIUM beside (not under) the ARVERNI engraving",
+      "ok": true,
+      "detail": "{\"arverni\":{\"x\":275.616,\"y\":149.913,\"w\":180.858,\"h\":63.578},\"londinium\":{\"x\":289.368,\"y\":25.222,\"w\":77,\"h\":36}}"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "collision overview: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": "{\"labelPairs\":[],\"cardPairs\":[],\"cardLabelPairs\":[],\"labels\":15,\"cards\":1}"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "snapshot collision-overview-political",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "reported card rects are same-frame with the DOM; entering cards settle in one frame (ordering pin)",
+      "ok": true,
+      "detail": "{\"frame1\":{\"reported\":1,\"stale\":[]},\"frame2\":{\"reported\":15,\"dom\":15,\"stale\":[]}}"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "Roma cluster city cards all visible at full-tilt zoom (nudged, never culled)",
+      "ok": true,
+      "detail": "{\"visible\":[\"ALBA FUCENS\",\"ASCULUM\",\"CAPUA\",\"CASINUM\",\"CLUSIUM\",\"COSA\",\"FERENTINUM\",\"MINTURNAE\",\"NARNIA\",\"OSTIA/PORTUS\",\"REATE\",\"ROMA\",\"TARRACINA\",\"TIBUR\",\"VOLSINII\"],\"culled\":[\"city:CASTRUM TRUENTINUM\"]}"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "collision regional-roma: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": "{\"labelPairs\":[],\"cardPairs\":[],\"cardLabelPairs\":[],\"labels\":12,\"cards\":15}"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "snapshot collision-regional-roma",
+      "ok": false,
+      "detail": "24140 px differ (2.3574%) — see shots/diff/collision-regional-roma.png"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "campaign map has Pella",
+      "ok": true,
+      "detail": "[380.68280257537094,317.71036298550746]"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "collision pella: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": "{\"labelPairs\":[],\"cardPairs\":[],\"cardLabelPairs\":[],\"labels\":14,\"cards\":0}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 atlas draws accepted labels",
+      "ok": true,
+      "detail": "{\"labels\":3,\"visibleLabels\":3,\"visibleLabelNames\":[\"city:Ridge settlement\",\"army:Field army\",\"army:Rear army\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"Ridge settlement\",\"kind\":\"city\",\"opacity\":1,\"box\":{\"x\":327.535,\"y\":530.298,\"w\":183,\"h\":42},\"corners\":[[327.535,530.298],[510.535,530.298],[510.535,572.298],[327.535,572.298]],\"padPx\":8,\"inkRect\":{\"x\":335.535,\"y\":538.298,\"w\":167,\"h\":26}}],\"visibleArmyLabelRects\":[{\"text\":\"Field army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":746.7,\"y\":476.187,\"w\":98,\"h\":34},\"corners\":[[746.7,476.187],[844.7,476.187],[844.7,510.187],[746.7,510.187]],\"padPx\":6,\"inkRect\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22}},{\"text\":\"Rear army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":564.578,\"y\":339.584,\"w\":95,\"h\":34},\"corners\":[[564.578,339.584],[659.578,339.584],[659.578,373.584],[564.578,373.584]],\"padPx\":6,\"inkRect\":{\"x\":570.578,\"y\":345.584,\"w\":83,\"h\":22}}],\"visibleFactionLabelRects\":[],\"collisionCulls\":0,\"collisionCulledLabels\":[],\"atlasWidth\":1024,\"atlasHeight\":64,\"vertices\":18,\"layer\":\"physical-gpu-glyph-atlas\"}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 no DOM label substitute",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "snapshot campaign-raised-labels-dpr1",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 accepted ink is actually drawn: Ridge settlement",
+      "ok": true,
+      "detail": "2236 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 accepted ink is actually drawn: Field army",
+      "ok": true,
+      "detail": "981 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 accepted ink is actually drawn: Rear army",
+      "ok": true,
+      "detail": "991 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 card occupancy culls army label",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 replacement moves accepted army ink",
+      "ok": true,
+      "detail": "{\"before\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22},\"after\":{\"x\":755.688,\"y\":449.013,\"w\":86,\"h\":22}}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 resize refreshes ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 fog removes hidden army ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR1 recreated world retains one canvas and visible labels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 atlas draws accepted labels",
+      "ok": true,
+      "detail": "{\"labels\":3,\"visibleLabels\":3,\"visibleLabelNames\":[\"city:Ridge settlement\",\"army:Field army\",\"army:Rear army\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"Ridge settlement\",\"kind\":\"city\",\"opacity\":1,\"box\":{\"x\":328.285,\"y\":530.298,\"w\":181.5,\"h\":41},\"corners\":[[328.285,530.298],[509.785,530.298],[509.785,571.298],[328.285,571.298]],\"padPx\":7.5,\"inkRect\":{\"x\":335.785,\"y\":537.798,\"w\":166.5,\"h\":26}}],\"visibleArmyLabelRects\":[{\"text\":\"Field army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":746.7,\"y\":476.187,\"w\":98,\"h\":34},\"corners\":[[746.7,476.187],[844.7,476.187],[844.7,510.187],[746.7,510.187]],\"padPx\":6,\"inkRect\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22}},{\"text\":\"Rear army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":564.578,\"y\":339.584,\"w\":95,\"h\":34},\"corners\":[[564.578,339.584],[659.578,339.584],[659.578,373.584],[564.578,373.584]],\"padPx\":6,\"inkRect\":{\"x\":570.578,\"y\":345.584,\"w\":83,\"h\":22}}],\"visibleFactionLabelRects\":[],\"collisionCulls\":0,\"collisionCulledLabels\":[],\"atlasWidth\":1024,\"atlasHeight\":128,\"vertices\":18,\"layer\":\"physical-gpu-glyph-atlas\"}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 no DOM label substitute",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "snapshot campaign-raised-labels-dpr2",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 accepted ink is actually drawn: Ridge settlement",
+      "ok": true,
+      "detail": "8048 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 accepted ink is actually drawn: Field army",
+      "ok": true,
+      "detail": "3725 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 accepted ink is actually drawn: Rear army",
+      "ok": true,
+      "detail": "3528 changed pixels"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 card occupancy culls army label",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 replacement moves accepted army ink",
+      "ok": true,
+      "detail": "{\"before\":{\"x\":752.7,\"y\":482.187,\"w\":86,\"h\":22},\"after\":{\"x\":755.688,\"y\":449.013,\"w\":86,\"h\":22}}"
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 resize refreshes ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 fog removes hidden army ink",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-raised-labels",
+      "name": "DPR2 recreated world retains one canvas and visible labels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "test campaign boots with a player army",
+      "ok": true,
+      "detail": "985000 soldiers"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "controlled campaign visual route uses raw WebGPU",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"ready\":true,\"width\":2560,\"height\":1600,\"device\":\"google / swiftshader\",\"cameraContract\":\"shared-world-camera-wgsl\",\"cityEntities\":2,\"armyEntities\":1,\"cityEntityAnchors\":[[-25,450],[25,450]],\"labels\":3,\"visibleLabels\":1,\"visibleLabelNames\":[\"city:NEAPOLIS\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"NEAPOLIS\",\"kind\":\"city\",\"importance\":6,\"opacity\":1,\"box\":{\"x\":867.99,\"y\":234.444,\"w\":94.5,\"h\":36.5},\"corners\":[[867.99,234.444],[962.49,234.444],[962.49,270.944],[867.99,270.944]],\"padPx\":6.5,\"inkRect\":{\"x\":874.49,\"y\":240.944,\"w\":81.5,\"h\":23.5}}],\"visibleArmyLabelRects\":[],\"visibleFactionLabelRects\":[],\"visibleCardRects\":[{\"id\":\"city:0\",\"name\":\"ROMA\",\"box\":{\"x\":294.99787120224727,\"y\":253.8077121577995,\"w\":112,\"h\":54}}],\"labelCollisionCulls\":0,\"labelCollisionCulledLabels\":[],\"composedArmyCityLabels\":0,\"labelLayer\":\"raw-gpu-glyph-atlas\",\"labelAtlas\":\"1024x128\",\"labelVertices\":6,\"waterFeatures\":0,\"waterLayer\":\"map-sea-mask\",\"mapSurface\":{\"surfaceTriangles\":120,\"terrainMix\":0,\"terrainTextureSize\":null,\"layer\":\"background-raster-terrain\"},\"cloudQuads\":1,\"fogEnabled\":false,\"fogSources\":2,\"factionView\":true,\"graphics\":{\"shadows\":\"single\",\"grassQuality\":\"standard\",\"grass\":true,\"farGrass\":true,\"bloom\":true,\"audio\":{\"masterVolume\":0.55,\"muted\":true,\"birds\":true,\"water\":true}},\"territoryPixels\":77,\"borderSegments\":0,\"mapMarkers\":0,\"cityMarkerRadiiPxByTier\":{\"1\":6.1000000000000005,\"2\":7,\"3\":7.9},\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"standardStats\":{\"standards\":2,\"tiers\":[\"campaign-army\",\"settlement-banner\"],\"meshVerticesByTier\":{\"battle-unit\":919,\"campaign-army\":919,\"settlement-banner\":915},\"meshIndexCountByTier\":{\"battle-unit\":2460,\"campaign-army\":2460,\"settlement-banner\":2454},\"weightChannel\":\"uvWeightMaterial.z: 0 rigid hardware, >0 cloth/trim/emblem\",\"materialChannel\":\"uvWeightMaterial.w: pole/gold/cloth/trim/emblem/shadow\",\"liveryContract\":\"instance livery overrides field/trim/emblem; battle faction table remains default\",\"waveContract\":\"cam.time + deterministic per-instance phase + strength\",\"layer\":\"shared-3d-standard-asset\"},\"scenery\":8,\"sceneryQuads\":8,\"sceneryStats\":{\"scenery\":8,\"mountains\":1,\"trees\":4,\"rocks\":2,\"carts\":1,\"kinds\":{\"conifer\":1,\"broadleaf\":3,\"ash\":0,\"aspen\":0,\"bush\":0,\"rock\":2,\"mountain\":1,\"cart\":1},\"materialClasses\":[\"opaque-depth-write\",\"shadow-depth-read\"],\"layer\":\"raw-gpu-scenery-library-meshes\"},\"sceneryCandidateStats\":{\"total\":15,\"mountains\":4,\"trees\":6,\"rocks\":5},\"lineSegments\":0,\"roadTriangles\":224,\"roadJunctionCaps\":0,\"seaLabelFits\":[],\"seaLabelFitZoom\":0.26,\"roadEdgesCulled\":0,\"roadWaterGaps\":0,\"seaLanes\":0,\"phases\":[{\"kind\":\"background\",\"label\":\"consumer-owned background surfaces\",\"passIds\":[\"builtin-background\"],\"passRoles\":[{\"id\":\"builtin-background\",\"role\":\"background-underpaint\"}],\"depthPasses\":[],\"depth\":\"none\",\"loadOp\":\"clear\"},{\"kind\":\"world-depth\",\"label\":\"depth-tested world geometry and ground decals\",\"passIds\":[\"campaign-map-surface\",\"campaign-scenery-opaque\",\"campaign-entities-opaque\",\"campaign-standards-opaque\",\"campaign-soldier-crowd\",\"campaign-territory-wash\",\"campaign-scenery-shadows\",\"campaign-entity-shadows\",\"campaign-standard-shadows\",\"campaign-soldier-shadows\",\"campaign-roads\",\"campaign-sea-lanes-depth\",\"campaign-ground-selection\"],\"passRoles\":[{\"id\":\"campaign-map-surface\",\"role\":\"world-depth-fill\"},{\"id\":\"campaign-scenery-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-entities-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-standards-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-soldier-crowd\",\"role\":\"world-opaque\"},{\"id\":\"campaign-territory-wash\",\"role\":\"world-decal\"},{\"id\":\"campaign-scenery-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-entity-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-standard-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-soldier-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-roads\",\"role\":\"world-decal\"},{\"id\":\"campaign-sea-lanes-depth\",\"role\":\"world-decal\"},{\"id\":\"campaign-ground-selection\",\"role\":\"world-decal\"}],\"depthPasses\":[{\"id\":\"campaign-map-surface\",\"mode\":\"write\"},{\"id\":\"campaign-scenery-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-entities-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-standards-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-soldier-crowd\",\"mode\":\"read-write\"},{\"id\":\"campaign-territory-wash\",\"mode\":\"read\"},{\"id\":\"campaign-scenery-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-entity-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-standard-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-soldier-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-roads\",\"mode\":\"read\"},{\"id\":\"campaign-sea-lanes-depth\",\"mode\":\"read\"},{\"id\":\"campaign-ground-selection\",\"mode\":\"read\"}],\"depth\":\"depth32float-reverse-z-clear\",\"loadOp\":\"load\"},{\"kind\":\"overlay\",\"label\":\"labels, HUD, minimap, atmosphere, and debug overlays\",\"passIds\":[\"campaign-clouds\",\"campaign-fog-of-war\",\"campaign-markers\",\"campaign-labels\"],\"passRoles\":[{\"id\":\"campaign-clouds\",\"role\":\"overlay-effect\"},{\"id\":\"campaign-fog-of-war\",\"role\":\"overlay-effect\"},{\"id\":\"campaign-markers\",\"role\":\"overlay-ui\"},{\"id\":\"campaign-labels\",\"role\":\"overlay-ui\"}],\"depthPasses\":[],\"depth\":\"none\",\"loadOp\":\"load\"}],\"depth\":{\"format\":\"depth32float\",\"width\":2560,\"height\":1600,\"allocated\":true},\"postCutoverScreenshots\":\"renderer-only\",\"performance\":{\"buildMs\":0.04,\"uploadMs\":0.19,\"drawMs\":0.085,\"frameCpuMs\":0.325}}"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-overview",
+      "ok": true,
+      "detail": "195 px differ (0.0048%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-class-builder",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-diplomacy",
+      "ok": true,
+      "detail": "195 px differ (0.0048%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-city-panel",
+      "ok": true,
+      "detail": "5820 px differ (0.1421%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-army-replenish-toggle",
+      "ok": true,
+      "detail": "5820 px differ (0.1421%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-our-city",
+      "ok": true,
+      "detail": "243 px differ (0.0059%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-road",
+      "ok": true,
+      "detail": "5820 px differ (0.1421%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-neutral-city",
+      "ok": true,
+      "detail": "439 px differ (0.0107%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "campaign-collision: snapshot collision-regional-roma"
+  ],
+  "pageErrors": []
+}

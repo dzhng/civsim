@@ -1,7 +1,7 @@
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { factionForTeam } from "@packages/game-renderer/src/battle/factionColors";
 import { STANDARD_SIZE_TIERS } from "@packages/game-renderer/src/models/shared/standardAsset";
-import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
+import type { BattleReadoutInstance } from "@packages/game-renderer/src/battle/readoutData";
 import type { BattleStandardInstance } from "@packages/game-renderer/src/models/shared/battleStandardData";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "./classData";
 import { READOUT_GALLERY, type BannerChip } from "./readoutState";

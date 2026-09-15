@@ -22,6 +22,8 @@ Each candidate has one seam (fixture→frame), one route and one parity verdict.
 
 ## Human artifact and exit
 
+[The reviewed maintenance comparison](../backend-maintenance.md) records current dependency/lifecycle obligations and triaged audit findings. Combine it with the measured report; it does not establish a backend winner.
+
 Four named lab routes, each measured against the canonical benchmark workload; retain the in-game run as the production acceptance oracle. Produce a report showing CPU p95/p99, render/compute/shadow work, presentation gaps, resource growth, peak/retained memory, input response, parity gaps and complexity. Complexity includes new owners, dependency/API instability, private Three access, generated/handwritten shader volume, build cost and missing production responsibilities; LOC alone cannot decide. Record maintained logic separately from tests/docs/generated code. Preserve pinned source commits.
 
 Visual variable: equivalence of complete frames, with separate ground, formation, shadow and horizon masks. Compare reference and candidate per mask; unrelated improvements are deferred. 02 does not choose a production migration until 03 verifies this report. Human concern about readability or maintainability can change eligibility; library preference is not performance evidence.

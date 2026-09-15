@@ -1,3 +1,7 @@
+import {
+  BATTLE_SCENERY_KINDS,
+  packBattleScenery,
+} from "../../../game-renderer/src/battle/sceneryData";
 // foliageLayer — battle scenery on the photoreal substrate. Production grass
 // belongs to the blade-field layer. Scenery uses the CampaignSceneryPass pose
 // over the shared prop meshes (SCENERY_PROP_MODELS).
@@ -9,18 +13,11 @@ import {
   LEAF_ATLAS_RGB_GAIN,
 } from "../../../game-renderer/src/models/shared/leafAtlas";
 import {
-  SCENERY_PROP_IDS,
   SCENERY_PROP_MODELS,
   type SceneryPropId,
 } from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
 import { linearAlbedo, rotateYawN, viewNormalNode } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
-
-// Battle scenery is trees and rocks; mountains and carts stay campaign-only.
-const SCENERY_KINDS: SceneryPropId[] = SCENERY_PROP_IDS.filter((id) => {
-  const family = SCENERY_PROP_MODELS[id].family;
-  return family === "tree" || family === "rock";
-});
 
 interface SceneryBucket {
   opaque: THREE.Mesh;
@@ -36,7 +33,7 @@ export class PhotorealScenery {
 
   constructor(scene: THREE.Scene) {
     this.leafMap = leafAtlasTexture();
-    for (const kind of SCENERY_KINDS) {
+    for (const kind of BATTLE_SCENERY_KINDS) {
       const model = SCENERY_PROP_MODELS[kind].build();
       const opaque = new THREE.Mesh(
         sceneryGeometry(model.opaque.vertices, model.opaque.indices, model.opaque.uvs),
@@ -57,28 +54,16 @@ export class PhotorealScenery {
 
   upload(instances: CampaignSceneryInstance[]): void {
     this.total = 0;
-    for (const kind of SCENERY_KINDS) {
-      const list = instances.filter((inst) => inst.kind === kind);
+    for (const kind of BATTLE_SCENERY_KINDS) {
+      const { pose, style, count } = packBattleScenery(kind, instances);
       const bucket = this.buckets.get(kind)!;
-      bucket.count = list.length;
-      this.total += list.length;
-      const pose = new Float32Array(list.length * 4);
-      const style = new Float32Array(list.length * 4);
-      for (let i = 0; i < list.length; i++) {
-        const inst = list[i];
-        pose[i * 4] = inst.x;
-        pose[i * 4 + 1] = inst.y;
-        pose[i * 4 + 2] = inst.size;
-        pose[i * 4 + 3] = inst.z ?? 0;
-        style[i * 4] = inst.shade ?? 0.5;
-        style[i * 4 + 1] = inst.height ?? inst.size;
-        style[i * 4 + 2] = inst.yaw ?? 0;
-      }
+      bucket.count = count;
+      this.total += count;
       const geo = bucket.opaque.geometry as THREE.InstancedBufferGeometry;
       geo.setAttribute("instPose", new THREE.InstancedBufferAttribute(pose, 4));
       geo.setAttribute("instStyle", new THREE.InstancedBufferAttribute(style, 4));
-      geo.instanceCount = list.length;
-      bucket.opaque.visible = list.length > 0;
+      geo.instanceCount = count;
+      bucket.opaque.visible = count > 0;
     }
   }
 

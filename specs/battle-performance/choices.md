@@ -98,3 +98,8 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 
 - **Settled:** Shadow receiving shares the existing environment material group. Caster draws bind only that owner’s view uniform, avoiding an illegal read/write feedback binding on the shadow texture and avoiding a fifth WebGPU bind group. Disabling shadows compiles out sampling rather than paying for unused taps.
 - **Settled:** The source shadow node’s explicit public vec3 conversion has a narrow typed output assertion in the control, because the pinned declarations return an untyped Node. The assertion describes the conversion already requested from Three; it adds no alternate renderer or runtime behavior.
+
+### Scenery parity and immutable atlas input
+
+- **Settled:** Keep battle prop selection and instance packing in shared data, while each renderer owns its buffers and passes. The native immutable-image uploader accepts packed RGBA data through the same mip/admission owner as bitmaps, avoiding a second mip implementation or lossy bitmap conversion.
+- **Settled:** Preserve the source’s solid leaf-card caster silhouettes and opaque surviving alpha in the comparison. Finer leaf shadows would change both appearance and depth-pass work and therefore belong to an explicitly separate optimized configuration.

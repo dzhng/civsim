@@ -1,0 +1,3 @@
+# Independent four-sample image review
+
+Visual-only verdict: all six pairs and enlarged grounding crops retain trees, shrub, rocks and soldiers; actual shadows extend consistently screen-right with no obvious floating props, while the first tactical-plain expected image has visibly different shadow placement and is less consistent with its repeat. Numerical-only differences: actual tactical plain/repeat differ by one channel value at one pixel; repeat-plain and horizon-plain pair RGB MAE is approximately 0.0014–0.0015/255, without a discernible content defect. This does not establish code correctness, animation stability or performance; no browser/GPU or independent subagent was used.

@@ -1,3 +1,6 @@
+import { createRawScenery } from "./scenery";
+import { PhotorealScenery } from "../../../../packages/photoreal-renderer/src/battle/foliageLayer";
+import { BATTLE_SCENERY_KINDS } from "../../../../packages/game-renderer/src/battle/sceneryData";
 import { RawSunShadow } from "./shadow";
 import { configureSunShadows } from "../../../../packages/photoreal-renderer/src/battle/shadowRig";
 import { createFrameControlBackend } from "../frameControlBackend";
@@ -82,6 +85,9 @@ async function run() {
       powerPreference: "default",
     });
     const shadows = new URL(location.href).searchParams.has("shadows");
+    const scenery = new URL(location.href).searchParams.has("scenery");
+    if (scenery && backend !== "raw")
+      throw Error("Scenery control not implemented for this backend yet");
     if (shadows && backend !== "raw")
       throw Error("Composed shadows not implemented for this backend yet");
     const env = CIVSIM_ENVIRONMENTS.golden;
@@ -134,6 +140,24 @@ async function run() {
             }),
           )
         : undefined;
+    const sourceScenery = scenery ? own(new PhotorealScenery(world.scene)) : undefined;
+    const nativeScenery = scenery
+      ? own(await createRawScenery(device, nativeFrame!.cameraLayout, nativeEnv!, samples))
+      : undefined;
+    if (scenery) {
+      const props = BATTLE_SCENERY_KINDS.map((kind, i) => ({
+        kind,
+        x: ((i % 3) - 1) * 9,
+        y: i < 3 ? 7 : -7,
+        z: 0,
+        size: kind === "rock" ? 3 : 4.5,
+        height: kind === "bush" ? 3 : 4.5,
+        shade: 0.5 + i * 0.07,
+        yaw: i * 0.7,
+      }));
+      sourceScenery!.upload(props);
+      nativeScenery!.upload(props);
+    }
     const grid = {
       w: 20,
       h: 20,
@@ -210,9 +234,9 @@ async function run() {
     let priorHdr: number[] | undefined;
     let priorPose: number[] | undefined;
     for (const [label, pitch, distance] of [
-      ["tactical", 0.65, 15],
-      ["tactical-repeat", 0.65, 15],
-      ["horizon", 0.15, 23],
+      ["tactical", 0.65, scenery ? 34 : 15],
+      ["tactical-repeat", 0.65, scenery ? 34 : 15],
+      ["horizon", 0.15, scenery ? 44 : 23],
     ] as const) {
       const params: Camera3DParams = {
         target: [0, 0, 0],
@@ -264,15 +288,17 @@ async function run() {
         } else {
           const encoder = device.createCommandEncoder();
           nativeCrowd!.precompute(encoder);
-          nativeShadow?.encode(encoder, (pass) =>
-            nativeCrowd!.draw(pass, shadowCameraGroup!, "shadow"),
-          );
+          nativeShadow?.encode(encoder, (pass) => {
+            nativeCrowd!.draw(pass, shadowCameraGroup!, "shadow");
+            nativeScenery?.draw(pass, shadowCameraGroup!, "shadow");
+          });
           nativeFrame!.encode(
             encoder,
             output.createView(),
             (pass, group) => {
               nativeGround!.encode(pass, group);
               nativeCrowd!.draw(pass, group);
+              nativeScenery?.draw(pass, group);
             },
             bloom,
           );
@@ -330,6 +356,7 @@ async function run() {
       }
     }
     driver?.dispose();
+    nativeScenery?.dispose();
     nativeGround?.dispose();
     nativeCrowd?.dispose();
     nativeFrame?.dispose();
@@ -342,6 +369,7 @@ async function run() {
       liveCandidateTexturesAfterDispose,
       samples,
       shadows,
+      scenery,
       nativeDiagnostic,
       results,
       errors,

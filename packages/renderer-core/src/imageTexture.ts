@@ -5,19 +5,29 @@ export interface ImageTextureOptions {
   generateMipmaps: boolean;
 }
 
+export interface RgbaTextureData {
+  width: number;
+  height: number;
+  data: Uint8Array;
+}
+
 /**
  * Prepare an immutable, caller-owned GPU texture. The caller also retains
- * ownership of image and may close it after this promise settles. No decoding,
+ * ownership of bitmap or packed RGBA data. It may close the bitmap after this
+ * promise settles. Typed data is uploaded verbatim in the declared color space. No decoding,
  * resizing, CPU readback, or sampler policy belongs to this upload boundary.
  */
 export async function uploadImageTexture(
   device: GPUDevice,
-  image: ImageBitmap,
+  image: ImageBitmap | RgbaTextureData,
   options: ImageTextureOptions,
 ): Promise<GPUTexture> {
   const { width, height } = image;
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) {
-    throw new Error("Image texture requires a nonempty, open ImageBitmap");
+    throw new Error("Image texture requires nonempty integer dimensions");
+  }
+  if ("data" in image && image.data.byteLength !== width * height * 4) {
+    throw new Error("RGBA texture data must contain exactly four bytes per pixel");
   }
   const limit = device.limits.maxTextureDimension2D;
   if (width > limit || height > limit) {
@@ -45,11 +55,18 @@ export async function uploadImageTexture(
         GPUTextureUsage.TEXTURE_BINDING |
         GPUTextureUsage.RENDER_ATTACHMENT,
     });
-    device.queue.copyExternalImageToTexture(
-      { source: image, flipY: false },
-      { texture, premultipliedAlpha: false, colorSpace: "srgb" },
-      [width, height],
-    );
+    if ("data" in image) {
+      device.queue.writeTexture({ texture }, image.data, { bytesPerRow: width * 4 }, [
+        width,
+        height,
+      ]);
+    } else {
+      device.queue.copyExternalImageToTexture(
+        { source: image, flipY: false },
+        { texture, premultipliedAlpha: false, colorSpace: "srgb" },
+        [width, height],
+      );
+    }
     if (mipLevelCount > 1) {
       const module = device.createShaderModule({
         label: "image-mip-area-mean",

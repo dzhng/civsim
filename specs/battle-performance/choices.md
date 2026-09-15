@@ -171,3 +171,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Overlapping GPU timing intervals
 
 - **Settled:** Keep pass-duration sums as diagnostics only. Observed hardware intervals overlap, so comparison uses separately named whole-presentation span and interval union after source/native coverage is aligned. Neither is labelled physical GPU busy time; shadow comparisons use matched whole presentations, not subtraction of overlapping stage sums.
+
+### Phase attribution and missing timing
+
+- **Settled:** Attribute CPU samples and recorded GPU submissions using the canonical camera script, including the untimed opening submission once. Report span and union only as a valid pair; partial or missing measurements remain unavailable. Phase reports reuse the whole-run distribution owners and do not infer GPU time from stage sums.

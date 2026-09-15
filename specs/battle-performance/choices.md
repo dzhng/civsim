@@ -179,3 +179,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Component report scope
 
 - **Settled:** Keep library version identity separate from test scope. A preflight or sky control states only the work it observes; it does not declare global full-scene eligibility or carry a stale missing-pass inventory.
+
+### Incremental timing-query control
+
+- **Settled:** Disable native timing queries only at lab build time, while retaining device features, actual drawing, validation, submission identity and allocation observation. Report disabled timing as unavailable. The paired control measures added query/readback cost; it is not a claim that every profiler cost has been removed.

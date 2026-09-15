@@ -1,6 +1,10 @@
-# Battle replay laboratory
+# Battle rendering laboratory
 
-The lab build runs the actual menu, battle loop and crowd presentation. Its
+The [native live entry](src/live/README.md) runs candidate renderers through the
+actual game Menu and benchmark. Use live runs for cadence and recorded replay for
+matching rendering history; capture work is excluded from timing.
+
+The capture lab build runs the actual menu, battle loop and crowd presentation. Its
 importer-scoped Vite substitutions wrap the original renderer and real world
 factory. The factory records outer public world calls and observes every actual
 presentation, including presentations made while settling. Disposal removes the

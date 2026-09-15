@@ -535,7 +535,6 @@ export class CampaignRenderer {
         3: cityMarkerRadiusPx(3),
       },
       standardStats: world?.standards ?? null,
-      sceneryStats: world?.scenery ?? null,
       scenery: world?.scenery.scenery ?? 0,
       sceneryCandidateStats: tallySceneryCandidates(this.sceneryCandidates),
       lineSegments: this.geography.lineVertices.length / 42,

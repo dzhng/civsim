@@ -7,7 +7,8 @@ This is a color-coverage check, not vegetation segmentation or material acceptan
 
 The production migration also moved cart presence to seated scenery anchors.
 The road check now reads that existing owner and fails explicitly if it is absent;
-there is no compatibility counter in the runtime.
+the now-unconsumed `sceneryStats` alias is removed from runtime diagnostics.
+Existing density and physical-world diagnostics remain the owners.
 
 CPU replay of the retained first-pass PNGs preserves every denominator and all
 numeric floors. The original first-pass captures and measurements are retained in

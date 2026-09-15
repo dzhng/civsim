@@ -4,16 +4,13 @@ import {
 } from "@packages/crowd-runtime/src/actionTimeline";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
-import type { Game } from "../wasm/game_wasm.js";
-import { createBattleViews, MOTOR_TRAVEL } from "./battleViews";
-import { validateClassSpecCatalog } from "./classData";
+import { MOTOR_TRAVEL, type BattleObservationSource } from "./battleViews";
 import type { ClassSpec } from "./classData";
 
 /** Actual battle state only; action priorities and clocks belong to ActionTimeline. */
 export class BattleActionAdapter {
   readonly classSpecs: ClassSpec[];
   private readonly releaseDuration: number;
-  private readonly views: ReturnType<typeof createBattleViews>;
   private motorTravel = new Float64Array(0);
   private tick = -1;
   private observations: ActionObservation[] = [];
@@ -23,14 +20,9 @@ export class BattleActionAdapter {
     appearanceId,
   }));
 
-  constructor(
-    private readonly game: Game,
-    private readonly memory: WebAssembly.Memory,
-  ) {
-    this.views = createBattleViews(game, memory);
-    this.releaseDuration = game.loosing_duration();
-    this.classSpecs = JSON.parse(game.class_specs());
-    validateClassSpecCatalog(this.classSpecs);
+  constructor(private readonly source: BattleObservationSource) {
+    this.classSpecs = source.metadata.classSpecs;
+    this.releaseDuration = source.metadata.releaseDuration;
   }
 
   reset(): void {
@@ -40,23 +32,25 @@ export class BattleActionAdapter {
   }
 
   read(tick: number) {
-    const count = this.game.soldier_count();
+    const raw = this.source.raw();
+    const count = raw.soldiers;
     if (tick < this.tick || count < this.observations.length) this.reset();
     if (tick === this.tick && count === this.observations.length)
       return { observations: this.observations, facings: this.facings };
-    const motorTravel = this.views.motorTravel();
-    const facings = this.views.facings();
-    const health = this.views.health(),
-      mountHealth = this.views.mountHealth();
-    const info = this.views.unitInfo(),
-      stride = this.game.unit_info_stride();
-    const alive = new Uint8Array(this.memory.buffer, this.game.alive_ptr(), count);
-    // Packed presentation-only branch outputs; bit order belongs to Game::posture_ptr.
-    const posture = new Uint8Array(this.memory.buffer, this.game.posture_ptr(), count);
-    const fighting = new Uint8Array(this.memory.buffer, this.game.fighting_ptr(), count);
-    const releases = new Float32Array(this.memory.buffer, this.game.loosing_ptr(), count);
-    const weapons = new Uint8Array(this.memory.buffer, this.game.cur_weapon_ptr(), count);
-    const units = new Uint32Array(this.memory.buffer, this.game.soldier_unit_ptr(), count);
+    const {
+      facings,
+      motorTravel,
+      health,
+      mountHealth,
+      alive,
+      posture,
+      fighting,
+      releases,
+      weapons,
+      units,
+      unitInfo: info,
+      unitInfoStride: stride,
+    } = raw;
     const elapsed = (tick - this.tick) * ACTION_TICK_SECONDS;
     const previousCount = this.motorTravel.length / MOTOR_TRAVEL.stride;
     const observations: ActionObservation[] = [];

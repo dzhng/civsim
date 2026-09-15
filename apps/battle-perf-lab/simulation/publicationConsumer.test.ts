@@ -10,10 +10,19 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { CAPACITY, createRun, presentationMetadata, snapshot } from "./publication.mjs";
-import { createSnapshotReader, type PublishedSnapshot } from "./snapshotReader.ts";
-import { field, liveProjectiles, publishedProjectiles } from "./publicationRecords.ts";
+import { createPublishedObservationSource } from "./publishedObservations.ts";
+import {
+  field,
+  liveProjectiles,
+  publishedProjectiles,
+  type PublishedSnapshot,
+} from "./publicationRecords.ts";
 import { BattleActionAdapter } from "../../../web/src/battle/battleActionAdapter";
-import { createBattleViews } from "../../../web/src/battle/battleViews";
+import {
+  battleObservationMetadata,
+  createBattleViews,
+  createLiveObservationSource,
+} from "../../../web/src/battle/battleViews";
 import initWasm, { Game } from "../../../web/src/wasm/game_wasm.js";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
@@ -28,16 +37,21 @@ beforeAll(async () => {
   });
 });
 
-/** One consumer: the real adapter over published buffers, plus the reader holding them. */
+/** One consumer: the real adapter over published buffers, plus the publication source
+ * holding them. Its construction metadata is the producer's identity, as a consumer with
+ * no local `Game` would receive it. */
 function consumer(run: { game: Game; memory: WebAssembly.Memory }) {
-  const reader = createSnapshotReader(presentationMetadata(run.game));
+  const identity = presentationMetadata(run.game);
+  const publication = createPublishedObservationSource(
+    battleObservationMetadata(identity.classSpecs, identity.releaseDuration),
+  );
   return {
-    reader,
-    live: new BattleActionAdapter(run.game, run.memory),
-    published: new BattleActionAdapter(reader.game, reader.memory),
+    publication,
+    live: new BattleActionAdapter(createLiveObservationSource(run.game, run.memory)),
+    published: new BattleActionAdapter(publication),
     publish(tick: number, buffer: ArrayBuffer) {
       const state: PublishedSnapshot = snapshot(run, tick, buffer);
-      reader.adopt(state);
+      publication.adopt(state);
       return state;
     },
   };
@@ -82,7 +96,7 @@ test(
   { timeout: 120_000 },
   async () => {
     const run = await createRun(WASM_DIRECTORY);
-    const { reader, live, published, publish } = consumer(run);
+    const { publication, live, published, publish } = consumer(run);
     const views = createBattleViews(run.game, run.memory);
     const buffer = new ArrayBuffer(CAPACITY);
     const guarded: string[] = [];
@@ -111,7 +125,7 @@ test(
       }
       // The window must actually move, or the parity above proves nothing about transitions.
       expect(new Set(guarded).size).toBeGreaterThan(1);
-      expect(reader.release().byteLength).toBe(CAPACITY);
+      expect(publication.release().byteLength).toBe(CAPACITY);
     } finally {
       run.game.free();
     }
@@ -164,7 +178,7 @@ test("a published release transition reaches the real action timeline", async ()
 test("published weapon, posture and release transitions decode exactly, and unchanged ticks reuse", () => {
   const game = new Game(37);
   const run = { game, memory: wasm.memory };
-  const { reader, live, published, publish } = consumer(run);
+  const { publication, live, published, publish } = consumer(run);
   const buffer = new ArrayBuffer(CAPACITY);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 3, 0);
@@ -221,12 +235,12 @@ test("published weapon, posture and release transitions decode exactly, and unch
     expect(published.read(1).observations).toBe(switched.observations);
     expect(published.read(0).observations).not.toBe(switched.observations);
 
-    // Returning the credit ends consumer ownership: the reader retains nothing, and the
+    // Returning the credit ends consumer ownership: the source retains nothing, and the
     // last presentation survives because the adapter copied it out of the buffer.
     const retained = structuredClone(switched.observations);
     publish(1, buffer);
     const last = published.read(1);
-    const returned = reader.release();
+    const returned = publication.release();
     expect(() => published.read(2)).toThrow(/publication buffer was returned/);
     const credit = structuredClone(returned, { transfer: [returned] });
     expect(returned.byteLength).toBe(0);
@@ -235,7 +249,7 @@ test("published weapon, posture and release transitions decode exactly, and unch
     expect(Array.from(last.facings)).toEqual(Array.from(live.read(1).facings));
 
     // The producer reuses the credited buffer and the consumer recovers.
-    reader.adopt(snapshot(run, 2, credit));
+    publication.adopt(snapshot(run, 2, credit));
     expect(published.read(2).observations).toEqual(live.read(2).observations);
   } finally {
     game.free();

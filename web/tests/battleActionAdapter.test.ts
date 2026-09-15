@@ -13,7 +13,7 @@ import {
 } from "@packages/crowd-runtime/src/actionTimeline";
 import { sampleRigLocalPose } from "@packages/soldier-assets/src/localPose";
 import { BattleCrowd } from "../src/battle/battleCrowd";
-import { createBattleViews } from "../src/battle/battleViews";
+import { createBattleViews, createLiveObservationSource } from "../src/battle/battleViews";
 import type { BattleWorld } from "../src/battle/battleWorld";
 import type { BattleUnitPresentation } from "../src/battle/battleUnitPresentation";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
@@ -68,7 +68,7 @@ test("targetless Disengage selects protected travel only when the actual engine 
         game.spawn_class(enemyX, 0, Math.PI, 10, 5, 0, 1);
         if (evade) game.set_move_order(0, -30, 0);
         else game.set_disengage_order(0, -30, 0);
-        const adapter = new BattleActionAdapter(game, wasm.memory);
+        const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
         const first = adapter.read(0).observations[0];
         game.tick();
         const observation = adapter.read(1).observations[0];
@@ -281,7 +281,7 @@ test("observation histories survive append and memory growth, but reset on rewin
   const game = new Game(41);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const initial = adapter.read(10).observations[0];
     const travel = createBattleViews(game, wasm.memory).motorTravel;
     travel().set([0.1, 0, 0.1]);
@@ -323,7 +323,7 @@ test("motion retains forward and lateral signs in the presented facing basis", (
   try {
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
     const views = createBattleViews(game, wasm.memory);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     adapter.read(0);
     // Face +y: travel toward -y is backwards, while +x is to the right.
     views.facings()[0] = Math.PI / 2;
@@ -352,7 +352,7 @@ test("held pike motion uses the presented unit facing, returning to soldier faci
   const game = new Game(59);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 3, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const views = createBattleViews(game, wasm.memory);
     const weapons = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), 1);
     weapons[0] = adapter.classSpecs[3].weapons.findIndex((weapon) => weapon.braced);
@@ -384,7 +384,7 @@ test("routing and incapacitation stay distinct from guarded facing and signed di
   const game = new Game(59);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const views = createBattleViews(game, wasm.memory);
     const posture = new Uint8Array(wasm.memory.buffer, game.posture_ptr(), 1);
     expect(adapter.read(0).observations[0]).toMatchObject({
@@ -427,7 +427,7 @@ test("engine targetless withdrawal reaches the real held-pike adapter without sy
     // non-remnant formations so this probes withdrawal, not rout.
     game.spawn_class(0, 0, 0, 10, 5, 3, 0);
     game.spawn_class(80, 0, Math.PI, 10, 5, 0, 1);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const views = createBattleViews(game, wasm.memory);
     expect(adapter.read(0).observations[0].guardedFacing).toBe(false);
     game.set_disengage_order(0, -30, 0);
@@ -459,7 +459,7 @@ test("actual routing ticks reach batched motor-travel observations in the displa
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
     game.spawn_class(80, 0, Math.PI, 10, 5, 0, 1);
     const views = createBattleViews(game, wasm.memory);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     game.advance_ticks(10);
     expect(adapter.read(10).observations[0].routing).toBe(true);
     let path = 0;
@@ -497,7 +497,7 @@ test("health does not replace alive authority, and fighting or switch cooldown i
   const game = new Game(43);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 6, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const first = adapter.read(0).observations[0];
     new Uint8Array(wasm.memory.buffer, game.fighting_ptr(), 1)[0] = 1;
     new Float32Array(wasm.memory.buffer, game.switch_cd_ptr(), 1)[0] = 0.4;
@@ -521,7 +521,7 @@ test("battle observations preserve real injury/release signals while selecting h
   const game = new Game(37);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 3, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const hedge = adapter.classSpecs[3].weapons.findIndex((weapon) => weapon.braced);
     const weapons = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), 1);
     const info = new Float32Array(

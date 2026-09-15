@@ -47,6 +47,7 @@ import { Camera } from "../../../../web/src/shared/camera";
 import { pushPie } from "../../../../web/src/shared/overlays";
 import { readGeneratedVistaGrid } from "../../../../web/src/battle/battleTerrain";
 import { BattleActionAdapter } from "../../../../web/src/battle/battleActionAdapter";
+import { createLiveObservationSource } from "../../../../web/src/battle/battleViews";
 import {
   ACTION_TICK_SECONDS,
   ActionTimeline,
@@ -258,7 +259,7 @@ export async function route(ctx: LabContext) {
   }
   if (edgeFixture) addEdgeRuler(world.world.scene, edgeFixture.anchors.ruler);
 
-  const adapter = new BattleActionAdapter(game, wasm.memory);
+  const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
   let catalog = world.soldierAssets;
   let timeline = new ActionTimeline(catalog);
   let observations: readonly ActionObservation[] = [];

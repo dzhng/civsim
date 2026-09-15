@@ -9,7 +9,19 @@
 import { createHash } from "node:crypto";
 import type { ActionObservation } from "@packages/crowd-runtime/src/actionTimeline";
 import type { Game } from "../../../web/src/wasm/game_wasm.js";
-import type { PublishedSnapshot } from "./snapshotReader.ts";
+
+/** One completed-tick publication, as produced by the snapshot layout owner. */
+export interface PublishedSnapshot {
+  tick: number;
+  buffer: ArrayBuffer;
+  layout: { name: string; offset: number; length: number }[];
+  soldiers: number;
+  projectiles: number;
+  units: number;
+  stride: number;
+  victor: number;
+  hash: string;
+}
 
 /** Raw projectile records, in the order the snapshot layout publishes them. */
 const PROJECTILE_FIELDS = [

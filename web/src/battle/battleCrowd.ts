@@ -7,6 +7,7 @@ import {
 } from "@packages/crowd-runtime/src/actionTimeline";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { BattleActionAdapter } from "./battleActionAdapter";
+import { createLiveObservationSource } from "./battleViews";
 import type { BattleUnitPresentation } from "./battleUnitPresentation";
 import type { BattleWorld } from "./battleWorld";
 
@@ -52,7 +53,7 @@ export class BattleCrowd {
     private world: BattleWorld,
     private presentation: BattleUnitPresentation,
   ) {
-    this.adapter = new BattleActionAdapter(world.game, world.memory);
+    this.adapter = new BattleActionAdapter(createLiveObservationSource(world.game, world.memory));
   }
 
   prepare(

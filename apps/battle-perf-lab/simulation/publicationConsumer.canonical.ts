@@ -8,7 +8,7 @@
  *
  * Two arms, run serially, one authoritative `Game` each: the worker arm owns its `Game`
  * in the worker thread and this thread holds no `Game` at all, reading only published
- * snapshots through the disposable `snapshotReader`; the direct arm owns one `Game` here
+ * snapshots through the lab publication source; the direct arm owns one `Game` here
  * and its adapter reads that live `Game` as the oracle. No second timeline, no second
  * publication protocol, and no timing or throughput claim — see the limitations recorded
  * in the report.
@@ -30,7 +30,7 @@ import {
   presentationMetadata,
   snapshot,
 } from "./publication.mjs";
-import { createSnapshotReader, type PublishedSnapshot } from "./snapshotReader.ts";
+import { createPublishedObservationSource } from "./publishedObservations.ts";
 import {
   MARKS,
   field,
@@ -38,9 +38,14 @@ import {
   observationRecord,
   publishedProjectiles,
   sha256,
+  type PublishedSnapshot,
 } from "./publicationRecords.ts";
 import { BattleActionAdapter } from "../../../web/src/battle/battleActionAdapter";
-import { createBattleViews } from "../../../web/src/battle/battleViews";
+import {
+  battleObservationMetadata,
+  createBattleViews,
+  createLiveObservationSource,
+} from "../../../web/src/battle/battleViews";
 
 const WASM_DIRECTORY = resolve("web/src/wasm");
 const PREPARE_TICK = 9000;
@@ -152,7 +157,7 @@ afterAll(async () => {
 });
 
 /** The worker arm: this thread owns no `Game` and sees the battle only as published
- * snapshots, read by the existing adapter over the disposable reader. */
+ * snapshots, read by the existing adapter over the lab publication source. */
 async function workerArm() {
   const worker = new Worker(new URL("./worker.mjs", import.meta.url), {
     workerData: { wasmDirectory: WASM_DIRECTORY, prepareTick: PREPARE_TICK },
@@ -168,11 +173,10 @@ async function workerArm() {
     const identity = await inbox.next("identity");
     // Construction metadata comes from the worker's own identity message, not from a local
     // Game: a consumer of the publication has nothing else to build the adapter from.
-    const reader = createSnapshotReader({
-      classSpecs: identity.classSpecs,
-      releaseDuration: identity.releaseDuration,
-    });
-    const adapter = new BattleActionAdapter(reader.game, reader.memory);
+    const publication = createPublishedObservationSource(
+      battleObservationMetadata(identity.classSpecs as string, identity.releaseDuration as number),
+    );
+    const adapter = new BattleActionAdapter(publication);
     for (let tick = PREPARE_TICK; ; tick++) {
       const state = (await inbox.next("snapshot")) as unknown as PublishedSnapshot & {
         bytes: number;
@@ -182,7 +186,7 @@ async function workerArm() {
       expect(state.bytes).toBeLessThanOrEqual(CAPACITY);
       // Everything the producer has handed over and this consumer has not yet credited.
       maxOutstanding = Math.max(maxOutstanding, 1 + inbox.queued);
-      reader.adopt(state);
+      publication.adopt(state);
       const rawSha256 = digest(new Uint8Array(state.buffer, 0, state.bytes));
       if (tick === PREPARE_TICK + 1) {
         // A consumer that withholds its credit must be handed no queued snapshot, and the
@@ -199,7 +203,7 @@ async function workerArm() {
         }),
       );
       if (tick === END_TICK) break;
-      const buffer = reader.release();
+      const buffer = publication.release();
       worker.postMessage(
         { type: "credit", buffer, command: tick === COMMAND.tick - 1 ? COMMAND : undefined },
         [buffer],
@@ -209,14 +213,14 @@ async function workerArm() {
     }
     // Returning the last credit ends consumer ownership: ask the adapter for one more tick
     // and it must fail explicitly rather than read stale or detached storage.
-    expect(reader.release().byteLength).toBe(CAPACITY);
-    let readerHoldsNothing = false;
+    expect(publication.release().byteLength).toBe(CAPACITY);
+    let holdsNothing = false;
     try {
       adapter.read(END_TICK + 1);
     } catch (error) {
-      readerHoldsNothing = /publication buffer was returned/.test(String(error));
+      holdsNothing = /publication buffer was returned/.test(String(error));
     }
-    expect(readerHoldsNothing).toBe(true);
+    expect(holdsNothing).toBe(true);
     worker.postMessage({ type: "dispose" });
     const disposed = await inbox.next("disposed");
     const exitCode = await inbox.exit();
@@ -238,7 +242,7 @@ async function workerArm() {
         bufferCapacityBytes: CAPACITY,
         maxSnapshotBytes: Math.max(...rows.map((entry) => entry.bytes)),
         maxLiveProjectiles: Math.max(...rows.map((entry) => entry.projectiles)),
-        readerHoldsNothingAfterRelease: readerHoldsNothing,
+        readerHoldsNothingAfterRelease: holdsNothing,
         disposedLiveGames: disposed.liveGames as number,
         disposedRetainedBuffers: disposed.retainedBuffers as number,
         workerExitCode: exitCode,
@@ -256,7 +260,7 @@ async function workerArm() {
 async function directArm(published: Row[]) {
   const run = await createRun(WASM_DIRECTORY);
   const gate = new CommandGate();
-  const adapter = new BattleActionAdapter(run.game, run.memory);
+  const adapter = new BattleActionAdapter(createLiveObservationSource(run.game, run.memory));
   const views = createBattleViews(run.game, run.memory);
   const buffer = new ArrayBuffer(CAPACITY);
   const rows: Row[] = [];

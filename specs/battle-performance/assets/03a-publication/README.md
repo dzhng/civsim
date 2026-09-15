@@ -86,6 +86,53 @@ steady throughput and 60 fps remain open. The three known untouched-baseline
 reds (frozen pixel identity, impostor tier, screen-to-ground smoke assumption)
 remain separate and unwaived.
 
+## Consumer verification
+
+Byte parity is not consumer parity, so three checks in
+`apps/battle-perf-lab/simulation/publicationConsumer.test.ts` run the existing
+`BattleActionAdapter` over published buffers, with the same adapter reading the live
+`Game` as the oracle. A lab-only `snapshotReader.ts` presents one held snapshot in the
+adapter's current `Game`/`Memory` pointer shape; every `*_ptr` resolves through the
+published layout, and it is deleted with these runners when the real observation seam
+lands. The immutable metadata the adapter needs at construction (class specs, loosing
+duration) now comes from one owner, `presentationMetadata`, which the direct and worker
+identities already reported.
+
+The canonical run prepares 88 ticks with the unchanged 30-tick calls, then publishes
+ticks 88–95 one tick at a time. At every tick the adapter over the published buffer
+returned observations and facings identical to the adapter over the live `Game`, with
+matching tick, state hash, soldier count, `unit_info` and projectile records; real
+`guardedFacing` transitions occur inside that window. Two small spawned fixture battles
+cover what an approach window cannot reach: real archer releases drive the real
+`ActionTimeline` to its `bow_release` clip through published observations, and a pike
+soldier's hedge→sidearm weapon switch, posture change, fighting flag and release TTL
+decode identically through the publication, including the `sidearm` appearance switch.
+Repeated reads and a republished identical tick return the same observations instance;
+a rewound tick re-derives. Returning the credit leaves the reader holding nothing, its
+next read fails explicitly, the returned buffer transfers and detaches, and the
+consumer's last presentation survives it — today's adapter already copies out and
+retains no view into the publication buffer. The producer then reuses the credited
+buffer and the consumer recovers. Flipping one posture bit in a published buffer fails
+all three checks.
+
+Run from the repository root with the lab config:
+
+```sh
+web/node_modules/.bin/vitest run --config apps/battle-perf-lab/vitest.config.mts simulation/
+```
+
+The full lab suite is 116 tests in about 1.5 s. (Sparse worktrees need the placeholder
+soldier fixtures and the soldier card manifest checked out; the adapter imports both.)
+
+These are still lab checks of the publication layout. The canonical contact window is
+not exercised through the adapter — that needs the 9000-tick preparation these short
+checks deliberately avoid — so contact-only branches are pinned by fixture battles and
+controlled WASM boundary samples, the idiom the existing adapter tests already use. No
+worker, browser, renderer, HUD widget, camera, timing or throughput claim is made here,
+and `BattleCrowd`, its interpolation endpoints and the HUD bridge remain unverified.
+The reader is not the production seam: integration still has to separate raw observation
+reading from WASM pointer ownership inside the adapter itself.
+
 ## Measured CPU pair
 
 [Direct](direct.json) and [worker](worker.json) agree on every completed-tick

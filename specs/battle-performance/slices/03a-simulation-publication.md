@@ -36,3 +36,11 @@ retained snapshots by stopping ticks during consumer starvation. CPU tick
 throughput is effectively unchanged. This is a feasibility result for transport,
 not production adapter/timeline integration or browser acceptance; those gates
 remain open.
+
+Bounded consumer checks now also run the existing `BattleActionAdapter`, and one
+real `ActionTimeline` transient, over published buffers through a disposable
+lab reader. Observations, facings, unit and projectile records match the live
+`Game` tick for tick; weapon, posture and release transitions decode identically;
+unchanged ticks reuse; and returning the credit leaves no retained view. The
+canonical contact window, the browser consumers and the 30 Hz/60 fps gate stay
+open.

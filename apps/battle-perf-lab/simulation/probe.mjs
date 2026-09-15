@@ -8,6 +8,7 @@ import {
   CommandGate,
   clock,
   createRun,
+  presentationMetadata,
   snapshot,
   digest,
 } from "./publication.mjs";
@@ -159,8 +160,7 @@ if (mode === "worker") {
   identity = {
     wasmSha256: run.wasmSha256,
     orders: run.orders,
-    classSpecs: run.game.class_specs(),
-    releaseDuration: run.game.loosing_duration(),
+    ...presentationMetadata(run.game),
   };
   try {
     for (let tick = 0; tick < prepareTick; ) {

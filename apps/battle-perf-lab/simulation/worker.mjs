@@ -1,5 +1,12 @@
 import { parentPort, workerData } from "node:worker_threads";
-import { CAPACITY, CommandGate, clock, createRun, snapshot } from "./publication.mjs";
+import {
+  CAPACITY,
+  CommandGate,
+  clock,
+  createRun,
+  presentationMetadata,
+  snapshot,
+} from "./publication.mjs";
 let run,
   tick = 0,
   disposed = false,
@@ -66,8 +73,7 @@ try {
       type: "identity",
       wasmSha256: run.wasmSha256,
       orders: run.orders,
-      classSpecs: run.game.class_specs(),
-      releaseDuration: run.game.loosing_duration(),
+      ...presentationMetadata(run.game),
     });
     // Yield every unchanged 30-tick preparation batch so cancellation is serviced.
     while (tick < workerData.prepareTick && !disposed) {

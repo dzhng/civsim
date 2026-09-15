@@ -42,6 +42,12 @@ export async function createRun(wasmDirectory) {
   return { game, memory, orders, wasmSha256: digest(bytes) };
 }
 
+/** Immutable per-Game metadata a presentation consumer needs once at construction.
+ * It never changes with a tick, so no snapshot carries it. */
+export function presentationMetadata(game) {
+  return { classSpecs: game.class_specs(), releaseDuration: game.loosing_duration() };
+}
+
 // Every raw input of BattleActionAdapter is retained, once per completed tick.
 // ActionTimeline remains the semantic owner; this probe does not derive actions.
 export function snapshot(run, tick, buffer) {

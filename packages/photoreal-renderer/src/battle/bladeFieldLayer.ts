@@ -1,5 +1,11 @@
+import { bladeGeometryData } from "../../../game-renderer/src/battle/bladeGeometry";
 import {
   BLADE_FIELD_LOD_TIERS,
+  BLADE_FIELD_TRANSLUCENCY,
+  MAX_BLADES_PER_RECORD,
+  bladesPerRecordFor,
+  thinningProfileForTransition,
+  type BladeFieldThinningProfile,
   LIVING_MEADOW_FAR_DENSITY_PROFILE,
   transitionProfileForTiers,
   transitionSnapshot,
@@ -78,18 +84,6 @@ import { clamp01 } from "../../../renderer-core/src/math";
 type FloatUniformNode = UniformNode<number>;
 type Vec2UniformNode = UniformNode<THREE.Vector2>;
 type Vec3UniformNode = UniformNode<THREE.Vector3>;
-
-const BLADE_FIELD_TRANSLUCENCY = {
-  // With the display cap + distance fade in place, these values read as soft
-  // warm backlight with no far-field sparkle.
-  rimStrength: 2.5,
-  subsurfaceStrength: 5.1,
-  maxDisplayEmission: 1.25,
-  nearDissolveFloor: 0.3,
-  rimExponent: 4.2,
-  subsurfaceViewPower: 3.2,
-  subsurfaceSunEdgePower: 2.2,
-} as const;
 
 export class BladeFieldTransitionUniforms {
   private snapshot: Readonly<BladeFieldTransition>;
@@ -265,15 +259,6 @@ export interface BladeFieldStats {
   recordHash: string;
 }
 
-interface BladeFieldThinningProfile {
-  enabled: boolean;
-  densityLaw: "pen-1.5-power";
-  densityReferenceM: number;
-  falloffPower: 1 | 1.5;
-  hashSource: "record.bladeSeed fract(seed01 * 7.13)";
-  survivorAlbedoBlend: number;
-}
-
 interface TierBucket {
   spec: BladeFieldTierSpec;
   mesh: THREE.Mesh<THREE.InstancedBufferGeometry, THREE.MeshStandardNodeMaterial>;
@@ -383,7 +368,6 @@ const drawIndirectStruct = struct({
   offset: "uint",
 });
 const SEED24_MASK = 0x00ff_ffff;
-const MAX_BLADES_PER_RECORD = 6;
 const BLADE_FIELD_PACKED_UPLOAD_FRAMES = 6;
 const BLADE_FIELD_PREPASS_TIERS = new Set<BladeFieldTierId>(["near", "mid"]);
 const BLADE_FIELD_PREPASS_RENDER_ORDER = RENDER_ORDER.worldOpaque - 0.01;
@@ -463,7 +447,6 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         : createBladeFieldTransitionUniforms(transition);
     this.activeTransition = this.applyTransitionProfile(this.transitionUniforms.transition());
     this.thinning = thinningProfileForTransition(
-      this.activeTransition,
       edgeFade,
       this.farDensityProfile,
     );
@@ -760,7 +743,6 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     const previous = this.activeTransition;
     this.activeTransition = this.applyTransitionProfile(profile);
     this.thinning = thinningProfileForTransition(
-      this.activeTransition,
       this.thinning.enabled,
       this.farDensityProfile,
     );
@@ -1075,49 +1057,8 @@ function disposeGpuRuntime(runtime: BladeFieldGpuRuntime): void {
   for (const attribute of runtime.storage) attribute.dispose();
 }
 
-function bladeGeometry(segments: number, bladesPerRecord: number): THREE.InstancedBufferGeometry {
-  const bladeCopies = Math.max(
-    1,
-    Math.min(MAX_BLADES_PER_RECORD, Math.floor(bladesPerRecord)),
-  );
-  const vertexCount = (segments + 1) * 2 * bladeCopies;
-  const indexCount = segments * 6 * bladeCopies;
-  const positions = new Float32Array(vertexCount * 3);
-  const normals = new Float32Array(vertexCount * 3);
-  const uvs = new Float32Array(vertexCount * 2);
-  const indices = new Uint16Array(indexCount);
-  let vp = 0;
-  let np = 0;
-  let up = 0;
-  let ip = 0;
-  for (let copy = 0; copy < bladeCopies; copy++) {
-    for (let s = 0; s <= segments; s++) {
-      const t = s / segments;
-      for (const side of [-0.5, 0.5]) {
-        positions[vp++] = s === segments ? 0 : side;
-        positions[vp++] = t;
-        positions[vp++] = copy;
-        normals[np++] = 0;
-        normals[np++] = 0;
-        normals[np++] = 1;
-        uvs[up++] = side + 0.5;
-        uvs[up++] = t;
-      }
-    }
-    const base = copy * (segments + 1) * 2;
-    for (let s = 0; s < segments; s++) {
-      const a = base + s * 2;
-      const b = a + 1;
-      const c = a + 2;
-      const d = a + 3;
-      indices[ip++] = a;
-      indices[ip++] = c;
-      indices[ip++] = b;
-      indices[ip++] = b;
-      indices[ip++] = c;
-      indices[ip++] = d;
-    }
-  }
+function bladeGeometry(segments:number,bladesPerRecord:number):THREE.InstancedBufferGeometry {
+ const {positions,normals,uvs,indices}=bladeGeometryData(segments,bladesPerRecord);
   const geometry = new THREE.InstancedBufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
@@ -1851,34 +1792,6 @@ function sameTransition(
   return (Object.keys(a) as Array<keyof BladeFieldTransition>).every(
     (key) => a[key] === b[key],
   );
-}
-
-function bladesPerRecordFor(
-  profile: BladeFieldMeadowFarDensityProfile,
-  tier: BladeFieldTierId,
-): number {
-  const value = profile.bladesPerRecord?.[tier] ?? 1;
-  return Math.max(
-    1,
-    Math.min(MAX_BLADES_PER_RECORD, Number.isFinite(value) ? Math.floor(value) : 1),
-  );
-}
-
-function thinningProfileForTransition(
-  transition: BladeFieldTransitionProfile,
-  blendSurvivors: boolean,
-  farDensityProfile: BladeFieldMeadowFarDensityProfile,
-): BladeFieldThinningProfile {
-  return {
-    // Pen-style far density thins by distance hash, while height sink remains a
-    // secondary softener instead of the primary edge signal.
-    enabled: blendSurvivors,
-    densityLaw: "pen-1.5-power",
-    densityReferenceM: farDensityProfile.densityReferenceM,
-    falloffPower: farDensityProfile.falloffPower,
-    hashSource: "record.bladeSeed fract(seed01 * 7.13)",
-    survivorAlbedoBlend: blendSurvivors ? 0.85 : 0,
-  };
 }
 
 function bladeSurvivesDistanceThinning(

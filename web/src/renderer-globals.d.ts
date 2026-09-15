@@ -41,6 +41,7 @@ declare const GPUBufferUsage: {
   readonly COPY_DST: number;
   readonly COPY_SRC: number;
   readonly INDEX: number;
+  readonly INDIRECT: number;
   readonly MAP_READ: number;
   readonly QUERY_RESOLVE: number;
   readonly STORAGE: number;
@@ -128,7 +129,7 @@ interface GPUDevice {
   createBindGroupLayout(descriptor: unknown): GPUBindGroupLayout;
   createBuffer(descriptor: { label?: string; size: number; usage: number }): GPUBuffer;
   createCommandEncoder(descriptor?: unknown): GPUCommandEncoder;
-  createPipelineLayout(descriptor: unknown): unknown;
+  createPipelineLayout(descriptor: unknown): GPUPipelineLayout;
   createComputePipeline(descriptor: unknown): GPUComputePipeline;
   createRenderPipeline(descriptor: unknown): GPURenderPipeline;
   createSampler(descriptor?: unknown): GPUSampler;
@@ -197,3 +198,12 @@ interface Navigator {
 interface HTMLCanvasElement {
   getContext(contextId: "webgpu"): GPUCanvasContext | null;
 }
+
+// Standard WebGPU color write-mask bits.
+declare const GPUColorWrite: {
+  readonly RED: number;
+  readonly GREEN: number;
+  readonly BLUE: number;
+  readonly ALPHA: number;
+  readonly ALL: number;
+};

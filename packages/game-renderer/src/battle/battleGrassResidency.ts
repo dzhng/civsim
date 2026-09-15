@@ -17,6 +17,7 @@ import {
   transitionSnapshot,
   transitionProfileForTiers,
   LIVING_MEADOW_FAR_DENSITY_PROFILE,
+  type BladeFieldTransition,
   type BladeFieldTierSpec,
   type BladeFieldTransitionProfile,
 } from "./bladeFieldPolicy";
@@ -253,7 +254,7 @@ export class BattleGrassResidency {
   private enabled = true;
   private focusRingEngaged = false;
   private farEnabled = true;
-  private activeTransition: BladeFieldTransitionProfile;
+  private activeTransition: Readonly<BladeFieldTransition>;
   private view: BattleGrassView | null = null;
   private rebuild: GrassRebuildState;
 

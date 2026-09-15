@@ -179,3 +179,53 @@ export function transitionSnapshot(
         : Math.min(Math.max(transition.edgeSinkStartM, 0), farGrassEndM),
   });
 }
+
+export const BLADE_FIELD_TRANSLUCENCY = {
+  // With the display cap + distance fade in place, these values read as soft
+  // warm backlight with no far-field sparkle.
+  rimStrength: 2.5,
+  subsurfaceStrength: 5.1,
+  maxDisplayEmission: 1.25,
+  nearDissolveFloor: 0.3,
+  rimExponent: 4.2,
+  subsurfaceViewPower: 3.2,
+  subsurfaceSunEdgePower: 2.2,
+} as const;
+
+export interface BladeFieldThinningProfile {
+  enabled: boolean;
+  densityLaw: "pen-1.5-power";
+  densityReferenceM: number;
+  falloffPower: 1 | 1.5;
+  hashSource: "record.bladeSeed fract(seed01 * 7.13)";
+  survivorAlbedoBlend: number;
+}
+
+export const MAX_BLADES_PER_RECORD = 6;
+
+export function bladesPerRecordFor(
+  profile: BladeFieldMeadowFarDensityProfile,
+  tier: BladeFieldTierId,
+): number {
+  const value = profile.bladesPerRecord?.[tier] ?? 1;
+  return Math.max(
+    1,
+    Math.min(MAX_BLADES_PER_RECORD, Number.isFinite(value) ? Math.floor(value) : 1),
+  );
+}
+
+export function thinningProfileForTransition(
+  blendSurvivors: boolean,
+  farDensityProfile: BladeFieldMeadowFarDensityProfile,
+): BladeFieldThinningProfile {
+  return {
+    // Pen-style far density thins by distance hash, while height sink remains a
+    // secondary softener instead of the primary edge signal.
+    enabled: blendSurvivors,
+    densityLaw: "pen-1.5-power",
+    densityReferenceM: farDensityProfile.densityReferenceM,
+    falloffPower: farDensityProfile.falloffPower,
+    hashSource: "record.bladeSeed fract(seed01 * 7.13)",
+    survivorAlbedoBlend: blendSurvivors ? 0.85 : 0,
+  };
+}

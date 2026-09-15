@@ -70,7 +70,7 @@ export function grassUniformData(s: GrassFrame): Float32Array<ArrayBuffer> {
   values.set(s.view, 40);
   return values;
 }
-/** Frozen records and exact source geometry are inputs; no CPU placement/residency owner here.
+/** Published records and exact source geometry are inputs; no CPU placement/residency owner here.
  * Device/camera/environment/attachments are borrowed. GPU append order is never reordered. */
 export async function createRawGrass(
   device: GPUDevice,
@@ -79,10 +79,11 @@ export async function createRawGrass(
   records: Float32Array,
   tiers: readonly GrassGeometry[],
   format: GPUTextureFormat = "rgba16float",
+  sampleCount: 1 | 4 = 1,
 ) {
-  if (records.length === 0 || records.length % 16 !== 0 || tiers.length !== 3)
+  if (records.length % 16 !== 0 || tiers.length !== 3)
     throw new Error("Grass expects packed records and all three source tiers");
-  const owned: GPUBuffer[] = [];
+  const owned = new Set<GPUBuffer>();
   let disposed = false;
   const buffer = (
     size: number,
@@ -90,13 +91,18 @@ export async function createRawGrass(
     data?: ArrayBufferView<ArrayBufferLike>,
   ) => {
     const b = device.createBuffer({ size, usage, mappedAtCreation: !!data });
-    if (data) {
-      new Uint8Array(b.getMappedRange()).set(
-        new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
-      );
-      b.unmap();
+    try {
+      if (data) {
+        new Uint8Array(b.getMappedRange()).set(
+          new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
+        );
+        b.unmap();
+      }
+    } catch (error) {
+      b.destroy();
+      throw error;
     }
-    owned.push(b);
+    owned.add(b);
     return b;
   };
   const dispose = () => {
@@ -105,15 +111,25 @@ export async function createRawGrass(
     for (const b of owned) b.destroy();
   };
   try {
-    const recordCount = records.length / 16;
-    const packed = buffer(records.byteLength, GPUBufferUsage.STORAGE, records);
+    let recordCount = records.length / 16;
+    let capacity = Math.max(1, recordCount);
+    let packed = buffer(
+      capacity * 64,
+      GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      records.length ? records : undefined,
+    );
+    const activeCount = buffer(
+      16,
+      GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      new Uint32Array([recordCount, 0, 0, 0]),
+    );
     const params = buffer(224, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
     const commands = buffer(
       60,
       GPUBufferUsage.STORAGE | GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_SRC,
     );
-    const visible = tiers.map(() =>
-      buffer(recordCount * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC),
+    let visible = tiers.map(() =>
+      buffer(capacity * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC),
     );
     const vertices = tiers.map((t) =>
       buffer(t.positions.byteLength, GPUBufferUsage.VERTEX, t.positions),
@@ -131,12 +147,13 @@ struct Command { indexCount:u32,instanceCount:atomic<u32>,firstIndex:u32,baseVer
 @group(0) @binding(3) var<storage,read_write> nearList:array<u32>;
 @group(0) @binding(4) var<storage,read_write> midList:array<u32>;
 @group(0) @binding(5) var<storage,read_write> farList:array<u32>;
+@group(0) @binding(6) var<uniform> activeCount:vec4u;
 @compute @workgroup_size(1) fn reset(){
  let counts=array<u32,3>(${tiers.map((t) => `${t.indices.length}u`).join(",")});
  for(var i=0u;i<3u;i++){commands[i].indexCount=counts[i];atomicStore(&commands[i].instanceCount,0u);commands[i].firstIndex=0u;commands[i].baseVertex=0;commands[i].firstInstance=0u;}
 }
 @compute @workgroup_size(64) fn route(@builtin(global_invocation_id) id:vec3u){
- if(id.x>=arrayLength(&records)){return;}
+ if(id.x>=activeCount.x){return;}
  let tier=grassTier(records[id.x],params);if(tier<0){return;}
  let slot=atomicAdd(&commands[u32(tier)].instanceCount,1u);
  if(tier==0){nearList[slot]=id.x;}else if(tier==1){midList[slot]=id.x;}else{farList[slot]=id.x;}
@@ -146,6 +163,7 @@ struct Command { indexCount:u32,instanceCount:atomic<u32>,firstIndex:u32,baseVer
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
+        { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
         ...[2, 3, 4, 5].map((binding) => ({
           binding,
           visibility: GPUShaderStage.COMPUTE,
@@ -153,13 +171,15 @@ struct Command { indexCount:u32,instanceCount:atomic<u32>,firstIndex:u32,baseVer
         })),
       ],
     });
-    const routingGroup = device.createBindGroup({
-      layout: routeLayout,
-      entries: [packed, params, commands, ...visible].map((b, binding) => ({
-        binding,
-        resource: { buffer: b },
-      })),
-    });
+    const makeRoutingGroup = (source: GPUBuffer, lists: GPUBuffer[]) =>
+      device.createBindGroup({
+        layout: routeLayout,
+        entries: [source, params, commands, ...lists, activeCount].map((b, binding) => ({
+          binding,
+          resource: { buffer: b },
+        })),
+      });
+    let routingGroup = makeRoutingGroup(packed, visible);
     const routePipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [routeLayout] });
     const [reset, route] = await Promise.all(
       ["reset", "route"].map((entryPoint) =>
@@ -185,15 +205,17 @@ struct Command { indexCount:u32,instanceCount:atomic<u32>,firstIndex:u32,baseVer
         },
       ],
     });
-    const groups = visible.map((list) =>
-      device.createBindGroup({
-        layout: recordsLayout,
-        entries: [
-          { binding: 0, resource: { buffer: packed } },
-          { binding: 1, resource: { buffer: list } },
-        ],
-      }),
-    );
+    const makeDrawGroups = (source: GPUBuffer, lists: GPUBuffer[]) =>
+      lists.map((list) =>
+        device.createBindGroup({
+          layout: recordsLayout,
+          entries: [
+            { binding: 0, resource: { buffer: source } },
+            { binding: 1, resource: { buffer: list } },
+          ],
+        }),
+      );
+    let groups = makeDrawGroups(packed, visible);
     const paramsGroup = device.createBindGroup({
       layout: paramsLayout,
       entries: [{ binding: 0, resource: { buffer: params } }],
@@ -241,6 +263,7 @@ struct VertexOut {@builtin(position) @invariant position:vec4f,@location(0) worl
         },
         fragment: { module, entryPoint, targets: [{ format, writeMask }] },
         primitive: { topology: "triangle-list", cullMode: "none" },
+        multisample: { count: sampleCount },
         depthStencil: {
           format: "depth32float",
           depthWriteEnabled: true,
@@ -253,7 +276,79 @@ struct VertexOut {@builtin(position) @invariant position:vec4f,@location(0) worl
     ]);
     return {
       commands,
-      visible,
+      get visible() {
+        return visible;
+      },
+      stats() {
+        return { recordCount, capacity, pipelineBuilds: 4 };
+      },
+      async updateRecords(next: Float32Array) {
+        if (disposed) throw Error("Grass is disposed");
+        if (next.length % 16 !== 0) throw Error("Grass expects complete packed records");
+        if (
+          next.byteLength > device.limits.maxStorageBufferBindingSize ||
+          next.byteLength > device.limits.maxBufferSize
+        )
+          throw Error("Grass records exceed device storage limits");
+        const count = next.length / 16;
+        if (count > capacity) {
+          device.pushErrorScope("out-of-memory");
+          device.pushErrorScope("internal");
+          device.pushErrorScope("validation");
+          const created: GPUBuffer[] = [];
+          let replacement: ReturnType<typeof makeDrawGroups> | undefined,
+            newRoute: GPUBindGroup | undefined;
+          let source: GPUBuffer | undefined;
+          const lists: GPUBuffer[] = [];
+          let failure: unknown;
+          try {
+            source = buffer(
+              next.byteLength,
+              GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+              next,
+            );
+            created.push(source);
+            for (let i = 0; i < 3; i++) {
+              const list = buffer(count * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+              lists.push(list);
+              created.push(list);
+            }
+            replacement = makeDrawGroups(source, lists);
+            newRoute = makeRoutingGroup(source, lists);
+          } catch (error) {
+            failure = error;
+          }
+          const admission = await Promise.allSettled([
+            device.popErrorScope(),
+            device.popErrorScope(),
+            device.popErrorScope(),
+          ]);
+          const errors = admission.flatMap((r) =>
+            r.status === "rejected" ? [String(r.reason)] : r.value ? [r.value.message] : [],
+          );
+          if (failure || errors.length || disposed || !source || !replacement || !newRoute) {
+            for (const b of created) {
+              b.destroy();
+              owned.delete(b);
+            }
+            throw (
+              failure ??
+              Error(disposed ? "Grass is disposed" : `Grass upload admission: ${errors.join("; ")}`)
+            );
+          }
+          for (const b of [packed, ...visible]) {
+            b.destroy();
+            owned.delete(b);
+          }
+          packed = source;
+          visible = lists;
+          groups = replacement;
+          routingGroup = newRoute;
+          capacity = count;
+        } else if (count) device.queue.writeBuffer(packed, 0, next);
+        recordCount = count;
+        device.queue.writeBuffer(activeCount, 0, new Uint32Array([count, 0, 0, 0]));
+      },
       update(state: GrassFrame) {
         if (disposed) throw new Error("Grass is disposed");
         device.queue.writeBuffer(params, 0, grassUniformData(state));
@@ -265,10 +360,17 @@ struct VertexOut {@builtin(position) @invariant position:vec4f,@location(0) worl
         pass.setPipeline(reset);
         pass.dispatchWorkgroups(1);
         pass.setPipeline(route);
-        pass.dispatchWorkgroups(Math.ceil(recordCount / 64));
+        if (recordCount) pass.dispatchWorkgroups(Math.ceil(recordCount / 64));
         pass.end();
       },
-      draw(pass: GPURenderPassEncoder, cameraGroup: GPUBindGroup, depthPrepass = false) {
+      draw(
+        pass: GPURenderPassEncoder,
+        cameraGroup: GPUBindGroup,
+        depthPrepass = false,
+        farVisible = true,
+        stage: "combined" | "depth" | "beauty" = "combined",
+        onlyTier?: number,
+      ) {
         if (disposed) throw new Error("Grass is disposed");
         pass.setBindGroup(0, cameraGroup);
         pass.setBindGroup(2, paramsGroup);
@@ -279,13 +381,16 @@ struct VertexOut {@builtin(position) @invariant position:vec4f,@location(0) worl
           pass.setIndexBuffer(indices[tier], "uint16");
           pass.drawIndexedIndirect(commands, tier * 20);
         };
-        if (depthPrepass) {
+        if (depthPrepass && stage !== "beauty") {
           pass.setPipeline(prepass);
-          drawTier(0);
-          drawTier(1);
+          for (let tier = 0; tier < 2; tier++)
+            if (onlyTier === undefined || onlyTier === tier) drawTier(tier);
         }
-        pass.setPipeline(beauty);
-        for (let tier = 0; tier < 3; tier++) drawTier(tier);
+        if (stage !== "depth") {
+          pass.setPipeline(beauty);
+          for (let tier = 0; tier < (farVisible ? 3 : 2); tier++)
+            if (onlyTier === undefined || onlyTier === tier) drawTier(tier);
+        }
       },
       dispose,
     };

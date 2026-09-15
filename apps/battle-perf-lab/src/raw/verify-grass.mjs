@@ -14,11 +14,12 @@ try {
   page.on("console", (m) => {
     if (["error", "warning"].includes(m.type())) pageErrors.push(m.text());
   });
-  await page.goto(process.env.GRASS_CHECK_URL ?? "http://localhost:5197/grass-check.html");
+  const url = process.env.GRASS_CHECK_URL ?? "http://localhost:5197/grass-check.html";
+  await page.goto(url);
   await page.waitForFunction(() => window.__grassCheck !== undefined, null, { timeout: 120000 });
   const result = await page.evaluate(() => window.__grassCheck);
   const directory = new URL(
-    "../../../../specs/battle-performance/assets/02-raw/grass/",
+    `../../../../specs/battle-performance/assets/02-raw/grass/${new URL(url).searchParams.has("mutable") ? "mutable-runtime/" : ""}`,
     import.meta.url,
   );
   await mkdir(directory, { recursive: true });

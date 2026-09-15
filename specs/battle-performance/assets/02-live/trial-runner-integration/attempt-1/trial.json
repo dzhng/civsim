@@ -1,0 +1,69 @@
+{
+  "kind": "battle-benchmark-trial",
+  "version": 1,
+  "runId": "raw-fixed-functional-1",
+  "backend": "raw",
+  "order": 0,
+  "startedAt": "2026-09-15T10:35:23.356Z",
+  "completedAt": "2026-09-15T10:35:23.760Z",
+  "status": "rejected",
+  "functional": {
+    "eligible": false,
+    "issues": [
+      "The \"path\" argument must be of type string. Received undefined",
+      "the benchmark was not started"
+    ]
+  },
+  "ranking": {
+    "eligible": false,
+    "issues": [
+      "the run is not functionally eligible",
+      "pre observation at 2026-09-15T10:35:23.701Z was not quiet (busiest other process 32.4%, load 10.66162109375)",
+      "post observation at 2026-09-15T10:35:23.731Z was not quiet (busiest other process 34.9%, load 10.66162109375)",
+      "hardware.browser uncollected"
+    ]
+  },
+  "provenance": {
+    "issues": [
+      "The \"path\" argument must be of type string. Received undefined"
+    ]
+  },
+  "scenario": {
+    "exitCode": null,
+    "failures": [],
+    "pageErrors": [],
+    "checkCount": 0,
+    "reportPath": null
+  },
+  "stats": {
+    "startup": null,
+    "terminal": null
+  },
+  "host": {
+    "evidencePath": "./host-observations.json",
+    "observationCount": 2,
+    "quiet": {
+      "verified": false,
+      "issues": [
+        "pre observation at 2026-09-15T10:35:23.701Z was not quiet (busiest other process 32.4%, load 10.66162109375)",
+        "post observation at 2026-09-15T10:35:23.731Z was not quiet (busiest other process 34.9%, load 10.66162109375)"
+      ]
+    }
+  },
+  "artifacts": [
+    {
+      "name": "host-observations.json",
+      "bytes": 6116,
+      "sha256": "6b0c5a7439ce1ed1f5bbfd039728a6edd50deaad1307e7532fb377fc55bf0b2a"
+    }
+  ],
+  "limitations": [
+    "Provenance and cadence validity only: this runner makes no performance, visual or backend-selection claim.",
+    "Quiet ranking is a declared host policy over a sampled process listing, not proof that nothing competed: `ps` reports lifetime-average CPU, so it bounds sustained load rather than instantaneous contention.",
+    "Window-server and kernel CPU is shared by every client of the machine; it is recorded, never charged to a competitor and never credited to this trial, and a busy one leaves isolation unknown.",
+    "Shared asset trees are hashed on disk, not over HTTP; the served prefixes are only evidenced by resolving the build's own links to those trees.",
+    "The render configuration is an operator declaration compared against the recording's identity; it does not read the build's compiled settings.",
+    "Hardware, power and display fields are host tool output; absent fields stay null and block ranking.",
+    "The browser was driven through the unchanged benchmark scene; no extra per-frame scan or screenshot was taken."
+  ]
+}

@@ -1,3 +1,7 @@
+import { checkReadoutResources } from "../readoutResourceCheck";
+import { createTypegpuReadout } from "../../candidates/typegpu/readout";
+import { createVgpuReadout } from "../vgpu/readout";
+import { createReadoutControlBackend } from "../readoutControlBackend";
 import * as THREE from "three/webgpu";
 import { PhotorealReadoutLayer } from "../../../../packages/photoreal-renderer/src/battle/readoutLayer";
 import type { BattleReadoutInstance } from "../../../../packages/game-renderer/src/battle/readoutData";
@@ -65,8 +69,24 @@ async function run() {
     await renderer.init();
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0.11, 0.14, 0.18);
-    const source = own(new PhotorealReadoutLayer(scene)),
-      native = own(createRawReadout(device, samples));
+    const source = own(new PhotorealReadoutLayer(scene));
+    const backend = new URLSearchParams(location.search).get("backend") ?? "raw";
+    if (backend !== "raw" && backend !== "typegpu" && backend !== "vgpu")
+      throw Error("Unknown readout backend");
+    const resourceChecks =
+      backend === "raw"
+        ? undefined
+        : await checkReadoutResources(device, () =>
+            backend === "typegpu"
+              ? createTypegpuReadout(device, samples)
+              : createVgpuReadout(device, samples),
+          );
+    const native = backend === "raw" ? own(createRawReadout(device, samples)) : undefined;
+    const driver =
+      backend === "raw"
+        ? undefined
+        : own(await createReadoutControlBackend(backend, device, width, height, samples));
+    const candidate = driver ?? native!;
     const output = own(nativeTarget(device, [width, height], samples));
     const reference = own(
       new THREE.RenderTarget(width, height, {
@@ -155,38 +175,84 @@ async function run() {
       camera.updateMatrixWorld(true);
       source.setCameraBasis(camera);
       source.upload(c.data);
-      native.upload(c.data);
-      native.setCamera(
+      let replacementFailure;
+      if (driver && c.label === "repeat") {
+        const committedState = () =>
+          JSON.stringify(
+            Object.fromEntries(
+              Object.entries(candidate.stats()).filter(([key]) => key !== "instanceBufferBytes"),
+            ),
+          );
+        const before = committedState(),
+          original = device.createTexture;
+        device.createTexture = function () {
+          throw Error("Injected readout atlas replacement failure");
+        };
+        let rejected = false;
+        try {
+          await driver.upload([{ ...base[0], chips: [{ text: "rejected" }] }]);
+        } catch {
+          rejected = true;
+        } finally {
+          device.createTexture = original;
+        }
+        const atlasRejected = rejected;
+        const writeBuffer = device.queue.writeBuffer;
+        let writeCalls = 0;
+        device.queue.writeBuffer = function (...args) {
+          if (++writeCalls === 2) throw Error("Injected second readout instance write failure");
+          return Reflect.apply(writeBuffer, this, args);
+        };
+        let writeRejected = false;
+        try {
+          await driver.upload(base.map((x) => ({ ...x, x: x.x + 2 })));
+        } catch {
+          writeRejected = true;
+        } finally {
+          device.queue.writeBuffer = writeBuffer;
+        }
+        replacementFailure = {
+          atlasRejected,
+          writeRejected,
+          unchangedState: before === committedState(),
+        };
+        if (!atlasRejected || !writeRejected || !replacementFailure.unchangedState)
+          throw Error("Failed replacement changed committed readout");
+      } else await candidate.upload(c.data);
+      candidate.setCamera(
         new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
           .elements,
         camera.matrixWorld.elements,
       );
-      const encoder = device.createCommandEncoder(),
-        pass = encoder.beginRenderPass({
-          colorAttachments: [
-            {
-              view: output.attachments.color,
-              resolveTarget: output.attachments.resolveTarget,
-              loadOp: "clear",
-              storeOp: "store",
-              clearValue: [...background, 1],
+      if (driver) await driver.render(background);
+      else {
+        const encoder = device.createCommandEncoder(),
+          pass = encoder.beginRenderPass({
+            colorAttachments: [
+              {
+                view: output.attachments.color,
+                resolveTarget: output.attachments.resolveTarget,
+                loadOp: "clear",
+                storeOp: "store",
+                clearValue: [...background, 1],
+              },
+            ],
+            depthStencilAttachment: {
+              view: output.attachments.depth,
+              depthClearValue: 1,
+              depthLoadOp: "clear",
+              depthStoreOp: "store",
             },
-          ],
-          depthStencilAttachment: {
-            view: output.attachments.depth,
-            depthClearValue: 1,
-            depthLoadOp: "clear",
-            depthStoreOp: "store",
-          },
-        });
-      native.draw(pass);
-      pass.end();
-      device.queue.submit([encoder.finish()]);
+          });
+        native!.draw(pass);
+        pass.end();
+        device.queue.submit([encoder.finish()]);
+      }
       await new Promise<void>((r) => requestAnimationFrame(() => r()));
       renderer.setRenderTarget(reference);
       renderer.render(scene, camera);
       renderer.setRenderTarget(null);
-      const actual = await readHdrTexture(device, output.color),
+      const actual = await readHdrTexture(device, driver?.output ?? output.color),
         raw = await renderer.readRenderTargetPixelsAsync(reference, 0, 0, width, height);
       if (!(raw instanceof Uint16Array)) throw Error("Expected half output");
       const expected = unpackRgba16fRows(raw, width, height);
@@ -224,20 +290,23 @@ async function run() {
         height,
         comparison: compareHdr(actual, expected),
         issuedInstances,
+        replacementFailure,
         repeat,
         source: source.stats(),
-        native: native.stats(),
+        native: candidate.stats(),
         actualRgba: rgba(actual),
         expectedRgba: rgba(expected),
       });
     }
-    native.dispose();
+    candidate.dispose();
     output.dispose();
     source.dispose();
     reference.dispose();
     const sourceTexturesAfterDispose = renderer.info.memory.textures;
     const liveTextures = lifetime.liveCount();
     return {
+      backend,
+      resourceChecks,
       samples,
       uploads,
       results,

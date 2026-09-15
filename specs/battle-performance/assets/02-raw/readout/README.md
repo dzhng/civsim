@@ -19,3 +19,5 @@ No existing test thresholds or simulation stats changed. Two new CPU tests cover
 Run `readout.vite.config.mts` and the common `verify-frame.mjs` with `FRAME_CHECK_URL=http://localhost:5199/readout-check.html?samples=1` (then4) and a separate `FRAME_EVIDENCE_DIR`. Add `&trace` only for public upload and issued-buffer diagnostics. The sparse task checkout uses an ignored primary-publicDir override, avoiding duplicate asset copies.
 
 This proves the isolated current readout component and its atlas lifecycle correction. Complete battle-frame integration, global post placement, DPR/font-platform coverage, broader motion and performance remain separate gates. No battle stutter fix or backend ranking is claimed.
+
+The library-owned ports and their failure-admission evidence are described in [readout library ownership](../readout-ports/README.md).

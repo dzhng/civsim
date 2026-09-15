@@ -74,3 +74,11 @@ fixed real regional clay view to judge branching, open valleys and foothills.
 Source-imposed continuity alone is not evidence against a synthesis algorithm.
 The current filter remains rejected for its added artifacts; no replacement is
 accepted or implemented by this diagnostic.
+
+The [real regional source-only control](../assets/slice-04/source-crest-control/README.md)
+is also rejected. Removing source crest modulation while retaining accepted
+relief slightly improves some Alps junctions but leaves walls/fins/shelves;
+Italy is a tie. Natural Alps shows no clear benefit, while source-derived cover
+and city-area heights change. Keep the source unchanged for the next isolated
+relief-profile assessment; duplicate shaping removal is not justified solely as
+an architectural simplification. No new profile is accepted by this evidence.

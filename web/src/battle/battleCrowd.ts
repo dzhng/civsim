@@ -1,3 +1,4 @@
+import type { BattleCrowdPresentation } from "./battlePresentation";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import {
   ActionTimeline,
@@ -54,15 +55,15 @@ export class BattleCrowd {
     this.adapter = new BattleActionAdapter(world.game, world.memory);
   }
 
-  draw(
+  prepare(
     simTick: number,
     frozen: boolean,
     alpha: number,
     frameDt: number,
     selectedUnits: number[],
-  ): void {
+  ): BattleCrowdPresentation | null {
     const assets = this.world.renderer.soldierAssets;
-    if (!assets) return;
+    if (!assets) return null;
     const replaced = assets !== this.catalog;
     if (replaced) {
       // An accepted catalog replacement cannot blend samples across different rigs.
@@ -78,18 +79,18 @@ export class BattleCrowd {
     const tick = frozen ? simTick : Math.max(this.left!.tick, simTick - 1 + alpha);
     const playback: SoldierPlayback[] = this.timeline!.sample(tick);
     this.present(tick);
-    this.presentation.update(selectedUnits, this.unitInfo);
-    this.world.renderer.draw(
-      this.renderPositions,
-      this.renderFacings,
+    const labels = this.presentation.build(selectedUnits, this.unitInfo);
+    return {
+      positions: this.renderPositions,
+      facings: this.renderFacings,
       playback,
-      this.alive,
-      observations.length,
-      this.world.camera,
-      simTick,
+      alive: this.alive,
+      count: observations.length,
+      observationTick: simTick,
       frameDt,
-    );
-    this.drawAttackArcs(frozen);
+      ...labels,
+      triangles: this.attackArcs(frozen),
+    };
   }
 
   private observe(
@@ -173,9 +174,9 @@ export class BattleCrowd {
     this.presentation.finishFrame(unitCount);
   }
 
-  private drawAttackArcs(frozen: boolean): void {
-    const { camera, canvas, renderer, stride } = this.world;
-    if (frozen || camera.zoom <= 2.5) return;
+  private attackArcs(frozen: boolean): Float32Array {
+    const { camera, canvas, stride } = this.world;
+    if (frozen || camera.zoom <= 2.5) return new Float32Array();
     const triangles: number[] = [];
     const positions = this.renderPositions;
     const facings = this.renderFacings;
@@ -229,6 +230,6 @@ export class BattleCrowd {
       }
       budget--;
     }
-    if (triangles.length) renderer.drawTris(new Float32Array(triangles), camera);
+    return new Float32Array(triangles);
   }
 }

@@ -78,7 +78,19 @@ function fixture(unitClass = 0) {
   // Real adapter, timeline and attached standard owner; only the GPU edge records submissions.
   const crowd = new BattleCrowd(world, new BattleUnitPresentation(world));
   const draw = (tick: number, alpha = 0, frozen = false) => {
-    crowd.draw(tick, frozen, alpha, 0, []);
+    const frame = crowd.prepare(tick, frozen, alpha, 0, [])!;
+    renderer.setUnitReadouts(frame.standards, frame.readouts);
+    renderer.draw(
+      frame.positions,
+      frame.facings,
+      frame.playback,
+      frame.alive,
+      frame.count,
+      world.camera,
+      frame.observationTick,
+      frame.frameDt,
+    );
+    if (frame.triangles.length) renderer.drawTris(frame.triangles);
     return frames.at(-1)!;
   };
   return { game, views, renderer, world, crowd, draw, frames, labels, arcs };

@@ -1,3 +1,4 @@
+import { captureBattleRenderCamera } from "./battlePresentation";
 import { applyBenchmarkCamera, sampleBenchmarkCamera } from "./benchmark/benchmarkCamera";
 import { BenchmarkRecording } from "./benchmark/benchmarkRecording";
 import { createBenchmarkReport, type BenchmarkIdentity } from "./benchmark/benchmarkReport";
@@ -315,25 +316,34 @@ export function enterBattleScene(
     }
 
     const renderStartedAt = performance.now();
-    crowd.draw(simTick, clock.frozen, clock.alpha, frameDt, input.selected);
-    if (!preparingFrame) {
-      preparingFrame = true;
-      awaitRendererReady(
-        renderer.settlePresentedFrame(),
-        canvas,
-        () => {
-          battleReady = true;
-          window.__ready = true;
-          loading.remove();
-        },
-        signal,
-        loading.remove,
-      );
-    }
-    renderer.drawTacticalLines(
-      orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
-      camera,
+    const presentedCrowd = crowd.prepare(
+      simTick,
+      clock.frozen,
+      clock.alpha,
+      frameDt,
+      input.selected,
     );
+    const packet = {
+      crowd: presentedCrowd,
+      camera: captureBattleRenderCamera(camera),
+      tacticalLines: orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
+    };
+    renderer.present(packet, signal, () => {
+      if (!preparingFrame) {
+        preparingFrame = true;
+        awaitRendererReady(
+          renderer.settlePresentedFrame(),
+          canvas,
+          () => {
+            battleReady = true;
+            window.__ready = true;
+            loading.remove();
+          },
+          signal,
+          loading.remove,
+        );
+      }
+    });
     if (preparingBenchmark && simTick >= benchmark!.scenario.startTick && !benchmarkViewPending) {
       benchmarkViewPending = true;
       awaitRendererReady(

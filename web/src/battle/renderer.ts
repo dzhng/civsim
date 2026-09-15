@@ -2,7 +2,7 @@ import type { WorldRay } from "@packages/renderer-core/src/camera3d";
 // Production policy above the photoreal world: frozen frames, debug mode, and CPU timing.
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
-import type { Camera } from "../shared/camera";
+import type { BattlePresentation, BattleRenderCamera } from "./battlePresentation";
 import { roundMs } from "@packages/renderer-core/src/math";
 import {
   PhotorealBattleWorld,
@@ -172,13 +172,50 @@ export class BattleRenderer {
     }
   }
 
+  /** Uses the public draw hooks so source capture subclasses observe the same
+   * readout/draw/triangle/render commands. Source submission remains synchronous. */
+  present(
+    packet: BattlePresentation,
+    signal?: AbortSignal,
+    afterUploads?: () => void,
+  ): BattlePresentationReceipt | Promise<BattlePresentationReceipt> {
+    signal?.throwIfAborted();
+    const start = performance.now();
+    const before = this.renderedFrameId;
+    const c = packet.crowd;
+    if (c) {
+      this.setUnitReadouts(c.standards, c.readouts);
+      this.draw(
+        c.positions,
+        c.facings,
+        c.playback,
+        c.alive,
+        c.count,
+        packet.camera,
+        c.observationTick,
+        c.frameDt,
+      );
+      if (c.triangles.length) this.drawTris(c.triangles, packet.camera);
+    }
+    afterUploads?.();
+    signal?.throwIfAborted();
+    this.drawTacticalLines(packet.tacticalLines, packet.camera);
+    return {
+      submitted: this.renderedFrameId !== before,
+      renderedFrameId: this.renderedFrameId,
+      gpuSubmission: this.frameMetrics().gpuSubmission,
+      submittedAtMs: performance.now(),
+      cpuMs: performance.now() - start,
+    };
+  }
+
   draw(
     positions: Float32Array,
     facings: Float32Array,
     playback: readonly SoldierPlayback[],
     alive: Float32Array,
     count: number,
-    camera: Camera,
+    camera: BattleRenderCamera,
     observationTick: number,
     frameDt = 0,
   ) {
@@ -217,7 +254,7 @@ export class BattleRenderer {
     };
   }
 
-  drawTris(verts: Float32Array, camera: Camera) {
+  drawTris(verts: Float32Array, camera: BattleRenderCamera) {
     if (!this.world) return;
     this.frozenFrameKey = null;
     this.skipFrozenFrame = false;
@@ -228,7 +265,7 @@ export class BattleRenderer {
     this.framePerf.uploadMs += performance.now() - uploadStart;
   }
 
-  drawTacticalLines(lines: BattleTacticalLineFrame, camera: Camera) {
+  drawTacticalLines(lines: BattleTacticalLineFrame, camera: BattleRenderCamera) {
     if (!this.world) return;
     if (this.skipFrozenFrame) return;
     const cameraState = cameraSnapshot(camera);
@@ -465,7 +502,7 @@ function readoutsKey(
   return key;
 }
 
-function cameraSnapshot(camera: Camera): BattleCameraSnapshot {
+function cameraSnapshot(camera: BattleRenderCamera): BattleCameraSnapshot {
   const [x, y] = camera.viewCenter();
   return {
     x,
@@ -476,11 +513,20 @@ function cameraSnapshot(camera: Camera): BattleCameraSnapshot {
   };
 }
 
-function frozenFrameKey(camera: Camera, count: number) {
+function frozenFrameKey(camera: BattleRenderCamera, count: number) {
   const p = camera.params();
   return [...p.target, p.distance, p.pitch, p.yaw, p.fovY, p.aspect, count].map(roundKey).join(":");
 }
 
 function roundKey(value: number) {
   return Number.isFinite(value) ? value.toFixed(4) : "nan";
+}
+
+export interface BattlePresentationReceipt {
+  submitted: boolean;
+  renderedFrameId: number;
+  gpuSubmission: ReturnType<BattleRenderer["frameMetrics"]>["gpuSubmission"];
+  submittedAtMs: number;
+  /** Active synchronous CPU work reported by the renderer, excluding await suspension. */
+  cpuMs: number;
 }

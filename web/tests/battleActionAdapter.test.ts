@@ -149,10 +149,23 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       beginFrame() {},
       addSoldier() {},
       finishFrame() {},
-      update() {},
+      build: () => ({ standards: [], readouts: [] }),
     } as unknown as BattleUnitPresentation;
     const crowd = new BattleCrowd(world, presentation);
-    crowd.draw(60, true, 0, 0, []);
+    const draw = (...args: Parameters<BattleCrowd["prepare"]>) => {
+      const f = crowd.prepare(...args)!;
+      world.renderer.draw(
+        f.positions,
+        f.facings,
+        f.playback,
+        f.alive,
+        f.count,
+        world.camera,
+        f.observationTick,
+        f.frameDt,
+      );
+    };
+    draw(60, true, 0, 0, []);
     let measuredDistance = 0;
     for (let tick = 61; tick <= 70; tick++) {
       const before = Array.from(views.positions().slice(0, 2));
@@ -162,7 +175,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
         views.positions()[1] - before[1],
       );
       views.unitInfo()[UNIT_INFO.running] = 1; // Contrary exported order, not a gait authority.
-      crowd.draw(tick, true, 0, 0, []);
+      draw(tick, true, 0, 0, []);
     }
     const playback = submitted.at(-1)![0];
     const walk = bundle.animation.clips.find(
@@ -174,12 +187,12 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       Array.from(sampleRigLocalPose(bundle.rig, walk.name, playback.base.destination.phase)),
     );
     const paused = structuredClone(playback);
-    crowd.draw(70, true, 0, 0, []);
+    draw(70, true, 0, 0, []);
     expect(submitted.at(-1)![0]).toEqual(paused);
     // Unqualified endpoint transport cannot keep a gait moving. Root placement
     // still follows positions; this pass does not alter that separate owner.
     views.positions()[0] += 3;
-    crowd.draw(71, true, 0, 0, []);
+    draw(71, true, 0, 0, []);
     expect(submitted.at(-1)![0].base.destination.clip).toBe(
       manifest.presentation.actions.atEase.clip,
     );
@@ -224,26 +237,39 @@ test("production crowd preserves delayed positions across append and resets play
       beginFrame() {},
       addSoldier() {},
       finishFrame() {},
-      update() {},
+      build: () => ({ standards: [], readouts: [] }),
     } as unknown as BattleUnitPresentation;
     const crowd = new BattleCrowd(world, presentation);
-    crowd.draw(0, false, 0, 0, []);
+    const draw = (...args: Parameters<BattleCrowd["prepare"]>) => {
+      const f = crowd.prepare(...args)!;
+      world.renderer.draw(
+        f.positions,
+        f.facings,
+        f.playback,
+        f.alive,
+        f.count,
+        world.camera,
+        f.observationTick,
+        f.frameDt,
+      );
+    };
+    draw(0, false, 0, 0, []);
     const initialX = views.positions()[0];
     views.positions()[0] += 1;
-    crowd.draw(1, false, 0, 0, []);
+    draw(1, false, 0, 0, []);
     expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     game.spawn_class(4, 0, 0, 1, 1, 0, 0);
-    crowd.draw(1, false, 0, 0, []);
+    draw(1, false, 0, 0, []);
     expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     expect(submitted.at(-1)!.positions.slice(2)).toEqual(Array.from(views.positions().slice(2)));
-    crowd.draw(2, false, 0, 0, []);
+    draw(2, false, 0, 0, []);
     expect(submitted.at(-1)!.positions[0]).toBeCloseTo(initialX + 1);
-    crowd.draw(3, false, 0, 0, []);
+    draw(3, false, 0, 0, []);
     expect(submitted.at(-1)!.phase).toBeGreaterThan(0);
     renderer.soldierAssets = { 0: bundle };
-    crowd.draw(3, false, 0, 0, []);
+    draw(3, false, 0, 0, []);
     expect(submitted.at(-1)!.phase).toBe(0);
-    crowd.draw(0, false, 0, 0, []);
+    draw(0, false, 0, 0, []);
     expect(submitted.at(-1)!.positions).toEqual(Array.from(views.positions()));
   } finally {
     game.free();

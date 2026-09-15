@@ -63,7 +63,7 @@ export class BattleUnitPresentation {
     }
   }
 
-  update(selectedUnits: number[], info: Float32Array): void {
+  build(selectedUnits: number[], info: Float32Array) {
     const { camera, renderer, stride } = this.world;
     const selected = selectedUnits.length > 0 ? selectedUnits[0] : -1;
     const showReadouts = camera.zoom > READOUT_TACTICAL_ZOOM;
@@ -108,7 +108,7 @@ export class BattleUnitPresentation {
         chips,
       });
     }
-    renderer.setUnitReadouts(standards, readouts);
+    return { standards, readouts };
   }
 }
 

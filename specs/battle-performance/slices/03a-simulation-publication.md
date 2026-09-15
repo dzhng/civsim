@@ -26,3 +26,13 @@ Apply the root review and motion-verification contract when implementation begin
 ## Build feasibility evidence
 
 The [paired CPU replay](../assets/03a-build-feasibility/summary.json) matched the canonical tick 9000/9300 hashes in two opposite-order pairs using fresh Node processes. Production averaged 37.79/38.90 ms per tick; the existing profiling build without wasm-opt averaged 31.39/31.74 ms. This establishes a repeatable difference over the measured window, not a stable kernel speedup or a browser throughput pass: one production run contains a transient spike cluster and then approaches the no-opt cost. The optimized profiling and production artifacts differ in executable sections, and both builds use fat LTO, so neither wasm-opt nor tiering nor LTO is isolated as the cause. Preserve the production build. Any follow-up must separate build-stage controls and compilation tracing before a full-browser acceptance run; the 30 Hz/60 fps targets remain unchanged.
+
+## CPU publication probe
+
+[Lab-only publication evidence](../assets/03a-publication/README.md) matches
+direct and worker raw observations through the canonical contact checkpoints
+and an acknowledged idempotent command. Single-credit backpressure bounds
+retained snapshots by stopping ticks during consumer starvation. CPU tick
+throughput is effectively unchanged. This is a feasibility result for transport,
+not production adapter/timeline integration or browser acceptance; those gates
+remain open.

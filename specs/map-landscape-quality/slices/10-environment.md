@@ -81,8 +81,8 @@ brightened to compensate for AgX.
 Run a bounded output-composition proof with known screen-space UI colors over
 the unchanged graded world. Use public renderer/TSL APIs and the existing
 PhotorealWorld/output owners: one renderer, canvas, time and frame contract.
-The UI needs no world-depth test; keep battle's depth-tested readouts and all
-physical surface/lighting behavior unchanged in this proof. Establish the
+The UI needs no world-depth test; keep battle readouts' current placement/depth
+behavior and all physical surface/lighting behavior unchanged in this proof. Establish the
 smallest shared output boundary before adopting it in production, and reconcile
 it with the existing battle post-chain rather than adding a second permanent
 post-processing implementation. No new user settings or inverse-tone-map hacks.

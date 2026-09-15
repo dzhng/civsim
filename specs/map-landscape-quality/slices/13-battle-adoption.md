@@ -43,3 +43,14 @@ The current audit found that null gameplay slope descriptors disable physical ro
 Fresh composed-image critique keeps acceptance open: forest density and boundary transitions belong to 07, water/vista seam to 08, and heavy distant haze to 10. Battle-specific integration must address isolated cool rock props on beige patches and the weak visible join between playable field and distant relief using material/vista presentation, preserving physical terrain and gameplay. The hardware audit is archived; scene edits await canonical baseline delivery.
 
 The [density checkpoint](../assets/slice-07/battle-density/README.md) is accepted only for woodland presence and bounded cost. Its world crop is deterministic, while full-frame hardware cardbar raster drift remains unresolved; software baseline delivery is still pending. The standing 30k scene requests close zoom 24/28 but records settled zoom 8, so fix that verification mismatch before making close-camera performance claims.
+
+## Readout output/depth audit
+
+The current battle readout material explicitly sets `depthTest=false` and
+`toneMapped=false`, while its diagnostic string claims depth-tested, ungraded
+billboards. The WebGPU tone-map flag is ineffective, as the campaign output
+control demonstrates. Preserve actual battle behavior during the bounded
+campaign output proof; do not treat that diagnostic string as an implemented
+occlusion contract. After the shared output seam is verified, reconcile this
+readout owner and its diagnostics, preserving camera-facing world projection
+and checking troops/terrain/readout layering in actual battle frames.

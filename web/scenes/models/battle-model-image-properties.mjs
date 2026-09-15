@@ -8,7 +8,7 @@ export const meta = {
   tier: "full",
   snapshots: ["battle/image-properties/checker-near", "battle/image-properties/checker-far"],
   describe:
-    "Production near/far PNG UV, sampler and channel consumption; failed image reload preserves the last good scene.",
+    "Production near/far PNG UV, sampler and channel consumption; failed image reload preserves the last good scene. Close far representation inspection is diagnostic, not production LOD acceptance.",
 };
 
 function png(width, height, pixels) {
@@ -200,9 +200,7 @@ export async function run(ctx) {
               }
             }
             const camera = structuredClone(w.stats().camera);
-            // Hold the inspection camera fixed and explicitly select far;
-            // this is material verification, not production-distance approval.
-            if (tier === "far") camera.zoom = 0.9;
+            const { farAdmissionCamera } = await import("/scenes/models/_far-inspection.ts");
             w.drawInstances(
               [
                 {
@@ -221,11 +219,14 @@ export async function run(ctx) {
                   lod: 0,
                 },
               ],
-              camera,
+              tier === "far" ? farAdmissionCamera(camera) : camera,
             );
+            const lod = w.stats().lod;
+            // Preserve close material inspection after genuine projected admission.
+            if (tier === "far") w.setCamera(camera);
             w.render();
             await w.settlePresentedFrame();
-            return { lod: w.stats().lod, images: replacement.stats().surfaceImages };
+            return { lod, images: replacement.stats().surfaceImages };
           },
           {
             tier,

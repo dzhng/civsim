@@ -43,3 +43,13 @@ The shared shader vocabulary extraction is verified; [evidence](../assets/shared
 The shared terrain response extraction is verified: [ownership evidence](../assets/slice-05/extraction/README.md) records exact small canonical controls, equivalent-consumer RGBA, matched hardware turf controls, and the inherited full SwiftShader readiness limitation. Face-oriented visual tuning remains active.
 
 The [face-response evidence](../assets/slice-05/face-detail/README.md) records the procedural triplanar/normal probe, fixed-geometry before/after comparison, exact consumer and water guards, hardware battle controls, and remaining close-rock softness. This is a verified material implementation checkpoint, not final combined landscape art acceptance.
+
+
+## Intermediate face direction evidence
+
+Two [directional probes](../assets/slice-05/directional-face/README.md) retained
+geometry/palette/planting/light. Strong vertical noise looked like curtains and
+woven scratches; shorter transverse noise was only slightly preferred close up
+and lost identity regionally. Both are rejected and their code removed. Shared
+consumer/source/water controls remained green. Further anisotropy alone is not
+the next material solution; regional geological readability remains open.

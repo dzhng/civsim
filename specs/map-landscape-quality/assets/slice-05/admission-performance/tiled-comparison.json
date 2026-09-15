@@ -1,0 +1,45 @@
+{
+  "scope": "Same hardware browser, source restored to e770aee8 for before control; exact raw RGBA comparison, no baseline refresh",
+  "frames": [
+    {
+      "name": "overview",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "beforeSha256": "48ebf33b05334a1a8b201a389e4a96e967d8e9d82d74255cd317e9eb36d25f75",
+      "candidateSha256": "48ebf33b05334a1a8b201a389e4a96e967d8e9d82d74255cd317e9eb36d25f75",
+      "retainedImage": "tiled-overview.png"
+    },
+    {
+      "name": "alps",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "beforeSha256": "9c3272b1c75abacb3fd0d06e3dab475fe0a0583dd7ae098f3b45287c8f90743d",
+      "candidateSha256": "9c3272b1c75abacb3fd0d06e3dab475fe0a0583dd7ae098f3b45287c8f90743d",
+      "retainedImage": "tiled-alps.png"
+    },
+    {
+      "name": "italy",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "beforeSha256": "e840890aba73994fce6ea9f79f683372f65553950c0bc077e520127057e0d3f5",
+      "candidateSha256": "e840890aba73994fce6ea9f79f683372f65553950c0bc077e520127057e0d3f5",
+      "retainedImage": "tiled-italy.png"
+    },
+    {
+      "name": "return",
+      "width": 1280,
+      "height": 800,
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "beforeSha256": "9c3272b1c75abacb3fd0d06e3dab475fe0a0583dd7ae098f3b45287c8f90743d",
+      "candidateSha256": "9c3272b1c75abacb3fd0d06e3dab475fe0a0583dd7ae098f3b45287c8f90743d",
+      "retainedImage": "tiled-alps.png"
+    }
+  ]
+}

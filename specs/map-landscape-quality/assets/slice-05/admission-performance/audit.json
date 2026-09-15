@@ -1,0 +1,47 @@
+{
+  "sourceCommit": "e770aee8141c91655e3883dde6b8b98fbe888d1c",
+  "scope": "Shared terrain response and canonical tiled landscape traversal; excludes full production UI and other renderer routes",
+  "findings": [
+    {
+      "priority": "P1",
+      "finding": "Terrain admission frames determine this traversal p95 failure",
+      "trigger": "One admitted detailed terrain tile during camera traversal",
+      "evidence": "admission-correlation.json",
+      "amplification": "15 admissions among 179 measured frames; all 15 exceed 33ms, accounting for 15 of 17 over-budget frames. The 164 nonadmission frames have p95 16.67ms.",
+      "owner": "PhotorealTiledTerrain.install and first render of its admitted mesh",
+      "acceptance": "Unchanged canonical hardware traversal <=33ms p95, warm admission <=100ms, unchanged exact material/region/water snapshots",
+      "disposition": "Fixed by one shared material per tiled world. Hardware p95 and admissionMax both16.67ms; all unchanged acceptance checks pass."
+    },
+    {
+      "priority": "P2",
+      "finding": "Fresh materials miss Three node-builder identity cache while shader programs can reuse generated source",
+      "trigger": "createLandscapeGroundMesh creates an identical TSL graph for each admitted tile",
+      "evidence": "Installed Three r185 NodeMaterial.customProgramCacheKey includes child Node.getCacheKey; default Node.customCacheKey returns node.id. NodeManager.getForRender caches generated builder state by this key. Pipelines.getForRender separately caches GPU programs by shader source. profile-summary.json and admission-before.cpuprofile.gz retain measured attribution.",
+      "amplification": "One fresh material graph and potential node-builder compilation per admitted tile; at most coarse plus resident tile count concurrently.",
+      "owner": "createLandscapeGroundMesh / PhotorealTiledTerrain.ground",
+      "acceptance": "Attribute admission CPU samples to node-builder work before proposing material sharing",
+      "disposition": "CPU profile attributes559.295ms to NodeBuilder versus152.926ms to tile install across15 admissions. Material sharing removes the repeated graph build from admission; GPU program caching alone did not avoid the CPU work."
+    }
+  ],
+  "dismissals": [
+    {
+      "candidate": "Skip fracture noise when exact slope/rock/minification contribution is zero",
+      "evidence": "baseline-hardware.json and rejected-fracture-hardware.json",
+      "result": "p95 worsened from33.33ms to50ms; admissionMax33.335ms to83.33ms. Candidate reverted; no losing patch retained.",
+      "shaderProof": "81 fract instructions moved inside one condition; no fwidth/dpdx/dpdy inside branch. Appearance was not accepted or baselined."
+    },
+    {
+      "candidate": "Replace terrain shadow material color calculation",
+      "result": "Generated shadow shader contains noise but output reads constant alpha; backend dead-code elimination may remove it. Source size alone is not measured GPU work. Three castShadowNode still multiplies colorNode.a and requires transmitted shadow mode; no justified shadow contract change."
+    }
+  ],
+  "changes": "Material construction separated from mesh construction. Tiled world owns one material, geometry decorators cannot mutate it, and eviction disposes geometry only. Campaign fog/territory shader composed once; per-mesh fog attributes remain independent. All material/geometry visual math and thresholds unchanged.",
+  "validation": {
+    "typecheck": "passed",
+    "tests": "2 focused memory/material lifecycle tests passed; old per-tile disposal mutation fails lifecycle check (1 release where0 expected)",
+    "canonicalSwiftShader": "Seven existing material/ramp/regional/water snapshots match exactly; no baseline changes",
+    "matchedTiledHardware": "Four before/candidate tiled captures have zero differing RGBA pixels; inspect tiled-comparison.json",
+    "extraCanonicalTraversal": "Not claimed passing: overview differs45,951pixels from historical baseline; subsequent Alps capture blank and route hook disappeared. Existing baselines not refreshed. Matched prechange/candidate hardware control instead isolates material sharing and is exact.",
+    "review": "Independent Codex review found old constructor argument in existing memory test; migrated and typecheck/focused tests pass. No other reported finding."
+  }
+}

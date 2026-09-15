@@ -208,9 +208,8 @@ export function applyTerrainSurface(
 }
 
 /** Campaign consumes neutral source coverage, never battle physical tint IDs. */
-export function createLandscapeGroundMesh(
+export function createLandscapeGroundMaterial(
   frame: LandscapeFrameUniforms,
-  mesh: LandscapeMesh,
   profile: TerrainProfile = CAMPAIGN_TERRAIN_PROFILE,
 ) {
   const surface = terrainSignals(profile.detailScale);
@@ -235,6 +234,10 @@ export function createLandscapeGroundMesh(
     float(0),
     response.normal,
   );
+  return material;
+}
+
+export function createLandscapeGroundMesh(mesh: LandscapeMesh, material: THREE.Material) {
   const ground = new THREE.Mesh(createTerrainGeometry(mesh), material);
   ground.name = "landscape-ground";
   ground.frustumCulled = false;

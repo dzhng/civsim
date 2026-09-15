@@ -2,7 +2,10 @@ import * as THREE from "three/webgpu";
 import { attribute, normalize, transformNormalToView, varying, vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
-import { createLandscapeGroundMesh } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
+import {
+  createLandscapeGroundMaterial,
+  createLandscapeGroundMesh,
+} from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { CAMPAIGN_TERRAIN_PROFILE } from "@packages/game-renderer/src/terrain/materialProfile";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
@@ -33,7 +36,7 @@ export async function route(ctx: LabContext) {
             highlandCapMinM: 0,
           },
         })
-      : createLandscapeGroundMesh(frame, mesh);
+      : createLandscapeGroundMesh(mesh, createLandscapeGroundMaterial(frame));
   // A same-scene control proves procedural derivatives affect lighting.
   if (ctx.params.get("normal") === "geometric")
     (ground.material as THREE.MeshStandardNodeMaterial).normalNode = transformNormalToView(

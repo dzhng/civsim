@@ -55,6 +55,11 @@ but this is not a passing traversal performance result. Raw
 The earlier slice-03 performance result preceded the unified tiled slope profile;
 combined production performance remains an integration issue.
 
+The [admission performance audit](../admission-performance/audit.json) isolates repeated
+material-builder work from steady fragment shading. Its shared-material fix
+passes the same tiled traversal gate with exact appearance controls; full
+production performance still belongs to integration.
+
 Matched hardware turf/seam controls pass all 24 behavior checks without page
 errors. Dirt edge, edge ruler, road edge and both RTS flat-ground views remain
 byte-identical to extraction. Rock/scree and distant terrain captures change;

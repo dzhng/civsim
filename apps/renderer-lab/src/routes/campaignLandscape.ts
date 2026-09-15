@@ -3,7 +3,10 @@ import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
-import { createLandscapeGroundMesh } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
+import {
+  createLandscapeGroundMaterial,
+  createLandscapeGroundMesh,
+} from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { PhotorealScenery } from "@packages/photoreal-renderer/src/landscape/sceneryLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
@@ -57,12 +60,11 @@ export async function route(ctx: LabContext) {
   const env = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
     aerialObserver: vec3(frame.focus, 0),
   });
+  const terrainMaterial = clay
+    ? new THREE.MeshStandardNodeMaterial({ color: 0x9c967f, roughness: 0.95 })
+    : createLandscapeGroundMaterial(frame);
   const grounds = landscapes.map((landscape) => {
-    const ground = createLandscapeGroundMesh(frame, landscape.surface.mesh);
-    if (clay) {
-      (ground.material as THREE.Material).dispose();
-      ground.material = new THREE.MeshStandardNodeMaterial({ color: 0x9c967f, roughness: 0.95 });
-    }
+    const ground = createLandscapeGroundMesh(landscape.surface.mesh, terrainMaterial);
     ground.name = "campaign-continuous-landscape";
     ground.castShadow = true;
     world.scene.add(ground);
@@ -137,8 +139,8 @@ export async function route(ctx: LabContext) {
       scenery.dispose();
       for (const ground of grounds) {
         ground.geometry.dispose();
-        (ground.material as THREE.Material).dispose();
       }
+      terrainMaterial.dispose();
       world.dispose();
     },
     { once: true },

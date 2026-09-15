@@ -20,12 +20,17 @@ import {
   PhotorealTiledTerrain,
   TerrainAllocationBudget,
 } from "../../packages/photoreal-renderer/src/campaign/tiledTerrain";
+import { createLandscapeGroundMaterial } from "../../packages/photoreal-renderer/src/landscape/terrainMaterial";
 
 test("unchanged edge uploads still account for the newly retained query revision", () => {
   const field = coastalRidgeFixture();
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8).surface;
   const scene = new THREE.Scene();
-  const terrain = new PhotorealTiledTerrain(scene, createLandscapeFrameUniforms(), coarse);
+  const terrain = new PhotorealTiledTerrain(
+    scene,
+    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
+    coarse,
+  );
   const a = buildCampaignLandscape(field, [-96, -96], 32, 2).surface;
   const b = buildCampaignLandscape(field, [96, 96], 32, 2).surface;
   const install = (surface: typeof a, key: string) =>
@@ -66,10 +71,10 @@ test("admission reservation covers old and new unique storage plus upload stagin
   const scene = new THREE.Scene();
   const terrain = new PhotorealTiledTerrain(
     scene,
-    createLandscapeFrameUniforms(),
+    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
     coarse,
-    (ground, surface) =>
-      ground.geometry.setAttribute(
+    (geometry, surface) =>
+      geometry.setAttribute(
         "campaignFog",
         new THREE.BufferAttribute(new Float32Array(surface.mesh.vertices.length / 10), 1),
       ),
@@ -158,10 +163,10 @@ test("admits coastal detail over the full-source overview within the unchanged a
   );
   const terrain = new PhotorealTiledTerrain(
     new THREE.Scene(),
-    createLandscapeFrameUniforms(),
+    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
     coarse,
-    (ground, surface) =>
-      ground.geometry.setAttribute(
+    (geometry, surface) =>
+      geometry.setAttribute(
         "campaignFog",
         new THREE.BufferAttribute(new Float32Array(surface.mesh.vertices.length / 10), 1),
       ),

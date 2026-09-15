@@ -1,6 +1,7 @@
 import { PhotorealScenery } from "../landscape/sceneryLayer";
 import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
 import { type TerrainAllocationBudget, PhotorealTiledTerrain, type TerrainTileSurface } from "./tiledTerrain";
+import { createLandscapeGroundMaterial } from "../landscape/terrainMaterial";
 import * as THREE from "three/webgpu";
 import { attribute, varying, vec3, vec4, mix, uniform, modelNormalMatrix } from "three/tsl";
 import { PhotorealWorld } from "../world";
@@ -119,11 +120,14 @@ export class PhotorealCampaignWorld {
       this.objects.push({ input, mesh });
     }
     this.standards = new PhotorealStandardLayer(world.scene, world.uTime, "campaign-army");
+    // Tiles share one graph: Three's node-builder cache keys include node identity.
+    const terrainMaterial = createLandscapeGroundMaterial(this.frame);
+    this.colorLandscapeMaterial(terrainMaterial, true);
     this.terrain = new PhotorealTiledTerrain(
       world.scene,
-      this.frame,
+      terrainMaterial,
       composition.surface,
-      (ground, surface) => this.colorLandscape(ground, surface.mesh.vertices, true),
+      (geometry, surface) => this.addLandscapeFog(geometry, surface.mesh.vertices),
       composition.terrainAllocation?.budget,
       composition.terrainAllocation?.sourceBuffers,
       Float32Array.BYTES_PER_ELEMENT,
@@ -137,19 +141,21 @@ export class PhotorealCampaignWorld {
         composition.roads[i * 10 + 2] -
         (composition.surface.sampleRendered(x, y)?.position[2] ?? 0);
     }
-    this.colorLandscape(this.road, composition.roads, false);
+    this.addLandscapeFog(this.road.geometry, composition.roads);
+    this.colorLandscapeMaterial(this.road.material as THREE.MeshStandardNodeMaterial, false);
     this.add(this.road);
     this.selection = new THREE.Mesh(new THREE.BufferGeometry(), decalMaterial());
     this.selection.renderOrder = RENDER_ORDER.groundCues + 1;
     this.selection.visible = false;
     this.add(this.selection);
   }
-  private colorLandscape(mesh: THREE.Mesh, vertices: Float32Array, territory: boolean) {
+  private addLandscapeFog(geometry: THREE.BufferGeometry, vertices: Float32Array) {
     const fog = new Float32Array(vertices.length / 10);
     for (let i = 0; i < fog.length; i++)
       fog[i] = this.composition.fogAt(vertices[i * 10], vertices[i * 10 + 1]);
-    mesh.geometry.setAttribute("campaignFog", new THREE.BufferAttribute(fog, 1));
-    const material = mesh.material as THREE.MeshStandardNodeMaterial;
+    geometry.setAttribute("campaignFog", new THREE.BufferAttribute(fog, 1));
+  }
+  private colorLandscapeMaterial(material: THREE.MeshStandardNodeMaterial, territory: boolean) {
     const base = material.colorNode as THREE.Node<"vec4">;
     const tinted = territory
       ? mix(base.rgb, linearAlbedo(vec3(...this.composition.territory)), 0.12)

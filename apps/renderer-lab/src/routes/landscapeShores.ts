@@ -65,12 +65,9 @@ export async function route(ctx: LabContext) {
   applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
     aerialObserver: vec3(frame.focus, 0),
   });
-  const terrain = new PhotorealTiledTerrain(world.scene, frame, coarse.surface, (ground) => {
-    (ground.material as THREE.Material).dispose();
-    const material = new THREE.MeshStandardNodeMaterial({ roughness: 1 });
-    material.colorNode = mix(vec3(0.55, 0.5, 0.34), vec3(0.12, 0.35, 0.4), attribute("gWater"));
-    ground.material = material;
-  });
+  const material = new THREE.MeshStandardNodeMaterial({ roughness: 1 });
+  material.colorNode = mix(vec3(0.55, 0.5, 0.34), vec3(0.12, 0.35, 0.4), attribute("gWater"));
+  const terrain = new PhotorealTiledTerrain(world.scene, material, coarse.surface);
   if (ctx.params.get("detail") === "1") {
     const fine = make(2, [center[0] - radius / 2, center[1] - radius / 2], radius / 2);
     terrain.install(

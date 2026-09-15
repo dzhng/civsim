@@ -4,6 +4,7 @@ import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
+import { createLandscapeGroundMaterial } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { PhotorealTiledTerrain } from "@packages/photoreal-renderer/src/campaign/tiledTerrain";
 import {
   createTerrainTiles,
@@ -39,7 +40,11 @@ export async function route(ctx: LabContext) {
   applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
     aerialObserver: vec3(frame.focus, 0),
   });
-  const terrain = new PhotorealTiledTerrain(world.scene, frame, coarse.surface);
+  const terrain = new PhotorealTiledTerrain(
+    world.scene,
+    createLandscapeGroundMaterial(frame),
+    coarse.surface,
+  );
   const camera = new THREE.PerspectiveCamera();
   const requests: TerrainTileRequest[] = [
     [-128, -128],

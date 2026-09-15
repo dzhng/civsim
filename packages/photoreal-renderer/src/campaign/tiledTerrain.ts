@@ -1,6 +1,5 @@
 import * as THREE from "three/webgpu";
 import { createLandscapeGroundMesh } from "../landscape/terrainMaterial";
-import type { LandscapeFrameUniforms } from "../landscape/shaderNodes";
 import {
   createRenderedSurface,
   createSurfaceView,
@@ -29,7 +28,8 @@ export class TerrainAllocationBudget {
   }
 }
 
-/** One presented terrain revision owns both GPU coverage and CPU queries.
+/** Owns the shared material until disposal; tile eviction releases geometry only.
+ * One presented terrain revision owns both GPU coverage and CPU queries.
  * Scheduler admission happens before render; neighbor edge updates join that swap. */
 export class PhotorealTiledTerrain {
   private readonly entries = new Map<string, Entry>();
@@ -41,9 +41,12 @@ export class PhotorealTiledTerrain {
 
   constructor(
     private readonly scene: THREE.Scene,
-    private readonly frame: LandscapeFrameUniforms,
+    private readonly material: THREE.Material,
     private readonly coarse: RenderedSurface,
-    private readonly decorate?: (ground: THREE.Mesh, surface: RenderedSurface) => void,
+    private readonly decorateGeometry?: (
+      geometry: THREE.BufferGeometry,
+      surface: RenderedSurface,
+    ) => void,
     private readonly budget = new TerrainAllocationBudget(),
     private readonly sourceBuffers: readonly ArrayBufferLike[] = [],
     private readonly decorationBytesPerVertex = 0,
@@ -64,9 +67,9 @@ export class PhotorealTiledTerrain {
   }
 
   private ground(surface: RenderedSurface) {
-    const ground = createLandscapeGroundMesh(this.frame, surface.mesh);
+    const ground = createLandscapeGroundMesh(surface.mesh, this.material);
     ground.castShadow = true;
-    this.decorate?.(ground, surface);
+    this.decorateGeometry?.(ground.geometry, surface);
     return ground;
   }
 
@@ -197,13 +200,13 @@ export class PhotorealTiledTerrain {
     for (const entry of this.entries.values()) disposeGround(entry.ground);
     this.entries.clear();
     disposeGround(this.coarseGround);
+    this.material.dispose();
   }
 }
 
 function disposeGround(ground: THREE.Mesh) {
   ground.removeFromParent();
   ground.geometry.dispose();
-  (ground.material as THREE.Material).dispose();
 }
 
 function geometryBuffers(geometry: THREE.BufferGeometry) {

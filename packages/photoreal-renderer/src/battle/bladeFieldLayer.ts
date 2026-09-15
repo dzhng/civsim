@@ -21,6 +21,8 @@ import {
 import * as THREE from "three/webgpu";
 import {
   Fn,
+  uniformGroup,
+  NodeUpdateType,
   If,
   abs,
   attribute,
@@ -340,6 +342,7 @@ interface StorageUploadAttribute {
 
 interface StorageNodeWithValue<Value = StorageUploadAttribute> {
   value: Value;
+  setGroup(group: ReturnType<typeof uniformGroup>): this;
   element(index: unknown): any;
 }
 
@@ -1391,6 +1394,10 @@ function emptyBladeFieldDepthPrepassMaterial(): THREE.MeshBasicNodeMaterial {
   return material;
 }
 
+// Three's texture-keyed bind-group cache does not include replaced storage identities.
+// Keep mutable draw storage separate so publication updates bindings without recompiling.
+const bladeStorageGroup = uniformGroup("bladeStorage", 2, NodeUpdateType.OBJECT);
+
 function createBladeFieldMaterial(
   grassData: unknown,
   visibleIndices: unknown,
@@ -1418,6 +1425,8 @@ function createBladeFieldMaterial(
     material.depthWrite = true;
     material.colorNode = vec4(0.0, 0.0, 0.0, 1.0);
   }
+  (grassData as StorageNodeWithValue).setGroup(bladeStorageGroup);
+  (visibleIndices as StorageNodeWithValue).setGroup(bladeStorageGroup);
   const local = attribute<"vec3">("position", "vec3");
   const indexBuffer = visibleIndices as { element(index: unknown): unknown };
   const recordBuffer = grassData as { element(index: unknown): StorageRecordNode };

@@ -1,3 +1,4 @@
+import { traceSourceGrass } from "../sourceGrassTrace";
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "../../../../packages/photoreal-renderer/src/world";
@@ -5,6 +6,7 @@ import { applyCivsimEnvironment } from "../../../../packages/photoreal-renderer/
 import { applyCamera3d } from "../../../../packages/photoreal-renderer/src/cameraBridge";
 import { BattleGrassField } from "../../../../packages/photoreal-renderer/src/battle/battleGrassField";
 import {
+  PhotorealBladeFieldLayer,
   BladeFieldTransitionUniforms,
   createBladeFieldWindUniforms,
 } from "../../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
@@ -15,7 +17,11 @@ import {
 import { flatHeightField } from "../../../../packages/game-renderer/src/terrain/heightField";
 import { updateWindUniforms } from "../../../../packages/game-renderer/src/battle/windSignal";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
-import { viewMatrix, type Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
+import {
+  eyePosition,
+  viewMatrix,
+  type Camera3DParams,
+} from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
 import { createRawEnvironment } from "./environment";
 import { createRawGrassField } from "./grassField";
@@ -41,9 +47,10 @@ async function run() {
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) throw Error("No WebGPU");
   const device = await adapter.requestDevice();
+  const trace = traceSourceGrass(device);
   const errors: string[] = [];
   device.addEventListener("uncapturederror", (e) => errors.push(e.error.message));
-  const release: (() => void)[] = [() => device.destroy()];
+  const release: (() => void)[] = [() => device.destroy(), () => trace.dispose()];
   try {
     const world = await PhotorealWorld.create(document.createElement("canvas"), {
       antialias: false,
@@ -59,12 +66,8 @@ async function run() {
     for (const c of world.scene.children) if (c instanceof THREE.Mesh) c.visible = false;
     const profile = productionBladeFieldProfile(),
       wind = createBladeFieldWindUniforms();
-    const source = new BattleGrassField(
-      world.scene,
-      profile,
-      new BladeFieldTransitionUniforms(initialBladeFieldTransition(profile)),
-      wind,
-    );
+    const sourceTransition = new BladeFieldTransitionUniforms(initialBladeFieldTransition(profile));
+    const source = new BattleGrassField(world.scene, profile, sourceTransition, wind);
     release.push(() => source.dispose());
     source.setSunDirection(new THREE.Vector3(...spec.sunDirection));
     const lighting = await createRawEnvironment(device, env);
@@ -89,7 +92,7 @@ async function run() {
     });
     const native = await createRawGrassField(device, layout, lighting, profile);
     release.push(native.dispose);
-    const field = flatHeightField(-64, -64, 32, 32, 4),
+    let field = flatHeightField(-64, -64, 32, 32, 4),
       grid = { ...field, tint: new Uint8Array(1024) };
     source.setTerrain(grid, field, "green-grass");
     native.setTerrain(grid, field, "green-grass");
@@ -120,7 +123,15 @@ async function run() {
       ["far-hidden", 100, 24, false, false],
       ["overview", 0, 900, true, false],
       ["terrain-replaced", 0, 24, true, true],
+      ["interior-initial", 0, 24, true, true],
+      ["interior-pan", 100, 24, true, false],
+      ["interior-far-hidden", 100, 24, false, false],
     ] as const) {
+      trace.phase(label);
+      if (label === "interior-initial") {
+        field = flatHeightField(-256, -256, 64, 64, 8);
+        grid = { ...field, tint: new Uint8Array(4096) };
+      }
       if (replace) {
         source.setTerrain(grid, field, "green-grass");
         native.setTerrain(grid, field, "green-grass");
@@ -189,6 +200,18 @@ async function run() {
       native.draw(pass, cameraGroup);
       pass.end();
       device.queue.submit([e.finish()]);
+      if (label === "interior-far-hidden") {
+        trace.clear();
+        trace.phase("combined");
+        for (const object of world.scene.children)
+          if (object instanceof THREE.Mesh && object.name.includes("blades-")) {
+            const before = object.onBeforeRender;
+            object.onBeforeRender = function (...args) {
+              trace.mark(this.name);
+              before.apply(this, args);
+            };
+          }
+      }
       renderer.setRenderTarget(reference);
       renderer.render(world.scene, camera);
       renderer.setRenderTarget(null);
@@ -208,6 +231,8 @@ async function run() {
               await renderer.getArrayBufferAsync(mesh.geometry.getIndirect()!),
             );
             routes.push({
+              sourceVisible: mesh.visible,
+              sourceInstanceCapacity: mesh.geometry.instanceCount,
               layer: i,
               tier,
               actual: Array.from(commands.slice(tier * 5, tier * 5 + 5)),
@@ -222,6 +247,93 @@ async function run() {
           W,
           H,
         );
+      let ringOnly: number[] | undefined;
+      let standalone: number[] | undefined;
+      let effective: object | undefined;
+      if (label === "interior-far-hidden") {
+        const baseMeshes = world.scene.children.filter(
+          (c) =>
+            c instanceof THREE.Mesh && c.name.includes("blades-") && !c.name.includes("-ring-"),
+        );
+        const visibility = baseMeshes.map((c) => c.visible);
+        for (const mesh of baseMeshes) mesh.visible = false;
+        trace.phase("ring-only");
+        renderer.setRenderTarget(reference);
+        renderer.render(world.scene, camera);
+        renderer.setRenderTarget(null);
+        ringOnly = unpackRgba16fRows(
+          (await renderer.readRenderTargetPixelsAsync(reference, 0, 0, W, H)) as Uint16Array,
+          W,
+          H,
+        );
+        baseMeshes.forEach((mesh, i) => {
+          mesh.visible = visibility[i];
+        });
+        // Lab-only read-only owner inspection: no private GPU resources are modified.
+        const sourceRing = Reflect.get(source, "ring");
+        if (!(sourceRing instanceof PhotorealBladeFieldLayer))
+          throw Error("Missing source ring owner");
+        const material = sourceRing.materialSet().tiers!.near;
+        const attr = material.grassData.value;
+        const visibleAttr = material.visibleIndices.value;
+        if (
+          !(attr instanceof THREE.BufferAttribute) ||
+          !(visibleAttr instanceof THREE.BufferAttribute)
+        )
+          throw Error("Missing material storage attributes");
+        const boundRecords = new Float32Array(await renderer.getArrayBufferAsync(attr));
+        const boundVisible = new Uint32Array(await renderer.getArrayBufferAsync(visibleAttr));
+        const expectedRecords = state.ring.records!;
+        effective = {
+          sourceTransition: sourceTransition.transition(),
+          nativeTransition: state.transition,
+          anchor: material.anchor.value.toArray(),
+          stats: sourceRing.stats(),
+          boundRecordFloats: boundRecords.length,
+          expectedRecordFloats: expectedRecords.length,
+          recordsExact:
+            boundRecords.length === expectedRecords.length &&
+            boundRecords.every((v, i) => v === expectedRecords[i]),
+          firstVisible: Array.from(boundVisible.slice(0, 12)),
+          positions: Array.from(boundVisible.slice(0, 12), (i) =>
+            Array.from(boundRecords.slice(i * 16, i * 16 + 4)),
+          ),
+        };
+        const oldMeshes = world.scene.children.filter(
+          (c) => c instanceof THREE.Mesh && c.name.includes("blades-"),
+        );
+        const oldVisibility = oldMeshes.map((c) => c.visible);
+        for (const mesh of oldMeshes) mesh.visible = false;
+        const lone = new PhotorealBladeFieldLayer(
+          world.scene,
+          profile.tiers,
+          true,
+          new BladeFieldTransitionUniforms(state.transition),
+          wind,
+        );
+        try {
+          lone.setSunDirection(spec.sunDirection);
+          lone.applyPackedRecords(state.ring.records!, true);
+          lone.setFarTierVisible(false);
+          lone.setRouteCullWedge(state.wedge);
+          lone.routeGpu(renderer, eyePosition(params), [params.target[0], params.target[1]]);
+          trace.phase("standalone");
+          trace.mark("standalone");
+          renderer.setRenderTarget(reference);
+          renderer.render(world.scene, camera);
+          renderer.setRenderTarget(null);
+          standalone = unpackRgba16fRows(
+            (await renderer.readRenderTargetPixelsAsync(reference, 0, 0, W, H)) as Uint16Array,
+            W,
+            H,
+          );
+        } finally {
+          lone.dispose();
+          oldMeshes.forEach((mesh, i) => {
+            mesh.visible = oldVisibility[i];
+          });
+        }
+      }
       const pixels = compareHdr(actual, expected);
       const mismatches = [];
       let coverageMismatch = 0,
@@ -252,6 +364,31 @@ async function run() {
         height: H,
         actual,
         expected,
+        ...(ringOnly
+          ? {
+              ringOnly,
+              sourceRingOnly: {
+                versusNative: compareHdr(actual, ringOnly),
+                versusCombined: compareHdr(expected, ringOnly),
+                coveredPixels: ringOnly.filter((v, i) => i % 4 === 3 && v > 0).length,
+              },
+            }
+          : {}),
+        effective,
+        ...(label === "interior-far-hidden" ? { issued: await trace.snapshot() } : {}),
+        ...(standalone
+          ? {
+              standalone,
+              sourceStandalone: {
+                sourceStandaloneParity:
+                  compareHdr(expected, standalone).maxAbs === 0 &&
+                  standalone.some((v, i) => i % 4 === 3 && v > 0),
+                versusNative: compareHdr(actual, standalone),
+                versusCombined: compareHdr(expected, standalone),
+                coveredPixels: standalone.filter((v, i) => i % 4 === 3 && v > 0).length,
+              },
+            }
+          : {}),
         routes,
         pixels,
         coverageMismatch,

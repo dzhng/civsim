@@ -27,7 +27,8 @@ try {
   );
   await mkdir(dir, { recursive: true });
   for (const result of report.results ?? []) {
-    for (const key of ["actual", "expected"]) {
+    for (const key of ["actual", "expected", "ringOnly", "standalone"]) {
+      if (!result[key]) continue;
       const image = new PNG({ width: result.width, height: result.height });
       image.data = Buffer.from(
         result[key].map((v, i) =>
@@ -49,7 +50,13 @@ try {
   }
   await writeFile(new URL("report.json", dir), JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report, null, 2));
-  if (!report.passed || pageErrors.length) process.exitCode = 1;
+  const sourcePublicationPassed =
+    report.results?.find((r) => r.label === "interior-far-hidden")?.sourceStandalone
+      ?.sourceStandaloneParity === true;
+  const selectedGate = process.argv.includes("--source-publication")
+    ? sourcePublicationPassed
+    : report.passed;
+  if (!selectedGate || report.errors?.length || pageErrors.length) process.exitCode = 1;
 } finally {
   await browser.close();
 }

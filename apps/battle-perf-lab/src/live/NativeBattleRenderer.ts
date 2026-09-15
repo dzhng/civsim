@@ -57,6 +57,7 @@ import { createSceneBackend, type SceneBackend } from "../sceneBackend";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import { createTerrainPicking } from "../terrainPicking";
 import { NativeGpuTelemetry } from "../nativeGpuTelemetry";
+import { trackNativeGpuAllocations } from "../nativeGpuAllocations";
 import { beginGpuAdmission } from "../gpuAdmission";
 import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
 
@@ -104,6 +105,7 @@ export class BattleRenderer implements BattleRendererApi {
   private format!: GPUTextureFormat;
   private deviceLabel = "unavailable";
   private telemetry: NativeGpuTelemetry | null = null;
+  private allocations: ReturnType<typeof trackNativeGpuAllocations> | null = null;
   private readinessSubmissions = 0;
   private latestSubmission: BattleSubmissionIdentity | null = null;
   private renderedFrameId = 0;
@@ -249,6 +251,9 @@ export class BattleRenderer implements BattleRendererApi {
     this.device = device;
     this.releases.push(() => device.destroy());
     this.check();
+    const allocations = trackNativeGpuAllocations(device);
+    this.allocations = allocations;
+    this.releases.push(() => allocations.restore());
     const telemetry = new NativeGpuTelemetry(device, this.backend);
     this.telemetry = telemetry;
     this.releases.push(() => telemetry.dispose());
@@ -680,6 +685,12 @@ export class BattleRenderer implements BattleRendererApi {
         latest: this.latestSubmission,
       },
       gpuTiming: this.telemetry?.stats() ?? { supported: false },
+      allocations: this.allocations
+        ? {
+            scope: "requested buffer and texture bytes, including telemetry; not physical VRAM",
+            ...this.allocations.snapshot(),
+          }
+        : null,
       cpuCoverage:
         "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
       picking: { triangles: this.picking?.triangles ?? 0 },

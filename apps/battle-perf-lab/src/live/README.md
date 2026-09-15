@@ -22,8 +22,8 @@ source renderer continues to implement its existing `present` path.
 
 This is a functional checkpoint, not a ranked renderer result. CPU values cover
 synchronous API entry and instance packing; asynchronous continuations are not
-CPU-profiled. Memory diagnostics remain explicitly unavailable. GPU pass timings use the shared
-native observer when timestamp-query is supported; missing results stay explicit.
+CPU-profiled. GPU pass timings use the shared native observer when timestamp-query
+is supported; missing results stay explicit.
 Submission identities count actual queue submissions, without a fictitious Three
 frame number. Each measured synchronous owner call has a validation scope popped before await;
 this admission and timestamp instrumentation overhead is part of the instrumented
@@ -37,7 +37,14 @@ constructed as a fallback.
 CPU verification: native live tests, source crowd/action/presentation/scheduler/
 benchmark tests, typechecks and a production lab build. Independent code review
 found readiness cancellation, delayed canvas teardown and frozen invalidation
-races; regression tests now cover all three. GPU Menu launch, startup readiness,
-full timed validity, cancellation/re-entry, frozen settings, picking and source
-capture controls still require refreshed fixed-checkout hardware runs. No visual
-or performance acceptance is claimed by this checkpoint.
+races; regression tests cover all three. Fixed-checkout Menu controls are recorded
+in [live evidence](../../../../specs/battle-performance/assets/02-live/native-facade/README.md).
+Frozen settings, native picking, source capture compatibility and final matched
+performance still need their respective hardware controls. No visual or performance
+acceptance is claimed by this checkpoint.
+
+Native allocation diagnostics count requested buffer/texture payloads from device
+creation through explicit destruction, including measurement buffers. They expose
+current and peak logical bytes plus unavailable-format counts. These are not
+physical VRAM or directly comparable to the source renderer's object counts;
+swapchain/imported resources and driver overhead remain outside their scope.

@@ -26,6 +26,8 @@ const findings = [],
   packets = [],
   errors = [];
 const resources = {};
+const history = { frames: 0, failedFrames: 0, failures: [], publications: [] };
+let previousPublication;
 let status,
   diskBytes = 0;
 const boundedWrite = async (name, bytes) => {
@@ -246,6 +248,48 @@ try {
       });
       lastReplayLog = Date.now();
     }
+    history.frames++;
+    const cameraMatches = isDeepStrictEqual(result.source.camera, result.replay.camera);
+    const crowdMatches =
+      result.source.crowd.instances === result.replay.crowd.instances &&
+      isDeepStrictEqual(
+        result.source.crowd.visibleTierHistogram,
+        result.replay.crowd.visibleTierHistogram,
+      ) &&
+      isDeepStrictEqual(
+        result.source.crowd.shadowTierHistogram,
+        result.replay.crowd.shadowTierHistogram,
+      );
+    const grassMatches =
+      typeof result.source.terrain.grass.recordHash === "string" &&
+      result.source.terrain.grass.recordHash === result.replay.terrain.grass.recordHash;
+    if (!cameraMatches || !crowdMatches || !grassMatches) {
+      history.failedFrames++;
+      if (history.failures.length < 32)
+        history.failures.push({
+          frameId: result.frameId,
+          elapsedMs: result.selection.elapsedMs,
+          cameraMatches,
+          crowdMatches,
+          grassMatches,
+        });
+    }
+    for (const publication of result.publications) {
+      const key = JSON.stringify([
+        publication.baseRevision,
+        publication.ringRevision,
+        publication.pending,
+        publication.baseCircle,
+      ]);
+      if (key !== previousPublication) {
+        history.publications.push({
+          frameId: result.frameId,
+          elapsedMs: result.selection.elapsedMs,
+          ...publication,
+        });
+        previousPublication = key;
+      }
+    }
     if (!result.selection.window) continue;
     const item = {
       summary: { ...result, ...result.selection, elapsedMs: result.selection.elapsedMs },
@@ -338,10 +382,12 @@ try {
   }
 
   await page.evaluate(() => window.__spoolReplay.dispose());
+  await boundedWrite("history.json", JSON.stringify(history, null, 2));
   await boundedWrite("browser-errors.json", JSON.stringify(errors, null, 2));
   console.log({ frames: findings.length, packets: packets.length, diskBytes, errors });
   if (
     errors.length ||
+    history.failedFrames ||
     findings.some(
       (f) =>
         f.changedPixels ||

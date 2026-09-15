@@ -104,6 +104,13 @@ export async function createSpoolReplay(
         simTick: captured.frame.simTick,
         sourceAnimationFrame: captured.animationFrame,
         replayAnimationFrame: replayClock,
+        publications: captured.grassPublications.map((publication) => ({
+          baseRevision: publication.state.base.revision,
+          ringRevision: publication.state.ring.revision,
+          pending: publication.stats.rebuild.pending,
+          baseCircle: publication.state.base.circle,
+          publishedLayers: Object.keys(publication.records),
+        })),
         source: captured.reference,
         replay: result.stats,
         image,

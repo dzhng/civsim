@@ -93,3 +93,8 @@ frame/collision checks, a deterministic repeat and an unprimed visual critique.
 This is a color/output-phase variable; card placement, typography, terrain and
 palette remain frozen. Temporary proof wiring must be removed when the shared
 output owner adopts the verified path.
+
+The [first output-phase GPU proof](../assets/slice-10/screen-output-first/README.md)
+rejects a direct second draw under default MSAA: ink is correct but the world
+attachment is replaced. The next public-API composition must preserve world
+samples and verify translucent blending as well as exact non-UI pixels.

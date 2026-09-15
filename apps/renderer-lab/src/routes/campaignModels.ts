@@ -1,3 +1,4 @@
+import type { CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
 import type { SceneryInstance } from "../../../../packages/game-renderer/src/terrain/scenery";
 import {
   type FrameGraphPass,
@@ -20,7 +21,6 @@ import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShado
 import { CampaignCloudPass } from "@packages/game-renderer/src/campaign/atmospherePass";
 import {
   CampaignEntityPass,
-  type CampaignEntityInstance,
 } from "@packages/game-renderer/src/campaign/entityPass";
 import {
   CampaignLabelPass,
@@ -492,7 +492,7 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
     selected = false,
     settlementBanner = true,
   ) => {
-    entities.push({ x, y, radius, faction, allegiance, kind: "city", strength: 1 });
+    entities.push({ id: entities.length, label: text, selected, x, y, radius, faction, allegiance, kind: "city", strength: 1 });
     if (settlementBanner) {
       const scale = campaignSettlementStandardScale(radius);
       standards.push({

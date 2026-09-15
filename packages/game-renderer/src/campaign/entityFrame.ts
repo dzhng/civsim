@@ -3,7 +3,7 @@ import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import type { CampaignMarker } from "@packages/game-renderer/src/campaign/mapPass";
 import { drawnRoadRuns } from "@packages/game-renderer/src/campaign/roadGeometry";
-import type { CampaignEntityInstance } from "./entityPass";
+import type { CampaignEntityInstance } from "./entityInstance";
 
 import type { CampaignSelectionInstance } from "./selectionPass";
 import { standardSeed, standardWindPhase } from "../models/shared/standardAsset";
@@ -182,10 +182,14 @@ export function buildEntityFrame(
       );
     const allegiance = statusOf(opts.factionStatus, owner);
     entities.push({
+      id: node,
+      label: mapNode.name,
+      selected: opts.selectedCity === node,
       x: mapNode.pos[0],
       y: mapNode.pos[1],
       z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
       radius: cityModelRadius(mapNode.tier) * fixtureScale,
+      selectionRadius: citySelectionRadius(mapNode.tier) * fixtureScale,
       faction: factionColor(data, owner),
       allegiance: allegianceColor(allegiance),
       kind: "city",

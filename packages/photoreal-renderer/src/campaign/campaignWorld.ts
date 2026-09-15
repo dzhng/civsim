@@ -1,3 +1,7 @@
+import { campaignSettlementStandardScale } from "../../../game-renderer/src/campaign/entityFrame";
+import { CampaignCityLayer } from "./cityLayer";
+import { modelMesh } from "./modelMesh";
+import type { CampaignEntityInstance } from "../../../game-renderer/src/campaign/entityInstance";
 import { CampaignGeographicLayer, type CampaignGeography } from "./geographicLayer";
 import { colorGeometry, decalMaterial } from "../landscape/decal";
 import { PhotorealScenery } from "../landscape/sceneryLayer";
@@ -16,7 +20,6 @@ import {
   vec4,
   mix,
   uniform,
-  modelNormalMatrix,
   texture,
   positionWorld,
   vec2,
@@ -28,11 +31,7 @@ import { applyCamera3d } from "../cameraBridge";
 import { applyCivsimEnvironment } from "../environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../game-renderer/src/environment/environment";
 import { RENDER_ORDER } from "../renderOrder";
-import {
-  createLandscapeFrameUniforms,
-  linearAlbedo,
-  viewNormalNode,
-} from "../landscape/shaderNodes";
+import { createLandscapeFrameUniforms, linearAlbedo } from "../landscape/shaderNodes";
 import { PhotorealStandardLayer } from "../landscape/standardLayer";
 import { SELECTION_GREEN } from "../../../game-renderer/src/overlays";
 import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing";
@@ -51,6 +50,7 @@ export interface CampaignWorldObject {
   label: string;
   faction: BattleFactionId;
   standardBase?: number;
+  city?: CampaignEntityInstance;
 }
 
 export interface CampaignTerritoryData {
@@ -79,6 +79,10 @@ export class PhotorealCampaignWorld {
   private readonly frame = createLandscapeFrameUniforms();
   private readonly standards: PhotorealStandardLayer;
   private readonly scenery: PhotorealScenery;
+  private readonly cities: CampaignCityLayer;
+  private get renderObjects() {
+    return [...this.objects, ...this.cities.objects];
+  }
   private sceneryCandidates: readonly SceneryInstance[] = [];
   private seatedScenery: SceneryInstance[] = [];
   private sceneryUploads = 0;
@@ -115,6 +119,7 @@ export class PhotorealCampaignWorld {
     this.territoryTexture.magFilter = THREE.NearestFilter;
     this.territoryTexture.needsUpdate = true;
     this.scenery = new PhotorealScenery(world.scene);
+    this.cities = new CampaignCityLayer(world.scene);
     const environment = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
       aerialObserver: vec3(this.frame.focus, 0),
     });
@@ -225,8 +230,18 @@ export class PhotorealCampaignWorld {
     const surface = this.terrain.surface;
     for (const { input, mesh } of this.objects)
       mesh.position.z = surface.sampleRendered(input.x, input.y)!.position[2];
+    this.cities.seat(surface, changed);
     this.geography.seat(surface, changed);
     this.updateSelection();
+  }
+
+  /** The frame adapter retains campaign identity, ownership and selection policy. */
+  setCities(instances: readonly CampaignEntityInstance[]) {
+    if (!this.cities.upload(instances, this.terrain.surface)) return;
+    this.selected =
+      instances.find((city) => city.selected)?.id.toString() ??
+      (this.objects.some((object) => object.input.id === this.selected) ? this.selected : null);
+    this.setFog(this.fogEnabled);
   }
 
   setGeography(data: CampaignGeography) {
@@ -305,23 +320,29 @@ export class PhotorealCampaignWorld {
     this.fogEnabled = enabled;
     this.fogAmount.value = enabled ? 1 : 0;
     this.seatScenery(true);
-    for (const { input, mesh } of this.objects)
+    for (const { input, mesh } of this.renderObjects)
       mesh.visible = !enabled || this.fogAt(input.x, input.y) < 0.5;
-    if (this.selected && !this.objects.find((o) => o.input.id === this.selected)?.mesh.visible)
+    if (
+      this.selected &&
+      !this.renderObjects.find((o) => o.input.id === this.selected)?.mesh.visible
+    )
       this.selected = null;
     this.updateSelection();
   }
   select(id: string | null) {
-    this.selected = this.objects.find((o) => o.input.id === id && o.mesh.visible)?.input.id ?? null;
+    this.selected =
+      this.renderObjects.find((o) => o.input.id === id && o.mesh.visible)?.input.id ?? null;
     this.updateSelection();
   }
   private updateSelection() {
-    const object = this.objects.find((o) => o.input.id === this.selected && o.mesh.visible);
+    const object = this.renderObjects.find((o) => o.input.id === this.selected && o.mesh.visible);
     this.selection.visible = !!object;
     if (!object) return;
     const { input } = object,
       vertices: number[] = [];
-    const radius = input.scale * 4.7;
+    const radius = input.city
+      ? (input.city.selectionRadius ?? input.city.radius * 1.6)
+      : input.scale * 4.7;
     const profile = SELECTION_RING_PROFILE;
     const bands = [
       [profile.innerCut, 0],
@@ -368,16 +389,19 @@ export class PhotorealCampaignWorld {
     this.frame.focus.value.set(pose.target[0], pose.target[1]);
     applyCamera3d(this.camera, pose);
     this.standards.upload(
-      this.objects
+      this.renderObjects
         .filter((o) => o.mesh.visible)
         .map(({ input, mesh }, i) => ({
-          tier: "campaign-army" as const,
-          unitId: i,
+          tier: input.city ? ("settlement-banner" as const) : ("campaign-army" as const),
+          unitId: input.city?.id ?? i,
           x: input.x,
           y: input.y,
           z: mesh.position.z + (input.standardBase ?? 0) * input.scale,
           yaw: 0,
-          scale: input.scale * 2,
+          scale: input.city ? campaignSettlementStandardScale(input.city.radius) : input.scale * 2,
+          ...(input.city
+            ? { livery: { field: input.city.faction, trim: input.city.allegiance } }
+            : {}),
           factionId: input.faction,
           selected: input.id === this.selected,
         })),
@@ -403,7 +427,7 @@ export class PhotorealCampaignWorld {
     this.raycaster.ray.origin.fromArray(ray.origin);
     this.raycaster.ray.direction.fromArray(ray.dir);
     const hits = this.raycaster.intersectObjects(
-      this.objects.filter((o) => o.mesh.visible).map((o) => o.mesh),
+      this.renderObjects.filter((o) => o.mesh.visible).map((o) => o.mesh),
       false,
     );
     const first = hits[0];
@@ -416,7 +440,7 @@ export class PhotorealCampaignWorld {
     return null;
   }
   anchors() {
-    return this.objects.map(({ input, mesh }) => {
+    return this.renderObjects.map(({ input, mesh }) => {
       const z = mesh.position.z + mesh.geometry.boundingBox!.max.z * input.scale;
       const screen = this.project(input.x, input.y, z);
       let visible = mesh.visible && !!screen?.visible;
@@ -442,7 +466,8 @@ export class PhotorealCampaignWorld {
           input.y,
           mesh.position.z +
             (input.standardBase ?? 0) * input.scale +
-            STANDARD_SIZE_TIERS["campaign-army"].poleHeight * input.scale * 2,
+            STANDARD_SIZE_TIERS[input.city ? "settlement-banner" : "campaign-army"].poleHeight *
+              (input.city ? campaignSettlementStandardScale(input.city.radius) : input.scale * 2),
         ),
         visible,
       };
@@ -452,10 +477,11 @@ export class PhotorealCampaignWorld {
     return {
       ...this.world.stats(),
       geography: this.geography.stats(),
+      cities: this.cities.stats(),
       visibilityRevision: this.visibilityRevision,
       selected: this.selected,
       fog: this.fogEnabled,
-      objects: this.objects.filter((o) => o.mesh.visible).length,
+      objects: this.renderObjects.filter((o) => o.mesh.visible).length,
       surfaceRevision: this.terrain.stats().revision,
       terrain: this.terrain.stats(),
       standards: this.standards.stats(),
@@ -463,6 +489,7 @@ export class PhotorealCampaignWorld {
     };
   }
   dispose() {
+    this.cities.dispose();
     this.geography.dispose();
     this.territoryTexture.dispose();
     this.scenery.dispose();
@@ -475,18 +502,4 @@ export class PhotorealCampaignWorld {
     }
     this.world.dispose();
   }
-}
-
-function modelMesh(model: MeshData) {
-  const geometry = colorGeometry(model.opaque.vertices, 10, 6, model.opaque.indices);
-  const normals = new Float32Array((model.opaque.vertices.length / 10) * 3);
-  for (let i = 0; i < normals.length / 3; i++)
-    normals.set(model.opaque.vertices.subarray(i * 10 + 3, i * 10 + 6), i * 3);
-  geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
-  geometry.computeBoundingBox();
-  const material = new THREE.MeshStandardNodeMaterial({ roughness: 0.85, side: THREE.DoubleSide });
-  // Shared model normals are authored outward; their legacy winding is mixed.
-  material.normalNode = viewNormalNode(modelNormalMatrix.mul(attribute<"vec3">("normal", "vec3")));
-  material.colorNode = vec4(linearAlbedo(attribute<"vec4">("surfaceColor", "vec4").rgb), 1);
-  return new THREE.Mesh(geometry, material);
 }

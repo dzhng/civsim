@@ -1,3 +1,4 @@
+import type { CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
 import { smoothstep } from "@packages/renderer-core/src/math";
 import type { SceneryInstance } from "@packages/game-renderer/src/terrain/scenery";
 import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
@@ -114,7 +115,34 @@ export async function route(ctx: LabContext) {
     ],
     fogAt: (x: number) => Math.max(0, Math.min(1, (x - 10) / 15)),
   };
-  if (vegetation) composition.objects = [];
+  const cities: CampaignEntityInstance[] =
+    ctx.params.get("cities") === "1"
+      ? [
+          {
+            id: 0,
+            label: "Hillside town",
+            x: -20,
+            y: -11,
+            radius: 6.2,
+            kind: "city",
+            selected: true,
+            faction: [0.72, 0.2, 0.14],
+            allegiance: [0.18, 0.7, 0.26],
+          },
+          {
+            id: 1,
+            label: "Valley town",
+            x: 25,
+            y: -28,
+            radius: 5.2,
+            kind: "city",
+            selected: false,
+            faction: [0.18, 0.3, 0.72],
+            allegiance: [0.88, 0.27, 0.23],
+          },
+        ]
+      : [];
+  if (vegetation || cities.length) composition.objects = [];
   const scenery: SceneryInstance[] = vegetation
     ? [
         { x: 35, y: -25, size: 4, height: 4, kind: "broadleaf" },
@@ -131,6 +159,7 @@ export async function route(ctx: LabContext) {
         ]
       : [];
   let world = await PhotorealCampaignWorld.create(ctx.canvas, composition);
+  if (cities.length) world.setCities(cities);
   if (vegetation) world.setScenery(scenery);
   const territory = {
     width: 2,
@@ -199,6 +228,7 @@ export async function route(ctx: LabContext) {
     rebuilding = true;
     world.dispose();
     world = await PhotorealCampaignWorld.create(ctx.canvas, composition);
+    if (cities.length) world.setCities(cities);
     if (!alive) {
       world.dispose();
       return;

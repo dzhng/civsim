@@ -79,3 +79,20 @@ lighting and cloth response.
 This checkpoint does not complete dynamic city/crowd/label migration, footprint
 grounding, or production cutover. The raw standard pass remains only for its
 unmigrated consumers and reads the same instance/default owner.
+
+## Live city input and grounding checkpoint
+
+The physical city layer now accepts the existing campaign frame's stable city
+identity, ownership, allegiance, selection and label metadata. Shared entity
+instances no longer belong to the raw GPU pass. The existing city asset retains
+its horizontal footprint and level roofs; walls extend below local terrain so
+the presented triangles determine visible contact. The authored contact cue is
+seated on those same triangles and remains depth-read. Default city asset arrays
+are unchanged. Terrain replacement, input removal/reappearance, fog and resource
+release are covered by the [city checkpoint evidence](../assets/slice-12-city-inputs/README.md).
+
+This completes the bounded city part of the first remaining pass, not the full
+entity/input pass: army/crowd/cart inputs, accepted label layout, interaction
+policy and production integration remain open. Preserve the recorded coastal
+footprint and steep-selection limitations; map-wide physical sun-shadow fitting
+belongs to the environment pass.

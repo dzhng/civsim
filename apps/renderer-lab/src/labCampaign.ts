@@ -1,6 +1,6 @@
 import { screenToWorld, world3dToScreen, worldToScreen } from "@packages/renderer-core/src/cameraUniform";
 import { Allegiance, campaignArmyStandardScale, campaignSettlementStandardScale, type ArmyView, type CityView } from "@packages/game-renderer/src/campaign/entityFrame";
-import { type CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityPass";
+import { type CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
 import { type CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
 import { standardSeed, standardWindPhase } from "@packages/game-renderer/src/models/shared/standardAsset";
 import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
@@ -124,6 +124,7 @@ export function buildCampaignEntityFrame(
       );
     const allegiance = owner === playerFaction ? Allegiance.Friend : Allegiance.Neutral;
     entities.push({
+      id: node, label: mapNode.name, selected: selectedCity === node,
       x: mapNode.pos[0],
       y: mapNode.pos[1],
       radius: mapNode.tier >= 3 ? 8.4 : 7.0,

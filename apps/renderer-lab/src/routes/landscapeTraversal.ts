@@ -1,3 +1,4 @@
+import { buildEntityFrame } from "@packages/game-renderer/src/campaign/entityFrame";
 import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
 import { campaignFactionBorderVertices } from "@packages/game-renderer/src/campaign/borderGeometry";
 import { Territory } from "../../../../web/src/campaign/territory";
@@ -47,6 +48,38 @@ export async function route(ctx: LabContext) {
     territory: [0.48, 0.48, 0.35],
     fogAt: () => 0,
   });
+  const cityNames = ctx.params.get("cities")?.split(",");
+  let cityInstances: ReturnType<typeof buildEntityFrame>["entities"] = [];
+  if (cityNames) {
+    const { default: init, Campaign } = await import("../../../../web/src/wasm/game_wasm.js");
+    const wasm = await init(),
+      campaign = new Campaign(mapJson, 0x5eed_2026, 0);
+    const views = readCampaignViews(campaign, wasm);
+    cityInstances = buildEntityFrame(
+      data,
+      field,
+      {
+        cam: { x: 0, y: 0, scale: 8 },
+        armies: [],
+        cities: views.cities,
+        selected: -1,
+        selectedCity: -1,
+        factionLabels: [],
+        factionStatus: new Int8Array(data.map.factions.length).fill(1),
+        playerFaction: 0,
+        fogOfWar: false,
+        visionSources: [],
+        factionView: false,
+        stackUnitCap: views.stackUnitCap,
+        controlledStage: false,
+      },
+      [],
+      0,
+      () => "idle",
+    ).entities.filter((city) => cityNames.includes(city.label));
+    campaign.free();
+    world.setCities(cityInstances);
+  }
   let geographicInputs: Parameters<typeof world.setGeography>[0] | undefined;
   if (ctx.path === "/renderer/landscape-geography") {
     const { default: init, Campaign } = await import("../../../../web/src/wasm/game_wasm.js");
@@ -68,7 +101,13 @@ export async function route(ctx: LabContext) {
     };
     world.setGeography(geographicInputs);
   }
-  let camera = { x: -100, y: 250, zoom: 0.16 };
+  let camera = cityInstances.length
+    ? {
+        x: cityInstances.reduce((sum, city) => sum + city.x, 0) / cityInstances.length,
+        y: cityInstances.reduce((sum, city) => sum + city.y, 0) / cityInstances.length,
+        zoom: 18,
+      }
+    : { x: -100, y: 250, zoom: 0.16 };
   let builds = 0,
     frames = 0,
     stopped = false,
@@ -119,6 +158,7 @@ export async function route(ctx: LabContext) {
       frameTimes: [...frameTimes],
       admissionFrames: [...admissionFrames],
       renderer: world.stats(),
+      anchors: world.anchors(),
     };
   };
   const draw = (now: number) => {
@@ -133,6 +173,14 @@ export async function route(ctx: LabContext) {
     scheduler.tick();
     const pose = chartCamera3d({ ...camera, pitch: 0.55 }, ctx.canvas.clientHeight);
     pose.aspect = ctx.canvas.clientWidth / ctx.canvas.clientHeight;
+    if (cityInstances.length) {
+      const anchors = world.anchors();
+      pose.target = [
+        camera.x,
+        camera.y,
+        anchors.reduce((sum, anchor) => sum + anchor.groundZ, 0) / Math.max(1, anchors.length),
+      ];
+    }
     world.render(pose, ctx.canvas.clientWidth, ctx.canvas.clientHeight, devicePixelRatio);
     frames++;
     if (lastFrame) {
@@ -152,6 +200,11 @@ export async function route(ctx: LabContext) {
         camera = { x, y, zoom };
       },
       stats,
+      cities: (selected: number, hidden: boolean) => {
+        world.setCities(
+          hidden ? [] : cityInstances.map((city) => ({ ...city, selected: city.id === selected })),
+        );
+      },
       geography: (enabled: boolean) => {
         if (geographicInputs)
           world.setGeography(

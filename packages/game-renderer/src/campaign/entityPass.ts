@@ -4,16 +4,7 @@ import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from '../../../rend
 import { cameraOnlyPipeline } from '../../../renderer-core/src/pipelineContracts';
 import { buildCityMesh } from '../models/campaign/campaignEntityModels';
 
-export interface CampaignEntityInstance {
-  x: number;
-  y: number;
-  z?: number;
-  radius: number;
-  faction: [number, number, number];
-  allegiance: [number, number, number];
-  kind: 'city';
-  strength?: number;
-}
+import type { CampaignEntityInstance } from "./entityInstance";
 
 const ENTITY_WGSL = `
 ${WORLD_CAMERA_WGSL}

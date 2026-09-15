@@ -1,0 +1,137 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T04:33:31.720Z",
+  "target": "http://127.0.0.1:5187",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "campaign-city-grounding",
+      "file": "campaign/campaign-city-grounding.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "tiny live fixture",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "snapshot campaign-city-fixture",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "visible city body can be picked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "fog hides the valley city",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "fog clears hidden city selection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "perge-attalea: live frame city count",
+      "ok": true,
+      "detail": "[{\"id\":\"387\",\"groundZ\":0.7923532946499086,\"label\":\"Perge\",\"selected\":false,\"x\":765.8043453688038,\"y\":187.39464975105778,\"visible\":true},{\"id\":\"396\",\"groundZ\":0.1475074507603669,\"label\":\"Attalea\",\"selected\":false,\"x\":505.38156414009444,\"y\":361.55650374350705,\"visible\":true}]"
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "snapshot campaign-city-perge-attalea",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "perge-attalea: removal clears meshes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "perge-attalea: selection survives reinsertion",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "cyrene-apollonia: live frame city count",
+      "ok": true,
+      "detail": "[{\"id\":\"125\",\"groundZ\":1.2181886429243525,\"label\":\"Cyrene\",\"selected\":false,\"x\":776.9125361298077,\"y\":354.98099941859317,\"visible\":true},{\"id\":\"434\",\"groundZ\":0.11729667236683106,\"label\":\"Apollonia-Sozousa\",\"selected\":false,\"x\":515.169165259168,\"y\":196.22507298763003,\"visible\":true}]"
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "snapshot campaign-city-cyrene-apollonia",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "cyrene-apollonia: removal clears meshes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "cyrene-apollonia: selection survives reinsertion",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "scodra: live frame city count",
+      "ok": true,
+      "detail": "[{\"id\":\"304\",\"groundZ\":0.7030176197385507,\"label\":\"Scodra\",\"selected\":false,\"x\":639.9998820276485,\"y\":269.0085550811984,\"visible\":true}]"
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "snapshot campaign-city-scodra",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "scodra: removal clears meshes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "scodra: selection survives reinsertion",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-city-grounding",
+      "name": "city materials produce no GPU warnings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

@@ -22,9 +22,11 @@ const CITY_MARKER_TIER_RADIUS_PX = 0.9;
 
 export function campaignCityLabels(
   data: CampaignRenderData,
-  field: CampaignTerrainField,
+  field: Pick<CampaignTerrainField, "heightAt">,
   opts: CampaignFrameOptions,
   cam: CameraSnapshot,
+  labelAnchorHeightAt?: (x: number, y: number) => number,
+  markerBottomY?: (city: number) => number | undefined,
 ): CampaignLabel[] {
   const labels: CampaignLabel[] = [];
   data.map.nodes.forEach((node, index) => {
@@ -41,7 +43,7 @@ export function campaignCityLabels(
     const allegiance = statusOf(opts.factionStatus, owner);
     const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
     const overviewMarkerLabel = opts.cam.scale < 0.6;
-    const reliefPx = cityReliefRisePx(field, opts, node.pos, cam);
+    const reliefPx = cityReliefRisePx(field, node.pos, cam, labelAnchorHeightAt);
     // A city label hugs its marker, always (David's rule). The label pass never
     // scores city labels against the render mask — only sea names care about dry
     // ground. It also never takes the world-edge inset
@@ -49,9 +51,25 @@ export function campaignCityLabels(
     // engravings, and since the overview marker IS this label's icon, applying
     // it dragged the icon-marker off its city into the sea (Ierusalem, on the
     // map's eastern strip, shoved ~52px west onto water).
+    let belowY = cityLabelOffset(opts, baseSize, reliefPx);
+    if (!overviewMarkerLabel && markerBottomY) {
+      const bottom = markerBottomY(index);
+      if (bottom !== undefined) {
+        const [, anchorY] = world3dToScreen(
+          cam,
+          node.pos[0],
+          node.pos[1],
+          labelAnchorHeightAt?.(node.pos[0], node.pos[1]) ?? 0,
+        );
+        belowY = Math.max(
+          belowY,
+          bottom - anchorY / (window.devicePixelRatio || 1) + baseSize * 1.1,
+        );
+      }
+    }
     const anchor = overviewMarkerLabel
       ? overviewCityLabelAnchor(node.tier)
-      : closeupCityLabelAnchor(cityLabelOffset(opts, baseSize, reliefPx));
+      : closeupCityLabelAnchor(belowY);
     labels.push({
       text: node.name.toUpperCase(),
       x: node.pos[0],
@@ -185,20 +203,20 @@ function cityLabelOffset(opts: CampaignFrameOptions, baseSize: number, reliefPx:
   return Math.max(-baseSize * 2.6, targetGap - reliefPx);
 }
 
-// CSS-pixel screen rise of the city model above its flat (z=0) label anchor at
-// this camera: project the same (x, y) at z=0 and at the terrain height and take
-// the screen-Y difference through the real perspective camera, so the label sits
-// the intended gap below the raised model instead of drifting on relief.
+// CSS-pixel rise between the label anchor and model base. Physical consumers
+// supply the presented surface shared by both; raw consumers still project
+// labels at z=0 and require the existing relief compensation.
 function cityReliefRisePx(
-  field: CampaignTerrainField,
-  opts: CampaignFrameOptions,
+  field: Pick<CampaignTerrainField, "heightAt">,
   pos: readonly [number, number],
   cam: CameraSnapshot,
+  labelAnchorHeightAt?: (x: number, y: number) => number,
 ) {
+  const anchorHeight = labelAnchorHeightAt?.(pos[0], pos[1]) ?? 0;
   const h = Math.max(0, field.heightAt(pos[0], pos[1]));
   if (h <= 0) return 0;
   const dpr = window.devicePixelRatio || 1;
-  const [, ground] = world3dToScreen(cam, pos[0], pos[1], 0);
+  const [, ground] = world3dToScreen(cam, pos[0], pos[1], anchorHeight);
   const [, raised] = world3dToScreen(cam, pos[0], pos[1], h);
   return Math.max(0, (ground - raised) / dpr);
 }

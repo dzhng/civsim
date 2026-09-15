@@ -387,10 +387,7 @@ export class CampaignScene implements Scene {
     // camera, lay the DOM cards out against it (card-vs-card resolution
     // included), and only then draw — so the canvas label arbitration blocks
     // on the exact card rects the player sees this frame, never last frame's.
-    this.renderer.setFrameCamera(this.cam);
-    const cards = this.layoutMapCards();
-    this.campaignHud?.updateMapCards(cards.positions);
-    this.renderer.draw({
+    const inputs = {
       cam: this.cam,
       armies: this.armies,
       cities: this.cities,
@@ -407,9 +404,14 @@ export class CampaignScene implements Scene {
       })),
       factionView: this.factionView,
       stackUnitCap: this.stackUnitCap,
-      cardRects: cards.rects,
-      cardCollisionCulls: cards.culls,
-    });
+    };
+    const prepared = this.renderer.prepareFrame(inputs);
+    const cards = this.layoutMapCards();
+    this.campaignHud?.updateMapCards(cards.positions);
+    this.renderer.draw(
+      { ...inputs, cardRects: cards.rects, cardCollisionCulls: cards.culls },
+      prepared,
+    );
   }
 
   /** Pan the camera to a world point (clamped inside the map). */
@@ -572,7 +574,9 @@ export class CampaignScene implements Scene {
       const id = `city:${node}`;
       const ax = sx / dpr;
       const ay = sy / dpr;
-      const baseY = ay + cityCardOffsetY(this.cam.scale, mapNode.tier);
+      const baseY =
+        Math.max(ay, this.renderer.cityBodyBottomY(node) ?? ay) +
+        cityCardOffsetY(this.cam.scale, mapNode.tier);
       const size = cardSizes.get(id);
       const x = ax;
       const y = baseY;

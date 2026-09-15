@@ -214,3 +214,44 @@ test("a garrison retains its city standard and selection without intersecting re
   expect(frame.crowd).toEqual(fieldOnly.crowd.filter((instance) => instance.x > 0));
   expect(armies).toEqual(before);
 });
+
+test("unchanged entity frames and equivalent cart inputs retain scenery GPU buffers", async () => {
+  const { PhotorealCampaignWorld } =
+    await import("@packages/photoreal-renderer/src/campaign/campaignWorld");
+  const scene = new THREE.Scene(),
+    scenery = new PhotorealScenery(scene);
+  const surface = { sampleRendered: (x: number, y: number) => ({ position: [x, y, 4] }) };
+  const world = Object.assign(Object.create(PhotorealCampaignWorld.prototype), {
+    scenery,
+    sceneryCandidates: [],
+    seatedScenery: [],
+    sceneryUploads: 0,
+    terrain: { surface },
+    fogEnabled: false,
+    fogAmount: { value: 0 },
+    cities: { upload() {} },
+    refreshEntityVisibility() {},
+  }) as Awaited<ReturnType<typeof PhotorealCampaignWorld.create>>;
+  const cart = {
+    x: 7,
+    y: 9,
+    size: 1.3,
+    height: 0.9,
+    kind: "cart" as const,
+    surfaceOffset: 0.32,
+    yaw: 0.7,
+  };
+  world.setScenery([cart]);
+  const mesh = scene.children.find((node) => node.name.includes("-cart-")) as THREE.Mesh;
+  const pose = mesh.geometry.getAttribute("instPose") as THREE.InstancedBufferAttribute;
+  const version = pose.version;
+  for (let i = 0; i < 3; i++) {
+    world.setEntityFrame({ entities: [], crowd: [], standards: [], selections: [] });
+    world.setScenery([{ ...cart }]);
+  }
+  expect(pose.version).toBe(version);
+  world.setScenery([{ ...cart, x: 8 }]);
+  expect(pose.version).toBeGreaterThan(version);
+  expect(pose.getX(0)).toBe(8);
+  scenery.dispose();
+});

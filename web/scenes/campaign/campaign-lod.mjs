@@ -245,7 +245,7 @@ export async function run(ctx) {
     stats: (stats) =>
       stats.fogEnabled === true &&
       stats.fogSources > 0 &&
-      stats.cloudQuads === 1 &&
+      stats.physicalWorld?.fog === true &&
       hasTerrainFeatureDensity(stats),
   });
 
@@ -257,8 +257,9 @@ function hasTerrainFeatureDensity(stats) {
   // view-culled, so they say nothing about whole-map feature density.
   const scenery = stats.sceneryCandidateStats;
   return (
-    scenery?.total >= 4000 &&
-    scenery?.mountains >= 1000 &&
+    scenery?.total >= 3100 &&
+    scenery?.mountains === 0 &&
+    stats.physicalWorld?.terrain?.allocationBytes > 0 &&
     scenery?.trees >= 2400 &&
     scenery?.rocks >= 700
   );

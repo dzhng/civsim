@@ -5,6 +5,11 @@ import type {
   CampaignStandardInstance,
 } from "../../../game-renderer/src/campaign/entityFrame";
 import { fitSunShadowRect, fitSunShadowView } from "../landscape/sunShadow";
+import { PHOTOREAL_SUBSTRATE, PHOTOREAL_PROJECTION } from "../stats";
+import { CampaignMarkerLayer } from "./markerLayer";
+import type { CampaignMarker } from "../../../game-renderer/src/campaign/marker";
+import { CampaignTerrainResidency, prepareCampaignTerrain } from "./terrainResidency";
+import type { CampaignLandscapeSnapshot } from "../../../game-renderer/src/terrain/campaignSource";
 import { PhotorealCrowd } from "../crowd/crowdLayer";
 import { CROWD_SHADOW_LAYER } from "../crowd/crowdAudience";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
@@ -87,11 +92,14 @@ export interface CampaignComposition {
   territory: readonly [number, number, number];
   /** Canonical campaign visibility: one means hidden. */
   fogAt: (x: number, y: number) => number;
+  /** Application-owned entity visibility threshold; geometry fog remains continuous. */
+  entityVisibleAt?: (x: number, y: number) => boolean;
 }
 
 /** Campaign's physical composition owner. The app owns commands and DOM cards;
  * this world owns their 3D anchors, occlusion, and presented-surface picking. */
 export class PhotorealCampaignWorld {
+  private residency?: CampaignTerrainResidency;
   readonly camera = new THREE.PerspectiveCamera();
   private readonly frame = createLandscapeFrameUniforms();
   private readonly standards: PhotorealStandardLayer;
@@ -101,8 +109,11 @@ export class PhotorealCampaignWorld {
   private crowdCandidates: readonly CrowdInstance[] = [];
   private seatedCrowd: CrowdInstance[] = [];
   private readonly labels: CampaignLabelLayer;
+  private readonly markers: CampaignMarkerLayer;
+  private markerInputs: readonly CampaignMarker[] = [];
   private labelInputs: CampaignLabel[] = [];
   private labelPlacement?: CampaignLabelPlacementStyle;
+  private labelScale?: number;
   private get renderObjects() {
     return [...this.objects, ...this.cities.objects];
   }
@@ -131,6 +142,47 @@ export class PhotorealCampaignWorld {
   private seatedStandards: CampaignStandardInstance[] = [];
   private readonly terrain: PhotorealTiledTerrain;
   private readonly geography: CampaignGeographicLayer;
+
+  static async createLandscape(
+    canvas: HTMLCanvasElement,
+    source: CampaignLandscapeSnapshot,
+    composition: Omit<CampaignComposition, "surface" | "terrainAllocation">,
+  ) {
+    const boot = await prepareCampaignTerrain(source);
+    try {
+      const world = await PhotorealCampaignWorld.create(canvas, {
+        ...composition,
+        surface: boot.surface,
+        terrainAllocation: { budget: boot.allocation },
+      });
+      world.residency = new CampaignTerrainResidency(world, boot);
+      return world;
+    } catch (error) {
+      boot.worker.dispose();
+      throw error;
+    }
+  }
+
+  prepareTerrain(view: { x: number; y: number; zoom: number; width: number; height: number }) {
+    this.residency?.update(view);
+  }
+
+  residencyStats() {
+    return this.residency?.stats() ?? null;
+  }
+
+  get surface() {
+    return this.terrain.surface;
+  }
+
+  setFrameCamera(pose: Camera3DParams, width: number, height: number, dpr = 1) {
+    this.pose = pose;
+    this.width = width;
+    this.height = height;
+    this.world.resize(width, height, dpr);
+    this.frame.focus.value.set(pose.target[0], pose.target[1]);
+    applyCamera3d(this.camera, pose);
+  }
 
   static async create(canvas: HTMLCanvasElement, composition: CampaignComposition) {
     const world = await PhotorealWorld.create(canvas);
@@ -163,6 +215,7 @@ export class PhotorealCampaignWorld {
     this.scenery = new PhotorealScenery(world.scene);
     this.cities = new CampaignCityLayer(world.scene);
     this.labels = new CampaignLabelLayer(world.scene);
+    this.markers = new CampaignMarkerLayer(world.scene);
     const environment = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
       aerialObserver: vec3(this.frame.focus, 0),
     });
@@ -279,11 +332,11 @@ export class PhotorealCampaignWorld {
     this.selected = army
       ? `army:${army.unitId}`
       : (frame.entities.find((city) => city.selected)?.id.toString() ?? null);
-    this.setFog(this.fogEnabled);
+    this.refreshEntityVisibility();
   }
   private seatCrowd() {
     this.seatedCrowd = this.crowdCandidates.flatMap((instance) => {
-      if (this.fogEnabled && this.fogAt(instance.x, instance.y) >= 0.5) return [];
+      if (!this.entityVisible(instance.x, instance.y)) return [];
       const hit = this.terrain.surface.sampleRendered(instance.x, instance.y);
       return hit ? [{ ...instance, elevation: hit.position[2] }] : [];
     });
@@ -298,22 +351,21 @@ export class PhotorealCampaignWorld {
     if (
       candidates === this.sceneryCandidates ||
       (candidates.length === this.sceneryCandidates.length &&
-        candidates.every((item, i) => item === this.sceneryCandidates[i]))
+        candidates.every((item, i) => sameScenery(item, this.sceneryCandidates[i])))
     )
       return;
     this.sceneryCandidates = candidates;
-    this.seatScenery(true);
+    this.seatScenery();
   }
-  private seatScenery(force = false) {
+  private seatScenery() {
     const seated = this.sceneryCandidates.flatMap((item) => {
-      if (this.fogEnabled && this.fogAt(item.x, item.y) >= 0.5) return [];
+      if (!this.entityVisible(item.x, item.y)) return [];
       const hit = this.terrain.surface.sampleRendered(item.x, item.y);
       return hit ? [{ ...item, z: hit.position[2] + (item.surfaceOffset ?? 0) }] : [];
     });
     if (
-      !force &&
       seated.length === this.seatedScenery.length &&
-      seated.every((item, i) => item.z === this.seatedScenery[i].z)
+      seated.every((item, i) => sameScenery(item, this.seatedScenery[i]))
     )
       return;
     this.seatedScenery = seated;
@@ -361,19 +413,25 @@ export class PhotorealCampaignWorld {
     this.setFog(enabled);
   }
 
+  private entityVisible(x: number, y: number) {
+    return !this.fogEnabled || (this.composition.entityVisibleAt?.(x, y) ?? this.fogAt(x, y) < 0.5);
+  }
+
   setFog(enabled: boolean) {
     this.fogEnabled = enabled;
     this.fogAmount.value = enabled ? 1 : 0;
-    this.seatScenery(true);
+    this.seatScenery();
+    this.refreshEntityVisibility();
+  }
+  private refreshEntityVisibility() {
     this.seatCrowd();
     for (const { input, mesh } of this.renderObjects)
-      mesh.visible = !enabled || this.fogAt(input.x, input.y) < 0.5;
+      mesh.visible = this.entityVisible(input.x, input.y);
     if (
       this.selected &&
       !this.renderObjects.find((o) => o.input.id === this.selected)?.mesh.visible &&
       !this.entityFrame?.standards.some(
-        (item) =>
-          `army:${item.unitId}` === this.selected && (!enabled || this.fogAt(item.x, item.y) < 0.5),
+        (item) => `army:${item.unitId}` === this.selected && this.entityVisible(item.x, item.y),
       )
     )
       this.selected = null;
@@ -412,7 +470,7 @@ export class PhotorealCampaignWorld {
   }
   private updateSelection() {
     const surface = this.terrain.surface;
-    const visible = (x: number, y: number) => !this.fogEnabled || this.fogAt(x, y) < 0.5;
+    const visible = (x: number, y: number) => this.entityVisible(x, y);
     const standards: readonly CampaignStandardInstance[] =
       this.entityFrame?.standards ??
       this.renderObjects
@@ -469,18 +527,18 @@ export class PhotorealCampaignWorld {
       surface,
     );
   }
-  setLabels(labels: CampaignLabel[], placement?: CampaignLabelPlacementStyle) {
+  setMarkers(markers: readonly CampaignMarker[]) {
+    this.markerInputs = markers;
+  }
+
+  setLabels(labels: CampaignLabel[], placement?: CampaignLabelPlacementStyle, scale?: number) {
     this.labelInputs = labels;
     this.labelPlacement = placement;
+    this.labelScale = scale;
   }
 
   render(pose: Camera3DParams, width: number, height: number, dpr = 1, time = 0) {
-    this.pose = pose;
-    this.width = width;
-    this.height = height;
-    this.world.resize(width, height, dpr);
-    this.frame.focus.value.set(pose.target[0], pose.target[1]);
-    applyCamera3d(this.camera, pose);
+    this.setFrameCamera(pose, width, height, dpr);
     fitSunShadowView(this.world.sunLight!, pose);
     this.standards.upload(this.seatedStandards);
     if (this.crowd) {
@@ -508,12 +566,12 @@ export class PhotorealCampaignWorld {
     this.frame.time.value = time;
     this.world.setTime(time);
     this.labels.update(
-      this.labelInputs.filter((label) => !this.fogEnabled || this.fogAt(label.x, label.y) < 0.5),
+      this.labelInputs.filter((label) => this.entityVisible(label.x, label.y)),
       {
         camera3d: pose,
         x: pose.target[0],
         y: pose.target[1],
-        zoom: height / (2 * pose.distance * Math.tan(pose.fovY / 2)),
+        zoom: this.labelScale ?? height / (2 * pose.distance * Math.tan(pose.fovY / 2)),
         width: width * dpr,
         height: height * dpr,
       },
@@ -528,8 +586,45 @@ export class PhotorealCampaignWorld {
         return point?.visible ? [point.x * dpr, point.y * dpr] : null;
       },
     );
+    this.markers.update(this.markerInputs, width, height, (marker) =>
+      this.project(
+        marker.x,
+        marker.y,
+        this.terrain.surface.sampleRendered(marker.x, marker.y)?.position[2] ?? 0,
+      ),
+    );
     this.world.render(this.camera);
   }
+  /** Conservative visible body bounds: buried foundation corners stop at terrain. */
+  cityScreenBounds(id: number) {
+    const object = this.cities.objects.find((object) => object.input.city?.id === id);
+    if (!object || !this.pose) return null;
+    const mesh = object.mesh;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const box = mesh.geometry.boundingBox!;
+    mesh.updateWorldMatrix(true, false);
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    for (const x of [box.min.x, box.max.x])
+      for (const y of [box.min.y, box.max.y])
+        for (const z of [box.min.z, box.max.z]) {
+          const point = new THREE.Vector3(x, y, z).applyMatrix4(mesh.matrixWorld);
+          point.z = Math.max(
+            point.z,
+            this.terrain.surface.sampleRendered(point.x, point.y)?.position[2] ?? point.z,
+          );
+          const screen = this.project(point.x, point.y, point.z);
+          if (!screen?.visible) continue;
+          minX = Math.min(minX, screen.x);
+          minY = Math.min(minY, screen.y);
+          maxX = Math.max(maxX, screen.x);
+          maxY = Math.max(maxY, screen.y);
+        }
+    return Number.isFinite(minX) ? { minX, minY, maxX, maxY } : null;
+  }
+
   project(x: number, y: number, z: number) {
     if (!this.pose) return null;
     const p = projectPoint(this.pose, [x, y, z]);
@@ -595,8 +690,25 @@ export class PhotorealCampaignWorld {
   stats() {
     return {
       ...this.world.stats(),
+      substrate: PHOTOREAL_SUBSTRATE,
+      projection: PHOTOREAL_PROJECTION,
+      environment: this.world.environmentId,
+      depth: {
+        owner: "three-webgpu" as const,
+        reversed: this.world.renderer.reversedDepthBuffer === true,
+      },
       geography: this.geography.stats(),
       cities: this.cities.stats(),
+      cityBodyRects: this.cities.objects.flatMap(({ input }) => {
+        const bounds = this.cityScreenBounds(input.city!.id);
+        return bounds &&
+          bounds.maxX >= 0 &&
+          bounds.minX <= this.width &&
+          bounds.maxY >= 0 &&
+          bounds.minY <= this.height
+          ? [{ id: input.city!.id, ...bounds }]
+          : [];
+      }),
       crowd: this.crowd?.stats() ?? null,
       crowdSeating: this.seatedCrowd.map((instance) => ({
         x: instance.x,
@@ -605,11 +717,13 @@ export class PhotorealCampaignWorld {
         classId: instance.classId,
       })),
       labels: this.labels.stats(),
+      markers: this.markers.stats(),
       visibilityRevision: this.visibilityRevision,
       selected: this.selected,
       fog: this.fogEnabled,
       objects: this.renderObjects.filter((o) => o.mesh.visible).length,
       surfaceRevision: this.terrain.stats().revision,
+      water: { sourceShore: !!this.composition.surface.mesh.shoreDistance },
       terrain: this.terrain.stats(),
       standards: this.standards.stats(),
       standardAnchors: this.seatedStandards,
@@ -619,8 +733,10 @@ export class PhotorealCampaignWorld {
     };
   }
   dispose() {
+    this.residency?.dispose();
     this.crowd?.dispose();
     this.labels.dispose();
+    this.markers.dispose();
     this.cities.dispose();
     this.geography.dispose();
     this.territoryTexture.dispose();
@@ -635,4 +751,19 @@ export class PhotorealCampaignWorld {
     }
     this.world.dispose();
   }
+}
+
+function sameScenery(a: SceneryInstance, b: SceneryInstance) {
+  return (
+    a === b ||
+    (a.x === b.x &&
+      a.y === b.y &&
+      a.z === b.z &&
+      a.surfaceOffset === b.surfaceOffset &&
+      a.size === b.size &&
+      a.height === b.height &&
+      a.kind === b.kind &&
+      a.shade === b.shade &&
+      a.yaw === b.yaw)
+  );
 }

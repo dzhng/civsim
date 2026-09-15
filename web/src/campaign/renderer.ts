@@ -1,35 +1,26 @@
 import { campaignFactionBorderVertices } from "@packages/game-renderer/src/campaign/borderGeometry";
 import type { SceneryInstance } from "../../../packages/game-renderer/src/terrain/scenery";
 import {
-  CampaignCloudPass,
-  CampaignFogPass,
+  fogVisibility,
   type CampaignFogSource,
-} from "@packages/game-renderer/src/campaign/atmospherePass";
-import { CampaignEntityPass } from "@packages/game-renderer/src/campaign/entityPass";
+} from "@packages/game-renderer/src/campaign/visibility";
 import {
-  CampaignLabelPass,
-  type CampaignLabelPassStats,
-  CampaignMapPass,
-  CampaignMarkerPass,
-  CampaignRoadPass,
-  CampaignWorldLinePass,
-} from "@packages/game-renderer/src/campaign/mapPass";
-import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
+  PhotorealCampaignWorld,
+  type CampaignTerritoryData,
+} from "@packages/photoreal-renderer/src/campaign/campaignWorld";
+import type { CampaignGeography } from "@packages/photoreal-renderer/src/campaign/geographicLayer";
+import { snapshotCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignSource";
+import { PROJECTION_IDENTITY } from "@packages/renderer-core/src/cameraUniform";
+import { screenRay } from "@packages/renderer-core/src/camera3d";
+import {
+  CampaignLabelFrame,
+  type CampaignLabel,
+} from "@packages/game-renderer/src/campaign/labelFrame";
 import {
   buildCampaignMapDrawData,
   type CampaignMapStats,
 } from "@packages/game-renderer/src/campaign/roadGeometry";
 import type { ScreenRect } from "@packages/game-renderer/src/campaign/labelLayout";
-import { CampaignSceneryPass } from "@packages/game-renderer/src/campaign/sceneryPass";
-import { CampaignSelectionPass } from "@packages/game-renderer/src/campaign/selectionPass";
-import { SharedStandardPass } from "@packages/game-renderer/src/models/shared/standardPass";
-import { CampaignTerritoryPass } from "@packages/game-renderer/src/campaign/territoryPass";
-import {
-  createFrameShell,
-  type FrameGraphPass,
-  type RawFrameShell,
-  type WorldRenderPass,
-} from "@packages/renderer-core/src/frameShell";
 import {
   screenToWorld,
   world3dToScreen,
@@ -37,8 +28,6 @@ import {
 } from "@packages/renderer-core/src/cameraUniform";
 import { campaignCameraRig, type CameraRigRange } from "../battle/cameraRig";
 import { chartCamera3d, type Camera3DParams } from "@packages/renderer-core/src/camera3d";
-import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
-import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { assertGameplayAppearances } from "@packages/crowd-runtime/src/animationState";
 import type { CampaignData } from "./data";
@@ -52,11 +41,9 @@ import {
   type GraphicsSettings,
 } from "../shared/graphicsSettings";
 import { TEMPERATE_Y_KM, type TerrainField } from "./terrain";
-import { campaignSurface, type CampaignSurface } from "./surface";
 import { type FactionLabel, type Territory } from "./territory";
 import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import {
-  CAMPAIGN_FIGURE_SIZE,
   buildEntityFrame,
   campaignMapMarkers,
   campaignRoadCarts,
@@ -73,7 +60,6 @@ import {
   tallySceneryCandidates,
 } from "@packages/game-renderer/src/campaign/scenery";
 import { roundMs, smoothstep } from "@packages/renderer-core/src/math";
-import { CAMPAIGN_ENVIRONMENT } from "@packages/game-renderer/src/campaign/environment";
 
 export const MAX_CAMPAIGN_ZOOM = 8;
 
@@ -119,52 +105,30 @@ interface DrawOptions {
   cardCollisionCulls?: string[];
 }
 
-interface CampaignPasses {
-  shell: RawFrameShell;
-  map: CampaignMapPass;
-  clouds: CampaignCloudPass;
-  fog: CampaignFogPass;
-  territory: CampaignTerritoryPass;
-  lines: CampaignWorldLinePass;
-  roads: CampaignRoadPass;
-  borders: CampaignWorldLinePass;
-  markers: CampaignMarkerPass;
-  scenery: CampaignSceneryPass;
-  entities: CampaignEntityPass;
-  standards: SharedStandardPass;
-  soldierCrowd: SkinnedCrowdPipeline;
-  soldierShadows: SoldierShadowDecalPass;
-  selection: CampaignSelectionPass;
-  labels: CampaignLabelPass;
-}
-
 export class CampaignRenderer {
   readonly ready: Promise<void>;
   fixedTime: number | null = null;
 
-  private passes: CampaignPasses | null = null;
+  private world: PhotorealCampaignWorld | null = null;
+  private geography: CampaignGeography = {
+    roadMeshVertices: new Float32Array(),
+    lineVertices: new Float32Array(),
+    borderVertices: new Float32Array(),
+  };
+  private territoryData: CampaignTerritoryData | null = null;
+  private visibilityKey = "";
+
   private destroyed = false;
   private mountedClasses: number[] = [];
   private soldierClips: Record<number, { walk: string; atEase: string }> = {};
-  private surface: CampaignSurface;
   private staticLabels: CampaignLabel[] = [];
   private sceneryCandidates: SceneryInstance[] = [];
-  private labelStats: CampaignLabelPassStats = {
-    labels: 0,
-    visibleLabels: 0,
-    visibleLabelNames: [],
-    visibleSeaLabelRects: [],
-    visibleCityLabelRects: [],
-    visibleArmyLabelRects: [],
-    visibleFactionLabelRects: [],
-    collisionCulls: 0,
-    collisionCulledLabels: [],
-    atlasWidth: 0,
-    atlasHeight: 0,
-    vertices: 0,
-    layer: "raw-gpu-glyph-atlas",
+  private labelStats = {
+    ...new CampaignLabelFrame().stats(),
+    layer: "physical-gpu-glyph-atlas" as const,
   };
   private lastCards: { rects: CampaignCardRect[]; culls: string[] } = { rects: [], culls: [] };
+  private lastSelections = { selections: 0, garrisonedArmySelections: 0, maxSelectionRadius: 0 };
   private lastEntities = {
     cityEntities: 0,
     armyEntities: 0,
@@ -191,7 +155,6 @@ export class CampaignRenderer {
     territory: Territory,
     options: CampaignRendererOptions = {},
   ) {
-    this.surface = campaignSurface(field);
     this.graphics = resolveGraphicsSettings(
       location.search,
       options.graphics ?? getGraphicsSettings(),
@@ -205,7 +168,11 @@ export class CampaignRenderer {
   }
 
   resize() {
-    this.passes?.shell.resize();
+    this.world?.world.resize(
+      this.canvas.clientWidth || 1,
+      this.canvas.clientHeight || 1,
+      window.devicePixelRatio || 1,
+    );
   }
 
   clampCam(cam: CamView) {
@@ -266,9 +233,8 @@ export class CampaignRenderer {
     const cx = (rect.min[0] + rect.max[0]) * 0.5;
     const cy = (rect.min[1] + rect.max[1]) * 0.5;
     const centeredCam: CamView = { x: cx, y: cy, scale };
-    const stats = this.passes?.shell.stats();
-    const width = stats?.width ?? this.canvas.width ?? 1;
-    const height = Math.max(1, stats?.height ?? this.canvas.height ?? 1);
+    const width = Math.max(1, this.canvas.width);
+    const height = Math.max(1, this.canvas.height);
     const snapshot: CameraSnapshot = {
       x: cx,
       y: cy,
@@ -295,53 +261,73 @@ export class CampaignRenderer {
   }
 
   toScreen(wx: number, wy: number): [number, number] {
-    const stats = this.passes?.shell.stats();
     return world3dToScreen(
       {
         ...this.currentCamera,
-        width: stats?.width ?? this.canvas.width,
-        height: stats?.height ?? this.canvas.height,
+        width: this.canvas.width,
+        height: this.canvas.height,
       },
       wx,
       wy,
-      this.surface.heightAt(wx, wy),
+      this.world?.surface.sampleRendered(wx, wy)?.position[2] ?? 0,
     );
   }
 
+  cityBodyBottomY(id: number) {
+    return this.world?.cityScreenBounds(id)?.maxY;
+  }
+
   toWorld(sx: number, sy: number): [number, number] {
-    const stats = this.passes?.shell.stats();
+    const ray = screenRay(
+      this.currentCamera.camera3d,
+      (sx / this.canvas.width) * 2 - 1,
+      1 - (sy / this.canvas.height) * 2,
+    );
+    const hit = this.world?.surface.raycastRendered(ray);
+    if (hit) return [hit.position[0], hit.position[1]];
     return screenToWorld(
-      {
-        ...this.currentCamera,
-        width: stats?.width ?? (this.canvas.width || 1),
-        height: stats?.height ?? (this.canvas.height || 1),
-      },
+      { ...this.currentCamera, width: this.canvas.width, height: this.canvas.height },
       sx,
       sy,
     );
   }
 
   updateTerritory(territory: Territory) {
-    if (!this.passes) return;
-    this.passes.territory.upload({
+    this.territoryData = {
       width: this.field.w,
       height: this.field.h,
       rgba: territory.rgba,
       rect: this.data.bgRect,
+    };
+    this.geography = {
+      ...this.geography,
+      borderVertices: isControlledStage(this.data)
+        ? new Float32Array()
+        : campaignFactionBorderVertices(territory.borders, undefined, {
+            surfaceStep: 0.9,
+            landAt: (x, y) => !this.field.renderWaterAt(x, y),
+          }),
+    };
+    this.world?.setTerritory(this.territoryData, this.lastFactionView);
+    this.world?.setGeography({
+      ...this.geography,
+      borderVertices: this.lastFactionView ? this.geography.borderVertices : new Float32Array(),
     });
-    this.passes.borders.upload(
-      campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)),
-    );
   }
 
-  draw(opts: DrawOptions) {
-    const passes = this.passes;
-    if (!passes) return;
+  prepareFrame(opts: DrawOptions) {
+    const world = this.world;
+    if (!world) return null;
+    if (this.lastFactionView !== opts.factionView) {
+      if (this.territoryData) world.setTerritory(this.territoryData, opts.factionView);
+      world.setGeography({
+        ...this.geography,
+        borderVertices: opts.factionView ? this.geography.borderVertices : new Float32Array(),
+      });
+    }
     const frameStart = performance.now();
     this.lastFactionView = opts.factionView;
-    this.lastCards = { rects: opts.cardRects ?? [], culls: opts.cardCollisionCulls ?? [] };
     this.setFrameCamera(opts.cam);
-    passes.shell.setCamera(this.currentCamera);
     const buildStart = performance.now();
     const animTime = this.fixedTime ?? performance.now() / 1000;
     const buildOpts = { ...opts, controlledStage: isControlledStage(this.data) };
@@ -359,13 +345,33 @@ export class CampaignRenderer {
       armyEntities: frame.armyEntities,
       cityEntityAnchors: frame.cityEntityAnchors,
     };
+    world.setEntityFrame(frame);
+    this.lastSelections = {
+      selections: frame.selections.length,
+      garrisonedArmySelections: frame.selections.filter((s) => s.kind === "garrisoned-army").length,
+      maxSelectionRadius: Math.max(0, ...frame.selections.map((s) => s.radius)),
+    };
+    world.setMarkers(campaignMapMarkers(this.data, buildOpts));
+    this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
+    const visibilityKey = opts.fogOfWar
+      ? `enabled:${opts.visionSources.map((source) => `${source.x}:${source.y}:${source.radius}`).join(";")}`
+      : "disabled";
+    if (visibilityKey !== this.visibilityKey) {
+      this.visibilityKey = visibilityKey;
+      world.setVisibility((x, y) => 1 - this.visibleAt(x, y), opts.fogOfWar);
+    }
+    return { frame, buildOpts, animTime, frameStart, buildStart, buildEnd };
+  }
+
+  draw(opts: DrawOptions, prepared = this.prepareFrame(opts)) {
+    const world = this.world;
+    if (!world || !prepared) return;
+    const { frame, buildOpts, animTime, frameStart, buildStart, buildEnd } = prepared;
+    this.lastCards = { rects: opts.cardRects ?? [], culls: opts.cardCollisionCulls ?? [] };
     const uploadStart = performance.now();
-    // One clock drives every animated surface: crawling scenery, the subtle sea
-    // shimmer in mapPass (cam.time), and the soldier-crowd clip phase. Frozen
-    // snapshots pin fixedTime = 0, so the sea's cam.time term is 0 and the map
-    // stays byte-identical; runtime advances it live.
+    // Scenery, terrain water and crowd clips share the campaign visual clock.
+    // Frozen captures pin that clock while runtime advances it live.
     const sceneryTime = animTime;
-    passes.shell.setTime(sceneryTime);
     // View cull for instanced props: offscreen forests must not reach
     // the vertex shader.
     // Radial bound (screen diagonal in km, pitch-expanded) stays correct under
@@ -380,7 +386,7 @@ export class CampaignRenderer {
         (this.canvas.height || 1) / (2 * opts.cam.scale * cosP),
       ),
     };
-    passes.scenery.upload(
+    world.setScenery(
       campaignScenery(
         this.sceneryCandidates,
         frame.sceneryReservations,
@@ -388,32 +394,28 @@ export class CampaignRenderer {
         sceneryView,
       ).concat(campaignRoadCarts(this.data, this.field, sceneryTime, buildOpts)),
     );
-    passes.entities.upload(frame.entities);
-    passes.standards.upload(frame.standards);
-    passes.soldierCrowd.upload(frame.crowd, { size: CAMPAIGN_FIGURE_SIZE });
-    // The grounding shadow radius must track the figure size, or a 2.4x-scaled
-    // soldier's default-radius shadow hides under its own body.
-    passes.soldierShadows.upload(frame.crowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
-    passes.selection.upload(frame.selections, (x, y) => this.field.heightAt(x, y));
-    passes.markers.upload(campaignMapMarkers(this.data, buildOpts));
-    this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
-    passes.fog.upload(opts.visionSources, opts.fogOfWar);
     const staticLabels = opts.fogOfWar ? [] : this.staticLabels;
-    const labelStats = passes.shell.stats();
     const labelCamera: CameraSnapshot = {
       ...this.currentCamera,
-      width: labelStats.width,
-      height: labelStats.height,
+      width: this.canvas.width,
+      height: this.canvas.height,
     };
-    const cityLabels = campaignCityLabels(this.data, this.field, buildOpts, labelCamera);
+    const heightAt = (x: number, y: number) => world.surface.sampleRendered(x, y)?.position[2] ?? 0;
+    const cityLabels = campaignCityLabels(
+      this.data,
+      { heightAt },
+      buildOpts,
+      labelCamera,
+      heightAt,
+      (index) => world.cityScreenBounds(index)?.maxY,
+    );
     const armyLabels = campaignArmyLabels(this.data, buildOpts);
     const factionLabels = campaignFactionLabels(this.data, buildOpts);
     this.lastLabelComposition = {
       composedArmyCityLabels: armyLabels.filter((label) => label.subText).length,
     };
-    this.labelStats = passes.labels.upload(
+    world.setLabels(
       staticLabels.concat(cityLabels, armyLabels, factionLabels),
-      this.currentCamera,
       {
         // City-label anchor choice samples the same full-res land truth the
         // sea-label fitter fits against through the render-mask owner.
@@ -422,150 +424,20 @@ export class CampaignRenderer {
         // occupancy arbitration (cards outrank canvas labels).
         blockedRects: this.lastCards.rects.map((card) => card.box),
       },
+      opts.cam.scale,
     );
+
     const uploadEnd = performance.now();
     const drawStart = performance.now();
-    const framePasses: FrameGraphPass[] = [
-      {
-        id: "campaign-map-surface",
-        role: "world-depth-fill",
-        phase: "world-depth",
-        depth: "write",
-        draw: (pass) => passes.map.draw(pass),
-      },
-      {
-        id: "campaign-scenery-opaque",
-        role: "world-opaque",
-        phase: "world-depth",
-        depth: "read-write",
-        draw: (pass) => passes.scenery.drawOpaque(pass),
-      },
-      {
-        id: "campaign-entities-opaque",
-        role: "world-opaque",
-        phase: "world-depth",
-        depth: "read-write",
-        draw: (pass) => passes.entities.drawOpaque(pass),
-      },
-      {
-        id: "campaign-standards-opaque",
-        role: "world-opaque",
-        phase: "world-depth",
-        depth: "read-write",
-        draw: (pass) => passes.standards.drawOpaque(pass),
-      },
-      {
-        id: "campaign-soldier-crowd",
-        role: "world-opaque",
-        phase: "world-depth",
-        depth: "read-write",
-        draw: (pass) => passes.soldierCrowd.draw(pass),
-      },
-      ...(opts.factionView
-        ? [
-            {
-              id: "campaign-territory-wash",
-              role: "world-decal" as const,
-              phase: "world-depth" as const,
-              depth: "read" as const,
-              draw: (pass: WorldRenderPass) => passes.territory.draw(pass),
-            },
-          ]
-        : []),
-      ...(opts.factionView && !isControlledStage(this.data)
-        ? [
-            {
-              id: "campaign-borders",
-              role: "world-decal" as const,
-              phase: "world-depth" as const,
-              depth: "read" as const,
-              draw: (pass: WorldRenderPass) => passes.borders.draw(pass),
-            },
-          ]
-        : []),
-      ...(this.graphics.shadows === "off"
-        ? []
-        : [
-            {
-              id: "campaign-scenery-shadows",
-              role: "world-decal" as const,
-              phase: "world-depth" as const,
-              depth: "read" as const,
-              draw: (pass: WorldRenderPass) => passes.scenery.drawShadows(pass),
-            },
-            {
-              id: "campaign-entity-shadows",
-              role: "world-decal" as const,
-              phase: "world-depth" as const,
-              depth: "read" as const,
-              draw: (pass: WorldRenderPass) => passes.entities.drawShadows(pass),
-            },
-            {
-              id: "campaign-standard-shadows",
-              role: "world-decal" as const,
-              phase: "world-depth" as const,
-              depth: "read" as const,
-              draw: (pass: WorldRenderPass) => passes.standards.drawShadows(pass),
-            },
-            {
-              id: "campaign-soldier-shadows",
-              role: "world-decal" as const,
-              phase: "world-depth" as const,
-              depth: "read" as const,
-              draw: (pass: WorldRenderPass) => passes.soldierShadows.draw(pass),
-            },
-          ]),
-      {
-        id: "campaign-roads",
-        role: "world-decal",
-        phase: "world-depth",
-        depth: "read",
-        draw: (pass) => passes.roads.draw(pass),
-      },
-      {
-        id: "campaign-sea-lanes-depth",
-        role: "world-decal",
-        phase: "world-depth",
-        depth: "read",
-        draw: (pass) => passes.lines.draw(pass),
-      },
-      {
-        id: "campaign-ground-selection",
-        role: "world-decal",
-        phase: "world-depth",
-        depth: "read",
-        draw: (pass) => passes.selection.draw(pass),
-      },
-      {
-        id: "campaign-clouds",
-        role: "overlay-effect",
-        phase: "overlay",
-        draw: (pass) => passes.clouds.draw(pass),
-      },
-      {
-        id: "campaign-fog-of-war",
-        role: "overlay-effect",
-        phase: "overlay",
-        draw: (pass) => passes.fog.draw(pass),
-      },
-      {
-        id: "campaign-markers",
-        role: "overlay-ui",
-        phase: "overlay",
-        draw: (pass) => passes.markers.draw(pass),
-      },
-      {
-        id: "campaign-labels",
-        role: "overlay-ui",
-        phase: "overlay",
-        draw: (pass) => passes.labels.draw(pass),
-      },
-    ];
-    passes.shell.drawFrame({
-      precompute: (encoder) => passes.soldierCrowd.precompute(encoder),
-      clear: { r: 0.06, g: 0.07, b: 0.075, a: 1 },
-      passes: framePasses,
-    });
+    if (world.world.sunLight) world.world.sunLight.castShadow = this.graphics.shadows !== "off";
+    world.render(
+      this.currentCamera.camera3d,
+      this.canvas.clientWidth,
+      this.canvas.clientHeight,
+      window.devicePixelRatio || 1,
+      animTime,
+    );
+    this.labelStats = world.stats().labels;
     const done = performance.now();
     this.framePerf = {
       buildMs: roundMs(buildEnd - buildStart),
@@ -578,13 +450,7 @@ export class CampaignRenderer {
 
   visibleAt(x: number, y: number) {
     if (!this.lastFog.enabled) return 1;
-    let visible = 0;
-    for (const source of this.lastFog.sources) {
-      const d = Math.hypot(x - source.x, y - source.y);
-      const sourceVisible = 1 - smoothstep(source.radius * 0.72, source.radius * 1.08, d);
-      visible = Math.max(visible, sourceVisible);
-    }
-    return visible;
+    return fogVisibility(this.lastFog.sources, x, y);
   }
 
   territoryAlpha(_scale: number) {
@@ -615,22 +481,26 @@ export class CampaignRenderer {
     window.removeEventListener("resize", this.onResize);
     this.graphicsUnsubscribe?.();
     this.graphicsUnsubscribe = null;
-    this.passes?.soldierCrowd.dispose();
-    this.passes?.shell.destroy();
-    this.passes = null;
+    this.world?.dispose();
+    this.world = null;
     publishStats(this.stats());
   }
 
   stats() {
-    const shell = this.passes?.shell.stats();
-    const markerStats = this.passes?.markers.stats();
+    const world = this.world?.stats();
     return {
       renderer: "renderer-campaign",
-      ready: this.passes !== null,
-      width: shell?.width ?? 0,
-      height: shell?.height ?? 0,
-      device: shell?.device ?? "initializing",
-      cameraContract: shell?.cameraContract ?? "initializing",
+      substrate: world?.substrate,
+      projection: world?.projection,
+      environment: world?.environment,
+      depth: world?.depth,
+      drawCalls: world?.drawCalls ?? 0,
+      ...this.lastSelections,
+      ready: this.world !== null,
+      width: this.canvas.width,
+      height: this.canvas.height,
+      device: world?.device ?? "initializing",
+      cameraContract: PROJECTION_IDENTITY,
       ...this.lastEntities,
       labels: this.labelStats.labels,
       visibleLabels: this.labelStats.visibleLabels,
@@ -641,7 +511,6 @@ export class CampaignRenderer {
       visibleFactionLabelRects: this.labelStats.visibleFactionLabelRects,
       visibleCardRects: this.lastCards.rects,
       labelCollisionCulls: this.labelStats.collisionCulls + this.lastCards.culls.length,
-      // One outcome list across the seam: canvas-label culls + card culls.
       labelCollisionCulledLabels: [
         ...this.labelStats.collisionCulledLabels,
         ...this.lastCards.culls,
@@ -650,40 +519,33 @@ export class CampaignRenderer {
       labelLayer: this.labelStats.layer,
       labelAtlas: `${this.labelStats.atlasWidth}x${this.labelStats.atlasHeight}`,
       labelVertices: this.labelStats.vertices,
-      waterFeatures: 0,
-      waterLayer: "map-sea-mask",
-      mapSurface: this.passes?.map.stats() ?? null,
-      cloudQuads: this.passes?.clouds.stats().cloudQuads ?? 0,
-      fogEnabled: this.passes?.fog.stats().fogEnabled ?? false,
-      fogSources: this.passes?.fog.stats().fogSources ?? 0,
+      fogEnabled: this.lastFog.enabled,
+      fogSources: this.lastFog.sources.length,
       factionView: this.lastFactionView,
       graphics: this.graphics,
-      territoryPixels: this.passes?.territory.stats().pixels ?? 0,
-      borderSegments: this.passes?.borders.stats().segments ?? 0,
-      mapMarkers: markerStats?.markers ?? 0,
+      territoryPixels: this.territoryData
+        ? this.territoryData.width * this.territoryData.height
+        : 0,
+      physicalWorld: world,
+      mapMarkers: world?.markers.markers ?? 0,
+      residency: this.world?.residencyStats() ?? null,
       cityMarkerRadiiPxByTier: {
         1: cityMarkerRadiusPx(1),
         2: cityMarkerRadiusPx(2),
         3: cityMarkerRadiusPx(3),
       },
-      ...this.passes?.selection.stats(),
-      standardStats: this.passes?.standards.stats() ?? null,
-      scenery: this.passes?.scenery.stats().scenery ?? 0,
-      sceneryQuads: this.passes?.scenery.stats().scenery ?? 0,
-      sceneryStats: this.passes?.scenery.stats() ?? null,
-      // Whole-map candidate density (pre LOD + view cull): what feature-density
-      // gates should assert, since per-frame uploads now depend on the camera.
+      standardStats: world?.standards ?? null,
+      sceneryStats: world?.scenery ?? null,
+      scenery: world?.scenery.scenery ?? 0,
       sceneryCandidateStats: tallySceneryCandidates(this.sceneryCandidates),
-      lineSegments: this.passes?.lines.stats().segments ?? 0,
-      roadTriangles: this.passes?.roads.stats().triangles ?? 0,
+      lineSegments: this.geography.lineVertices.length / 42,
+      roadTriangles: this.geography.roadMeshVertices.length / 30,
       roadJunctionCaps: this.mapDrawStats?.roadJunctionCaps ?? 0,
       seaLabelFits: this.mapDrawStats?.seaLabelFits ?? [],
       seaLabelFitZoom: this.mapDrawStats?.seaLabelFitZoom ?? 0,
       roadEdgesCulled: this.mapDrawStats?.roadEdgesCulled ?? 0,
       roadWaterGaps: this.mapDrawStats?.roadWaterGaps ?? 0,
       seaLanes: this.mapDrawStats?.seaLanes ?? 0,
-      phases: shell?.phases ?? [],
-      depth: shell?.depth ?? null,
       postCutoverScreenshots: "renderer-only",
       performance: { ...this.framePerf },
     };
@@ -701,9 +563,16 @@ export class CampaignRenderer {
   /** Pin this frame's camera pose. The scene calls this BEFORE its card loop
    * so toScreen/toWorld project through the pose draw() is about to render —
    * the card rects reported into the label arbitration are same-frame, never
-   * one behind. draw() re-applies it, so calling
-   * draw() alone stays correct. */
+   * one behind. Independent draw() callers prepare the frame on demand. */
   setFrameCamera(cam: CamView) {
+    this.resize();
+    this.world?.prepareTerrain({
+      x: cam.x,
+      y: cam.y,
+      zoom: cam.scale / (window.devicePixelRatio || 1),
+      width: this.canvas.clientWidth,
+      height: this.canvas.clientHeight,
+    });
     this.currentCamera = {
       x: cam.x,
       y: cam.y,
@@ -713,6 +582,12 @@ export class CampaignRenderer {
       // The real 3D perspective camera — the one projection owner.
       camera3d: this.cameraParamsFor(cam),
     };
+    this.world?.setFrameCamera(
+      this.currentCamera.camera3d,
+      this.canvas.clientWidth,
+      this.canvas.clientHeight,
+      window.devicePixelRatio || 1,
+    );
   }
 
   /** The playable field bounds (world km) that the zoom rig frames. */
@@ -751,12 +626,11 @@ export class CampaignRenderer {
    *  ground hit = (cam.x, cam.y): the chart stays centred (no vista look-ahead). */
   private cameraParamsFor(cam: CamView): Camera3DParams {
     const rig = campaignCameraRig(cam.scale, this.campaignZoomRange(), this.campaignRigBounds());
-    const stats = this.passes?.shell.stats();
-    const width = stats?.width ?? this.canvas.width ?? 1;
-    const height = Math.max(1, stats?.height ?? this.canvas.height ?? 1);
+    const width = Math.max(1, this.canvas.width);
+    const height = Math.max(1, this.canvas.height);
     const viewHeight = height / Math.max(0.0001, cam.scale);
     return {
-      target: [cam.x, cam.y, 0],
+      target: [cam.x, cam.y, this.world?.surface.sampleRendered(cam.x, cam.y)?.position[2] ?? 0],
       distance: viewHeight / (2 * Math.tan(rig.fovY / 2)),
       pitch: rig.pitch,
       yaw: -Math.PI / 2 + (cam.yaw ?? 0),
@@ -781,102 +655,34 @@ export class CampaignRenderer {
         },
       ]),
     );
-    // One projector engine-wide: every pass projects through camera3d's viewProj
-    // and depth-tests reverse-Z against the shell's depth32float world buffer.
-    const shell = await createFrameShell(this.canvas, { sun: CAMPAIGN_ENVIRONMENT });
-    if (this.destroyed) {
-      shell.destroy();
-      return;
-    }
-    // Finish asynchronous preparation before allocating any synchronous passes.
-    // A teardown during decoding must not publish a resurrected campaign world.
-    let soldierCrowd: SkinnedCrowdPipeline;
-    try {
-      soldierCrowd = await SkinnedCrowdPipeline.create(shell, appearances);
-    } catch (error) {
-      shell.destroy();
-      throw error;
-    }
-    if (this.destroyed) {
-      soldierCrowd.dispose();
-      shell.destroy();
-      return;
-    }
     const controlledStage = isControlledStage(this.data);
-    const map = new CampaignMapPass(
-      shell,
-      this.data.bg,
-      this.data.bgRect,
-      controlledStage
-        ? undefined
-        : {
-            seaTintMix: 1,
-            terrain: {
-              width: this.field.w,
-              height: this.field.h,
-              biome: this.field.biome,
-              light: this.field.light,
-            },
-          },
-      this.surface.mesh,
-    );
-    const clouds = new CampaignCloudPass(shell, this.data.bgRect, controlledStage ? 0.75 : 2.05);
-    const fog = new CampaignFogPass(shell, this.data.bgRect);
-    const territoryPass = new CampaignTerritoryPass(
-      shell,
+    const world = await PhotorealCampaignWorld.createLandscape(
+      this.canvas,
+      snapshotCampaignLandscape(this.field),
       {
-        width: this.field.w,
-        height: this.field.h,
-        rgba: territory.rgba,
-        rect: this.data.bgRect,
+        appearances,
+        objects: [],
+        geography: this.geography,
+        territory: [0.48, 0.48, 0.35],
+        fogAt: () => 0,
+        entityVisibleAt: (x, y) => this.visibleAt(x, y) >= 0.18,
       },
-      map.drawnCoast,
-      // EU4-political-strength wash (David, assets/faction-wash-target-eu4.png):
-      // the faction color dominates while terrain relief still reads through.
-      controlledStage ? undefined : { alpha: 0.62 },
-      this.surface.mesh,
     );
-    // Sea lanes drape over the height-mapped water surface (xyz), like the
-    // borders — the flat z=0 variant was depth-buried under the surface mesh.
-    const lines = new CampaignWorldLinePass(shell, "triangle-list", "xyz");
-    const roads = new CampaignRoadPass(shell);
-    const borders = new CampaignWorldLinePass(shell, "triangle-list", "xyz");
-    const markers = new CampaignMarkerPass(shell);
-    const scenery = new CampaignSceneryPass(shell);
+    if (this.destroyed) {
+      world.dispose();
+      return;
+    }
+    this.world = world;
+    this.resize();
     this.sceneryCandidates = buildCampaignSceneryCandidates(
       this.data,
       this.field,
       controlledStage,
       TEMPERATE_Y_KM,
     );
-    const entities = new CampaignEntityPass(shell);
-    const standards = new SharedStandardPass(shell);
-    // Representative army figures consume the same appearance assets as battle,
-    // while campaign retains its raw-GPU world and grounding-shadow passes.
     this.mountedClasses = Object.entries(appearances)
       .filter(([, bundle]) => bundle.manifest.mounted)
       .map(([id]) => Number(id));
-    const soldierShadows = new SoldierShadowDecalPass(shell);
-    const selection = new CampaignSelectionPass(shell);
-    const labels = new CampaignLabelPass(shell);
-    this.passes = {
-      shell,
-      map,
-      clouds,
-      fog,
-      territory: territoryPass,
-      lines,
-      roads,
-      borders,
-      markers,
-      scenery,
-      entities,
-      standards,
-      soldierCrowd,
-      soldierShadows,
-      selection,
-      labels,
-    };
     // Sea labels are widest (in km) at the camera's zoom floor; probe the
     // clamp for it so the fitter judges placements at the whole-map framing
     // the player actually sees. clampCam works in device px per km, the
@@ -895,17 +701,11 @@ export class CampaignRenderer {
       renderSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
       roadSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
       seaLabelFitZoom: zoomFloorProbe.scale / (window.devicePixelRatio || 1),
-      heightAt: (x, y) => this.field.heightAt(x, y),
     });
     this.mapDrawStats = drawData.stats;
     this.staticLabels = drawData.labels;
-    lines.upload(drawData.lineVertices);
-    roads.upload(drawData.roadMeshVertices);
-    borders.upload(
-      controlledStage
-        ? new Float32Array()
-        : campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)),
-    );
+    this.geography = { ...drawData, borderVertices: new Float32Array() };
+    this.updateTerritory(territory);
     publishStats(this.stats());
   }
 }

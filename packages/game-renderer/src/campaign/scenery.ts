@@ -14,10 +14,8 @@ import { buildCampaignCoast } from "../terrain/campaignCoast";
 const CAMPAIGN_MOUNTAIN_MIN_SCALE = 0.28;
 const CAMPAIGN_TREE_MIN_SCALE = 0.45;
 const CAMPAIGN_ROCK_MIN_SCALE = 0.45;
-const CAMPAIGN_MAX_MOUNTAINS = 3200;
 const CAMPAIGN_MAX_TREES = 32000;
 const CAMPAIGN_MAX_ROCKS = 1000;
-const CAMPAIGN_MOUNTAIN_VISUAL_SCALE = 2.25;
 const CAMPAIGN_ROCK_VISUAL_SCALE = 1.75;
 const CAMPAIGN_TREE_VISUAL_SCALE = 1.72;
 // Land gate (B9): every static candidate must pass renderLandAt — the
@@ -63,7 +61,6 @@ export function buildCampaignSceneryCandidates(
 ): SceneryInstance[] {
   if (data.map.attribution === "test")
     return clearCampaignStaticScenery(data, testStageScenery(data), controlledStage);
-  const mountains: ScoredSceneryInstance[] = [];
   const rocks: ScoredSceneryInstance[] = [];
   for (let gy = 0; gy < field.h; gy++) {
     for (let gx = 0; gx < field.w; gx++) {
@@ -73,37 +70,13 @@ export function buildCampaignSceneryCandidates(
       const y0 = field.maxY - (gy + 0.5) * field.cell;
       const rock = field.biome[i * 4 + 2] / 255;
       const height = field.height[i] / Math.max(1, field.maxH);
-      const mountainScore = height * 0.85 + rock * 0.5;
-      // Thinner than before: a few deliberate massifs let the terrain relief and
-      // rock shading carry the range mass, instead of a wall of cones on every
-      // high cell that buries cities and roads.
-      const mountainChance =
-        mountainScore > 0.66 ? 0.58 : height > 0.2 ? 0.6 : rock > 0.18 && height > 0.04 ? 0.4 : 0;
-      if (mountainChance > 0 && hash2(gx * 3 + 1, gy * 7 + 2) < mountainChance) {
-        const x = x0 + (hash2(gx, gy * 2) - 0.5) * field.cell * 0.7;
-        const y = y0 + (hash2(gx * 2, gy) - 0.5) * field.cell * 0.7;
-        const radius = field.cell * 0.5 * (0.7 + rock * 0.5);
-        const size = radius * CAMPAIGN_MOUNTAIN_VISUAL_SCALE;
-        // Gate only the mountain push: a failed land check must not skip the
-        // cell's forest block below.
-        if (sceneryFootprintOnLand(field, x, y, size)) {
-          mountains.push({
-            x,
-            y,
-            z: Math.max(0, field.heightAt(x, y)),
-            size,
-            // Lower silhouette: broad ridges rather than spires that tower over
-            // labels. Vertical scale trimmed alongside the broader massif mesh.
-            height: (2.1 + rock * 3.1 + height * 3.3) * 1.0,
-            kind: "mountain",
-            shade: hash2(gx + 3, gy + 5),
-            yaw: hash2(gx * 9 + 1, gy * 4 + 7) * Math.PI * 2,
-            score: mountainScore + hash2(gx + 17, gy + 29) * 0.08,
-            gx,
-            gy,
-          });
-        }
-      } else if (rock > 0.3 && hash2(gx * 5, gy * 9) < rock * 0.6) {
+      // Preserve the established rock gaps on prominent relief. Range mass now
+      // belongs to the terrain; this selector never places mountain models.
+      const reliefScore = height * 0.85 + rock * 0.5;
+      const gapChance =
+        reliefScore > 0.66 ? 0.58 : height > 0.2 ? 0.6 : rock > 0.18 && height > 0.04 ? 0.4 : 0;
+      const gap = gapChance > 0 && hash2(gx * 3 + 1, gy * 7 + 2) < gapChance;
+      if (!gap && rock > 0.3 && hash2(gx * 5, gy * 9) < rock * 0.6) {
         const count = 1 + Math.floor(hash2(gx, gy) * 2.5);
         for (let t = 0; t < count; t++) {
           const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * field.cell * 1.2;
@@ -131,7 +104,6 @@ export function buildCampaignSceneryCandidates(
   return clearCampaignStaticScenery(
     data,
     [
-      ...selectRegionalScenery(mountains, CAMPAIGN_MAX_MOUNTAINS),
       ...buildCampaignWoodlandCandidates(field, temperateYKm).map((tree) => ({
         ...tree,
         z: Math.max(0, field.heightAt(tree.x, tree.y) - 0.05),

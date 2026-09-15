@@ -5,24 +5,12 @@ import { describe, expect, it } from "vitest";
 import { CampaignRenderer } from "./renderer";
 
 describe("CampaignRenderer stats contract", () => {
-  it("keeps every published stats key stable", () => {
+  it("retains card, label and timing telemetry before GPU readiness", () => {
     const renderer = Object.assign(Object.create(CampaignRenderer.prototype), {
-      passes: {
-        shell: { stats: () => ({ width: 1, height: 1, device: "test", cameraContract: "test" }) },
-        map: { stats: () => ({}) },
-        clouds: { stats: () => ({ cloudQuads: 0 }) },
-        fog: { stats: () => ({ fogEnabled: false, fogSources: 0 }) },
-        territory: { stats: () => ({ pixels: 0 }) },
-        lines: { stats: () => ({ segments: 0 }) },
-        roads: { stats: () => ({ triangles: 0 }) },
-        borders: { stats: () => ({ segments: 0 }) },
-        markers: { stats: () => ({ markers: 0 }) },
-        scenery: { stats: () => ({ scenery: 0 }) },
-        standards: { stats: () => ({}) },
-        selection: {
-          stats: () => ({ selections: 0, garrisonedArmySelections: 0, maxSelectionRadius: 0 }),
-        },
-      },
+      canvas: { width: 1280, height: 800 },
+      world: null,
+      geography: { roadMeshVertices: new Float32Array(), lineVertices: new Float32Array() },
+      lastFog: { enabled: false, sources: [] },
       lastEntities: { cityEntities: 0, armyEntities: 0, cityEntityAnchors: [] },
       labelStats: {
         labels: 0,
@@ -48,64 +36,11 @@ describe("CampaignRenderer stats contract", () => {
       framePerf: { buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 },
     }) as CampaignRenderer;
 
-    expect(Object.keys(renderer.stats())).toMatchInlineSnapshot(`
-      [
-        "renderer",
-        "ready",
-        "width",
-        "height",
-        "device",
-        "cameraContract",
-        "cityEntities",
-        "armyEntities",
-        "cityEntityAnchors",
-        "labels",
-        "visibleLabels",
-        "visibleLabelNames",
-        "visibleSeaLabelRects",
-        "visibleCityLabelRects",
-        "visibleArmyLabelRects",
-        "visibleFactionLabelRects",
-        "visibleCardRects",
-        "labelCollisionCulls",
-        "labelCollisionCulledLabels",
-        "composedArmyCityLabels",
-        "labelLayer",
-        "labelAtlas",
-        "labelVertices",
-        "waterFeatures",
-        "waterLayer",
-        "mapSurface",
-        "cloudQuads",
-        "fogEnabled",
-        "fogSources",
-        "factionView",
-        "graphics",
-        "territoryPixels",
-        "borderSegments",
-        "mapMarkers",
-        "cityMarkerRadiiPxByTier",
-        "selections",
-        "garrisonedArmySelections",
-        "maxSelectionRadius",
-        "standardStats",
-        "scenery",
-        "sceneryQuads",
-        "sceneryStats",
-        "sceneryCandidateStats",
-        "lineSegments",
-        "roadTriangles",
-        "roadJunctionCaps",
-        "seaLabelFits",
-        "seaLabelFitZoom",
-        "roadEdgesCulled",
-        "roadWaterGaps",
-        "seaLanes",
-        "phases",
-        "depth",
-        "postCutoverScreenshots",
-        "performance",
-      ]
-    `);
+    const stats = renderer.stats();
+    expect(stats.ready).toBe(false);
+    expect(stats.visibleCardRects).toEqual([]);
+    expect(stats.labelCollisionCulledLabels).toEqual([]);
+    expect(stats.visibleCityLabelRects).toEqual([]);
+    expect(stats.performance).toEqual({ buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 });
   });
 });

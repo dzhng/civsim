@@ -49,7 +49,6 @@ export async function route(ctx: LabContext) {
     ? buildCampaignSceneryCandidates(data, field, false, TEMPERATE_Y_KM)
     : buildCampaignWoodlandCandidates(field, TEMPERATE_Y_KM);
   const trees = candidates.flatMap((tree) => {
-    if (tree.kind === "mountain") return [];
     const hit = surface.sampleRendered(tree.x, tree.y);
     return hit ? [{ ...tree, z: hit.position[2] }] : [];
   });

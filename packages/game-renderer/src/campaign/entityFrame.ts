@@ -1,7 +1,7 @@
 import type { SceneryInstance } from "../terrain/scenery";
 import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
-import type { CampaignMarker } from "@packages/game-renderer/src/campaign/mapPass";
+import type { CampaignMarker } from "@packages/game-renderer/src/campaign/marker";
 import {
   drawnRoadRuns,
   CAMPAIGN_ROAD_SURFACE_LIFT,
@@ -11,7 +11,7 @@ import type { CampaignEntityInstance } from "./entityInstance";
 import type { CampaignSelectionInstance } from "./selection";
 import { standardSeed, standardWindPhase } from "../models/shared/standardAsset";
 import type { StandardInstance } from "../models/shared/standardInstance";
-import type { CampaignFogSource } from "./atmospherePass";
+import { fogVisibility, type CampaignFogSource } from "./visibility";
 import { SELECTION_GREEN } from "../overlays";
 import { hash2, smoothstep } from "../../../renderer-core/src/math";
 
@@ -441,16 +441,6 @@ export function visibleCampaignArmies(opts: CampaignFrameOptions) {
 export function fogVisible(opts: CampaignFrameOptions, x: number, y: number, threshold: number) {
   if (!opts.fogOfWar) return true;
   return fogVisibility(opts.visionSources, x, y) >= threshold;
-}
-
-function fogVisibility(sources: CampaignFogSource[], x: number, y: number) {
-  let visible = 0;
-  for (const source of sources) {
-    const d = Math.hypot(x - source.x, y - source.y);
-    const sourceVisible = 1 - smoothstep(source.radius * 0.72, source.radius * 1.08, d);
-    visible = Math.max(visible, sourceVisible);
-  }
-  return visible;
 }
 
 const CART_MIN_SCALE = 3.2;

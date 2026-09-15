@@ -7,18 +7,8 @@ import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/r
 import { campaignFactionBorderVertices } from "@packages/game-renderer/src/campaign/borderGeometry";
 import { Territory } from "../../../../web/src/campaign/territory";
 import { readCampaignViews } from "../../../../web/src/campaign/views";
-import { TerrainAllocationBudget } from "@packages/photoreal-renderer/src/campaign/tiledTerrain";
 import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
-import { createTerrainTiles } from "@packages/photoreal-renderer/src/campaign/terrainTiles";
-import {
-  terrainViewRequests,
-  campaignOverviewRequest,
-  TERRAIN_DETAIL_LIMIT,
-} from "@packages/photoreal-renderer/src/campaign/terrainView";
-import { createCampaignTerrainWorker } from "@packages/photoreal-renderer/src/campaign/terrainWorker";
-import { campaignLandscapeAllocation } from "@packages/game-renderer/src/terrain/campaignLandscape";
 import { snapshotCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignSource";
-import { createRenderedSurface } from "@packages/game-renderer/src/terrain/surface";
 import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
 import { TerrainField } from "../../../../web/src/campaign/terrain";
 import { loadCampaignData } from "../../../../web/src/campaign/data";
@@ -30,19 +20,7 @@ export async function route(ctx: LabContext) {
   const { data, mapJson } = await loadCampaignData();
   const field = new TerrainField(data);
   const source = snapshotCampaignLandscape(field);
-  const sourceBytes =
-    source.height.byteLength + source.biome.byteLength + source.renderMask.classes.byteLength;
-  const overview = campaignOverviewRequest(source.renderMask.rect);
-  const bootAllocation = campaignLandscapeAllocation(overview.size / 2, overview.cell);
-  const allocation = new TerrainAllocationBudget();
-  allocation.reserve(bootAllocation.typedArrayBytes);
-  const worker = createCampaignTerrainWorker(source);
-  const coarse = await worker.build(overview);
-  allocation.reserve(coarse.generationBytes!);
-  const surface = createRenderedSurface(coarse.mesh, coarse.domain, "overview");
-  const world = await PhotorealCampaignWorld.create(ctx.canvas, {
-    surface,
-    terrainAllocation: { budget: allocation },
+  const world = await PhotorealCampaignWorld.createLandscape(ctx.canvas, source, {
     objects: [],
     geography: {
       roadMeshVertices: new Float32Array(),
@@ -121,51 +99,21 @@ export async function route(ctx: LabContext) {
         zoom: 18,
       }
     : { x: -100, y: 250, zoom: 0.16 };
-  let builds = 0,
-    frames = 0,
-    stopped = false,
-    workerRoundTripMs = 0;
+  let frames = 0,
+    stopped = false;
   let lastFrame = 0,
     previousAdmitted = false;
   const frameTimes: number[] = [],
     admissionFrames: number[] = [];
-  const scheduler = createTerrainTiles({
-    maxTiles: TERRAIN_DETAIL_LIMIT,
-    build: async (request) => {
-      const bound =
-        world.stats().terrain.allocationBytes +
-        campaignLandscapeAllocation(request.size / 2, request.cell).typedArrayBytes;
-      allocation.reserve(bound);
-      builds++;
-      const started = performance.now();
-      const result = await worker.build(
-        request,
-        128 * 1024 * 1024 - world.stats().terrain.allocationBytes,
-      );
-      allocation.reserve(world.stats().terrain.allocationBytes + result.generationBytes!);
-      workerRoundTripMs = performance.now() - started;
-      return result;
-    },
-    install: (tile, evicted) => world.installTerrain(tile, evicted),
-  });
   const stats = () => {
-    const tiles = scheduler.snapshot(),
+    const tiles = world.residencyStats()!,
       terrain = world.stats().terrain;
-    const wanted = terrainViewRequests(
-      { ...camera, width: ctx.canvas.clientWidth, height: ctx.canvas.clientHeight },
-      coarse.domain,
-    );
     return {
       ...tiles,
       ...terrain,
       camera,
       frames,
-      builds,
-      workerCount: 1,
-      workerRoundTripMs,
-      ready: wanted.every((r) => tiles.residentKeys.includes(r.key)),
-      peakTotalTerrainBytes: Math.max(allocation.peakBytes, terrain.allocationBytes),
-      sourceBytes: sourceBytes * 2,
+      peakTotalTerrainBytes: Math.max(tiles.peakTotalTerrainBytes, terrain.allocationBytes),
       sceneryInstances: 0,
       sceneryRenderedBytes: 0,
       frameTimes: [...frameTimes],
@@ -177,13 +125,11 @@ export async function route(ctx: LabContext) {
   const draw = (now: number) => {
     if (stopped) return;
     const before = world.stats().terrain.revision;
-    scheduler.setDesired(
-      terrainViewRequests(
-        { ...camera, width: ctx.canvas.clientWidth, height: ctx.canvas.clientHeight },
-        coarse.domain,
-      ),
-    );
-    scheduler.tick();
+    world.prepareTerrain({
+      ...camera,
+      width: ctx.canvas.clientWidth,
+      height: ctx.canvas.clientHeight,
+    });
     const pose = chartCamera3d({ ...camera, pitch: 0.55 }, ctx.canvas.clientHeight);
     pose.aspect = ctx.canvas.clientWidth / ctx.canvas.clientHeight;
     if (cityInstances.length) {
@@ -204,7 +150,10 @@ export async function route(ctx: LabContext) {
     }
     previousAdmitted = world.stats().terrain.revision !== before;
     lastFrame = now;
-    publish("landscape-traversal", true, { builds, terrain: world.stats().terrain, sourceBytes });
+    publish("landscape-traversal", true, {
+      ...world.residencyStats(),
+      terrain: world.stats().terrain,
+    });
     requestAnimationFrame(draw);
   };
   Object.assign(window, {
@@ -262,8 +211,6 @@ export async function route(ctx: LabContext) {
     "pagehide",
     () => {
       stopped = true;
-      scheduler.dispose();
-      worker.dispose();
       world.dispose();
     },
     { once: true },

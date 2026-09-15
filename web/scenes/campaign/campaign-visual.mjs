@@ -57,7 +57,7 @@ export async function run(ctx) {
   ctx.check(
     "controlled campaign visual route uses raw WebGPU",
     gpuStats?.renderer === "renderer-campaign" &&
-      gpuStats?.labelLayer === "raw-gpu-glyph-atlas" &&
+      gpuStats?.labelLayer === "physical-gpu-glyph-atlas" &&
       gpuStats?.labelVertices > 0,
     JSON.stringify(gpuStats),
   );

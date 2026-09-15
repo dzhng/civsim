@@ -67,7 +67,7 @@ export function ArmyPanel(p: ArmyPanelProps) {
         )}
       </div>
       <div>
-        <label>
+        <label className="cmp-auto-replenish">
           <input
             type="checkbox"
             id="cmp-auto-replenish"

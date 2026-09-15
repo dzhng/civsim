@@ -1,0 +1,57 @@
+{
+  "renderer": "SwiftShader WebGPU",
+  "snapshots": {
+    "campaign-production-overview": {
+      "differingPixels": 0,
+      "threshold": 0,
+      "maxDiffRatio": 0
+    },
+    "campaign-production-physical": {
+      "differingPixels": 0,
+      "threshold": 0,
+      "maxDiffRatio": 0
+    },
+    "campaign-production-physical-selected": {
+      "differingPixels": 0,
+      "threshold": 0,
+      "maxDiffRatio": 0
+    },
+    "campaign-production-physical-dpr2": {
+      "differingPixels": 0,
+      "threshold": 0,
+      "maxDiffRatio": 0
+    },
+    "campaign-production-physical-selected-dpr2": {
+      "differingPixels": 0,
+      "threshold": 0,
+      "maxDiffRatio": 0
+    }
+  },
+  "productionFlowDpr": [
+    1,
+    2
+  ],
+  "checks": [
+    "physical world ownership",
+    "same-frame city-card body clearance",
+    "actual army selection",
+    "actual city panel click",
+    "canvas drag pan",
+    "keyboard fog input",
+    "geographic label hierarchy",
+    "overview screen army flags",
+    "no page errors"
+  ],
+  "cpu": "516-test suite passed before final review fixes; six prepared-frame/geographic tests and typecheck passed after final fixes",
+  "review": "Fresh critique accepts corrected road seating and city/card/label gaps at DPR1/2. Separate narrow critique accepts Auto replenish at both DPRs: one aligned unwrapped control, no clipping or blocking layout defect; actions remain distinct.",
+  "selectedPanel": {
+    "layoutCheck": "checkbox, icon and text rectangle centers align at DPR1 and DPR2",
+    "unchangedImages": [
+      "campaign-production-physical",
+      "campaign-production-physical-dpr2",
+      "campaign-production-overview"
+    ],
+    "unchangedValidation": "SHA-1 hashes identical before and after scoped UI correction",
+    "strictRepeat": "All four controlled snapshots repeat with zero differing pixels after UI correction; both DPR interaction flows pass."
+  }
+}

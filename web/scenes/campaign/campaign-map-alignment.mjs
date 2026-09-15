@@ -59,10 +59,8 @@ export async function run(ctx) {
 
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
-    "campaign water is mask-bound, not a freehand overlay pass",
-    stats.waterLayer === "map-sea-mask" &&
-      stats.waterFeatures === 0 &&
-      !stats.phases?.some((phase) => phase.passIds?.includes("campaign-water")),
+    "campaign water consumes the canonical source shore in its terrain material",
+    stats.physicalWorld?.water?.sourceShore === true,
     JSON.stringify(stats),
   );
 

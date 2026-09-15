@@ -9,17 +9,6 @@ export function testStageScenery(data: CampaignRenderData): SceneryInstance[] {
   const cx = (x0 + x1) * 0.5;
   const cy = (y0 + y1) * 0.5;
   const items: SceneryInstance[] = [
-    { x: cx - 34, y: y1 - 5, size: 13.2, kind: "mountain" },
-    { x: cx - 26, y: y1 - 2, size: 11.6, kind: "mountain" },
-    { x: cx - 16, y: y1 - 6, size: 12.4, kind: "mountain" },
-    { x: cx - 5, y: y1 - 3, size: 13.8, kind: "mountain" },
-    { x: cx + 18, y: y1 - 7, size: 11.8, kind: "mountain" },
-    { x: cx + 32, y: y1 - 5, size: 12.8, kind: "mountain" },
-    { x: cx - 10, y: cy + 7, size: 9.8, kind: "mountain" },
-    { x: cx + 10, y: cy + 7, size: 9.1, kind: "mountain" },
-    { x: cx - 5, y: cy - 1, size: 10.6, kind: "mountain" },
-    { x: cx + 21, y: cy - 1, size: 9.2, kind: "mountain" },
-    { x: cx + 33, y: cy - 4, size: 9.8, kind: "mountain" },
     { x: x0 + 31, y: y0 + 9, size: 9.8, kind: "rock" },
     { x: x0 + 43, y: y0 + 7, size: 10.8, kind: "rock" },
     { x: x1 - 30, y: y0 + 8, size: 10.2, kind: "rock" },
@@ -54,8 +43,6 @@ export function testStageScenery(data: CampaignRenderData): SceneryInstance[] {
   const flatStageZ = 0;
   return items.map((item) => {
     const seated = { ...item, z: flatStageZ };
-    if (item.kind === "mountain")
-      return { ...seated, size: item.size / 3.8, height: item.size / 1.8 };
     return { ...seated, size: item.size / 3.0, height: item.size / 3.0 };
   });
 }

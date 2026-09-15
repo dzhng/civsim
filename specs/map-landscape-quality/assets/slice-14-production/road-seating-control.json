@@ -1,0 +1,11 @@
+{
+  "control": "Frozen camera/time captures before and after removing source terrain height from geographic builder inputs. Physical geographic layer adds presented triangle height once.",
+  "changedPixels": {
+    "campaign-production-physical": 18470,
+    "campaign-production-physical-selected": 18350,
+    "campaign-production-overview": 15622
+  },
+  "beforeDirectory": "before-road-seat",
+  "afterDirectory": "../../../../web/shots/campaign",
+  "note": "No art constants changed; review fixes also suppress no-op disabled fog updates."
+}

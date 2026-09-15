@@ -7,31 +7,57 @@ export const meta = {
   kind: "flow",
   world: "campaign",
   tier: "full",
-  snapshots: [],
-  describe: "Normal campaign route renders through the production raw-WebGPU campaign adapter.",
+  snapshots: [
+    "campaign-production-physical",
+    "campaign-production-physical-selected",
+    "campaign-production-physical-dpr2",
+    "campaign-production-physical-selected-dpr2",
+  ],
+  describe: "Normal campaign route renders through the shared physical campaign world.",
 };
 
 export async function run(ctx) {
+  for (const dpr of [1, 2])
+    await runDpr(
+      {
+        ...ctx,
+        check: (name, ...args) => ctx.check(`DPR${dpr}: ${name}`, ...args),
+        snap: (page, name, options) => ctx.snap(page, dpr === 1 ? name : `${name}-dpr2`, options),
+      },
+      dpr,
+    );
+}
+async function runDpr(ctx, dpr) {
   const page = await campaign(ctx, "test", {
     viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: dpr,
     errorPrefix: "campaign-production",
     timeout: 60000,
   });
-  await page.evaluate(() => {
+  await page.evaluate((dpr) => {
     window.__campaign.freeze(true);
-    window.__campaign.cam(0, 450, 6);
-  });
-  await page.waitForTimeout(260);
+    window.__campaign.cam(0, 450, 6 * dpr);
+  }, dpr);
+  await page.waitForFunction(
+    () =>
+      window.__campaignGpuStats?.residency?.ready ||
+      window.__campaignGpuStats?.residency?.failed?.length,
+    undefined,
+    { timeout: 120000 },
+  );
+  await page.evaluate(() => document.fonts.ready);
+  ctx.check(
+    "campaign terrain residency completed without worker failure",
+    await page.evaluate(() => window.__campaignGpuStats.residency.ready),
+  );
 
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
-    "production campaign route is using the raw WebGPU adapter",
+    "production campaign route uses the shared physical world",
     stats.renderer === "renderer-campaign" &&
       stats.cityEntities === 2 &&
       stats.armyEntities >= 1 &&
-      stats.waterLayer === "map-sea-mask" &&
-      stats.cloudQuads === 1 &&
-      stats.labelLayer === "raw-gpu-glyph-atlas" &&
+      stats.labelLayer === "physical-gpu-glyph-atlas" &&
       stats.labelVertices > 0 &&
       hasCampaignWorldDepthContract(stats),
     JSON.stringify(stats),
@@ -42,10 +68,25 @@ export async function run(ctx) {
     JSON.stringify(stats),
   );
 
-  const pixels = countPixels(PNG.sync.read(await page.screenshot()));
+  const bodyClear = stats.visibleCardRects
+    .filter((card) => card.id.startsWith("city:"))
+    .every((card) => {
+      const body = stats.physicalWorld.cityBodyRects.find(
+        (body) => body.id === Number(card.id.slice(5)),
+      );
+      return body && card.box.y >= body.maxY;
+    });
+  ctx.check("same-frame city cards clear the presented city bodies", bodyClear);
+  const frame = await page.screenshot();
+  await ctx.snap(null, "campaign-production-physical", {
+    shot: frame,
+    threshold: 0,
+    maxDiffRatio: 0,
+  });
+  const pixels = countPixels(PNG.sync.read(frame));
   ctx.check(
-    "campaign WebGPU frame has parchment, faction, atmosphere, and UI pixels",
-    pixels.warmGround > 120000 && pixels.red > 700 && pixels.gold > 40 && pixels.cloud > 1200,
+    "campaign frame has visible ground, faction and UI pixels",
+    pixels.warmGround > 120000 && pixels.red > 700 && pixels.gold > 40,
     JSON.stringify(pixels),
   );
 
@@ -67,7 +108,35 @@ export async function run(ctx) {
       armySelected.armyPanel.includes(`Army ${armyTarget.id}`),
     JSON.stringify({ armyTarget, armySelected }),
   );
-  const selectedPixels = countPixels(PNG.sync.read(await page.screenshot()));
+  const replenishRow = await page.evaluate(() => {
+    const input = document.querySelector("#cmp-auto-replenish");
+    const label = input?.closest("label");
+    const icon = label?.querySelector("svg");
+    const text = Array.from(label?.childNodes ?? []).findLast(
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim(),
+    );
+    if (!input || !icon || !text) return false;
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    const a = input.getBoundingClientRect(),
+      b = icon.getBoundingClientRect();
+    const c = range.getBoundingClientRect();
+    const center = (r) => (r.top + r.bottom) / 2;
+    return (
+      Math.abs(center(a) - center(b)) < 1 &&
+      Math.abs(center(b) - center(c)) < 2 &&
+      c.left >= b.right &&
+      c.height < 20
+    );
+  });
+  ctx.check("auto replenish checkbox, icon and label occupy one readable row", replenishRow);
+  const selectedFrame = await page.screenshot();
+  await ctx.snap(null, "campaign-production-physical-selected", {
+    shot: selectedFrame,
+    threshold: 0,
+    maxDiffRatio: 0,
+  });
+  const selectedPixels = countPixels(PNG.sync.read(selectedFrame));
   ctx.check(
     "selected WebGPU army marker exposes the campaign selection color",
     selectedPixels.green > 200,
@@ -100,11 +169,27 @@ export async function run(ctx) {
       cityOpened.cityPanel.includes("Roma") &&
       cityOpened.gpu.visibleLabels >= 1 &&
       cityOpened.cards.some((n) => n.toUpperCase().includes("ROMA")) &&
-      cityOpened.gpu.labelLayer === "raw-gpu-glyph-atlas" &&
+      cityOpened.gpu.labelLayer === "physical-gpu-glyph-atlas" &&
       hasCampaignWorldDepthContract(cityOpened.gpu),
     JSON.stringify({ cityTarget, cityOpened }),
   );
 
+  const beforePan = await page.evaluate(() => window.__campaign.camGet());
+  await page.mouse.move(650, 650);
+  await page.mouse.down();
+  await page.mouse.move(740, 650, { steps: 3 });
+  await page.mouse.up();
+  await page.waitForFunction((x) => window.__campaign.camGet().x !== x, beforePan.x);
+  ctx.check(
+    "dragging the actual campaign canvas pans the camera",
+    await page.evaluate((x) => window.__campaign.camGet().x !== x, beforePan.x),
+  );
+  await page.keyboard.press("f");
+  await page.waitForFunction(() => window.__campaignGpuStats.fogEnabled);
+  ctx.check(
+    "fog input reaches the shared world",
+    await page.evaluate(() => window.__campaignGpuStats.physicalWorld.fog === true),
+  );
   await page.close();
 }
 

@@ -1,6 +1,6 @@
 # 14 — Production cutover and owner retirement
 
-Status: pending. Dependencies: [11](11-campaign-geographic-layers.md), [12](12-campaign-entities-labels.md), [13](13-battle-adoption.md).
+Status: in progress; first production adapter checkpoint. Dependencies: [11](11-campaign-geographic-layers.md), [12](12-campaign-entities-labels.md), [13](13-battle-adoption.md).
 
 ## Contract and owner
 
@@ -49,3 +49,13 @@ Everything outside this slice's variable stays fixed; the relevant existing game
 Feedback that would change the slice: The user has authorized cutover work. Only a newly requested compatibility requirement would change retirement strategy.
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
+
+## Production adapter checkpoint
+
+The normal campaign entry consumes the shared world, with terrain and live entity
+preparation before card layout. The traversal route shares its residency owner;
+production raw passes and mountain-prop placement are retired where unconsumed.
+[Adapter evidence and assertion ledger](../assets/slice-14-production/README.md)
+record the functional checkpoint, exact repeats and remaining visual defects.
+This does not complete full campaign-suite, lifecycle, geographic atmosphere or
+hardware acceptance, and active independent raw lab/model consumers remain.

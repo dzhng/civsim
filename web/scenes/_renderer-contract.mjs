@@ -55,10 +55,6 @@ export const FRAME_GRAPH_DEPTH_ROLES = readStringObjectConst(
   "FRAME_GRAPH_DEPTH_ROLES",
 );
 
-const DEPTH_MODES = new Set(GPU_DEPTH_MODES);
-const FRAME_PHASES = new Set(FRAME_PHASE_KINDS);
-const FRAME_ROLES = new Set(FRAME_GRAPH_PASS_ROLES);
-
 function readDepthConst(name) {
   return readSourceStringConst(DEPTH_CONTRACT_SOURCE, name, "shared WebGPU depth contract");
 }
@@ -145,35 +141,6 @@ export function hasFrameDepthPass(phases, id, mode) {
   );
 }
 
-function hasDepthPassPlacement(phases) {
-  return (
-    Array.isArray(phases) &&
-    phases.every((phase) => {
-      const depthPasses = Array.isArray(phase?.depthPasses) ? phase.depthPasses : [];
-      if (phase?.kind !== "world-depth") return depthPasses.length === 0;
-      return depthPasses.every(
-        (pass) => typeof pass?.id === "string" && DEPTH_MODES.has(pass?.mode),
-      );
-    })
-  );
-}
-
-function hasSemanticPassRoles(phases) {
-  return (
-    Array.isArray(phases) &&
-    phases.every((phase) => {
-      if (!FRAME_PHASES.has(phase?.kind)) return false;
-      const passIds = Array.isArray(phase?.passIds) ? phase.passIds : [];
-      const passRoles = Array.isArray(phase?.passRoles) ? phase.passRoles : [];
-      const roleById = new Map(passRoles.map((pass) => [pass?.id, pass?.role]));
-      return passIds.every((id) => {
-        const role = roleById.get(id);
-        return FRAME_ROLES.has(role) && FRAME_GRAPH_ROLE_PHASES[role] === phase.kind;
-      });
-    })
-  );
-}
-
 // The production battle world renders on the photoreal substrate (three.js
 // WebGPU + TSL behind BattleRenderer): depth is a real
 // reverse-Z buffer owned by three, posed by camera3d through cameraBridge, and
@@ -181,8 +148,7 @@ function hasSemanticPassRoles(phases) {
 // asserts the ownership identity fields (single owners, README "Photoreal
 // ladder invariants"), the reverse-Z depth convention read off the live
 // renderer, the heightfield seating firewall, and the tactical-line overlay
-// seams. The bespoke phase-graph contract belongs only to campaign
-// (`hasCampaignWorldDepthContract`).
+// seams. Campaign uses the same physical substrate with geographic/entity inputs.
 export function hasBattleWorldDepthContract(renderStats) {
   return (
     renderStats?.ready === true &&
@@ -201,43 +167,13 @@ export function hasBattleWorldDepthContract(renderStats) {
 
 export function hasCampaignWorldDepthContract(stats) {
   return (
-    stats?.cameraContract === "shared-world-camera-wgsl" &&
-    stats?.depth?.allocated === true &&
-    stats?.depth?.format === GPU_DEPTH_FORMAT &&
-    hasFramePhaseOrder(stats?.phases, { requireOverlay: true }) &&
-    hasDepthPassPlacement(stats?.phases) &&
-    hasSemanticPassRoles(stats?.phases) &&
-    hasFrameDepthPass(stats?.phases, "campaign-map-surface", "write") &&
-    hasFramePassRole(stats?.phases, "campaign-map-surface", "world-depth-fill", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-territory-wash", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-territory-wash", "world-decal", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-scenery-opaque", "read-write") &&
-    hasFramePassRole(stats?.phases, "campaign-scenery-opaque", "world-opaque", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-entities-opaque", "read-write") &&
-    hasFramePassRole(stats?.phases, "campaign-entities-opaque", "world-opaque", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-standards-opaque", "read-write") &&
-    hasFramePassRole(stats?.phases, "campaign-standards-opaque", "world-opaque", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-soldier-crowd", "read-write") &&
-    hasFramePassRole(stats?.phases, "campaign-soldier-crowd", "world-opaque", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-scenery-shadows", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-scenery-shadows", "world-decal", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-entity-shadows", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-entity-shadows", "world-decal", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-standard-shadows", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-standard-shadows", "world-decal", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-soldier-shadows", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-soldier-shadows", "world-decal", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-roads", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-roads", "world-decal", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-sea-lanes-depth", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-sea-lanes-depth", "world-decal", "world-depth") &&
-    hasFrameDepthPass(stats?.phases, "campaign-ground-selection", "read") &&
-    hasFramePassRole(stats?.phases, "campaign-ground-selection", "world-decal", "world-depth") &&
-    hasFramePass(stats?.phases, "campaign-clouds", "overlay") &&
-    hasFramePassRole(stats?.phases, "campaign-clouds", "overlay-effect", "overlay") &&
-    hasFramePass(stats?.phases, "campaign-markers", "overlay") &&
-    hasFramePassRole(stats?.phases, "campaign-markers", "overlay-ui", "overlay") &&
-    hasFramePass(stats?.phases, "campaign-labels", "overlay") &&
-    hasFramePassRole(stats?.phases, "campaign-labels", "overlay-ui", "overlay")
+    stats?.ready === true &&
+    stats?.substrate === PHOTOREAL_SUBSTRATE &&
+    stats?.projection === PHOTOREAL_PROJECTION &&
+    stats?.depth?.owner === "three-webgpu" &&
+    stats?.depth?.reversed === true &&
+    stats?.physicalWorld?.terrain?.allocationBytes > 0 &&
+    stats?.physicalWorld?.geography != null &&
+    stats?.drawCalls > 0
   );
 }

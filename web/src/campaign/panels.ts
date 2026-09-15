@@ -108,6 +108,8 @@ export function campaignDomHtml(): string {
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-size,
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-actions { display:flex;gap:5px;flex-wrap:wrap; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-army-actions { margin-top:8px; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-auto-replenish { display:inline-flex;align-items:center;gap:5px; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-auto-replenish input { margin:0; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-diplo-row { display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0;padding:7px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-swatch { width:12px;height:12px;border-radius:1px;flex:none;box-shadow:0 0 0 1px #120b07,0 0 0 2px #70552d; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-rel { font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;padding:2px 5px;border:1px solid #3a2c18;border-radius:2px;box-shadow:var(--well-shadow); }

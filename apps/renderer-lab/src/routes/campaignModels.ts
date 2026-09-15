@@ -1,3 +1,4 @@
+import type { CampaignMarker } from "@packages/game-renderer/src/campaign/marker";
 import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 import type { CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
 import type { SceneryInstance } from "../../../../packages/game-renderer/src/terrain/scenery";
@@ -25,7 +26,6 @@ import {
 } from "@packages/game-renderer/src/campaign/entityPass";
 import {
   CampaignLabelPass,
-  type CampaignMarker,
   CampaignMarkerPass,
   CampaignRoadPass,
 } from "@packages/game-renderer/src/campaign/mapPass";

@@ -8,7 +8,7 @@ import {
 import {
   vistaSurfaceHeightAt,
   type BattleVistaGrid,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
+} from "@packages/game-renderer/src/battle/vistaSurface";
 import type { Game, InitOutput } from "../wasm/game_wasm.js";
 import type { Camera } from "../shared/camera";
 import type { BattleRenderer } from "./renderer";

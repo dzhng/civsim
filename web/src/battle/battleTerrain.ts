@@ -1,3 +1,4 @@
+import type { BattleVistaGrid } from "@packages/game-renderer/src/battle/vistaSurface";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import {
   BATTLE_RELIEF_EXAGGERATION,
@@ -6,10 +7,7 @@ import {
 } from "@packages/game-renderer/src/battle/terrainFeatures";
 import { battleMapByWasmId } from "@packages/game-renderer/src/battle/mapCatalog";
 import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid";
-import type {
-  BattleLakeSurfaceSpec,
-  BattleVistaGrid,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleLakeSurfaceSpec } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import type { Game } from "../wasm/game_wasm.js";
 import type { BattleAudioWaterSurface } from "./battleAudio";
 import type { BattleWorld, GeneratedBattleMapDescriptor } from "./battleWorld";

@@ -1,8 +1,5 @@
 import { smoothstep } from "../../../renderer-core/src/math";
-import {
-  terrainHeightAt,
-  type TerrainHeightField,
-} from "../../../game-renderer/src/terrain/heightField";
+import { terrainHeightAt, type TerrainHeightField } from "../terrain/heightField";
 
 export interface BattleVistaBand {
   name: "vista" | "farFog" | string;

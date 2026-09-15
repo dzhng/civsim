@@ -35,7 +35,10 @@ import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battl
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { GROUND_COVER_COLOR, MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
-import { northSouthSink, type BattleVistaBand } from "./vistaSurface";
+import {
+  northSouthSink,
+  type BattleVistaBand,
+} from "../../../game-renderer/src/battle/vistaSurface";
 import { joinTerrainMeshEdges } from "./terrainSeam";
 import {
   fbmN,

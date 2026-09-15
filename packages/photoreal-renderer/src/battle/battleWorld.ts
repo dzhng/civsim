@@ -31,7 +31,7 @@ import { applyCamera3d } from "../cameraBridge";
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
 import { createBattleFrameUniforms, type BattleFrameUniforms } from "./battleTsl";
 import { BattleBackgroundQuads, RENDER_ORDER } from "./terrainLayer";
-import type { BattleVistaGrid } from "./vistaSurface";
+import type { BattleVistaGrid } from "../../../game-renderer/src/battle/vistaSurface";
 import { createSeaDisplacementSource, type BattleLakeSurfaceSpec } from "./seaLayer";
 import {
   createBladeFieldWindUniforms,
@@ -72,8 +72,6 @@ import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardL
 import { BattlePostChain } from "../post/postChain";
 import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
 
-export type { BattleVistaGrid } from "./vistaSurface";
-export { vistaSurfaceHeightAt } from "./vistaSurface";
 export type { BattleLakeSurfaceSpec } from "./seaLayer";
 
 export interface BattleCameraSnapshot {

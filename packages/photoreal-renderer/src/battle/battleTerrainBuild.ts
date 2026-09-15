@@ -1,25 +1,24 @@
+import { buildBattleTerrainData } from "../../../game-renderer/src/battle/terrainSceneData";
 import * as THREE from "three/webgpu";
 import { Octree } from "three/examples/jsm/math/Octree.js";
 import type { WorldRay } from "../../../renderer-core/src/camera3d";
-import { buildPhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
-import { buildBattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
-import { buildBattleTerrainPresentation } from "../../../game-renderer/src/battle/mapCatalog";
 import type { battleEnvironmentStats } from "../../../game-renderer/src/environment/environment";
 import {
-  BATTLE_RELIEF_EXAGGERATION,
-  deriveBattleEdgeRoles,
   type BattleGroundCover,
   type BattleSlopeBands,
   type BattleTerrainGrid,
 } from "../../../game-renderer/src/battle/terrainFeatures";
-import { featuresToBattleScenery } from "../../../game-renderer/src/battle/terrainScenery";
+import type { featuresToBattleScenery } from "../../../game-renderer/src/battle/terrainScenery";
 import {
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../game-renderer/src/terrain/heightField";
 import type { BattleFrameUniforms } from "./battleTsl";
 import { createGroundMesh, createHorizonBlockerMesh, createVistaMesh } from "./terrainLayer";
-import { joinVistaSurface, vistaSurfaceHeightAt, type BattleVistaGrid } from "./vistaSurface";
+import {
+  vistaSurfaceHeightAt,
+  type BattleVistaGrid,
+} from "../../../game-renderer/src/battle/vistaSurface";
 import {
   createLakePlaneMesh,
   createOceanPlaneMesh,
@@ -212,34 +211,8 @@ export class BattleTerrainSurface {
 /** Build one complete terrain presentation without mutating a scene or world. */
 export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrainBuild {
   const { grid, cover, slopeBands, lakeSurfaces, frame, grassTransition, sea } = input;
-  const field: TerrainHeightField = grid.height
-    ? {
-        w: grid.w,
-        h: grid.h,
-        cell: grid.cell,
-        ox: grid.ox,
-        oy: grid.oy,
-        height: grid.height,
-        units: "meters",
-        verticalScale: BATTLE_RELIEF_EXAGGERATION,
-      }
-    : {
-        w: grid.w,
-        h: grid.h,
-        cell: grid.cell,
-        ox: grid.ox,
-        oy: grid.oy,
-        height: new Float32Array(grid.w * grid.h),
-        units: "meters",
-        verticalScale: 1,
-      };
-  const vista = input.vista ? joinVistaSurface(input.vista, field) : null;
-  const presentation = buildBattleTerrainPresentation(
-    { id: "live", edges: deriveBattleEdgeRoles(grid), groundCover: cover },
-    grid,
-    0x5eed,
-  );
-  const groundData = buildPhotorealBattleGroundMesh(grid, field, cover);
+  const data = buildBattleTerrainData(grid, cover, input.vista);
+  const { field, vista, ground: groundData } = data;
   const ground = createGroundMesh(frame, groundData, {
     slopeBands,
     farGrass: grassTransition,
@@ -271,11 +244,7 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
       vistaTriangles += (mesh.geometry.index?.count ?? 0) / 3;
     }
   } else {
-    const layout = buildBattleHorizonLayout(
-      { ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell },
-      presentation.edges,
-      field,
-    );
+    const layout = data.horizon!;
     sealedEdges = layout.builtEdges.map((edge) => `${edge.side}:${edge.role}`);
     horizonBlockers = createHorizonBlockerMesh(layout);
     oceanPlanes.push(...layout.oceanPlanes.map((spec) => createOceanPlaneMesh(frame, spec, sea)));
@@ -287,7 +256,7 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
   return {
     field,
     vista,
-    rect: [grid.ox, grid.oy, grid.w * grid.cell, grid.h * grid.cell],
+    rect: data.rect,
     ground,
     horizonBlockers,
     vistaMeshes,
@@ -296,7 +265,7 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
     sealedEdges,
     groundTriangles: groundData.triangles,
     vistaTriangles,
-    scenery: featuresToBattleScenery(presentation.features, field, 0x77, grid),
+    scenery: data.scenery,
   };
 }
 

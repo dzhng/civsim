@@ -1,3 +1,4 @@
+import { battleTerrainHeightAt } from "../../../game-renderer/src/battle/terrainSurfacePolicy";
 import { buildBattleTerrainData } from "../../../game-renderer/src/battle/terrainSceneData";
 import * as THREE from "three/webgpu";
 import { Octree } from "three/examples/jsm/math/Octree.js";
@@ -15,10 +16,7 @@ import {
 } from "../../../game-renderer/src/terrain/heightField";
 import type { BattleFrameUniforms } from "./battleTsl";
 import { createGroundMesh, createHorizonBlockerMesh, createVistaMesh } from "./terrainLayer";
-import {
-  vistaSurfaceHeightAt,
-  type BattleVistaGrid,
-} from "../../../game-renderer/src/battle/vistaSurface";
+import { type BattleVistaGrid } from "../../../game-renderer/src/battle/vistaSurface";
 import {
   createLakePlaneMesh,
   createOceanPlaneMesh,
@@ -106,11 +104,7 @@ export class BattleTerrainSurface {
   }
 
   heightAt(x: number, y: number): number {
-    const playable = this.field ? terrainHeightAt(this.field, x, y) : 0;
-    const vista = this.vista ? vistaSurfaceHeightAt(this.vista, x, y) : null;
-    const [x0, y0, w, h] = this.rect;
-    const inside = x >= x0 && x <= x0 + w && y >= y0 && y <= y0 + h;
-    return inside ? (vista === null ? playable : Math.max(playable, vista)) : (vista ?? playable);
+    return battleTerrainHeightAt(this.field, this.vista, this.rect, x, y);
   }
 
   surfaceHeightAt(x: number, y: number): number {
@@ -267,14 +261,4 @@ export function disposeBattleTerrainMesh(mesh: THREE.Mesh): void {
   const material = mesh.material;
   if (Array.isArray(material)) material.forEach((entry) => entry.dispose());
   else material.dispose();
-}
-
-export function expandedBattleTerrainRect([x, y, w, h]: [number, number, number, number]): [
-  number,
-  number,
-  number,
-  number,
-] {
-  const margin = Math.max(120, Math.max(w, h) * 0.22);
-  return [x - margin, y - margin, w + margin * 2, h + margin * 2];
 }

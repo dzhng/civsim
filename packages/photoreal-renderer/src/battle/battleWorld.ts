@@ -1,3 +1,5 @@
+import { expandedBattleTerrainRect } from "../../../game-renderer/src/battle/terrainSurfacePolicy";
+import { terrainBackdropStyleForZoom } from "../../../game-renderer/src/battle/terrainBackdropPolicy";
 import {
   resolveSunShadowMode,
   type SunShadowMode,
@@ -50,11 +52,7 @@ import {
   type BladeFieldTransitionUniforms,
 } from "./bladeFieldLayer";
 import { BattleGrassField } from "./battleGrassField";
-import {
-  BattleTerrainSurface,
-  buildBattleTerrain,
-  expandedBattleTerrainRect,
-} from "./battleTerrainBuild";
+import { BattleTerrainSurface, buildBattleTerrain } from "./battleTerrainBuild";
 import { updateWindUniforms } from "../../../game-renderer/src/battle/windSignal";
 import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
@@ -543,7 +541,7 @@ export class PhotorealBattleWorld {
     );
     this.crowd.refreshCamera(this.camera);
     this.readoutLayer.setCameraBasis(this.camera);
-    this.background.setStyle(this.lastCamera.zoom < 1.2 ? "wide-detail" : "default");
+    this.background.setStyle(terrainBackdropStyleForZoom(this.lastCamera.zoom));
     this.world.render(this.camera);
   }
 

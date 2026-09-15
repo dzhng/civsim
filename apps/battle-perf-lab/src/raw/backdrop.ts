@@ -41,7 +41,7 @@ export async function createRawBackdrop(
       bindGroupLayouts: [cameraLayout, empty, empty, environment.layout],
     });
     const pipelines = {} as Record<BackdropKind, GPURenderPipeline>;
-    for (const kind of ["backdrop", "default", "wide-detail"] as const) {
+    const compilation = (["backdrop", "default", "wide-detail"] as const).map(async (kind) => {
       const module = device.createShaderModule({ code: backdropShader(environment.shader, kind) });
       pipelines[kind] = await device.createRenderPipelineAsync({
         layout,
@@ -60,8 +60,8 @@ export async function createRawBackdrop(
         depthStencil: { format: "depth32float", depthWriteEnabled: false, depthCompare: "always" },
         multisample: { count: samples },
       });
-    }
-    await finish();
+    });
+    await Promise.all([finish(), ...compilation]);
     let style: "default" | "wide-detail" = "default";
     return {
       setRects(

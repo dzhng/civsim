@@ -1,3 +1,4 @@
+import { WORLD_CAMERA_WGSL } from "../../../../packages/renderer-core/src/cameraWgsl";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
@@ -21,6 +22,7 @@ export class RawBattleTerrain {
   private readonly group: GPUBindGroup;
   private readonly state: GPUBuffer;
   private readonly emptyGroup: GPUBindGroup;
+  private horizonShadow?: { pipeline: GPURenderPipeline; draw: Draw };
   private disposed = false;
   constructor(
     private readonly device: GPUDevice,
@@ -163,13 +165,43 @@ export class RawBattleTerrain {
             ],
           },
         ]);
-        this.draws.push({
+        const horizonDraw: Draw = {
           pipeline: p,
           buffers: [buffer(h.vertices, GPUBufferUsage.VERTEX)],
           indices: buffer(h.indices, GPUBufferUsage.INDEX),
           indexFormat: "uint16",
           count: h.indices.length,
+        };
+        this.draws.push(horizonDraw);
+        const caster = device.createShaderModule({
+          code: `${WORLD_CAMERA_WGSL}
+          @vertex fn vertex(@location(0) position:vec3f)->@builtin(position) vec4f {
+            return projectWorld(position);
+          }`,
         });
+        this.horizonShadow = {
+          draw: horizonDraw,
+          pipeline: device.createRenderPipeline({
+            layout: device.createPipelineLayout({ bindGroupLayouts: [cameraLayout] }),
+            vertex: {
+              module: caster,
+              entryPoint: "vertex",
+              buffers: [
+                {
+                  arrayStride: 40,
+                  attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+                },
+              ],
+            },
+            // Three PCF shadow overrides FrontSide with BackSide; no terrain receiver bindings here.
+            primitive: { cullMode: "front", frontFace: "ccw" },
+            depthStencil: {
+              format: "depth32float",
+              depthWriteEnabled: true,
+              depthCompare: "greater-equal",
+            },
+          }),
+        };
       }
     } catch (error) {
       this.dispose();
@@ -192,6 +224,16 @@ export class RawBattleTerrain {
       pass.setIndexBuffer(draw.indices, draw.indexFormat);
       pass.drawIndexed(draw.count);
     }
+  }
+  encodeHorizonShadow(pass: GPURenderPassEncoder, cameraGroup: GPUBindGroup) {
+    if (this.disposed) throw Error("Terrain disposed");
+    const shadow = this.horizonShadow;
+    if (!shadow) return;
+    pass.setPipeline(shadow.pipeline);
+    pass.setBindGroup(0, cameraGroup);
+    pass.setVertexBuffer(0, shadow.draw.buffers[0]);
+    pass.setIndexBuffer(shadow.draw.indices, shadow.draw.indexFormat);
+    pass.drawIndexed(shadow.draw.count);
   }
   dispose() {
     if (this.disposed) return;

@@ -1,3 +1,4 @@
+import { beginGpuAdmission } from "../gpuAdmission";
 import {
   BATTLE_SCENERY_KINDS,
   packBattleScenery,
@@ -39,6 +40,8 @@ export async function createRawScenery(
     disposed = true;
     for (const release of releases.reverse()) release();
   };
+  let finish: ReturnType<typeof beginGpuAdmission> | undefined;
+  let pipelinesReady: Promise<[GPURenderPipeline, GPURenderPipeline]> | undefined;
   try {
     const atlas = buildLeafAtlas();
     const leaf = own(
@@ -48,6 +51,7 @@ export async function createRawScenery(
         { colorSpace: "linear", generateMipmaps: true },
       ),
     );
+    finish = beginGpuAdmission(device);
     const leafSampler = device.createSampler({
       magFilter: "linear",
       minFilter: "linear",
@@ -109,17 +113,18 @@ export async function createRawScenery(
         depthCompare: "greater-equal" as const,
       },
     };
-    const beauty = await device.createRenderPipelineAsync({
+    const beautyReady = device.createRenderPipelineAsync({
       ...shared,
       layout: layout(environment.layout),
       multisample: { count: samples },
       fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
     });
-    const shadow = await device.createRenderPipelineAsync({
+    const shadowReady = device.createRenderPipelineAsync({
       ...shared,
       layout: layout(environment.casterLayout),
       fragment: { module, entryPoint: "shadowFragment", targets: [] },
     });
+    pipelinesReady = Promise.all([beautyReady, shadowReady]);
     const buckets = new Map<
       SceneryPropId,
       {
@@ -150,6 +155,7 @@ export async function createRawScenery(
         count: 0,
       });
     }
+    const [, [beauty, shadow]] = await Promise.all([finish(), pipelinesReady]);
     let count = 0;
     return {
       upload(instances: readonly CampaignSceneryInstance[]) {
@@ -188,7 +194,9 @@ export async function createRawScenery(
       dispose,
     };
   } catch (error) {
+    const settled = Promise.allSettled([finish?.(), pipelinesReady]);
     dispose();
+    await settled;
     throw error;
   }
 }

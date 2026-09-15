@@ -43,3 +43,7 @@ export const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
   stubbleColor: MEADOW.quad.wideDetail.stubble,
   darkFleckColor: MEADOW.quad.wideDetail.darkFleck,
 };
+
+export function terrainBackdropStyleForZoom(zoom: number): "default" | "wide-detail" {
+  return zoom < 1.2 ? "wide-detail" : "default";
+}

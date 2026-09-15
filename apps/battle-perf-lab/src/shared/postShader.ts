@@ -96,3 +96,12 @@ export const postFinalWgsl = `(uv: vec2f, scene: texture_2d<f32>, bloom: texture
   let hdr = textureSample(scene,linearSampler,uv)+textureSample(bloom,linearSampler,uv);
   return vec4f(outputSrgb(agx(gradeColor(hdr.rgb,grade),grade.exposure)),clamp(hdr.a,0.0,1.0));
 }`;
+
+/** Pinned Three RenderOutputNode alpha ordering, without authored grade or bloom.
+ * MIT attribution: LICENSE.three in this directory. */
+export const postDirectWgsl = `(hdr:vec4f, exposure:f32)->vec4f {
+  let alpha = clamp(hdr.a, 0.0, 1.0);
+  var straight = vec3f(0);
+  if (alpha > 0.0) { straight = hdr.rgb / alpha; }
+  return vec4f(outputSrgb(agx(straight, exposure)) * alpha, alpha);
+}`;

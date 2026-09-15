@@ -7,6 +7,7 @@ import {
   bloomBlurWgsl,
   bloomCompositeWgsl,
   postFinalWgsl,
+  postDirectWgsl,
 } from "../shared/postShader";
 
 type Stage = {
@@ -173,12 +174,9 @@ export class RawBattlePost {
       @group(0) @binding(0) var linearSampler: sampler;
       @group(0) @binding(1) var scene: texture_2d<f32>;
       @group(0) @binding(2) var<uniform> grade: Grade;
+      fn directOutput${postDirectWgsl}
       @fragment fn fragment(v: VertexOut) -> @location(0) vec4f {
-        let hdr = textureSample(scene, linearSampler, v.uv);
-        let alpha = clamp(hdr.a, 0.0, 1.0);
-        var straight = vec3f(0);
-        if (alpha > 0.0) { straight = hdr.rgb / alpha; }
-        return vec4f(outputSrgb(agx(straight, grade.exposure)) * alpha, alpha);
+        return directOutput(textureSample(scene, linearSampler, v.uv), grade.exposure);
       }`,
         outputFormat,
       );

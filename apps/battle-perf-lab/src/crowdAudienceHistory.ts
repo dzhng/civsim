@@ -28,6 +28,8 @@ export function createCrowdAudienceHistory(
     plan: ReturnType<typeof planCrowdLods>;
     groups: Map<number, CrowdInstance[]>;
   };
+  let visibleTierHistogram = { l0: 0, l1: 0, l2: 0, l3: 0 };
+  let shadowTierHistogram = { l0: 0, l1: 0, l2: 0, l3: 0 };
   let pending: Publication | undefined;
   let selected = new Map<number, CrowdInstance[]>(ids.map((id) => [id, []]));
   const check = (needFrame = false) => {
@@ -82,6 +84,11 @@ export function createCrowdAudienceHistory(
       selected = publication.groups;
       mainVisible = publication.plan.viewVisible;
       shadowOnly = publication.plan.shadowOnly;
+      visibleTierHistogram = { l0: 0, l1: 0, l2: 0, l3: 0 };
+      for (let i = 0; i < previousCount; i++)
+        if (previous.visibility[i] & 1)
+          visibleTierHistogram[`l${previous.levels[i]}` as keyof typeof visibleTierHistogram]++;
+      shadowTierHistogram = { ...publication.plan.shadowCounts };
       pending = undefined;
       ready = true;
     },
@@ -97,7 +104,14 @@ export function createCrowdAudienceHistory(
     },
     stats() {
       check();
-      return { instances: previousCount, mainVisible, shadowOnly, ready };
+      return {
+        instances: previousCount,
+        mainVisible,
+        shadowOnly,
+        ready,
+        visibleTierHistogram: { ...visibleTierHistogram },
+        shadowTierHistogram: { ...shadowTierHistogram },
+      };
     },
     dispose() {
       disposed = true;

@@ -167,3 +167,25 @@ test("camera-only refresh retains selected L3 groups and never advances mesh/LOD
   expect(mesh.upload.mock.lastCall![1].shadowLevels[0]).toBe(0);
   owner.dispose();
 });
+test("published histograms count actual main and shadow audiences without counting culled soldiers", async () => {
+  const owner = await create();
+  try {
+    owner.upload(
+      [soldier, { ...soldier, x: -1000 }],
+      [
+        { ...view(0.1), frustum: { planes: [{ normal: { x: 1, y: 0, z: 0 }, constant: 10 }] } },
+        {
+          ...view(10, true),
+          frustum: { planes: [{ normal: { x: 1, y: 0, z: 0 }, constant: 10 }] },
+        },
+      ],
+      camera,
+    );
+    expect(owner.stats()).toMatchObject({
+      visibleTierHistogram: { l0: 0, l1: 0, l2: 0, l3: 1 },
+      shadowTierHistogram: { l0: 1, l1: 0, l2: 0, l3: 0 },
+    });
+  } finally {
+    owner.dispose();
+  }
+});

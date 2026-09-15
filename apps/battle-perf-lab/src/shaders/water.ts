@@ -7,7 +7,7 @@ import { terrainNoiseFunctions } from "./terrainNoise";
 
 /** Exact source wave constants and surface response, expressed for native WGSL.
  * Lighting, GGX, IBL and fog are supplied by the shared environment owner. */
-export function waterShader(environment: string, lake: boolean) {
+export function waterShaderBodies(lake: boolean) {
   const f = (value: number) => `${value}${Number.isInteger(value) ? ".0" : ""}`;
   const v = (value: number[]) => `vec3f(${value.map(f).join(",")})`;
   const ramp = lake ? policy.LAKE_SHORE_RAMP : BATTLE_OCEAN_RAMP;
@@ -21,30 +21,19 @@ export function waterShader(environment: string, lake: boolean) {
   `,
     )
     .join("\n");
-  return (
-    WORLD_CAMERA_WGSL +
-    environment +
-    Object.entries(terrainNoiseFunctions)
-      .map(([name, body]) => `fn ${name}${body}`)
-      .join("\n") +
-    `
-  struct WaterState {baseZ:f32,shoreX:f32,pad:vec2f};
-  @group(1) @binding(0) var<uniform> water:WaterState;
-  struct WaterField {height:f32,normal:vec3f,foam:f32};
-  fn waterField(p:vec2f,t:f32)->WaterField {
+  const field = `
     var h=0.0;var slope=vec2f(0);
     ${waveTerms}
     let crest=smoothstep(${f(policy.SEA_FOAM_HEIGHT_START)},${f(policy.SEA_FOAM_HEIGHT_END)},h);
     let agitation=smoothstep(${f(policy.SEA_FOAM_SLOPE_START)},${f(policy.SEA_FOAM_SLOPE_END)},dot(slope,slope));
     let speckle=terrainWaterNoise(p*0.5+vec2f(t*0.1,t*0.05))*0.42+terrainWaterNoise(p*1.3-vec2f(t*0.06,t*0.09))*0.34+terrainWaterNoise(p*3.0+vec2f(t*0.04,t*(-0.07)))*0.24;
     return WaterField(h,normalize(vec3f(-slope,1)),crest*agitation*smoothstep(${f(policy.SEA_FOAM_SPECKLE_START)},${f(policy.SEA_FOAM_SPECKLE_END)},speckle)*${f(policy.SEA_FOAM_SCALE)});
-  }
-  struct VertexOut {@invariant @builtin(position) clip:vec4f,@location(0) position:vec3f,@location(1) shore:f32};
-  @vertex fn vertex(@location(0) p:vec3f,@location(1) shore:f32)->VertexOut {
+  `;
+  const vertex = `
     let position=vec3f(p.xy,waterField(p.xy,cam.time).height*${f(lake ? policy.LAKE_SWELL_SCALE : 1)}+water.baseZ);
     return VertexOut(projectWorld(position),position,shore);
-  }
-  @fragment fn fragment(v:VertexOut)->@location(0) vec4f {
+  `;
+  const fragment = `
     let p=v.position.xy;
     let sample=waterField(p,cam.time);
     let viewDist=length(p-cam.focus);
@@ -73,6 +62,26 @@ export function waterShader(environment: string, lake: boolean) {
     let albedo=terrainLinear(mix(mix(shallow,${v(physical.WATER_DEEP_ALBEDO)},depth01),${v(physical.WATER_FOAM_ALBEDO)},foam));
     let roughness=${lake ? "max(0.3," : ""}mix(${f(physical.WATER_ROUGHNESS)},${f(physical.WATER_FOAM_ROUGHNESS)},foam)${lake ? ")" : ""};
     return shadeWorldSurface(albedo,vec3f(0),roughness,0.0,0.0,1.0,normal,v.position,1.0);
-  }`
+  `;
+  return { field, vertex, fragment };
+}
+
+/** Public WGSL entrypoints compose the same bodies used by typed pipelines. */
+export function waterShader(environment: string, lake: boolean) {
+  const body = waterShaderBodies(lake);
+  return (
+    WORLD_CAMERA_WGSL +
+    environment +
+    Object.entries(terrainNoiseFunctions)
+      .map(([name, text]) => `fn ${name}${text}`)
+      .join("\n") +
+    `
+  struct WaterState {baseZ:f32,shoreX:f32,pad:vec2f};
+  @group(1) @binding(0) var<uniform> water:WaterState;
+  struct WaterField {height:f32,normal:vec3f,foam:f32};
+  fn waterField(p:vec2f,t:f32)->WaterField {${body.field}}
+  struct VertexOut {@invariant @builtin(position) clip:vec4f,@location(0) position:vec3f,@location(1) shore:f32};
+  @vertex fn vertex(@location(0) p:vec3f,@location(1) shore:f32)->VertexOut {${body.vertex}}
+  @fragment fn fragment(v:VertexOut)->@location(0) vec4f {${body.fragment}}`
   );
 }

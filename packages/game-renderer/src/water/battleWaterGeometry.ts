@@ -50,7 +50,11 @@ export function buildOceanPlaneGeometry(spec: BattleOceanPlaneSpec) {
 export function buildLakePlaneGeometry(
   spec: BattleLakeSurfaceSpec,
   grid: BattleTerrainGrid,
-): { positions: Float32Array; shoreDist: Float32Array; indices: Uint32Array } | null {
+): {
+  positions: Float32Array<ArrayBuffer>;
+  shoreDist: Float32Array<ArrayBuffer>;
+  indices: Uint32Array<ArrayBuffer>;
+} | null {
   const minX = Math.max(0, Math.min(grid.w - 1, Math.floor(spec.minCellX)));
   const minY = Math.max(0, Math.min(grid.h - 1, Math.floor(spec.minCellY)));
   const maxX = Math.max(minX, Math.min(grid.w - 1, Math.floor(spec.maxCellX)));

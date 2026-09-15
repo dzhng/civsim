@@ -9,7 +9,7 @@ const terrainNoise = tgpu.fn([d.vec2f], d.f32)(noise.terrainNoise).$uses({ terra
 const terrainFbm = tgpu.fn([d.vec2f], d.f32)(noise.terrainFbm).$uses({ terrainNoise });
 const terrainRidge = tgpu.fn([d.vec2f], d.f32)(noise.terrainRidge).$uses({ terrainNoise });
 const terrainWaterHash = tgpu.fn([d.vec2f], d.f32)(noise.terrainWaterHash);
-const terrainWaterNoise = tgpu
+export const terrainWaterNoise = tgpu
   .fn(
     [d.vec2f],
     d.f32,

@@ -1,17 +1,7 @@
-import {
-  buildOceanPlaneGeometry,
-  buildLakePlaneGeometry,
-  type BattleLakeSurfaceSpec,
-} from "../../../../packages/game-renderer/src/water/battleWaterGeometry";
-import { LAKE_SURFACE_LIFT_M } from "../../../../packages/game-renderer/src/water/photorealWaterPolicy";
-import type { BattleOceanPlaneSpec } from "../../../../packages/game-renderer/src/battle/horizonPass";
-import type { BattleTerrainGrid } from "../../../../packages/game-renderer/src/battle/terrainFeatures";
+import { prepareWaterSurfaces, type BattleWaterInput } from "../waterData";
 import { waterShader } from "../shaders/water";
 import type { RawEnvironment } from "./environment";
 
-export type BattleWaterInput =
-  | { kind: "ocean"; spec: BattleOceanPlaneSpec }
-  | { kind: "lake"; spec: BattleLakeSurfaceSpec; grid: BattleTerrainGrid };
 /** Opaque, front-sided, depth-writing water, matching the source standard
  * material. The caller encodes this before read-only world decals. All GPU
  * allocations here are owned; device, camera, environment and targets borrowed. */
@@ -63,17 +53,12 @@ export class RawBattleWater {
         resource.unmap();
         return resource;
       };
-      for (const input of inputs) {
-        const lake = input.kind === "lake";
-        const geometry =
-          input.kind === "lake"
-            ? buildLakePlaneGeometry(input.spec, input.grid)
-            : buildOceanPlaneGeometry(input.spec);
-        if (!geometry) continue;
-        let pipeline = pipelines.get(input.kind);
+      for (const geometry of prepareWaterSurfaces(inputs)) {
+        const lake = geometry.kind === "lake";
+        let pipeline = pipelines.get(geometry.kind);
         if (!pipeline) {
           const module = device.createShaderModule({
-            label: `native ${input.kind} water`,
+            label: `native ${geometry.kind} water`,
             code: waterShader(environment.shader, lake),
           });
           pipeline = device.createRenderPipeline({
@@ -101,20 +86,10 @@ export class RawBattleWater {
             },
             multisample: { count: samples },
           });
-          pipelines.set(input.kind, pipeline);
+          pipelines.set(geometry.kind, pipeline);
         }
-        const state = buffer(
-          new Float32Array(
-            input.kind === "lake"
-              ? [input.spec.level + LAKE_SURFACE_LIFT_M, 0, 0, 0]
-              : [input.spec.baseZ, input.spec.shoreX, 0, 0],
-          ),
-          GPUBufferUsage.UNIFORM,
-        );
-        const shore =
-          "shoreDist" in geometry
-            ? geometry.shoreDist
-            : new Float32Array(geometry.positions.length / 3);
+        const state = buffer(geometry.state, GPUBufferUsage.UNIFORM);
+        const shore = geometry.shoreDist;
         this.draws.push({
           positions: buffer(geometry.positions, GPUBufferUsage.VERTEX),
           shore: buffer(shore, GPUBufferUsage.VERTEX),

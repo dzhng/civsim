@@ -1,0 +1,11 @@
+{
+  "allocationBytes": 71140682,
+  "cpuBytes": 39534986,
+  "gpuBytes": 31605696,
+  "peakAllocationBytes": 71140682,
+  "revision": 0,
+  "residentTiles": 0,
+  "geometryBytes": 31605696,
+  "lastAdmissionUploadBytes": 0,
+  "lastAdmissionCpuMs": 0
+}

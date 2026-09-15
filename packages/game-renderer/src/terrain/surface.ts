@@ -9,6 +9,10 @@ export interface LandscapeMesh {
   tint: Float32Array;
   indices: Uint32Array;
   triangles: number;
+  /** Optional triangle prefix offsets per XY cell; absent means two triangles per cell. */
+  cellTriangles?: Uint32Array;
+  /** Exact binary wet coverage for shoreline-conforming vertices, independent of depth. */
+  waterCoverage?: Uint8Array;
 }
 
 export interface SurfaceDomain {
@@ -29,8 +33,8 @@ export interface SurfaceHit {
   barycentric: [number, number, number];
 }
 
-/** A regular XY mesh with two indexed triangles per cell, in row-major order.
- * Queries use the uploaded vertices/indices, including either diagonal. */
+/** XY cells in row-major order, with every triangle contained by its owning cell.
+ * Queries use the uploaded vertices and either implicit or explicit triangle ranges. */
 export function createRenderedSurface(
   mesh: LandscapeMesh,
   domain: SurfaceDomain,
@@ -39,6 +43,21 @@ export function createRenderedSurface(
   const { ox, oy, columns, rows, cell } = domain;
   if (columns < 2 || rows < 2 || !(cell > 0) || !Number.isFinite(cell))
     throw new Error("Rendered surface needs a finite grid with at least one cell");
+  const cellCount = (columns - 1) * (rows - 1);
+  if (
+    mesh.cellTriangles &&
+    (mesh.cellTriangles.length !== cellCount + 1 ||
+      mesh.cellTriangles[0] !== 0 ||
+      mesh.cellTriangles[cellCount] !== mesh.triangles ||
+      mesh.cellTriangles.some((offset, i, offsets) => i > 0 && offset < offsets[i - 1]))
+  )
+    throw new Error("Surface triangle ranges must cover cells in order");
+  const range = (i: number, j: number) => {
+    const k = j * (columns - 1) + i;
+    return mesh.cellTriangles
+      ? [mesh.cellTriangles[k], mesh.cellTriangles[k + 1]]
+      : [k * 2, k * 2 + 2];
+  };
   const maxX = ox + (columns - 1) * cell,
     maxY = oy + (rows - 1) * cell;
   const triangle = (t: number) => [0, 1, 2].map((n) => mesh.indices[t * 3 + n] * 10);
@@ -74,8 +93,12 @@ export function createRenderedSurface(
   const sampleRendered = (x: number, y: number): SurfaceHit | null => {
     if (!Number.isFinite(x + y) || x < ox || x > maxX || y < oy || y > maxY) return null;
     const [i, j] = cellAt(x, y),
-      t = (j * (columns - 1) + i) * 2;
-    return hit(t, x, y) ?? hit(t + 1, x, y);
+      [start, end] = range(i, j);
+    for (let t = start; t < end; t++) {
+      const candidate = hit(t, x, y);
+      if (candidate) return candidate;
+    }
+    return null;
   };
   const raycastRendered = (
     ray: WorldRay,
@@ -111,7 +134,8 @@ export function createRenderedSurface(
       const end = Math.min(nextX, nextY, exit);
       let nearest: SurfaceHit | null = null,
         nearestT = Infinity;
-      for (let t = (j * (columns - 1) + i) * 2; t < (j * (columns - 1) + i) * 2 + 2; t++) {
+      const [start, finish] = range(i, j);
+      for (let t = start; t < finish; t++) {
         const [a, b, c] = triangle(t),
           v = mesh.vertices;
         const ab = [v[b] - v[a], v[b + 1] - v[a + 1], v[b + 2] - v[a + 2]];

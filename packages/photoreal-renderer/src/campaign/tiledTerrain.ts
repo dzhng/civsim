@@ -106,8 +106,15 @@ export class PhotorealTiledTerrain {
   stats() {
     const cpu = new Set<ArrayBufferLike>();
     const addMesh = (mesh: RenderedSurface["mesh"]) => {
-      for (const array of [mesh.vertices, mesh.surfaceColor, mesh.tint, mesh.indices])
-        cpu.add(array.buffer);
+      for (const array of [
+        mesh.vertices,
+        mesh.surfaceColor,
+        mesh.tint,
+        mesh.indices,
+        mesh.cellTriangles,
+        mesh.waterCoverage,
+      ])
+        if (array) cpu.add(array.buffer);
     };
     addMesh(this.coarse.mesh);
     for (const entry of this.entries.values()) addMesh(entry.source.mesh);
@@ -209,6 +216,8 @@ function meshBytes(mesh: RenderedSurface["mesh"]) {
     mesh.vertices.byteLength +
     mesh.surfaceColor.byteLength +
     mesh.tint.byteLength +
-    mesh.indices.byteLength
+    mesh.indices.byteLength +
+    (mesh.cellTriangles?.byteLength ?? 0) +
+    (mesh.waterCoverage?.byteLength ?? 0)
   );
 }

@@ -39,8 +39,10 @@ export function maskCoarseSurface(coarse: RenderedSurface, domains: readonly Sur
       throw new Error("Detail coverage must align with coarse cells");
     for (let y = Math.max(0, y0); y < Math.min(d.rows - 1, y1); y++)
       for (let x = Math.max(0, x0); x < Math.min(d.columns - 1, x1); x++) {
-        const offset = (y * (d.columns - 1) + x) * 6;
-        indices.fill(indices[offset], offset, offset + 6);
+        const cell = y * (d.columns - 1) + x;
+        const offset = (coarse.mesh.cellTriangles?.[cell] ?? cell * 2) * 3;
+        const end = (coarse.mesh.cellTriangles?.[cell + 1] ?? (cell + 1) * 2) * 3;
+        indices.fill(indices[offset], offset, end);
         coveredCells++;
       }
   }
@@ -84,6 +86,7 @@ export function morphTileSurface(
     const blend = 1 - smoothstep(0, band, Math.sqrt(distance2));
     const offsets = [0, 1, 2].map((i) => coarse.mesh.indices[hit.triangle * 3 + i]);
     for (let c = 2; c < 10; c++) {
+      if (fine.mesh.waterCoverage && (c === 9 || (c === 2 && fine.mesh.waterCoverage[k]))) continue;
       let target = 0;
       for (let i = 0; i < 3; i++)
         target += coarse.mesh.vertices[offsets[i] * 10 + c] * hit.barycentric[i];

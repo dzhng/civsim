@@ -29,6 +29,8 @@ export function terrainTilePayloadBytes(data: TerrainTileData): number {
     data.mesh.indices.buffer,
     data.shoreDistance.buffer,
   ]);
+  if (data.mesh.cellTriangles) buffers.add(data.mesh.cellTriangles.buffer);
+  if (data.mesh.waterCoverage) buffers.add(data.mesh.waterCoverage.buffer);
   return [...buffers].reduce((bytes, buffer) => bytes + buffer.byteLength, 0);
 }
 

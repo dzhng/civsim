@@ -1,3 +1,8 @@
+import {
+  resolveBattleTerrainOptions,
+  type BattleTerrainOptions,
+} from "../../../game-renderer/src/battle/terrainOptions";
+export type { BattleTerrainOptions } from "../../../game-renderer/src/battle/terrainOptions";
 import { expandedBattleTerrainRect } from "../../../game-renderer/src/battle/terrainSurfacePolicy";
 import { terrainBackdropStyleForZoom } from "../../../game-renderer/src/battle/terrainBackdropPolicy";
 import {
@@ -26,7 +31,6 @@ import type {
   BattleSlopeBands,
   BattleTerrainGrid,
 } from "../../../game-renderer/src/battle/terrainFeatures";
-import { battleMapByWasmId } from "../../../game-renderer/src/battle/mapCatalog";
 import { eyePosition, projectionFootprint } from "../../../renderer-core/src/camera3d";
 import {
   terrainHeightAt,
@@ -57,11 +61,7 @@ import { updateWindUniforms } from "../../../game-renderer/src/battle/windSignal
 import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import { configureSunShadows, type SunShadowRig } from "./shadowRig";
-import {
-  PhotorealLineLayer,
-  PhotorealRingLayer,
-  PhotorealTriangleLayer,
-} from "./overlayLayer";
+import { PhotorealLineLayer, PhotorealRingLayer, PhotorealTriangleLayer } from "./overlayLayer";
 import { PhotorealReadoutLayer } from "./readoutLayer";
 import type { BattleReadoutInstance } from "../../../game-renderer/src/battle/readoutData";
 import { PhotorealStandardLayer } from "./standardLayer";
@@ -83,13 +83,6 @@ export interface BattleTacticalLineFrame {
   groundCues: Float32Array;
   effects: Float32Array;
   rings: Float32Array;
-}
-
-export interface BattleTerrainOptions {
-  wasmMapId?: number;
-  slopeBands?: BattleSlopeBands | null;
-  vista?: BattleVistaGrid | null;
-  lakeSurfaces?: BattleLakeSurfaceSpec[] | null;
 }
 
 export class PhotorealBattleWorld {
@@ -366,14 +359,11 @@ export class PhotorealBattleWorld {
       rough: grid.rough ? new Float32Array(grid.rough) : undefined,
       speed: grid.speed ? new Float32Array(grid.speed) : undefined,
     };
-    const catalog =
-      options.wasmMapId !== undefined ? battleMapByWasmId(options.wasmMapId) : undefined;
-    this.groundCover = catalog?.groundCover ?? "green-grass";
-    this.slopeBands = options.slopeBands ?? null;
-    this.vistaGrid = options.vista ?? null;
-    this.lakeSurfaces = options.lakeSurfaces
-      ? options.lakeSurfaces.map((surface) => ({ ...surface }))
-      : [];
+    const resolved = resolveBattleTerrainOptions(options);
+    this.groundCover = resolved.cover;
+    this.slopeBands = resolved.slopeBands;
+    this.vistaGrid = resolved.vista;
+    this.lakeSurfaces = resolved.lakes;
     this.applyTerrain();
   }
 

@@ -11,7 +11,7 @@ import {
 } from "@packages/game-renderer/src/battle/vistaSurface";
 import type { Game, InitOutput } from "../wasm/game_wasm.js";
 import type { Camera } from "../shared/camera";
-import type { BattleRenderer } from "./renderer";
+import type { BattleRendererApi } from "./battleRendererApi";
 import type { BattleAmbientAudio } from "./battleAudio";
 import type { SimClock } from "../shared/simClock";
 import { createBattleViews, MOTOR_TRAVEL } from "./battleViews";
@@ -32,7 +32,7 @@ export interface BattleLoopFrameMetrics {
   renderAwaitMs: number;
   renderWallMs: number;
   loopCpuMs: number;
-  renderer: ReturnType<BattleRenderer["frameMetrics"]>;
+  renderer: ReturnType<BattleRendererApi["frameMetrics"]>;
 }
 
 interface DebugOwners {
@@ -84,7 +84,7 @@ export function installBattleDebugApi({
     clock: Pick<SimClock, "alpha" | "paused" | "frozen">;
   };
   owners: DebugOwners;
-  renderer: BattleRenderer;
+  renderer: BattleRendererApi;
   stride: number;
   unitInfo: () => Float32Array;
   wasm: InitOutput;

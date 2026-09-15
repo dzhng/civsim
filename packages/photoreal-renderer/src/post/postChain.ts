@@ -1,3 +1,4 @@
+import { clampBattlePostGrade } from "../../../game-renderer/src/environment/postParameters";
 // BattlePostChain — the ONE post-processing owner for the photoreal battle
 // world. Built on three's
 // node-based post pipeline (RenderPipeline, the r183 rename of PostProcessing):
@@ -171,21 +172,13 @@ export class BattlePostChain {
   }
 
   setGradeUniforms(uniforms: Partial<BattlePostGradeUniforms>): void {
-    if (uniforms.strength !== undefined) {
-      this.gradeStrength.value = finiteClamped(uniforms.strength, 0, 1.5);
-    }
-    if (uniforms.saturationBoost !== undefined) {
-      this.gradeSaturationBoost.value = finiteClamped(uniforms.saturationBoost, 0, 4.0);
-    }
-    if (uniforms.contrast !== undefined) {
-      this.gradeContrast.value = finiteClamped(uniforms.contrast, 0, 0.6);
-    }
-    if (uniforms.splitTone !== undefined) {
-      this.gradeSplitTone.value = finiteClamped(uniforms.splitTone, 0, 1.5);
-    }
-    if (uniforms.shadowLift !== undefined) {
-      this.gradeShadowLift.value = finiteClamped(uniforms.shadowLift, 0, 1.5);
-    }
+    const values = clampBattlePostGrade(uniforms);
+    if (values.strength !== undefined) this.gradeStrength.value = values.strength;
+    if (values.saturationBoost !== undefined)
+      this.gradeSaturationBoost.value = values.saturationBoost;
+    if (values.contrast !== undefined) this.gradeContrast.value = values.contrast;
+    if (values.splitTone !== undefined) this.gradeSplitTone.value = values.splitTone;
+    if (values.shadowLift !== undefined) this.gradeShadowLift.value = values.shadowLift;
   }
 
   setBloomEnabled(on: boolean): void {
@@ -235,41 +228,4 @@ export class BattlePostChain {
       tonemap: toneMappingName(this.renderer.toneMapping),
     };
   }
-}
-
-export function postGradeUniformsFromParams(
-  params: Pick<URLSearchParams, "has" | "get">,
-): Partial<BattlePostGradeUniforms> | null {
-  const uniforms: Partial<BattlePostGradeUniforms> = {};
-  readFiniteParam(params, "grade", (value) => {
-    uniforms.strength = value;
-  });
-  readFiniteParam(params, "gradeSat", (value) => {
-    uniforms.saturationBoost = value;
-  });
-  readFiniteParam(params, "gradeContrast", (value) => {
-    uniforms.contrast = value;
-  });
-  readFiniteParam(params, "gradeSplit", (value) => {
-    uniforms.splitTone = value;
-  });
-  readFiniteParam(params, "gradeLift", (value) => {
-    uniforms.shadowLift = value;
-  });
-  return Object.keys(uniforms).length > 0 ? uniforms : null;
-}
-
-function finiteClamped(value: number, minValue: number, maxValue: number): number {
-  if (!Number.isFinite(value)) return minValue;
-  return Math.min(maxValue, Math.max(minValue, value));
-}
-
-function readFiniteParam(
-  params: Pick<URLSearchParams, "has" | "get">,
-  name: string,
-  apply: (value: number) => void,
-): void {
-  if (!params.has(name)) return;
-  const value = Number(params.get(name));
-  if (Number.isFinite(value)) apply(value);
 }

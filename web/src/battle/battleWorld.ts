@@ -1,3 +1,4 @@
+import type { BattleRendererApi } from "./battleRendererApi";
 import type { BattleBenchmarkScenario } from "./benchmark/benchmarkScenario";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import type {
@@ -244,16 +245,16 @@ export interface BattleWorld extends ReturnType<typeof createBattleViews> {
   canvas: HTMLCanvasElement;
   camera: Camera;
   cameraRig: BattleCameraRig;
-  renderer: BattleRenderer;
+  renderer: BattleRendererApi;
   disposeRenderer(): void;
   audio: BattleAmbientAudio;
   signal: AbortSignal;
   stride: number;
 }
 
-let sharedRenderer: BattleRenderer | null = null;
+let sharedRenderer: BattleRendererApi | null = null;
 
-function disposeSharedRenderer(renderer: BattleRenderer): void {
+function disposeSharedRenderer(renderer: BattleRendererApi): void {
   if (sharedRenderer !== renderer) return;
   renderer.dispose();
   sharedRenderer = null;

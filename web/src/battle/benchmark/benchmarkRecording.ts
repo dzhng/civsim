@@ -1,8 +1,8 @@
-import type { BattleRenderer } from "../renderer";
+import type { BattleRendererApi } from "../battleRendererApi";
 import type { BattleLoopFrameMetrics } from "../battleDebugApi";
 import type { BenchmarkCameraSample } from "./benchmarkCamera";
 
-type GpuEventBatch = NonNullable<ReturnType<BattleRenderer["gpuEventsSince"]>>;
+type GpuEventBatch = NonNullable<ReturnType<BattleRendererApi["gpuEventsSince"]>>;
 type GpuEvent = GpuEventBatch["events"][number];
 
 type CameraRecord = Omit<BenchmarkCameraSample, "phase">;

@@ -1,3 +1,4 @@
+import type { BattleRenderer } from "../src/battle/renderer";
 // @vitest-environment node
 import { readFile } from "node:fs/promises";
 import { beforeAll, expect, test, vi } from "vitest";
@@ -44,12 +45,12 @@ function fixture(unitClass = 0) {
   const views = createBattleViews(game, wasm.memory);
   views.positions().fill(0);
   views.unitInfo()[UNIT_INFO.atEase] = 1;
-  const frames: Parameters<BattleWorld["renderer"]["draw"]>[] = [];
-  const labels: Parameters<BattleWorld["renderer"]["setUnitReadouts"]>[] = [];
+  const frames: Parameters<BattleRenderer["draw"]>[] = [];
+  const labels: Parameters<BattleRenderer["setUnitReadouts"]>[] = [];
   const arcs: Float32Array[] = [];
   const renderer = {
     soldierAssets: { 0: bundle } as Record<number, AppearanceBundle>,
-    draw: (...args: Parameters<BattleWorld["renderer"]["draw"]>) =>
+    draw: (...args: Parameters<BattleRenderer["draw"]>) =>
       frames.push([
         new Float32Array(args[0]),
         new Float32Array(args[1]),
@@ -60,7 +61,7 @@ function fixture(unitClass = 0) {
         args[6],
         args[7],
       ]),
-    setUnitReadouts: (...args: Parameters<BattleWorld["renderer"]["setUnitReadouts"]>) =>
+    setUnitReadouts: (...args: Parameters<BattleRenderer["setUnitReadouts"]>) =>
       labels.push(structuredClone(args)),
     drawTris: (vertices: Float32Array) => arcs.push(new Float32Array(vertices)),
     heightAt: () => 0,

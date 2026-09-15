@@ -45,3 +45,67 @@ export interface BattlePostGradeUniforms {
 export function gradeStrengthForPreset(environmentId: CivsimEnvironmentId): number {
   return PRESET_GRADE_STRENGTH[environmentId];
 }
+
+export function postGradeUniformsFromParams(
+  params: Pick<URLSearchParams, "has" | "get">,
+): Partial<BattlePostGradeUniforms> | null {
+  const uniforms: Partial<BattlePostGradeUniforms> = {};
+  readFiniteParam(params, "grade", (value) => {
+    uniforms.strength = value;
+  });
+  readFiniteParam(params, "gradeSat", (value) => {
+    uniforms.saturationBoost = value;
+  });
+  readFiniteParam(params, "gradeContrast", (value) => {
+    uniforms.contrast = value;
+  });
+  readFiniteParam(params, "gradeSplit", (value) => {
+    uniforms.splitTone = value;
+  });
+  readFiniteParam(params, "gradeLift", (value) => {
+    uniforms.shadowLift = value;
+  });
+  return Object.keys(uniforms).length > 0 ? uniforms : null;
+}
+
+function readFiniteParam(
+  params: Pick<URLSearchParams, "has" | "get">,
+  name: string,
+  apply: (value: number) => void,
+): void {
+  if (!params.has(name)) return;
+  const value = Number(params.get(name));
+  if (Number.isFinite(value)) apply(value);
+}
+
+function finiteClamped(value: number, minValue: number, maxValue: number): number {
+  if (!Number.isFinite(value)) return minValue;
+  return Math.min(maxValue, Math.max(minValue, value));
+}
+
+export function clampBattlePostGrade(
+  uniforms: Partial<BattlePostGradeUniforms>,
+): Partial<BattlePostGradeUniforms> {
+  const out: Partial<BattlePostGradeUniforms> = {};
+  if (uniforms.strength !== undefined) out.strength = finiteClamped(uniforms.strength, 0, 1.5);
+  if (uniforms.saturationBoost !== undefined)
+    out.saturationBoost = finiteClamped(uniforms.saturationBoost, 0, 4);
+  if (uniforms.contrast !== undefined) out.contrast = finiteClamped(uniforms.contrast, 0, 0.6);
+  if (uniforms.splitTone !== undefined) out.splitTone = finiteClamped(uniforms.splitTone, 0, 1.5);
+  if (uniforms.shadowLift !== undefined)
+    out.shadowLift = finiteClamped(uniforms.shadowLift, 0, 1.5);
+  return out;
+}
+export function battlePostGrade(
+  environmentId: CivsimEnvironmentId,
+  overrides: Partial<BattlePostGradeUniforms> = {},
+): BattlePostGradeUniforms {
+  return {
+    strength: gradeStrengthForPreset(environmentId),
+    saturationBoost: GRADE_SATURATION_BOOST,
+    contrast: GRADE_CONTRAST,
+    splitTone: GRADE_SPLIT_TONE,
+    shadowLift: GRADE_SHADOW_LIFT,
+    ...clampBattlePostGrade(overrides),
+  };
+}

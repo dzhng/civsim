@@ -1,5 +1,5 @@
 import type { SimClock } from "../shared/simClock";
-import type { BattleRenderer } from "./renderer";
+import type { BattleRendererApi } from "./battleRendererApi";
 
 export class BattleFreeze {
   private pausedBeforeFreeze = false;
@@ -7,7 +7,7 @@ export class BattleFreeze {
 
   constructor(
     private clock: SimClock,
-    private renderer: BattleRenderer,
+    private renderer: BattleRendererApi,
     private syncAudioSuspension: () => void,
     private signal?: AbortSignal,
   ) {}

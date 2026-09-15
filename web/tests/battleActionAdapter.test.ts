@@ -1,3 +1,4 @@
+import type { BattleRenderer } from "../src/battle/renderer";
 // @vitest-environment node
 import { readFile } from "node:fs/promises";
 import { beforeAll, expect, test } from "vitest";
@@ -134,7 +135,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
     game.set_move_order(0, 100, 0);
     game.advance_ticks(60);
     const views = createBattleViews(game, wasm.memory);
-    const submitted: Parameters<BattleWorld["renderer"]["draw"]>[2][] = [];
+    const submitted: Parameters<BattleRenderer["draw"]>[2][] = [];
     const world = {
       game,
       memory: wasm.memory,
@@ -142,7 +143,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       camera: { zoom: 0 },
       renderer: {
         soldierAssets: { 0: bundle },
-        draw: (...args: Parameters<BattleWorld["renderer"]["draw"]>) => submitted.push(args[2]),
+        draw: (...args: Parameters<BattleRenderer["draw"]>) => submitted.push(args[2]),
       },
     } as unknown as BattleWorld;
     const presentation = {
@@ -154,7 +155,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
     const crowd = new BattleCrowd(world, presentation);
     const draw = (...args: Parameters<BattleCrowd["prepare"]>) => {
       const f = crowd.prepare(...args)!;
-      world.renderer.draw(
+      (world.renderer as unknown as Pick<BattleRenderer, "draw">).draw(
         f.positions,
         f.facings,
         f.playback,
@@ -220,7 +221,7 @@ test("production crowd preserves delayed positions across append and resets play
     const submitted: { positions: number[]; phase: number }[] = [];
     const renderer = {
       soldierAssets: { 0: bundle },
-      draw: (...args: Parameters<BattleWorld["renderer"]["draw"]>) =>
+      draw: (...args: Parameters<BattleRenderer["draw"]>) =>
         submitted.push({
           positions: Array.from(args[0]),
           phase: args[2][0].base.destination.phase,
@@ -242,7 +243,7 @@ test("production crowd preserves delayed positions across append and resets play
     const crowd = new BattleCrowd(world, presentation);
     const draw = (...args: Parameters<BattleCrowd["prepare"]>) => {
       const f = crowd.prepare(...args)!;
-      world.renderer.draw(
+      (world.renderer as unknown as Pick<BattleRenderer, "draw">).draw(
         f.positions,
         f.facings,
         f.playback,

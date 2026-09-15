@@ -34,3 +34,13 @@ snapshots retain actual requested logical bytes (including telemetry), explicitl
 not physical VRAM. Peak combined requested bytes are 1,912,350,048; unknown
 allocation count is zero. Default muted audio is retained in these functional
 runs; future quiet acceptance must explicitly enable normal audio consistently.
+
+At `069ae4f9`, raw's instrumented full run also passes all ten checks with zero
+page errors. Of 1,151 tracked primary submissions, 1,150 have complete GPU results
+and one remains unresolved at the terminal snapshot; gaps and lost events are
+zero. Logical requested bytes peak at 1,907,150,372, with zero unknown allocations.
+The raw and vgpu allocation snapshots are live startup/end observations rather
+than teardown proofs. The existing component lifetime controls own disposal
+verification. All three native backends now pass the actual Menu/full-window
+functional controls; matched quiet ranking and visual/live-fidelity acceptance
+remain separate requirements.

@@ -38,20 +38,18 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 
 Pending battle verification follow-up: full-frame hardware bronze-cardbar drift remains separate from zero-difference forest-world captures. Preserve canonical tolerances. The standing 30k scene's close zoom 24/28 requests settle at 8; correct its actual camera coverage before claiming those close-stop budgets. See the [density evidence](../assets/slice-07/battle-density/README.md).
 
-## Current lifetime acceptance gap
+## Verified production lifetime checkpoint
 
-Explicit terrain disposal and flat GPU resource counters do not prove JavaScript
-collectability. The ten-cycle journey shows growing memory; a three-cycle weak
-reference probe collects outer worlds but retains their disposed Three renderers.
-Resolve the measured retaining path before claiming stable whole-game lifetime.
-Do not substitute timestamp-map counts or disposal events for retained-size
-measurement. Diagnostic boundaries live in the production journey evidence.
+The pinned Three dependency patch removes renderer-owned disposal listeners from
+shared textures and geometry while preserving other live renderers. The existing
+lifecycle scene now checks weak-reference collection as well as disposal and
+resource counters. Ten hardware production cycles pass all 63 checks: all retired
+worlds and older renderers collect, and measured memory stays at 296–303 MB.
+Only the latest retired battle renderer remains through the shared Bloom quad
+until replacement. This is a finite ten-cycle result; full visual and performance
+acceptance above remains open.
 
-The heap now identifies shared Three texture and quad-geometry dispose listeners
-as retaining paths to retired renderers. Correct the dependency's resource-owner
-disposal, preserving simultaneous live worlds. Prefer a small reproducible patch
-of the pinned package over an application-side listener cleanup system or a
-renderer upgrade. The patch must cover the package's actually imported bundles,
-be installed through the package manager, and have a removal condition when the
-upstream version fixes the same defect. Re-run weak-reference and memory cycles,
-plus rendering and lifecycle guards; listener removal alone is not acceptance.
+[Retirement evidence](../assets/slice-15-retention/README.md) records exact heap
+paths, reports, memory samples and the separate development React Refresh catalog
+retention. No React or application cleanup workaround was added. The dependency
+patch documents its upstream removal condition and covers the imported bundles.

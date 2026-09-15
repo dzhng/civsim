@@ -107,7 +107,6 @@ export function campaignTerrainWorkerHandler(
       const data: TerrainTileData = {
         mesh: result.surface.mesh,
         domain: result.surface.domain,
-        scenery: result.scenery,
         shoreDistance: result.shoreDistance,
       };
       reply(

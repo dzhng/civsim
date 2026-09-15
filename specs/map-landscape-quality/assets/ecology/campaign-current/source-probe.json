@@ -1,0 +1,22 @@
+{
+  "elapsedMs": 1120.839999973774,
+  "count": 32000,
+  "kinds": {
+    "conifer": 16672,
+    "aspen": 7691,
+    "broadleaf": 1962,
+    "ash": 5213,
+    "bush": 462
+  },
+  "regions": [
+    {
+      "name": "alps",
+      "count": 2334
+    },
+    {
+      "name": "italy",
+      "count": 1188
+    }
+  ],
+  "waterViolations": 0
+}

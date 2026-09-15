@@ -55,14 +55,10 @@ describe("campaign landscape surface", () => {
         expect(water).toBe(0);
       }
     }
-    for (const tree of surface.scenery) {
-      expect(tree.x).toBeGreaterThan(1);
-      expect(tree.z).toBe(surface.surface.sampleRendered(tree.x, tree.y)?.position[2]);
-    }
   });
 });
 
-it("keeps overlapping relief, shore distances, normals and tree identities world-stable", () => {
+it("keeps overlapping relief, shore distances, and normals world-stable", () => {
   const source = coast();
   const a = buildCampaignLandscape(source, [0, 0], 80, 2);
   const b = buildCampaignLandscape(source, [30, 18], 80, 2);
@@ -81,8 +77,4 @@ it("keeps overlapping relief, shore distances, normals and tree identities world
     );
     expect(a.shoreDistance[k]).toBe(b.shoreDistance[q]);
   }
-  const overlap = (t: { x: number; y: number }) => t.x > -45 && t.x < 75 && t.y > -55 && t.y < 75;
-  const trees = a.scenery.filter(overlap);
-  expect(trees.length).toBeGreaterThan(0);
-  expect(trees).toEqual(b.scenery.filter(overlap));
 });

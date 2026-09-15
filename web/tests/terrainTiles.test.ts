@@ -17,7 +17,6 @@ function data(): TerrainTileData {
       triangles: 8,
     },
     domain: { ox: 0, oy: 0, columns: 3, rows: 3, cell: 1, units: "kilometers" },
-    scenery: [],
     shoreDistance: new Float32Array(9),
   };
 }

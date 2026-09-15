@@ -98,7 +98,7 @@ export async function route(ctx: LabContext) {
         terrain.peakAllocationBytes + tiles.residentPayloadBytes + coarse.shoreDistance.byteLength,
       ),
       sourceBytes: sourceBytes * 2,
-      sceneryInstances: coarse.scenery.length,
+      sceneryInstances: 0,
       sceneryRenderedBytes: 0,
       frameTimes: [...frameTimes],
       admissionFrames: [...admissionFrames],

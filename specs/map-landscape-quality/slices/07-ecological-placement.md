@@ -64,3 +64,34 @@ intermediate vegetation detail and the composed visual acceptance still remain.
 The instance data and physical scenery layer now have neutral owners, with unchanged behavior. The existing `campaign/scenery.ts` already owns species mixing, regional budgets, static city/road clearances and dynamic reservations. Reuse those policies when replacing the embedded planting loop in `campaignLandscape.ts`; do not create another clearance implementation. Candidate positions must depend on a fixed world lattice, not terrain tessellation. Sample slope/water at the candidate location, and keep rendered seating tied to the presented surface.
 
 Global candidate generation, local presentation and terrain geometry are distinct responsibilities. Prefer the existing world candidate cache and view filtering where they fit. Remove the landscape builder's redundant planting path when its callers consume the shared campaign producer.
+
+### Current campaign pass (not yet accepted)
+
+The global producer now proposes trees on a fixed 4 km lattice, queries actual
+source cover and coastal footprint, and rejects steep canonical relief sampled
+at 2 km. Coast scratch is bounded to one 128 km block with a 24 km halo; no
+whole-map height cache is introduced. Source interpolation and geographic relief
+are extracted to one owner shared by geometry and eligibility, with exact array
+equality at 2, 8 and 16 km verified before further visual changes.
+
+Existing regional budgets, species choices and static/dynamic reservations remain
+the campaign policy owner. Candidate heights are assigned by the consuming
+presentation surface: the current production producer still seats against its
+current field, and the new physical world must seat against its presented mesh.
+The embedded prototype planting path and worker scenery payload are removed. Real-region distribution is under fresh visual review; repeated residency/upload
+and fog/growth behavior pass. Whole-slice acceptance remains pending.
+
+
+The sparse first candidate and an evenly dispersed second candidate were rejected.
+Candidate selection now uses spatially coherent priority, preserving dense cores
+instead of uniformly thinning them. Source cover remains primary; moisture can
+support small groves on gentle rendered foothills. The global candidate cap is
+32,000, separate from visible scenery. Mixed broadleaf cover now connects northern
+conifer groups. The species/density policy remains in the existing campaign owner.
+
+The water source predicate excludes river centers without altering strategic
+land semantics. Fog applies the campaign entity visibility rule to scenery and
+cannot reveal it during a terrain swap. A membership-change regression exposed
+stale Three bindings after disposing/reusing geometry. Shrinking sets retain their
+capacity; growth replaces geometry identity and disposes the old buffers. The
+browser fixture exercises hiding/restoring/growth and reports no GPU errors.

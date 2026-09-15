@@ -5,13 +5,17 @@ import type {
   CampaignTerrainField,
 } from "./entityFrame";
 import { testStageScenery } from "../fixtures/campaignScenery";
-import { hash2 } from "../../../renderer-core/src/math";
+import { hash2, smoothstep } from "../../../renderer-core/src/math";
+
+import { terrainScatterCandidates } from "../terrain/scatter";
+import { campaignRelief, campaignNoise } from "../terrain/campaignRelief";
+import { buildCampaignCoast } from "../terrain/campaignCoast";
 
 const CAMPAIGN_MOUNTAIN_MIN_SCALE = 0.28;
 const CAMPAIGN_TREE_MIN_SCALE = 0.45;
 const CAMPAIGN_ROCK_MIN_SCALE = 0.45;
 const CAMPAIGN_MAX_MOUNTAINS = 3200;
-const CAMPAIGN_MAX_TREES = 7200;
+const CAMPAIGN_MAX_TREES = 32000;
 const CAMPAIGN_MAX_ROCKS = 1000;
 const CAMPAIGN_MOUNTAIN_VISUAL_SCALE = 2.25;
 const CAMPAIGN_ROCK_VISUAL_SCALE = 1.75;
@@ -60,7 +64,6 @@ export function buildCampaignSceneryCandidates(
   if (data.map.attribution === "test")
     return clearCampaignStaticScenery(data, testStageScenery(data), controlledStage);
   const mountains: ScoredSceneryInstance[] = [];
-  const trees: ScoredSceneryInstance[] = [];
   const rocks: ScoredSceneryInstance[] = [];
   for (let gy = 0; gy < field.h; gy++) {
     for (let gx = 0; gx < field.w; gx++) {
@@ -69,7 +72,6 @@ export function buildCampaignSceneryCandidates(
       const x0 = field.minX + (gx + 0.5) * field.cell;
       const y0 = field.maxY - (gy + 0.5) * field.cell;
       const rock = field.biome[i * 4 + 2] / 255;
-      const forest = field.biome[i * 4 + 1] / 255;
       const height = field.height[i] / Math.max(1, field.maxH);
       const mountainScore = height * 0.85 + rock * 0.5;
       // Thinner than before: a few deliberate massifs let the terrain relief and
@@ -124,62 +126,111 @@ export function buildCampaignSceneryCandidates(
           });
         }
       }
-      if (forest >= 0.16) {
-        const count = Math.max(1, Math.round(forest * 7.0 * (0.6 + hash2(gx, gy) * 0.9)));
-        for (let t = 0; t < count; t++) {
-          const x = x0 + (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * field.cell * 1.4;
-          const y = y0 + (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * field.cell * 1.4;
-          const heightScale = 2.0 + hash2(gx + t, gy + t) * 1.8;
-          const size = heightScale * 0.72 * CAMPAIGN_TREE_VISUAL_SCALE;
-          if (!sceneryFootprintOnLand(field, x, y, size)) continue;
-          trees.push({
-            x,
-            y,
-            z: Math.max(0, field.heightAt(x, y) - 0.05),
-            size,
-            height: heightScale * 1.1,
-            kind: campaignTreeSpecies(hash2(gx * 5 + t, gy * 11), y > temperateYKm),
-            shade: hash2(gx + t * 19, gy + t * 23),
-            yaw: hash2(gx * 13 + t, gy * 7 + t) * Math.PI * 2,
-            score: forest + hash2(gx + t * 3, gy + t * 11) * 0.08,
-            gx,
-            gy,
-          });
-        }
-      } else if (forest >= 0.09 && hash2(gx * 11 + 3, gy * 5 + 7) < 0.45) {
-        // Forest fringe: scrub instead of full trees, so woods fade into open
-        // ground through bushes rather than ending at a hard tree line.
-        const x = x0 + (hash2(gx * 9 + 2, gy * 13 + 4) - 0.5) * field.cell * 1.2;
-        const y = y0 + (hash2(gx * 5 + 6, gy * 11 + 8) - 0.5) * field.cell * 1.2;
-        const heightScale = 0.9 + hash2(gx + 7, gy + 3) * 0.6;
-        const size = heightScale * 0.85 * CAMPAIGN_TREE_VISUAL_SCALE;
-        if (sceneryFootprintOnLand(field, x, y, size)) {
-          trees.push({
-            x,
-            y,
-            z: Math.max(0, field.heightAt(x, y) - 0.05),
-            size,
-            height: heightScale,
-            kind: "bush",
-            shade: hash2(gx + 29, gy + 31),
-            yaw: hash2(gx * 17 + 1, gy * 3 + 9) * Math.PI * 2,
-            score: forest * 0.6 + hash2(gx + 13, gy + 17) * 0.08,
-            gx,
-            gy,
-          });
-        }
-      }
     }
   }
   return clearCampaignStaticScenery(
     data,
     [
       ...selectRegionalScenery(mountains, CAMPAIGN_MAX_MOUNTAINS),
-      ...selectRegionalScenery(trees, CAMPAIGN_MAX_TREES),
+      ...buildCampaignWoodlandCandidates(field, temperateYKm).map((tree) => ({
+        ...tree,
+        z: Math.max(0, field.heightAt(tree.x, tree.y) - 0.05),
+      })),
       ...selectRegionalScenery(rocks, CAMPAIGN_MAX_ROCKS),
     ],
     controlledStage,
   );
+}
+
+/** Fixed-world planting independent of the requested terrain tessellation.
+ * Generate once per source; view filtering selects from this global cache. */
+export function buildCampaignWoodlandCandidates(
+  field: Pick<
+    CampaignTerrainField,
+    "w" | "h" | "cell" | "minX" | "maxY" | "height" | "biome" | "renderLandAt" | "renderWaterAt"
+  >,
+  temperateYKm: number,
+): SceneryInstance[] {
+  const bounds = [
+    field.minX,
+    field.maxY - field.h * field.cell,
+    field.minX + field.w * field.cell,
+    field.maxY,
+  ];
+  const trees: ScoredSceneryInstance[] = [];
+  const relief = campaignRelief(field, 2);
+  const coverAt = (x: number, y: number) => {
+    const forest = relief.sample(field.biome, 4, 1, x, y) / 255;
+    const moisture = relief.sample(field.biome, 4, 0, x, y) / 255;
+    // Strategic cover supplies forest interiors; moist, gentle ground can also
+    // carry small groves between the coarse source's mountain cells.
+    const grove = smoothstep(0.4, 0.65, campaignNoise(x / 40 + 22, y / 40 - 17));
+    return Math.max(forest, moisture * 0.6 * grove);
+  };
+  // Coast scratch is local and reused for all candidates in each 128 km block.
+  const block = 128,
+    halo = 24;
+  for (let by = Math.floor(bounds[1] / block); by < Math.ceil(bounds[3] / block); by++) {
+    for (let bx = Math.floor(bounds[0] / block); bx < Math.ceil(bounds[2] / block); bx++) {
+      const x0 = bx * block,
+        y0 = by * block;
+      const candidates = [
+        ...terrainScatterCandidates(
+          [
+            Math.max(x0, bounds[0]),
+            Math.max(y0, bounds[1]),
+            Math.min(x0 + block, bounds[2]),
+            Math.min(y0 + block, bounds[3]),
+          ],
+          4,
+          41,
+        ),
+      ].filter(
+        ({ x, y }) =>
+          field.renderLandAt(x, y, 2) && !field.renderWaterAt(x, y) && coverAt(x, y) >= 0.09,
+      );
+      if (!candidates.length) continue;
+      const coast = buildCampaignCoast(
+        (x, y) => field.renderLandAt(x, y),
+        x0 - halo,
+        y0 - halo,
+        (block + halo * 2) / 2 + 1,
+        2,
+      );
+      const heightAt = (x: number, y: number) =>
+        field.renderLandAt(x, y) ? relief.heightAt(x, y, coast.inlandAt(x, y)) : 0;
+      for (const { x, y, seed } of candidates) {
+        const forest = coverAt(x, y);
+        const slope =
+          Math.hypot(
+            heightAt(x + 2, y) - heightAt(x - 2, y),
+            heightAt(x, y + 2) - heightAt(x, y - 2),
+          ) / 4;
+        if (
+          slope > 0.55 ||
+          hash2(seed, 3) > smoothstep(0.09, 0.65, forest) * (1 - smoothstep(0.25, 0.55, slope))
+        )
+          continue;
+        const fringe = forest < 0.2;
+        const height = fringe ? 0.9 + hash2(seed, 4) * 0.6 : 4 + hash2(seed, 4) * 2;
+        const size = height * (fringe ? 0.85 : 0.72) * CAMPAIGN_TREE_VISUAL_SCALE;
+        if (!field.renderLandAt(x, y, size * 0.5)) continue;
+        trees.push({
+          x,
+          y,
+          size,
+          height: height * (fringe ? 1 : 1.1),
+          kind: fringe ? "bush" : campaignTreeSpecies(hash2(seed, 5), y > temperateYKm),
+          shade: hash2(seed, 6),
+          yaw: hash2(seed, 7) * Math.PI * 2,
+          score: campaignNoise(x / 50 + 6, y / 50 + 3),
+          gx: Math.floor((x - field.minX) / field.cell),
+          gy: Math.floor((field.maxY - y) / field.cell),
+        });
+      }
+    }
+  }
+  return selectRegionalScenery(trees, CAMPAIGN_MAX_TREES);
 }
 
 // Deterministic species pick per biome band: boreal forests run conifer-led
@@ -187,13 +238,14 @@ export function buildCampaignSceneryCandidates(
 // minority — variety within one muted register, not a per-cell monoculture.
 function campaignTreeSpecies(roll: number, boreal: boolean): SceneryInstance["kind"] {
   if (boreal) {
-    if (roll < 0.6) return "conifer";
+    if (roll < 0.4) return "conifer";
+    if (roll < 0.7) return "broadleaf";
     if (roll < 0.85) return "aspen";
     return "ash";
   }
-  if (roll < 0.2) return "conifer";
-  if (roll < 0.55) return "broadleaf";
-  if (roll < 0.8) return "ash";
+  if (roll < 0.15) return "conifer";
+  if (roll < 0.65) return "broadleaf";
+  if (roll < 0.85) return "ash";
   return "aspen";
 }
 
@@ -205,10 +257,7 @@ type ScoredSceneryInstance = SceneryInstance & {
 
 const CAMPAIGN_SCENERY_REGION_CELLS = 24;
 
-function selectRegionalScenery(
-  items: ScoredSceneryInstance[],
-  limit: number,
-): SceneryInstance[] {
+function selectRegionalScenery(items: ScoredSceneryInstance[], limit: number): SceneryInstance[] {
   if (items.length <= limit) return items.map(toSceneryInstance);
   const buckets = new Map<string, ScoredSceneryInstance[]>();
   for (const item of items) {
@@ -346,11 +395,7 @@ function sceneryMinScale(item: SceneryInstance) {
   return CAMPAIGN_TREE_MIN_SCALE;
 }
 
-function citySceneryClearance(
-  item: SceneryInstance,
-  tier: number,
-  controlledStage: boolean,
-) {
+function citySceneryClearance(item: SceneryInstance, tier: number, controlledStage: boolean) {
   const fixtureScale = controlledStage ? 1.82 : 1;
   if (controlledStage) return (tier >= 3 ? 12.0 : 10.5) * fixtureScale;
   // Mountains get a wide apron so no city ends up embedded in the massif.

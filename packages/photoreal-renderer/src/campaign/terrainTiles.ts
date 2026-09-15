@@ -1,4 +1,3 @@
-import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
 import type { LandscapeMesh, SurfaceDomain } from "../../../game-renderer/src/terrain/surface";
 
 /** Keys identify immutable world regions and sampling levels for this scheduler's lifetime. */
@@ -13,7 +12,6 @@ export interface TerrainTileRequest {
 export interface TerrainTileData {
   mesh: LandscapeMesh;
   domain: SurfaceDomain;
-  scenery: SceneryInstance[];
   shoreDistance: Float32Array;
 }
 

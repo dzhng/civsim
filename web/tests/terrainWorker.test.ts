@@ -70,7 +70,7 @@ describe("campaign terrain worker transport", () => {
     expect(original.renderMask.landAt(5, 0)).toBe(true);
   });
 
-  it("sends source once, transfers outputs, and reproduces direct mesh/shore/scenery bytes", async () => {
+  it("sends source once, transfers outputs, and reproduces direct mesh and shore bytes", async () => {
     const original = source();
     const expected = buildCampaignLandscape(
       campaignLandscapeSource(snapshotCampaignLandscape(original)),
@@ -93,7 +93,6 @@ describe("campaign terrain worker transport", () => {
       expect(result.mesh.triangles).toBe(expected.surface.mesh.triangles);
       expect(result.domain).toEqual(expected.surface.domain);
       expect(Array.from(result.shoreDistance)).toEqual(Array.from(expected.shoreDistance));
-      expect(result.scenery).toEqual(expected.scenery);
     }
     expect(messages).toHaveLength(3);
     expect(messages.slice(1)).toEqual(

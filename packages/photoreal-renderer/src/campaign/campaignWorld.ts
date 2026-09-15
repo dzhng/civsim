@@ -1,3 +1,5 @@
+import { PhotorealScenery } from "../landscape/sceneryLayer";
+import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
 import { PhotorealTiledTerrain, type TerrainTileSurface } from "./tiledTerrain";
 import * as THREE from "three/webgpu";
 import { attribute, varying, vec3, vec4, mix, uniform, modelNormalMatrix } from "three/tsl";
@@ -6,7 +8,11 @@ import { applyCamera3d } from "../cameraBridge";
 import { applyCivsimEnvironment } from "../environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../game-renderer/src/environment/environment";
 import { RENDER_ORDER } from "../renderOrder";
-import { createLandscapeFrameUniforms, linearAlbedo, viewNormalNode } from "../landscape/shaderNodes";
+import {
+  createLandscapeFrameUniforms,
+  linearAlbedo,
+  viewNormalNode,
+} from "../landscape/shaderNodes";
 import { PhotorealStandardLayer } from "../landscape/standardLayer";
 import { SELECTION_GREEN } from "../../../game-renderer/src/overlays";
 import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing";
@@ -43,6 +49,10 @@ export class PhotorealCampaignWorld {
   readonly camera = new THREE.PerspectiveCamera();
   private readonly frame = createLandscapeFrameUniforms();
   private readonly standards: PhotorealStandardLayer;
+  private readonly scenery: PhotorealScenery;
+  private sceneryCandidates: readonly SceneryInstance[] = [];
+  private seatedScenery: SceneryInstance[] = [];
+  private sceneryUploads = 0;
   private readonly objects: { input: CampaignWorldObject; mesh: THREE.Mesh }[] = [];
   private readonly meshes: THREE.Mesh[] = [];
   private readonly raycaster = new THREE.Raycaster();
@@ -64,6 +74,7 @@ export class PhotorealCampaignWorld {
     readonly world: PhotorealWorld,
     readonly composition: CampaignComposition,
   ) {
+    this.scenery = new PhotorealScenery(world.scene);
     const environment = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
       aerialObserver: vec3(this.frame.focus, 0),
     });
@@ -154,6 +165,7 @@ export class PhotorealCampaignWorld {
    * picking all switch to the same presented surface in one frame. */
   installTerrain(tile: TerrainTileSurface, evictedKeys: readonly string[]) {
     this.terrain.install(tile, evictedKeys);
+    this.seatScenery();
     const surface = this.terrain.surface;
     for (const { input, mesh } of this.objects)
       mesh.position.z = surface.sampleRendered(input.x, input.y)!.position[2];
@@ -167,9 +179,38 @@ export class PhotorealCampaignWorld {
     this.updateSelection();
   }
 
+  /** Candidate ownership remains with campaign policy; this world owns seating. */
+  setScenery(candidates: readonly SceneryInstance[]) {
+    if (
+      candidates === this.sceneryCandidates ||
+      (candidates.length === this.sceneryCandidates.length &&
+        candidates.every((item, i) => item === this.sceneryCandidates[i]))
+    )
+      return;
+    this.sceneryCandidates = candidates;
+    this.seatScenery(true);
+  }
+  private seatScenery(force = false) {
+    const seated = this.sceneryCandidates.flatMap((item) => {
+      if (this.fogEnabled && this.composition.fogAt(item.x, item.y) >= 0.5) return [];
+      const hit = this.terrain.surface.sampleRendered(item.x, item.y);
+      return hit ? [{ ...item, z: hit.position[2] }] : [];
+    });
+    if (
+      !force &&
+      seated.length === this.seatedScenery.length &&
+      seated.every((item, i) => item.z === this.seatedScenery[i].z)
+    )
+      return;
+    this.seatedScenery = seated;
+    this.scenery.upload(seated);
+    this.sceneryUploads++;
+  }
+
   setFog(enabled: boolean) {
     this.fogEnabled = enabled;
     this.fogAmount.value = enabled ? 1 : 0;
+    this.seatScenery(true);
     for (const { input, mesh } of this.objects)
       mesh.visible = !enabled || this.composition.fogAt(input.x, input.y) < 0.5;
     if (this.selected && !this.objects.find((o) => o.input.id === this.selected)?.mesh.visible)
@@ -246,6 +287,7 @@ export class PhotorealCampaignWorld {
           selected: input.id === this.selected,
         })),
     );
+    this.scenery.prepareRender(this.camera, height);
     this.world.setTime(0);
     this.world.render(this.camera);
   }
@@ -319,9 +361,11 @@ export class PhotorealCampaignWorld {
       surfaceRevision: this.terrain.stats().revision,
       terrain: this.terrain.stats(),
       standards: this.standards.stats(),
+      scenery: { ...this.scenery.stats(), uploads: this.sceneryUploads },
     };
   }
   dispose() {
+    this.scenery.dispose();
     this.terrain.dispose();
     this.standards.dispose();
     for (const mesh of this.meshes) {

@@ -1,3 +1,4 @@
+import type { SceneryInstance } from "@packages/game-renderer/src/terrain/scenery";
 import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
 import { createRenderedSurface } from "@packages/game-renderer/src/terrain/surface";
 import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
@@ -8,6 +9,7 @@ import { type LabContext, publish } from "../labShell";
 
 export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
+  const vegetation = ctx.path === "/renderer/landscape-vegetation";
   const size = 81,
     cell = 2,
     vertices = new Float32Array(size * size * 10),
@@ -112,7 +114,19 @@ export async function route(ctx: LabContext) {
     ],
     fogAt: (x: number) => Math.max(0, Math.min(1, (x - 10) / 15)),
   };
+  if (vegetation) composition.objects = [];
+  const scenery: SceneryInstance[] = vegetation
+    ? [
+        { x: 35, y: -25, size: 4, height: 4, kind: "broadleaf" },
+        { x: 25, y: -38, size: 3, height: 4, kind: "conifer" },
+        { x: 42, y: -40, size: 3, height: 3.5, kind: "ash" },
+        { x: 55, y: -24, size: 3, height: 4, kind: "aspen" },
+        { x: -30, y: -25, size: 4, height: 3, kind: "broadleaf" },
+        { x: -40, y: -40, size: 2, height: 1, kind: "bush" },
+      ]
+    : [];
   let world = await PhotorealCampaignWorld.create(ctx.canvas, composition);
+  if (vegetation) world.setScenery(scenery);
   const labels = document.createElement("div");
   labels.style.cssText = "position:absolute;inset:0;pointer-events:none";
   ctx.canvas.parentElement!.append(labels);
@@ -176,6 +190,7 @@ export async function route(ctx: LabContext) {
       world.dispose();
       return;
     }
+    if (vegetation) world.setScenery(scenery);
     world.setFog(fogEnabled);
     generation++;
     reset.disabled = false;
@@ -232,8 +247,21 @@ export async function route(ctx: LabContext) {
     draw();
     requestAnimationFrame(draw);
   };
-  Object.assign(window, { __campaignComposition: { installDetail } });
-  if (ctx.path === "/renderer/campaign-tile-anchors") {
+  Object.assign(window, {
+    __campaignComposition: {
+      installDetail,
+      draw,
+      resubmitScenery: () => {
+        world.setScenery([...scenery]);
+        draw();
+      },
+      growScenery: () => {
+        world.setScenery([...scenery, { x: -55, y: -25, size: 4, height: 4, kind: "broadleaf" }]);
+        draw();
+      },
+    },
+  });
+  if (ctx.path === "/renderer/campaign-tile-anchors" || vegetation) {
     for (const [label, raised] of [
       ["Load raised detail", true],
       ["Evict raised detail", false],

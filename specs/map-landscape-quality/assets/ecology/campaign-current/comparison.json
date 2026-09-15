@@ -1,0 +1,132 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-14T22:59:55.069Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 3,
+  "worstPair": "landscape-surface",
+  "results": [
+    {
+      "id": "landscape-surface",
+      "current": "throwaway/woodland-before/landscape-surface.png",
+      "candidate": "throwaway/woodland-after/landscape-surface.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.27542,
+      "grayscale": {
+        "mae": 11.49293,
+        "rmse": 23.74488,
+        "diffRatio16": 0.251,
+        "diffRatio32": 0.16632,
+        "diffRatio64": 0.03976,
+        "pixelmatchRatio": 0.22242
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.71055,
+        "terrainLikeRatioCandidate": 0.60984,
+        "avgLuminanceCurrent": 126.01859,
+        "avgLuminanceCandidate": 117.03943,
+        "avgLuminanceDelta": -8.97916,
+        "edgeEnergyCurrent": 0.04271,
+        "edgeEnergyCandidate": 0.07614,
+        "edgeEnergyRatio": 1.78249,
+        "edgeDiffRatio32": 0.14606
+      },
+      "artifacts": {
+        "sideBySide": "woodland-comparison/landscape-surface-side-by-side.png",
+        "currentGray": "woodland-comparison/landscape-surface-current-gray.png",
+        "candidateGray": "woodland-comparison/landscape-surface-candidate-gray.png",
+        "absDiff": "woodland-comparison/landscape-surface-absdiff.png",
+        "pixelmatch": "woodland-comparison/landscape-surface-pixelmatch.png",
+        "currentEdges": "woodland-comparison/landscape-surface-current-edges.png",
+        "candidateEdges": "woodland-comparison/landscape-surface-candidate-edges.png",
+        "edgeDiff": "woodland-comparison/landscape-surface-edge-diff.png"
+      }
+    },
+    {
+      "id": "landscape-alps",
+      "current": "throwaway/woodland-before/landscape-alps.png",
+      "candidate": "throwaway/woodland-after/landscape-alps.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.19095,
+      "grayscale": {
+        "mae": 11.77837,
+        "rmse": 21.76668,
+        "diffRatio16": 0.29438,
+        "diffRatio32": 0.13472,
+        "diffRatio64": 0.02471,
+        "pixelmatchRatio": 0.25145
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.90869,
+        "terrainLikeRatioCandidate": 0.91767,
+        "avgLuminanceCurrent": 108.21409,
+        "avgLuminanceCandidate": 112.98659,
+        "avgLuminanceDelta": 4.77249,
+        "edgeEnergyCurrent": 0.12426,
+        "edgeEnergyCandidate": 0.10558,
+        "edgeEnergyRatio": 0.84967,
+        "edgeDiffRatio32": 0.18272
+      },
+      "artifacts": {
+        "sideBySide": "woodland-comparison/landscape-alps-side-by-side.png",
+        "currentGray": "woodland-comparison/landscape-alps-current-gray.png",
+        "candidateGray": "woodland-comparison/landscape-alps-candidate-gray.png",
+        "absDiff": "woodland-comparison/landscape-alps-absdiff.png",
+        "pixelmatch": "woodland-comparison/landscape-alps-pixelmatch.png",
+        "currentEdges": "woodland-comparison/landscape-alps-current-edges.png",
+        "candidateEdges": "woodland-comparison/landscape-alps-candidate-edges.png",
+        "edgeDiff": "woodland-comparison/landscape-alps-edge-diff.png"
+      }
+    },
+    {
+      "id": "landscape-italy",
+      "current": "throwaway/woodland-before/landscape-italy.png",
+      "candidate": "throwaway/woodland-after/landscape-italy.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.11638,
+      "grayscale": {
+        "mae": 7.13513,
+        "rmse": 17.17323,
+        "diffRatio16": 0.17694,
+        "diffRatio32": 0.08202,
+        "diffRatio64": 0.01666,
+        "pixelmatchRatio": 0.15072
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.61858,
+        "terrainLikeRatioCandidate": 0.62187,
+        "avgLuminanceCurrent": 113.85193,
+        "avgLuminanceCandidate": 116.24458,
+        "avgLuminanceDelta": 2.39266,
+        "edgeEnergyCurrent": 0.07345,
+        "edgeEnergyCandidate": 0.0656,
+        "edgeEnergyRatio": 0.89304,
+        "edgeDiffRatio32": 0.10206
+      },
+      "artifacts": {
+        "sideBySide": "woodland-comparison/landscape-italy-side-by-side.png",
+        "currentGray": "woodland-comparison/landscape-italy-current-gray.png",
+        "candidateGray": "woodland-comparison/landscape-italy-candidate-gray.png",
+        "absDiff": "woodland-comparison/landscape-italy-absdiff.png",
+        "pixelmatch": "woodland-comparison/landscape-italy-pixelmatch.png",
+        "currentEdges": "woodland-comparison/landscape-italy-current-edges.png",
+        "candidateEdges": "woodland-comparison/landscape-italy-candidate-edges.png",
+        "edgeDiff": "woodland-comparison/landscape-italy-edge-diff.png"
+      }
+    }
+  ]
+}

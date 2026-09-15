@@ -1,10 +1,9 @@
-import type { SceneryInstance } from "./scenery";
 import { buildCampaignCoast, campaignCoastSize } from "./campaignCoast";
 import { campaignRelief, campaignNoise } from "./campaignRelief";
 import type { CampaignTerrainField } from "../campaign/entityFrame";
 
 import { createRenderedSurface, type LandscapeMesh } from "./surface";
-import { hash2, smoothstep } from "../../../renderer-core/src/math";
+import { smoothstep } from "../../../renderer-core/src/math";
 
 let nextRevision = 0;
 const coastRange = 18;
@@ -75,7 +74,6 @@ export function buildCampaignLandscape(
     tint = new Float32Array(size * size);
   const indices = new Uint32Array((size - 1) ** 2 * 6);
   const shoreDistance = new Float32Array(size * size);
-  const scenery: SceneryInstance[] = [];
   for (let j = 0; j < size; j++)
     for (let i = 0; i < size; i++) {
       const k = j * size + i,
@@ -102,35 +100,6 @@ export function buildCampaignLandscape(
       surfaceColor.set(color, k * 3);
       if (i < size - 1 && j < size - 1)
         indices.set([k, k + size, k + 1, k + 1, k + size, k + size + 1], (j * (size - 1) + i) * 6);
-      const forest = sample(source.biome, 4, 1, x, y) / 255;
-      const groves = smoothstep(0.38, 0.7, campaignNoise(x / 29 + 8, y / 29 + 3));
-      const suitable =
-        (0.012 + forest * 0.055) * groves * (1 - smoothstep(0.25, 0.75, Math.hypot(dx, dy)));
-      // Identity comes from the world lattice, never the loaded window's indices.
-      const wi = Math.round(x / cell),
-        wj = Math.round(y / cell);
-      if (wet < 0.01 && sand < 0.4 && hash2(wi * 7, wj * 13) < suitable) {
-        const tx = x + (hash2(wi + 3, wj) - 0.5) * cell,
-          ty = y + (hash2(wi, wj + 5) - 0.5) * cell;
-        if (
-          tx < ox ||
-          ty < oy ||
-          tx >= ox + (size - 1) * cell ||
-          ty >= oy + (size - 1) * cell ||
-          !source.renderLandAt(tx, ty, 1)
-        )
-          continue;
-        scenery.push({
-          x: tx,
-          y: ty,
-          z: 0,
-          kind: "broadleaf",
-          size: 7 + hash2(wi, wj) * 3,
-          height: 5 + hash2(wj, wi) * 2.5,
-          yaw: hash2(wi + 1, wj) * Math.PI * 2,
-          shade: 0.5,
-        });
-      }
     }
   const mesh: LandscapeMesh = {
     vertices,
@@ -144,8 +113,7 @@ export function buildCampaignLandscape(
     { ox, oy, columns: size, rows: size, cell, units: "kilometers" },
     `campaign:${nextRevision++}`,
   );
-  for (const tree of scenery) tree.z = surface.sampleRendered(tree.x, tree.y)!.position[2];
-  return { surface, scenery, shoreDistance };
+  return { surface, shoreDistance };
 }
 
 function mix(a: number, b: number, t: number) {

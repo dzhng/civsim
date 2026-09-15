@@ -47,8 +47,7 @@ interface SceneryBucket {
   sourceIndices: number[];
 }
 
-/** The battle scenery (trees/rocks from featuresToBattleScenery), instanced on
- *  the shared prop meshes with sceneryPass shading expressed in TSL. */
+/** Shared landscape props with bounded instance storage and camera-driven detail. */
 export class PhotorealScenery {
   private buckets: SceneryBucket[] = [];
   private instances: readonly SceneryInstance[] = [];
@@ -83,7 +82,7 @@ export class PhotorealScenery {
           sceneryGeometry(models, level === "leaves" && !detail),
           this.material,
         );
-        opaque.name = `battle-scenery-${kind}-${level}`;
+        opaque.name = `landscape-scenery-${kind}-${level}`;
         opaque.renderOrder = RENDER_ORDER.worldOpaque;
         opaque.castShadow = true;
         opaque.receiveShadow = true;
@@ -154,15 +153,21 @@ export class PhotorealScenery {
         return included;
       });
       bucket.count = list.length;
-      const geo = bucket.opaque.geometry as THREE.InstancedBufferGeometry;
+      let geo = bucket.opaque.geometry as THREE.InstancedBufferGeometry;
       const capacity = this.instances.filter((inst) => inst.kind === bucket.kind).length;
       let pose = geo.getAttribute("instPose") as THREE.InstancedBufferAttribute | undefined;
       let style = geo.getAttribute("instStyle") as THREE.InstancedBufferAttribute | undefined;
       let shape = geo.getAttribute("instShape") as THREE.InstancedBufferAttribute | undefined;
-      if (!pose || !style || !shape || pose.count !== capacity) {
-        // Geometry disposal releases retired attribute buffers before a new
-        // source upload replaces them. Camera-only LOD reuses the allocation.
-        if (pose) geo.dispose();
+      if (!pose || !style || !shape || pose.count < capacity) {
+        // Replacing geometry invalidates Three's cached render bindings. Reusing
+        // a disposed geometry can leave those bindings pointing at freed buffers.
+        if (pose) {
+          const previous = geo;
+          geo = previous.clone();
+          geo.setAttribute("normal", geo.getAttribute("sNormal"));
+          bucket.opaque.geometry = geo;
+          previous.dispose();
+        }
         pose = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
         style = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
         shape = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1);

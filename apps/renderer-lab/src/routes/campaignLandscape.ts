@@ -11,7 +11,11 @@ import { buildCampaignLandscape } from "@packages/game-renderer/src/terrain/camp
 import { createSurfaceView } from "@packages/game-renderer/src/terrain/surface";
 import { LANDSCAPE_REGIONS, coastalRidgeFixture } from "./landscapeFixtures";
 import { chartCamera3d, screenRay } from "@packages/renderer-core/src/camera3d";
-import { TerrainField } from "../../../../web/src/campaign/terrain";
+import { TerrainField, TEMPERATE_Y_KM } from "../../../../web/src/campaign/terrain";
+import {
+  buildCampaignSceneryCandidates,
+  buildCampaignWoodlandCandidates,
+} from "@packages/game-renderer/src/campaign/scenery";
 import { loadCampaignData } from "../../../../web/src/campaign/data";
 import { type LabContext, numberParam, publish, reportTable } from "../labShell";
 
@@ -24,9 +28,8 @@ export async function route(ctx: LabContext) {
     LANDSCAPE_REGIONS[
       isFixture ? "fixture" : ctx.params.get("region") === "italy" ? "italy" : "alps"
     ];
-  const field = isFixture
-    ? coastalRidgeFixture()
-    : new TerrainField((await loadCampaignData()).data);
+  const data = isFixture ? null : (await loadCampaignData()).data;
+  const field = data ? new TerrainField(data) : coastalRidgeFixture();
   const center: [number, number] = [...preset.center];
   center[0] = numberParam(ctx.params, "x", center[0]);
   center[1] = numberParam(ctx.params, "y", center[1]);
@@ -39,7 +42,14 @@ export async function route(ctx: LabContext) {
     landscapes[0].surface,
     landscapes.slice(1).map((s) => s.surface),
   );
-  const trees = landscapes.flatMap((s) => s.scenery);
+  const candidates = data
+    ? buildCampaignSceneryCandidates(data, field, false, TEMPERATE_Y_KM)
+    : buildCampaignWoodlandCandidates(field, TEMPERATE_Y_KM);
+  const trees = candidates.flatMap((tree) => {
+    if (tree.kind === "mountain") return [];
+    const hit = surface.sampleRendered(tree.x, tree.y);
+    return hit ? [{ ...tree, z: hit.position[2] }] : [];
+  });
   const terrainTriangles = landscapes.reduce((sum, s) => sum + s.surface.mesh.triangles, 0);
   const world = await PhotorealWorld.create(ctx.canvas);
   const frame = createLandscapeFrameUniforms();

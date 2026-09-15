@@ -44,7 +44,7 @@ export async function createVgpuTerrain(
       [sdf?.width ?? 1, sdf?.height ?? 1],
     );
     const linear = sampler(gpu, { minFilter: "linear", magFilter: "linear" });
-    const shaders = terrainShaders(environment.shader, options, mode, false);
+    const shaders = terrainShaders(environment.shader, options, mode, false, environment.shadows);
     const groundGeometry = geometry(gpu, {
       buffers: [
         {

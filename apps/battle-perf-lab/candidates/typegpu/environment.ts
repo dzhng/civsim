@@ -1,3 +1,4 @@
+import { SunSampling, shadowVisibility, type createTypegpuSunShadow } from "./shadow";
 import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d } from "typegpu";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
@@ -19,12 +20,22 @@ const Environment = d.struct({
   sunRadiance: d.vec4f,
   settings: d.vec4f,
 });
-export const environmentLayout = tgpu.bindGroupLayout({
+const environmentEntries = {
   data: { uniform: Environment, visibility: ["vertex", "fragment"] },
   sky: { texture: d.texture2d(), visibility: ["fragment"] },
   pmrem: { texture: d.texture2d(), visibility: ["fragment"] },
   dfg: { texture: d.texture2d(), visibility: ["fragment"] },
   linear: { sampler: "filtering", visibility: ["fragment"] },
+} satisfies Parameters<typeof tgpu.bindGroupLayout>[0];
+export const environmentLayout = tgpu.bindGroupLayout(environmentEntries);
+const shadowEnvironmentLayout = tgpu.bindGroupLayout({
+  ...environmentEntries,
+  sun: { uniform: SunSampling, visibility: ["fragment"] },
+  sunDepth: { texture: d.textureDepth2d(), visibility: ["fragment"] },
+  sunCompare: { sampler: "comparison", visibility: ["fragment"] },
+});
+const casterEnvironmentLayout = tgpu.bindGroupLayout({
+  data: { uniform: Environment, visibility: ["vertex"] },
 });
 const standardPbr = tgpu
   .fn(
@@ -58,6 +69,7 @@ export async function createTypegpuEnvironment(
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
   backgroundSamples: 1 | 4 = 1,
+  shadow?: ReturnType<typeof createTypegpuSunShadow>,
 ) {
   const root = tgpu.initFromDevice({ device }),
     owned: { destroy(): void }[] = [];
@@ -81,13 +93,43 @@ export async function createTypegpuEnvironment(
     const data = root.createBuffer(Environment).$usage("uniform");
     owned.push(data);
     const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" });
-    const group = root.createBindGroup(environmentLayout, {
+    const resources = {
       data,
       sky: sky.lut.createView(),
       pmrem: pmrem.texture.createView(),
       dfg: dfg.createView(),
       linear,
-    });
+    };
+    const layout = shadow ? shadowEnvironmentLayout : environmentLayout;
+    const group = shadow
+      ? root.createBindGroup(shadowEnvironmentLayout, {
+          ...resources,
+          sun: shadow.state,
+          sunDepth: shadow.depth.createView(),
+          sunCompare: shadow.comparison,
+        })
+      : root.createBindGroup(environmentLayout, resources);
+    const casterGroup = root.createBindGroup(casterEnvironmentLayout, { data });
+    const sampleSunShadow = shadow
+      ? tgpu.fn(
+          [d.vec3f, d.vec3f, d.vec2f],
+          d.f32,
+        )((world, normal, pixel) => {
+          "use gpu";
+          return shadowVisibility(
+            shadowEnvironmentLayout.$.sunDepth,
+            shadowEnvironmentLayout.$.sunCompare,
+            shadowEnvironmentLayout.$.sun.vp,
+            shadowEnvironmentLayout.$.sun.settings,
+            world,
+            normal,
+            pixel,
+          );
+        })
+      : tgpu.fn(
+          [d.vec3f, d.vec3f, d.vec2f],
+          d.f32,
+        )("(world:vec3f,normal:vec3f,pixel:vec2f)->f32{return 1.0;}");
     const spec = photorealEnvironment(env),
       functions = environmentFunctions(diagnostic);
     const applyAerial = tgpu
@@ -139,19 +181,24 @@ export async function createTypegpuEnvironment(
         position,
         shadow,
         eye,
-        environmentLayout.$.data.observer.xyz,
-        environmentLayout.$.data.sunDirection.xyz,
-        environmentLayout.$.data.sunRadiance.xyz,
-        environmentLayout.$.data.settings.y,
-        environmentLayout.$.data.settings.x,
-        environmentLayout.$.sky,
-        environmentLayout.$.pmrem,
-        environmentLayout.$.dfg,
-        environmentLayout.$.linear,
+        layout.$.data.observer.xyz,
+        layout.$.data.sunDirection.xyz,
+        layout.$.data.sunRadiance.xyz,
+        layout.$.data.settings.y,
+        layout.$.data.settings.x,
+        layout.$.sky,
+        layout.$.pmrem,
+        layout.$.dfg,
+        layout.$.linear,
       );
     });
     return {
       group,
+      layout,
+      casterLayout: casterEnvironmentLayout,
+      casterGroup,
+      shadows: Boolean(shadow),
+      sampleSunShadow,
       shade,
       geometryRoughnessFromView: fromView,
       sky,

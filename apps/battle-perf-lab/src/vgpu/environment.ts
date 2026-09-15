@@ -1,3 +1,5 @@
+import { shadowPcfWgsl, shadowVisibilityWgsl } from "../shaders/shadow";
+import type { createVgpuSunShadow } from "./shadow";
 import { texture, sampler, type Gpu } from "vgpu";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
@@ -18,6 +20,7 @@ export async function createVgpuEnvironment(
   diagnostic?: WorldSurfaceDiagnostic,
   groupIndex = 2,
   backgroundSamples: 1 | 4 = 1,
+  shadow?: ReturnType<typeof createVgpuSunShadow>,
 ) {
   const owned: { dispose(): void }[] = [];
   let disposed = false;
@@ -49,6 +52,7 @@ export async function createVgpuEnvironment(
     owned.push(data);
     const linear = sampler(gpu, { minFilter: "linear", magFilter: "linear" });
     const spec = photorealEnvironment(env);
+    const casterShader = `struct Environment {worldToView:mat4x4f,observer:vec4f,sunDirection:vec4f,sunRadiance:vec4f,settings:vec4f}; @group(${groupIndex}) @binding(0) var<uniform> environment:Environment;`;
     const shader = `
 struct Environment {worldToView:mat4x4f,observer:vec4f,sunDirection:vec4f,sunRadiance:vec4f,settings:vec4f};
 @group(${groupIndex}) @binding(0) var<uniform> environment:Environment;
@@ -56,6 +60,17 @@ struct Environment {worldToView:mat4x4f,observer:vec4f,sunDirection:vec4f,sunRad
 @group(${groupIndex}) @binding(2) var environmentPmrem:texture_2d<f32>;
 @group(${groupIndex}) @binding(3) var environmentDfg:texture_2d<f32>;
 @group(${groupIndex}) @binding(4) var environmentSampler:sampler;
+${
+  shadow
+    ? `struct SunShadow {matrix:mat4x4f,settings:vec4f};
+@group(${groupIndex}) @binding(5) var<uniform> sunShadow:SunShadow;
+@group(${groupIndex}) @binding(6) var sunDepth:texture_depth_2d;
+@group(${groupIndex}) @binding(7) var sunCompare:sampler_comparison;
+fn shadowPcf${shadowPcfWgsl}
+fn shadowVisibility${shadowVisibilityWgsl}
+fn sampleSunShadow(world:vec3f,normal:vec3f,pixel:vec2f)->f32{return shadowVisibility(sunDepth,sunCompare,sunShadow.matrix,sunShadow.settings,world,normal,pixel);}`
+    : ""
+}
 ${cubeUvWGSL}
 fn standardPbr${standardPbrWgsl}
 fn equirectUv${equirectUvWgsl}
@@ -69,12 +84,18 @@ return shadeEnvironment(base,emissive,roughness,geomRoughness,metal,ao,normal,po
 }`;
     return {
       shader,
+      shadows: Boolean(shadow),
+      casterShader,
+      casterBindings: { environment: data },
       bindings: {
         environment: data,
         environmentSky: sky.lut,
         environmentPmrem: pmrem.texture.createView(),
         environmentDfg: dfg,
         environmentSampler: linear,
+        ...(shadow
+          ? { sunShadow: shadow.state, sunDepth: shadow.depth, sunCompare: shadow.comparison }
+          : {}),
       },
       sky,
       pmrem,

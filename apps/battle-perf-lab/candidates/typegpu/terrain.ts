@@ -5,7 +5,7 @@ import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/b
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
 import type { TerrainMaterialOptions } from "../../src/shaders/terrainMaterial";
 import { createTerrainSurface, terrainLinear } from "./terrainFunctions";
-import { environmentLayout, type TypegpuEnvironment } from "./environment";
+import { type TypegpuEnvironment } from "./environment";
 
 import { Camera, typegpuCameraLayout as cameraLayout } from "./camera";
 const terrainLayout = tgpu
@@ -31,6 +31,7 @@ const Varyings = {
   viewNormalGeometry: d.vec3f,
 };
 const FragmentIn = {
+  clip: d.builtin.position,
   position: d.vec3f,
   normal: d.vec3f,
   color: d.vec3f,
@@ -84,6 +85,8 @@ export async function createTypegpuTerrain(
     earth.write(typegpuTextureBytes(sdf?.data ?? new Uint8Array([0, 0])));
     const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" }),
       group = root.createBindGroup(terrainLayout, { state, earth: earth.createView(), linear });
+    const environmentLayout = environment.layout;
+    const sampleSunShadow = environment.sampleSunShadow;
     const surface = createTerrainSurface(options);
     const geometryRoughnessFromView = environment.geometryRoughnessFromView;
     const shade = environment.shade;
@@ -132,7 +135,7 @@ export async function createTypegpuTerrain(
         v.normal,
         v.position,
         cameraLayout.$.cam.eye,
-        terrainLayout.$.state.y,
+        terrainLayout.$.state.y * sampleSunShadow(v.position, std.normalize(v.normal), v.clip.xy),
         v.viewNormalGeometry,
       );
     });
@@ -240,7 +243,7 @@ export async function createTypegpuTerrain(
           v.normal,
           v.position,
           cameraLayout.$.cam.eye,
-          terrainLayout.$.state.y,
+          terrainLayout.$.state.y * sampleSunShadow(v.position, std.normalize(v.normal), v.clip.xy),
           v.viewNormalGeometry,
         );
       });

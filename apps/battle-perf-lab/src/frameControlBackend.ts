@@ -1,3 +1,5 @@
+import { createTypegpuSunShadow } from "../candidates/typegpu/shadow";
+import { createVgpuSunShadow } from "./vgpu/shadow";
 import { tgpu } from "typegpu";
 import { initFromDevice, target } from "vgpu";
 import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appearanceBundle";
@@ -26,6 +28,7 @@ export async function createFrameControlBackend(
   width: number,
   height: number,
   samples: 1 | 4,
+  shadowRect?: readonly [number, number, number, number],
 ) {
   const release: (() => void)[] = [];
   let disposed = false;
@@ -38,7 +41,12 @@ export async function createFrameControlBackend(
     if (backend === "typegpu") {
       const root = tgpu.initFromDevice({ device });
       release.push(() => root.destroy());
-      const environment = await createTypegpuEnvironment(device, env, undefined, samples);
+      const shadow = shadowRect ? createTypegpuSunShadow(device, env) : undefined;
+      if (shadow) {
+        release.push(shadow.dispose);
+        shadow.setWorldRect(shadowRect!);
+      }
+      const environment = await createTypegpuEnvironment(device, env, undefined, samples, shadow);
       release.push(environment.dispose);
       const frame = await TypegpuBattleFrame.create(
         device,
@@ -85,7 +93,10 @@ export async function createFrameControlBackend(
         async render(bloom: boolean) {
           frame.render(
             root.unwrap(output).createView(),
-            (encoder) => crowd.precompute(encoder),
+            (encoder) => {
+              crowd.precompute(root.unwrap(encoder));
+              shadow?.encode(encoder, (pass) => crowd.draw(pass, "shadow", shadow.cameraGroup));
+            },
             (pass) => {
               terrain.draw(pass);
               crowd.draw(pass);
@@ -98,7 +109,12 @@ export async function createFrameControlBackend(
     }
     const gpu = await initFromDevice(device);
     release.push(() => gpu.dispose());
-    const environment = await createVgpuEnvironment(gpu, env, undefined, 3, samples);
+    const shadow = shadowRect ? createVgpuSunShadow(gpu, env) : undefined;
+    if (shadow) {
+      release.push(shadow.dispose);
+      shadow.setWorldRect(shadowRect!);
+    }
+    const environment = await createVgpuEnvironment(gpu, env, undefined, 3, samples, shadow);
     release.push(environment.dispose);
     const frame = await VgpuBattleFrame.create(
       gpu,
@@ -143,6 +159,7 @@ export async function createFrameControlBackend(
             crowd.draw(pass);
           },
           bloom,
+          (current) => shadow?.encode(current, (pass) => crowd.draw(pass, "shadow", shadow.camera)),
         );
       },
       dispose,

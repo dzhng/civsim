@@ -35,7 +35,10 @@ export const materialLayout = tgpu
 const unitDirection = tgpu.fn([d.vec3f, d.vec3f], d.vec3f)(soldierUnitDirectionWgsl);
 const linearAlbedo = tgpu.fn([d.vec3f], d.vec3f)(linearAlbedoWgsl);
 const factionAccent = tgpu.fn([d.f32], d.vec3f)(factionAccentWgsl).$uses({ linearAlbedo });
-export function crowdVertexAlgorithm(bones: number) {
+export function crowdVertexAlgorithm(
+  bones: number,
+  layout: TypegpuEnvironment["layout"] | TypegpuEnvironment["casterLayout"] = environmentLayout,
+) {
   const projectWorld = tgpu
     .fn(
       [d.vec3f],
@@ -72,7 +75,7 @@ export function crowdVertexAlgorithm(bones: number) {
         return typegpuPaletteLayout.$.palette;
       },
       get environment() {
-        return environmentLayout.$.data;
+        return layout.$.data;
       },
       projectWorld,
       unitDirection,
@@ -105,7 +108,7 @@ export function crowdFragmentAlgorithm(
       [SoldierVertex, d.bool],
       d.vec4f,
     )(
-      `(v:VertexOut,front:bool)->vec4f{${soldierSurfacePreludeWgsl(images)}return shadeWorldSurface(clamp(albedo,vec3f(0),vec3f(1)),vec3f(0),properties.r*mix(1.0,orm.g,flags.b),geometryRoughnessFromView(v.geometryNormalView),properties.g*mix(1.0,orm.b,flags.b),mix(1.0,orm.r,flags.a*properties.b)*v.properties.z,n,v.world,1.0);}`,
+      `(v:VertexOut,front:bool)->vec4f{${soldierSurfacePreludeWgsl(images)}return shadeWorldSurface(clamp(albedo,vec3f(0),vec3f(1)),vec3f(0),properties.r*mix(1.0,orm.g,flags.b),geometryRoughnessFromView(v.geometryNormalView),properties.g*mix(1.0,orm.b,flags.b),mix(1.0,orm.r,flags.a*properties.b)*v.properties.z,n,v.world,${env.shadows ? "sampleSunShadow(v.world,n,v.position.xy)" : "1.0"});}`,
     )
     .$uses({
       VertexOut: SoldierVertex,
@@ -133,6 +136,7 @@ export function crowdFragmentAlgorithm(
       unitDirection,
       factionAccent,
       shadeWorldSurface,
+      sampleSunShadow: env.sampleSunShadow,
       geometryRoughnessFromView: env.geometryRoughnessFromView,
     });
 }

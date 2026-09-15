@@ -145,7 +145,6 @@ export async function createTypegpuCrowd(
       const id = Number(idText),
         rig = groups.findIndex((g) => id in g),
         group = await prepare(asset.surface),
-        vertexAlgorithm = crowdVertexAlgorithm(palettes[rig].bones),
         fragmentAlgorithm = crowdFragmentAlgorithm(
           {
             baseColor: !!asset.surface.textures.baseColor,
@@ -154,39 +153,42 @@ export async function createTypegpuCrowd(
           },
           env,
         );
-      const vertex = tgpu.vertexFn({
-        in: { ...Vertex.propTypes, ...Instance.propTypes },
-        out: varyings,
-      })((v) => {
-        "use gpu";
-        const result = vertexAlgorithm(
-          v.position,
-          v.normal,
-          v.color,
-          v.joints,
-          v.weights,
-          v.uv,
-          v.tangent,
-          v.material,
-          v.factionMask,
-          v.inst0,
-          v.inst1,
-          v.inst2,
-        );
-        return {
-          position: result.position,
-          world: result.world,
-          normal: result.normal,
-          tangent: result.tangent,
-          uv: result.uv,
-          color: result.color,
-          material: result.material,
-          factionMask: result.factionMask,
-          properties: result.properties,
-          tangentSign: result.tangentSign,
-          geometryNormalView: result.geometryNormalView,
-        };
-      });
+      const makeVertex = (vertexAlgorithm: ReturnType<typeof crowdVertexAlgorithm>) =>
+        tgpu.vertexFn({
+          in: { ...Vertex.propTypes, ...Instance.propTypes },
+          out: varyings,
+        })((v) => {
+          "use gpu";
+          const result = vertexAlgorithm(
+            v.position,
+            v.normal,
+            v.color,
+            v.joints,
+            v.weights,
+            v.uv,
+            v.tangent,
+            v.material,
+            v.factionMask,
+            v.inst0,
+            v.inst1,
+            v.inst2,
+          );
+          return {
+            position: result.position,
+            world: result.world,
+            normal: result.normal,
+            tangent: result.tangent,
+            uv: result.uv,
+            color: result.color,
+            material: result.material,
+            factionMask: result.factionMask,
+            properties: result.properties,
+            tangentSign: result.tangentSign,
+            geometryNormalView: result.geometryNormalView,
+          };
+        });
+      const vertex = makeVertex(crowdVertexAlgorithm(palettes[rig].bones, env.layout));
+      const casterVertex = makeVertex(crowdVertexAlgorithm(palettes[rig].bones, env.casterLayout));
       const fragment = tgpu.fragmentFn({
         in: { ...varyings, front: d.builtin.frontFacing },
         out: d.vec4f,
@@ -225,7 +227,7 @@ export async function createTypegpuCrowd(
           targets: { format: "rgba16float" },
           multisample: { count: samples },
         }),
-        depth = root.createRenderPipeline({ ...state });
+        depth = root.createRenderPipeline({ ...state, vertex: casterVertex });
       await Promise.all([beauty.initAsync(), depth.initAsync()]);
       for (let lod = 0; lod < 3; lod++) {
         const mesh = asset.tiers[lod],
@@ -295,8 +297,7 @@ export async function createTypegpuCrowd(
                 depth
                   .with(cameraGroup)
                   .with(palettes[rig].bindGroup)
-                  .with(group)
-                  .with(env.group)
+                  .with(env.casterGroup)
                   .with(vertexLayout, vertices)
                   .with(instanceLayout, instances)
                   .withIndexBuffer(indices)

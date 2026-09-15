@@ -1,4 +1,5 @@
 import { tgpu, d, type TgpuRenderPass } from "typegpu";
+import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../src/shaders/shadow";
 import { Camera, typegpuCameraLayout } from "./camera";
 import { shadowFrameData } from "../../src/shadowData";
 import { SINGLE_MAP_SIZE } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
@@ -9,6 +10,16 @@ export const sunSamplingLayout = tgpu.bindGroupLayout({
   depth: { texture: d.textureDepth2d(), visibility: ["fragment"] },
   compare: { sampler: "comparison", visibility: ["fragment"] },
 });
+const shadowPcf = tgpu.fn(
+  [d.textureDepth2d(), d.comparisonSampler(), d.vec2f, d.f32, d.vec2f, d.f32],
+  d.f32,
+)(shadowPcfWgsl);
+export const shadowVisibility = tgpu
+  .fn(
+    [d.textureDepth2d(), d.comparisonSampler(), d.mat4x4f, d.vec4f, d.vec3f, d.vec3f, d.vec2f],
+    d.f32,
+  )(shadowVisibilityWgsl)
+  .$uses({ shadowPcf });
 /** Owns depth/camera/sampling; caster pass deliberately binds no sampled depth. */
 export function createTypegpuSunShadow(device: GPUDevice, environment: CivsimEnvironment) {
   const root = tgpu.initFromDevice({ device });

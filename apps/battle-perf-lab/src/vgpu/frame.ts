@@ -1,4 +1,4 @@
-import { frame, target, type Gpu, type FramePass, type Target } from "vgpu";
+import { frame, target, type Gpu, type FramePass, type Frame, type Target } from "vgpu";
 import type { VgpuEnvironment } from "./environment";
 import { createVgpuPost } from "./post";
 import { destroyVgpuTarget } from "./targetLifetime";
@@ -57,11 +57,13 @@ export class VgpuBattleFrame {
     prepare: () => void,
     draw: (pass: FramePass) => void,
     bloom: boolean,
+    beforeWorld?: (current: Frame) => void,
   ) {
     this.assertLive();
     prepare();
     const r = this.resources;
     await frame(this.gpu, (current) => {
+      beforeWorld?.(current);
       current.pass({ target: r.target, clear: [0, 0, 0, 1], clearDepth: 0 }, (pass) => {
         this.environment.sky.drawBackground(pass);
         draw(pass);

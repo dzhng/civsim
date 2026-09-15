@@ -131,11 +131,12 @@ export async function createVgpuCrowd(
           const shader =
             soldierShader(
               palettes[rig].bones,
-              env.shader,
+              audience === "shadow" ? env.casterShader : env.shader,
               images,
               undefined,
               true,
               audience === "shadow",
+              env.shadows,
             ) +
             (audience === "shadow"
               ? "@fragment fn shadowFragment()->@location(0) vec4f {return vec4f(0);}"
@@ -182,7 +183,12 @@ export async function createVgpuCrowd(
               depth: { write: true, compare: "greater-equal" },
               cull: "none",
               ...(audience === "shadow" ? { writeMask: [] } : {}),
-              set: { cam: camera, palette: palettes[rig].buffer, ...material, ...env.bindings },
+              set: {
+                cam: camera,
+                palette: palettes[rig].buffer,
+                ...material,
+                ...(audience === "shadow" ? env.casterBindings : env.bindings),
+              },
             });
           let render = makeDraw();
           const target = {

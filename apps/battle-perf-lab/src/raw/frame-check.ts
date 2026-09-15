@@ -88,8 +88,6 @@ async function run() {
     const scenery = new URL(location.href).searchParams.has("scenery");
     if (scenery && backend !== "raw")
       throw Error("Scenery control not implemented for this backend yet");
-    if (shadows && backend !== "raw")
-      throw Error("Composed shadows not implemented for this backend yet");
     const env = CIVSIM_ENVIRONMENTS.golden;
     const world = own(
       await PhotorealWorld.create(document.createElement("canvas"), { antialias: samples === 4 }),
@@ -105,7 +103,8 @@ async function run() {
     if (!["raw", "typegpu", "vgpu"].includes(backend)) throw new Error("Unknown frame backend");
     const candidateTextures = trackTextureLifetime(device);
     releases.push(candidateTextures.restore);
-    const nativeShadow = shadows ? own(new RawSunShadow(device, env)) : undefined;
+    const nativeShadow =
+      shadows && backend === "raw" ? own(new RawSunShadow(device, env)) : undefined;
     const nativeEnv =
       backend === "raw"
         ? own(await createRawEnvironment(device, env, samples, nativeShadow))
@@ -194,6 +193,7 @@ async function run() {
               width,
               height,
               samples,
+              shadows ? data.rect : undefined,
             ),
           );
     const nativeGround =

@@ -64,14 +64,14 @@ export class TypegpuBattleFrame {
   }
   render(
     output: GPUTextureView,
-    prepare: (encoder: GPUCommandEncoder) => void,
+    prepare: (encoder: ReturnType<(typeof this.root)["~unstable"]["createCommandEncoder"]>) => void,
     draw: (pass: TgpuRenderPass, camera: TgpuBindGroup) => void,
     bloom: boolean,
   ) {
     this.assertLive();
     const encoder = this.root["~unstable"].createCommandEncoder(),
       raw = this.root.unwrap(encoder);
-    prepare(raw);
+    prepare(encoder);
     const r = this.resources;
     this.environment.sky.encodeBackground(raw, this.root.unwrap(r.color).createView());
     const pass = encoder.beginRenderPass({

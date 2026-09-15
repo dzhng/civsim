@@ -1,22 +1,16 @@
 import { tgpu, d, std } from "typegpu";
 import { initFromDevice, geometry, draw, target, frame } from "vgpu";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
-import { createTypegpuSunShadow, sunSamplingLayout } from "../candidates/typegpu/shadow";
+import {
+  createTypegpuSunShadow,
+  sunSamplingLayout,
+  shadowVisibility as visibility,
+} from "../candidates/typegpu/shadow";
 import { createVgpuSunShadow } from "./vgpu/shadow";
 import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
 import { shadowPcfWgsl, shadowVisibilityWgsl } from "./shaders/shadow";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";
 const vertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
-const pcf = tgpu.fn(
-  [d.textureDepth2d(), d.comparisonSampler(), d.vec2f, d.f32, d.vec2f, d.f32],
-  d.f32,
-)(shadowPcfWgsl);
-const visibility = tgpu
-  .fn(
-    [d.textureDepth2d(), d.comparisonSampler(), d.mat4x4f, d.vec4f, d.vec3f, d.vec3f, d.vec2f],
-    d.f32,
-  )(shadowVisibilityWgsl)
-  .$uses({ shadowPcf: pcf });
 const vertexWgsl = `struct Camera {vp:mat4x4f}; @group(0) @binding(0) var<uniform> camera:Camera;
 struct V {@builtin(position) clip:vec4f,@location(0) world:vec3f};
 @vertex fn vertex(@location(0) p:vec3f)->V {return V(camera.vp*vec4f(p,1),p);}`;

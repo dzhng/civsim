@@ -80,3 +80,11 @@ resource lifetime and the existing allocation budget; no parallel classifier or
 permanent probe switch. Judge crest and grass-shelf crops against the retained
 material before adopting anything. This causal audit identifies an unconsumed
 source signal, not proof that using it will meet the visual target.
+
+The source-coverage seam must also match the coarse material interpolation at
+new fine vertices along a coarse/fine boundary. Equal source samples at shared
+vertices alone are insufficient: a 2km fine edge over a 32km coarse cell can
+otherwise differ by 0.75 in rock coverage. Exercise a source band crossing that
+edge and compare against the coarse triangle's barycentric coverage. Keep
+original source arrays unchanged while the existing morph owner constructs its
+boundary response; account for any additional mutable arrays and uploads.

@@ -29,9 +29,13 @@ export default {
     outDir: fileURLToPath(new URL('../../../../throwaway/native-replay/dist', import.meta.url)),
     emptyOutDir: true,
     lib: {
-      entry: fileURLToPath(new URL('./replayControl.ts', import.meta.url)),
+      entry: {
+        control: fileURLToPath(new URL('./replayControl.ts', import.meta.url)),
+        scene: fileURLToPath(new URL('./battleScene.ts', import.meta.url)),
+        publications: provider,
+      },
       formats: ['es' as const],
-      fileName: 'replay-control',
+      fileName: (_format: string, entryName: string) => `${entryName}.mjs`,
     },
   },
 };

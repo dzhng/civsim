@@ -19,3 +19,10 @@ contact hash `9928381812590497427`, live simulation, all camera phases/extremes,
 new primary submissions, matching run clock/interval totals, visible result
 actions, and full JSON export. Both browser runs report zero page errors. The
 complete raw measurement is retained without a performance acceptance claim.
+
+At `9dcde73d`, TypeGPU's instrumented Menu flow and full five-minute run pass all
+checks with zero page errors. GPU collection tracks 1,366 primary submissions:
+1,365 complete pose/grass/shadow/main/post query results, one unresolved at the
+terminal snapshot, zero cursor gaps and zero lost events. Query helper copies do
+not replace the recorded render identities. Host load was shared; these values
+verify measurement correlation and do not establish comparative performance.

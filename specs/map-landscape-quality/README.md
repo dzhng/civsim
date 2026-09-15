@@ -6,15 +6,38 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`. Production terrain, battle forest density, categorical cover boundaries, signed shoreline and startup settlement are integrated. The ten-cycle production lifecycle now passes: all retired worlds and older renderers collect, with memory bounded at 296–303 MB; see [retirement evidence](assets/slice-15-retention/README.md). Development React Refresh retention is separately diagnosed, not a production leak claim.
+Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`.
+The shared world, production adapter, source mountain band, rock-prop removal,
+card packing and verifier inputs are integrated. The screen UI output correction
+is now integrated too: all544 frontend tests, typecheck and production build
+pass; independent code review reports no actionable defects. Matched production
+controls show brighter glyphs and standards with exact repeats and unchanged
+non-label regional/Alpine pixels. The unchanged regional label floor still fails
+because visible glyph coverage is sparse; do not lower it. See
+[production UI evidence](assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md).
 
-The remaining real-map/menu journeys pass all 26 checks on hardware; [journey evidence](assets/slice-14-production/journeys.md) records the scope. The corrected lowland fixture and reference-grounded hue oracle are integrated, with ten reviewed captures repeating exactly. Seventeen remaining legacy campaign captures are under verification. The close-camera test now reaches distinct 24 m/10 m views; the 10 m view misses the unchanged 33 ms p95 limit at 33.74 ms, so performance remains open.
+**Current pickup:** finish merged UI output/lifecycle verification, then review
+Claude's painted-label bounds correction (it detects the real Alpine halo
+collision) and adopt the shared rock-height texture in both production maps.
+The texture prototype improves three real-terrain views with exact repeats;
+rounded landforms, stepped grass edges and ecological richness remain open.
+Claude is implementing its shared resource lifetime in
+`/Users/david/dev/game-rock-texture-probe`. Label work is isolated in
+`/Users/david/dev/game-campaign-label-painted-bounds`. Keep matching controls
+until their results are integrated; retired spike worktrees have been removed.
 
-Campaign rock-prop removal and the refined source mountain band are integrated. The band uses one world-space byte texture, preserving lower green ground while adding high-range rock continuity; three production material views repeat exactly and the asymmetric GPU sampler/filter/disposal probe passes. All538 frontend tests and typecheck pass. The source-band controls deliberately retain identical old props on both sides; the main-worktree composition is captured with973→0 rocks and identical remaining scenery. Fresh review confirms continuous ground but rejects overall reference-quality acceptance. Rock detail and ecological richness remain below the target. Claude is testing one generated rock-height bitmap in `/Users/david/dev/game-rock-texture-probe`; it is not adopted.
+Then rerun canonical campaign acceptance with the shared natural-ground/cart
+verifiers, the controlled-fixture battle handoff, and battle acceptance. Profile
+the closest performance view: the actual10m camera misses the unchanged33ms p95
+limit at33.74ms. Earlier ten-cycle production lifecycle passes at296–303MB, but
+that proof predates the added UI attachment and must be renewed. The26 hardware
+map/menu journey checks pass; corrected lowland fixtures have ten reviewed,
+exact-repeat captures. Owning slice evidence carries the detailed limits.
 
-Campaign acceptance also exposed real label dimming and a 200 px Tibur card displacement. The label-fog control improves outlines but still fails the unchanged label threshold; Claude is correcting proper ungraded screen output in `/Users/david/dev/game-screen-ui-output`: the first default-MSAA proof restored ink but overwrote every non-UI pixel, so it was rejected. Matched production control5211 is ready from its exact base, with no conflicting card/material changes. The card-ordering change is integrated after three exact browser repeats and all original collision/visibility checks; it corrects Tibur’s 199.684 px cascade while retaining all 15 cards. Preserve the label threshold and all-own-card visibility policy. The shared yellow-olive classifier and seated-cart verification owner are integrated with ten focused tests and typecheck passing; their browser scenes still need to run. Then rerun affected canonical captures and controlled-fixture handoff, finish battle acceptance and profile the closest performance view.
-
-Preserve existing mountain relief: source-crest, signed-profile and natural/apron elevation alternatives were rejected. No elevation asset or runtime loader was adopted. Pursue the remaining material/ecological/composed defects, followed by whole-game hardware acceptance. Do not reapply the stale shadow stash/patch. Read owning evidence and update this handoff before ending a pass.
+Preserve existing mountain relief: source-crest, signed-profile and natural/apron
+elevation alternatives were rejected; no elevation asset/loader was adopted.
+Do not reapply the stale shadow patch. Material, ecological and composed-frame
+quality remain below the reference, followed by whole-game hardware acceptance.
 
 The user has authorized implementation, renderer migration, refactoring and as many reversible spikes as useful. New implementation delegations use Claude Opus through the repository claude skill, per the user’s latest instruction; existing verification assignments may finish. Make these decisions without permission questions. No compatibility backend or save migration is requested. Preserve gameplay and existing save formats; this is a presentation change. Human review is a chance to steer, not a wait for approval.
 

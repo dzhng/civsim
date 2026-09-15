@@ -172,3 +172,27 @@ before/after visual evidence.
   exposure to the band’s upper part preserves lower green ground better than
   treating the whole range as bare stone. Frozen production comparisons favor
   it, while high gullies and face detail still need work.
+
+
+## Screen output adoption
+
+- **Sound, medium confidence — one resolved display attachment for world and UI.**
+  When a map renders, the normal world grade first writes display-colored pixels
+  to a texture. Labels then blend their authored colors onto those pixels, and
+  one final copy presents the result. Drawing UI directly to the canvas selected
+  a different multisample attachment in the pinned engine and erased the world.
+  The spec required ungraded ink but did not choose the attachment layout. This
+  adds one drawing-buffer-sized texture and one copy draw; the engine also keeps
+  its canvas multisample attachment. The choice preserves world pixels without
+  inverse-color hacks, but its added memory and timing still require acceptance.
+- **Sound, high confidence — screen membership owns composition, visibility does not.**
+  Hiding labels at a different zoom leaves their composition attachment in place;
+  it does not switch targets and accumulate separate engine caches. Worlds with
+  no screen members keep the original draw path. The existing physical camera
+  serves both scenes, so this creates no second projection or frame clock.
+- **Sound, high confidence — restore both engine target selectors before copying.**
+  After drawing the graded world, Three leaves the display texture selected as
+  its active target. Restoring only the output target would make the next draw
+  sample its own destination. The phase restores both the active and output
+  targets, including on a thrown draw, before presenting. This follows the
+  pinned renderer's actual state contract and keeps callers from inheriting it.

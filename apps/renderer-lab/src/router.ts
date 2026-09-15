@@ -9,6 +9,7 @@ import { route as routeLandscapeTreeLod } from "./routes/landscapeTreeLod";
 import { gpuFailureMessage } from "@packages/renderer-core/src/device";
 import { route as routePhotorealCrowd } from "./routes/photorealCrowd";
 import { route as routePhotorealPbr } from "./routes/photorealPbr";
+import { route as routeScreenUiOutput } from "./routes/screenUiOutput";
 import { route as routePhotorealBattle } from "./routes/photorealBattle";
 import { route as routeBattleModels } from "./routes/battleModels";
 import { route as routeBlenderReference } from "./routes/blenderReference";
@@ -83,6 +84,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/card-bar": routeCardBar,
   // The photoreal ladder uses three.js WebGPU + TSL on the camera3d spine.
   "/renderer/photoreal-pbr": routePhotorealPbr,
+  "/renderer/screen-ui-output": routeScreenUiOutput,
   "/renderer/photoreal-crowd": routePhotorealCrowd,
   "/renderer/photoreal-battle": routePhotorealBattle,
   "/renderer/battle-models": routeBattleModels,

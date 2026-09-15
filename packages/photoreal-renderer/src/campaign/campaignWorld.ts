@@ -227,8 +227,8 @@ export class PhotorealCampaignWorld {
     this.territoryTexture.needsUpdate = true;
     this.scenery = new PhotorealScenery(world.scene);
     this.cities = new CampaignCityLayer(world.scene);
-    this.labels = new CampaignLabelLayer(world.scene);
-    this.markers = new CampaignMarkerLayer(world.scene);
+    this.labels = new CampaignLabelLayer(world.screenUi);
+    this.markers = new CampaignMarkerLayer(world.screenUi);
     const environment = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
       aerialObserver: vec3(this.frame.focus, 0),
     });
@@ -734,6 +734,7 @@ export class PhotorealCampaignWorld {
       })),
       labels: this.labels.stats(),
       markers: this.markers.stats(),
+      screenUi: this.world.screenUi.stats(),
       visibilityRevision: this.visibilityRevision,
       selected: this.selected,
       fog: this.fogEnabled,

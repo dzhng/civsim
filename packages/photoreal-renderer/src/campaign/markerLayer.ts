@@ -5,9 +5,11 @@ import {
   type CampaignMarker,
 } from "../../../game-renderer/src/campaign/marker";
 import { linearAlbedo } from "../landscape/shaderNodes";
+import type { ScreenUiPhase } from "../post/screenUiPhase";
 import { RENDER_ORDER } from "../renderOrder";
 
-/** Existing overview flags stay screen-sized while their anchors follow terrain. */
+/** Existing overview flags stay screen-sized while their anchors follow terrain;
+ *  like the labels they are members of the ungraded screen phase. */
 export class CampaignMarkerLayer {
   private readonly geometry = new THREE.BufferGeometry();
   private readonly material = new THREE.MeshBasicNodeMaterial();
@@ -15,23 +17,24 @@ export class CampaignMarkerLayer {
   private count = 0;
   private key = "";
 
-  constructor(private readonly scene: THREE.Scene) {
+  constructor(private readonly ui: ScreenUiPhase) {
     const color = wgslFn(CAMPAIGN_MARKER_COLOR_WGSL)(
       attribute<"vec2">("markerLocal", "vec2"),
       attribute<"vec3">("faction", "vec3"),
       attribute<"float">("selected", "float"),
     ) as THREE.Node<"vec4">;
     this.material.vertexNode = vec4(attribute<"vec3">("position", "vec3"), 1);
-    this.material.fragmentNode = vec4(linearAlbedo(color.rgb), color.a);
+    // Authored faction colour → working space → the phase's display encode, so
+    // the flag lands on the canvas as the colour the faction table names.
+    this.material.fragmentNode = ui.output(vec4(linearAlbedo(color.rgb), color.a));
     this.material.transparent = true;
     this.material.side = THREE.DoubleSide;
     this.material.forceSinglePass = true;
     this.material.depthTest = this.material.depthWrite = false;
-    this.material.toneMapped = false;
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.readout - 1;
     this.mesh.visible = false;
-    scene.add(this.mesh);
+    ui.add(this.mesh);
   }
 
   update(
@@ -82,7 +85,7 @@ export class CampaignMarkerLayer {
     return { markers: this.count };
   }
   dispose() {
-    this.scene.remove(this.mesh);
+    this.ui.remove(this.mesh);
     this.geometry.dispose();
     this.material.dispose();
   }

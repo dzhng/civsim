@@ -26,11 +26,11 @@ in TypeScript.
   `renderer-core` owns the one real 3D perspective camera (`camera3d`:
   view/projection matrices, reverse-Z `depth32float` engine-wide, ray-cast
   picking) and the GPU contracts every pass obeys. `photoreal-renderer` is the
-  production battle world — three.js WebGPU + TSL behind `BattleRenderer`'s
-  unchanged API. `game-renderer` holds the terrain/scenery data pipeline both
-  worlds sample, the environment presets (`CIVSIM_ENVIRONMENTS`), and the
-  bespoke WGSL passes that still render the campaign (and the renderer lab)
-  during the [shared landscape migration](specs/map-landscape-quality/README.md). The conversion rationale and
+  production battle and campaign worlds, sharing three.js WebGPU, TSL materials
+  and frame composition. `game-renderer` owns the terrain/scenery data pipeline
+  both worlds sample and the environment presets (`CIVSIM_ENVIRONMENTS`).
+  Remaining legacy passes and final visual acceptance are tracked in the
+  [shared landscape migration](specs/map-landscape-quality/README.md). The conversion rationale and
   the in-flight ladder live in
   [specs/done/3d-perspective-renderer/README.md](specs/done/3d-perspective-renderer/README.md).
 - `web` — Vite + TypeScript shell (routes, input, HUD, wasm glue); the

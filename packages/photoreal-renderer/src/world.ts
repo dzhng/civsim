@@ -1,7 +1,9 @@
 // PhotorealWorld — the ONE owner of the three.js WebGPU substrate for the
 // photoreal ladder. One
-// WebGPURenderer + one Scene per route, driven by a manual rAF loop (never
-// setAnimationLoop) and an OWNED time uniform.
+// WebGPURenderer + one world Scene per route, driven by a manual rAF loop
+// (never setAnimationLoop) and an OWNED time uniform. A frame is the graded
+// world followed by the ungraded screen phase (post/screenUiPhase) over that
+// same renderer, canvas, time and frame.
 //
 // Determinism rule (encoded here, enforced forever): the TSL `time` node is
 // BANNED in this package and everything built on it. All animation keys off
@@ -10,6 +12,7 @@
 import * as THREE from "three/webgpu";
 import { uniform } from "three/tsl";
 import type { CivsimEnvironmentId } from "../../game-renderer/src/environment/environment";
+import { ScreenUiPhase } from "./post/screenUiPhase";
 
 // The ONE tone-map operator, engine-wide. Applied
 // by the renderer's output — or, when a post chain is installed, by three's
@@ -52,6 +55,10 @@ interface PhotorealWorldStats {
 export class PhotorealWorld {
   readonly renderer: THREE.WebGPURenderer;
   readonly scene: THREE.Scene;
+  /** The ungraded screen-space UI phase, blended onto the world's display
+   *  pixels after the tone map. Empty until a route adds a member, and an empty
+   *  phase owns nothing and submits nothing — the world frame is unchanged. */
+  readonly screenUi: ScreenUiPhase;
   /** The one time uniform every animated TSL material in this world reads. */
   readonly uTime = uniform(0);
   /** Optional post-processing chain; when set, render() routes the
@@ -80,6 +87,7 @@ export class PhotorealWorld {
   private constructor(renderer: THREE.WebGPURenderer, scene: THREE.Scene) {
     this.renderer = renderer;
     this.scene = scene;
+    this.screenUi = new ScreenUiPhase(renderer);
   }
 
   static async create(
@@ -152,8 +160,10 @@ export class PhotorealWorld {
 
   render(camera: THREE.Camera): void {
     if (this.disposed) return;
-    if (this.post) this.post.render(this.scene, camera);
-    else this.renderer.render(this.scene, camera);
+    this.screenUi.compose(camera, () => {
+      if (this.post) this.post.render(this.scene, camera);
+      else this.renderer.render(this.scene, camera);
+    });
     this.lastDrawCalls = this.renderer.info.render.drawCalls;
     this.lastTriangles = this.renderer.info.render.triangles;
     this.pollGpuTime();
@@ -225,6 +235,7 @@ export class PhotorealWorld {
     this.disposed = true;
     this.environmentDisposer?.();
     this.environmentDisposer = null;
+    this.screenUi.dispose();
     const context = (this.renderer.backend as unknown as { context?: GPUCanvasContext }).context;
     context?.unconfigure?.();
     // Three destroys query buffers in dispose(), even while mapAsync is pending.

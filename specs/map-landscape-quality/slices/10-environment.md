@@ -104,3 +104,11 @@ passes exact opaque color, translucent blending, non-UI pixel preservation and
 an explicit rendered repeat. Both renderer target selectors must be restored
 before the final copy. Its owned and implicit MSAA cost is recorded; matched
 production UI, lifecycle and hardware checks remain before full acceptance.
+
+The corrected phase is integrated after the
+[matched production replay](../assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md).
+It preserves the existing source colors, camera and label placement. Regional
+bright-pixel coverage remains below the unchanged floor even with restored ink;
+that is an open typography/coverage contract, not permission to distort grading.
+The added attachment must pass merged lifecycle and DPR/performance checks before
+whole-game acceptance. Battle currently contributes no screen-phase members.

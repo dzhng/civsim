@@ -9,9 +9,12 @@ import type {
   CampaignLabelProjection,
 } from "../../../game-renderer/src/campaign/labelLayout";
 import type { CameraSnapshot } from "../../../renderer-core/src/cameraUniform";
+import type { ScreenUiPhase } from "../post/screenUiPhase";
 import { RENDER_ORDER } from "../renderOrder";
 
-/** Screen glyphs share the world's canvas, but deliberately do not test terrain depth. */
+/** Screen glyphs share the world's canvas and its frame, but not its depth
+ *  buffer, its aerial fog or its grade: they belong to the ungraded screen
+ *  phase, so the atlas ink reaches the canvas as it was authored. */
 export class CampaignLabelLayer {
   private readonly frame = new CampaignLabelFrame();
   private readonly geometry = new THREE.BufferGeometry();
@@ -20,19 +23,19 @@ export class CampaignLabelLayer {
   private atlas = new THREE.DataTexture(new Uint8Array(4), 1, 1);
   private readonly sample = texture(this.atlas);
 
-  constructor(private readonly scene: THREE.Scene) {
+  constructor(private readonly ui: ScreenUiPhase) {
     this.material.vertexNode = vec4(attribute<"vec3">("position", "vec3"), 1);
-    this.material.fragmentNode = this.sample;
+    // Decode the atlas, then encode directly for display-space blending.
+    this.material.fragmentNode = ui.output(this.sample);
     this.material.side = THREE.DoubleSide;
     this.material.forceSinglePass = true;
     this.material.transparent = true;
     this.material.depthTest = false;
     this.material.depthWrite = false;
-    this.material.toneMapped = false;
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.readout;
     this.mesh.visible = false;
-    scene.add(this.mesh);
+    ui.add(this.mesh);
   }
 
   update(
@@ -78,7 +81,7 @@ export class CampaignLabelLayer {
   }
 
   dispose() {
-    this.scene.remove(this.mesh);
+    this.ui.remove(this.mesh);
     this.geometry.dispose();
     this.material.dispose();
     this.atlas.dispose();

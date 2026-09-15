@@ -40,5 +40,15 @@ added. Existing world shadow/output passes remain.
 
 The mechanism passes six focused state/lifetime tests and frontend typecheck.
 Production label/marker, full lifecycle, DPR and performance acceptance remain
-separate. The corrected implementation is still isolated pending the matched
-production replay; these are proof artifacts, not adopted canonical baselines.
+separate. The corrected implementation is integrated after the matched production replay
+linked from slice10. These mechanism images are evidence, not canonical baselines.
+
+
+The integrated mechanism also passes on Apple Metal3 through hardware Chrome,
+with all opaque/translucent/world-preservation/cost checks and an explicit
+rendered repeat passing. `hardware-report.json` records the actual reported
+adapter for all four captures. This verifies the output mechanism on that
+adapter at DPR1; it does not measure performance or retired-resource collection.
+
+The [merged production frames](merged-production/README.md) isolate the same
+output change on the accepted source-band landscape.

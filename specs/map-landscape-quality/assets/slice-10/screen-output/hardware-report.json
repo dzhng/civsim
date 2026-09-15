@@ -1,0 +1,79 @@
+{
+  "target": "http://127.0.0.1:5186",
+  "checks": [
+    {
+      "name": "the three runs frame the same canvas and the same swatch rects",
+      "ok": true,
+      "detail": "{\"width\":970,\"height\":758,\"rects\":[{\"name\":\"label-ink\",\"srgb\":[248,244,237],\"alpha\":1,\"x\":169,\"y\":277,\"width\":140,\"height\":90},{\"name\":\"white\",\"srgb\":[255,255,255],\"alpha\":1,\"x\":333,\"y\":277,\"width\":140,\"height\":90},{\"name\":\"mid-grey\",\"srgb\":[128,128,128],\"alpha\":1,\"x\":497,\"y\":277,\"width\":140,\"height\":90},{\"name\":\"faction-red\",\"srgb\":[178,58,48],\"alpha\":1,\"x\":661,\"y\":277,\"width\":140,\"height\":90},{\"name\":\"label-ink-half\",\"srgb\":[248,244,237],\"alpha\":0.5,\"x\":169,\"y\":391,\"width\":140,\"height\":90},{\"name\":\"white-quarter\",\"srgb\":[255,255,255],\"alpha\":0.25,\"x\":333,\"y\":391,\"width\":140,\"height\":90},{\"name\":\"shadow-half\",\"srgb\":[0,0,0],\"alpha\":0.5,\"x\":497,\"y\":391,\"width\":140,\"height\":90},{\"name\":\"faction-red-three-quarter\",\"srgb\":[178,58,48],\"alpha\":0.75,\"x\":661,\"y\":391,\"width\":140,\"height\":90}]}"
+    },
+    {
+      "name": "the screen phase reports the ungraded, depth-free, fog-free identity",
+      "ok": true,
+      "detail": "{\"screen\":{\"owner\":\"screenUiPhase\",\"members\":1,\"drawn\":1,\"toneMapped\":false,\"depth\":\"none\",\"fog\":\"none\",\"colorSpace\":\"srgb\",\"display\":{\"width\":970,\"height\":758,\"samples\":0,\"copyDraws\":1}},\"control\":{\"owner\":\"screenUiPhase\",\"members\":0,\"drawn\":0,\"toneMapped\":false,\"depth\":\"none\",\"fog\":\"none\",\"colorSpace\":\"srgb\",\"display\":null},\"background\":{\"owner\":\"screenUiPhase\",\"members\":0,\"drawn\":0,\"toneMapped\":false,\"depth\":\"none\",\"fog\":\"none\",\"colorSpace\":\"srgb\",\"display\":null}}"
+    },
+    {
+      "name": "ungraded opaque screen UI reaches the canvas at its authored sRGB",
+      "ok": true,
+      "detail": "[{\"name\":\"label-ink\",\"error\":0},{\"name\":\"white\",\"error\":0},{\"name\":\"mid-grey\",\"error\":0},{\"name\":\"faction-red\",\"error\":0}]"
+    },
+    {
+      "name": "the graded control reproduces the failure the campaign labels hit",
+      "ok": true,
+      "detail": "[{\"name\":\"label-ink\",\"srgb\":[248,244,237],\"screen\":{\"r\":248,\"g\":244,\"b\":237,\"a\":255},\"control\":{\"r\":202,\"g\":200,\"b\":198,\"a\":255}},{\"name\":\"white\",\"srgb\":[255,255,255],\"screen\":{\"r\":255,\"g\":255,\"b\":255,\"a\":255},\"control\":{\"r\":204,\"g\":204,\"b\":204,\"a\":255}},{\"name\":\"mid-grey\",\"srgb\":[128,128,128],\"screen\":{\"r\":128,\"g\":128,\"b\":128,\"a\":255},\"control\":{\"r\":139,\"g\":139,\"b\":139,\"a\":255}},{\"name\":\"faction-red\",\"srgb\":[178,58,48],\"screen\":{\"r\":178,\"g\":58,\"b\":48,\"a\":255},\"control\":{\"r\":181,\"g\":85,\"b\":70,\"a\":255}}]"
+    },
+    {
+      "name": "translucent screen UI blends over the graded world by its source alpha",
+      "ok": true,
+      "detail": "[{\"name\":\"label-ink-half\",\"alpha\":0.5,\"under\":{\"r\":159,\"g\":156,\"b\":145,\"a\":255},\"expected\":[204,200,191],\"got\":{\"r\":204,\"g\":200,\"b\":191,\"a\":255},\"error\":0,\"fromInk\":46,\"fromBackground\":46},{\"name\":\"white-quarter\",\"alpha\":0.25,\"under\":{\"r\":159,\"g\":156,\"b\":145,\"a\":255},\"expected\":[183,181,173],\"got\":{\"r\":183,\"g\":181,\"b\":172,\"a\":255},\"error\":1,\"fromInk\":83,\"fromBackground\":27},{\"name\":\"shadow-half\",\"alpha\":0.5,\"under\":{\"r\":159,\"g\":156,\"b\":145,\"a\":255},\"expected\":[80,78,73],\"got\":{\"r\":80,\"g\":78,\"b\":73,\"a\":255},\"error\":0,\"fromInk\":80,\"fromBackground\":79},{\"name\":\"faction-red-three-quarter\",\"alpha\":0.75,\"under\":{\"r\":159,\"g\":156,\"b\":145,\"a\":255},\"expected\":[173,83,72],\"got\":{\"r\":173,\"g\":83,\"b\":72,\"a\":255},\"error\":0,\"fromInk\":25,\"fromBackground\":73}]"
+    },
+    {
+      "name": "the world outside UI influence is pixel-identical with and without the screen phase",
+      "ok": true,
+      "detail": "{\"compared\":626972,\"differing\":0,\"maxChannel\":0}"
+    },
+    {
+      "name": "the screen phase costs one member draw plus one display copy",
+      "ok": true,
+      "detail": "{\"screen\":27,\"control\":26,\"background\":25,\"display\":{\"width\":970,\"height\":758,\"samples\":0,\"copyDraws\":1}}"
+    },
+    {
+      "name": "snapshot screen-ui-output",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot screen-ui-world-control",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot screen-ui-output",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "a fixed setTime renders identical pixels through the screen phase",
+      "ok": true,
+      "detail": "{\"bytes\":46112,\"repeat\":46112}"
+    }
+  ],
+  "errors": [],
+  "devices": [
+    {
+      "route": "screen-ui-output",
+      "device": "apple / metal-3"
+    },
+    {
+      "route": "screen-ui-output",
+      "device": "apple / metal-3"
+    },
+    {
+      "route": "screen-ui-output",
+      "device": "apple / metal-3"
+    },
+    {
+      "route": "screen-ui-output",
+      "device": "apple / metal-3"
+    }
+  ]
+}

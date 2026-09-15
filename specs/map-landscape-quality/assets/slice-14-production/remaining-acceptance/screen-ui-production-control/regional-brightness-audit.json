@@ -1,0 +1,254 @@
+{
+  "method": "Pixel centres inside published inkRects, y>=36, RGB>205/>205/>185 unchanged; peakRGB is brightest luminance pixel in that ink rectangle, not an inferred shader input. Union counts avoid double attribution.",
+  "total": 977920,
+  "frameWhite": 1023,
+  "inkWhite": 889,
+  "atlasWhite": 889,
+  "outsideInkWhite": 134,
+  "outsideAtlasWhite": 134,
+  "requiredWhite": 1956,
+  "shortfall": 933,
+  "perLabel": [
+    {
+      "text": "AESERNIA",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 967.99,
+        "y": 522.552,
+        "w": 68,
+        "h": 20
+      },
+      "geometricArea": 1360,
+      "visiblePixels": 1360,
+      "whitePixels": 134,
+      "whiteCoverage": 0.09852941176470588,
+      "peakRGB": [
+        244,
+        240,
+        233
+      ],
+      "peakLuminance": 240.345
+    },
+    {
+      "text": "ATERNUM",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 946.812,
+        "y": 253.255,
+        "w": 69,
+        "h": 20
+      },
+      "geometricArea": 1380,
+      "visiblePixels": 1380,
+      "whitePixels": 127,
+      "whiteCoverage": 0.09202898550724638,
+      "peakRGB": [
+        244,
+        240,
+        233
+      ],
+      "peakLuminance": 240.345
+    },
+    {
+      "text": "BENEVENTUM",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 1095.784,
+        "y": 688.2,
+        "w": 97,
+        "h": 20
+      },
+      "geometricArea": 1940,
+      "visiblePixels": 1940,
+      "whitePixels": 212,
+      "whiteCoverage": 0.10927835051546392,
+      "peakRGB": [
+        244,
+        240,
+        232
+      ],
+      "peakLuminance": 240.27280000000002
+    },
+    {
+      "text": "CORFINIUM",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 861.454,
+        "y": 343.288,
+        "w": 83,
+        "h": 20
+      },
+      "geometricArea": 1660,
+      "visiblePixels": 1660,
+      "whitePixels": 87,
+      "whiteCoverage": 0.05240963855421687,
+      "peakRGB": [
+        243,
+        239,
+        232
+      ],
+      "peakLuminance": 239.34499999999997
+    },
+    {
+      "text": "LARINUM",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 1136.553,
+        "y": 462.088,
+        "w": 66,
+        "h": 20
+      },
+      "geometricArea": 1320,
+      "visiblePixels": 1320,
+      "whitePixels": 108,
+      "whiteCoverage": 0.08181818181818182,
+      "peakRGB": [
+        243,
+        239,
+        232
+      ],
+      "peakLuminance": 239.34499999999997
+    },
+    {
+      "text": "POMPEII",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 1034.332,
+        "y": 826.686,
+        "w": 59,
+        "h": 20
+      },
+      "geometricArea": 1180,
+      "visiblePixels": 0,
+      "whitePixels": 0,
+      "whiteCoverage": 0,
+      "peakRGB": null,
+      "peakLuminance": -1
+    },
+    {
+      "text": "PUTEOLI",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 941.03,
+        "y": 785.5,
+        "w": 60,
+        "h": 20
+      },
+      "geometricArea": 1200,
+      "visiblePixels": 900,
+      "whitePixels": 114,
+      "whiteCoverage": 0.12666666666666668,
+      "peakRGB": [
+        242,
+        239,
+        232
+      ],
+      "peakLuminance": 239.13240000000002
+    },
+    {
+      "text": "SIPONTUM",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 1371.495,
+        "y": 536.086,
+        "w": 75,
+        "h": 20
+      },
+      "geometricArea": 1500,
+      "visiblePixels": 0,
+      "whitePixels": 0,
+      "whiteCoverage": 0,
+      "peakRGB": null,
+      "peakLuminance": -1
+    },
+    {
+      "text": "SPOLETIUM",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 600.562,
+        "y": 139.765,
+        "w": 80,
+        "h": 20
+      },
+      "geometricArea": 1600,
+      "visiblePixels": 1600,
+      "whitePixels": 107,
+      "whiteCoverage": 0.066875,
+      "peakRGB": [
+        244,
+        240,
+        233
+      ],
+      "peakLuminance": 240.345
+    },
+    {
+      "text": "VENUSIA",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 1392.639,
+        "y": 760.11,
+        "w": 62,
+        "h": 20
+      },
+      "geometricArea": 1240,
+      "visiblePixels": 0,
+      "whitePixels": 0,
+      "whiteCoverage": 0,
+      "peakRGB": null,
+      "peakLuminance": -1
+    },
+    {
+      "text": "ALERIA",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": -176.913,
+        "y": 281.136,
+        "w": 50,
+        "h": 20
+      },
+      "geometricArea": 1000,
+      "visiblePixels": 0,
+      "whitePixels": 0,
+      "whiteCoverage": 0,
+      "peakRGB": null,
+      "peakLuminance": -1
+    },
+    {
+      "text": "POPULONIUM",
+      "kind": "city",
+      "opacity": 1,
+      "inkRect": {
+        "x": 98.511,
+        "y": 44.402,
+        "w": 97,
+        "h": 20
+      },
+      "geometricArea": 1940,
+      "visiblePixels": 1940,
+      "whitePixels": 0,
+      "whiteCoverage": 0,
+      "peakRGB": [
+        158,
+        132,
+        90
+      ],
+      "peakLuminance": 134.49519999999998
+    }
+  ],
+  "outsideInkBreakdown": {
+    "insideReportedCards": 131,
+    "topBand36to64": 3,
+    "elsewhere": 0
+  }
+}

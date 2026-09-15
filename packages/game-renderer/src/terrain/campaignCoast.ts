@@ -1,11 +1,20 @@
 import { distanceTo } from "./distanceField";
 
-const COAST_CELL = 2;
+import type { RenderMaskData } from "./campaignSource";
+
+/** Never sample more coarsely than the supplied geography's narrowest pixel. */
+export function campaignCoastCell(mask: RenderMaskData) {
+  return Math.min(
+    2,
+    (mask.rect.max[0] - mask.rect.min[0]) / mask.width,
+    (mask.rect.max[1] - mask.rect.min[1]) / mask.height,
+  );
+}
 
 /** Extra endpoint covers alignment when geometry spacing is not a multiple of
  * the coast lattice. Geography signals do not change with mesh resolution. */
-export function campaignCoastSize(meshSize: number, meshCell: number) {
-  return Math.ceil(((meshSize - 1) * meshCell) / COAST_CELL) + 2;
+export function campaignCoastSize(meshSize: number, meshCell: number, coastCell = 2) {
+  return Math.ceil(((meshSize - 1) * meshCell) / coastCell) + 2;
 }
 
 export function buildCampaignCoast(
@@ -14,19 +23,20 @@ export function buildCampaignCoast(
   minY: number,
   meshSize: number,
   meshCell: number,
+  coastCell = 2,
 ) {
-  const size = campaignCoastSize(meshSize, meshCell);
-  const ox = Math.floor(minX / COAST_CELL) * COAST_CELL,
-    oy = Math.floor(minY / COAST_CELL) * COAST_CELL;
+  const size = campaignCoastSize(meshSize, meshCell, coastCell);
+  const ox = Math.floor(minX / coastCell) * coastCell,
+    oy = Math.floor(minY / coastCell) * coastCell;
   const land = new Uint8Array(size * size);
   for (let j = 0; j < size; j++)
     for (let i = 0; i < size; i++)
-      land[j * size + i] = landAt(ox + i * COAST_CELL, oy + j * COAST_CELL) ? 1 : 0;
-  const inland = distanceTo(land, size, size, 0, COAST_CELL);
-  const offshore = distanceTo(land, size, size, 1, COAST_CELL);
+      land[j * size + i] = landAt(ox + i * coastCell, oy + j * coastCell) ? 1 : 0;
+  const inland = distanceTo(land, size, size, 0, coastCell);
+  const offshore = distanceTo(land, size, size, 1, coastCell);
   const sample = (values: Float32Array, x: number, y: number) => {
-    const gx = (x - ox) / COAST_CELL,
-      gy = (y - oy) / COAST_CELL;
+    const gx = (x - ox) / coastCell,
+      gy = (y - oy) / coastCell;
     const i = Math.floor(gx),
       j = Math.floor(gy),
       u = gx - i,

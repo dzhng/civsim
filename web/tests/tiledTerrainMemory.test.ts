@@ -6,8 +6,6 @@ import {
   RenderMask,
   campaignLandscapeSource,
 } from "../../packages/game-renderer/src/terrain/campaignSource";
-import { conformShoreline } from "../../packages/game-renderer/src/terrain/shorelineMesh";
-import { createRenderedSurface } from "../../packages/game-renderer/src/terrain/surface";
 import { expect, test } from "vitest";
 import * as THREE from "three/webgpu";
 import {
@@ -152,55 +150,68 @@ test("admits coastal detail over the full-source overview within the unchanged a
     biome: new Uint8Array(16).fill(128),
     renderMask: mask,
   });
-  const budget = new TerrainAllocationBudget();
-  budget.reserve(campaignLandscapeAllocation(2560, 32).typedArrayBytes);
-  const built = buildCampaignLandscape(field, [0, 0], 2560, 32);
-  const base = built.surface;
-  const coarse = createRenderedSurface(
-    conformShoreline(base, mask, 48 * 1024 * 1024).mesh,
-    base.domain,
-    "overview",
-  );
-  const terrain = new PhotorealTiledTerrain(
-    new THREE.Scene(),
-    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
-    coarse,
-    (geometry, surface) =>
-      geometry.setAttribute(
-        "campaignFog",
-        new THREE.BufferAttribute(new Float32Array(surface.mesh.vertices.length / 10), 1),
-      ),
-    budget,
-    [built.shoreDistance.buffer],
-    Float32Array.BYTES_PER_ELEMENT,
-  );
-  expect(() => budget.reserve(terrain.stats().allocationBytes + 128 * 1024 * 1024)).toThrow(
-    /budget/,
-  );
-  expect(terrain.surface.coarse).toBe(coarse);
-  budget.reserve(
-    terrain.stats().allocationBytes + campaignLandscapeAllocation(32, 2).typedArrayBytes,
-  );
-  const fineBase = buildCampaignLandscape(field, [-320, 640], 32, 2).surface;
-  const fine = conformShoreline(fineBase, mask);
-  terrain.install(
-    {
-      mesh: fine.mesh,
-      domain: fineBase.domain,
-      request: {
-        key: "coast",
-        minX: fineBase.domain.ox,
-        minY: fineBase.domain.oy,
-        size: 64,
-        cell: 2,
+  for (const cell of [16, 32]) {
+    const budget = new TerrainAllocationBudget();
+    budget.reserve(campaignLandscapeAllocation(2560, cell).typedArrayBytes);
+    const built = buildCampaignLandscape(field, [0, 0], 2560, cell);
+    budget.reserve(built.generationBytes);
+    const coarse = built.surface;
+    const create = () =>
+      new PhotorealTiledTerrain(
+        new THREE.Scene(),
+        createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
+        coarse,
+        (geometry, surface) =>
+          geometry.setAttribute(
+            "campaignFog",
+            new THREE.BufferAttribute(new Float32Array(surface.mesh.vertices.length / 10), 1),
+          ),
+        budget,
+        [built.shoreDistance.buffer],
+        Float32Array.BYTES_PER_ELEMENT,
+      );
+    if (cell === 16) {
+      expect(create).toThrow(/128 MiB budget/);
+      continue;
+    }
+    const terrain = create();
+    expect(() => budget.reserve(terrain.stats().allocationBytes + 128 * 1024 * 1024)).toThrow(
+      /budget/,
+    );
+    expect(terrain.surface.coarse).toBe(coarse);
+    budget.reserve(
+      terrain.stats().allocationBytes + campaignLandscapeAllocation(32, 2).typedArrayBytes,
+    );
+    const fineBuilt = buildCampaignLandscape(
+      field,
+      [-320, 640],
+      32,
+      2,
+      128 * 1024 * 1024 - terrain.stats().allocationBytes,
+    );
+    budget.reserve(terrain.stats().allocationBytes + fineBuilt.generationBytes);
+    const fineBase = fineBuilt.surface;
+    const fine = fineBase;
+    terrain.install(
+      {
+        mesh: fine.mesh,
+        shoreDistance: fineBuilt.shoreDistance,
+        domain: fineBase.domain,
+        request: {
+          key: "coast",
+          minX: fineBase.domain.ox,
+          minY: fineBase.domain.oy,
+          size: 64,
+          cell: 2,
+        },
       },
-    },
-    [],
-  );
-  expect(terrain.stats().peakAllocationBytes).toBeLessThanOrEqual(128 * 1024 * 1024);
-  expect(terrain.surface.ownerAt(-320, 640).revision).toContain("coast");
-  expect(terrain.surface.coarse.mesh.vertices).toBe(coarse.mesh.vertices);
-  expect(terrain.surface.coarse.sampleRendered(-320, 640)).toBeNull();
-  expect(terrain.surface.sampleRendered(-320, 640)?.position[2]).toBe(0);
-  terrain.dispose();
-}, 30000);
+      [],
+    );
+    expect(terrain.stats().peakAllocationBytes).toBeLessThanOrEqual(128 * 1024 * 1024);
+    expect(terrain.surface.ownerAt(-320, 640).revision).toContain("coast");
+    expect(terrain.surface.coarse.mesh.vertices).toBe(coarse.mesh.vertices);
+    expect(terrain.surface.coarse.sampleRendered(-320, 640)).toBeNull();
+    expect(terrain.surface.sampleRendered(-320, 640)?.position[2]).toBe(0);
+    terrain.dispose();
+  }
+}, 60000);

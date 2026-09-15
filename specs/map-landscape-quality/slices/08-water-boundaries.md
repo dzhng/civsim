@@ -164,3 +164,18 @@ the complete128MiB CPU/GPU/staging assertion, which passes. Tile helper defaults
 remain32MiB. Four diagnostic images repeat exactly; fresh review accepts improved
 bank continuity but keeps outline steps and residual faceting open. See
 [relief evidence](../assets/slice-08/relief/README.md).
+
+### Production builder adoption checkpoint
+
+The production builder now owns conformation, world-stable dry relief and final
+vertex shore signals; the worker transfers all topology/coverage arrays and
+enforces its caller's remaining generation allowance. The diagnostic route is a
+caller of that builder. A narrow-island regression required the existing coast
+lattice to sample at least as finely as source pixels. A bank-side regression
+prevents dry-side normals from tilting wet faces during morph. The full-source
+16 km overview refuses its initial allocation; 32 km preserves source coast detail
+and admits a coastal tile within 128 MiB. See [adoption evidence](../assets/slice-08/adoption/README.md).
+
+The production application still uses the legacy renderer pending the planned
+cutover. Source-scale shore steps and angular bank faces remain open; functional
+adoption does not close this slice's visual acceptance.

@@ -1,0 +1,10 @@
+$ vitest run tests/campaignLandscape.test.ts tests/campaignCoast.test.ts tests/terrainWorker.test.ts tests/shorelineMesh.test.ts tests/tiledTerrainMemory.test.ts
+
+ RUN  v4.1.9 /Users/david/dev/game-landscape-water/web
+
+
+ Test Files  5 passed (5)
+      Tests  24 passed (24)
+   Start at  09:56:06
+   Duration  15.13s (transform 232ms, setup 309ms, import 329ms, tests 15.48s, environment 794ms)
+

@@ -13,6 +13,8 @@ export interface TerrainTileData {
   mesh: LandscapeMesh;
   domain: SurfaceDomain;
   shoreDistance: Float32Array;
+  /** Peak typed storage during CPU generation; source snapshots are separate. */
+  generationBytes?: number;
 }
 
 export interface TerrainTile extends TerrainTileData {

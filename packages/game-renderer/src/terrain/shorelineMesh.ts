@@ -9,9 +9,12 @@ export function conformShoreline(
   source: RenderMaskData,
   maxBytes = 32 * 1024 * 1024,
   heightAt?: (x: number, y: number) => number,
+  additionalVertexBytes = 0,
 ) {
   if (!Number.isFinite(maxBytes) || maxBytes <= 0 || maxBytes > 128 * 1024 * 1024)
     throw new Error(`Invalid shoreline geometry budget: ${maxBytes}`);
+  if (!Number.isFinite(additionalVertexBytes) || additionalVertexBytes < 0)
+    throw new Error("Additional shoreline vertex storage must be finite and nonnegative");
   const height = heightAt ?? ((x: number, y: number) => base.sampleRendered(x, y)!.position[2]);
   const d = base.domain;
   const cellCount = (d.columns - 1) * (d.rows - 1);
@@ -190,7 +193,8 @@ export function conformShoreline(
         triangles += polygon.length - 2;
         // Stop the counting pass too: rejected source detail must not grow an
         // unbounded temporary vertex map before the typed-array preflight.
-        const bytes = points.size * 57 + triangles * 12 + (cellCount + 1) * 4;
+        const bytes =
+          points.size * (57 + additionalVertexBytes) + triangles * 12 + (cellCount + 1) * 4;
         if (bytes > maxBytes)
           throw new Error(
             `Shoreline geometry needs at least ${bytes} typed-array bytes; budget is ${maxBytes}`,
@@ -267,7 +271,8 @@ export function conformShoreline(
           if (!points.has(id)) points.set(id, points.size);
           triangles += boundary.length;
         } else triangles += polygon.length - 2;
-        const bytes = points.size * 57 + triangles * 12 + (cellCount + 1) * 4;
+        const bytes =
+          points.size * (57 + additionalVertexBytes) + triangles * 12 + (cellCount + 1) * 4;
         if (bytes > maxBytes)
           throw new Error(
             `Shoreline geometry needs at least ${bytes} typed-array bytes; budget is ${maxBytes}`,

@@ -6,11 +6,12 @@ import {
   campaignLandscapeSource,
   type CampaignLandscapeSnapshot,
 } from "../../../game-renderer/src/terrain/campaignSource";
+import { campaignCoastCell } from "../../../game-renderer/src/terrain/campaignCoast";
 import type { TerrainTileData, TerrainTileRequest } from "./terrainTiles";
 
 type Request =
   | { type: "init"; source: CampaignLandscapeSnapshot }
-  | { type: "build"; request: TerrainTileRequest };
+  | { type: "build"; request: TerrainTileRequest; maxBytes: number };
 type Reply = { key: string; data: TerrainTileData } | { key: string; error: string };
 
 /** Dedicated worker transport; one client owns one source and one in-flight build. */
@@ -52,13 +53,13 @@ export function createCampaignTerrainWorker(
     fail(error instanceof Error ? error : new Error(String(error)));
   }
   return {
-    build(request: TerrainTileRequest): Promise<TerrainTileData> {
+    build(request: TerrainTileRequest, maxBytes = 128 * 1024 * 1024): Promise<TerrainTileData> {
       if (terminal) return Promise.reject(terminal);
       if (pending) return Promise.reject(new Error("Terrain worker already has a build in flight"));
       return new Promise((resolve, reject) => {
         pending = { key: request.key, resolve, reject };
         try {
-          worker.postMessage({ type: "build", request } satisfies Request);
+          worker.postMessage({ type: "build", request, maxBytes } satisfies Request);
         } catch (error) {
           fail(error instanceof Error ? error : new Error(String(error)));
         }
@@ -94,20 +95,31 @@ export function campaignTerrainWorkerHandler(
       )
         throw new Error("Terrain tile requires a finite region and positive grid spacing");
       if (
-        campaignLandscapeAllocation(request.size / 2, request.cell).typedArrayBytes >
-        128 * 1024 * 1024
+        campaignLandscapeAllocation(
+          request.size / 2,
+          request.cell,
+          campaignCoastCell(source.renderMask),
+        ).typedArrayBytes > message.maxBytes
       )
-        throw new Error("Terrain tile generation exceeds the 128 MiB typed-array budget");
+        throw new Error("Terrain tile generation exceeds its typed-array allowance");
+      if (
+        !Number.isFinite(message.maxBytes) ||
+        message.maxBytes <= 0 ||
+        message.maxBytes > 128 * 1024 * 1024
+      )
+        throw new Error("Invalid terrain generation allowance");
       const result = buildCampaignLandscape(
         source,
         [request.minX + request.size / 2, request.minY + request.size / 2],
         request.size / 2,
         request.cell,
+        message.maxBytes,
       );
       const data: TerrainTileData = {
         mesh: result.surface.mesh,
         domain: result.surface.domain,
         shoreDistance: result.shoreDistance,
+        generationBytes: result.generationBytes,
       };
       reply(
         { key: request.key, data },
@@ -117,6 +129,8 @@ export function campaignTerrainWorkerHandler(
           data.mesh.tint,
           data.mesh.indices,
           data.shoreDistance,
+          ...(data.mesh.cellTriangles ? [data.mesh.cellTriangles] : []),
+          ...(data.mesh.waterCoverage ? [data.mesh.waterCoverage] : []),
         ),
       );
     } catch (error) {

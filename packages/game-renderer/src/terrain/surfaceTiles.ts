@@ -85,7 +85,13 @@ export function morphTileSurface(
     if (!hit) continue;
     const blend = 1 - smoothstep(0, band, Math.sqrt(distance2));
     const offsets = [0, 1, 2].map((i) => coarse.mesh.indices[hit.triangle * 3 + i]);
+    const fineWater = fine.mesh.waterCoverage?.[k];
+    const coarseWater = coarse.mesh.waterCoverage?.[offsets[0]];
     for (let c = 2; c < 10; c++) {
+      // A bank has separate wet/dry vertices at the same XY. A first-hit query
+      // may choose the other side; never tilt water or import its normal onto land.
+      if (c >= 3 && c <= 5 && fineWater !== undefined && (fineWater || fineWater !== coarseWater))
+        continue;
       if (fine.mesh.waterCoverage && (c === 9 || (c === 2 && fine.mesh.waterCoverage[k]))) continue;
       let target = 0;
       for (let i = 0; i < 3; i++)

@@ -1,5 +1,3 @@
-import { campaignRelief } from "@packages/game-renderer/src/terrain/campaignRelief";
-import { buildCampaignCoast } from "@packages/game-renderer/src/terrain/campaignCoast";
 import * as THREE from "three/webgpu";
 import { attribute, mix, vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
@@ -9,8 +7,6 @@ import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/l
 import { PhotorealTiledTerrain } from "@packages/photoreal-renderer/src/campaign/tiledTerrain";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { buildCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignLandscape";
-import { conformShoreline } from "@packages/game-renderer/src/terrain/shorelineMesh";
-import { createRenderedSurface } from "@packages/game-renderer/src/terrain/surface";
 import { campaignLandscapeSource } from "@packages/game-renderer/src/terrain/campaignSource";
 import { chartCamera3d, screenRay } from "@packages/renderer-core/src/camera3d";
 import { TerrainField } from "../../../../web/src/campaign/terrain";
@@ -19,8 +15,7 @@ import { type LabContext, publish } from "../labShell";
 
 export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
-  const real = ctx.params.get("real") === "1",
-    before = ctx.params.get("before") === "1";
+  const real = ctx.params.get("real") === "1";
   const classes = new Uint8Array(16 * 16).fill(1);
   for (let y = 0; y < 16; y++)
     for (let x = 0; x < 16; x++)
@@ -41,23 +36,8 @@ export async function route(ctx: LabContext) {
   const field = real ? new TerrainField((await loadCampaignData()).data) : fixture;
   const center: [number, number] = real ? [-320, 640] : [16, 16],
     radius = real ? 64 : 16;
-  const make = (cell: number, point = center, r = radius) => {
-    const base = buildCampaignLandscape(field, point, r, cell).surface;
-    if (before) return { surface: base, typedBytes: 0 };
-    const relief = campaignRelief(field, cell);
-    const halo = 24;
-    const coast = buildCampaignCoast(
-      (x, y) => !field.renderWaterAt(x, y),
-      base.domain.ox - halo,
-      base.domain.oy - halo,
-      Math.ceil((r * 2 + halo * 2) / 2) + 1,
-      2,
-    );
-    const result = conformShoreline(base, field.renderMask, 32 * 1024 * 1024, (x, y) =>
-      relief.heightAt(x, y, coast.inlandAt(x, y)),
-    );
-    return { ...result, surface: createRenderedSurface(result.mesh, base.domain, "shore") };
-  };
+  const make = (cell: number, point = center, r = radius) =>
+    buildCampaignLandscape(field, point, r, cell);
   const coarse = make(real ? 16 : 8);
   const world = await PhotorealWorld.create(ctx.canvas),
     frame = createLandscapeFrameUniforms();
@@ -67,7 +47,14 @@ export async function route(ctx: LabContext) {
   });
   const material = new THREE.MeshStandardNodeMaterial({ roughness: 1 });
   material.colorNode = mix(vec3(0.55, 0.5, 0.34), vec3(0.12, 0.35, 0.4), attribute("gWater"));
-  const terrain = new PhotorealTiledTerrain(world.scene, material, coarse.surface);
+  const terrain = new PhotorealTiledTerrain(
+    world.scene,
+    material,
+    coarse.surface,
+    undefined,
+    undefined,
+    [coarse.shoreDistance.buffer],
+  );
   if (ctx.params.get("detail") === "1") {
     const fine = make(2, [center[0] - radius / 2, center[1] - radius / 2], radius / 2);
     terrain.install(
@@ -81,6 +68,7 @@ export async function route(ctx: LabContext) {
         },
         domain: fine.surface.domain,
         mesh: fine.surface.mesh,
+        shoreDistance: fine.shoreDistance,
       },
       [],
     );
@@ -101,10 +89,10 @@ export async function route(ctx: LabContext) {
     world.render(camera);
     publish("landscape-shores", true, {
       ...terrain.stats(),
-      typedBytes: coarse.typedBytes,
+      generationBytes: coarse.generationBytes,
       centerRay: terrain.surface.raycastRendered(screenRay(pose, 0, 0)),
       triangles: coarse.surface.mesh.triangles,
-      before,
+
       real,
     });
   };

@@ -27,11 +27,12 @@ export async function route(ctx: LabContext) {
     Math.ceil(
       Math.max(source.renderMask.rect.max[0] - minX, source.renderMask.rect.max[1] - minY) / 128,
     ) * 128;
-  const bootAllocation = campaignLandscapeAllocation(size / 2, 16);
+  const bootAllocation = campaignLandscapeAllocation(size / 2, 32);
   const allocation = new TerrainAllocationBudget();
   allocation.reserve(bootAllocation.typedArrayBytes);
   const worker = createCampaignTerrainWorker(source);
-  const coarse = await worker.build({ key: "overview", minX, minY, size, cell: 16 });
+  const coarse = await worker.build({ key: "overview", minX, minY, size, cell: 32 });
+  allocation.reserve(coarse.generationBytes!);
   const surface = createRenderedSurface(coarse.mesh, coarse.domain, "overview");
   const world = await PhotorealCampaignWorld.create(ctx.canvas, {
     surface,
@@ -59,7 +60,11 @@ export async function route(ctx: LabContext) {
       allocation.reserve(bound);
       builds++;
       const started = performance.now();
-      const result = await worker.build(request);
+      const result = await worker.build(
+        request,
+        128 * 1024 * 1024 - world.stats().terrain.allocationBytes,
+      );
+      allocation.reserve(world.stats().terrain.allocationBytes + result.generationBytes!);
       workerRoundTripMs = performance.now() - started;
       return result;
     },

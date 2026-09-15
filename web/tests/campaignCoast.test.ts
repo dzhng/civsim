@@ -6,20 +6,27 @@ it("keeps shore distance, water and beach color fixed when terrain resolution ch
   const source = coastalRidgeFixture();
   const fine = buildCampaignLandscape(source, [0, 0], 64, 2);
   const coarse = buildCampaignLandscape(source, [0, 0], 64, 8);
-  const d = coarse.surface.domain,
-    f = fine.surface.domain;
-  for (let j = 0; j < d.rows; j++)
-    for (let i = 0; i < d.columns; i++) {
-      const k = j * d.columns + i,
-        x = d.ox + i * d.cell,
-        y = d.oy + j * d.cell;
-      const fk = ((y - f.oy) / f.cell) * f.columns + (x - f.ox) / f.cell;
-      expect(coarse.shoreDistance[k]).toBe(fine.shoreDistance[fk]);
-      expect(coarse.surface.mesh.vertices[k * 10 + 9]).toBe(
-        fine.surface.mesh.vertices[fk * 10 + 9],
-      );
-      expect(Array.from(coarse.surface.mesh.surfaceColor.subarray(k * 3, k * 3 + 3))).toEqual(
-        Array.from(fine.surface.mesh.surfaceColor.subarray(fk * 3, fk * 3 + 3)),
-      );
-    }
+  const a = coarse.surface.mesh,
+    b = fine.surface.mesh;
+  const keyed = new Map(
+    Array.from({ length: b.vertices.length / 10 }, (_, k) => [
+      `${b.vertices[k * 10]},${b.vertices[k * 10 + 1]},${b.waterCoverage![k]}`,
+      k,
+    ]),
+  );
+  let compared = 0;
+  for (let k = 0; k < a.vertices.length / 10; k++) {
+    const q = keyed.get(`${a.vertices[k * 10]},${a.vertices[k * 10 + 1]},${a.waterCoverage![k]}`);
+    if (q === undefined) continue;
+    compared++;
+    expect(coarse.shoreDistance[k]).toBe(fine.shoreDistance[q]);
+    expect(a.vertices[k * 10 + 9]).toBe(b.vertices[q * 10 + 9]);
+    expect(Array.from(a.surfaceColor.subarray(k * 3, k * 3 + 3))).toEqual(
+      Array.from(b.surfaceColor.subarray(q * 3, q * 3 + 3)),
+    );
+    expect(Array.from(a.vertices.subarray(k * 10 + 2, k * 10 + 6))).toEqual(
+      Array.from(b.vertices.subarray(q * 10 + 2, q * 10 + 6)),
+    );
+  }
+  expect(compared).toBeGreaterThan(100);
 });

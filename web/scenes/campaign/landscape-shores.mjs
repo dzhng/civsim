@@ -1,5 +1,5 @@
 const cases = [
-  ["before", "before=1"],
+  ["real-detail", "real=1&detail=1"],
   ["coarse", ""],
   ["detail", "detail=1"],
   ["real", "real=1"],

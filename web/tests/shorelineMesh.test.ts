@@ -215,3 +215,26 @@ it("keeps adaptive polygon edges watertight over nonlinear source relief", () =>
       }
     }
 });
+
+it("keeps water normals level when a bank vertex morph samples the dry side", () => {
+  const make = (cell: number) => {
+    const base = grid(cell);
+    const result = conformShoreline(base, source, undefined, (x, y) => 1 + x * 0.3 + y * 0.1);
+    return createRenderedSurface(result.mesh, base.domain, "normal-bank");
+  };
+  const coarse = make(4),
+    fine = make(1);
+  const joined = morphTileSurface(fine, coarse, detailBoundary([fine.domain]));
+  let banks = 0;
+  for (let k = 0; k < joined.vertices.length / 10; k++) {
+    if (!joined.waterCoverage![k]) continue;
+    const x = joined.vertices[k * 10],
+      y = joined.vertices[k * 10 + 1];
+    const hit = coarse.sampleRendered(x, y)!;
+    if (!coarse.mesh.waterCoverage![coarse.mesh.indices[hit.triangle * 3]]) banks++;
+    expect(joined.vertices[k * 10 + 3]).toBeCloseTo(0, 12);
+    expect(joined.vertices[k * 10 + 4]).toBeCloseTo(0, 12);
+    expect(joined.vertices[k * 10 + 5]).toBe(1);
+  }
+  expect(banks).toBeGreaterThan(0);
+});

@@ -1,0 +1,40 @@
+[
+  {
+    "cell": 16,
+    "reservedBytes": 157754065
+  },
+  {
+    "cell": 32,
+    "reservedBytes": 128670706
+  },
+  {
+    "cell": 32,
+    "reservedBytes": 224106786
+  },
+  {
+    "cell": 32,
+    "reservedBytes": 90017967
+  },
+  {
+    "cell": 32,
+    "reservedBytes": 90118019
+  },
+  {
+    "cell": 32,
+    "reservedBytes": 109891446
+  },
+  {
+    "cell": 32,
+    "generationBytes": 105157027,
+    "detailGenerationBytes": 228961,
+    "allocationBytes": 99987678,
+    "cpuBytes": 61111230,
+    "gpuBytes": 38876448,
+    "peakAllocationBytes": 128670706,
+    "revision": 1,
+    "residentTiles": 1,
+    "geometryBytes": 38876448,
+    "lastAdmissionUploadBytes": 9903768,
+    "lastAdmissionCpuMs": 4.695374999999331
+  }
+]

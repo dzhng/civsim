@@ -46,6 +46,14 @@ function transport() {
     },
   };
   const handle = campaignTerrainWorkerHandler((reply, transfer) => {
+    if ("data" in reply) {
+      const arrays = [reply.data.mesh.cellTriangles!, reply.data.mesh.waterCoverage!];
+      for (const array of arrays) expect(transfer).toContain(array.buffer);
+      const data = structuredClone(reply, { transfer });
+      for (const array of arrays) expect(array.byteLength).toBe(0);
+      queueMicrotask(() => port.onmessage?.({ data } as MessageEvent));
+      return;
+    }
     const data = structuredClone(reply, { transfer });
     queueMicrotask(() => port.onmessage?.({ data } as MessageEvent));
   });
@@ -85,9 +93,16 @@ describe("campaign terrain worker transport", () => {
     expect(original.height.byteLength).toBe(64);
     for (let i = 0; i < 2; i++) {
       const result = await worker.build({ ...request, key: String(i) });
-      for (const field of ["vertices", "indices", "tint", "surfaceColor"] as const) {
-        expect(Array.from(new Uint8Array(result.mesh[field].buffer))).toEqual(
-          Array.from(new Uint8Array(expected.surface.mesh[field].buffer)),
+      for (const field of [
+        "vertices",
+        "indices",
+        "tint",
+        "surfaceColor",
+        "cellTriangles",
+        "waterCoverage",
+      ] as const) {
+        expect(Array.from(new Uint8Array(result.mesh[field]!.buffer))).toEqual(
+          Array.from(new Uint8Array(expected.surface.mesh[field]!.buffer)),
         );
       }
       expect(result.mesh.triangles).toBe(expected.surface.mesh.triangles);
@@ -96,7 +111,11 @@ describe("campaign terrain worker transport", () => {
     }
     expect(messages).toHaveLength(3);
     expect(messages.slice(1)).toEqual(
-      [0, 1].map((i) => ({ type: "build", request: { ...request, key: String(i) } })),
+      [0, 1].map((i) => ({
+        type: "build",
+        request: { ...request, key: String(i) },
+        maxBytes: 128 * 1024 * 1024,
+      })),
     );
     worker.dispose();
     expect(port.terminate).toHaveBeenCalledOnce();
@@ -120,13 +139,27 @@ describe("campaign terrain worker transport", () => {
     const handle = campaignTerrainWorkerHandler(reply);
     handle({ type: "init", source: snapshotCampaignLandscape(source()) });
     // A tiny cell expands both output grid and coast halo well beyond the allowance.
-    handle({ type: "build", request: { ...request, cell: 0.0001 } });
+    handle({ type: "build", maxBytes: 128 * 1024 * 1024, request: { ...request, cell: 0.0001 } });
     expect(build).not.toHaveBeenCalled();
     expect(reply.mock.calls[0][0]).toEqual({
       key: request.key,
-      error: "Terrain tile generation exceeds the 128 MiB typed-array budget",
+      error: "Terrain tile generation exceeds its typed-array allowance",
     });
     build.mockRestore();
+  });
+
+  it("enforces a caller's remaining generation allowance including shoreline output", async () => {
+    const { port } = transport();
+    const worker = createCampaignTerrainWorker(
+      snapshotCampaignLandscape(source()),
+      port as unknown as Worker,
+    );
+    const regular = landscape.campaignLandscapeAllocation(8, 2).typedArrayBytes;
+    await expect(worker.build(request, regular + 1)).rejects.toThrow(/Shoreline geometry/);
+    const result = await worker.build(request);
+    expect(result.generationBytes).toBeGreaterThan(regular);
+    expect(result.shoreDistance.length).toBe(result.mesh.vertices.length / 10);
+    worker.dispose();
   });
 
   it("rejects concurrent work and terminates outstanding work on disposal", async () => {

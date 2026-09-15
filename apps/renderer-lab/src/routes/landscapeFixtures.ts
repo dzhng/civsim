@@ -1,4 +1,4 @@
-import type { CampaignTerrainField } from "@packages/game-renderer/src/campaign/entityFrame";
+import { campaignLandscapeSource } from "@packages/game-renderer/src/terrain/campaignSource";
 
 /** Frozen semantic framing for landscape comparisons; production camera math stays shared. */
 export const LANDSCAPE_REGIONS = {
@@ -7,7 +7,7 @@ export const LANDSCAPE_REGIONS = {
   fixture: { center: [0, 0] as [number, number], radius: 80, zoom: 4 },
 };
 
-export function coastalRidgeFixture(): CampaignTerrainField {
+export function coastalRidgeFixture() {
   const w = 41,
     h = 41,
     cell = 8,
@@ -27,7 +27,21 @@ export function coastalRidgeFixture(): CampaignTerrainField {
       height[k] = land[k] * (3 + 12 * Math.exp(-(((x - 12 - Math.sin(y / 38) * 10) / 24) ** 2)));
       biome.set([160, 180, 80, land[k] ? 255 : 0], k * 4);
     }
+  const width = 328;
+  const classes = Uint8Array.from({ length: width * width }, (_, k) =>
+    renderLandAt((k % width) - 163.5, 163.5 - Math.floor(k / width)) ? 1 : 0,
+  );
   return {
+    ...campaignLandscapeSource({
+      w,
+      h,
+      cell,
+      minX,
+      maxY,
+      height,
+      biome,
+      renderMask: { width, height: width, classes, rect: { min: [-164, -164], max: [164, 164] } },
+    }),
     w,
     h,
     cell,
@@ -38,7 +52,5 @@ export function coastalRidgeFixture(): CampaignTerrainField {
     land,
     maxH: 15,
     heightAt: () => 0,
-    renderLandAt,
-    renderWaterAt: (x, y) => !renderLandAt(x, y),
   };
 }

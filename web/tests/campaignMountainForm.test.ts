@@ -1,3 +1,4 @@
+import { campaignLandscapeSource } from "../../packages/game-renderer/src/terrain/campaignSource";
 import { expect, it } from "vitest";
 import { buildCampaignLandscape } from "../../packages/game-renderer/src/terrain/campaignLandscape";
 
@@ -5,7 +6,7 @@ function range() {
   const w = 41,
     h = 41,
     cell = 8;
-  return {
+  return campaignLandscapeSource({
     w,
     h,
     cell,
@@ -16,8 +17,13 @@ function range() {
       (_, k) => 2.2 + 14 * Math.exp(-(((((k % w) - 20) * cell) / 32) ** 2)),
     ),
     biome: new Uint8Array(w * h * 4).fill(100),
-    renderLandAt: () => true,
-  };
+    renderMask: {
+      width: w,
+      height: h,
+      classes: new Uint8Array(w * h).fill(1),
+      rect: { min: [-164, -164], max: [164, 164] },
+    },
+  });
 }
 
 it("does not invent a mountain body when the source identifies only lowland", () => {

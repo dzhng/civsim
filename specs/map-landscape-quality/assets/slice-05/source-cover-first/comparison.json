@@ -1,0 +1,27 @@
+{
+  "results": [
+    {
+      "name": "alps",
+      "changed": 360671,
+      "cameraEqual": true,
+      "tickEqual": true,
+      "candidatesEqual": true
+    },
+    {
+      "name": "italy",
+      "changed": 169146,
+      "cameraEqual": true,
+      "tickEqual": true,
+      "candidatesEqual": true
+    },
+    {
+      "name": "alps-close",
+      "changed": 262218,
+      "cameraEqual": true,
+      "tickEqual": true,
+      "candidatesEqual": true
+    }
+  ],
+  "beforeErrors": [],
+  "candidateErrors": []
+}

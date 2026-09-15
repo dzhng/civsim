@@ -90,3 +90,10 @@ The current candidate takes that route: a source-resolution byte texture avoids
 per-vertex buffer growth and leaves tile allocation unchanged. Verify its world
 orientation, filtering and disposal on the GPU before adoption; source arrays
 must remain unchanged.
+
+The [first production source-cover comparison](../assets/slice-05/source-cover-first/README.md)
+confirms improved regional rock continuity, with identical cameras and scenery.
+Fresh review and root also find lost green shelf/valley separation: broad source
+mountain coverage becomes too uniformly bare when used as full rock exposure.
+Refine that material interpretation before repeat/adoption. Do not alter terrain,
+planting, palette or lighting to hide the coverage tradeoff.

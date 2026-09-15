@@ -108,6 +108,8 @@ async function run() {
   const separate = await probeSharedUniform(false);
   return {
     identity: VGPU_CANDIDATE,
+    scope:
+      "shared-versus-separate uniform reuse across one compute and one draw on a 16×16 target; no scene content, parity or performance claim",
     shared,
     separate,
     verdict:

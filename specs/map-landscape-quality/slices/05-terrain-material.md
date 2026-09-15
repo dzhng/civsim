@@ -64,4 +64,19 @@ and rock remains cloudy. The patch is rejected and removed; existing material
 and baselines remain authoritative. Palette contrast plus broad mask noise is
 insufficient to complete 05.
 
-Return to structural mountain form before another material-only comparison. The fixed-geometry probes have not resolved regional geological readability.
+The subsequent structural controls in04 were rejected; retain the current best
+geometry. The next material question is source coverage, after the isolated
+campaign rock-prop comparison in07. `TerrainField` already derives rock coverage
+in biome channel2 from source elevation. `buildCampaignLandscape` currently uses
+only moisture for ground color, and `createLandscapeGroundMaterial` supplies zero
+source rock/scree coverage to the shared slope masks. Consequently a flat crest
+loses rock exposure even inside a source mountain region. Repeating palette or
+noise changes does not test this missing input.
+
+A bounded next probe should carry the existing source coverage through one owned
+surface/material seam, with geometry, water, trees, palette and lighting frozen.
+Choose the smallest representation consistent with tile joins, worker transfer,
+resource lifetime and the existing allocation budget; no parallel classifier or
+permanent probe switch. Judge crest and grass-shelf crops against the retained
+material before adopting anything. This causal audit identifies an unconsumed
+source signal, not proof that using it will meet the visual target.

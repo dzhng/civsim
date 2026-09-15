@@ -26,3 +26,11 @@ checks with zero page errors. GPU collection tracks 1,366 primary submissions:
 terminal snapshot, zero cursor gaps and zero lost events. Query helper copies do
 not replace the recorded render identities. Host load was shared; these values
 verify measurement correlation and do not establish comparative performance.
+
+At `4bd3fce3`, vgpu's instrumented flow/full run passes every check, with zero
+page errors. All 1,019 tracked primary submissions have complete GPU results;
+there are no pending queries, cursor gaps or lost events. Startup/end allocation
+snapshots retain actual requested logical bytes (including telemetry), explicitly
+not physical VRAM. Peak combined requested bytes are 1,912,350,048; unknown
+allocation count is zero. Default muted audio is retained in these functional
+runs; future quiet acceptance must explicitly enable normal audio consistently.

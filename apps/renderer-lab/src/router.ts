@@ -69,6 +69,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/landscape-surface": routeCampaignLandscape,
   "/renderer/landscape-materials": routeLandscapeMaterials,
   "/renderer/landscape-traversal": routeLandscapeTraversal,
+  "/renderer/landscape-geography": routeLandscapeTraversal,
   "/renderer/landscape-tiles": routeLandscapeTiles,
   "/renderer/terrain-water": routeTerrainWater,
   "/renderer/campaign-ui": routeCampaignUi,

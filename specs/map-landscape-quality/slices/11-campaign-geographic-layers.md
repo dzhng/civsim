@@ -64,3 +64,16 @@ actual road junction, coastal sea lane and ownership boundary, then replace both
 geographic inputs and an intersecting terrain tile. Check joins, clipping, depth,
 fog and disposal before expanding to full-map culling/performance. Keep this pass
 separate from label projection and city-foot grounding in 12.
+
+### Live geographic line checkpoint
+
+[The evidence](../assets/slice-11/lines/README.md) records shared CPU border
+ownership, live physical road/sea-lane/border input, changed-domain seating and
+disposal. Sparse borders were rejected after regional screenshots exposed holes
+through mountains; subdivision restores continuity, and source-mask clipping
+trims wet coastal tips. Both regional repeats are pixel-identical, all500 CPU tests and both typechecks
+pass, and the final unprimed critique accepts this contact/clipping checkpoint.
+
+Full-region spatial grouping/culling and hardware cost are the next11 contract.
+Keep the accepted regional geometry/pixels fixed while reducing global scans and
+draw submissions. This checkpoint is not full11 or production acceptance.

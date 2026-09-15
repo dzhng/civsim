@@ -1,3 +1,4 @@
+import { campaignFactionBorderVertices } from "@packages/game-renderer/src/campaign/borderGeometry";
 import type { SceneryInstance } from "../../../packages/game-renderer/src/terrain/scenery";
 import {
   CampaignCloudPass,
@@ -22,10 +23,7 @@ import type { ScreenRect } from "@packages/game-renderer/src/campaign/labelLayou
 import { CampaignSceneryPass } from "@packages/game-renderer/src/campaign/sceneryPass";
 import { CampaignSelectionPass } from "@packages/game-renderer/src/campaign/selectionPass";
 import { SharedStandardPass } from "@packages/game-renderer/src/models/shared/standardPass";
-import {
-  campaignFactionBorderVertices,
-  CampaignTerritoryPass,
-} from "@packages/game-renderer/src/campaign/territoryPass";
+import { CampaignTerritoryPass } from "@packages/game-renderer/src/campaign/territoryPass";
 import {
   createFrameShell,
   type FrameGraphPass,

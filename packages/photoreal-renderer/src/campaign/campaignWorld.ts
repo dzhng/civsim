@@ -1,3 +1,5 @@
+import { CampaignGeographicLayer, type CampaignGeography } from "./geographicLayer";
+import { colorGeometry, decalMaterial } from "../landscape/decal";
 import { PhotorealScenery } from "../landscape/sceneryLayer";
 import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
 import {
@@ -61,8 +63,7 @@ export interface CampaignTerritoryData {
 export interface CampaignComposition {
   surface: RenderedSurface;
   objects: readonly CampaignWorldObject[];
-  /** Existing roadGeometry output, stride ten. */
-  roads: Float32Array;
+  geography: CampaignGeography;
   terrainAllocation?: {
     budget: TerrainAllocationBudget;
   };
@@ -100,8 +101,7 @@ export class PhotorealCampaignWorld {
   private visibilityRevision = 0;
   private readonly selection: THREE.Mesh;
   private readonly terrain: PhotorealTiledTerrain;
-  private readonly road: THREE.Mesh;
-  private readonly roadOffsets: Float32Array;
+  private readonly geography: CampaignGeographicLayer;
 
   static async create(canvas: HTMLCanvasElement, composition: CampaignComposition) {
     return new PhotorealCampaignWorld(await PhotorealWorld.create(canvas), composition);
@@ -166,18 +166,12 @@ export class PhotorealCampaignWorld {
       composition.terrainAllocation?.budget,
       Float32Array.BYTES_PER_ELEMENT,
     );
-    this.road = roadMesh(composition.roads);
-    this.roadOffsets = new Float32Array(composition.roads.length / 10);
-    for (let i = 0; i < this.roadOffsets.length; i++) {
-      const x = composition.roads[i * 10],
-        y = composition.roads[i * 10 + 1];
-      this.roadOffsets[i] =
-        composition.roads[i * 10 + 2] -
-        (composition.surface.sampleRendered(x, y)?.position[2] ?? 0);
-    }
-    this.addLandscapeFog(this.road.geometry, composition.roads);
-    this.colorLandscapeMaterial(this.road.material as THREE.MeshStandardNodeMaterial, false);
-    this.add(this.road);
+    const geographicMaterial = decalMaterial();
+    this.colorLandscapeMaterial(geographicMaterial, false);
+    this.geography = new CampaignGeographicLayer(world.scene, geographicMaterial, (x, y) =>
+      this.fogAt(x, y),
+    );
+    this.setGeography(composition.geography);
     this.selection = new THREE.Mesh(new THREE.BufferGeometry(), decalMaterial());
     this.selection.renderOrder = RENDER_ORDER.groundCues + 1;
     this.selection.visible = false;
@@ -189,7 +183,10 @@ export class PhotorealCampaignWorld {
       fog[i] = this.fogAt(vertices[i * 10], vertices[i * 10 + 1]);
     geometry.setAttribute("campaignFog", new THREE.BufferAttribute(fog, 1));
   }
-  private colorLandscapeMaterial(material: THREE.MeshStandardNodeMaterial, territory: boolean) {
+  private colorLandscapeMaterial(
+    material: THREE.MeshStandardNodeMaterial | THREE.MeshBasicNodeMaterial,
+    territory: boolean,
+  ) {
     const base = material.colorNode as THREE.Node<"vec4">;
     let tinted = base.rgb;
     if (territory) {
@@ -221,19 +218,17 @@ export class PhotorealCampaignWorld {
   /** Called by the tile scheduler before render, so geometry, anchors, roads and
    * picking all switch to the same presented surface in one frame. */
   installTerrain(tile: TerrainTileSurface, evictedKeys: readonly string[]) {
-    this.terrain.install(tile, evictedKeys);
+    const changed = this.terrain.install(tile, evictedKeys);
     this.seatScenery();
     const surface = this.terrain.surface;
     for (const { input, mesh } of this.objects)
       mesh.position.z = surface.sampleRendered(input.x, input.y)!.position[2];
-    const positions = this.road.geometry.getAttribute("position") as THREE.BufferAttribute;
-    for (let i = 0; i < positions.count; i++) {
-      const height = surface.sampleRendered(positions.getX(i), positions.getY(i))?.position[2];
-      if (height !== undefined) positions.setZ(i, height + this.roadOffsets[i]);
-    }
-    positions.needsUpdate = true;
-    this.road.geometry.computeBoundingSphere();
+    this.geography.seat(surface, changed);
     this.updateSelection();
+  }
+
+  setGeography(data: CampaignGeography) {
+    this.geography.upload(data, this.terrain.surface);
   }
 
   /** Candidate ownership remains with campaign policy; this world owns seating. */
@@ -453,6 +448,7 @@ export class PhotorealCampaignWorld {
   stats() {
     return {
       ...this.world.stats(),
+      geography: this.geography.stats(),
       visibilityRevision: this.visibilityRevision,
       selected: this.selected,
       fog: this.fogEnabled,
@@ -464,6 +460,7 @@ export class PhotorealCampaignWorld {
     };
   }
   dispose() {
+    this.geography.dispose();
     this.territoryTexture.dispose();
     this.scenery.dispose();
     this.terrain.dispose();
@@ -477,41 +474,6 @@ export class PhotorealCampaignWorld {
   }
 }
 
-function colorGeometry(
-  vertices: Float32Array,
-  stride: number,
-  colorOffset: number,
-  indices?: Uint16Array,
-) {
-  const geometry = new THREE.BufferGeometry(),
-    count = vertices.length / stride;
-  const positions = new Float32Array(count * 3),
-    colors = new Float32Array(count * 4);
-  for (let i = 0; i < count; i++) {
-    positions.set(vertices.subarray(i * stride, i * stride + 3), i * 3);
-    colors.set(vertices.subarray(i * stride + colorOffset, i * stride + colorOffset + 4), i * 4);
-  }
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("surfaceColor", new THREE.BufferAttribute(colors, 4));
-  if (indices) geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  return geometry;
-}
-function decalMaterial() {
-  const material = new THREE.MeshBasicNodeMaterial({
-    transparent: true,
-    depthWrite: false,
-    depthTest: true,
-    side: THREE.DoubleSide,
-  });
-  const color = varying(attribute<"vec4">("surfaceColor", "vec4"));
-  material.colorNode = vec4(linearAlbedo(color.rgb), color.a);
-  return material;
-}
-function roadMesh(vertices: Float32Array) {
-  const mesh = new THREE.Mesh(colorGeometry(vertices, 10, 3), decalMaterial());
-  mesh.renderOrder = RENDER_ORDER.groundCues;
-  return mesh;
-}
 function modelMesh(model: MeshData) {
   const geometry = colorGeometry(model.opaque.vertices, 10, 6, model.opaque.indices);
   const normals = new Float32Array((model.opaque.vertices.length / 10) * 3);

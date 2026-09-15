@@ -178,6 +178,11 @@ export class PhotorealTiledTerrain {
     this.surface = createSurfaceView(coarse, [...presented.values()]);
     this.revision = revision;
     this.admissionCpuMs = performance.now() - started;
+    // Consumers re-seat only regions whose presented triangles may have changed.
+    return [
+      ...changedDomains,
+      ...remaining.filter(([key]) => affected.has(key)).map(([, entry]) => entry.source.domain),
+    ];
   }
 
   private resources() {

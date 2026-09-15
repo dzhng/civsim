@@ -72,9 +72,7 @@ export async function route(ctx: LabContext) {
       ],
     },
   };
-  const roads = buildCampaignMapDrawData(roadData, {
-    heightAt: (x, y) => surface.sampleRendered(x, y)!.position[2],
-  });
+  const roads = buildCampaignMapDrawData(roadData);
   const builder = new MeshBuilder();
   for (let j = 0; j < 2; j++)
     for (let i = 0; i < 3; i++)
@@ -82,7 +80,7 @@ export async function route(ctx: LabContext) {
   const army = builder.finish("composition army marker");
   const composition = {
     surface,
-    roads: roads.roadMeshVertices,
+    geography: { ...roads, borderVertices: new Float32Array() },
     territory: [0.75, 0.36, 0.26] as const,
     objects: [
       {

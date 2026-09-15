@@ -1,0 +1,335 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T03:51:43.092Z",
+  "target": "http://localhost:5186",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "campaign-composition",
+      "file": "campaign/campaign-composition.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "campaign-landscape-overlays",
+      "file": "campaign/campaign-landscape-overlays.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "campaign-tile-anchors",
+      "file": "campaign/campaign-tile-anchors.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "landscape-geography",
+      "file": "campaign/landscape-geography.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR1: single world draws the composition",
+      "ok": true,
+      "detail": "{\"drawCalls\":13,\"triangles\":33489,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"geography\":{\"vertices\":2868,\"sampledVertices\":2868},\"visibilityRevision\":0,\"selected\":null,\"fog\":false,\"objects\":3,\"surfaceRevision\":0,\"terrain\":{\"allocationBytes\":1248120,\"cpuBytes\":700860,\"gpuBytes\":547260,\"peakAllocationBytes\":1795380,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":547260,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0},\"standards\":{\"standards\":3,\"selected\":0,\"tier\":\"campaign-army\",\"layer\":\"photoreal-campaign-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"campaign tier dimensions and grounded per-object scale\"},\"scenery\":{\"scenery\":0,\"sceneryDrawCalls\":0,\"scenerySubmitted\":0,\"sceneryTriangles\":0,\"sceneryDetailed\":0,\"uploads\":0},\"anchors\":[{\"id\":\"city\",\"groundZ\":4.412467002868652,\"label\":\"Ridge settlement\",\"selected\":false,\"x\":404.36105411658855,\"y\":401.118820232911,\"visible\":true},{\"id\":\"army\",\"groundZ\":11.62277364730835,\"label\":\"Field army\",\"selected\":false,\"x\":803.1509476818801,\"y\":375.4770674328712,\"visible\":true},{\"id\":\"rear\",\"groundZ\":8.08508014678955,\"label\":\"Rear army\",\"selected\":false,\"x\":610.9267043032479,\"y\":244.71634723950797,\"visible\":false}],\"generation\":0}"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "snapshot campaign-composition",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR1: actual elevated army click",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "snapshot campaign-composition-selected",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR1: fog hides entity, flag, label and selection",
+      "ok": true,
+      "detail": "{\"drawCalls\":11,\"triangles\":32545,\"gpuTimeMs\":400.339916,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"geography\":{\"vertices\":2868,\"sampledVertices\":2868},\"visibilityRevision\":0,\"selected\":null,\"fog\":true,\"objects\":2,\"surfaceRevision\":0,\"terrain\":{\"allocationBytes\":1248120,\"cpuBytes\":700860,\"gpuBytes\":547260,\"peakAllocationBytes\":1795380,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":547260,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0},\"standards\":{\"standards\":2,\"selected\":0,\"tier\":\"campaign-army\",\"layer\":\"photoreal-campaign-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"campaign tier dimensions and grounded per-object scale\"},\"scenery\":{\"scenery\":0,\"sceneryDrawCalls\":0,\"scenerySubmitted\":0,\"sceneryTriangles\":0,\"sceneryDetailed\":0,\"uploads\":1},\"anchors\":[{\"id\":\"city\",\"groundZ\":4.412467002868652,\"label\":\"Ridge settlement\",\"selected\":false,\"x\":404.36105411658855,\"y\":401.118820232911,\"visible\":true},{\"id\":\"army\",\"groundZ\":11.62277364730835,\"label\":\"Field army\",\"selected\":false,\"x\":803.1509476818801,\"y\":375.4770674328712,\"visible\":false},{\"id\":\"rear\",\"groundZ\":8.08508014678955,\"label\":\"Rear army\",\"selected\":false,\"x\":610.9267043032479,\"y\":244.71634723950797,\"visible\":false}],\"generation\":0}"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "snapshot campaign-composition-fog",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR1: actual city click",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR1: resized world recreates",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR1: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "snapshot campaign-composition-flat",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "ridge occludes the rear road",
+      "ok": true,
+      "detail": "{\"exposed\":97,\"occluded\":0}"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "ridge occludes rear army despite hostile submission order",
+      "ok": true,
+      "detail": "{\"exposed\":600,\"occluded\":0}"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR2: single world draws the composition",
+      "ok": true,
+      "detail": "{\"drawCalls\":13,\"triangles\":33489,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"geography\":{\"vertices\":2868,\"sampledVertices\":2868},\"visibilityRevision\":0,\"selected\":null,\"fog\":false,\"objects\":3,\"surfaceRevision\":0,\"terrain\":{\"allocationBytes\":1248120,\"cpuBytes\":700860,\"gpuBytes\":547260,\"peakAllocationBytes\":1795380,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":547260,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0},\"standards\":{\"standards\":3,\"selected\":0,\"tier\":\"campaign-army\",\"layer\":\"photoreal-campaign-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"campaign tier dimensions and grounded per-object scale\"},\"scenery\":{\"scenery\":0,\"sceneryDrawCalls\":0,\"scenerySubmitted\":0,\"sceneryTriangles\":0,\"sceneryDetailed\":0,\"uploads\":0},\"anchors\":[{\"id\":\"city\",\"groundZ\":4.412467002868652,\"label\":\"Ridge settlement\",\"selected\":false,\"x\":404.36105411658855,\"y\":401.118820232911,\"visible\":true},{\"id\":\"army\",\"groundZ\":11.62277364730835,\"label\":\"Field army\",\"selected\":false,\"x\":803.1509476818801,\"y\":375.4770674328712,\"visible\":true},{\"id\":\"rear\",\"groundZ\":8.08508014678955,\"label\":\"Rear army\",\"selected\":false,\"x\":610.9267043032479,\"y\":244.71634723950797,\"visible\":false}],\"generation\":0}"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "snapshot campaign-composition-dpr2",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR2: actual elevated army click",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR2: fog hides entity, flag, label and selection",
+      "ok": true,
+      "detail": "{\"drawCalls\":11,\"triangles\":32545,\"gpuTimeMs\":2439.961043,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"geography\":{\"vertices\":2868,\"sampledVertices\":2868},\"visibilityRevision\":0,\"selected\":null,\"fog\":true,\"objects\":2,\"surfaceRevision\":0,\"terrain\":{\"allocationBytes\":1248120,\"cpuBytes\":700860,\"gpuBytes\":547260,\"peakAllocationBytes\":1795380,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":547260,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0},\"standards\":{\"standards\":2,\"selected\":0,\"tier\":\"campaign-army\",\"layer\":\"photoreal-campaign-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"campaign tier dimensions and grounded per-object scale\"},\"scenery\":{\"scenery\":0,\"sceneryDrawCalls\":0,\"scenerySubmitted\":0,\"sceneryTriangles\":0,\"sceneryDetailed\":0,\"uploads\":1},\"anchors\":[{\"id\":\"city\",\"groundZ\":4.412467002868652,\"label\":\"Ridge settlement\",\"selected\":false,\"x\":404.36105411658855,\"y\":401.118820232911,\"visible\":true},{\"id\":\"army\",\"groundZ\":11.62277364730835,\"label\":\"Field army\",\"selected\":false,\"x\":803.1509476818801,\"y\":375.4770674328712,\"visible\":false},{\"id\":\"rear\",\"groundZ\":8.08508014678955,\"label\":\"Rear army\",\"selected\":false,\"x\":610.9267043032479,\"y\":244.71634723950797,\"visible\":false}],\"generation\":0}"
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR2: actual city click",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR2: resized world recreates",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-composition",
+      "name": "DPR2: GPU validation clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "snapshot campaign-ownership",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "snapshot campaign-ownership-changed",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "ownership update reaches visible terrain",
+      "ok": true,
+      "detail": "157759 pixels changed"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "political toggle restores unchanged natural terrain",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "snapshot campaign-visibility-west",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "west visibility shows city and west woodland",
+      "ok": true,
+      "detail": "{\"drawCalls\":19,\"triangles\":51563,\"gpuTimeMs\":62.746833,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"geography\":{\"vertices\":2868,\"sampledVertices\":2868},\"visibilityRevision\":1,\"selected\":null,\"fog\":true,\"objects\":1,\"surfaceRevision\":0,\"terrain\":{\"allocationBytes\":1248120,\"cpuBytes\":700860,\"gpuBytes\":547260,\"peakAllocationBytes\":1795380,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":547260,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0},\"standards\":{\"standards\":1,\"selected\":0,\"tier\":\"campaign-army\",\"layer\":\"photoreal-campaign-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"campaign tier dimensions and grounded per-object scale\"},\"scenery\":{\"scenery\":1,\"sceneryDrawCalls\":1,\"scenerySubmitted\":1,\"sceneryTriangles\":567,\"sceneryDetailed\":0,\"uploads\":2},\"anchors\":[{\"id\":\"city\",\"groundZ\":4.412467002868652,\"label\":\"Ridge settlement\",\"selected\":false,\"x\":404.36105411658855,\"y\":401.118820232911,\"visible\":true},{\"id\":\"army\",\"groundZ\":11.62277364730835,\"label\":\"Field army\",\"selected\":false,\"x\":803.1509476818801,\"y\":375.4770674328712,\"visible\":false},{\"id\":\"rear\",\"groundZ\":8.08508014678955,\"label\":\"Rear army\",\"selected\":false,\"x\":610.9267043032479,\"y\":244.71634723950797,\"visible\":false}],\"generation\":0}"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "snapshot campaign-visibility-east",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "moving visibility changes the ground, not only entity membership",
+      "ok": true,
+      "detail": "184239 pixels change by more than 30 RGB levels"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "moving visibility replaces visible entities without toggling fog",
+      "ok": true,
+      "detail": "{\"drawCalls\":11,\"triangles\":31799,\"gpuTimeMs\":62.748834,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"geography\":{\"vertices\":2868,\"sampledVertices\":2868},\"visibilityRevision\":2,\"selected\":null,\"fog\":true,\"objects\":1,\"surfaceRevision\":0,\"terrain\":{\"allocationBytes\":1248120,\"cpuBytes\":700860,\"gpuBytes\":547260,\"peakAllocationBytes\":1795380,\"revision\":0,\"residentTiles\":0,\"geometryBytes\":547260,\"lastAdmissionUploadBytes\":0,\"lastAdmissionCpuMs\":0},\"standards\":{\"standards\":1,\"selected\":0,\"tier\":\"campaign-army\",\"layer\":\"photoreal-campaign-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"campaign tier dimensions and grounded per-object scale\"},\"scenery\":{\"scenery\":1,\"sceneryDrawCalls\":1,\"scenerySubmitted\":1,\"sceneryTriangles\":567,\"sceneryDetailed\":0,\"uploads\":3},\"anchors\":[{\"id\":\"city\",\"groundZ\":4.412467002868652,\"label\":\"Ridge settlement\",\"selected\":false,\"x\":404.36105411658855,\"y\":401.118820232911,\"visible\":false},{\"id\":\"army\",\"groundZ\":11.62277364730835,\"label\":\"Field army\",\"selected\":false,\"x\":803.1509476818801,\"y\":375.4770674328712,\"visible\":true},{\"id\":\"rear\",\"groundZ\":8.08508014678955,\"label\":\"Rear army\",\"selected\":false,\"x\":610.9267043032479,\"y\":244.71634723950797,\"visible\":false}],\"generation\":0}"
+    },
+    {
+      "scenario": "campaign-landscape-overlays",
+      "name": "tile admission keeps current visibility",
+      "ok": true,
+      "detail": "{\"drawCalls\":13,\"triangles\":57399,\"gpuTimeMs\":59.920459,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"geography\":{\"vertices\":2868,\"sampledVertices\":636},\"visibilityRevision\":2,\"selected\":null,\"fog\":true,\"objects\":1,\"surfaceRevision\":1,\"terrain\":{\"allocationBytes\":3017256,\"cpuBytes\":1922736,\"gpuBytes\":1094520,\"peakAllocationBytes\":3718116,\"revision\":1,\"residentTiles\":1,\"geometryBytes\":1094520,\"lastAdmissionUploadBytes\":700860,\"lastAdmissionCpuMs\":3.0299999713897705},\"standards\":{\"standards\":1,\"selected\":0,\"tier\":\"campaign-army\",\"layer\":\"photoreal-campaign-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"campaign tier dimensions and grounded per-object scale\"},\"scenery\":{\"scenery\":1,\"sceneryDrawCalls\":1,\"scenerySubmitted\":1,\"sceneryTriangles\":567,\"sceneryDetailed\":0,\"uploads\":4},\"anchors\":[{\"id\":\"city\",\"groundZ\":4.412467002868652,\"label\":\"Ridge settlement\",\"selected\":false,\"x\":404.36105411658855,\"y\":401.118820232911,\"visible\":false},{\"id\":\"army\",\"groundZ\":19.622774124145508,\"label\":\"Field army\",\"selected\":false,\"x\":806.435402152506,\"y\":339.01832828748593,\"visible\":true},{\"id\":\"rear\",\"groundZ\":8.08508014678955,\"label\":\"Rear army\",\"selected\":false,\"x\":610.9267043032479,\"y\":244.71634723950797,\"visible\":false}],\"generation\":0}"
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "fixed-pixel army selection works before admission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "snapshot campaign-tile-anchors-coarse",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "tile raises the rendered army by its independently specified eight units",
+      "ok": true,
+      "detail": "{\"before\":{\"id\":\"army\",\"groundZ\":11.62277364730835,\"label\":\"Field army\",\"selected\":true,\"x\":803.1509476818801,\"y\":375.4770674328712,\"visible\":true},\"after\":{\"id\":\"army\",\"groundZ\":19.622774124145508,\"label\":\"Field army\",\"selected\":true,\"x\":806.435402152506,\"y\":339.01832828748593,\"visible\":true}}"
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "selection and label track the raised model",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "fixed-pixel picking follows raised detail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "snapshot campaign-tile-anchors-detail",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "eviction restores the army and label to coarse ground",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "fixed-pixel picking follows restored surface",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "snapshot campaign-tile-anchors-evicted",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "DPR2 picks the raised model at its visible CSS pixel",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-tile-anchors",
+      "name": "DPR2 picks the restored model after eviction",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "snapshot landscape-geography-italy",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "italy: live geometry and bounded re-seating",
+      "ok": true,
+      "detail": "{\"vertices\":1071726,\"sampledVertices\":297}"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "italy: geographic inputs visibly reach the world",
+      "ok": true,
+      "detail": "36547 pixels"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "italy: replacement restores exact geography",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "snapshot landscape-geography-alps",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "alps: live geometry and bounded re-seating",
+      "ok": true,
+      "detail": "{\"vertices\":1071726,\"sampledVertices\":22671}"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "alps: geographic inputs visibly reach the world",
+      "ok": true,
+      "detail": "59758 pixels"
+    },
+    {
+      "scenario": "landscape-geography",
+      "name": "alps: replacement restores exact geography",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

@@ -1,3 +1,7 @@
+import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
+import { campaignFactionBorderVertices } from "@packages/game-renderer/src/campaign/borderGeometry";
+import { Territory } from "../../../../web/src/campaign/territory";
+import { readCampaignViews } from "../../../../web/src/campaign/views";
 import { TerrainAllocationBudget } from "@packages/photoreal-renderer/src/campaign/tiledTerrain";
 import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
 import { createTerrainTiles } from "@packages/photoreal-renderer/src/campaign/terrainTiles";
@@ -18,7 +22,8 @@ import { type LabContext, publish } from "../labShell";
 /** Real source and production composition owner; the route only drives its camera. */
 export async function route(ctx: LabContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
-  const field = new TerrainField((await loadCampaignData()).data);
+  const { data, mapJson } = await loadCampaignData();
+  const field = new TerrainField(data);
   const source = snapshotCampaignLandscape(field);
   const sourceBytes =
     source.height.byteLength + source.biome.byteLength + source.renderMask.classes.byteLength;
@@ -34,10 +39,35 @@ export async function route(ctx: LabContext) {
     surface,
     terrainAllocation: { budget: allocation },
     objects: [],
-    roads: new Float32Array(),
+    geography: {
+      roadMeshVertices: new Float32Array(),
+      lineVertices: new Float32Array(),
+      borderVertices: new Float32Array(),
+    },
     territory: [0.48, 0.48, 0.35],
     fogAt: () => 0,
   });
+  let geographicInputs: Parameters<typeof world.setGeography>[0] | undefined;
+  if (ctx.path === "/renderer/landscape-geography") {
+    const { default: init, Campaign } = await import("../../../../web/src/wasm/game_wasm.js");
+    const wasm = await init();
+    const campaign = new Campaign(mapJson, 0x5eed_2026, 0);
+    const territory = new Territory(data, field);
+    territory.rebuild(readCampaignViews(campaign, wasm).cities);
+    campaign.free();
+    geographicInputs = {
+      ...buildCampaignMapDrawData(data, {
+        surfaceAt: (x, y) => (field.landAt(x, y, 16) ? "land" : "water"),
+        renderSurfaceAt: (x, y) => (field.renderLandAt(x, y) ? "land" : "water"),
+        roadSurfaceAt: (x, y) => (field.renderLandAt(x, y) ? "land" : "water"),
+      }),
+      borderVertices: campaignFactionBorderVertices(territory.borders, undefined, {
+        surfaceStep: 0.9,
+        landAt: (x, y) => !field.renderWaterAt(x, y),
+      }),
+    };
+    world.setGeography(geographicInputs);
+  }
   let camera = { x: -100, y: 250, zoom: 0.16 };
   let builds = 0,
     frames = 0,
@@ -122,6 +152,18 @@ export async function route(ctx: LabContext) {
         camera = { x, y, zoom };
       },
       stats,
+      geography: (enabled: boolean) => {
+        if (geographicInputs)
+          world.setGeography(
+            enabled
+              ? geographicInputs
+              : {
+                  roadMeshVertices: new Float32Array(),
+                  lineVertices: new Float32Array(),
+                  borderVertices: new Float32Array(),
+                },
+          );
+      },
       resetTiming: () => {
         frameTimes.length = 0;
         admissionFrames.length = 0;

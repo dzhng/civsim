@@ -1,6 +1,6 @@
 # 07 — Forests, edges and intermediate ground detail
 
-Status: battle eligibility checkpoint integrated; campaign placement and composed visuals pending. Dependencies: [04](04-mountain-form.md), [05](05-terrain-material.md), [06](06-crown-shapes.md).
+Status: battle eligibility and campaign canopy coverage checkpoints integrated; further ecological detail and composed acceptance remain open. Dependencies: [04](04-mountain-form.md), [05](05-terrain-material.md), [06](06-crown-shapes.md).
 
 ## Contract and owner
 
@@ -65,7 +65,7 @@ The instance data and physical scenery layer now have neutral owners, with uncha
 
 Global candidate generation, local presentation and terrain geometry are distinct responsibilities. Prefer the existing world candidate cache and view filtering where they fit. Remove the landscape builder's redundant planting path when its callers consume the shared campaign producer.
 
-### Current campaign pass (not yet accepted)
+### Campaign placement owner
 
 The global producer now proposes trees on a fixed 4 km lattice, queries actual
 source cover and coastal footprint, and rejects steep canonical relief sampled
@@ -78,8 +78,8 @@ Existing regional budgets, species choices and static/dynamic reservations remai
 the campaign policy owner. Candidate heights are assigned by the consuming
 presentation surface: the current production producer still seats against its
 current field, and the new physical world must seat against its presented mesh.
-The embedded prototype planting path and worker scenery payload are removed. Real-region distribution is under fresh visual review; repeated residency/upload
-and fog/growth behavior pass. Whole-slice acceptance remains pending.
+The embedded prototype planting path and worker scenery payload are removed. Repeated residency/upload and fog/growth behavior pass. The canopy coverage
+checkpoint below records regional acceptance; whole-slice acceptance remains pending.
 
 
 The sparse first candidate and an evenly dispersed second candidate were rejected.

@@ -1,6 +1,6 @@
 # 10 — Coherent lighting and landscape composition
 
-Status: pending. Dependencies: [05](05-terrain-material.md), [07](07-ecological-placement.md), [09](09-water-response.md).
+Status: normal transforms, stabilized campaign shadows and shared aerial-ray correction accepted; whole-frame lighting remains open. Dependencies: [05](05-terrain-material.md), [07](07-ecological-placement.md), [09](09-water-response.md).
 
 ## Contract and owner
 
@@ -62,3 +62,10 @@ composition, overview transitions and the complete environment target remain ope
 ## Composed battle audit follow-up
 
 The [current battle vistas](../assets/slice-13/composed/README.md) retain readable near formations but fresh critique finds yellow haze suppressing far terrain and enemy lines, with a weak visible transition from battlefield to distant walls. Investigate atmosphere/material/vista presentation together while preserving playable terrain. Exact-repeat captures prove deterministic output, not final environment quality.
+
+The [shared aerial-ray correction](../assets/slice-14-production/aerial-ray/README.md)
+removes the overview rectangle through consistent normalized-ray intersection.
+It does not tune atmosphere density or establish distant battle readability.
+The [merged campaign proof](../assets/integration/production-shadow/README.md)
+accepts contact, UI and water continuity in controlled production/composition
+frames with exact repeats; regional reference quality remains a separate gate.

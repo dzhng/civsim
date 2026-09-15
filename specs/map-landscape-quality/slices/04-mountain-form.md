@@ -52,7 +52,7 @@ the source-form model before trying another local-link or noise adjustment.
 
 ## One landform owner
 
-The source height producer already modulates geographic ranges with ridge noise; the presentation field applies a second ridge pattern. Preserve range-distance geography and city aprons at the source, and move detailed landform shaping into the existing relief owner. The rejected comparison used a plain base and two stateless slope-directed erosion-noise octaves. This is a procedural shaping function, not a drainage or erosion simulation. Read the [primary algorithm explanation](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html) and preserve source-license notices for any port. Use close clay for sampling/coastal correctness and fixed real regional clay for branching/open-valley judgment; measure query cost and keep coast, terrain-join and gameplay contracts protected. No new schema, cache or package dependency is planned.
+The source height producer and presentation relief both shape ranges, but removing the source modulation did not produce enough visual benefit to justify changing source-derived cover and city heights. Keep that source fixed for the next relief-profile comparison. The rejected directional filter and its primary research remain in the evidence below. Use close clay for sampling/coastal correctness and fixed real regional clay for branching/open-valley judgment. No new schema, cache or dependency is needed for this isolated profile assessment.
 
 ## Directional synthesis boundary
 

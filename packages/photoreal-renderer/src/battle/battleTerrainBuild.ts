@@ -38,6 +38,8 @@ export interface BattleTerrainBuildInput {
   frame: LandscapeFrameUniforms;
   grassTransition: BladeFieldTransitionUniforms;
   sea: ReturnType<typeof createSeaDisplacementSource>;
+  /** The world's rock face detail map; ground and every vista band share it. */
+  rockDetailMap: THREE.Texture;
 }
 
 export interface BattleTerrainBuild {
@@ -211,7 +213,8 @@ export class BattleTerrainSurface {
 
 /** Build one complete terrain presentation without mutating a scene or world. */
 export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrainBuild {
-  const { grid, cover, slopeBands, lakeSurfaces, frame, grassTransition, sea } = input;
+  const { grid, cover, slopeBands, lakeSurfaces, frame, grassTransition, sea, rockDetailMap } =
+    input;
   const field: TerrainHeightField = grid.height
     ? {
         w: grid.w,
@@ -244,6 +247,7 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
     slopeBands,
     farGrass: grassTransition,
     earthDistance: groundData.earthDistance,
+    rockDetailMap,
   });
 
   let horizonBlockers: THREE.Mesh | null = null;
@@ -262,6 +266,7 @@ export function buildBattleTerrain(input: BattleTerrainBuildInput): BattleTerrai
         {
           slopeBands,
           farGrass: grassTransition,
+          rockDetailMap,
         },
         innerMesh,
       );

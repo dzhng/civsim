@@ -1,0 +1,254 @@
+{
+  "stage": "candidate",
+  "base": "http://127.0.0.1:5186",
+  "requestedAdapter": "hardware",
+  "errors": [],
+  "rawSha256": "b647b3cd02d812c3de7d45e481b088d3d2e96ce75c8f565d07a4c4a0a8b24753",
+  "checks": [
+    {
+      "name": "exact simulation tick",
+      "ok": true,
+      "detail": 60
+    },
+    {
+      "name": "vista actual pitch",
+      "ok": true
+    },
+    {
+      "name": "vista eye clears terrain",
+      "ok": true
+    },
+    {
+      "name": "snapshot vista",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "rock-seam actual pitch",
+      "ok": true
+    },
+    {
+      "name": "rock-seam eye clears terrain",
+      "ok": true
+    },
+    {
+      "name": "snapshot rock-seam",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ],
+  "frames": [
+    {
+      "name": "vista",
+      "requested": {
+        "x": 0,
+        "y": -650,
+        "zoom": 7.76,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.305
+      },
+      "tick": 60,
+      "camera": {
+        "x": 0,
+        "y": -650,
+        "zoom": 7.76,
+        "zoomT": 0.967887323943662,
+        "camera3d": {
+          "target": [
+            0,
+            -650,
+            3.114326238632202
+          ],
+          "distance": 197.69521904964176,
+          "pitch": 0.30499999999999994,
+          "yaw": -1.5707963267948966,
+          "fovY": 0.6115695836867723,
+          "aspect": 1.6,
+          "near": 1
+        }
+      },
+      "surface": {
+        "eye": [
+          1.1546642489861877e-14,
+          -838.57098222771,
+          62.4808512907396
+        ],
+        "heightAt": -0.7505579908861932,
+        "vistaHeightAt": -0.8837513453844263,
+        "renderedSurfaceHeightAt": -0.7505579908861932,
+        "clearance": 63.231409281625794,
+        "camera3d": {
+          "target": [
+            0,
+            -650,
+            3.114326238632202
+          ],
+          "distance": 197.69521904964176,
+          "pitch": 0.30499999999999994,
+          "yaw": -1.5707963267948966,
+          "fovY": 0.6115695836867723,
+          "aspect": 1.6,
+          "near": 1
+        }
+      },
+      "device": "apple / metal-3",
+      "ready": true,
+      "soldiers": 15560,
+      "expectedSoldiers": 15560,
+      "terrain": {
+        "fixture": "sim-tint",
+        "layer": "photoreal-battle-ground",
+        "groundTriangles": 120000,
+        "vistaTriangles": 111224,
+        "sealedEdges": [
+          "generated:vista"
+        ],
+        "groundCover": "green-grass",
+        "slopeBands": {
+          "cliffDilateCells": 6,
+          "cliffMin": 0.3199999928474426,
+          "flatMax": 0.03500000014901161,
+          "highlandCapMinM": 35,
+          "rollingMax": 0.11500000208616257,
+          "slowMin": 0.13500000536441803
+        },
+        "environment": {
+          "id": "overcast-foggy",
+          "source": "CIVSIM_ENVIRONMENTS.overcast-highland",
+          "sharedPreset": "overcast-highland",
+          "waterAlias": "CIVSIM_ENVIRONMENTS.overcast-highland",
+          "sunAzimuth": 3.1416,
+          "sunElevation": 0.6,
+          "keyColor": [
+            0.76,
+            0.8,
+            0.84
+          ],
+          "fillColor": [
+            0.78,
+            0.82,
+            0.87
+          ],
+          "hazeColor": [
+            0.88,
+            0.9,
+            0.92
+          ],
+          "exposure": 1.06
+        },
+        "scenery": 605
+      },
+      "grass": {
+        "recordCount": 1591672,
+        "submittedTriangles": 5280912
+      },
+      "standardsTime": 0
+    },
+    {
+      "name": "rock-seam",
+      "requested": {
+        "x": -1198,
+        "y": 0,
+        "zoom": 7.8,
+        "yaw": 0,
+        "pitch": 0.42
+      },
+      "tick": 60,
+      "camera": {
+        "x": -1198,
+        "y": 0,
+        "zoom": 7.8,
+        "zoomT": 0.9732394366197182,
+        "camera3d": {
+          "target": [
+            -1198,
+            0,
+            139.6468849182129
+          ],
+          "distance": 141.95682879445167,
+          "pitch": 0.42,
+          "yaw": 0,
+          "fovY": 0.6466878854526068,
+          "aspect": 1.6,
+          "near": 1
+        }
+      },
+      "surface": {
+        "eye": [
+          -1068.3807896259784,
+          0,
+          197.53126574233835
+        ],
+        "heightAt": 98.19611705490598,
+        "vistaHeightAt": null,
+        "renderedSurfaceHeightAt": 98.19611705490598,
+        "clearance": 99.33514868743237,
+        "camera3d": {
+          "target": [
+            -1198,
+            0,
+            139.6468849182129
+          ],
+          "distance": 141.95682879445167,
+          "pitch": 0.42,
+          "yaw": 0,
+          "fovY": 0.6466878854526068,
+          "aspect": 1.6,
+          "near": 1
+        }
+      },
+      "device": "apple / metal-3",
+      "ready": true,
+      "soldiers": 15560,
+      "expectedSoldiers": 15560,
+      "terrain": {
+        "fixture": "sim-tint",
+        "layer": "photoreal-battle-ground",
+        "groundTriangles": 120000,
+        "vistaTriangles": 111224,
+        "sealedEdges": [
+          "generated:vista"
+        ],
+        "groundCover": "green-grass",
+        "slopeBands": {
+          "cliffDilateCells": 6,
+          "cliffMin": 0.3199999928474426,
+          "flatMax": 0.03500000014901161,
+          "highlandCapMinM": 35,
+          "rollingMax": 0.11500000208616257,
+          "slowMin": 0.13500000536441803
+        },
+        "environment": {
+          "id": "overcast-foggy",
+          "source": "CIVSIM_ENVIRONMENTS.overcast-highland",
+          "sharedPreset": "overcast-highland",
+          "waterAlias": "CIVSIM_ENVIRONMENTS.overcast-highland",
+          "sunAzimuth": 3.1416,
+          "sunElevation": 0.6,
+          "keyColor": [
+            0.76,
+            0.8,
+            0.84
+          ],
+          "fillColor": [
+            0.78,
+            0.82,
+            0.87
+          ],
+          "hazeColor": [
+            0.88,
+            0.9,
+            0.92
+          ],
+          "exposure": 1.06
+        },
+        "scenery": 605
+      },
+      "grass": {
+        "recordCount": 992334,
+        "submittedTriangles": 1896480
+      },
+      "standardsTime": 0
+    }
+  ]
+}

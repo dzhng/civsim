@@ -25,13 +25,17 @@ import {
 } from "../../packages/photoreal-renderer/src/campaign/tiledTerrain";
 import { createLandscapeGroundMaterial } from "../../packages/photoreal-renderer/src/landscape/terrainMaterial";
 
+// The material requires a rock detail map; these tests provision a bare stand-in
+// because they measure tile residency and storage, never the rock response.
+const rockDetailMap = new THREE.Texture();
+
 test("distant admissions reuse the unchanged presented query and its storage", () => {
   const field = coastalRidgeFixture();
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8).surface;
   const scene = new THREE.Scene();
   const terrain = new PhotorealTiledTerrain(
     scene,
-    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
+    createLandscapeGroundMaterial(createLandscapeFrameUniforms(), undefined, { rockDetailMap }),
     coarse,
   );
   const a = buildCampaignLandscape(field, [-96, -96], 32, 2).surface;
@@ -72,7 +76,7 @@ test("adjacent admission and eviction refresh the affected edge", () => {
   const coarse = buildCampaignLandscape(field, [64, 0], 128, 8).surface;
   const terrain = new PhotorealTiledTerrain(
     new THREE.Scene(),
-    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
+    createLandscapeGroundMaterial(createLandscapeFrameUniforms(), undefined, { rockDetailMap }),
     coarse,
   );
   const tile = (x: number, y: number) => {
@@ -110,7 +114,7 @@ test("admission reservation covers old and new unique storage plus upload stagin
   const scene = new THREE.Scene();
   const terrain = new PhotorealTiledTerrain(
     scene,
-    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
+    createLandscapeGroundMaterial(createLandscapeFrameUniforms(), undefined, { rockDetailMap }),
     coarse,
     (geometry, surface) =>
       geometry.setAttribute(
@@ -201,7 +205,7 @@ test("admits coastal detail over the full-source overview within the unchanged a
     const create = () =>
       new PhotorealTiledTerrain(
         new THREE.Scene(),
-        createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
+        createLandscapeGroundMaterial(createLandscapeFrameUniforms(), undefined, { rockDetailMap }),
         coarse,
         (geometry, surface) =>
           geometry.setAttribute(

@@ -270,6 +270,36 @@ export function skinnedCrowdPass(pipeline: SkinnedCrowdPipeline, id: string): Fr
   };
 }
 
+/** One release list covers setup failure and page teardown. Late async
+ * acquisitions are released immediately and stop the disposed route. */
+export function labRouteLifetime() {
+  const owned: (() => void)[] = [];
+  let released = false;
+  const release = () => {
+    released = true;
+    window.removeEventListener("pagehide", release);
+    for (const dispose of owned.splice(0).reverse()) dispose();
+  };
+  window.addEventListener("pagehide", release, { once: true });
+  return {
+    /** Registers the release for a just-acquired resource. Returns a disown
+     *  callback for a resource another owned resource then takes over. */
+    own(dispose: () => void) {
+      if (released) {
+        dispose();
+        throw new DOMException("Renderer lab route ended during setup", "AbortError");
+      }
+      owned.push(dispose);
+      return () => {
+        const at = owned.indexOf(dispose);
+        if (at >= 0) owned.splice(at, 1);
+      };
+    },
+    /** Releases every resource still owned, most recent first. */
+    release,
+  };
+}
+
 export function numberParam(params: URLSearchParams, key: string, fallback: number) {
   const raw = params.get(key);
   if (raw === null || raw.trim() === "") return fallback;

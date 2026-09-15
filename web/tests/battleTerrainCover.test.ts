@@ -5,6 +5,10 @@ import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrai
 import { joinTerrainMeshEdges } from "@packages/photoreal-renderer/src/battle/terrainSeam";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 
+// The ground material requires a rock detail map; this test provisions a bare
+// stand-in because it measures cover interpolation, never the rock response.
+const rockDetailMap = new THREE.Texture();
+
 test("grass and forest interpolate through terrain joins without inventing rock or scree", () => {
   const square = (coordinates: number[]) => {
     const vertices: number[] = [];
@@ -21,12 +25,16 @@ test("grass and forest interpolate through terrain joins without inventing rock 
         const i = y * n + x;
         indices.push(i, i + 1, i + n, i + 1, i + n + 1, i + n);
       }
-    return createGroundMesh(createLandscapeFrameUniforms(), {
-      vertices: new Float32Array(vertices),
-      tint: new Float32Array(tint),
-      indices: new Uint32Array(indices),
-      triangles: indices.length / 3,
-    });
+    return createGroundMesh(
+      createLandscapeFrameUniforms(),
+      {
+        vertices: new Float32Array(vertices),
+        tint: new Float32Array(tint),
+        indices: new Uint32Array(indices),
+        triangles: indices.length / 3,
+      },
+      { rockDetailMap },
+    );
   };
   const inner = square([-1, 1]);
   const outer = square([-2, 0, 2]);

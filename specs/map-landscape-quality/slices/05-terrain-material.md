@@ -14,7 +14,7 @@ First reproduce triplanar color/normal mapping on a flat-to-steep ramp with the 
 
 ## Runnable checkpoint
 
-The landscape-materials scene renders equivalent campaign and battle inputs, a geometric-normal control, and near/far material views. Frozen real regions and terrain-water remain consumer guards.
+The landscape-materials scene renders equivalent campaign and battle inputs and near/far material views. The earlier geometric-normal control is retired after the production comparison rejected the bump contribution. Frozen real regions and terrain-water remain consumer guards.
 
 ## Verification and review
 
@@ -112,3 +112,20 @@ selects the checked-in image for bounded production adoption. It improves
 fracture readability on fixed real terrain and repeats exactly; source-band
 composition, actual battle/vista use and resource lifetime still need proof.
 Rounded landforms and stepped grass transitions remain separate open defects.
+
+
+The [production normal control](../assets/slice-05/rock-normal-control/README.md)
+rejects the bitmap's derivative-normal contribution: it adds granular artifacts
+while the geometric-normal control preserves readable fractures. Shared dry
+lighting now follows the landform; texture color and roughness remain. Renewed
+production campaign/battle captures and bitmap lifetime proof are retained below.
+
+
+The shared image is integrated with one texture per terrain world and clean
+asynchronous lab ownership. [Material/campaign evidence](../assets/slice-05/rock-normal-control/README.md),
+[actual battle evidence](../assets/slice-05/production-battle-rock/README.md), and
+[125-check texture retirement](../assets/slice-15-retention/rock-production10/README.md)
+record the bounded gain and its limits. Uniform crack coverage, soft green
+patches, terrain form and final lighting keep the slice open. Full ordinary
+battle distance and the remaining water/turf/seam acceptance matrix still need
+review; flat patch controls are not mountain-quality evidence.

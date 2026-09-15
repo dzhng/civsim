@@ -29,7 +29,11 @@ import { PhotorealWorld } from "../world";
 import { applyCivsimEnvironment } from "../environment";
 import { applyCamera3d } from "../cameraBridge";
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
-import { createLandscapeFrameUniforms, type LandscapeFrameUniforms } from "../landscape/shaderNodes";
+import {
+  createLandscapeFrameUniforms,
+  type LandscapeFrameUniforms,
+} from "../landscape/shaderNodes";
+import { loadRockDetailMap } from "../landscape/rockDetailMap";
 import { BattleBackgroundQuads } from "./terrainLayer";
 import { RENDER_ORDER } from "../renderOrder";
 import type { BattleVistaGrid } from "./vistaSurface";
@@ -171,6 +175,7 @@ export class PhotorealBattleWorld {
     grassProfile: BladeFieldProfile,
     private readonly gameplay: boolean,
     crowd: PhotorealCrowd,
+    private readonly rockDetailMap: THREE.Texture,
   ) {
     this.world = world;
     this.environment = environment;
@@ -250,29 +255,35 @@ export class PhotorealBattleWorld {
     const assets = await loadAppearanceCatalog(soldierCatalogUrl);
     if (gameplay) assertGameplayAppearances(assets);
     const world = await PhotorealWorld.create(canvas, { antialias: false });
-    let crowd: PhotorealCrowd;
+    let crowd: PhotorealCrowd | null = null;
+    let rockDetailMap: THREE.Texture | null = null;
     try {
       crowd = await PhotorealCrowd.create(world.renderer, world.scene, assets);
+      // One decode for the world: every terrain rebuild reuses this instance.
+      rockDetailMap = await loadRockDetailMap();
+      const sea = createSeaDisplacementSource();
+      const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
+      const postEnabled = options.post !== "off";
+      return new PhotorealBattleWorld(
+        world,
+        environment,
+        sea,
+        assets,
+        soldierCatalogUrl,
+        shadowMode,
+        postEnabled,
+        options.postGrade ?? null,
+        grassProfile,
+        gameplay,
+        crowd,
+        rockDetailMap,
+      );
     } catch (error) {
+      crowd?.dispose();
+      rockDetailMap?.dispose();
       world.dispose();
       throw error;
     }
-    const sea = createSeaDisplacementSource();
-    const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
-    const postEnabled = options.post !== "off";
-    return new PhotorealBattleWorld(
-      world,
-      environment,
-      sea,
-      assets,
-      soldierCatalogUrl,
-      shadowMode,
-      postEnabled,
-      options.postGrade ?? null,
-      grassProfile,
-      gameplay,
-      crowd,
-    );
   }
 
   setTime(seconds: number): void {
@@ -401,6 +412,7 @@ export class PhotorealBattleWorld {
       frame: this.frame,
       grassTransition: this.grassTransition,
       sea: this.sea,
+      rockDetailMap: this.rockDetailMap,
     });
     this.terrainSurface.replace(built);
     this.scenery.upload(built.scenery);
@@ -472,7 +484,9 @@ export class PhotorealBattleWorld {
   ): void {
     this.standardLayer.upload(standards);
     this.readoutLayer.upload(readouts);
-    this.lastStandards = standards.flatMap((s) => s.unitId === undefined ? [] : [{ unitId: s.unitId, x: s.x, y: s.y, z: s.z ?? 0 }]);
+    this.lastStandards = standards.flatMap((s) =>
+      s.unitId === undefined ? [] : [{ unitId: s.unitId, x: s.x, y: s.y, z: s.z ?? 0 }],
+    );
   }
   private lastStandards: { unitId: number; x: number; y: number; z: number }[] = [];
 
@@ -698,6 +712,7 @@ export class PhotorealBattleWorld {
     this.markerLayer.dispose();
     this.standardLayer.dispose();
     this.readoutLayer.dispose();
+    this.rockDetailMap.dispose();
     this.world.dispose();
   }
 }

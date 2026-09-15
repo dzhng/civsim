@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { attribute, normalize, transformNormalToView, varying, vec3 } from "three/tsl";
+import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
 import {
@@ -7,82 +7,92 @@ import {
   createLandscapeGroundMesh,
 } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
+import { loadRockDetailMap } from "@packages/photoreal-renderer/src/landscape/rockDetailMap";
 import { CAMPAIGN_TERRAIN_PROFILE } from "@packages/game-renderer/src/terrain/materialProfile";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
 import type { LandscapeMesh } from "@packages/game-renderer/src/terrain/surface";
-import { type LabContext, publish } from "../labShell";
+import { type LabContext, labRouteLifetime, publish } from "../labShell";
 
 /** Identical dry inputs through both consumers isolate material response. */
 export async function route(ctx: LabContext) {
-  ctx.root.classList.add("reference-shot");
-  const world = await PhotorealWorld.create(ctx.canvas);
-  const frame = createLandscapeFrameUniforms();
-  applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
-    aerialObserver: vec3(frame.focus, 0),
-  });
-  const mesh = materialRamp();
-  if (ctx.params.get("tint") === "rock") mesh.tint!.fill(2);
-  const originalVertices = mesh.vertices.slice();
-  const originalTint = mesh.tint!.slice();
-  const consumer = ctx.params.get("consumer") === "battle" ? "battle" : "campaign";
-  const ground =
-    consumer === "battle"
-      ? createGroundMesh(frame, mesh, {
-          ...CAMPAIGN_TERRAIN_PROFILE,
-          slopeBands:
-            ctx.params.get("slopes") === "authored"
-              ? null
-              : {
-                  ...CAMPAIGN_TERRAIN_PROFILE.slopeBands,
-                  flatMax: 0.08,
-                  cliffDilateCells: 0,
-                  highlandCapMinM: 0,
-                },
-        })
-      : createLandscapeGroundMesh(mesh, createLandscapeGroundMaterial(frame));
-  // A same-scene control proves procedural derivatives affect lighting.
-  if (ctx.params.get("normal") === "geometric")
-    (ground.material as THREE.MeshStandardNodeMaterial).normalNode = transformNormalToView(
-      normalize(varying(attribute<"vec3">("gNormal", "vec3"))),
-    );
-  world.scene.add(ground);
-  const camera = new THREE.PerspectiveCamera();
-  const zoom =
-    ctx.params.get("view") === "near" ? 4.8 : ctx.params.get("view") === "far" ? 1.6 : 3.2;
-  const draw = () => {
-    const width = ctx.canvas.clientWidth,
-      height = ctx.canvas.clientHeight;
-    world.resize(width, height, 1);
-    const pose = chartCamera3d({ x: 0, y: 0, zoom, pitch: 0.55 }, height);
-    pose.aspect = width / height;
-    pose.target = [0, 0, 18];
-    applyCamera3d(camera, pose);
-    world.setTime(0);
-    world.render(camera);
-    publish("landscape-materials", true, {
-      ...world.stats(),
-      consumer,
-      sourceUnchanged:
-        mesh.vertices.every((v, i) => v === originalVertices[i]) &&
-        mesh.tint!.every((v, i) => v === originalTint[i]),
-      terrainTriangles: mesh.triangles,
-      profile: CAMPAIGN_TERRAIN_PROFILE,
+  const scope = labRouteLifetime();
+  try {
+    ctx.root.classList.add("reference-shot");
+    // Both consumers below take this one instance, so the pair stays an A/B on
+    // the consumer and never on the resource.
+    const rockDetailMap = await loadRockDetailMap();
+    scope.own(() => rockDetailMap.dispose());
+    const world = await PhotorealWorld.create(ctx.canvas);
+    scope.own(() => world.dispose());
+    const frame = createLandscapeFrameUniforms();
+    applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
+      aerialObserver: vec3(frame.focus, 0),
     });
-  };
-  draw();
-  requestAnimationFrame(draw);
-  window.addEventListener(
-    "pagehide",
-    () => {
+    const mesh = materialRamp();
+    if (ctx.params.get("tint") === "rock") mesh.tint!.fill(2);
+    const originalVertices = mesh.vertices.slice();
+    const originalTint = mesh.tint!.slice();
+    const consumer = ctx.params.get("consumer") === "battle" ? "battle" : "campaign";
+    let ground: THREE.Mesh;
+    if (consumer === "battle") {
+      ground = createGroundMesh(frame, mesh, {
+        ...CAMPAIGN_TERRAIN_PROFILE,
+        rockDetailMap,
+        slopeBands:
+          ctx.params.get("slopes") === "authored"
+            ? null
+            : {
+                ...CAMPAIGN_TERRAIN_PROFILE.slopeBands,
+                flatMax: 0.08,
+                cliffDilateCells: 0,
+                highlandCapMinM: 0,
+              },
+      });
+    } else {
+      const material = createLandscapeGroundMaterial(frame, undefined, { rockDetailMap });
+      const disownMaterial = scope.own(() => material.dispose());
+      ground = createLandscapeGroundMesh(mesh, material);
+      // The mesh carries the material from here, and its release covers both.
+      disownMaterial();
+    }
+    scope.own(() => {
       ground.geometry.dispose();
       (ground.material as THREE.Material).dispose();
-      world.dispose();
-    },
-    { once: true },
-  );
+    });
+    world.scene.add(ground);
+    const camera = new THREE.PerspectiveCamera();
+    const zoom =
+      ctx.params.get("view") === "near" ? 4.8 : ctx.params.get("view") === "far" ? 1.6 : 3.2;
+    const draw = () => {
+      const width = ctx.canvas.clientWidth,
+        height = ctx.canvas.clientHeight;
+      world.resize(width, height, 1);
+      const pose = chartCamera3d({ x: 0, y: 0, zoom, pitch: 0.55 }, height);
+      pose.aspect = width / height;
+      pose.target = [0, 0, 18];
+      applyCamera3d(camera, pose);
+      world.setTime(0);
+      world.render(camera);
+      publish("landscape-materials", true, {
+        ...world.stats(),
+        consumer,
+        sourceUnchanged:
+          mesh.vertices.every((v, i) => v === originalVertices[i]) &&
+          mesh.tint!.every((v, i) => v === originalTint[i]),
+        terrainTriangles: mesh.triangles,
+        profile: CAMPAIGN_TERRAIN_PROFILE,
+      });
+    };
+    draw();
+    const secondFrame = requestAnimationFrame(draw);
+    scope.own(() => cancelAnimationFrame(secondFrame));
+  } catch (error) {
+    scope.release();
+    throw error;
+  }
 }
 
 function materialRamp(): LandscapeMesh {

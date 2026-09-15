@@ -1,0 +1,23 @@
+[
+  {
+    "name": "authored-A",
+    "changedPixels": 5,
+    "cameraEqual": true,
+    "geometryEqual": true,
+    "errors": []
+  },
+  {
+    "name": "authored-C",
+    "changedPixels": 3,
+    "cameraEqual": true,
+    "geometryEqual": true,
+    "errors": []
+  },
+  {
+    "name": "generated-vista",
+    "changedPixels": 0,
+    "cameraEqual": true,
+    "geometryEqual": true,
+    "errors": []
+  }
+]

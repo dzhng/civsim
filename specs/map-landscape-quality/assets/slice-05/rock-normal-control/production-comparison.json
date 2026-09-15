@@ -1,0 +1,71 @@
+[
+  {
+    "name": "alps",
+    "changedPixels": 482719,
+    "rgbMAE": 1.24575390625,
+    "equal": {
+      "camera": true,
+      "tick": true,
+      "candidates": true,
+      "labels": true,
+      "markers": true,
+      "cityBodyRects": true,
+      "sceneryAnchors": true,
+      "standardAnchors": true,
+      "selections": true,
+      "water": true,
+      "terrain": true
+    },
+    "terrainAdmissionCpuMs": {
+      "before": 10.884999990463257,
+      "after": 13.780000030994415
+    },
+    "sourceHash": "93e5e60c9459fa783bdacabb5e5991ed0e499ccc218ca76213e058ca3f5c8d6f"
+  },
+  {
+    "name": "italy",
+    "changedPixels": 185523,
+    "rgbMAE": 0.45560123697916666,
+    "equal": {
+      "camera": true,
+      "tick": true,
+      "candidates": true,
+      "labels": true,
+      "markers": true,
+      "cityBodyRects": true,
+      "sceneryAnchors": true,
+      "standardAnchors": true,
+      "selections": true,
+      "water": true,
+      "terrain": true
+    },
+    "terrainAdmissionCpuMs": {
+      "before": 12.51500004529953,
+      "after": 16.935000002384186
+    },
+    "sourceHash": "93e5e60c9459fa783bdacabb5e5991ed0e499ccc218ca76213e058ca3f5c8d6f"
+  },
+  {
+    "name": "alps-close",
+    "changedPixels": 696325,
+    "rgbMAE": 2.480281901041667,
+    "equal": {
+      "camera": true,
+      "tick": true,
+      "candidates": true,
+      "labels": true,
+      "markers": true,
+      "cityBodyRects": true,
+      "sceneryAnchors": true,
+      "standardAnchors": true,
+      "selections": true,
+      "water": true,
+      "terrain": true
+    },
+    "terrainAdmissionCpuMs": {
+      "before": 21.274999976158142,
+      "after": 17.689999997615814
+    },
+    "sourceHash": "93e5e60c9459fa783bdacabb5e5991ed0e499ccc218ca76213e058ca3f5c8d6f"
+  }
+]

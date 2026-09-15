@@ -6,11 +6,17 @@ import { createLandscapeGroundMaterial } from "../../packages/photoreal-renderer
 import { createLandscapeFrameUniforms } from "../../packages/photoreal-renderer/src/landscape/shaderNodes";
 import { PhotorealTiledTerrain } from "../../packages/photoreal-renderer/src/campaign/tiledTerrain";
 
+// The material requires a rock detail map; these tests provision a bare stand-in
+// because they measure tile residency and storage, never the rock response.
+const rockDetailMap = new THREE.Texture();
+
 test("terrain material survives tile eviction and is released with its world", () => {
   const field = coastalRidgeFixture();
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8).surface;
   const scene = new THREE.Scene();
-  const material = createLandscapeGroundMaterial(createLandscapeFrameUniforms());
+  const material = createLandscapeGroundMaterial(createLandscapeFrameUniforms(), undefined, {
+    rockDetailMap,
+  });
   let releases = 0;
   material.addEventListener("dispose", () => releases++);
   const terrain = new PhotorealTiledTerrain(scene, material, coarse);

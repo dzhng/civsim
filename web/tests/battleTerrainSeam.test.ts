@@ -14,6 +14,10 @@ import {
 import { createBladeFieldTransitionUniforms } from "@packages/photoreal-renderer/src/battle/bladeFieldLayer";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 
+// The terrain build requires a rock detail map; this test provisions a bare
+// stand-in because it measures the vista join, never the rock response.
+const rockDetailMap = new THREE.Texture();
+
 test("vista mountains join a lowered playable edge instead of exposing their underside", () => {
   const grid: BattleTerrainGrid = {
     w: 8,
@@ -36,6 +40,7 @@ test("vista mountains join a lowered playable edge instead of exposing their und
     lakeSurfaces: [],
     frame: createLandscapeFrameUniforms(),
     sea: createSeaDisplacementSource(),
+    rockDetailMap,
     grassTransition: createBladeFieldTransitionUniforms(
       initialBladeFieldTransition(productionBladeFieldProfile()),
     ),

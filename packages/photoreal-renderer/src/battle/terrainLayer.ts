@@ -125,6 +125,8 @@ interface TerrainMaterialOptions {
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
   earthDistance?: PhotorealEarthDistanceField;
+  /** The rock face detail map, owned and disposed by the caller's world. */
+  rockDetailMap: THREE.Texture;
 }
 
 function quadGeometry(): THREE.BufferGeometry {
@@ -316,7 +318,7 @@ export class BattleBackgroundQuads {
 export function createGroundMesh(
   frame: LandscapeFrameUniforms,
   mesh: LandscapeMesh,
-  options: TerrainMaterialOptions = {},
+  options: TerrainMaterialOptions,
 ): THREE.Mesh {
   const geo = createTerrainGeometry(mesh);
   // IDs must become coverage before seams or fragments interpolate: grass0
@@ -470,7 +472,13 @@ export function createGroundMesh(
   const ruts = ridgeN(world.mul(vec2(0.11, 0.045)).add(vec2(2.0, 0.0)));
   const churn = clamp(clods.mul(0.72).add(ruts.mul(0.28)).add(0.58), 0.42, 1.3);
   albedo = mix(albedo, albedo.mul(churn), mudInterior);
-  const response = terrainRockResponse(surface, albedo, slopeMasks, options.detailScale);
+  const response = terrainRockResponse(
+    surface,
+    albedo,
+    slopeMasks,
+    options.rockDetailMap,
+    options.detailScale,
+  );
   albedo = response.albedo;
   const dryRoughness = response.dryRoughness;
   const dryNormal = response.normal;
@@ -522,7 +530,7 @@ export function createVistaMesh(
   frame: LandscapeFrameUniforms,
   band: BattleVistaBand,
   cover: BattleGroundCover,
-  options: TerrainMaterialOptions = {},
+  options: TerrainMaterialOptions,
   innerMesh?: THREE.Mesh,
 ): THREE.Mesh | null {
   const mesh = buildVistaGroundMesh(band, cover);

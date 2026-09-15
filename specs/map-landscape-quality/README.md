@@ -7,48 +7,59 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 ## Next Agent Prompt
 
 Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`.
-The shared world, production adapter, source mountain band, rock-prop removal,
-card packing and verifier inputs are integrated. The screen UI output correction
-is now integrated too; the latest550 frontend tests and typecheck pass. The UI
-production build passes; independent code review reports no actionable defects. Matched production
-controls show brighter glyphs and standards with exact repeats and unchanged
-non-label regional/Alpine pixels. The unchanged regional label floor still fails
-despite restored glyph ink; do not lower it. The historical whole-frame metric
-also counts card chrome and bright terrain, so its coverage contract is under audit. See
-[production UI evidence](assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md).
+The production shared world, source mountain band, removed campaign rock props,
+card packing, painted label bounds and ungraded screen UI are integrated. Shared
+rock image ownership and geometric dry normals now pass564 frontend tests,
+14 material browser checks with four exact repeats, three exact campaign repeats,
+and125 production lifetime checks. The final material build matches the ten
+artifacts used in that lifetime proof. Overall landscape quality remains below
+the reference; no final slice acceptance follows from these checkpoints.
 
-**Current pickup:** integrate the shared rock-height texture and evaluate low
-vegetation in both map types. The texture prototype improves three real-terrain
-views with exact repeats; production wiring is under review in
-`/Users/david/dev/game-rock-texture-probe`. A bounded existing-shrub prototype is
-running in `/Users/david/dev/game-landscape-understory`, preserving mature trees
-and existing budgets. Rounded landforms, grass edges and ecological richness
-remain open; these visual properties are the priority.
+**Current pickup:** integrate the small stable-toolbar-markup fix from
+`/Users/david/dev/game-screen-ui-output` (only Toolbar.tsx and Toolbar.test.tsx).
+A red/green test proves the old5Hz refresh recreated unchanged SVG nodes; caching
+the static markup preserves nodes and button state. The isolated actual battle
+vista and rock-face frames now both repeat exactly. Root's earlier captures had
+small toolbar-only drift on both hardware and software. Use the corrected
+capture setup: freeze when the debug API is installed, verify tick60, then wait
+for the0.2s HUD refresh and portrait decode. Ordinary freezeAtTick cannot rewind
+a run that has already passed its requested tick.
 
-Painted-halo bounds are integrated after31 browser checks, exact repeats and550
-frontend tests, with the recorded conservative-culling tradeoff. The historical
-label-oracle audit proves its whole-frame white count cannot establish neutral
-name coverage; a direct positive/negative owner-aware check must precede any
-replacement. Keep the old floor unchanged meanwhile. Matching controls remain
-available; retired spike worktrees have been removed.
+Then compare the four-file forest-edge age/size prototype in
+`/Users/david/dev/game-landscape-understory` (server5214) with parent5213.
+Extra-budget shrubs and bush relocation were rejected. The new prototype uses
+existing eligible sites and caps: smaller campaign fringe trees and a smaller,
+more shrub-heavy battle edge. Real WASM seeds7/8 preserve every site and all-prop
+forest exclusions; campaign stays at32,000 candidates, with59 site substitutions
+from smaller coastal footprints.13 focused tests/typecheck pass. Visual value
+and composition with the rock material remain unverified. Claude hit a monthly
+spend limit; root completed this prototype's tests and review locally.
 
-Then rerun canonical campaign acceptance with the shared natural-ground/cart
-verifiers, the controlled-fixture battle handoff, and battle acceptance. Profile
-the closest performance view: the actual10m camera misses the unchanged33ms p95
-limit at33.74ms. The [renewed UI lifecycle proof](assets/slice-15-retention/screen-ui-production10/README.md)
-passes all82 checks over ten production cycles, with memory at296–305MB and all
-retired UI resources collected. It does not cover the pending rock texture. The26 hardware
-map/menu journey checks pass; corrected lowland fixtures have ten reviewed,
-exact-repeat captures. Owning slice evidence carries the detailed limits.
+For mountain shape, the accepted-field CPU diagnostic finds1km geometry reduces
+p95 interpolation error73%, at roughly4× mesh storage. Global1km and a9-tile
+close-view version both exceed the unchanged128MiB allocation ceiling during the
+existing transition test; both remain unadopted. The temporary sampling worktree
+was removed, with failures archived in throwaway/sampling-allocation-probes.
+Use the existing campaign-landscape lab's `cell` parameter for a bounded visual
+control before designing any production refinement. Preserve the accepted height
+field: earlier source-crest, signed-profile and natural/apron alternatives were
+rejected. Finer sampling cannot create a new drainage topology by itself.
 
-Preserve existing mountain relief: source-crest, signed-profile and natural/apron
-elevation alternatives were rejected; no elevation asset/loader was adopted.
-Do not reapply the stale shadow patch. Material, ecological and composed-frame
-quality remain below the reference, followed by whole-game hardware acceptance.
+After these visual passes, finish the direct label-coverage oracle, canonical
+campaign/battle acceptance, controlled handoff, water motion and hardware timing.
+The original regional white-pixel floor remains red and unchanged; historical
+audit proves it cannot establish neutral-name coverage, so any replacement needs
+positive/negative actual-owner controls. The actual10m battle camera still has a
+recorded33.74ms p95 against33ms; profile it rather than weaken the gate. Whole-game
+visual/performance review, choices consolidation and spec closure remain open.
 
-The user has authorized implementation, renderer migration, refactoring and as many reversible spikes as useful. New implementation delegations use Claude Opus through the repository claude skill, per the user’s latest instruction; existing verification assignments may finish. Make these decisions without permission questions. No compatibility backend or save migration is requested. Preserve gameplay and existing save formats; this is a presentation change. Human review is a chance to steer, not a wait for approval.
-
-Warnings: the regional spike remains below the whole-frame visual bar and is not production. The shared tiled slope profile deliberately changes steep-ground appearance; its old-profile control exactly reproduces the eight prior composition/anchor snapshots. Terrain-only hardware traversal passes the unchanged 33 ms gate; full UI/scenery performance remains open. Full SwiftShader turf readiness also times out on the matched parent; hardware and smaller canonical controls provide scoped evidence, not a replacement claim. Preserve unrelated work and do not reset the worktree.
+The user authorizes implementation/refactoring/spikes without permission questions.
+Keep the original `/Users/david/dev/game` untouched and use isolated worktrees.
+Use Claude Opus for implementation when available; don't change billing settings.
+Keep one GPU verification lane and freeze runtime/scene edits during captures.
+Do not let historical or flat-ground screenshots stand in for actual mountain
+views. Retired worktree cleanup recovered about44GiB; preserve remaining controls
+and unrelated work. Each owning slice/evidence folder retains detailed limits.
 
 ### Global TODO
 

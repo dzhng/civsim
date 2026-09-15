@@ -209,3 +209,27 @@ before/after visual evidence.
   not choose per-glyph collision geometry. Keeping the established rectangle
   policy is simpler and consistent with other map labels, at a known cost in name
   density; both city models and all-own-card visibility remain unchanged.
+
+## Rock image adoption and normal control
+
+- **Sound, medium confidence — keep image detail in color and roughness, with landform normals.**
+  At close campaign zoom, deriving a tiny surface tilt from neighboring image
+  samples made the stone look dotted. Lighting directly from the terrain's
+  slope removes that interference while the same image still colors cracks and
+  varies roughness. The plan did not require bump mapping. This trades some
+  apparent roughness for coherent slopes and a smaller shared shader; rounded
+  mountain geometry remains a separate unfinished concern.
+- **Sound, high confidence — one decoded rock image per terrain world.**
+  Opening a campaign or battle decodes the checked-in image once. Every tile
+  and battle terrain rebuild reads that world's texture; retiring the world
+  disposes the texture and closes its decoded image. A generic world without
+  terrain does not load it. This avoids a global cache whose lifetime would
+  differ from the renderers, while making the material's resource requirement
+  explicit for each consumer.
+- **Sound, high confidence — lab setup and teardown share one release list.**
+  If a terrain demonstration fails after acquiring a map, or the page leaves
+  while it awaits a world, the same owner releases each acquired resource.
+  Resources arriving after teardown are released immediately and stop setup.
+  Ownership can move to a containing resource without keeping a second disposal
+  path. This replaces duplicated route cleanup as the asynchronous image load
+  creates a real failure interval; it adds no product lifecycle manager.

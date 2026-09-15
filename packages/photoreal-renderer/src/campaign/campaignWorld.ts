@@ -42,6 +42,7 @@ import {
   createLandscapeGroundMaterial,
   createSourceCoverSampler,
 } from "../landscape/terrainMaterial";
+import { loadRockDetailMap } from "../landscape/rockDetailMap";
 import * as THREE from "three/webgpu";
 import {
   attribute,
@@ -199,9 +200,12 @@ export class PhotorealCampaignWorld {
 
   static async create(canvas: HTMLCanvasElement, composition: CampaignComposition) {
     const world = await PhotorealWorld.create(canvas);
+    let rockDetailMap: THREE.Texture | null = null;
     let campaign: PhotorealCampaignWorld | undefined;
     try {
-      campaign = new PhotorealCampaignWorld(world, composition);
+      // One decode for the world: every resident tile shares this instance.
+      rockDetailMap = await loadRockDetailMap();
+      campaign = new PhotorealCampaignWorld(world, composition, rockDetailMap);
       if (composition.appearances)
         campaign.crowd = await PhotorealCrowd.create(
           world.renderer,
@@ -213,13 +217,17 @@ export class PhotorealCampaignWorld {
       return campaign;
     } catch (error) {
       if (campaign) campaign.dispose();
-      else world.dispose();
+      else {
+        rockDetailMap?.dispose();
+        world.dispose();
+      }
       throw error;
     }
   }
   private constructor(
     readonly world: PhotorealWorld,
     readonly composition: CampaignComposition,
+    private readonly rockDetailMap: THREE.Texture,
   ) {
     this.fogAt = composition.fogAt;
     this.territoryTexture.minFilter = THREE.NearestFilter;
@@ -266,6 +274,7 @@ export class PhotorealCampaignWorld {
     const terrainMaterial = createLandscapeGroundMaterial(this.frame, undefined, {
       sourceShore: !!composition.surface.mesh.shoreDistance,
       rockCover: cover?.cover,
+      rockDetailMap,
     });
     this.colorLandscapeMaterial(terrainMaterial, true);
     this.terrain = new PhotorealTiledTerrain(
@@ -758,6 +767,7 @@ export class PhotorealCampaignWorld {
     this.geography.dispose();
     this.territoryTexture.dispose();
     this.mountainBandTexture?.dispose();
+    this.rockDetailMap.dispose();
     this.scenery.dispose();
     this.terrain.dispose();
     this.standards.dispose();

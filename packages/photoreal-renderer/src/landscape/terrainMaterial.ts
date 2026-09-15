@@ -5,19 +5,13 @@ import {
   abs,
   attribute,
   clamp,
-  cross,
-  dFdx,
-  dFdy,
-  dot,
   float,
   fwidth,
   length,
   max,
   mix,
   normalize,
-  positionView,
   positionWorld,
-  sign,
   texture,
   transformNormalToView,
   varying,
@@ -133,6 +127,7 @@ export function terrainRockResponse(
   surface: ReturnType<typeof terrainSignals>,
   inputAlbedo: Vec3Node,
   masks: ReturnType<typeof terrainSlopeMasks>,
+  rockDetailMap: THREE.Texture,
   detailScale = 1,
 ) {
   const { world, position, worldNormal } = surface;
@@ -140,31 +135,18 @@ export function terrainRockResponse(
   const { slowNz, rollingNz, slopeRock, rockMask, screeMask, sourceScree } = masks;
   let albedo = inputAlbedo;
   let dryRoughness: FloatNode = float(0.95);
-  // The pinned Three triplanar helper normalizes absolute axis weights. Apply
-  // that same basis to procedural fields so vertical faces retain their scale.
+  // Face detail is projected triplanar in scaled world space, so vertical
+  // faces keep their feature scale instead of smearing along the drop.
   const p = varying(position).mul(detailScale).toVar();
-  const faceNoise = mix(
-    float(0.5),
-    triplanarNoise(p, worldNormal, [0.16, 0.16]),
-    detailVisibility(p, 0.16),
-  ).toVar();
-  const fractureField = triplanarNoise(p, worldNormal, [0.09, 0.12]);
-  const fracture = smoothstepN(0.44, 0.72, fractureField).mul(detailVisibility(p, 0.12)).toVar();
+  const { height: faceHeight, fracture } = rockFaceField(p, worldNormal, rockDetailMap);
   let rock = mix(
     rgbNode(TERRAIN_MATERIAL.rock.faceLow),
     rgbNode(TERRAIN_MATERIAL.rock.faceHigh),
-    faceNoise,
+    faceHeight,
   );
   rock = mix(rock, rgbNode(TERRAIN_MATERIAL.rock.fracture), fracture.mul(slopeRock).mul(0.32));
-  // Derivatives perturb shading only, in the library's view-space basis. No
-  // height displacement or world-height contour function enters this response.
-  const normal = normalize(
-    mix(
-      transformNormalToView(worldNormal),
-      terrainNormal(faceNoise, worldNormal),
-      rockMask.mul(0.5),
-    ),
-  );
+  // Landform normals keep lighting coherent across the filtered rock detail.
+  const normal = transformNormalToView(worldNormal);
 
   const pebble = smoothstepN(0.6, 0.78, fbmN(world.mul(0.5)))
     .mul(detailVisibility(vec3(world, 0), 0.5))
@@ -190,7 +172,7 @@ export function terrainRockResponse(
     float(0.985),
     clamp(rockMask.add(screeMask).mul(0.62), 0.0, 1.0),
   );
-  dryRoughness = mix(dryRoughness, faceNoise.mul(0.03).add(0.955), rockMask);
+  dryRoughness = mix(dryRoughness, faceHeight.mul(0.03).add(0.955), rockMask);
   return { albedo, dryRoughness, normal };
 }
 
@@ -249,7 +231,7 @@ export function createSourceCoverSampler(raster: {
 export function createLandscapeGroundMaterial(
   frame: LandscapeFrameUniforms,
   profile: TerrainProfile = CAMPAIGN_TERRAIN_PROFILE,
-  options: { sourceShore?: boolean; rockCover?: FloatNode } = {},
+  options: { sourceShore?: boolean; rockCover?: FloatNode; rockDetailMap: THREE.Texture },
 ) {
   const surface = terrainSignals(profile.detailScale);
   const masks = terrainSlopeMasks(
@@ -264,7 +246,13 @@ export function createLandscapeGroundMaterial(
   const base = groundDetailNode(surface.world, surface.surfaceColor, {
     coverage: float(1).sub(max(masks.rockMask, masks.screeMask)),
   });
-  const response = terrainRockResponse(surface, base, masks, profile.detailScale);
+  const response = terrainRockResponse(
+    surface,
+    base,
+    masks,
+    options.rockDetailMap,
+    profile.detailScale,
+  );
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
   applyTerrainSurface(
     material,
@@ -298,38 +286,53 @@ function frontSideIndexBuffer(indices: Uint32Array): Uint32Array {
   return out;
 }
 
-function triplanarNoise(
+/** Face feature frequency in scaled world units. It sets the distance fade and,
+ *  divided by the plate count, the rate the detail map tiles across a face. */
+const FACE_FREQUENCY = 0.16;
+/** Crevice band on the face height, about its 0.5 mean. Dark is a crevice, so
+ *  the band is read from the top of the range downwards. */
+const FACE_FRACTURE_BAND = [0.44, 0.72] as const;
+/** Rock plates across one tile of the detail map. Dividing the face frequency
+ *  by this puts a plate at the feature size the rock palette was authored for. */
+const ROCK_DETAIL_PLATES_PER_TILE = 10;
+
+/** Surface height and crevice weight on an exposed rock face. The map's own
+ *  crevices are the fractures, so one triplanar fetch feeds both, and the rock
+ *  albedo and roughness stay one response for every consumer. */
+function rockFaceField(p: Vec3Node, worldNormal: Vec3Node, map: THREE.Texture) {
+  const visibility = detailVisibility(p, FACE_FREQUENCY).toVar();
+  // Below the resolving distance the field converges to its 0.5 mean rather
+  // than aliasing, leaving the flat palette mix the mips cannot carry.
+  const height = mix(
+    float(0.5),
+    triplanarHeight(p, worldNormal, map, FACE_FREQUENCY / ROCK_DETAIL_PLATES_PER_TILE),
+    visibility,
+  ).toVar();
+  const fracture = float(1)
+    .sub(smoothstepN(1 - FACE_FRACTURE_BAND[1], 1 - FACE_FRACTURE_BAND[0], height))
+    .mul(visibility)
+    .toVar();
+  return { height, fracture };
+}
+
+/** Triplanar height fetch on the pinned Three helper's normalized absolute
+ *  axis weights. Both steep projections keep their second coordinate vertical,
+ *  so fractures follow faces without switching direction at an axis blend. */
+function triplanarHeight(
   position: Vec3Node,
   normal: Vec3Node,
-  frequency: readonly [number, number],
+  map: THREE.Texture,
+  frequency: number,
 ) {
   const weights = abs(normal).div(abs(normal).x.add(abs(normal).y).add(abs(normal).z));
-  const scale = vec2(...frequency);
-  // Both steep projections keep their second coordinate vertical; fractures
-  // therefore follow faces without switching direction at an axis blend.
-  return fbmN(position.yz.mul(scale))
-    .mul(weights.x)
-    .add(fbmN(position.xz.mul(scale)).mul(weights.y))
-    .add(fbmN(position.xy.mul(scale)).mul(weights.z));
+  const scale = vec2(frequency, frequency);
+  return texture(map, position.yz.mul(scale))
+    .r.mul(weights.x)
+    .add(texture(map, position.xz.mul(scale)).r.mul(weights.y))
+    .add(texture(map, position.xy.mul(scale)).r.mul(weights.z));
 }
 
 function detailVisibility(position: Vec3Node, frequency: number) {
   // Subpixel modulation converges to its mean instead of aliasing into dots.
   return float(1).sub(smoothstepN(0.3, 1.0, length(fwidth(position)).mul(frequency)));
-}
-
-// Mikkelsen surface-gradient basis, as used by Three's BumpMapNode. Procedural
-// height needs explicit screen derivatives; that node offsets texture UVs only.
-function terrainNormal(height: FloatNode, worldNormal: Vec3Node) {
-  const n = transformNormalToView(worldNormal);
-  const dx = dFdx(positionView),
-    dy = dFdy(positionView);
-  const r1 = cross(dy, n),
-    r2 = cross(n, dx);
-  const det = dot(dx, r1);
-  const gradient = r1
-    .mul(dFdx(height))
-    .add(r2.mul(dFdy(height)))
-    .mul(sign(det));
-  return normalize(n.mul(abs(det)).sub(gradient.mul(0.5)));
 }

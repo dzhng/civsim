@@ -91,22 +91,13 @@ export async function run(ctx) {
   const control = await ctx.newPage({
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 1,
-    errorPrefix: "landscape-materials-normal-control",
+    errorPrefix: "landscape-materials-scale-control",
   });
   const controlWarnings = [];
   control.on("console", (m) => {
     if (m.type() === "warning" && /GPU|shader|bind|validation/i.test(m.text()))
       controlWarnings.push(m.text());
   });
-  await control.goto(`${ctx.target}/renderer/landscape-materials?normal=geometric`);
-  await control.waitForFunction(() => window.__rendererLabReady === true);
-  await control.waitForTimeout(500);
-  const normalPixels = changedPixels(images[0], PNG.sync.read(await control.screenshot()));
-  ctx.check(
-    "procedural normal changes visible shading",
-    normalPixels > 100,
-    `${normalPixels} pixels respond to the normal field`,
-  );
   for (const view of ["near", "far"]) {
     await control.goto(`${ctx.target}/renderer/landscape-materials?view=${view}`);
     await control.waitForFunction(() => window.__rendererLabReady === true);
@@ -114,7 +105,7 @@ export async function run(ctx) {
     await ctx.snap(control, `landscape-materials-${view}`, { threshold: 0, maxDiffRatio: 0 });
   }
   ctx.check(
-    "normal and scale controls have clean GPU validation",
+    "scale controls have clean GPU validation",
     controlWarnings.length === 0,
     controlWarnings.join("\n"),
   );

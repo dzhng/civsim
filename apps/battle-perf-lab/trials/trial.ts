@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import type { RunManifest } from "../report/compareRuns.ts";
 import {
   collectHardware,
@@ -10,8 +11,8 @@ import {
   type QuietHostVerdict,
   type RunCommand,
 } from "./host.ts";
+import { sha256Bytes } from "./digest.ts";
 import {
-  sha256Bytes,
   verifyProvenance,
   type FetchResource,
   type ProvenanceReport,
@@ -44,6 +45,8 @@ export interface BenchmarkRequest {
 export interface BenchmarkOutcome {
   /** Null when the scene runner never returned one. */
   exitCode: number | null;
+  /** `kind` of the report the scene runner wrote; null when it wrote none. */
+  reportKind: string | null;
   failures: string[];
   pageErrors: string[];
   checkCount: number;
@@ -97,11 +100,15 @@ export interface TrialRecord {
 
 const TRIAL_LIMITATIONS = [
   "Provenance and cadence validity only: this runner makes no performance, visual or backend-selection claim.",
-  "Quiet ranking is a declared host policy over a sampled process listing, not proof that nothing competed.",
+  "Quiet ranking is a declared host policy over a sampled process listing, not proof that nothing competed: `ps` reports lifetime-average CPU, so it bounds sustained load rather than instantaneous contention.",
+  "Window-server and kernel CPU is shared by every client of the machine; it is recorded, never charged to a competitor and never credited to this trial, and a busy one leaves isolation unknown.",
+  "Shared asset trees are hashed on disk, not over HTTP; the served prefixes are only evidenced by resolving the build's own links to those trees.",
+  "The render configuration is an operator declaration compared against the recording's identity; it does not read the build's compiled settings.",
   "Hardware, power and display fields are host tool output; absent fields stay null and block ranking.",
   "The browser was driven through the unchanged benchmark scene; no extra per-frame scan or screenshot was taken.",
 ];
 
+const SCENARIO_REPORT_KIND = "scenario-run-report";
 const EXPORT_FILE = "menu-export.json";
 const RUN_FILE = "run.json";
 const HOST_FILE = "host-observations.json";
@@ -120,12 +127,46 @@ export interface MenuReportInspection {
 }
 
 /**
- * Reads back the two things the runner itself is responsible for: that the
- * declared backend really presented, and that the one graphics field it set
- * reached the real settings owner. Everything else about the recording is
- * judged by the unchanged scene and the offline scorecard.
+ * Every declared leaf must be the value the recording observed. The declaration
+ * is a claim about the build, so a mismatch is the claim being wrong, not a
+ * detail to record.
  */
-export function inspectMenuReport(report: unknown, backend: TrialBackend): MenuReportInspection {
+function compareDeclared(
+  declared: unknown,
+  observed: unknown,
+  path: string,
+  issues: string[],
+): void {
+  const fields = asObject(declared);
+  if (!fields) {
+    if (!isDeepStrictEqual(declared, observed))
+      issues.push(
+        `declared ${path} ${JSON.stringify(declared)} but the recording observed` +
+          ` ${JSON.stringify(observed) ?? "nothing"}`,
+      );
+    return;
+  }
+  const seen = asObject(observed);
+  if (!seen) {
+    issues.push(`declared ${path} but the recording has no such settings`);
+    return;
+  }
+  for (const key of Object.keys(fields))
+    compareDeclared(fields[key], seen[key], `${path}.${key}`, issues);
+}
+
+/**
+ * Reads back what the runner itself is responsible for: that the declared
+ * backend really presented, that the one graphics field it set reached the real
+ * settings owner, and that the operator's render-configuration declaration
+ * describes the settings the recording actually observed. Everything else about
+ * the recording is judged by the unchanged scene and the offline scorecard.
+ */
+export function inspectMenuReport(
+  report: unknown,
+  backend: TrialBackend,
+  declaredGraphics: Record<string, unknown> | null = null,
+): MenuReportInspection {
   const issues: string[] = [];
   const root = asObject(report);
   const identity = asObject(root?.identity);
@@ -138,6 +179,7 @@ export function inspectMenuReport(report: unknown, backend: TrialBackend): MenuR
   const audio = asObject(asObject(identity.graphics)?.audio);
   if (!audio) issues.push("report identity has no audio settings");
   else if (audio.muted !== false) issues.push("Menu audio stayed muted for the timed window");
+  if (declaredGraphics) compareDeclared(declaredGraphics, identity.graphics, "graphics", issues);
 
   const frames = Array.isArray(root?.frames) ? root.frames : [];
   let submissions = 0;
@@ -156,6 +198,23 @@ export function inspectMenuReport(report: unknown, backend: TrialBackend): MenuR
   else if (mismatched)
     issues.push(`${mismatched} of ${submissions} submissions did not present as ${backend}`);
   return { adapter, issues };
+}
+
+/**
+ * The evidence a run must actually produce before it counts, whatever it wrote:
+ * the scene's own successful exit, its report, and checks inside it. An empty
+ * failure list is not a pass — it is equally what an unwritten or foreign report
+ * looks like once it has been read back.
+ */
+function evidenceIssues(run: BenchmarkOutcome): string[] {
+  const issues: string[] = [];
+  if (run.exitCode === null) issues.push("the scene runner never reported an exit code");
+  else if (run.exitCode !== 0) issues.push(`the scene runner exited ${run.exitCode}`);
+  if (run.reportKind === null) issues.push("the scene runner wrote no readable scenario report");
+  else if (run.reportKind !== SCENARIO_REPORT_KIND)
+    issues.push(`the scene runner wrote a ${run.reportKind}, not a ${SCENARIO_REPORT_KIND}`);
+  else if (run.checkCount === 0) issues.push("the scenario report recorded no checks");
+  return issues;
 }
 
 /** Periodic observations while the benchmark runs; stops as soon as it settles. */
@@ -215,7 +274,6 @@ export async function runTrial(options: TrialOptions, seams: TrialSeams): Promis
 
   const observations: HostObservation[] = [];
   const hardware = await collectHardware(seams.runCommand);
-  observations.push(await observeHost("pre", seams));
 
   let provenance: ProvenanceReport | { issues: string[] };
   try {
@@ -239,6 +297,10 @@ export async function runTrial(options: TrialOptions, seams: TrialSeams): Promis
     scenarioReportPath: join(options.outDir, SCENARIO_FILE),
     generatedAt: startedAt,
   };
+  // The series covers the measured window, so it opens here rather than before
+  // provenance: hashing gigabytes of assets is setup, and a slow disk must not
+  // read as a stretch of the run that nobody watched.
+  observations.push(await observeHost("pre", seams));
   const attempt = provenanceOk
     ? await withPeriodicObservations(seams, options.observationIntervalMs, observations, () =>
         seams.runBenchmark(request).then(
@@ -282,11 +344,16 @@ export async function runTrial(options: TrialOptions, seams: TrialSeams): Promis
     exportIssue = run.exportStale
       ? "the Menu export at the scene's path predates this trial"
       : "no Menu export was produced";
-  const inspection = report ? inspectMenuReport(report, options.backend) : null;
+  const inspection = report
+    ? inspectMenuReport(report, options.backend, verified?.renderConfig.graphics ?? null)
+    : null;
 
   const functionalIssues = [
     ...provenance.issues,
     ...(benchmarkError ? [benchmarkError] : []),
+    // A scene that did not exit clean is never accepted, however good the
+    // evidence it left behind looks: the exit code is the scene's own verdict.
+    ...(run ? evidenceIssues(run) : []),
     ...(run?.failures ?? []).map((failure) => `scenario check failed: ${failure}`),
     ...(run?.pageErrors ?? []).slice(0, 3).map((error) => `page error: ${error}`),
     ...(run?.error ? [run.error] : []),

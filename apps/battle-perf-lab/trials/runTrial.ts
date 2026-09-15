@@ -3,8 +3,14 @@ import { readFile, stat } from "node:fs/promises";
 import { loadavg } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { runTrial, type BenchmarkOutcome, type BenchmarkRequest } from "./trial.ts";
-import { TRIAL_BACKENDS, type TrialBackend } from "./provenance.ts";
-import type { CommandResult } from "./host.ts";
+import {
+  emptyBody,
+  TRIAL_BACKENDS,
+  type FetchLimits,
+  type FetchedResponse,
+  type TrialBackend,
+} from "./provenance.ts";
+import { QUIET_HOST_POLICY, type CommandResult } from "./host.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 const SCENE_RUNNER = new URL("web/scene.mjs", ROOT);
@@ -54,6 +60,13 @@ export function parseTrialArgs(argv: string[]) {
   const intervalMs = Number(values.get("observation-interval-ms") ?? 60000);
   if (!Number.isFinite(intervalMs) || intervalMs < 1000)
     throw Error(`--observation-interval-ms must be at least 1000\n${HELP}`);
+  // A cadence that cannot cover the window would leave a run unrankable after
+  // five minutes of GPU time, so it is refused before the browser starts.
+  if (intervalMs > QUIET_HOST_POLICY.maxObservationGapMs)
+    throw Error(
+      `--observation-interval-ms cannot exceed the ${QUIET_HOST_POLICY.maxObservationGapMs}ms` +
+        ` host-observation coverage policy\n${HELP}`,
+    );
   return {
     backend,
     url: required("url"),
@@ -74,12 +87,33 @@ const runCommand = (file: string, args: string[]): Promise<CommandResult> =>
     ),
   );
 
-const fetchResource = async (url: string) => {
-  const response = await fetch(url);
+/**
+ * Yields the response body a chunk at a time and stops one chunk past the
+ * caller's limit, so no served resource is read into memory unbounded and a
+ * body longer than its recorded size still reveals itself as longer.
+ */
+async function* boundedBody(body: ReadableStream<Uint8Array>, maxBytes: number) {
+  const reader = body.getReader();
+  let read = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done || !value) return;
+      read += value.byteLength;
+      yield value;
+      if (read > maxBytes) return;
+    }
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
+}
+
+const fetchResource = async (url: string, limits: FetchLimits): Promise<FetchedResponse> => {
+  const response = await fetch(url, { signal: AbortSignal.timeout(limits.timeoutMs) });
   return {
     status: response.status,
     headers: Object.fromEntries(response.headers),
-    bytes: new Uint8Array(await response.arrayBuffer()),
+    body: response.body ? boundedBody(response.body, limits.maxBytes) : emptyBody(),
   };
 };
 
@@ -182,15 +216,16 @@ async function runBenchmark(request: BenchmarkRequest): Promise<BenchmarkOutcome
 
   return {
     exitCode,
-    failures: scenarioReport?.failures ?? [],
-    pageErrors: scenarioReport?.pageErrors ?? [],
-    checkCount: scenarioReport?.checks?.length ?? 0,
+    reportKind: typeof scenarioReport?.kind === "string" ? scenarioReport.kind : null,
+    failures: Array.isArray(scenarioReport?.failures) ? scenarioReport.failures : [],
+    pageErrors: Array.isArray(scenarioReport?.pageErrors) ? scenarioReport.pageErrors : [],
+    checkCount: Array.isArray(scenarioReport?.checks) ? scenarioReport.checks.length : 0,
     exportBytes,
     exportStale,
     startupStats,
     terminalStats,
     browserVersion,
-    error: sceneError ?? (scenarioReport ? null : "the scene runner wrote no scenario report"),
+    error: sceneError,
   };
 }
 

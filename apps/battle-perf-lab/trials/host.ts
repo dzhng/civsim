@@ -21,6 +21,15 @@ export interface HostObservation {
   loadAverage1m: number | null;
   busiestOtherPercent: number | null;
   otherProcesses: HostProcess[];
+  /**
+   * Shared system processes, recorded rather than excluded: their work belongs
+   * to every client of the machine at once, this trial included.
+   */
+  sharedProcesses: HostProcess[];
+  /** A non-shared process or the load average was outside the declared policy. */
+  competing: boolean;
+  /** Why this sample cannot say who the load belonged to; null when it can. */
+  attribution: string | null;
   quiet: boolean;
 }
 
@@ -39,38 +48,51 @@ export interface HardwareEvidence {
 
 /**
  * A declared ranking policy, not a physical guarantee. Recorded with every run
- * so a reviewer can disagree with the threshold instead of guessing it.
+ * so a reviewer can disagree with the thresholds instead of guessing them.
+ *
+ * `ps` reports `pcpu` as a process's CPU use averaged over its whole lifetime,
+ * so the series bounds sustained competing load and cannot prove instantaneous
+ * exclusivity. That is why a quiet verdict is only ever admissibility to a
+ * comparison, never evidence that nothing competed.
  */
 export const QUIET_HOST_POLICY = {
   otherProcessCpuPercent: 25,
   loadAverage1m: 4,
   retainedProcesses: 8,
   /**
-   * Window-server work is driven by the trial's own presentation, so it is
-   * recorded but never counted as a competing workload.
+   * No stretch of the measured window may go this long unobserved. It exceeds
+   * the runner's default 60 s cadence, so a normal series covers the run and a
+   * cadence too slow to cover it cannot pass by having only two endpoints.
    */
-  attributedSystemProcesses: ["WindowServer", "kernel_task"],
+  maxObservationGapMs: 90_000,
+  /**
+   * Shared by every client of the window server and the kernel at once. Their
+   * CPU can be neither charged to a competitor nor credited to this trial, so
+   * a busy one leaves the trial's isolation unknown rather than disproved.
+   */
+  sharedSystemProcesses: ["WindowServer", "kernel_task"],
 };
 
 const PS_ARGS = ["-Ao", "pid=,ppid=,pcpu=,comm="];
 
-function parseProcesses(stdout: string): HostProcess[] {
-  const rows: HostProcess[] = [];
+interface ListingRow extends HostProcess {
+  parentPid: number;
+}
+
+/** One pass over one listing: pid, parent, CPU and command all come from it. */
+function parseListing(stdout: string): ListingRow[] {
+  const rows: ListingRow[] = [];
   for (const line of stdout.split("\n")) {
     const match = /^\s*(\d+)\s+(\d+)\s+([\d.]+)\s+(.*)$/.exec(line);
     if (!match) continue;
-    rows.push({ pid: Number(match[1]), cpuPercent: Number(match[3]), command: match[4].trim() });
+    rows.push({
+      pid: Number(match[1]),
+      parentPid: Number(match[2]),
+      cpuPercent: Number(match[3]),
+      command: match[4].trim(),
+    });
   }
   return rows;
-}
-
-function parentsByPid(stdout: string): Map<number, number> {
-  const parents = new Map<number, number>();
-  for (const line of stdout.split("\n")) {
-    const match = /^\s*(\d+)\s+(\d+)\s+/.exec(line);
-    if (match) parents.set(Number(match[1]), Number(match[2]));
-  }
-  return parents;
 }
 
 function ownsProcess(pid: number, ownPid: number, parents: Map<number, number>): boolean {
@@ -84,9 +106,31 @@ function ownsProcess(pid: number, ownPid: number, parents: Map<number, number>):
   return false;
 }
 
-function attributedToTrial(command: string): boolean {
+function isSharedSystemProcess(command: string): boolean {
   const name = command.split("/").at(-1) ?? command;
-  return QUIET_HOST_POLICY.attributedSystemProcesses.some((known) => name.startsWith(known));
+  return QUIET_HOST_POLICY.sharedSystemProcesses.some((known) => name.startsWith(known));
+}
+
+const busiestFirst = (a: HostProcess, b: HostProcess) => b.cpuPercent - a.cpuPercent;
+
+function unavailableObservation(
+  label: ObservationLabel,
+  at: string,
+  reason: string,
+): HostObservation {
+  return {
+    label,
+    at,
+    available: false,
+    unavailable: reason,
+    loadAverage1m: null,
+    busiestOtherPercent: null,
+    otherProcesses: [],
+    sharedProcesses: [],
+    competing: false,
+    attribution: null,
+    quiet: false,
+  };
 }
 
 /**
@@ -104,39 +148,30 @@ export async function observeHost(
     .runCommand("ps", PS_ARGS)
     .catch((error: unknown) => ({ ok: false, stdout: "", error: String(error) }));
   if (!listing.ok)
-    return {
-      label,
-      at,
-      available: false,
-      unavailable: listing.error ?? "process listing failed",
-      loadAverage1m: null,
-      busiestOtherPercent: null,
-      otherProcesses: [],
-      quiet: false,
-    };
-  const processes = parseProcesses(listing.stdout);
+    return unavailableObservation(label, at, listing.error ?? "process listing failed");
+  const rows = parseListing(listing.stdout);
   // A real listing always contains this runner. Zero parsed rows means the
   // output was not understood, which must not read as an idle machine.
-  if (processes.length === 0)
-    return {
-      label,
-      at,
-      available: false,
-      unavailable: "no process rows were understood in the listing",
-      loadAverage1m: null,
-      busiestOtherPercent: null,
-      otherProcesses: [],
-      quiet: false,
-    };
-  const parents = parentsByPid(listing.stdout);
-  const others = processes
-    .filter(
-      (process) =>
-        !ownsProcess(process.pid, seams.ownPid, parents) && !attributedToTrial(process.command),
-    )
-    .sort((a, b) => b.cpuPercent - a.cpuPercent);
+  if (rows.length === 0)
+    return unavailableObservation(label, at, "no process rows were understood in the listing");
+  const parents = new Map(rows.map((row) => [row.pid, row.parentPid]));
+  const foreign = rows.filter(({ pid }) => !ownsProcess(pid, seams.ownPid, parents));
+  const shared = foreign.filter((row) => isSharedSystemProcess(row.command)).sort(busiestFirst);
+  const others = foreign.filter((row) => !isSharedSystemProcess(row.command)).sort(busiestFirst);
   const busiestOtherPercent = others.length ? others[0].cpuPercent : 0;
   const loadAverage1m = seams.loadAverage()[0] ?? null;
+  const unattributable = shared.filter(
+    (row) => row.cpuPercent > QUIET_HOST_POLICY.otherProcessCpuPercent,
+  );
+  const attribution = unattributable.length
+    ? `shared system process(es) ${unattributable
+        .map((row) => `${row.command} ${row.cpuPercent}%`)
+        .join(", ")} cannot be split between this trial and anything else`
+    : null;
+  const competing =
+    busiestOtherPercent > QUIET_HOST_POLICY.otherProcessCpuPercent ||
+    loadAverage1m === null ||
+    loadAverage1m > QUIET_HOST_POLICY.loadAverage1m;
   return {
     label,
     at,
@@ -145,33 +180,75 @@ export async function observeHost(
     loadAverage1m,
     busiestOtherPercent,
     otherProcesses: others.slice(0, QUIET_HOST_POLICY.retainedProcesses),
-    quiet:
-      busiestOtherPercent <= QUIET_HOST_POLICY.otherProcessCpuPercent &&
-      loadAverage1m !== null &&
-      loadAverage1m <= QUIET_HOST_POLICY.loadAverage1m,
+    sharedProcesses: shared.slice(0, QUIET_HOST_POLICY.retainedProcesses),
+    competing,
+    attribution,
+    quiet: !competing && attribution === null,
   };
 }
 
+const firstFew = (issues: string[], found: string[], noun: string) => {
+  issues.push(...found.slice(0, 3));
+  if (found.length > 3) issues.push(`${found.length - 3} further ${noun}`);
+};
+
 /**
- * A quiet claim needs the whole series. A single snapshot can never establish
- * that nothing competed with the five-minute window.
+ * A quiet claim needs the whole series, covering the whole measured window. A
+ * pair of endpoints far enough apart to hide a competing build between them is
+ * not evidence of anything, so an uncovered stretch blocks ranking exactly as a
+ * busy sample does.
  */
 export function summarizeQuietHost(observations: HostObservation[]): QuietHostVerdict {
   const issues: string[] = [];
-  for (const label of ["pre", "post"] as const)
-    if (!observations.some((observation) => observation.label === label))
-      issues.push(`no ${label}-run host observation`);
+  if (observations[0]?.label !== "pre")
+    issues.push("the series does not open with a pre-run host observation");
+  if (observations.length < 2 || observations.at(-1)?.label !== "post")
+    issues.push("the series does not close with a post-run host observation");
   const unavailable = observations.filter((observation) => !observation.available);
   if (unavailable.length)
     issues.push(`${unavailable.length} host observation(s) could not be collected`);
-  const busy = observations.filter((observation) => observation.available && !observation.quiet);
-  for (const observation of busy.slice(0, 3))
-    issues.push(
-      `${observation.label} observation at ${observation.at} was not quiet` +
+
+  const times = observations.map((observation) => Date.parse(observation.at));
+  if (times.some((time) => !Number.isFinite(time)))
+    issues.push("host observation timestamps are not readable");
+  else {
+    const gaps: string[] = [];
+    let outOfOrder = false;
+    for (let index = 1; index < times.length; index += 1) {
+      const gap = times[index] - times[index - 1];
+      if (gap < 0) outOfOrder = true;
+      else if (gap > QUIET_HOST_POLICY.maxObservationGapMs)
+        gaps.push(
+          `${Math.round(gap / 1000)}s between ${observations[index - 1].at} and` +
+            ` ${observations[index].at} went unobserved`,
+        );
+    }
+    if (outOfOrder) issues.push("host observations are not in time order");
+    firstFew(issues, gaps, "unobserved stretch(es)");
+  }
+
+  const unattributed = observations.filter(
+    (observation) => observation.available && observation.attribution,
+  );
+  firstFew(
+    issues,
+    unattributed.map(
+      (observation) =>
+        `${observation.label} observation at ${observation.at}: ${observation.attribution}`,
+    ),
+    "unattributable observation(s)",
+  );
+  const busy = observations.filter((observation) => observation.available && observation.competing);
+  firstFew(
+    issues,
+    busy.map(
+      (observation) =>
+        `${observation.label} observation at ${observation.at} was not quiet` +
         ` (busiest other process ${observation.busiestOtherPercent}%,` +
         ` load ${observation.loadAverage1m})`,
-    );
-  if (busy.length > 3) issues.push(`${busy.length - 3} further busy observation(s)`);
+    ),
+    "busy observation(s)",
+  );
   return { verified: issues.length === 0, issues };
 }
 

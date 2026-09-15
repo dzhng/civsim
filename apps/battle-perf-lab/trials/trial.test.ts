@@ -8,7 +8,13 @@ import {
   GRAPHICS_SETTINGS_STORAGE_KEY,
 } from "../../../web/src/shared/graphicsSettings.ts";
 import { writeFixedBuildFixture } from "./fixedBuildFixture.ts";
-import { summarizeQuietHost, type CommandResult, type HostObservation } from "./host.ts";
+import { emptyBody } from "./provenance.ts";
+import {
+  QUIET_HOST_POLICY,
+  summarizeQuietHost,
+  type CommandResult,
+  type HostObservation,
+} from "./host.ts";
 import {
   parseTrialArgs,
   GRAPHICS_SETTINGS_STORAGE_KEY as RUNNER_STORAGE_KEY,
@@ -16,12 +22,36 @@ import {
 } from "./runTrial.ts";
 import { inspectMenuReport, runTrial, type BenchmarkOutcome, type TrialSeams } from "./trial.ts";
 
-const QUIET_PS = ["  1     0  0.1 /sbin/launchd", " 42     1  0.2 /usr/libexec/quiet"].join("\n");
+const QUIET_PS = [
+  "  1     0  0.1 /sbin/launchd",
+  " 42     1  0.2 /usr/libexec/quiet",
+  " 55     1  3.4 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+].join("\n");
 const BUSY_PS = [
   "  1     0  0.1 /sbin/launchd",
   " 77     1 340.0 /Users/other/worktree/node",
   " 99     1  0.2 /usr/libexec/quiet",
 ].join("\n");
+/** Nothing competing, but the shared window server is carrying sustained load. */
+const SHARED_BUSY_PS = [
+  "  1     0  0.1 /sbin/launchd",
+  " 55     1 88.0 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+  " 99     1  0.2 /usr/libexec/quiet",
+].join("\n");
+
+const observation = (label: HostObservation["label"], atMs: number): HostObservation => ({
+  label,
+  at: new Date(Date.UTC(2026, 8, 15, 10, 0, 0) + atMs).toISOString(),
+  available: true,
+  unavailable: null,
+  loadAverage1m: 1,
+  busiestOtherPercent: 0,
+  otherProcesses: [],
+  sharedProcesses: [],
+  competing: false,
+  attribution: null,
+  quiet: true,
+});
 
 function menuReport(overrides: Record<string, unknown> = {}) {
   return {
@@ -45,6 +75,7 @@ function menuReport(overrides: Record<string, unknown> = {}) {
 function outcome(overrides: Partial<BenchmarkOutcome> = {}): BenchmarkOutcome {
   return {
     exitCode: 0,
+    reportKind: "scenario-run-report",
     failures: [],
     pageErrors: [],
     checkCount: 9,
@@ -70,7 +101,7 @@ const HOST_TOOLS: Record<string, string> = {
 function seams(ps: string, runBenchmark: TrialSeams["runBenchmark"]): TrialSeams {
   let tick = 0;
   return {
-    fetchResource: async () => ({ status: 404, headers: {}, bytes: new Uint8Array() }),
+    fetchResource: async () => ({ status: 404, headers: {}, body: emptyBody() }),
     runCommand: async (file, args): Promise<CommandResult> => {
       if (file === "ps") return { ok: true, stdout: ps, error: null };
       const stdout = HOST_TOOLS[[file, ...args].join(" ")];
@@ -192,6 +223,7 @@ describe("fixed-production-build Menu trial", () => {
     expect(trial.status).toBe("failed");
     expect(trial.functional.eligible).toBe(false);
     expect(trial.functional.issues).toEqual([
+      "the scene runner exited 1",
       "scenario check failed: battle-benchmark-complete: camera reached near wide and horizon views",
       "page error: WebGPU device lost",
     ]);
@@ -201,6 +233,61 @@ describe("fixed-production-build Menu trial", () => {
     expect(run.report.identity.adapter).toBe("apple / metal-3");
     const archived = await readFile(join(root, "trials/failed/menu-export.json"), "utf8");
     expect(JSON.parse(archived).kind).toBe("battle-benchmark");
+  });
+
+  it("never accepts a scene that exited nonzero, however good its evidence looks", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    // Everything a passing run leaves behind: a fresh, valid, unmuted export,
+    // no failures, no page errors. Only the scene's own verdict says otherwise.
+    const trial = await runTrial(await options(fixture, "silent-failure"), {
+      ...seams(QUIET_PS, async () => outcome({ exitCode: 3 })),
+      fetchResource: fixture.fetchResource,
+    });
+    expect(trial.functional.issues).toEqual(["the scene runner exited 3"]);
+    expect(trial.functional.eligible).toBe(false);
+    expect(trial.status).toBe("failed");
+    expect(trial.ranking.eligible).toBe(false);
+    const run = JSON.parse(await readFile(join(root, "trials/silent-failure/run.json"), "utf8"));
+    expect(run.manifest.validation).toEqual({ passed: false, evidence: null });
+  });
+
+  it("requires the scene's own report and its checks, not just an empty failure list", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    const cases = [
+      [{ exitCode: null }, "the scene runner never reported an exit code"],
+      [{ reportKind: null }, "the scene runner wrote no readable scenario report"],
+      [
+        { reportKind: "battle-benchmark" },
+        "the scene runner wrote a battle-benchmark, not a scenario-run-report",
+      ],
+      [{ checkCount: 0 }, "the scenario report recorded no checks"],
+    ] as const;
+    for (const [index, [override, expected]] of cases.entries()) {
+      const trial = await runTrial(await options(fixture, `evidence-${index}`), {
+        ...seams(QUIET_PS, async () => outcome(override)),
+        fetchResource: fixture.fetchResource,
+      });
+      expect(trial.functional.issues).toContain(expected);
+      expect(trial.functional.eligible).toBe(false);
+    }
+  });
+
+  it("rejects a recording whose settings are not the declared render configuration", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    // The declaration is the operator's claim about the compiled build; it can
+    // only be evidence if a recording that disagrees with it is refused.
+    await writeFile(
+      fixture.renderConfigPath,
+      JSON.stringify({ graphics: { shadows: "csm", grass: true } }),
+    );
+    const trial = await runTrial(await options(fixture, "declared"), {
+      ...seams(QUIET_PS, async () => outcome()),
+      fetchResource: fixture.fetchResource,
+    });
+    expect(trial.functional.issues).toEqual([
+      'declared graphics.shadows "csm" but the recording observed "single"',
+    ]);
+    expect(trial.functional.eligible).toBe(false);
   });
 
   it("records a thrown browser seam instead of losing the trial", async () => {
@@ -249,6 +336,90 @@ describe("fixed-production-build Menu trial", () => {
     expect(run.manifest.validation.passed).toBe(true);
   });
 
+  it("opens the measured window at the benchmark, not before the provenance sweep", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    // Hashing gigabytes of shared assets is setup, not measured time. If the
+    // series opened before it, a slow disk would read as an unwatched stretch
+    // of the run and cost an otherwise quiet trial its ranking.
+    const order: string[] = [];
+    const base = seams(QUIET_PS, async () => {
+      order.push("benchmark");
+      return outcome();
+    });
+    const trial = await runTrial(await options(fixture, "window"), {
+      ...base,
+      runCommand: (file, args) => {
+        if (file === "ps") order.push("observe");
+        return base.runCommand(file, args);
+      },
+      fetchResource: async (url, limits) => {
+        order.push("provenance");
+        return fixture.fetchResource(url, limits);
+      },
+    });
+    expect(trial.ranking.eligible).toBe(true);
+    expect(order.indexOf("observe")).toBeGreaterThan(order.lastIndexOf("provenance"));
+    expect(order.indexOf("observe")).toBeLessThan(order.indexOf("benchmark"));
+  });
+
+  it("records shared system load without charging or crediting it to the trial", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    const trial = await runTrial(await options(fixture, "shared"), {
+      ...seams(SHARED_BUSY_PS, async () => outcome()),
+      fetchResource: fixture.fetchResource,
+    });
+    // Nothing competing was found, so the run is valid; but the window server's
+    // work belongs to every client at once, so isolation is unknown, not proved.
+    expect(trial.functional.eligible).toBe(true);
+    expect(trial.host.quiet.verified).toBe(false);
+    expect(trial.ranking.issues.join(" ")).toContain("cannot be split between this trial");
+    const evidence = JSON.parse(
+      await readFile(join(root, "trials/shared/host-observations.json"), "utf8"),
+    );
+    const [pre] = evidence.observations as HostObservation[];
+    expect(pre.busiestOtherPercent).toBe(0.2);
+    expect(pre.sharedProcesses.map((process) => process.cpuPercent)).toEqual([88]);
+    expect(pre.competing).toBe(false);
+    expect(evidence.policy.sharedSystemProcesses).toEqual(["WindowServer", "kernel_task"]);
+  });
+
+  it("keeps a quiet shared process in the record without blocking the ranking", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    const trial = await runTrial(await options(fixture, "shared-idle"), {
+      ...seams(QUIET_PS, async () => outcome()),
+      fetchResource: fixture.fetchResource,
+    });
+    expect(trial.ranking.eligible).toBe(true);
+    const evidence = JSON.parse(
+      await readFile(join(root, "trials/shared-idle/host-observations.json"), "utf8"),
+    );
+    const [pre] = evidence.observations as HostObservation[];
+    expect(pre.sharedProcesses.map((process) => process.command)).toEqual([
+      "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+    ]);
+    expect(pre.attribution).toBeNull();
+  });
+
+  it("stops sampling as soon as the run settles instead of waiting out the interval", async () => {
+    const fixture = await writeFixedBuildFixture(root);
+    // A cadence far longer than the run: the pending timer must be cleared, not
+    // awaited, and the post observation must close the series immediately.
+    const started = Date.now();
+    const trial = await runTrial(
+      { ...(await options(fixture, "bounded")), observationIntervalMs: 90000 },
+      {
+        ...seams(QUIET_PS, async () => outcome()),
+        fetchResource: fixture.fetchResource,
+      },
+    );
+    expect(Date.now() - started).toBeLessThan(2000);
+    const evidence = JSON.parse(
+      await readFile(join(root, "trials/bounded/host-observations.json"), "utf8"),
+    );
+    expect(evidence.observations.map((o: HostObservation) => o.label)).toEqual(["pre", "post"]);
+    expect(trial.ranking.eligible).toBe(true);
+  });
+
   it("samples the host while the benchmark is running, not only at its ends", async () => {
     const fixture = await writeFixedBuildFixture(root);
     const trial = await runTrial(
@@ -295,21 +466,47 @@ describe("fixed-production-build Menu trial", () => {
   });
 
   it("will not call a host quiet from a single snapshot", () => {
-    const observation = (label: HostObservation["label"]): HostObservation => ({
-      label,
-      at: "2026-09-15T10:00:00.000Z",
-      available: true,
-      unavailable: null,
-      loadAverage1m: 1,
-      busiestOtherPercent: 0,
-      otherProcesses: [],
-      quiet: true,
-    });
-    expect(summarizeQuietHost([observation("pre")])).toEqual({
+    expect(summarizeQuietHost([observation("pre", 0)])).toEqual({
       verified: false,
-      issues: ["no post-run host observation"],
+      issues: ["the series does not close with a post-run host observation"],
     });
-    expect(summarizeQuietHost([observation("pre"), observation("post")]).verified).toBe(true);
+    expect(summarizeQuietHost([observation("pre", 0), observation("post", 1)]).verified).toBe(true);
+  });
+
+  it("will not call a window it never watched quiet", () => {
+    const gapMs = QUIET_HOST_POLICY.maxObservationGapMs + 1;
+    // Two quiet endpoints with the whole timed run between them say nothing
+    // about the run: a cadence slower than the window is not coverage.
+    const uncovered = summarizeQuietHost([observation("pre", 0), observation("post", gapMs)]);
+    expect(uncovered.verified).toBe(false);
+    expect(uncovered.issues.join(" ")).toContain("went unobserved");
+    const covered = summarizeQuietHost([
+      observation("pre", 0),
+      observation("periodic", gapMs / 2),
+      observation("post", gapMs),
+    ]);
+    expect(covered).toEqual({ verified: true, issues: [] });
+  });
+
+  it("requires the series to open and close around the run, in order", () => {
+    expect(
+      summarizeQuietHost([observation("periodic", 0), observation("post", 1)]).issues,
+    ).toContain("the series does not open with a pre-run host observation");
+    expect(
+      summarizeQuietHost([observation("pre", 0), observation("periodic", 1)]).issues,
+    ).toContain("the series does not close with a post-run host observation");
+    expect(summarizeQuietHost([observation("pre", 5), observation("post", 1)]).issues).toContain(
+      "host observations are not in time order",
+    );
+  });
+
+  it("does not credit a sampled interval that never carried a timestamp", () => {
+    const verdict = summarizeQuietHost([
+      { ...observation("pre", 0), at: "not a time" },
+      observation("post", 1),
+    ]);
+    expect(verdict.verified).toBe(false);
+    expect(verdict.issues).toContain("host observation timestamps are not readable");
   });
 });
 
@@ -343,6 +540,15 @@ describe("trial arguments", () => {
     expect(() => parseTrialArgs(argv.slice(2))).toThrow(/--backend is required/);
     expect(() => parseTrialArgs([...argv.slice(0, 10), "--order", "last"])).toThrow(/whole number/);
     expect(() => parseTrialArgs([...argv, "--observation-interval-ms", "10"])).toThrow(/at least/);
+    // A cadence that could never cover the window is refused before the GPU is
+    // held for five minutes, rather than producing an unrankable trial.
+    expect(() =>
+      parseTrialArgs([
+        ...argv,
+        "--observation-interval-ms",
+        String(QUIET_HOST_POLICY.maxObservationGapMs + 1),
+      ]),
+    ).toThrow(/coverage policy/);
   });
 });
 

@@ -88,3 +88,8 @@ The comparison uses one saved property-atlas artifact for Three and all native c
 ### vgpu pose computation uses its public submission model
 
 The pinned vgpu compute API submits each dispatch itself. Its candidate therefore submits one active-rig compute pass before frame drawing, preserving queue order and reporting the extra submissions as a backend cost. It does not reach into private pipelines to mimic TypeGPU's shared-encoder path.
+
+### Existing directional shadow control
+
+- **Settled:** Keep shadow fitting/filter constants in the shared policy and the native depth texture, camera buffer and sampling state in one shadow owner. The frame supplies camera bindings and caster selection, so lighting construction does not depend on frame construction order. This avoids a second fit policy or a hidden Three resource dependency.
+- **Settled:** Verify the existing filter with an isolated visible mask before combining it with material lighting. Double-sided primitive geometry controls side selection only in this probe; real crowd/scenery audiences still require their own composed verification. Stronger tactical coverage remains a later measured change.

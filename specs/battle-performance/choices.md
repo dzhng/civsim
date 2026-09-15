@@ -183,3 +183,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Incremental timing-query control
 
 - **Settled:** Disable native timing queries only at lab build time, while retaining device features, actual drawing, validation, submission identity and allocation observation. Report disabled timing as unavailable. The paired control measures added query/readback cost; it is not a claim that every profiler cost has been removed.
+
+### Served asset identity
+
+- **Settled:** Verify recorded shared assets through the links the production build actually creates. Bundled and linked files may share a directory; reject a wrong shared subtree without requiring its parent to be a symlink. Keep one canonical manifest schema and name missing fields explicitly.

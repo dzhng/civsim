@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { expect, test, vi } from 'vitest';
+import { expect, test, vi } from "vitest";
 const mesh = vi.hoisted(() => ({
   upload: vi.fn(),
   precompute: vi.fn(),
@@ -17,17 +17,17 @@ const layers = vi.hoisted(
     }[],
 );
 const failures = vi.hoisted(() => ({ at: -1 }));
-vi.mock('../../apps/battle-perf-lab/src/raw/crowd', () => ({ createRawCrowd: async () => mesh }));
-vi.mock('../../apps/battle-perf-lab/src/raw/impostor', () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/crowd", () => ({ createRawCrowd: async () => mesh }));
+vi.mock("../../apps/battle-perf-lab/src/raw/impostor", () => ({
   createRawImpostors: async () => {
-    if (layers.length === failures.at) throw Error('atlas upload failed');
+    if (layers.length === failures.at) throw Error("atlas upload failed");
     const layer = { update: vi.fn(), draw: vi.fn(), stats: () => ({}), dispose: vi.fn() };
     layers.push(layer);
     return layer;
   },
 }));
-import { createRawCrowdAudience } from '../../apps/battle-perf-lab/src/raw/crowdAudience';
-import type { CrowdProjectionView } from '../../packages/crowd-runtime/src/visibility';
+import { createRawCrowdAudience } from "../../apps/battle-perf-lab/src/raw/crowdAudience";
+import type { CrowdProjectionView } from "../../packages/crowd-runtime/src/visibility";
 const view = (pixels: number, shadow = false): CrowdProjectionView => ({
   frustum: { planes: [] },
   shadow,
@@ -46,7 +46,7 @@ const soldier = {
   classId: 0,
   faction: 0,
   alive: true,
-  clip: 'idle',
+  clip: "idle",
   phase: 0,
   seed: 0,
   mounted: false,
@@ -62,20 +62,20 @@ const create = () =>
     {} as never,
     {} as never,
   );
-test('far main soldiers remain actual impostors while their shadow stays a mesh', async () => {
+test("far main soldiers remain actual impostors while their shadow stays a mesh", async () => {
   const owner = await create();
   owner.upload([soldier], [view(0.1), view(10, true)], camera);
   expect(layers.at(-1)!.update).toHaveBeenLastCalledWith([soldier], camera);
   const plan = mesh.upload.mock.lastCall![1];
   expect(plan.levels[0]).toBe(3);
   expect(plan.shadowLevels[0]).toBeLessThan(3);
-  owner.draw({} as never, {} as never, 'shadow');
+  owner.draw({} as never, {} as never, "shadow");
   expect(layers.at(-1)!.draw).not.toHaveBeenCalled();
   owner.draw({} as never, {} as never);
   expect(layers.at(-1)!.draw).toHaveBeenCalledOnce();
   owner.dispose();
 });
-test('history survives buffer growth but removed soldiers do not inherit stale history', async () => {
+test("history survives buffer growth but removed soldiers do not inherit stale history", async () => {
   const owner = await create();
   owner.upload([soldier], [view(20 / 1.8)], camera);
   owner.upload([soldier, soldier], [view(17 / 1.8)], camera);
@@ -86,7 +86,7 @@ test('history survives buffer growth but removed soldiers do not inherit stale h
   expect(mesh.upload.mock.lastCall![1].levels[0]).toBe(1);
   owner.dispose();
 });
-test('rejects missing zero-count catalog atlases before allocating and disposes idempotently', async () => {
+test("rejects missing zero-count catalog atlases before allocating and disposes idempotently", async () => {
   const initial = layers.length;
   await expect(
     createRawCrowdAudience(
@@ -97,16 +97,16 @@ test('rejects missing zero-count catalog atlases before allocating and disposes 
       {} as never,
       {} as never,
     ),
-  ).rejects.toThrow('appearance 4');
+  ).rejects.toThrow("appearance 4");
   expect(layers.length).toBe(initial);
   const owner = await create();
-  expect(() => owner.precompute({} as never)).toThrow('not ready');
+  expect(() => owner.precompute({} as never)).toThrow("not ready");
   owner.dispose();
   owner.dispose();
   expect(layers.at(-1)!.dispose).toHaveBeenCalledOnce();
-  expect(() => owner.upload([], [], camera)).toThrow('disposed');
+  expect(() => owner.upload([], [], camera)).toThrow("disposed");
 });
-test('multiple shadow views form a union independent of main visibility', async () => {
+test("multiple shadow views form a union independent of main visibility", async () => {
   const owner = await create();
   const hidden = {
     ...view(10),
@@ -118,7 +118,7 @@ test('multiple shadow views form a union independent of main visibility', async 
   expect(layers.at(-1)!.update).toHaveBeenLastCalledWith([], camera);
   owner.dispose();
 });
-test('failed later atlas construction disposes earlier resources and mesh', async () => {
+test("failed later atlas construction disposes earlier resources and mesh", async () => {
   const initial = layers.length,
     disposedBefore = mesh.dispose.mock.calls.length;
   failures.at = initial + 1;
@@ -132,22 +132,38 @@ test('failed later atlas construction disposes earlier resources and mesh', asyn
         {} as never,
         {} as never,
       ),
-    ).rejects.toThrow('atlas upload failed');
+    ).rejects.toThrow("atlas upload failed");
     expect(layers[initial].dispose).toHaveBeenCalledOnce();
     expect(mesh.dispose.mock.calls.length).toBe(disposedBefore + 1);
   } finally {
     failures.at = -1;
   }
 });
-test('failed uploads prevent stale draws and preserve preceding successful LOD history', async () => {
+test("failed uploads prevent stale draws and preserve preceding successful LOD history", async () => {
   const owner = await create();
   owner.upload([soldier], [view(20 / 1.8)], camera);
   mesh.upload.mockImplementationOnce(() => {
-    throw Error('upload failed');
+    throw Error("upload failed");
   });
-  expect(() => owner.upload([soldier], [view(10 / 1.8)], camera)).toThrow('upload failed');
-  expect(() => owner.draw({} as never, {} as never)).toThrow('not ready');
+  expect(() => owner.upload([soldier], [view(10 / 1.8)], camera)).toThrow("upload failed");
+  expect(() => owner.draw({} as never, {} as never)).toThrow("not ready");
   owner.upload([soldier], [view(17 / 1.8)], camera);
   expect(mesh.upload.mock.lastCall![1].levels[0]).toBe(0);
+  owner.dispose();
+});
+
+test("camera-only refresh retains selected L3 groups and never advances mesh/LOD history", async () => {
+  const owner = await create();
+  owner.upload([soldier], [view(0.1), view(20 / 1.8, true)], camera);
+  const before = owner.stats(),
+    uploads = mesh.upload.mock.calls.length;
+  const nextCamera = { ...camera, eye: [200, 0, 30] as const };
+  owner.refreshCamera(nextCamera);
+  owner.refreshCamera(camera);
+  expect(mesh.upload.mock.calls.length).toBe(uploads);
+  expect(owner.stats()).toEqual(before);
+  expect(layers.at(-1)!.update.mock.calls.at(-2)).toEqual([[soldier], nextCamera]);
+  owner.upload([soldier], [view(0.1), view(17 / 1.8, true)], camera);
+  expect(mesh.upload.mock.lastCall![1].shadowLevels[0]).toBe(0);
   owner.dispose();
 });

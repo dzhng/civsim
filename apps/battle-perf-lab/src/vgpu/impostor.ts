@@ -134,9 +134,12 @@ export async function createVgpuImpostors(
         billboard.write(new Float32Array([...view.right, 0, ...view.up, 0]));
         return packed;
       },
-      draw(pass: FramePass) {
+      draw(pass: FramePass, cameraBuffer: typeof camera = camera) {
         assertLive();
-        if (count) pass.draw(render, { instances: count });
+        if (count) {
+          render.set({ cam: cameraBuffer });
+          pass.draw(render, { instances: count });
+        }
       },
       stats: () => ({
         instances: count,

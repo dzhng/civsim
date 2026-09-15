@@ -109,3 +109,24 @@ The2km raw/area grids are also retained as compressed Float32 inputs, so review
 does not require downloading source tiles. Camera/error telemetry and original
 source-control baseline images are linked above. No worker/loader/cache contract
 has been implemented by this pass.
+
+## Geometry and exaggeration audit
+
+Capture telemetry confirms a2km regular mesh,361×361 nodes across720km in
+both views. The base has259,200 triangles; coastline conformation yields321,448
+terrain triangles in Alps and316,825 in Italy, identically for raw and filtered
+inputs. Total reported triangles are323,657 and319,034 across3 draw calls.
+This is not a2km DEM reconstructed on8km or16km geometry.
+
+A CPU reconstruction at those exact regular mesh positions measures slopes on
+quads whose four DEM heights exceed100m. It excludes coastline conformation and
+shore fade, so it is an interior sampling audit rather than final coastal normal
+telemetry. In the filtered Alps, p95 physical slope9.50° becomes59.13° at10×;
+Italy9.22° becomes58.37°. Filtered maximum slopes become79.00° and76.46°.
+About15.1%/16.0% of selected filtered triangles exceed45°, and4.47%/4.00% exceed60°.
+Raw p95 exaggerated slopes are67.80°/66.61°. Maximum sampled filtered mesh heights
+are39.28/33.45 render-km. Full numbers and sample boundaries are in
+`mesh-slopes.json`; `slopes.mjs` reproduces the CPU calculation from the staged
+baked JSON grids. The fixed10× exaggeration materially contributes steep walls;
+these findings do not justify another shaping algorithm or claim a new visual
+acceptance. No additional candidate or GPU capture was made for this audit.

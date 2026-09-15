@@ -9,3 +9,11 @@ Component equivalence is evidence to compose, not permission to rank an incomple
 5. **Actual command history and live entry.** Feed the identical durable command recording to all candidates, preserving source frame groups and resolved assets. Compare origin/pan/zoom/horizon windows. Then wire each complete candidate to the actual menu benchmark and run serialized repeated timing. Exact replay is correctness evidence; the live run owns user-visible performance.
 
 Keep source behavior, framebuffer and content fixed throughout the parity round. Explicit edge-precision diagnostics remain in evidence; independent visual and motion review determine whether they affect readability. Existing regression and performance gates are unchanged. Missing content, unverified lifecycle, missing shadow work or incomplete live integration keeps a candidate unrankable.
+
+## Assembly contract
+
+The live presentation order starts with ActionTimeline interpolation and unit readouts, then seated crowd upload and camera preparation; tactical-line submission closes the frame. A native owner must consume those presented inputs rather than rereading raw simulation arrays. Main and shadow audiences share visibility policy but retain distinct hysteresis histories. Mesh uploads that return L3 selections still require real per-appearance impostor draws.
+
+Preserve separate opaque and transparent ordering: background and terrain underlays precede opaque world content; transparent far fog follows opaque soldiers. Ground cues, effects, attack triangles and readouts retain their source depth/order contracts. Attack triangles are live combat content despite their internal debug name. Aerial distance uses the source observer at camera focus XY and zero elevation. CSS height controls readout sizing; physical framebuffer height controls LOD and grass.
+
+Initialization owns asset/pipeline admission and first presentation; live frames must not settle grass or wait for queue completion each time. Resize replaces framebuffer attachments without invalidating borrowed camera layouts. Settings, terrain replacement, pending asynchronous uploads, cancellation and disposal need explicit ownership before live timing. Component owners are reusable evidence, not a second simulation or a permanent backend switch.

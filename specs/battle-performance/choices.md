@@ -114,11 +114,11 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 
 ### Shared overlay preparation
 
-- **Settled:** Keep tactical geometry placement and marker packing in shared CPU data while each renderer retains its growable arrays. Preserve source draping, partial-input behavior and defaults exactly so a backend comparison cannot silently change visible cues or their upload workload.
+- **Settled:** Keep tactical geometry placement in shared CPU data while each renderer retains its growable arrays. Preserve source draping, partial-input behavior and defaults exactly so a backend comparison cannot silently change visible cues or their upload workload.
 
 ### Native overlay material and ordering
 
-- **Settled:** Preserve the source's background marker band and distinct depth-tested ground cues versus late effects in the comparison. Share authored marker/ring constants and placement data; each runtime owns its stable pipelines and growable buffers. Improving cue readability at the horizon would be a separate visual change, not a hidden reduction or redesign in backend timing.
+- **Settled:** Preserve distinct depth-tested ground cues versus late effects in the comparison. Share authored ring constants and placement data; each runtime owns its stable pipelines and growable buffers. Improving cue readability at the horizon would be a separate visual change, not a hidden reduction or redesign in backend timing.
 
 ### Experimental public API costs
 

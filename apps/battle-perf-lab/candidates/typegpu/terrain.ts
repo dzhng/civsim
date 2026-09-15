@@ -269,6 +269,10 @@ export async function createTypegpuTerrain(
         if (disposed) throw Error("TypeGPU terrain disposed");
         state.write(d.vec4f(farStrength, shadow, 0, 0));
       },
+      draw(pass: TgpuRenderPass) {
+        if (disposed) throw Error("TypeGPU terrain disposed");
+        for (const draw of draws) draw(pass);
+      },
       render(attachments: TerrainAttachments) {
         if (disposed) throw Error("TypeGPU terrain disposed");
         const encoder = root["~unstable"].createCommandEncoder({ label: "TypeGPU terrain" });

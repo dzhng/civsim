@@ -15,7 +15,11 @@ import {
 const Rays = d.struct({ origin: d.vec3f, dx: d.vec3f, dy: d.vec3f });
 
 /** Linear HDR sky only: no exposure, tone mapping, PMREM or environment lighting. */
-export async function createTypegpuSky(device: GPUDevice, params: SkyModelParams) {
+export async function createTypegpuSky(
+  device: GPUDevice,
+  params: SkyModelParams,
+  backgroundSamples: 1 | 4 = 1,
+) {
   const root = tgpu.initFromDevice({ device });
   const lut = root
     .createTexture({ size: [SKY_LUT_WIDTH, SKY_LUT_HEIGHT], format: "rgba16float" })
@@ -73,6 +77,7 @@ export async function createTypegpuSky(device: GPUDevice, params: SkyModelParams
       return backgroundColor(uv);
     }),
     targets: { format: "rgba16float" },
+    multisample: { count: backgroundSamples },
   });
   try {
     await Promise.all([bake.initAsync(), background.initAsync()]);

@@ -17,6 +17,7 @@ export async function createVgpuEnvironment(
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
   groupIndex = 2,
+  backgroundSamples: 1 | 4 = 1,
 ) {
   const owned: { dispose(): void }[] = [];
   let disposed = false;
@@ -26,7 +27,7 @@ export async function createVgpuEnvironment(
     for (const r of owned) r.dispose();
   };
   try {
-    const sky = await createVgpuSky(gpu.device.gpu, skyModelParams(env));
+    const sky = await createVgpuSky(gpu.device.gpu, skyModelParams(env), backgroundSamples);
     owned.push(sky);
     const pmrem = await createVgpuPmrem(gpu.device.gpu, sky.lut.gpu);
     owned.push(pmrem);

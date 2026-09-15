@@ -57,6 +57,7 @@ export async function createTypegpuEnvironment(
   device: GPUDevice,
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
+  backgroundSamples: 1 | 4 = 1,
 ) {
   const root = tgpu.initFromDevice({ device }),
     owned: { destroy(): void }[] = [];
@@ -68,7 +69,7 @@ export async function createTypegpuEnvironment(
     root.destroy();
   };
   try {
-    const sky = await createTypegpuSky(device, skyModelParams(env));
+    const sky = await createTypegpuSky(device, skyModelParams(env), backgroundSamples);
     owned.push({ destroy: sky.dispose });
     const pmrem = await createTypegpuPmrem(device, sky.lut);
     owned.push({ destroy: pmrem.dispose });

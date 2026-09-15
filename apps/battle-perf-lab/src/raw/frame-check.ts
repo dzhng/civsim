@@ -1,3 +1,5 @@
+import { createFrameControlBackend } from "../frameControlBackend";
+import { trackTextureLifetime } from "../textureLifetimeCheck";
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "../../../../packages/photoreal-renderer/src/world";
@@ -27,6 +29,7 @@ import { RawBattleFrame } from "./frame";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";
 
+const backend = new URL(location.href).searchParams.get("backend") ?? "raw";
 const width = 768,
   height = 512;
 const samples: 1 | 4 = new URL(location.href).searchParams.get("samples") === "4" ? 4 : 1;
@@ -82,25 +85,33 @@ async function run() {
     applyCivsimEnvironment(world, env, { aerialObserver: vec3(0, 0, 0) });
     const camera = new THREE.PerspectiveCamera();
     const post = own(new BattlePostChain(world.renderer, world.scene, camera, env.id));
-    const nativeEnv = own(await createRawEnvironment(device, env, samples));
+    if (!["raw", "typegpu", "vgpu"].includes(backend)) throw new Error("Unknown frame backend");
+    const candidateTextures = trackTextureLifetime(device);
+    releases.push(candidateTextures.restore);
+    const nativeEnv =
+      backend === "raw" ? own(await createRawEnvironment(device, env, samples)) : undefined;
     const nativeDiagnostic = new URL(location.href).searchParams.get(
       "native-material",
     ) as WorldSurfaceDiagnostic | null;
-    if (nativeDiagnostic) nativeEnv.shader = rawEnvironmentWgsl(env, nativeDiagnostic);
-    const nativeFrame = own(
-      new RawBattleFrame(device, nativeEnv, width, height, samples, "rgba16float"),
-    );
+    if (nativeDiagnostic && !nativeEnv) throw new Error("Native diagnostics require raw backend");
+    if (nativeDiagnostic && nativeEnv) nativeEnv.shader = rawEnvironmentWgsl(env, nativeDiagnostic);
+    const nativeFrame = nativeEnv
+      ? own(new RawBattleFrame(device, nativeEnv, width, height, samples, "rgba16float"))
+      : undefined;
     const catalogUrl = new URL("/assets/soldiers/catalog.json", location.href);
     const catalog = await (await fetch(catalogUrl)).json();
     const assets = {
       0: await loadAppearanceBundle(new URL(catalog.appearances[0], catalogUrl).href),
     };
     const sourceCrowd = own(await PhotorealCrowd.create(world.renderer, world.scene, assets));
-    const nativeCrowd = own(
-      await createRawCrowd(device, caps, assets, nativeFrame.cameraLayout, nativeEnv, {
-        sampleCount: samples,
-      }),
-    );
+    const nativeCrowd =
+      nativeFrame && nativeEnv
+        ? own(
+            await createRawCrowd(device, caps, assets, nativeFrame.cameraLayout, nativeEnv, {
+              sampleCount: samples,
+            }),
+          )
+        : undefined;
     const grid = {
       w: 20,
       h: 20,
@@ -122,18 +133,36 @@ async function run() {
       const texture = ground.userData.earthDistanceTexture;
       if (texture instanceof THREE.Texture) texture.dispose();
     });
-    const nativeGround = own(
-      new RawBattleTerrain(
-        device,
-        nativeFrame.cameraLayout,
-        nativeEnv,
-        data.ground,
-        null,
-        { earthDistance: data.ground.earthDistance },
-        "beauty",
-        samples,
-      ),
-    );
+    const driver =
+      backend === "raw"
+        ? undefined
+        : own(
+            await createFrameControlBackend(
+              backend as "typegpu" | "vgpu",
+              device,
+              env,
+              assets,
+              data.ground,
+              width,
+              height,
+              samples,
+            ),
+          );
+    const nativeGround =
+      nativeFrame && nativeEnv
+        ? own(
+            new RawBattleTerrain(
+              device,
+              nativeFrame.cameraLayout,
+              nativeEnv,
+              data.ground,
+              null,
+              { earthDistance: data.ground.earthDistance },
+              "beauty",
+              samples,
+            ),
+          )
+        : undefined;
     const output = own(
       device.createTexture({
         size: [width, height],
@@ -186,8 +215,9 @@ async function run() {
       ];
       const plan = planCrowdLods(instances, views, assets);
       sourceCrowd.upload(instances, { camera, views });
-      nativeCrowd.upload(instances, plan);
-      nativeFrame.setCamera(
+      if (driver) await driver.upload(instances, plan);
+      else nativeCrowd!.upload(instances, plan);
+      (driver ?? nativeFrame!).setCamera(
         {
           camera3d: params,
           x: 0,
@@ -204,24 +234,28 @@ async function run() {
       );
       for (const bloom of [false, true]) {
         post.setBloomEnabled(bloom);
-        const encoder = device.createCommandEncoder();
-        nativeCrowd.precompute(encoder);
-        nativeFrame.encode(
-          encoder,
-          output.createView(),
-          (pass, group) => {
-            nativeGround.encode(pass, group);
-            nativeCrowd.draw(pass, group);
-          },
-          bloom,
-        );
-        device.queue.submit([encoder.finish()]);
+        if (driver) {
+          await driver.render(bloom);
+        } else {
+          const encoder = device.createCommandEncoder();
+          nativeCrowd!.precompute(encoder);
+          nativeFrame!.encode(
+            encoder,
+            output.createView(),
+            (pass, group) => {
+              nativeGround!.encode(pass, group);
+              nativeCrowd!.draw(pass, group);
+            },
+            bloom,
+          );
+          device.queue.submit([encoder.finish()]);
+        }
         await new Promise<void>((r) => requestAnimationFrame(() => r()));
         world.renderer.setRenderTarget(reference);
         post.render(world.scene, camera);
         world.renderer.setRenderTarget(null);
-        const actual = Array.from(await readHdrTexture(device, output));
-        const hdr = Array.from(await readHdrTexture(device, nativeFrame.hdr));
+        const actual = Array.from(await readHdrTexture(device, driver?.output ?? output));
+        const hdr = Array.from(await readHdrTexture(device, driver?.hdr ?? nativeFrame!.hdr));
         const priorHdrDifference = priorHdr ? compareHdr(hdr, priorHdr) : null;
         priorHdr = hdr;
         let priorPoseDifference = null;
@@ -267,13 +301,23 @@ async function run() {
         });
       }
     }
+    driver?.dispose();
+    nativeGround?.dispose();
+    nativeCrowd?.dispose();
+    nativeFrame?.dispose();
+    nativeEnv?.dispose();
+    output.destroy();
+    const liveCandidateTexturesAfterDispose = candidateTextures.liveCount();
     return {
+      backend,
+      liveCandidateTexturesAfterDispose,
       samples,
       nativeDiagnostic,
       results,
       errors,
       passed:
         errors.length === 0 &&
+        liveCandidateTexturesAfterDispose === 0 &&
         results.every((r) => r.comparison.nonfinite === 0 && r.comparison.maxAbs <= 1 / 255),
     };
   } finally {

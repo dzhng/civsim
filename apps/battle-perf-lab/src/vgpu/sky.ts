@@ -8,6 +8,7 @@ import {
   uniforms,
   type Frame,
   type Target,
+  type FramePass,
 } from "vgpu";
 import type { SkyModelParams } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import {
@@ -30,7 +31,11 @@ struct Vertex { @builtin(position) position: vec4f, @location(0) uv: vec2f };
 }`;
 
 /** Linear HDR only. Borrows the device; owns vgpu resources and wrapper lifetime. */
-export async function createVgpuSky(device: GPUDevice, params: SkyModelParams) {
+export async function createVgpuSky(
+  device: GPUDevice,
+  params: SkyModelParams,
+  backgroundSamples: 1 | 4 = 1,
+) {
   const gpu = await initFromDevice(device);
   const targets: Target[] = [];
   let disposed = false;
@@ -64,7 +69,7 @@ fn radiance${skyRadianceWgsl(params)}
   return max(vec4f(radiance(direction(in.uv)), 1.0), vec4f(0.0));
 }`,
     });
-    const background = draw(gpu, {
+    const backgroundOptions = {
       label: "vgpu-sky-background",
       vertices: 3,
       set: { rays, lutView: lut.color, linearSampler },
@@ -80,8 +85,21 @@ fn disc${skyDiscWgsl(params)}
   let color = textureSampleLevel(lutView, linearSampler, equirectUv(dir), 0.0).rgb + disc(dir);
   return max(vec4f(color, 1.0), vec4f(0.0));
 }`,
+    };
+    const background = draw(gpu, backgroundOptions);
+    const worldBackground = draw(gpu, {
+      ...backgroundOptions,
+      depth: { write: false, compare: "always" },
     });
-    await Promise.all([bake.compile(lut), background.compile({ colors: ["rgba16float"] })]);
+    await Promise.all([
+      bake.compile(lut),
+      worldBackground.compile({
+        colors: ["rgba16float"],
+        depth: "depth32float",
+        sampleCount: backgroundSamples,
+      }),
+      background.compile({ colors: ["rgba16float"], sampleCount: backgroundSamples }),
+    ]);
     await frame(gpu, (current) => current.pass(lut, bake)).done;
     return {
       gpu,
@@ -89,6 +107,10 @@ fn disc${skyDiscWgsl(params)}
       setRays(value: SkyRays) {
         if (gpu.disposed) throw new Error("Vgpu sky is disposed");
         rays.set({ origin: [...value.origin], dx: [...value.dx], dy: [...value.dy] });
+      },
+      drawBackground(pass: FramePass) {
+        if (gpu.disposed) throw new Error("Vgpu sky is disposed");
+        pass.draw(worldBackground);
       },
       // Caller owns submission; background encoding never opens or submits another frame.
       encodeBackground(current: Frame, output: Target) {

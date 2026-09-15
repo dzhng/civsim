@@ -1,8 +1,4 @@
-import { screenRay, viewMatrix } from "../../../../packages/renderer-core/src/camera3d";
-import {
-  cameraUniformData,
-  type CameraSnapshot,
-} from "../../../../packages/renderer-core/src/cameraUniform";
+import { frameCamera, type FrameCameraSnapshot } from "../frameCamera";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
 import type { RawEnvironment } from "./environment";
 import { RawBattlePost } from "./post";
@@ -87,30 +83,15 @@ export class RawBattleFrame {
     }
   }
   setCamera(
-    snapshot: CameraSnapshot & Required<Pick<CameraSnapshot, "sunAzimuth" | "sunElevation">>,
+    snapshot: FrameCameraSnapshot,
     observer: readonly [number, number, number],
     grade: BattlePostGradeUniforms,
   ) {
     this.assertLive();
-    const params = { ...snapshot.camera3d, aspect: this.width / this.height };
-    const data = cameraUniformData({
-      ...snapshot,
-      camera3d: params,
-      width: this.width,
-      height: this.height,
-    });
-    this.device.queue.writeBuffer(this.camera, 0, data);
-    this.environment.setView(viewMatrix(params), observer);
-    // Symmetric projection corners share their normalization factor; their
-    // differences therefore interpolate perspective rays before final normalize.
-    const a = screenRay(params, -1, 1).dir,
-      b = screenRay(params, 1, 1).dir,
-      c = screenRay(params, -1, -1).dir;
-    this.environment.sky.setRays({
-      origin: a,
-      dx: [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
-      dy: [c[0] - a[0], c[1] - a[1], c[2] - a[2]],
-    });
+    const camera = frameCamera(snapshot, this.width, this.height);
+    this.device.queue.writeBuffer(this.camera, 0, camera.bytes);
+    this.environment.setView(camera.view, observer);
+    this.environment.sky.setRays(camera.rays);
     this.post.setGrade(grade, this.environment.exposure);
   }
   encode(

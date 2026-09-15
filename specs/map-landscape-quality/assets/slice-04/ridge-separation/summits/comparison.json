@@ -1,0 +1,32 @@
+[
+  {
+    "name": "alps-regional",
+    "changedPixels": 945565,
+    "grayscaleMAE": 12.166354962451262,
+    "grayscaleRMSE": 19.379934256421347
+  },
+  {
+    "name": "fixture-close",
+    "changedPixels": 626710,
+    "grayscaleMAE": 6.483840258008862,
+    "grayscaleRMSE": 12.459556855197686
+  },
+  {
+    "name": "italy-regional",
+    "changedPixels": 575140,
+    "grayscaleMAE": 4.366698112702463,
+    "grayscaleRMSE": 9.257379101514552
+  },
+  {
+    "name": "landscape-alps",
+    "changedPixels": 1013137,
+    "grayscaleMAE": 16.59396061989874,
+    "grayscaleRMSE": 24.091753973392038
+  },
+  {
+    "name": "landscape-italy",
+    "changedPixels": 548561,
+    "grayscaleMAE": 7.637785353320158,
+    "grayscaleRMSE": 15.41744522118341
+  }
+]

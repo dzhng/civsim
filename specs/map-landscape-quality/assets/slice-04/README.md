@@ -66,3 +66,15 @@ broad convex mounds and loses distinct crests. Both bounded probes are rejected:
 [signed-field evidence](signed-spike/verdict.json) include matched clay frames,
 enlarged crops and change telemetry. The relief formula and accepted snapshots
 remain unchanged. The larger form target stays open.
+
+## Ridge separation boundary
+
+The [ridge-separation comparison](ridge-separation/README.md) tests hierarchical
+crest gating, a structurally distinct summit field, and a wider crest cusp.
+Fresh reviews prefer the gated field's regional summit/saddle separation, but
+both versions introduce regular tooth-like edges in the close fixture. The
+summit field removes loops at the cost of sparse smooth pyramids and lost
+subsidiary ranges. None is integrated: the existing geometry and baselines
+remain authoritative. The next form investigation must address connected
+branching slopes and drainage structure together, rather than another exponent
+or amplitude adjustment to enclosed contour ridges.

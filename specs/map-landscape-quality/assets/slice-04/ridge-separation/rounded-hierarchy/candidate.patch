@@ -1,0 +1,24 @@
+diff --git a/packages/game-renderer/src/terrain/campaignRelief.ts b/packages/game-renderer/src/terrain/campaignRelief.ts
+index ec0d98d8..20bfe216 100644
+--- a/packages/game-renderer/src/terrain/campaignRelief.ts
++++ b/packages/game-renderer/src/terrain/campaignRelief.ts
+@@ -35,13 +35,14 @@ export function campaignRelief(source: CampaignReliefSource, cell: number) {
+     const wy = y + (campaignNoise(x / 75 + 13, y / 75 + 7) - 0.5) * 30;
+     const ridge = (scale: number) => {
+       const n = 2 * campaignNoise(wx / scale, wy / scale) - 1;
+-      return Math.max(0, 1 - Math.sqrt(n * n + 0.0025));
++      return Math.max(0, 1 - Math.sqrt(n * n + 0.015));
+     };
++    const main = ridge(60) ** 3;
++    const branches = ridge(28) ** 2;
+     const folds =
+-      0.24 +
+-      0.52 * ridge(60) ** 2 +
+-      0.18 * ridge(28) ** 2 +
+-      0.06 * ridge(13) * (1 - smoothstep(3, 8, cell));
++      0.14 +
++      0.72 * main * (0.25 + 0.75 * branches) +
++      0.14 * branches * ridge(13) * (1 - smoothstep(3, 8, cell));
+     const foothill = 0.5 + campaignNoise(x / 18, y / 18) * 1.1;
+     return (foothill + envelope * 2.5 * folds) * smoothstep(0, 16, inland);
+   };

@@ -39,3 +39,5 @@
 Native query-control hardware checks: [operation evidence and vgpu startup failure](assets/02-live/native-query-control/README.md). Raw/TypeGPU operation gates pass; strict cross-launch pixel diagnostics differ. Both vgpu modes fail the same startup attribute contract. No overhead, motion or backend-selection claim. Canonical consumer driver integrated as14c97a68; root independently passed116 fast lab tests,3 transport tests and simulation typechecking before the full canonical rerun.
 
 The independent [canonical worker consumer run](assets/03a-publication/canonical-consumer.json) passes309 ticks, zero mismatches, identity and checkpoint hashes, one-credit bounds and clean disposal on14c97a68. This is CPU correctness only; browser scheduling, long-window timeline playback and live throughput remain open.
+
+The [corrected vgpu map-A control](assets/02-live/native-query-control/vgpu-fixed.json) passes enabled/disabled readiness, query operations and submission identity on fixed1356d6a7 builds. Integrated19864817; root120 lab tests pass. Cross-mode one-pixel difference retained; no timing or visual acceptance claim.

@@ -195,3 +195,5 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Publication consumer feasibility
 
 - **Provisional, delete at the production observation seam:** A lab-only snapshot reader presents one owned buffer to the existing action adapter's pointer-shaped constructor. It never owns a Game or implements action priorities. Short consumer tests extend the transport proof; they do not replace canonical contact-window, worker/browser, HUD or throughput verification.
+
+- **Sound — high confidence:** vgpu's depth-only horizon caster declares a position-only geometry view borrowing the existing beauty mesh's buffers. A shader's consumed attributes define its view; inventing unused shader inputs or bypassing library validation would preserve the wrong contract. The beauty geometry retains buffer ownership. The small exported caster helper lets the library-backed regression test exercise this same pass; no production renderer switch is added.

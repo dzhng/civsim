@@ -5,7 +5,7 @@ import { type CampaignEntityInstance } from "@packages/game-renderer/src/campaig
 import { standardSeed, standardWindPhase } from "@packages/game-renderer/src/models/shared/standardAsset";
 import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
-import { type CampaignSelectionInstance } from "@packages/game-renderer/src/campaign/selectionPass";
+import { type CampaignSelectionInstance } from "@packages/game-renderer/src/campaign/selection";
 import { type CampaignData } from "../../../web/src/campaign/data";
 import { type FactionLabel } from "../../../web/src/campaign/territory";
 import { type CampaignViews } from "../../../web/src/campaign/views";

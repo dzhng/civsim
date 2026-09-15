@@ -1,4 +1,8 @@
-import { buildEntityFrame } from "@packages/game-renderer/src/campaign/entityFrame";
+import { SELECTION_GREEN } from "@packages/game-renderer/src/overlays";
+import {
+  buildEntityFrame,
+  type CampaignEntityFrame,
+} from "@packages/game-renderer/src/campaign/entityFrame";
 import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
 import { campaignFactionBorderVertices } from "@packages/game-renderer/src/campaign/borderGeometry";
 import { Territory } from "../../../../web/src/campaign/territory";
@@ -50,12 +54,13 @@ export async function route(ctx: LabContext) {
   });
   const cityNames = ctx.params.get("cities")?.split(",");
   let cityInstances: ReturnType<typeof buildEntityFrame>["entities"] = [];
+  let cityFrame: CampaignEntityFrame = { entities: [], standards: [], crowd: [], selections: [] };
   if (cityNames) {
     const { default: init, Campaign } = await import("../../../../web/src/wasm/game_wasm.js");
     const wasm = await init(),
       campaign = new Campaign(mapJson, 0x5eed_2026, 0);
     const views = readCampaignViews(campaign, wasm);
-    cityInstances = buildEntityFrame(
+    cityFrame = buildEntityFrame(
       data,
       field,
       {
@@ -76,9 +81,17 @@ export async function route(ctx: LabContext) {
       [],
       0,
       () => "idle",
-    ).entities.filter((city) => cityNames.includes(city.label));
+    );
+    cityInstances = cityFrame.entities.filter((city) => cityNames.includes(city.label));
+    cityFrame = {
+      ...cityFrame,
+      entities: cityInstances,
+      standards: cityFrame.standards.filter((item) =>
+        cityInstances.some((city) => city.id === item.unitId),
+      ),
+    };
     campaign.free();
-    world.setCities(cityInstances);
+    world.setEntityFrame(cityFrame);
   }
   let geographicInputs: Parameters<typeof world.setGeography>[0] | undefined;
   if (ctx.path === "/renderer/landscape-geography") {
@@ -201,9 +214,29 @@ export async function route(ctx: LabContext) {
       },
       stats,
       cities: (selected: number, hidden: boolean) => {
-        world.setCities(
-          hidden ? [] : cityInstances.map((city) => ({ ...city, selected: city.id === selected })),
-        );
+        const city = cityInstances.find((item) => item.id === selected);
+        world.setEntityFrame({
+          ...cityFrame,
+          entities: hidden
+            ? []
+            : cityInstances.map((item) => ({ ...item, selected: item.id === selected })),
+          standards: hidden
+            ? []
+            : cityFrame.standards.map((item) => ({ ...item, selected: item.unitId === selected })),
+          selections:
+            !hidden && city
+              ? [
+                  {
+                    x: city.x,
+                    y: city.y,
+                    z: city.z ?? 0,
+                    radius: city.selectionRadius!,
+                    color: SELECTION_GREEN,
+                    kind: "city",
+                  },
+                ]
+              : [],
+        });
       },
       geography: (enabled: boolean) => {
         if (geographicInputs)

@@ -171,6 +171,9 @@ function pushEdgeLines(
   strip(1.0, [0.55, 0.82, 1.0, 1.0]);
 }
 
+/** Clearance of the visible road surface; road traffic shares this contact plane. */
+export const CAMPAIGN_ROAD_SURFACE_LIFT = 0.32;
+
 /** Returns the number of unbridged water gaps (drawn ribbon stops at a shore). */
 function pushRaisedRoad(
   out: number[],
@@ -195,7 +198,7 @@ function pushRaisedRoad(
       out,
       run,
       halfWidth,
-      0.32 * roadScale,
+      CAMPAIGN_ROAD_SURFACE_LIFT * roadScale,
       [0.76, 0.74, 0.68, 0.98],
       1,
       style.heightAt,

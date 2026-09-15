@@ -1,0 +1,66 @@
+[
+  {
+    "id": "garrison",
+    "current": "garrison-before.png",
+    "candidate": "cart-garrison.png",
+    "dimensions": {
+      "width": 750,
+      "height": 705
+    },
+    "grayscale": {
+      "mae": 5.63537,
+      "rmse": 17.9845,
+      "diffRatio16": 0.10735,
+      "diffRatio32": 0.06684,
+      "diffRatio64": 0.02684,
+      "pixelmatchRatio": 0.09324
+    },
+    "contentProxies": {
+      "blackRatioCurrent": 0,
+      "blackRatioCandidate": 0,
+      "terrainLikeRatioCurrent": 0.91974,
+      "terrainLikeRatioCandidate": 0.95976,
+      "avgLuminanceCurrent": 124.56492,
+      "avgLuminanceCandidate": 129.35183,
+      "avgLuminanceDelta": 4.78691,
+      "edgeEnergyCurrent": 0.05722,
+      "edgeEnergyCandidate": 0.03839,
+      "edgeEnergyRatio": 0.67095,
+      "edgeDiffRatio32": 0.0678
+    },
+    "distance": 0.15001,
+    "verdict": "Candidate less wrong: city and garrison standard remain without figures embedded in roofs."
+  },
+  {
+    "id": "frame",
+    "current": "../../../../web/shots/campaign/campaign-crowd-empty.png",
+    "candidate": "../../../../web/shots/campaign/campaign-entity-inputs-coarse.png",
+    "dimensions": {
+      "width": 1280,
+      "height": 800
+    },
+    "grayscale": {
+      "mae": 0.22322,
+      "rmse": 3.4471,
+      "diffRatio16": 0.00514,
+      "diffRatio32": 0.0031,
+      "diffRatio64": 0.00048,
+      "pixelmatchRatio": 0.00475
+    },
+    "contentProxies": {
+      "blackRatioCurrent": 0.00021,
+      "blackRatioCandidate": 0.00021,
+      "terrainLikeRatioCurrent": 0.99775,
+      "terrainLikeRatioCandidate": 0.9974,
+      "avgLuminanceCurrent": 145.88791,
+      "avgLuminanceCandidate": 145.87758,
+      "avgLuminanceDelta": -0.01033,
+      "edgeEnergyCurrent": 0.02906,
+      "edgeEnergyCandidate": 0.03137,
+      "edgeEnergyRatio": 1.07936,
+      "edgeDiffRatio32": 0.00508
+    },
+    "distance": 0.02007,
+    "verdict": "Candidate less wrong for actual frame fidelity versus absent-input control."
+  }
+]

@@ -114,3 +114,13 @@ explicitly delegated by the slice and are not additional architecture choices.
 - **Sound, high confidence — one crowd scale reaches every representation.** Campaign figures use the same physical soldier renderer as battle, with one layer-owned presentation scale. That scale also reaches visibility bounds and distant billboards, so zooming cannot make the representation change size or disappear early. Battle keeps its existing unit scale; campaign chooses representative figure positions through its existing frame builder. The shared crowd modules now have a neutral owner instead of living under battle.
 
 - **Sound, high confidence — shared label measurement, renderer-specific projection.** Both renderers consume the same measured atlas, hierarchy and collision result. The physical world supplies raised screen anchors, while the still-active raw pass retains its existing world-anchor projection. This preserves current labels during migration and gives terrain, glyphs and cards a consistent anchor after cutover. Same-sized physical atlas textures are reused as labels move.
+### Occupied-city representative figures
+
+A garrison is represented by its existing city, army standard, selection and
+card. Representative soldiers are omitted at an occupied city because their
+strategic figure scale embeds them in the city's roofs. This decision belongs in
+`buildEntityFrame`, where occupation and representative composition already live;
+a renderer-only offset would duplicate placement policy and separate figures
+from their shared label/marker anchor. Field-army figures and troop state stay
+unchanged. The army/cart checkpoint carries the differential frame test and
+before/after visual evidence.

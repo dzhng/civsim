@@ -1,3 +1,9 @@
+import { CampaignSelectionLayer } from "./selectionLayer";
+import type { CampaignSelectionInstance } from "../../../game-renderer/src/campaign/selection";
+import type {
+  CampaignEntityFrame,
+  CampaignStandardInstance,
+} from "../../../game-renderer/src/campaign/entityFrame";
 import { PhotorealCrowd } from "../crowd/crowdLayer";
 import { CROWD_SHADOW_LAYER } from "../crowd/crowdAudience";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
@@ -14,7 +20,7 @@ import { CampaignCityLayer } from "./cityLayer";
 import { modelMesh } from "./modelMesh";
 import type { CampaignEntityInstance } from "../../../game-renderer/src/campaign/entityInstance";
 import { CampaignGeographicLayer, type CampaignGeography } from "./geographicLayer";
-import { colorGeometry, decalMaterial } from "../landscape/decal";
+import { decalMaterial } from "../landscape/decal";
 import { PhotorealScenery } from "../landscape/sceneryLayer";
 import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
 import {
@@ -41,11 +47,9 @@ import { PhotorealWorld } from "../world";
 import { applyCamera3d } from "../cameraBridge";
 import { applyCivsimEnvironment } from "../environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../game-renderer/src/environment/environment";
-import { RENDER_ORDER } from "../renderOrder";
 import { createLandscapeFrameUniforms, linearAlbedo } from "../landscape/shaderNodes";
 import { PhotorealStandardLayer } from "../landscape/standardLayer";
 import { SELECTION_GREEN } from "../../../game-renderer/src/overlays";
-import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing";
 import { STANDARD_SIZE_TIERS } from "../../../game-renderer/src/models/shared/standardAsset";
 import type { MeshData } from "../../../game-renderer/src/models/shared/meshBuilder";
 import type { BattleFactionId } from "../../../game-renderer/src/battle/factionColors";
@@ -121,7 +125,9 @@ export class PhotorealCampaignWorld {
   private territoryTexture = new THREE.DataTexture(new Uint8Array(4), 1, 1);
   private readonly territorySample = texture(this.territoryTexture);
   private visibilityRevision = 0;
-  private readonly selection: THREE.Mesh;
+  private readonly selection: CampaignSelectionLayer;
+  private entityFrame: CampaignEntityFrame | null = null;
+  private seatedStandards: CampaignStandardInstance[] = [];
   private readonly terrain: PhotorealTiledTerrain;
   private readonly geography: CampaignGeographicLayer;
 
@@ -216,10 +222,8 @@ export class PhotorealCampaignWorld {
       this.fogAt(x, y),
     );
     this.setGeography(composition.geography);
-    this.selection = new THREE.Mesh(new THREE.BufferGeometry(), decalMaterial());
-    this.selection.renderOrder = RENDER_ORDER.groundCues + 1;
-    this.selection.visible = false;
-    this.add(this.selection);
+    this.selection = new CampaignSelectionLayer(world.scene);
+    this.updateSelection();
   }
   private addLandscapeFog(geometry: THREE.BufferGeometry, vertices: Float32Array) {
     const fog = new Float32Array(vertices.length / 10);
@@ -273,21 +277,18 @@ export class PhotorealCampaignWorld {
     this.updateSelection();
   }
 
-  /** The frame adapter retains campaign identity, ownership and selection policy. */
-  setCities(instances: readonly CampaignEntityInstance[]) {
-    if (!this.cities.upload(instances, this.terrain.surface)) return;
-    this.selected =
-      instances.find((city) => city.selected)?.id.toString() ??
-      (this.objects.some((object) => object.input.id === this.selected) ? this.selected : null);
-    this.setFog(this.fogEnabled);
-  }
-
-  /** Existing campaign frame owns figure classes, allegiance and animation. */
-  setCrowd(instances: readonly CrowdInstance[]) {
-    if (!this.crowd && instances.length)
+  /** One authoritative presentation frame; drawing never re-selects user input. */
+  setEntityFrame(frame: CampaignEntityFrame) {
+    if (!this.crowd && frame.crowd.length)
       throw new Error("Campaign crowd requires appearance assets");
-    this.crowdCandidates = instances;
-    this.seatCrowd();
+    this.entityFrame = frame;
+    this.cities.upload(frame.entities, this.terrain.surface);
+    this.crowdCandidates = frame.crowd;
+    const army = frame.standards.find((item) => item.tier === "campaign-army" && item.selected);
+    this.selected = army
+      ? `army:${army.unitId}`
+      : (frame.entities.find((city) => city.selected)?.id.toString() ?? null);
+    this.setFog(this.fogEnabled);
   }
   private seatCrowd() {
     this.seatedCrowd = this.crowdCandidates.flatMap((instance) => {
@@ -316,7 +317,7 @@ export class PhotorealCampaignWorld {
     const seated = this.sceneryCandidates.flatMap((item) => {
       if (this.fogEnabled && this.fogAt(item.x, item.y) >= 0.5) return [];
       const hit = this.terrain.surface.sampleRendered(item.x, item.y);
-      return hit ? [{ ...item, z: hit.position[2] }] : [];
+      return hit ? [{ ...item, z: hit.position[2] + (item.surfaceOffset ?? 0) }] : [];
     });
     if (
       !force &&
@@ -378,7 +379,11 @@ export class PhotorealCampaignWorld {
       mesh.visible = !enabled || this.fogAt(input.x, input.y) < 0.5;
     if (
       this.selected &&
-      !this.renderObjects.find((o) => o.input.id === this.selected)?.mesh.visible
+      !this.renderObjects.find((o) => o.input.id === this.selected)?.mesh.visible &&
+      !this.entityFrame?.standards.some(
+        (item) =>
+          `army:${item.unitId}` === this.selected && (!enabled || this.fogAt(item.x, item.y) < 0.5),
+      )
     )
       this.selected = null;
     this.updateSelection();
@@ -386,54 +391,92 @@ export class PhotorealCampaignWorld {
   select(id: string | null) {
     this.selected =
       this.renderObjects.find((o) => o.input.id === id && o.mesh.visible)?.input.id ?? null;
+    if (this.entityFrame) {
+      const city = this.entityFrame.entities.find((item) => String(item.id) === this.selected);
+      this.entityFrame = {
+        ...this.entityFrame,
+        entities: this.entityFrame.entities.map((item) => ({
+          ...item,
+          selected: String(item.id) === this.selected,
+        })),
+        standards: this.entityFrame.standards.map((item) => ({
+          ...item,
+          selected: item.tier === "settlement-banner" && String(item.unitId) === this.selected,
+        })),
+        selections: city
+          ? [
+              {
+                x: city.x,
+                y: city.y,
+                z: city.z ?? 0,
+                radius: city.selectionRadius ?? city.radius * 1.6,
+                color: SELECTION_GREEN,
+                kind: "city",
+              },
+            ]
+          : [],
+      };
+    }
     this.updateSelection();
   }
   private updateSelection() {
-    const object = this.renderObjects.find((o) => o.input.id === this.selected && o.mesh.visible);
-    this.selection.visible = !!object;
-    if (!object) return;
-    const { input } = object,
-      vertices: number[] = [];
-    const radius = input.city
-      ? (input.city.selectionRadius ?? input.city.radius * 1.6)
-      : input.scale * 4.7;
-    const profile = SELECTION_RING_PROFILE;
-    const bands = [
-      [profile.innerCut, 0],
-      [profile.innerFade, profile.ringAlpha],
-      [profile.outerEdge, profile.ringAlpha],
-      [1, 0],
-    ];
-    for (let i = 0; i < 64; i++) {
-      const a = (i * Math.PI * 2) / 64,
-        b = ((i + 1) * Math.PI * 2) / 64;
-      for (let band = 0; band < bands.length - 1; band++) {
-        const [inner, ia] = bands[band],
-          [outer, oa] = bands[band + 1];
-        for (const triangle of [
-          [
-            [a, inner, ia],
-            [a, outer, oa],
-            [b, outer, oa],
-          ],
-          [
-            [a, inner, ia],
-            [b, outer, oa],
-            [b, inner, ia],
-          ],
-        ]) {
-          const points = triangle.map(([angle, r, alpha]) => {
-            const x = input.x + Math.cos(angle) * radius * r,
-              y = input.y + Math.sin(angle) * radius * r;
-            const hit = this.terrain.surface.sampleRendered(x, y);
-            return hit ? [x, y, hit.position[2] + 0.42, ...SELECTION_GREEN, alpha] : null;
-          });
-          if (points.every((p) => p !== null)) for (const point of points) vertices.push(...point!);
-        }
-      }
+    const surface = this.terrain.surface;
+    const visible = (x: number, y: number) => !this.fogEnabled || this.fogAt(x, y) < 0.5;
+    const standards: readonly CampaignStandardInstance[] =
+      this.entityFrame?.standards ??
+      this.renderObjects
+        .filter((o) => o.mesh.visible)
+        .map(({ input, mesh }, i) => ({
+          tier: "campaign-army" as const,
+          unitId: i,
+          x: input.x,
+          y: input.y,
+          z: mesh.position.z + (input.standardBase ?? 0) * input.scale,
+          scale: input.scale * 2,
+          factionId: input.faction,
+          selected: input.id === this.selected,
+        }));
+    this.seatedStandards = standards
+      .filter((item) => visible(item.x, item.y))
+      .map((item) => {
+        const city =
+          item.cityId === undefined
+            ? undefined
+            : this.cities.objects.find((object) => object.input.city?.id === item.cityId);
+        return {
+          ...item,
+          selected: this.entityFrame
+            ? (item.tier === "campaign-army" ? `army:${item.unitId}` : String(item.unitId)) ===
+              this.selected
+            : item.selected,
+          z: city
+            ? city.mesh.position.z + (city.input.standardBase ?? 0) * city.input.scale
+            : this.entityFrame
+              ? (surface.sampleRendered(item.x, item.y)?.position[2] ?? item.z)
+              : item.z,
+        };
+      });
+    let selections: readonly CampaignSelectionInstance[] = this.selected
+      ? (this.entityFrame?.selections ?? [])
+      : [];
+    if (!this.entityFrame) {
+      const object = this.renderObjects.find((o) => o.input.id === this.selected && o.mesh.visible);
+      if (object)
+        selections = [
+          {
+            x: object.input.x,
+            y: object.input.y,
+            z: object.mesh.position.z,
+            radius: object.input.scale * 4.7,
+            color: SELECTION_GREEN,
+            kind: "army",
+          },
+        ];
     }
-    this.selection.geometry.dispose();
-    this.selection.geometry = colorGeometry(Float32Array.from(vertices), 7, 3);
+    this.selection.upload(
+      selections.filter((item) => visible(item.x, item.y)),
+      surface,
+    );
   }
   setLabels(labels: CampaignLabel[], placement?: CampaignLabelPlacementStyle) {
     this.labelInputs = labels;
@@ -447,24 +490,7 @@ export class PhotorealCampaignWorld {
     this.world.resize(width, height, dpr);
     this.frame.focus.value.set(pose.target[0], pose.target[1]);
     applyCamera3d(this.camera, pose);
-    this.standards.upload(
-      this.renderObjects
-        .filter((o) => o.mesh.visible)
-        .map(({ input, mesh }, i) => ({
-          tier: input.city ? ("settlement-banner" as const) : ("campaign-army" as const),
-          unitId: input.city?.id ?? i,
-          x: input.x,
-          y: input.y,
-          z: mesh.position.z + (input.standardBase ?? 0) * input.scale,
-          yaw: 0,
-          scale: input.city ? campaignSettlementStandardScale(input.city.radius) : input.scale * 2,
-          ...(input.city
-            ? { livery: { field: input.city.faction, trim: input.city.allegiance } }
-            : {}),
-          factionId: input.faction,
-          selected: input.id === this.selected,
-        })),
-    );
+    this.standards.upload(this.seatedStandards);
     if (this.crowd) {
       const sun = this.world.sunLight!;
       sun.updateMatrixWorld();
@@ -594,6 +620,9 @@ export class PhotorealCampaignWorld {
       surfaceRevision: this.terrain.stats().revision,
       terrain: this.terrain.stats(),
       standards: this.standards.stats(),
+      standardAnchors: this.seatedStandards,
+      selections: this.selection.stats(),
+      sceneryAnchors: this.seatedScenery,
       scenery: { ...this.scenery.stats(), uploads: this.sceneryUploads },
     };
   }
@@ -606,6 +635,7 @@ export class PhotorealCampaignWorld {
     this.scenery.dispose();
     this.terrain.dispose();
     this.standards.dispose();
+    this.selection.dispose();
     for (const mesh of this.meshes) {
       mesh.removeFromParent();
       mesh.geometry.dispose();

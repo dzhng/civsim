@@ -40,8 +40,8 @@ import type { StandardInstance } from "@packages/game-renderer/src/models/shared
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
 import {
   CampaignSelectionPass,
-  type CampaignSelectionInstance,
 } from "@packages/game-renderer/src/campaign/selectionPass";
+import type { CampaignSelectionInstance } from "@packages/game-renderer/src/campaign/selection";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { projectNestedPoint } from "../labCampaign";
 import {

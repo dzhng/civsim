@@ -33,10 +33,10 @@ import {
 } from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
 import { linearAlbedo, rotateYawN, viewNormalNode } from "./shaderNodes";
 
-// Landscape vegetation and rocks; moving entities have their own world owner.
+// Shared landscape props; campaign owns moving cart placement, this layer draws its asset.
 const SCENERY_KINDS: SceneryPropId[] = SCENERY_PROP_IDS.filter((id) => {
   const family = SCENERY_PROP_MODELS[id].family;
-  return family === "tree" || family === "rock";
+  return family === "tree" || family === "rock" || family === "cart";
 });
 
 interface SceneryBucket {

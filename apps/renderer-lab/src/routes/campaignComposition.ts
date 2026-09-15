@@ -1,3 +1,8 @@
+import {
+  buildEntityFrame,
+  type CampaignEntityFrame,
+  type CampaignTerrainField,
+} from "@packages/game-renderer/src/campaign/entityFrame";
 import { campaignCrowdFixture } from "./campaignCrowdFixture";
 import type { CampaignLabel } from "@packages/game-renderer/src/campaign/labelFrame";
 import type { CampaignEntityInstance } from "@packages/game-renderer/src/campaign/entityInstance";
@@ -164,13 +169,85 @@ export async function route(ctx: LabContext) {
           { x: -40, y: -40, size: 3, height: 4, kind: "broadleaf" as const },
         ]
       : [];
-  const crowdFixture = ctx.params.get("crowd") === "1" ? await campaignCrowdFixture(surface) : null;
+  const crowdFixture =
+    ctx.params.get("crowd") === "1" || ctx.params.get("inputs") === "1"
+      ? await campaignCrowdFixture(surface, roadData.map.edges, ctx.params.get("inputs") === "1")
+      : null;
   if (crowdFixture) composition.objects = [];
   const physicalComposition = { ...composition, appearances: crowdFixture?.appearances };
+  const fullInputs = ctx.params.get("inputs") === "1";
+  let currentFrame: CampaignEntityFrame = {
+    entities: [],
+    standards: [],
+    selections: [],
+    crowd: [],
+  };
+  if (cities.length) {
+    const data = {
+      map: {
+        attribution: "city fixture",
+        nodes: cities.map((city) => ({
+          id: city.id,
+          name: city.label,
+          pos: [city.x, city.y] as [number, number],
+          kind: "city" as const,
+          tier: city.radius >= 6 ? 3 : 2,
+          port: false,
+          owner: String(city.id),
+        })),
+        edges: [],
+        factions: cities.map((city) => ({
+          id: String(city.id),
+          color: city.faction.map((c) => c * 255) as [number, number, number],
+        })),
+      },
+      bgRect: { min: [-80, -80] as [number, number], max: [80, 80] as [number, number] },
+    };
+    const field: CampaignTerrainField = {
+      w: size,
+      h: size,
+      cell,
+      minX: -80,
+      maxY: 80,
+      land: new Uint8Array(size * size).fill(1),
+      biome: new Uint8Array(size * size),
+      height: new Float32Array(size * size),
+      maxH: 40,
+      heightAt: (x, y) => surface.sampleRendered(x, y)!.position[2],
+      renderLandAt: () => true,
+      renderWaterAt: () => false,
+    };
+    currentFrame = buildEntityFrame(
+      data,
+      field,
+      {
+        cam: { x: 0, y: 0, scale: 5 },
+        armies: [],
+        cities: new Map(),
+        selected: -1,
+        selectedCity: 0,
+        factionLabels: [],
+        factionStatus: new Int8Array([0, 2]),
+        playerFaction: 0,
+        fogOfWar: false,
+        visionSources: [],
+        factionView: false,
+        stackUnitCap: 6,
+        controlledStage: false,
+      },
+      [],
+      0,
+      () => "idle",
+    );
+  }
+  if (crowdFixture) {
+    currentFrame = crowdFixture.frame();
+    if (!fullInputs) currentFrame = { ...currentFrame, standards: [], selections: [] };
+  }
   let world = await PhotorealCampaignWorld.create(ctx.canvas, physicalComposition);
-  if (cities.length) world.setCities(cities);
-  if (crowdFixture) world.setCrowd(crowdFixture.frame().crowd);
+  if (cities.length || crowdFixture) world.setEntityFrame(currentFrame);
   if (vegetation) world.setScenery(scenery);
+  if (fullInputs) world.setScenery(crowdFixture!.carts());
   const territory = {
     width: 2,
     height: 2,
@@ -196,13 +273,21 @@ export async function route(ctx: LabContext) {
     alive = true,
     generation = 0,
     rebuilding = false;
+  const cartFocus =
+    fullInputs && ctx.params.get("focus") === "cart"
+      ? crowdFixture!.carts().find((cart) => cart.y < 0)
+      : undefined;
   const draw = () => {
     if (!alive || rebuilding) return;
     const width = ctx.canvas.clientWidth,
       height = ctx.canvas.clientHeight;
-    const pose = chartCamera3d({ x: 6, y: -3, zoom: 5, pitch: 0.9 }, height);
+    const cart = cartFocus;
+    const pose = chartCamera3d(
+      { x: cart?.x ?? 6, y: cart?.y ?? -3, zoom: cart ? 24 : 5, pitch: 0.9 },
+      height,
+    );
     pose.aspect = width / height;
-    pose.target = [6, -3, 8];
+    pose.target = [cart?.x ?? 6, cart?.y ?? -3, cart?.z ?? 8];
     if (glyphLabels) {
       const inputs: CampaignLabel[] = [
         ...composition.objects.map((object) => ({
@@ -265,8 +350,8 @@ export async function route(ctx: LabContext) {
     rebuilding = true;
     world.dispose();
     world = await PhotorealCampaignWorld.create(ctx.canvas, physicalComposition);
-    if (cities.length) world.setCities(cities);
-    if (crowdFixture) world.setCrowd(crowdFixture.frame().crowd);
+    if (cities.length || crowdFixture) world.setEntityFrame(currentFrame);
+    if (fullInputs) world.setScenery(crowdFixture!.carts());
     if (!alive) {
       world.dispose();
       return;
@@ -339,8 +424,20 @@ export async function route(ctx: LabContext) {
         draw();
       },
       installDetail,
+      inputs: (selected = 0, empty = false, time = 0.25) => {
+        if (!crowdFixture) return;
+        currentFrame = crowdFixture.frame(5, empty, time, selected);
+        world.setEntityFrame(currentFrame);
+        world.setScenery(empty ? [] : crowdFixture.carts(time));
+        draw();
+        requestAnimationFrame(draw);
+      },
       crowd: (zoom = 5, empty = false, time = 0.25) => {
-        if (crowdFixture) world.setCrowd(crowdFixture.frame(zoom, empty, time).crowd);
+        if (crowdFixture) {
+          currentFrame = crowdFixture.frame(zoom, empty, time);
+          if (!fullInputs) currentFrame = { ...currentFrame, standards: [], selections: [] };
+          world.setEntityFrame(currentFrame);
+        }
         draw();
         requestAnimationFrame(draw);
       },

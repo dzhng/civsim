@@ -2,10 +2,13 @@ import type { SceneryInstance } from "../terrain/scenery";
 import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import type { CampaignMarker } from "@packages/game-renderer/src/campaign/mapPass";
-import { drawnRoadRuns } from "@packages/game-renderer/src/campaign/roadGeometry";
+import {
+  drawnRoadRuns,
+  CAMPAIGN_ROAD_SURFACE_LIFT,
+} from "@packages/game-renderer/src/campaign/roadGeometry";
 import type { CampaignEntityInstance } from "./entityInstance";
 
-import type { CampaignSelectionInstance } from "./selectionPass";
+import type { CampaignSelectionInstance } from "./selection";
 import { standardSeed, standardWindPhase } from "../models/shared/standardAsset";
 import type { StandardInstance } from "../models/shared/standardInstance";
 import type { CampaignFogSource } from "./atmospherePass";
@@ -116,6 +119,16 @@ export enum Allegiance {
   Foe = 2,
 }
 
+export interface CampaignStandardInstance extends StandardInstance {
+  /** A settlement or garrison pole shares this city's presented foundation. */
+  cityId?: number;
+}
+
+export type CampaignEntityFrame = Pick<
+  ReturnType<typeof buildEntityFrame>,
+  "entities" | "crowd" | "standards" | "selections"
+>;
+
 export const CAMPAIGN_FIGURE_SIZE = 2.4;
 
 // Standard scale rules — exported so the renderer-lab review surfaces track
@@ -155,7 +168,7 @@ export function buildEntityFrame(
   clipForClass: (classId: number, marching: boolean) => string,
 ) {
   const entities: CampaignEntityInstance[] = [];
-  const standards: StandardInstance[] = [];
+  const standards: CampaignStandardInstance[] = [];
   const sceneryReservations: CampaignSceneryReservation[] = [];
   const selections: CampaignSelectionInstance[] = [];
   const crowd: CrowdInstance[] = [];
@@ -208,6 +221,9 @@ export function buildEntityFrame(
         y: mapNode.pos[1] + 0.04 * scale,
         z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
         tier: "settlement-banner",
+        unitId: node,
+        cityId: node,
+        selected: opts.selectedCity === node,
         factionId: "azure",
         livery: { field: factionColor(data, owner) },
         scale,
@@ -252,6 +268,9 @@ export function buildEntityFrame(
       y: display.y,
       z: field.heightAt(display.x, display.y),
       tier: "campaign-army",
+      unitId: army.id,
+      cityId: occupiedCity?.index,
+      selected: opts.selected === army.id,
       factionId: "azure",
       livery: { field: factionColor(data, army.faction) },
       scale: armyScale,
@@ -268,7 +287,9 @@ export function buildEntityFrame(
     // the stack cap. Figures are tinted by allegiance (friend blue / foe red /
     // neutral amber); the standard banner above carries the true faction livery.
     const roster = army.unitsByClass.some((n) => n > 0) ? army.unitsByClass : army.roster;
-    if (zoomFigures > 0) {
+    // The occupied city and its garrison banner represent this stack; giant
+    // representative figures at the shared city anchor intersect the roofs.
+    if (zoomFigures > 0 && !occupiedCity) {
       crowd.push(
         ...buildStackCrowd(roster, {
           unitCount: army.unitCount,
@@ -485,7 +506,8 @@ export function campaignRoadCarts(
             carts.push({
               x,
               y,
-              z: Math.max(0, field.heightAt(x, y)),
+              z: Math.max(0, field.heightAt(x, y)) + CAMPAIGN_ROAD_SURFACE_LIFT,
+              surfaceOffset: CAMPAIGN_ROAD_SURFACE_LIFT,
               size: 1.3,
               height: 0.9,
               kind: "cart",

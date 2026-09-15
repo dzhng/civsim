@@ -114,3 +114,15 @@ renders accepted quads in the same canvas. Existing production label generators,
 sea fitting, hierarchy and card occupancy remain authoritative. The bounded
 [DPR and lifecycle evidence](../assets/slice-12-labels/README.md) records the
 verified city/army glyph seam and the remaining full-presentation integration.
+
+## Unified army/cart input checkpoint
+
+Physical campaign composition now takes one existing entity frame for cities,
+crowd, standards and selection. Carts remain scenery inputs with the road's
+surface-relative clearance. Shared selection geometry/style and campaign-standard
+city identity retain the source presentation rules while the physical surface
+owns final elevation. [Army/cart evidence](../assets/slice-12-army-carts/README.md)
+records the combined fixture and the deliberate garrison policy: city/banner
+representation replaces figures intersecting roofs, without moving the shared
+garrison anchor or changing field-army crowd/troop state. Selection style is
+retained. Production interaction and overview screen markers remain separate.

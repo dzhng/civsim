@@ -5,6 +5,8 @@ export interface SceneryInstance {
   x: number;
   y: number;
   z?: number;
+  /** Clearance above the presented ground when this instance is reseated. */
+  surfaceOffset?: number;
   size: number;
   height?: number;
   kind: SceneryPropId;

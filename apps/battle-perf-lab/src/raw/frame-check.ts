@@ -1,3 +1,5 @@
+import { RawSunShadow } from "./shadow";
+import { configureSunShadows } from "../../../../packages/photoreal-renderer/src/battle/shadowRig";
 import { createFrameControlBackend } from "../frameControlBackend";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
 import * as THREE from "three/webgpu";
@@ -13,7 +15,10 @@ import { loadAppearanceBundle } from "../../../../packages/soldier-assets/src/ap
 import { buildBattleTerrainData } from "../../../../packages/game-renderer/src/battle/terrainSceneData";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import { generatedFormation } from "../../../../packages/crowd-runtime/src/instanceData";
-import { planCrowdLods } from "../../../../packages/crowd-runtime/src/visibility";
+import {
+  planCrowdLods,
+  type CrowdProjectionView,
+} from "../../../../packages/crowd-runtime/src/visibility";
 import {
   viewMatrix,
   projectionFootprint,
@@ -76,6 +81,9 @@ async function run() {
       deviceFeatures: device.features,
       powerPreference: "default",
     });
+    const shadows = new URL(location.href).searchParams.has("shadows");
+    if (shadows && backend !== "raw")
+      throw Error("Composed shadows not implemented for this backend yet");
     const env = CIVSIM_ENVIRONMENTS.golden;
     const world = own(
       await PhotorealWorld.create(document.createElement("canvas"), { antialias: samples === 4 }),
@@ -83,21 +91,35 @@ async function run() {
     world.renderer.setSize(width, height);
     world.renderer.setPixelRatio(1);
     applyCivsimEnvironment(world, env, { aerialObserver: vec3(0, 0, 0) });
+    const sourceShadow = shadows
+      ? own(configureSunShadows(world.renderer, world.sunLight!, env, "single"))
+      : undefined;
     const camera = new THREE.PerspectiveCamera();
     const post = own(new BattlePostChain(world.renderer, world.scene, camera, env.id));
     if (!["raw", "typegpu", "vgpu"].includes(backend)) throw new Error("Unknown frame backend");
     const candidateTextures = trackTextureLifetime(device);
     releases.push(candidateTextures.restore);
+    const nativeShadow = shadows ? own(new RawSunShadow(device, env)) : undefined;
     const nativeEnv =
-      backend === "raw" ? own(await createRawEnvironment(device, env, samples)) : undefined;
+      backend === "raw"
+        ? own(await createRawEnvironment(device, env, samples, nativeShadow))
+        : undefined;
     const nativeDiagnostic = new URL(location.href).searchParams.get(
       "native-material",
     ) as WorldSurfaceDiagnostic | null;
     if (nativeDiagnostic && !nativeEnv) throw new Error("Native diagnostics require raw backend");
-    if (nativeDiagnostic && nativeEnv) nativeEnv.shader = rawEnvironmentWgsl(env, nativeDiagnostic);
+    if (nativeDiagnostic && nativeEnv)
+      nativeEnv.shader = rawEnvironmentWgsl(env, nativeDiagnostic, shadows);
     const nativeFrame = nativeEnv
       ? own(new RawBattleFrame(device, nativeEnv, width, height, samples, "rgba16float"))
       : undefined;
+    const shadowCameraGroup =
+      nativeShadow && nativeFrame
+        ? device.createBindGroup({
+            layout: nativeFrame.cameraLayout,
+            entries: [{ binding: 0, resource: { buffer: nativeShadow.camera } }],
+          })
+        : undefined;
     const catalogUrl = new URL("/assets/soldiers/catalog.json", location.href);
     const catalog = await (await fetch(catalogUrl)).json();
     const assets = {
@@ -122,6 +144,8 @@ async function run() {
       height: new Float32Array(400),
     };
     const data = buildBattleTerrainData(grid, "green-grass", null);
+    sourceShadow?.setWorldRect(data.rect);
+    nativeShadow?.setWorldRect(data.rect);
     const ground = createGroundMesh(createBattleFrameUniforms(), data.ground, {
       earthDistance: data.ground.earthDistance,
     });
@@ -201,7 +225,7 @@ async function run() {
         far: 3000,
       };
       applyCamera3d(camera, params);
-      const views = [
+      const views: CrowdProjectionView[] = [
         {
           frustum: { planes: [] },
           projection: projectionFootprint(
@@ -213,6 +237,7 @@ async function run() {
           shadow: false,
         },
       ];
+      if (sourceShadow) views.push(...sourceShadow.cullingViews());
       const plan = planCrowdLods(instances, views, assets);
       sourceCrowd.upload(instances, { camera, views });
       if (driver) await driver.upload(instances, plan);
@@ -239,6 +264,9 @@ async function run() {
         } else {
           const encoder = device.createCommandEncoder();
           nativeCrowd!.precompute(encoder);
+          nativeShadow?.encode(encoder, (pass) =>
+            nativeCrowd!.draw(pass, shadowCameraGroup!, "shadow"),
+          );
           nativeFrame!.encode(
             encoder,
             output.createView(),
@@ -306,12 +334,14 @@ async function run() {
     nativeCrowd?.dispose();
     nativeFrame?.dispose();
     nativeEnv?.dispose();
+    nativeShadow?.dispose();
     output.destroy();
     const liveCandidateTexturesAfterDispose = candidateTextures.liveCount();
     return {
       backend,
       liveCandidateTexturesAfterDispose,
       samples,
+      shadows,
       nativeDiagnostic,
       results,
       errors,

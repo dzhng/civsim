@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { shadow, vec3 } from "three/tsl";
+import { shadow, convert } from "three/tsl";
 import { RawSunShadow } from "./shadow";
 import { shadowPcfWgsl, shadowVisibilityWgsl } from "../shaders/shadow";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
@@ -63,7 +63,9 @@ async function run() {
     scene.add(box);
     const planeGeometry = own(new THREE.PlaneGeometry(40, 40));
     const receiverMaterial = own(new THREE.MeshBasicNodeMaterial());
-    receiverMaterial.colorNode = vec3(shadow(sun));
+    // Public convert returns a generic Node in the pinned declarations, although
+    // this explicit conversion fixes its shader output type to vec3.
+    receiverMaterial.colorNode = convert(shadow(sun), "vec3") as THREE.Node<"vec3">;
     const plane = new THREE.Mesh(planeGeometry, receiverMaterial);
     plane.receiveShadow = true;
     scene.add(plane);

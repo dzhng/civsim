@@ -21,6 +21,7 @@ export function soldierShader(
   diagnostic?: SoldierDiagnostic,
   invariantPosition = true,
   depthOnly = false,
+  receiveSunShadow = false,
 ): string {
   return `${WORLD_CAMERA_WGSL}
     ${environment}
@@ -59,7 +60,7 @@ ${soldierVertexBodyWgsl(bones, diagnostic)}
       depthOnly
         ? ""
         : `@fragment fn fragment(v:VertexOut,@builtin(front_facing) front:bool)->@location(0) vec4f {
-${soldierSurfacePreludeWgsl(images)}      return ${diagnostic === "quad" ? "crowdQuad(v.uv,v.geometryNormalView)" : diagnostic === "primitive" ? "vec4f(f32(v.vertexId)+1.0,f32(v.material),v.uv)" : diagnostic === "derivatives" ? "crowdDerivatives(v.uv,v.geometryNormalView)" : diagnostic === "geometry-normal" ? "vec4f(normalize(v.geometryNormalView),geometryRoughnessFromView(v.geometryNormalView))" : diagnostic === "uv" ? "vec4f(v.uv,dpdx(v.uv.x),dpdy(v.uv.y))" : "shadeWorldSurface(clamp(albedo,vec3f(0),vec3f(1)),vec3f(0),properties.r*mix(1.0,orm.g,flags.b),geometryRoughnessFromView(v.geometryNormalView),properties.g*mix(1.0,orm.b,flags.b),mix(1.0,orm.r,flags.a*properties.b)*v.properties.z,n,v.world,1.0)"};
+${soldierSurfacePreludeWgsl(images)}      return ${diagnostic === "quad" ? "crowdQuad(v.uv,v.geometryNormalView)" : diagnostic === "primitive" ? "vec4f(f32(v.vertexId)+1.0,f32(v.material),v.uv)" : diagnostic === "derivatives" ? "crowdDerivatives(v.uv,v.geometryNormalView)" : diagnostic === "geometry-normal" ? "vec4f(normalize(v.geometryNormalView),geometryRoughnessFromView(v.geometryNormalView))" : diagnostic === "uv" ? "vec4f(v.uv,dpdx(v.uv.x),dpdy(v.uv.y))" : `shadeWorldSurface(clamp(albedo,vec3f(0),vec3f(1)),vec3f(0),properties.r*mix(1.0,orm.g,flags.b),geometryRoughnessFromView(v.geometryNormalView),properties.g*mix(1.0,orm.b,flags.b),mix(1.0,orm.r,flags.a*properties.b)*v.properties.z,n,v.world,${receiveSunShadow ? "sampleSunShadow(v.world,n,v.position.xy)" : "1.0"})`};
     }`
     }
   `;

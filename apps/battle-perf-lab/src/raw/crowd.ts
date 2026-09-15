@@ -114,6 +114,9 @@ export async function createRawCrowd(
     const pipelineLayout = device.createPipelineLayout({
       bindGroupLayouts: [cameraLayout, paletteLayout, materialLayout, environment.layout],
     });
+    const casterPipelineLayout = device.createPipelineLayout({
+      bindGroupLayouts: [cameraLayout, paletteLayout, materialLayout, environment.casterLayout],
+    });
     const offsets = SOLDIER_VERTEX_LAYOUT.offsets;
     const vertex: GPUVertexBufferLayout = {
       arrayStride: SOLDIER_VERTEX_LAYOUT.strideFloats * 4,
@@ -255,6 +258,8 @@ export async function createRawCrowd(
             surface.images,
             diagnostic,
             invariantPosition,
+            false,
+            environment.shadows,
           ),
         });
         const state = {
@@ -273,7 +278,11 @@ export async function createRawCrowd(
             multisample: { count: sampleCount },
             fragment: { module, entryPoint: "fragment", targets: [{ format }] },
           }),
-          device.createRenderPipelineAsync({ ...state, multisample: { count: 1 } }),
+          device.createRenderPipelineAsync({
+            ...state,
+            layout: casterPipelineLayout,
+            multisample: { count: 1 },
+          }),
         ]);
         pipeline = { beauty, depth };
         pipelines.set(key, pipeline);
@@ -336,7 +345,10 @@ export async function createRawCrowd(
         assertLive();
         if (!ready) throw new Error("Crowd frame is not ready");
         pass.setBindGroup(0, camera);
-        pass.setBindGroup(3, environment.bindGroup);
+        pass.setBindGroup(
+          3,
+          audience === "shadow" ? environment.casterBindGroup : environment.bindGroup,
+        );
         for (const list of buckets.values())
           for (const b of list) {
             const count = b.counts[audience];

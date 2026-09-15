@@ -1,3 +1,5 @@
+import type { RawSunShadow } from "./shadow";
+import { shadowPcfWgsl, shadowVisibilityWgsl } from "../shaders/shadow";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
 import { skyModelParams } from "../../../../packages/game-renderer/src/environment/skyParameters";
@@ -16,6 +18,7 @@ import { environmentFunctions, type WorldSurfaceDiagnostic } from "../shaders/en
 export function rawEnvironmentWgsl(
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
+  shadows = false,
 ): string {
   return `
     struct Environment {
@@ -26,6 +29,20 @@ export function rawEnvironmentWgsl(
     @group(3) @binding(2) var environmentPmrem:texture_2d<f32>;
     @group(3) @binding(3) var environmentDfg:texture_2d<f32>;
     @group(3) @binding(4) var environmentSampler:sampler;
+    ${
+      shadows
+        ? `
+    struct SunShadow {matrix:mat4x4f,settings:vec4f};
+    @group(3) @binding(5) var<uniform> sunShadow:SunShadow;
+    @group(3) @binding(6) var sunDepth:texture_depth_2d;
+    @group(3) @binding(7) var sunCompare:sampler_comparison;
+    fn shadowPcf${shadowPcfWgsl}
+    fn shadowVisibility${shadowVisibilityWgsl}
+    fn sampleSunShadow(world:vec3f,normal:vec3f,pixel:vec2f)->f32 {
+      return shadowVisibility(sunDepth,sunCompare,sunShadow.matrix,sunShadow.settings,world,normal,pixel);
+    }`
+        : ""
+    }
     ${cubeUvWGSL}
     fn standardPbr${standardPbrWgsl}
     fn equirectUv${equirectUvWgsl}
@@ -48,6 +65,7 @@ export async function createRawEnvironment(
   device: GPUDevice,
   env: CivsimEnvironment,
   backgroundSamples: 1 | 4 = 1,
+  shadow?: Pick<RawSunShadow, "state" | "depth" | "comparison">,
 ) {
   const spec = photorealEnvironment(env);
   let sky: Awaited<ReturnType<typeof createRawSky>> | undefined;
@@ -92,6 +110,25 @@ export async function createRawEnvironment(
           texture: { sampleType: "float" as const },
         })),
         { binding: 4, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
+        ...(shadow
+          ? [
+              {
+                binding: 5,
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: { type: "uniform" as const },
+              },
+              {
+                binding: 6,
+                visibility: GPUShaderStage.FRAGMENT,
+                texture: { sampleType: "depth" as const },
+              },
+              {
+                binding: 7,
+                visibility: GPUShaderStage.FRAGMENT,
+                sampler: { type: "comparison" as const },
+              },
+            ]
+          : []),
       ],
     });
     const bindGroup = device.createBindGroup({
@@ -102,7 +139,23 @@ export async function createRawEnvironment(
         { binding: 2, resource: pmrem.texture.createView() },
         { binding: 3, resource: dfg.createView() },
         { binding: 4, resource: sampler },
+        ...(shadow
+          ? [
+              { binding: 5, resource: { buffer: shadow.state } },
+              { binding: 6, resource: shadow.depth.createView() },
+              { binding: 7, resource: shadow.comparison },
+            ]
+          : []),
       ],
+    });
+    // A caster must not bind the sampled depth texture it is currently writing.
+    // Its vertex stage needs only the existing view uniform from this owner.
+    const casterLayout = device.createBindGroupLayout({
+      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: "uniform" } }],
+    });
+    const casterBindGroup = device.createBindGroup({
+      layout: casterLayout,
+      entries: [{ binding: 0, resource: { buffer: uniform } }],
     });
     const values = new Float32Array(32);
     values.set(spec.sunDirection, 20);
@@ -115,10 +168,13 @@ export async function createRawEnvironment(
     return {
       layout,
       bindGroup,
+      casterLayout,
+      casterBindGroup,
+      shadows: Boolean(shadow),
       sky,
       pmrem,
       exposure: spec.exposure,
-      shader: rawEnvironmentWgsl(env),
+      shader: rawEnvironmentWgsl(env, undefined, Boolean(shadow)),
       /** View matrix must come from renderer-core camera3d; observer is the exact
        * camera ground target, including its terrain elevation. */
       setView(worldToView: ArrayLike<number>, observer: readonly [number, number, number]) {

@@ -8,6 +8,7 @@ export function terrainShaders(
   options: TerrainMaterialOptions,
   mode: "beauty" | "material",
   invariantPosition: boolean,
+  receiveSunShadow = false,
 ) {
   const common =
     WORLD_CAMERA_WGSL +
@@ -24,7 +25,7 @@ export function terrainShaders(
   `;
   const shade =
     mode === "beauty"
-      ? "shadeWorldSurface(surface.rgb,vec3f(0),surface.a,geometryRoughnessFromView(v.viewNormalGeometry),0.0,1.0,normalize(v.normal),v.position,terrainState.shadow)"
+      ? `shadeWorldSurface(surface.rgb,vec3f(0),surface.a,geometryRoughnessFromView(v.viewNormalGeometry),0.0,1.0,normalize(v.normal),v.position,terrainState.shadow${receiveSunShadow ? "*sampleSunShadow(v.position,normalize(v.normal),v.clip.xy)" : ""})`
       : "surface";
   return {
     ground:

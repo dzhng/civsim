@@ -82,7 +82,13 @@ export class RawBattleTerrain {
       const pipelineLayout = device.createPipelineLayout({
         bindGroupLayouts: [cameraLayout, layout, emptyLayout, environment.layout],
       });
-      const shaders = terrainShaders(environment.shader, options, mode, invariantPosition);
+      const shaders = terrainShaders(
+        environment.shader,
+        options,
+        mode,
+        invariantPosition,
+        environment.shadows,
+      );
       const pipeline = (code: string, buffers: GPUVertexBufferLayout[]) => {
         const module = device.createShaderModule({ code });
         return device.createRenderPipeline({

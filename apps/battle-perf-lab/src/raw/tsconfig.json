@@ -5,6 +5,7 @@
     "typeRoots": ["../../../../web/node_modules/@types", "../../../../web/node_modules"],
     "paths": {
       "vgpu": ["../../../../web/node_modules/vgpu/dist/index.d.ts"],
+      "vgpu/mock": ["../../../../web/node_modules/vgpu/dist/mock.d.ts"],
       "typegpu": ["../../../../web/node_modules/typegpu/index.d.ts"],
       "three": ["../../../../web/node_modules/@types/three/index.d.ts"],
       "three/webgpu": ["../../../../web/node_modules/@types/three/build/three.webgpu.d.ts"],

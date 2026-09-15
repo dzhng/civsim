@@ -1,11 +1,79 @@
 import { WORLD_CAMERA_WGSL } from "../../../../packages/renderer-core/src/cameraWgsl";
-import { draw, geometry, texture, sampler, type Gpu, type FramePass, type Draw } from "vgpu";
+import {
+  draw,
+  geometry,
+  texture,
+  sampler,
+  type Gpu,
+  type FramePass,
+  type Draw,
+  type Geometry,
+} from "vgpu";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
 import type { TerrainMaterialOptions } from "../shaders/terrainMaterial";
 import { terrainShaders } from "../shaders/terrain";
 import type { VgpuEnvironment } from "./environment";
+
+/** One horizon vertex: position, then normal, then colour. Both horizon passes read this stride. */
+const HORIZON_VERTEX_STRIDE = 40;
+const HORIZON_POSITION = { format: "float32x3", offset: 0 } as const;
+
+/** Depth-only: one vertex input, and it is `p`. The caster's layout below declares exactly that. */
+export const HORIZON_CASTER_WGSL =
+  WORLD_CAMERA_WGSL +
+  `
+  @vertex fn vertex(@location(0) p:vec3f)->@builtin(position) vec4f { return projectWorld(p); }
+  @fragment fn fragment()->@location(0) vec4f { return vec4f(0); }`;
+
+/**
+ * The horizon's depth-only shadow caster, compiled for the sun-shadow target.
+ *
+ * vgpu resolves every declared geometry attribute against a vertex input by name, so an attribute
+ * set describes a pass rather than a mesh: the beauty mesh's p/n/color layout has nothing to bind
+ * `n` and `color` to in a shader that reads position alone. The caster therefore declares its own
+ * layout, over `mesh`'s existing buffers — `buffer`/`indexBuffer` borrow a buffer instead of
+ * uploading one, and vgpu destroys only the buffers it allocated itself, so the horizon vertex
+ * bytes keep `mesh` as their single owner. The returned geometry is the caller's to destroy.
+ */
+export async function createVgpuHorizonCaster(
+  gpu: Gpu,
+  mesh: Geometry,
+  camera: ReturnType<Gpu["device"]["createBuffer"]>,
+) {
+  const casterMesh = geometry(gpu, {
+    buffers: [
+      {
+        buffer: mesh.vertexBuffers[0],
+        stride: HORIZON_VERTEX_STRIDE,
+        attributes: { p: HORIZON_POSITION },
+      },
+    ],
+    vertexCount: mesh.vertexCount,
+    indexBuffer: mesh.indexBuffer,
+    indexFormat: mesh.indexFormat,
+    indexCount: mesh.indexCount,
+  });
+  try {
+    const render = draw(gpu, {
+      shader: HORIZON_CASTER_WGSL,
+      geometry: casterMesh,
+      set: { cam: camera },
+      cull: "front",
+      frontFace: "ccw",
+      depth: { write: true, compare: "greater-equal" },
+      writeMask: [],
+    });
+    // Matches the sun-shadow target in ./shadow.
+    await render.compile({ colors: ["rgba8unorm"], depth: "depth32float", sampleCount: 1 });
+    return { mesh: casterMesh, draw: render };
+  } catch (error) {
+    // Drops this layout only; `mesh` still owns the buffers it lent.
+    casterMesh.destroy();
+    throw error;
+  }
+}
 
 /** Caller owns frame, target, context, camera and environment; this owner lends its draws to the pass. */
 export async function createVgpuTerrain(
@@ -112,9 +180,9 @@ export async function createVgpuTerrain(
         buffers: [
           {
             data: new Float32Array(horizon.mesh.vertices),
-            stride: 40,
+            stride: HORIZON_VERTEX_STRIDE,
             attributes: {
-              p: { format: "float32x3", offset: 0 },
+              p: HORIZON_POSITION,
               n: { format: "float32x3", offset: 12 },
               color: { format: "float32x3", offset: 24 },
             },
@@ -123,24 +191,9 @@ export async function createVgpuTerrain(
         indices: horizon.mesh.indices,
       });
       owned.push(mesh);
-      horizonShadow = draw(gpu, {
-        shader:
-          WORLD_CAMERA_WGSL +
-          `
-          @vertex fn vertex(@location(0) p:vec3f)->@builtin(position) vec4f { return projectWorld(p); }
-          @fragment fn fragment()->@location(0) vec4f { return vec4f(0); }`,
-        geometry: mesh,
-        set: { cam: camera },
-        cull: "front",
-        frontFace: "ccw",
-        depth: { write: true, compare: "greater-equal" },
-        writeMask: [],
-      });
-      await horizonShadow.compile({
-        colors: ["rgba8unorm"],
-        depth: "depth32float",
-        sampleCount: 1,
-      });
+      const caster = await createVgpuHorizonCaster(gpu, mesh, camera);
+      owned.push(caster.mesh);
+      horizonShadow = caster.draw;
       draws.push(
         draw(gpu, {
           shader: shaders.horizon,

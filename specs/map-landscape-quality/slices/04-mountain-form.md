@@ -124,3 +124,9 @@ The filtered pass excludes raster-water samples before averaging. No further
 filter sweep or blanket form acceptance follows. Projection, provenance, sampling loss and the proposed
 existing-loader seam are recorded with the evidence. No runtime data adoption
 or city-apron acceptance follows from the initial clay pair.
+
+A single5× vertical-scale control of the same filteredDEM is preferred over10×
+by fresh review in both regions, but neither clears bounded form acceptance:
+Alps retains congested gullies/walls and Italy's foothill fringe loses definition.
+The2km mesh and height-scale measurements are explicit in the elevation evidence.
+No further scale sweep, city-apron acceptance or runtime adoption follows.

@@ -130,3 +130,28 @@ are39.28/33.45 render-km. Full numbers and sample boundaries are in
 baked JSON grids. The fixed10× exaggeration materially contributes steep walls;
 these findings do not justify another shaping algorithm or claim a new visual
 acceptance. No additional candidate or GPU capture was made for this audit.
+
+## Single vertical-scale control
+
+The measured steepness justified one explicit variation of the delegated
+presentation exaggeration:5× instead of10×. The area-filtered2km elevation data,
+0.5 render-km base, coast handling, material, lighting and exact camera matrices
+are unchanged. No filter/profile algorithm or additional variant is introduced.
+[Alps5×](alps-5x.png) and [Italy5×](italy-5x.png) both report zero camera delta and
+no browser/GPU errors. These are diagnostic snapCheck captures, not updated
+production baselines or strict-repeat evidence. Pixel differences from10× are
+91.56%/53.29%, mean channel deltas9.39/3.77 on the0–255 scale.
+
+The same CPU interior-slope samples predict5× p95 angles39.91°/39.07° and maxima
+68.76°/64.28°. Maximum sampled render heights become19.89/16.97km. Branching
+coordinates are unchanged; the vertical presentation is reduced.
+
+[Fresh independent CLI critique](scale5x-critique.md) prefers5× in both regions
+with moderate confidence, but withholds bounded form acceptance in both. Alps
+is less crowded and longer ridge runs read somewhat better; narrow gullies,
+wall-like slopes and softer/lumpy shoulders remain. Italy has quieter margins,
+but parallel ribs persist while small spurs fade into a diffuse fringe. The
+already open central lowland is not evidence of newly improved valley structure.
+Direct inspection agrees with the reduced steepness and limited improvement.
+No production adoption, full-quality claim, natural city-apron acceptance or
+additional scale sweep follows this pass.

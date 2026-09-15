@@ -1,0 +1,50 @@
+[
+  {
+    "region": "alps",
+    "renderMaxHeightKm": 19.889105478141772,
+    "slopes": [
+      {
+        "quantile": 0.5,
+        "physicalDegrees": 1.2911239738476725,
+        "render10xDegrees": 12.70120294184903,
+        "render5xDegrees": 6.429587414059503
+      },
+      {
+        "quantile": 0.95,
+        "physicalDegrees": 9.497646675841805,
+        "render10xDegrees": 59.13208863224801,
+        "render5xDegrees": 39.91254687033018
+      },
+      {
+        "quantile": 1,
+        "physicalDegrees": 27.23248624690718,
+        "render10xDegrees": 79.00399846602106,
+        "render5xDegrees": 68.76308840496293
+      }
+    ]
+  },
+  {
+    "region": "italy",
+    "renderMaxHeightKm": 16.972665516841893,
+    "slopes": [
+      {
+        "quantile": 0.5,
+        "physicalDegrees": 2.088504952855636,
+        "render10xDegrees": 20.03561845381731,
+        "render5xDegrees": 10.333629977484204
+      },
+      {
+        "quantile": 0.95,
+        "physicalDegrees": 9.22288575710035,
+        "render10xDegrees": 58.372750527699026,
+        "render5xDegrees": 39.07221211083221
+      },
+      {
+        "quantile": 1,
+        "physicalDegrees": 22.545811816159596,
+        "render10xDegrees": 76.45679535575275,
+        "render5xDegrees": 64.27742499201834
+      }
+    ]
+  }
+]

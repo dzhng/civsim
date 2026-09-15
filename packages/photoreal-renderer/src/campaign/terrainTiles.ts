@@ -12,7 +12,6 @@ export interface TerrainTileRequest {
 export interface TerrainTileData {
   mesh: LandscapeMesh;
   domain: SurfaceDomain;
-  shoreDistance: Float32Array;
   /** Peak typed storage during CPU generation; source snapshots are separate. */
   generationBytes?: number;
 }
@@ -24,13 +23,10 @@ export interface TerrainTile extends TerrainTileData {
 }
 
 export function terrainTilePayloadBytes(data: TerrainTileData): number {
-  const buffers = new Set([
-    data.mesh.vertices.buffer,
-    data.mesh.surfaceColor.buffer,
-    data.mesh.tint.buffer,
-    data.mesh.indices.buffer,
-    data.shoreDistance.buffer,
-  ]);
+  const buffers = new Set([data.mesh.vertices.buffer, data.mesh.indices.buffer]);
+  if (data.mesh.shoreDistance) buffers.add(data.mesh.shoreDistance.buffer);
+  if (data.mesh.surfaceColor) buffers.add(data.mesh.surfaceColor.buffer);
+  if (data.mesh.tint) buffers.add(data.mesh.tint.buffer);
   if (data.mesh.cellTriangles) buffers.add(data.mesh.cellTriangles.buffer);
   if (data.mesh.waterCoverage) buffers.add(data.mesh.waterCoverage.buffer);
   return [...buffers].reduce((bytes, buffer) => bytes + buffer.byteLength, 0);

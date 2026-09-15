@@ -5,14 +5,18 @@ export interface LandscapeMesh {
   /** x,y,z, normal xyz, display albedo rgb, field-water weight.
    * Water coverage and depth are separate source signals (water material adoption). */
   vertices: Float32Array;
-  surfaceColor: Float32Array;
-  tint: Float32Array;
+  /** Optional albedo override; absent uses packed vertex RGB. */
+  surfaceColor?: Float32Array;
+  /** Physical battle tint IDs; campaign ground needs no tint buffer. */
+  tint?: Float32Array;
   indices: Uint32Array;
   triangles: number;
   /** Optional triangle prefix offsets per XY cell; absent means two triangles per cell. */
   cellTriangles?: Uint32Array;
   /** Exact binary wet coverage for shoreline-conforming vertices, independent of depth. */
   waterCoverage?: Uint8Array;
+  /** Signed world-unit distance: dry positive, water negative; distinct from coverage. */
+  shoreDistance?: Float32Array;
 }
 
 export interface SurfaceDomain {
@@ -62,8 +66,20 @@ export function createRenderedSurface(
     maxY = oy + (rows - 1) * cell;
   const triangle = (t: number) => [0, 1, 2].map((n) => mesh.indices[t * 3 + n] * 10);
   const hit = (t: number, x: number, y: number): SurfaceHit | null => {
-    const [a, b, c] = triangle(t),
+    const a = mesh.indices[t * 3] * 10,
+      b = mesh.indices[t * 3 + 1] * 10,
+      c = mesh.indices[t * 3 + 2] * 10,
       v = mesh.vertices;
+    // Shore cells can contain hundreds of triangles. Reject their XY bounds
+    // without temporary arrays before evaluating barycentric coordinates.
+    const epsilon = cell * 2e-7;
+    if (
+      x < Math.min(v[a], v[b], v[c]) - epsilon ||
+      x > Math.max(v[a], v[b], v[c]) + epsilon ||
+      y < Math.min(v[a + 1], v[b + 1], v[c + 1]) - epsilon ||
+      y > Math.max(v[a + 1], v[b + 1], v[c + 1]) + epsilon
+    )
+      return null;
     const bx = v[b] - v[a],
       by = v[b + 1] - v[a + 1],
       bz = v[b + 2] - v[a + 2];

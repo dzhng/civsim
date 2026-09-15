@@ -17,7 +17,6 @@ function data(): TerrainTileData {
       triangles: 8,
     },
     domain: { ox: 0, oy: 0, columns: 3, rows: 3, cell: 1, units: "kilometers" },
-    shoreDistance: new Float32Array(9),
   };
 }
 const settle = async () => {
@@ -156,7 +155,7 @@ describe("bounded terrain scheduling", () => {
     tiles.tick();
     await settle();
     const huge = data();
-    huge.shoreDistance = new Float32Array(bytes);
+    huge.mesh.shoreDistance = new Float32Array(bytes);
     replies.get("huge")!.resolve(huge);
     await settle();
     tiles.tick();
@@ -234,7 +233,7 @@ describe("bounded terrain scheduling", () => {
     tile.mesh.vertices = shared.subarray(0, 90);
     tile.mesh.surfaceColor = shared.subarray(0, 36);
     tile.mesh.tint = shared.subarray(0, 9);
-    tile.shoreDistance = shared.subarray(0, 9);
+    tile.mesh.shoreDistance = shared.subarray(0, 9);
     expect(terrainTilePayloadBytes(tile)).toBe(shared.byteLength + tile.mesh.indices.byteLength);
   });
 });

@@ -50,8 +50,15 @@ export function createTerrainGeometry(mesh: LandscapeMesh) {
   // normalWorld by attribute name — absent, the offset is silently zero.
   geo.setAttribute("normal", new THREE.InterleavedBufferAttribute(buffer, 3, 3));
   geo.setAttribute("gWater", new THREE.InterleavedBufferAttribute(buffer, 1, 9));
-  geo.setAttribute("gTint", new THREE.BufferAttribute(mesh.tint, 1));
-  geo.setAttribute("gSurfaceColor", new THREE.BufferAttribute(mesh.surfaceColor, 3));
+  if (mesh.shoreDistance)
+    geo.setAttribute("gShore", new THREE.BufferAttribute(mesh.shoreDistance, 1));
+  if (mesh.tint) geo.setAttribute("gTint", new THREE.BufferAttribute(mesh.tint, 1));
+  geo.setAttribute(
+    "gSurfaceColor",
+    mesh.surfaceColor
+      ? new THREE.BufferAttribute(mesh.surfaceColor, 3)
+      : new THREE.InterleavedBufferAttribute(buffer, 3, 6),
+  );
   geo.setIndex(new THREE.BufferAttribute(frontSideIndexBuffer(mesh.indices), 1));
   return geo;
 }

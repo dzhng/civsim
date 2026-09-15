@@ -69,8 +69,8 @@ export function morphTileSurface(
   );
   if (!nearby.length) return fine.mesh;
   const vertices = fine.mesh.vertices.slice(),
-    surfaceColor = fine.mesh.surfaceColor.slice(),
-    tint = fine.mesh.tint.slice();
+    surfaceColor = fine.mesh.surfaceColor?.slice(),
+    tint = fine.mesh.tint?.slice();
   for (let k = 0; k < vertices.length / 10; k++) {
     const x = vertices[k * 10],
       y = vertices[k * 10 + 1];
@@ -94,19 +94,28 @@ export function morphTileSurface(
         continue;
       if (fine.mesh.waterCoverage && (c === 9 || (c === 2 && fine.mesh.waterCoverage[k]))) continue;
       let target = 0;
-      for (let i = 0; i < 3; i++)
-        target += coarse.mesh.vertices[offsets[i] * 10 + c] * hit.barycentric[i];
+      for (let i = 0; i < 3; i++) {
+        const value =
+          !surfaceColor && c >= 6 && c <= 8
+            ? (coarse.mesh.surfaceColor?.[offsets[i] * 3 + c - 6] ??
+              coarse.mesh.vertices[offsets[i] * 10 + c])
+            : coarse.mesh.vertices[offsets[i] * 10 + c];
+        target += value * hit.barycentric[i];
+      }
       vertices[k * 10 + c] += (target - vertices[k * 10 + c]) * blend;
     }
     // Preserve interpolated normals: normalizing each fine vertex here would
     // change the coarse edge interpolation. The material normalizes per pixel.
     let coarseTint = 0;
-    for (let i = 0; i < 3; i++) coarseTint += coarse.mesh.tint[offsets[i]] * hit.barycentric[i];
-    tint[k] += (coarseTint - tint[k]) * blend;
-    for (let c = 0; c < 3; c++) {
+    for (let i = 0; i < 3; i++)
+      coarseTint += (coarse.mesh.tint?.[offsets[i]] ?? 0) * hit.barycentric[i];
+    if (tint) tint[k] += (coarseTint - tint[k]) * blend;
+    for (let c = 0; surfaceColor && c < 3; c++) {
       let target = 0;
       for (let i = 0; i < 3; i++)
-        target += coarse.mesh.surfaceColor[offsets[i] * 3 + c] * hit.barycentric[i];
+        target +=
+          (coarse.mesh.surfaceColor?.[offsets[i] * 3 + c] ??
+            coarse.mesh.vertices[offsets[i] * 10 + 6 + c]) * hit.barycentric[i];
       surfaceColor[k * 3 + c] += (target - surfaceColor[k * 3 + c]) * blend;
     }
   }

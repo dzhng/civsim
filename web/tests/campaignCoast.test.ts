@@ -19,10 +19,10 @@ it("keeps shore distance, water and beach color fixed when terrain resolution ch
     const q = keyed.get(`${a.vertices[k * 10]},${a.vertices[k * 10 + 1]},${a.waterCoverage![k]}`);
     if (q === undefined) continue;
     compared++;
-    expect(coarse.shoreDistance[k]).toBe(fine.shoreDistance[q]);
+    expect(coarse.surface.mesh.shoreDistance![k]).toBe(fine.surface.mesh.shoreDistance![q]);
     expect(a.vertices[k * 10 + 9]).toBe(b.vertices[q * 10 + 9]);
-    expect(Array.from(a.surfaceColor.subarray(k * 3, k * 3 + 3))).toEqual(
-      Array.from(b.surfaceColor.subarray(q * 3, q * 3 + 3)),
+    expect(Array.from(a.vertices.subarray(k * 10 + 6, k * 10 + 9))).toEqual(
+      Array.from(b.vertices.subarray(q * 10 + 6, q * 10 + 9)),
     );
     expect(Array.from(a.vertices.subarray(k * 10 + 2, k * 10 + 6))).toEqual(
       Array.from(b.vertices.subarray(q * 10 + 2, q * 10 + 6)),

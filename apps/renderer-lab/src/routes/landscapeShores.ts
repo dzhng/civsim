@@ -53,7 +53,6 @@ export async function route(ctx: LabContext) {
     coarse.surface,
     undefined,
     undefined,
-    [coarse.shoreDistance.buffer],
   );
   if (ctx.params.get("detail") === "1") {
     const fine = make(2, [center[0] - radius / 2, center[1] - radius / 2], radius / 2);
@@ -68,7 +67,6 @@ export async function route(ctx: LabContext) {
         },
         domain: fine.surface.domain,
         mesh: fine.surface.mesh,
-        shoreDistance: fine.shoreDistance,
       },
       [],
     );

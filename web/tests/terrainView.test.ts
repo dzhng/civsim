@@ -1,5 +1,8 @@
 import { expect, test } from "vitest";
-import { terrainViewRequests } from "../../packages/photoreal-renderer/src/campaign/terrainView";
+import {
+  terrainViewRequests,
+  TERRAIN_DETAIL_LIMIT,
+} from "../../packages/photoreal-renderer/src/campaign/terrainView";
 const domain = {
   units: "kilometers" as const,
   ox: -2560,
@@ -13,8 +16,8 @@ test("overview keeps coarse coverage and nearby moves retain overlapping detail"
   expect(terrainViewRequests({ ...view, zoom: 0.16 }, domain)).toEqual([]);
   const a = terrainViewRequests(view, domain);
   const b = terrainViewRequests({ ...view, x: view.x + 30 }, domain);
-  expect(a.length).toBeLessThanOrEqual(24);
-  expect(b.filter((r) => a.some((p) => p.key === r.key)).length).toBeGreaterThan(18);
+  expect(a.length).toBeLessThanOrEqual(TERRAIN_DETAIL_LIMIT);
+  expect(b.filter((r) => a.some((p) => p.key === r.key)).length).toBeGreaterThan(a.length * 0.75);
   expect(
     a.some(
       (r) =>

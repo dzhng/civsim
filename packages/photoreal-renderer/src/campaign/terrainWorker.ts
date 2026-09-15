@@ -118,17 +118,16 @@ export function campaignTerrainWorkerHandler(
       const data: TerrainTileData = {
         mesh: result.surface.mesh,
         domain: result.surface.domain,
-        shoreDistance: result.shoreDistance,
         generationBytes: result.generationBytes,
       };
       reply(
         { key: request.key, data },
         buffers(
           data.mesh.vertices,
-          data.mesh.surfaceColor,
-          data.mesh.tint,
+          ...(data.mesh.surfaceColor ? [data.mesh.surfaceColor] : []),
+          ...(data.mesh.tint ? [data.mesh.tint] : []),
           data.mesh.indices,
-          data.shoreDistance,
+          ...(data.mesh.shoreDistance ? [data.mesh.shoreDistance] : []),
           ...(data.mesh.cellTriangles ? [data.mesh.cellTriangles] : []),
           ...(data.mesh.waterCoverage ? [data.mesh.waterCoverage] : []),
         ),

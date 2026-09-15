@@ -81,7 +81,7 @@ it("keeps overlapping relief, shore distances, and normals world-stable", () => 
     expect(Array.from(av.slice(k * 10, k * 10 + 10))).toEqual(
       Array.from(bv.slice(q * 10, q * 10 + 10)),
     );
-    expect(a.shoreDistance[k]).toBe(b.shoreDistance[q]);
+    expect(a.surface.mesh.shoreDistance![k]).toBe(b.surface.mesh.shoreDistance![q]);
   }
   expect(compared).toBeGreaterThan(100);
 });
@@ -95,7 +95,8 @@ it("preserves a narrow river and small island through the production builder", (
   field.renderMask.classes[16 * 32 + 3] = 1;
   for (let y = 4; y < 28; y++) field.renderMask.classes[y * 32 + 19] = 4;
   for (const cell of [8, 2]) {
-    const { surface, shoreDistance } = buildCampaignLandscape(field, [0, 0], 16, cell);
+    const { surface } = buildCampaignLandscape(field, [0, 0], 16, cell);
+    const shoreDistance = surface.mesh.shoreDistance!;
     expect(shoreDistance.length).toBe(surface.mesh.vertices.length / 10);
     for (let y = 0; y < 32; y++)
       for (let x = 0; x < 32; x++) {

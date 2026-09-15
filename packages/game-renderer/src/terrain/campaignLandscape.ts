@@ -25,8 +25,8 @@ export function campaignLandscapeAllocation(radius: number, cell: number, coastC
   const size = Math.ceil((radius * 2) / cell) + 1;
   const halo = Math.ceil(coastRange / cell) + 2;
   const paddedSize = size + halo * 2;
-  // Regular packed vertex (10), color (3), tint (1), plus six indices per cell.
-  const outputBytes = size * size * (10 + 3 + 1) * 4 + (size - 1) ** 2 * 6 * 4;
+  // Regular packed vertex plus six indices per cell.
+  const outputBytes = size * size * 10 * 4 + (size - 1) ** 2 * 6 * 4;
   // Resolution-independent coast land/two-distance grid.
   const coastSize = campaignCoastSize(paddedSize, cell, coastCell);
   const scratchBytes = coastSize * coastSize * 9;
@@ -82,8 +82,6 @@ export function buildCampaignLandscape(
     return color;
   };
   const vertices = new Float32Array(size * size * 10);
-  const surfaceColor = new Float32Array(size * size * 3),
-    tint = new Float32Array(size * size);
   const indices = new Uint32Array((size - 1) ** 2 * 6);
 
   for (let j = 0; j < size; j++)
@@ -97,8 +95,6 @@ export function buildCampaignLandscape(
     }
   const mesh: LandscapeMesh = {
     vertices,
-    surfaceColor,
-    tint,
     indices,
     triangles: indices.length / 3,
   };
@@ -121,15 +117,17 @@ export function buildCampaignLandscape(
     const x = conformed.mesh.vertices[k * 10],
       y = conformed.mesh.vertices[k * 10 + 1];
     const color = colorAt(x, y);
-    conformed.mesh.surfaceColor.set(color, k * 3);
     conformed.mesh.vertices.set(color, k * 10 + 6);
     shoreDistance[k] = conformed.mesh.waterCoverage![k]
       ? -Math.min(coastRange, coast.offshoreAt(x, y))
       : Math.min(coastRange, coast.inlandAt(x, y));
   }
   return {
-    surface: createRenderedSurface(conformed.mesh, surface.domain, surface.revision),
-    shoreDistance,
+    surface: createRenderedSurface(
+      { ...conformed.mesh, shoreDistance },
+      surface.domain,
+      surface.revision,
+    ),
     generationBytes: allocation.typedArrayBytes + conformed.typedBytes + shoreDistance.byteLength,
   };
 }

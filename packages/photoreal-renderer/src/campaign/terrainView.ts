@@ -1,7 +1,18 @@
 import type { SurfaceDomain } from "../../../game-renderer/src/terrain/surface";
 import type { TerrainTileRequest } from "./terrainTiles";
 
-export const TERRAIN_DETAIL_LIMIT = 24;
+export const TERRAIN_DETAIL_LIMIT = 16;
+
+/** The world overview aligns with detail regions and covers the complete source rectangle. */
+export function campaignOverviewRequest(rect: {
+  min: [number, number];
+  max: [number, number];
+}): TerrainTileRequest {
+  const minX = Math.floor(rect.min[0] / 128) * 128;
+  const minY = Math.floor(rect.min[1] / 128) * 128;
+  const size = Math.ceil(Math.max(rect.max[0] - minX, rect.max[1] - minY) / 128) * 128;
+  return { key: "overview", minX, minY, size, cell: 32 };
+}
 
 /** Stable world-grid identities survive camera motion. The bounded nearest
  * visible set refines the focus; every other location retains coarse coverage. */

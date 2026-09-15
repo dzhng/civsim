@@ -1,0 +1,147 @@
+{
+  "p95": 49.99499999999898,
+  "admissionMax": 133.32499999999982,
+  "admissions": 10,
+  "top": [
+    [
+      "(idle) :-1",
+      2551229
+    ],
+    [
+      "hit http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/game-renderer/src/terrain/surface.ts?t=1789441501920:17",
+      691046
+    ],
+    [
+      "(program) :-1",
+      142839
+    ],
+    [
+      "morphTileSurface http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/game-renderer/src/terrain/surfaceTiles.ts?t=1789442036431:74",
+      70322
+    ],
+    [
+      "(garbage collector) :-1",
+      15137
+    ],
+    [
+      "updateIndices http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/campaign/tiledTerrain.ts?t=1789442036431:167",
+      13868
+    ],
+    [
+      "geometryBuffers http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/campaign/tiledTerrain.ts?t=1789442036431:158",
+      8942
+    ],
+    [
+      "addMeshBuffers http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/campaign/tiledTerrain.ts?t=1789442036431:204",
+      8568
+    ],
+    [
+      "resources http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/campaign/tiledTerrain.ts?t=1789442036431:111",
+      7468
+    ],
+    [
+      "writeBuffer :-1",
+      7326
+    ],
+    [
+      "beginRender http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:56910",
+      5098
+    ],
+    [
+      "maskCoarseSurface http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/game-renderer/src/terrain/surfaceTiles.ts?t=1789442036431:42",
+      5062
+    ],
+    [
+      "requestAnimationFrame :-1",
+      3780
+    ],
+    [
+      "_projectObject http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:42927",
+      3775
+    ],
+    [
+      "update http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:37595",
+      3768
+    ],
+    [
+      "_resolveQueries http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:56186",
+      3677
+    ],
+    [
+      "createCommandEncoder :-1",
+      3628
+    ],
+    [
+      "install http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/campaign/tiledTerrain.ts?t=1789442036431:52",
+      2524
+    ],
+    [
+      "beginRenderPass :-1",
+      2524
+    ],
+    [
+      "stats http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/landscape/sceneryLayer.ts?t=1789439325273:141",
+      2521
+    ],
+    [
+      "updateBefore http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:38759",
+      2518
+    ],
+    [
+      "detailBoundary http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/game-renderer/src/terrain/surfaceTiles.ts?t=1789442036431:3",
+      2514
+    ],
+    [
+      "setSize http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:40779",
+      2513
+    ],
+    [
+      "updateMatrixWorld http://localhost:5186/node_modules/.vite/deps/three.core-Dlfi1hcQ.js?v=fba4daec:9910",
+      2512
+    ],
+    [
+      "draw http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/apps/renderer-lab/src/routes/landscapeTraversal.ts?t=1789442036431:85",
+      2505
+    ],
+    [
+      "setDesired http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/campaign/terrainTiles.ts?t=1789441870373:22",
+      2488
+    ],
+    [
+      "terrainViewRequests http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/campaign/terrainView.ts?t=1789441870371:16",
+      1374
+    ],
+    [
+      " :0",
+      1339
+    ],
+    [
+      "get needsGeometryUpdate http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:20557",
+      1290
+    ],
+    [
+      "render http://localhost:5186/@fs/Users/david/dev/game-map-landscape-quality/packages/photoreal-renderer/src/world.ts:100",
+      1288
+    ],
+    [
+      "updateWorldMatrix http://localhost:5186/node_modules/.vite/deps/three.core-Dlfi1hcQ.js?v=fba4daec:32426",
+      1286
+    ],
+    [
+      "get height http://localhost:5186/node_modules/.vite/deps/three.core-Dlfi1hcQ.js?v=fba4daec:6042",
+      1286
+    ],
+    [
+      "configure :-1",
+      1280
+    ],
+    [
+      "delete http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:45968",
+      1272
+    ],
+    [
+      "updateVector2 http://localhost:5186/node_modules/.vite/deps/three_webgpu.js?v=ad82c6f6:43794",
+      1267
+    ]
+  ]
+}

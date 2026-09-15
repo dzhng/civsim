@@ -1,4 +1,9 @@
 // @vitest-environment node
+import {
+  campaignOverviewRequest,
+  terrainViewRequests,
+  TERRAIN_DETAIL_LIMIT,
+} from "../../packages/photoreal-renderer/src/campaign/terrainView";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
 import { PNG } from "pngjs";
@@ -20,7 +25,7 @@ import {
 } from "../../packages/photoreal-renderer/src/campaign/tiledTerrain";
 import { createLandscapeGroundMaterial } from "../../packages/photoreal-renderer/src/landscape/terrainMaterial";
 
-test("unchanged edge uploads still account for the newly retained query revision", () => {
+test("distant admissions reuse the unchanged presented query and its storage", () => {
   const field = coastalRidgeFixture();
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8).surface;
   const scene = new THREE.Scene();
@@ -43,8 +48,7 @@ test("unchanged edge uploads still account for the newly retained query revision
   const oldQuery = terrain.surface.details[0].mesh.vertices;
   install(b, "b");
   const nextQuery = terrain.surface.details[0].mesh.vertices;
-  expect(nextQuery).not.toBe(oldQuery);
-  expect(nextQuery).toEqual(oldQuery);
+  expect(nextQuery).toBe(oldQuery);
   const storage = new Set<ArrayBufferLike>();
   for (const surface of [coarse, a, b, terrain.surface.coarse, ...terrain.surface.details])
     for (const value of Object.values(surface.mesh))
@@ -63,6 +67,43 @@ test("unchanged edge uploads still account for the newly retained query revision
   terrain.dispose();
 });
 
+test("adjacent admission and eviction refresh the affected edge", () => {
+  const field = coastalRidgeFixture();
+  const coarse = buildCampaignLandscape(field, [64, 0], 128, 8).surface;
+  const terrain = new PhotorealTiledTerrain(
+    new THREE.Scene(),
+    createLandscapeGroundMaterial(createLandscapeFrameUniforms()),
+    coarse,
+  );
+  const tile = (x: number, y: number) => {
+    const surface = buildCampaignLandscape(field, [x, y], 32, 2).surface;
+    for (let k = 2; k < surface.mesh.vertices.length; k += 10) surface.mesh.vertices[k] += 8;
+    return surface;
+  };
+  const a = tile(32, -32),
+    b = tile(96, -32),
+    c = tile(160, 96);
+  const install = (surface: typeof a, key: string, evicted: string[] = []) =>
+    terrain.install(
+      {
+        ...surface,
+        request: { key, minX: surface.domain.ox, minY: surface.domain.oy, size: 64, cell: 2 },
+      },
+      evicted,
+    );
+  install(a, "a");
+  const edge = terrain.surface.sampleRendered(64, -32)!.position[2];
+  install(b, "b");
+  expect(terrain.surface.sampleRendered(64, -32)!.position[2]).toBeCloseTo(
+    a.sampleRendered(64, -32)!.position[2],
+    5,
+  );
+  expect(terrain.surface.sampleRendered(64, -32)!.position[2]).toBeGreaterThan(edge + 7);
+  install(c, "c", ["b"]);
+  expect(terrain.surface.sampleRendered(64, -32)!.position[2]).toBeCloseTo(edge, 5);
+  terrain.dispose();
+});
+
 test("admission reservation covers old and new unique storage plus upload staging without cloning coarse vertices", () => {
   const field = coastalRidgeFixture();
   const coarse = buildCampaignLandscape(field, [0, 0], 128, 8).surface;
@@ -77,7 +118,6 @@ test("admission reservation covers old and new unique storage plus upload stagin
         new THREE.BufferAttribute(new Float32Array(surface.mesh.vertices.length / 10), 1),
       ),
     undefined,
-    [],
     Float32Array.BYTES_PER_ELEMENT,
   );
   const initial = terrain.stats();
@@ -85,9 +125,8 @@ test("admission reservation covers old and new unique storage plus upload stagin
     initial.cpuBytes + initial.gpuBytes + initial.geometryBytes,
   );
   const sources = [coarse];
-  const shoreDistances: Float32Array[] = [];
   const buffers = () => {
-    const storage = new Set<ArrayBufferLike>(shoreDistances.map((array) => array.buffer));
+    const storage = new Set<ArrayBufferLike>();
     for (const surface of [...sources, terrain.surface.coarse, ...terrain.surface.details])
       for (const value of Object.values(surface.mesh))
         if (ArrayBuffer.isView(value)) storage.add(value.buffer);
@@ -109,13 +148,10 @@ test("admission reservation covers old and new unique storage plus upload stagin
   ] as const) {
     const fine = buildCampaignLandscape(field, [x, -96], 32, 2).surface;
     sources.push(fine);
-    const shoreDistance = new Float32Array(fine.domain.columns * fine.domain.rows);
-    shoreDistances.push(shoreDistance);
     const before = buffers();
     terrain.install(
       {
         ...fine,
-        shoreDistance,
         request: { key, minX: fine.domain.ox, minY: fine.domain.oy, size: 64, cell: 2 },
       },
       [],
@@ -150,10 +186,16 @@ test("admits coastal detail over the full-source overview within the unchanged a
     biome: new Uint8Array(16).fill(128),
     renderMask: mask,
   });
-  for (const cell of [16, 32]) {
+  const overview = campaignOverviewRequest(rect);
+  for (const cell of [16, overview.cell]) {
     const budget = new TerrainAllocationBudget();
-    budget.reserve(campaignLandscapeAllocation(2560, cell).typedArrayBytes);
-    const built = buildCampaignLandscape(field, [0, 0], 2560, cell);
+    budget.reserve(campaignLandscapeAllocation(overview.size / 2, cell).typedArrayBytes);
+    const built = buildCampaignLandscape(
+      field,
+      [overview.minX + overview.size / 2, overview.minY + overview.size / 2],
+      overview.size / 2,
+      cell,
+    );
     budget.reserve(built.generationBytes);
     const coarse = built.surface;
     const create = () =>
@@ -167,14 +209,14 @@ test("admits coastal detail over the full-source overview within the unchanged a
             new THREE.BufferAttribute(new Float32Array(surface.mesh.vertices.length / 10), 1),
           ),
         budget,
-        [built.shoreDistance.buffer],
         Float32Array.BYTES_PER_ELEMENT,
       );
+    const terrain = create();
     if (cell === 16) {
-      expect(create).toThrow(/128 MiB budget/);
+      expect(terrain.stats().peakAllocationBytes).toBeLessThanOrEqual(128 * 1024 * 1024);
+      terrain.dispose();
       continue;
     }
-    const terrain = create();
     expect(() => budget.reserve(terrain.stats().allocationBytes + 128 * 1024 * 1024)).toThrow(
       /budget/,
     );
@@ -195,7 +237,6 @@ test("admits coastal detail over the full-source overview within the unchanged a
     terrain.install(
       {
         mesh: fine.mesh,
-        shoreDistance: fineBuilt.shoreDistance,
         domain: fineBase.domain,
         request: {
           key: "coast",
@@ -212,6 +253,43 @@ test("admits coastal detail over the full-source overview within the unchanged a
     expect(terrain.surface.coarse.mesh.vertices).toBe(coarse.mesh.vertices);
     expect(terrain.surface.coarse.sampleRendered(-320, 640)).toBeNull();
     expect(terrain.surface.sampleRendered(-320, 640)?.position[2]).toBe(0);
+    const resident = new Set(["coast"]);
+    for (const [x, y] of [
+      [-450, 1080],
+      [-456, 446],
+      [1131, -686],
+      [-450, 1080],
+    ]) {
+      const requests = terrainViewRequests(
+        { x, y, zoom: 1.8, width: 1280, height: 800 },
+        coarse.domain,
+      );
+      const wanted = new Set(requests.map((r) => r.key));
+      for (const request of requests) {
+        if (resident.has(request.key)) continue;
+        const result = buildCampaignLandscape(
+          field,
+          [request.minX + request.size / 2, request.minY + request.size / 2],
+          request.size / 2,
+          request.cell,
+          128 * 1024 * 1024 - terrain.stats().allocationBytes,
+        );
+        budget.reserve(terrain.stats().allocationBytes + result.generationBytes);
+        const evicted =
+          resident.size === TERRAIN_DETAIL_LIMIT
+            ? [[...resident].find((key) => !wanted.has(key))!]
+            : [];
+        terrain.install(
+          { request, mesh: result.surface.mesh, domain: result.surface.domain },
+          evicted,
+        );
+        for (const key of evicted) resident.delete(key);
+        resident.add(request.key);
+      }
+      expect(terrain.stats().residentTiles).toBe(TERRAIN_DETAIL_LIMIT);
+      expect(terrain.surface.ownerAt(x, y).revision).not.toContain("coarse");
+      expect(terrain.stats().peakAllocationBytes).toBeLessThanOrEqual(128 * 1024 * 1024);
+    }
     terrain.dispose();
   }
 }, 60000);

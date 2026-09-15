@@ -179,3 +179,7 @@ and admits a coastal tile within 128 MiB. See [adoption evidence](../assets/slic
 The production application still uses the legacy renderer pending the planned
 cutover. Source-scale shore steps and angular bank faces remain open; functional
 adoption does not close this slice's visual acceptance.
+
+### Integrated bounded residency
+
+The source-conforming builder/worker now drives campaign terrain. Packed color replaces redundant overrides; shore data belongs to the mesh. The16-tile working set and32km overview pass full hardware traversal within128MiB. [Layout and timing evidence](../assets/slice-08/layout/README.md) retains the rejected24-tile workload and dense-query profile. [Fresh visual review](../assets/slice-08/adoption/visual/README.md) confirms continuity but keeps stepped outlines and coarse bank shading open. Do not treat this bounded integration as whole-frame visual acceptance.

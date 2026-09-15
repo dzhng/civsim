@@ -12,10 +12,9 @@ import {
 } from "../../../game-renderer/src/terrain/surfaceTiles";
 import type { TerrainTile } from "./terrainTiles";
 
-export type TerrainTileSurface = Pick<TerrainTile, "request" | "domain" | "mesh"> &
-  Partial<Pick<TerrainTile, "shoreDistance">>;
+export type TerrainTileSurface = Pick<TerrainTile, "request" | "domain" | "mesh">;
 
-type Entry = { source: RenderedSurface; ground: THREE.Mesh; shoreDistance?: Float32Array };
+type Entry = { source: RenderedSurface; presented: RenderedSurface; ground: THREE.Mesh };
 
 /** One ceiling for generation, residency, frame swaps and upload staging. */
 export class TerrainAllocationBudget {
@@ -23,7 +22,7 @@ export class TerrainAllocationBudget {
 
   reserve(bytes: number) {
     if (!Number.isFinite(bytes) || bytes < 0 || bytes > 128 * 1024 * 1024)
-      throw new Error("Terrain allocation exceeds total 128 MiB budget");
+      throw new Error(`Terrain allocation of ${bytes} bytes exceeds total 128 MiB budget`);
     this.peakBytes = Math.max(this.peakBytes, bytes);
   }
 }
@@ -48,15 +47,18 @@ export class PhotorealTiledTerrain {
       surface: RenderedSurface,
     ) => void,
     private readonly budget = new TerrainAllocationBudget(),
-    private readonly sourceBuffers: readonly ArrayBufferLike[] = [],
     private readonly decorationBytesPerVertex = 0,
   ) {
     if (!Number.isFinite(decorationBytesPerVertex) || decorationBytesPerVertex < 0)
       throw new Error("Terrain decoration needs a finite nonnegative vertex stride");
-    const buffers = new Set(sourceBuffers);
+    const buffers = new Set<ArrayBufferLike>();
     addMeshBuffers(buffers, coarse.mesh);
     const decorationBytes = (coarse.mesh.vertices.length / 10) * decorationBytesPerVertex;
-    const geometry = mutableBytes(coarse.mesh) + coarse.mesh.indices.byteLength + decorationBytes;
+    const geometry =
+      mutableBytes(coarse.mesh) +
+      (coarse.mesh.shoreDistance?.byteLength ?? 0) +
+      coarse.mesh.indices.byteLength +
+      decorationBytes;
     // Initial geometry also owns reversed indices, GPU storage and upload staging.
     budget.reserve(
       bufferBytes(buffers) + coarse.mesh.indices.byteLength + decorationBytes + geometry * 2,
@@ -81,19 +83,34 @@ export class PhotorealTiledTerrain {
     const current = this.resources();
     const incoming = new Set(current.cpu);
     addMeshBuffers(incoming, tile.mesh);
-    if (tile.shoreDistance) incoming.add(tile.shoreDistance.buffer);
     const incomingBytes = bufferBytes(incoming) - bufferBytes(current.cpu);
     const remaining = [...this.entries].filter(([key]) => !evictedKeys.includes(key));
-    const morphBytes =
-      mutableBytes(tile.mesh) +
-      remaining.reduce((sum, [, entry]) => sum + mutableBytes(entry.source.mesh), 0);
+    const changedDomains = [
+      tile.domain,
+      ...evictedKeys.map((key) => this.entries.get(key)!.source.domain),
+    ];
+    const affected = new Set(
+      remaining
+        .filter(([, entry]) =>
+          changedDomains.some((domain) =>
+            withinMorphBand(entry.source.domain, domain, this.coarse.domain.cell * 2),
+          ),
+        )
+        .map(([key]) => key),
+    );
+    const updatedBytes = remaining.reduce(
+      (sum, [key, entry]) => sum + (affected.has(key) ? mutableBytes(entry.source.mesh) : 0),
+      0,
+    );
+    const morphBytes = mutableBytes(tile.mesh) + updatedBytes;
     const decorationBytes = (tile.mesh.vertices.length / 10) * this.decorationBytesPerVertex;
-    const addedGpuBytes = mutableBytes(tile.mesh) + tile.mesh.indices.byteLength + decorationBytes;
+    const addedGpuBytes =
+      mutableBytes(tile.mesh) +
+      (tile.mesh.shoreDistance?.byteLength ?? 0) +
+      tile.mesh.indices.byteLength +
+      decorationBytes;
     const coarseIndexBytes = this.coarse.mesh.indices.byteLength;
-    const stagingBytes =
-      coarseIndexBytes +
-      addedGpuBytes +
-      remaining.reduce((sum, [, entry]) => sum + mutableBytes(entry.source.mesh), 0);
+    const stagingBytes = coarseIndexBytes + addedGpuBytes + updatedBytes;
     const admissionBound =
       bufferBytes(current.cpu) +
       current.gpuBytes +
@@ -122,11 +139,13 @@ export class PhotorealTiledTerrain {
     const presented = new Map(
       [...sources].map(([key, source]) => [
         key,
-        createRenderedSurface(
-          morphTileSurface(source, this.coarse, boundary),
-          source.domain,
-          `${key}:${revision}`,
-        ),
+        key !== tile.request.key && !affected.has(key)
+          ? this.entries.get(key)!.presented
+          : createRenderedSurface(
+              morphTileSurface(source, this.coarse, boundary),
+              source.domain,
+              `${key}:${revision}`,
+            ),
       ]),
     );
     // Allocate the new resource before changing any visible geometry. The rest
@@ -143,13 +162,16 @@ export class PhotorealTiledTerrain {
     for (const [key, surface] of presented) {
       const previous = this.entries.get(key);
       if (previous) {
-        this.uploadedBytes += updateGround(previous.ground.geometry, surface);
+        if (surface !== previous.presented) {
+          this.uploadedBytes += updateGround(previous.ground.geometry, surface);
+          previous.presented = surface;
+        }
       } else {
         this.scene.add(added);
         this.entries.set(key, {
           source: sources.get(key)!,
+          presented: surface,
           ground: added,
-          shoreDistance: tile.shoreDistance,
         });
       }
     }
@@ -159,12 +181,11 @@ export class PhotorealTiledTerrain {
   }
 
   private resources() {
-    const cpu = new Set<ArrayBufferLike>(this.sourceBuffers);
+    const cpu = new Set<ArrayBufferLike>();
     const addMesh = (mesh: RenderedSurface["mesh"]) => addMeshBuffers(cpu, mesh);
     addMesh(this.coarse.mesh);
     for (const entry of this.entries.values()) {
       addMesh(entry.source.mesh);
-      if (entry.shoreDistance) cpu.add(entry.shoreDistance.buffer);
     }
     addMesh(this.surface.coarse.mesh);
     for (const surface of this.surface.details) addMesh(surface.mesh);
@@ -235,11 +256,16 @@ function updateIndices(geometry: THREE.BufferGeometry, indices: Uint32Array) {
 function updateGround(geometry: THREE.BufferGeometry, surface: RenderedSurface) {
   const positions = geometry.getAttribute("position") as THREE.InterleavedBufferAttribute;
   let bytes = updateArray(positions.data, surface.mesh.vertices);
-  bytes += updateArray(
-    geometry.getAttribute("gSurfaceColor") as THREE.BufferAttribute,
-    surface.mesh.surfaceColor,
-  );
-  bytes += updateArray(geometry.getAttribute("gTint") as THREE.BufferAttribute, surface.mesh.tint);
+  if (surface.mesh.surfaceColor)
+    bytes += updateArray(
+      geometry.getAttribute("gSurfaceColor") as THREE.BufferAttribute,
+      surface.mesh.surfaceColor,
+    );
+  if (surface.mesh.tint)
+    bytes += updateArray(
+      geometry.getAttribute("gTint") as THREE.BufferAttribute,
+      surface.mesh.tint,
+    );
   return bytes;
 }
 
@@ -266,7 +292,9 @@ function geometryBytes(geometry: THREE.BufferGeometry) {
 }
 /** Arrays copied by morphTileSurface; topology and wet coverage stay shared. */
 function mutableBytes(mesh: RenderedSurface["mesh"]) {
-  return mesh.vertices.byteLength + mesh.surfaceColor.byteLength + mesh.tint.byteLength;
+  return (
+    mesh.vertices.byteLength + (mesh.surfaceColor?.byteLength ?? 0) + (mesh.tint?.byteLength ?? 0)
+  );
 }
 
 function addMeshBuffers(buffers: Set<ArrayBufferLike>, mesh: RenderedSurface["mesh"]) {
@@ -277,10 +305,21 @@ function addMeshBuffers(buffers: Set<ArrayBufferLike>, mesh: RenderedSurface["me
     mesh.indices,
     mesh.cellTriangles,
     mesh.waterCoverage,
+    mesh.shoreDistance,
   ])
     if (array) buffers.add(array.buffer);
 }
 
 function bufferBytes(buffers: Set<ArrayBufferLike>) {
   return [...buffers].reduce((sum, buffer) => sum + buffer.byteLength, 0);
+}
+
+/** Only added/removed tile edges can change the surrounding morph band. */
+function withinMorphBand(a: RenderedSurface["domain"], b: RenderedSurface["domain"], band: number) {
+  return (
+    a.ox <= b.ox + (b.columns - 1) * b.cell + band &&
+    a.oy <= b.oy + (b.rows - 1) * b.cell + band &&
+    a.ox + (a.columns - 1) * a.cell >= b.ox - band &&
+    a.oy + (a.rows - 1) * a.cell >= b.oy - band
+  );
 }

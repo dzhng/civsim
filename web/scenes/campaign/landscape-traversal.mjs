@@ -106,7 +106,10 @@ export async function run(ctx) {
   ctx.check(
     "repeat traversals plateau",
     returns.every(
-      (s) => s.residentTiles === 24 && s.allocationBytes === returns[0].allocationBytes,
+      (s) =>
+        s.residentTiles === returns[0].residentTiles &&
+        s.residentTiles > 0 &&
+        s.allocationBytes === returns[0].allocationBytes,
     ),
     JSON.stringify(returns.map((s) => ({ tiles: s.residentTiles, bytes: s.allocationBytes }))),
   );
@@ -172,7 +175,7 @@ export async function run(ctx) {
   ctx.check(
     "DPR2 retains world requests and bounds",
     dpr2.dpr === 2 &&
-      dpr2.state.residentTiles === 24 &&
+      dpr2.state.residentTiles === returns[0].residentTiles &&
       dpr2.state.peakTotalTerrainBytes <= 128 * 1024 ** 2,
     JSON.stringify({ dpr: dpr2.dpr, canvas: dpr2.canvas, bytes: dpr2.state.peakTotalTerrainBytes }),
   );

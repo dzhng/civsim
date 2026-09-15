@@ -15,6 +15,7 @@ export function conformShoreline(
     throw new Error(`Invalid shoreline geometry budget: ${maxBytes}`);
   if (!Number.isFinite(additionalVertexBytes) || additionalVertexBytes < 0)
     throw new Error("Additional shoreline vertex storage must be finite and nonnegative");
+  const vertexBytes = 41 + (base.mesh.surfaceColor ? 12 : 0) + (base.mesh.tint ? 4 : 0);
   const height = heightAt ?? ((x: number, y: number) => base.sampleRendered(x, y)!.position[2]);
   const d = base.domain;
   const cellCount = (d.columns - 1) * (d.rows - 1);
@@ -194,7 +195,9 @@ export function conformShoreline(
         // Stop the counting pass too: rejected source detail must not grow an
         // unbounded temporary vertex map before the typed-array preflight.
         const bytes =
-          points.size * (57 + additionalVertexBytes) + triangles * 12 + (cellCount + 1) * 4;
+          points.size * (vertexBytes + additionalVertexBytes) +
+          triangles * 12 +
+          (cellCount + 1) * 4;
         if (bytes > maxBytes)
           throw new Error(
             `Shoreline geometry needs at least ${bytes} typed-array bytes; budget is ${maxBytes}`,
@@ -272,7 +275,9 @@ export function conformShoreline(
           triangles += boundary.length;
         } else triangles += polygon.length - 2;
         const bytes =
-          points.size * (57 + additionalVertexBytes) + triangles * 12 + (cellCount + 1) * 4;
+          points.size * (vertexBytes + additionalVertexBytes) +
+          triangles * 12 +
+          (cellCount + 1) * 4;
         if (bytes > maxBytes)
           throw new Error(
             `Shoreline geometry needs at least ${bytes} typed-array bytes; budget is ${maxBytes}`,
@@ -281,11 +286,11 @@ export function conformShoreline(
     },
   );
   const verticesCount = points.size;
-  const typedBytes = verticesCount * 57 + triangles * 12 + (cellCount + 1) * 4;
+  const typedBytes = verticesCount * vertexBytes + triangles * 12 + (cellCount + 1) * 4;
   const mesh: LandscapeMesh = {
     vertices: new Float32Array(verticesCount * 10),
-    surfaceColor: new Float32Array(verticesCount * 3),
-    tint: new Float32Array(verticesCount),
+    surfaceColor: base.mesh.surfaceColor ? new Float32Array(verticesCount * 3) : undefined,
+    tint: base.mesh.tint ? new Float32Array(verticesCount) : undefined,
     indices: new Uint32Array(triangles * 3),
     triangles,
     cellTriangles: new Uint32Array(cellCount + 1),
@@ -296,16 +301,17 @@ export function conformShoreline(
     const k = points.get(key(x, y, water))!;
     const hit = base.sampleRendered(x, y)!;
     for (let c = 6; c < 9; c++) mesh.vertices[k * 10 + c] = 0;
-    mesh.surfaceColor.fill(0, k * 3, k * 3 + 3);
-    mesh.tint[k] = 0;
+    mesh.surfaceColor?.fill(0, k * 3, k * 3 + 3);
+    if (mesh.tint) mesh.tint[k] = 0;
     for (let corner = 0; corner < 3; corner++) {
       const n = base.mesh.indices[hit.triangle * 3 + corner],
         weight = hit.barycentric[corner];
       for (let c = 0; c < 3; c++) {
         mesh.vertices[k * 10 + 6 + c] += base.mesh.vertices[n * 10 + 6 + c] * weight;
-        mesh.surfaceColor[k * 3 + c] += base.mesh.surfaceColor[n * 3 + c] * weight;
+        if (mesh.surfaceColor)
+          mesh.surfaceColor[k * 3 + c] += base.mesh.surfaceColor![n * 3 + c] * weight;
       }
-      mesh.tint[k] += base.mesh.tint[n] * weight;
+      if (mesh.tint) mesh.tint[k] += base.mesh.tint![n] * weight;
     }
     mesh.vertices.set([x, y, z, 0, 0, 0], k * 10);
     mesh.vertices[k * 10 + 9] = water ? 1 : 0;

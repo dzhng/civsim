@@ -1,6 +1,10 @@
 import { PhotorealScenery } from "../landscape/sceneryLayer";
 import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
-import { type TerrainAllocationBudget, PhotorealTiledTerrain, type TerrainTileSurface } from "./tiledTerrain";
+import {
+  type TerrainAllocationBudget,
+  PhotorealTiledTerrain,
+  type TerrainTileSurface,
+} from "./tiledTerrain";
 import { createLandscapeGroundMaterial } from "../landscape/terrainMaterial";
 import * as THREE from "three/webgpu";
 import { attribute, varying, vec3, vec4, mix, uniform, modelNormalMatrix } from "three/tsl";
@@ -41,7 +45,6 @@ export interface CampaignComposition {
   roads: Float32Array;
   terrainAllocation?: {
     budget: TerrainAllocationBudget;
-    sourceBuffers: readonly ArrayBufferLike[];
   };
   territory: readonly [number, number, number];
   /** Canonical campaign visibility: one means hidden. */
@@ -129,7 +132,6 @@ export class PhotorealCampaignWorld {
       composition.surface,
       (geometry, surface) => this.addLandscapeFog(geometry, surface.mesh.vertices),
       composition.terrainAllocation?.budget,
-      composition.terrainAllocation?.sourceBuffers,
       Float32Array.BYTES_PER_ELEMENT,
     );
     this.road = roadMesh(composition.roads);

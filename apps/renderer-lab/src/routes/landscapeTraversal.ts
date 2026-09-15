@@ -3,6 +3,7 @@ import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaig
 import { createTerrainTiles } from "@packages/photoreal-renderer/src/campaign/terrainTiles";
 import {
   terrainViewRequests,
+  campaignOverviewRequest,
   TERRAIN_DETAIL_LIMIT,
 } from "@packages/photoreal-renderer/src/campaign/terrainView";
 import { createCampaignTerrainWorker } from "@packages/photoreal-renderer/src/campaign/terrainWorker";
@@ -21,22 +22,17 @@ export async function route(ctx: LabContext) {
   const source = snapshotCampaignLandscape(field);
   const sourceBytes =
     source.height.byteLength + source.biome.byteLength + source.renderMask.classes.byteLength;
-  const minX = Math.floor(source.renderMask.rect.min[0] / 128) * 128;
-  const minY = Math.floor(source.renderMask.rect.min[1] / 128) * 128;
-  const size =
-    Math.ceil(
-      Math.max(source.renderMask.rect.max[0] - minX, source.renderMask.rect.max[1] - minY) / 128,
-    ) * 128;
-  const bootAllocation = campaignLandscapeAllocation(size / 2, 32);
+  const overview = campaignOverviewRequest(source.renderMask.rect);
+  const bootAllocation = campaignLandscapeAllocation(overview.size / 2, overview.cell);
   const allocation = new TerrainAllocationBudget();
   allocation.reserve(bootAllocation.typedArrayBytes);
   const worker = createCampaignTerrainWorker(source);
-  const coarse = await worker.build({ key: "overview", minX, minY, size, cell: 32 });
+  const coarse = await worker.build(overview);
   allocation.reserve(coarse.generationBytes!);
   const surface = createRenderedSurface(coarse.mesh, coarse.domain, "overview");
   const world = await PhotorealCampaignWorld.create(ctx.canvas, {
     surface,
-    terrainAllocation: { budget: allocation, sourceBuffers: [coarse.shoreDistance.buffer] },
+    terrainAllocation: { budget: allocation },
     objects: [],
     roads: new Float32Array(),
     territory: [0.48, 0.48, 0.35],

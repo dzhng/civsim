@@ -93,21 +93,18 @@ describe("campaign terrain worker transport", () => {
     expect(original.height.byteLength).toBe(64);
     for (let i = 0; i < 2; i++) {
       const result = await worker.build({ ...request, key: String(i) });
-      for (const field of [
-        "vertices",
-        "indices",
-        "tint",
-        "surfaceColor",
-        "cellTriangles",
-        "waterCoverage",
-      ] as const) {
+      for (const field of ["vertices", "indices", "cellTriangles", "waterCoverage"] as const) {
         expect(Array.from(new Uint8Array(result.mesh[field]!.buffer))).toEqual(
           Array.from(new Uint8Array(expected.surface.mesh[field]!.buffer)),
         );
       }
+      expect(result.mesh.tint).toBeUndefined();
+      expect(result.mesh.surfaceColor).toBeUndefined();
       expect(result.mesh.triangles).toBe(expected.surface.mesh.triangles);
       expect(result.domain).toEqual(expected.surface.domain);
-      expect(Array.from(result.shoreDistance)).toEqual(Array.from(expected.shoreDistance));
+      expect(Array.from(result.mesh.shoreDistance!)).toEqual(
+        Array.from(expected.surface.mesh.shoreDistance!),
+      );
     }
     expect(messages).toHaveLength(3);
     expect(messages.slice(1)).toEqual(
@@ -158,7 +155,7 @@ describe("campaign terrain worker transport", () => {
     await expect(worker.build(request, regular + 1)).rejects.toThrow(/Shoreline geometry/);
     const result = await worker.build(request);
     expect(result.generationBytes).toBeGreaterThan(regular);
-    expect(result.shoreDistance.length).toBe(result.mesh.vertices.length / 10);
+    expect(result.mesh.shoreDistance!.length).toBe(result.mesh.vertices.length / 10);
     worker.dispose();
   });
 

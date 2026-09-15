@@ -133,3 +133,11 @@ unavailable. Imported resources, swapchain images, driver overhead and deferred
 reclamation are excluded: these numbers are not physical VRAM. The source battle
 renderer currently exposes Three geometry/texture counts and optional program
 counts only; those counts cannot establish byte parity with native candidates.
+
+GPU timestamp intervals can overlap across passes. The shared
+[range aggregator](../../packages/renderer-core/src/gpuTimestampRanges.ts) reports
+the span from earliest start to latest end and the union of observed intervals.
+The span includes gaps; the union removes overlap but is not physical GPU busy
+time. Overall values come from all recorded ranges, never a sum of stage unions.
+Pass-duration sums remain diagnostic only. Incomplete query coverage withholds
+interval metrics, and raw timestamps remain an opt-in diagnostic payload.

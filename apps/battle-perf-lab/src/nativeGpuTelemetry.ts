@@ -1,3 +1,7 @@
+import {
+  summarizeGpuTimestampRanges,
+  type GpuTimestampRange,
+} from "../../../packages/renderer-core/src/gpuTimestampRanges";
 export type NativeGpuBackend = "raw" | "typegpu" | "vgpu";
 export type NativeGpuSource = "battle-draw" | "render-only";
 export interface NativeSubmissionIdentity {
@@ -11,8 +15,7 @@ interface Pass {
   ended: boolean;
   submitted: boolean;
   ms: number | null;
-  beginNs?: string;
-  endNs?: string;
+  range?: GpuTimestampRange;
 }
 interface Slot {
   query: GPUQuerySet;
@@ -35,7 +38,10 @@ export interface NativeGpuEvent extends NativeSubmissionIdentity {
   missingQueries: number;
   renderMs: number | null;
   computeMs: number | null;
+  /** Diagnostic sum; overlapping pass intervals can double-count elapsed time. */
   measuredPassGpuMs: number | null;
+  observedGpuSpanMs: number | null;
+  observedGpuUnionMs: number | null;
   /** Opt-in diagnostic detail; order is command encoding order. */
   passes?: {
     kind: Pass["kind"];
@@ -47,6 +53,8 @@ export interface NativeGpuEvent extends NativeSubmissionIdentity {
   stages: {
     kind: Pass["kind"];
     label: string;
+    observedGpuSpanMs: number | null;
+    observedGpuUnionMs: number | null;
     queries: number;
     missingQueries: number;
     ms: number | null;
@@ -225,10 +233,7 @@ export class NativeGpuTelemetry {
           slot.readback.unmap();
           if (!(await accepted)) record.reason = "submission-validation-failed";
           for (let i = 0; i < record.passes.length; i++) {
-            if (this.options.passDetails) {
-              record.passes[i].beginNs = values[i * 2].toString();
-              record.passes[i].endNs = values[i * 2 + 1].toString();
-            }
+            record.passes[i].range = { beginNs: values[i * 2], endNs: values[i * 2 + 1] };
             const duration = values[i * 2 + 1] - values[i * 2];
             if (duration < 0n || (values[i * 2] === 0n && values[i * 2 + 1] === 0n))
               record.reason = "invalid-query-result";
@@ -391,12 +396,32 @@ export class NativeGpuTelemetry {
     for (const pass of record.passes) {
       let stage = stages.find((stage) => stage.kind === pass.kind && stage.label === pass.label);
       if (!stage) {
-        stage = { kind: pass.kind, label: pass.label, queries: 0, missingQueries: 0, ms: 0 };
+        stage = {
+          kind: pass.kind,
+          label: pass.label,
+          queries: 0,
+          missingQueries: 0,
+          ms: 0,
+          observedGpuSpanMs: null,
+          observedGpuUnionMs: null,
+        };
         stages.push(stage);
       }
       stage.queries++;
       if (pass.ms === null) stage.missingQueries++;
       stage.ms! += pass.ms ?? 0;
+    }
+    const ranges = (passes: Pass[]) => {
+      if (!complete || passes.some((pass) => !pass.range)) return null;
+      return summarizeGpuTimestampRanges(passes.map((pass) => pass.range!));
+    };
+    const observed = ranges(record.passes);
+    for (const stage of stages) {
+      const metrics = ranges(
+        record.passes.filter((pass) => pass.kind === stage.kind && pass.label === stage.label),
+      );
+      stage.observedGpuSpanMs = metrics?.observedGpuSpanMs ?? null;
+      stage.observedGpuUnionMs = metrics?.observedGpuUnionMs ?? null;
     }
     const sum = (kind: Pass["kind"]) =>
       record.passes.reduce((total, pass) => total + (pass.kind === kind ? (pass.ms ?? 0) : 0), 0);
@@ -413,14 +438,18 @@ export class NativeGpuTelemetry {
       renderMs,
       computeMs,
       measuredPassGpuMs: complete ? renderMs! + computeMs! : null,
+      observedGpuSpanMs: observed?.observedGpuSpanMs ?? null,
+      observedGpuUnionMs: observed?.observedGpuUnionMs ?? null,
       stages,
       ...(this.options.passDetails
         ? {
-            passes: record.passes.map(({ kind, label, ms, beginNs, endNs }) => ({
+            passes: record.passes.map(({ kind, label, ms, range }) => ({
               kind,
               label,
               ms: complete ? ms : null,
-              ...(complete ? { beginNs, endNs } : {}),
+              ...(complete && range
+                ? { beginNs: range.beginNs.toString(), endNs: range.endNs.toString() }
+                : {}),
             })),
           }
         : {}),

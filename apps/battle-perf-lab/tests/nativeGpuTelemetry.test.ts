@@ -1,7 +1,7 @@
 /// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
 import { NativeGpuTelemetry, nativeGpuScope } from "../src/nativeGpuTelemetry";
 
-function deviceFixture(supported = true) {
+function deviceFixture(supported = true, timestampValues?: bigint[]) {
   vi.stubGlobal("GPUBufferUsage", { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 });
   vi.stubGlobal("GPUMapMode", { READ: 1 });
   const mappings: (() => void)[] = [];
@@ -28,6 +28,7 @@ function deviceFixture(supported = true) {
             values[i] = BigInt(i * 1000000);
             values[i + 1] = values[i] + 2000000n;
           }
+          if (timestampValues) values.set(timestampValues);
           return values.buffer;
         }),
       };
@@ -232,7 +233,15 @@ it("publishes ordered diagnostic pass details only when requested, without chang
   await f.drain();
   const event = telemetry.eventsSince(0)!.events[0];
   expect(event.stages).toEqual([
-    { kind: "render", label: "post", queries: 2, missingQueries: 0, ms: 4 },
+    {
+      kind: "render",
+      label: "post",
+      queries: 2,
+      missingQueries: 0,
+      ms: 4,
+      observedGpuSpanMs: 4,
+      observedGpuUnionMs: 4,
+    },
   ]);
   expect(event.passes).toEqual([
     { kind: "render", label: "post", ms: 2, beginNs: "0", endNs: "2000000" },
@@ -248,4 +257,45 @@ it("publishes ordered diagnostic pass details only when requested, without chang
   await f.drain();
   expect(plain.eventsSince(0)!.events[0]).not.toHaveProperty("passes");
   plain.dispose();
+});
+
+it("aggregates overlapping stages from raw ranges without adding stage unions", async () => {
+  const epoch = 2n ** 63n;
+  const f = deviceFixture(true, [epoch, epoch + 4000000n, epoch + 2000000n, epoch + 6000000n]);
+  const telemetry = new NativeGpuTelemetry(f.device, "raw");
+  telemetry.beginSubmission("render-only");
+  nativeGpuScope(f.device, "main", () => f.encode());
+  nativeGpuScope(f.device, "post", () => f.encode());
+  telemetry.endSubmission(Promise.resolve());
+  await f.drain();
+  const event = telemetry.eventsSince(0)!.events[0];
+  expect(event).toMatchObject({
+    measuredPassGpuMs: 8,
+    observedGpuSpanMs: 6,
+    observedGpuUnionMs: 6,
+  });
+  expect(event.stages.map((s) => s.observedGpuUnionMs)).toEqual([4, 4]);
+  expect(event).not.toHaveProperty("passes");
+  telemetry.dispose();
+});
+
+it("withholds all interval aggregates when one query is invalid", async () => {
+  const f = deviceFixture(true, [1n, 100n, 0n, 0n]);
+  const telemetry = new NativeGpuTelemetry(f.device, "raw", { passDetails: true });
+  telemetry.beginSubmission("render-only");
+  f.encode();
+  f.encode();
+  telemetry.endSubmission(Promise.resolve());
+  await f.drain();
+  const event = telemetry.eventsSince(0)!.events[0];
+  expect(event).toMatchObject({
+    status: "incomplete",
+    observedGpuSpanMs: null,
+    observedGpuUnionMs: null,
+  });
+  expect(
+    event.stages.every((s) => s.observedGpuSpanMs === null && s.observedGpuUnionMs === null),
+  ).toBe(true);
+  expect(event.passes!.every((p) => p.ms === null && p.beginNs === undefined)).toBe(true);
+  telemetry.dispose();
 });

@@ -12,6 +12,8 @@ const event = (values: (number | null)[]): NativeGpuEvent => ({
   renderMs: 0,
   computeMs: 0,
   measuredPassGpuMs: 0,
+  observedGpuSpanMs: null,
+  observedGpuUnionMs: null,
   stages: [],
   passes: values.map((ms) => ({ kind: "render", label: "post", ms })),
 });

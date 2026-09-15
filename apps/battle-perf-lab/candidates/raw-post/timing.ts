@@ -88,10 +88,13 @@ try {
       const cursor = telemetry.eventsSince(0)!.nextSequence;
       device.pushErrorScope("validation");
       telemetry.beginSubmission("render-only");
-      await post.render(bloom);
-      const validation = device.popErrorScope().then((error) => {
-        if (error) throw Error(error.message);
-      });
+      const pending = post.render(bloom);
+      const validation = Promise.all([
+        pending,
+        device.popErrorScope().then((error) => {
+          if (error) throw Error(error.message);
+        }),
+      ]);
       const identity = telemetry.endSubmission(validation);
       await validation;
       if (!identity) throw Error("Post did not submit");

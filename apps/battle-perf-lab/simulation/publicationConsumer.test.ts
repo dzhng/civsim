@@ -11,6 +11,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { CAPACITY, createRun, presentationMetadata, snapshot } from "./publication.mjs";
 import { createSnapshotReader, type PublishedSnapshot } from "./snapshotReader.ts";
+import { field, liveProjectiles, publishedProjectiles } from "./publicationRecords.ts";
 import { BattleActionAdapter } from "../../../web/src/battle/battleActionAdapter";
 import { createBattleViews } from "../../../web/src/battle/battleViews";
 import initWasm, { Game } from "../../../web/src/wasm/game_wasm.js";
@@ -42,39 +43,14 @@ function consumer(run: { game: Game; memory: WebAssembly.Memory }) {
   };
 }
 
-function field<T extends Float32Array | Uint8Array | Uint32Array>(
-  published: PublishedSnapshot,
-  name: string,
-  Type: new (buffer: ArrayBuffer, offset: number, length: number) => T,
-): T {
-  const entry = published.layout.find((candidate) => candidate.name === name)!;
-  return new Type(published.buffer, entry.offset, entry.length / Type.prototype.BYTES_PER_ELEMENT);
-}
-
-/** Live projectile records, in the order the snapshot layout publishes them. */
+/** Every published projectile record equals the live one at the same completed tick. */
 function expectProjectileRecords(
   published: PublishedSnapshot,
   run: { game: Game; memory: WebAssembly.Memory },
 ) {
   expect(published.projectiles).toBe(run.game.projectile_count());
-  const pointer = run.game as unknown as Record<string, () => number>;
-  for (const name of [
-    "projectile_x",
-    "projectile_y",
-    "projectile_z",
-    "projectile_vx",
-    "projectile_vy",
-    "projectile_vz",
-  ])
-    expect(Array.from(field(published, name, Float32Array))).toEqual(
-      Array.from(
-        new Float32Array(run.memory.buffer, pointer[`${name}_ptr`](), published.projectiles),
-      ),
-    );
-  expect(Array.from(field(published, "projectile_kind", Uint8Array))).toEqual(
-    Array.from(
-      new Uint8Array(run.memory.buffer, pointer.projectile_kind_ptr(), published.projectiles),
-    ),
+  expect(publishedProjectiles(published).map((record) => Array.from(record))).toEqual(
+    liveProjectiles(run.game, run.memory).map((record) => Array.from(record)),
   );
 }
 

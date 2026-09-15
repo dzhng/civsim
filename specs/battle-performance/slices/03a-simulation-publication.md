@@ -41,6 +41,14 @@ Bounded consumer checks now also run the existing `BattleActionAdapter`, and one
 real `ActionTimeline` transient, over published buffers through a disposable
 lab reader. Observations, facings, unit and projectile records match the live
 `Game` tick for tick; weapon, posture and release transitions decode identically;
-unchanged ticks reuse; and returning the credit leaves no retained view. The
-canonical contact window, the browser consumers and the 30 Hz/60 fps gate stay
-open.
+unchanged ticks reuse; and returning the credit leaves no retained view.
+
+A separate heavy entry, outside the fast lab suite, carries that same adapter
+across the canonical contact window through the actual single-credit worker
+transport, and compares every completed tick against direct execution of the
+same seed, map, initialization, orders and command log: observations, facings,
+raw unit and projectile records, the pinned 9000/9300 hashes, the single
+acknowledgement and the 9308 endstate, alongside machine-readable bounded
+resource and cleanup evidence. It makes no timing claim. The idempotent command,
+the browser consumers, `ActionTimeline` playback over a long window and the
+30 Hz/60 fps gate stay open.

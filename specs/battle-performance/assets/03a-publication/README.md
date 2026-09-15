@@ -80,9 +80,9 @@ invalid-credit failure with zero live Games/retained producer buffers. A short
 nine-snapshot direct/worker smoke replay also agrees byte-for-byte. These are
 new transport tests; no existing test behavior or tolerance changed.
 
-Browser action/HUD/projectile execution, all-tick transient semantics through
-actual action consumers, pan/zoom, hidden-tab restart, browser failure recovery,
-steady throughput and 60 fps remain open. The three known untouched-baseline
+Browser action/HUD/projectile execution, `ActionTimeline` playback across a long
+window, pan/zoom, hidden-tab restart, browser failure recovery, steady throughput
+and 60 fps remain open. The three known untouched-baseline
 reds (frozen pixel identity, impostor tier, screen-to-ground smoke assumption)
 remain separate and unwaived.
 
@@ -98,7 +98,7 @@ lands. The immutable metadata the adapter needs at construction (class specs, lo
 duration) now comes from one owner, `presentationMetadata`, which the direct and worker
 identities already reported.
 
-The canonical run prepares 88 ticks with the unchanged 30-tick calls, then publishes
+The canonical battle prepares 88 ticks with the unchanged 30-tick calls, then publishes
 ticks 88–95 one tick at a time. At every tick the adapter over the published buffer
 returned observations and facings identical to the adapter over the live `Game`, with
 matching tick, state hash, soldier count, `unit_info` and projectile records; real
@@ -124,14 +124,72 @@ web/node_modules/.bin/vitest run --config apps/battle-perf-lab/vitest.config.mts
 The full lab suite is 116 tests in about 1.5 s. (Sparse worktrees need the placeholder
 soldier fixtures and the soldier card manifest checked out; the adapter imports both.)
 
-These are still lab checks of the publication layout. The canonical contact window is
-not exercised through the adapter — that needs the 9000-tick preparation these short
-checks deliberately avoid — so contact-only branches are pinned by fixture battles and
-controlled WASM boundary samples, the idiom the existing adapter tests already use. No
-worker, browser, renderer, HUD widget, camera, timing or throughput claim is made here,
-and `BattleCrowd`, its interpolation endpoints and the HUD bridge remain unverified.
+These are still lab checks of the publication layout. They deliberately avoid the
+9000-tick preparation, so contact-only branches are pinned here by fixture battles and
+controlled WASM boundary samples, the idiom the existing adapter tests already use; the
+canonical window and the real transport belong to the heavy run below. No worker,
+browser, renderer, HUD widget, camera, timing or throughput claim is made here, and
+`BattleCrowd`, its interpolation endpoints and the HUD bridge remain unverified.
 The reader is not the production seam: integration still has to separate raw observation
 reading from WASM pointer ownership inside the adapter itself.
+
+## Canonical window through the worker
+
+`publicationConsumer.canonical.ts` carries that same existing `BattleActionAdapter`
+across the canonical contact window, ticks 9000–9308, through the unchanged
+single-credit worker protocol in `worker.mjs`. Two arms run serially, one authoritative
+`Game` each. The worker arm owns its `Game` in the worker thread; the consumer thread
+owns no `Game` at all and builds its adapter from the worker's own identity metadata,
+reading every completed tick only through the disposable reader. The direct arm then
+owns one `Game` here, replays the same seed, map, initialization, generated orders and
+the same tick-stamped command through the same `CommandGate`, and its adapter reads that
+live `Game` as the oracle.
+
+Each completed tick is compared as one record: state hash, soldier/unit/projectile
+counts, victor, acknowledgement, the raw published bytes, the `unit_info` digest, the
+projectile record digest, and the adapter's own observations and render facings. The
+direct arm digests `unit_info` and the projectile records from the live `Game` rather
+than from its own copy, so equality states something about the publication instead of
+comparing a copy with itself. Every tick also records how many soldiers are alive,
+fighting, guarding, pike-ready, incapacitated, routing, at ease, releasing and moving,
+and the report summarises how often each count moved: parity over a frozen window would
+prove nothing.
+
+The run asserts the pinned hashes at 9000 and 9300, the 9308 endstate hash recorded in
+[the comparison](parity.json), exactly one acknowledgement (seq 1 at tick 9301) in each
+arm, and identical worker/direct identity metadata — wasm digest, generated orders,
+class specs and loosing duration. Resource and cleanup evidence is machine-readable in
+the same report: at most one snapshot outstanding, nothing queued while the consumer
+withholds its credit for 200 ms, the held buffer unchanged during that hold, every
+credit detached on transfer, the reader holding nothing after the final release with the
+adapter then failing explicitly, and the worker reporting zero live Games and zero
+retained buffers before exiting 0.
+
+Run from the repository root with an absolute report path:
+
+```sh
+PUBLICATION_CANONICAL_REPORT=/absolute/scratch/canonical-consumer.json \
+  web/node_modules/.bin/vitest run --config apps/battle-perf-lab/vitest.canonical.config.mts
+```
+
+It prepares 9000 ticks twice and runs for minutes, so it stays out of the fast suite:
+the default lab config includes `simulation/**/*.test.ts` only, and this dedicated entry
+is the only thing that runs `*.canonical.ts`. The report is written even when a check
+fails, with `complete: false` and the first mismatching ticks retained. It carries no
+timing field, and host elapsed time for this run is not performance evidence.
+
+The limitations do not move. The ordered command still repeats unit 0's existing attack
+order, so it stays an idempotent delivery and acknowledgement check rather than a changed
+gameplay outcome. Nothing browser-side is touched: no renderer, HUD widget, camera, input
+path, `BattleCrowd` or interpolation endpoint, and no `ActionTimeline` playback over this
+window — the short checks remain the only timeline evidence. Bounds are on
+application-held buffers and messages, not WASM allocator reservation or process RSS, and
+single-credit backpressure still stops the producer under a slow consumer, so no 30 Hz or
+60 fps conclusion follows.
+
+One full run of this command passed end to end while the entry was being written, but a
+concurrent lab process overwrote its report, so no artifact from it is retained; the
+recorded evidence has to come from a clean rerun.
 
 ## Measured CPU pair
 

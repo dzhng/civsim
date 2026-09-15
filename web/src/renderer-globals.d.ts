@@ -106,7 +106,7 @@ interface GPUCanvasContext {
 
 interface GPUQueue {
   onSubmittedWorkDone(): Promise<void>;
-  submit(commands: unknown[]): void;
+  submit(commands: Iterable<GPUCommandBuffer>): void;
   writeBuffer(buffer: GPUBuffer, bufferOffset: number, data: BufferSource): void;
   writeTexture(destination: unknown, data: BufferSource, dataLayout: unknown, size: unknown): void;
   copyExternalImageToTexture(source: unknown, destination: unknown, copySize: unknown): void;

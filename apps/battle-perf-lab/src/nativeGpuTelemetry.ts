@@ -85,8 +85,8 @@ export class NativeGpuTelemetry {
       const passes: Pass[] = [];
       const render = encoder.beginRenderPass;
       const compute = encoder.beginComputePass;
-      const finish = encoder.finish;
-      encoder.beginRenderPass = function (descriptor) {
+      const finish: (descriptor?: GPUCommandBufferDescriptor) => GPUCommandBuffer = encoder.finish;
+      encoder.beginRenderPass = function (descriptor: GPURenderPassDescriptor) {
         const sample = observer.pass(
           "render",
           descriptor.label,
@@ -99,7 +99,7 @@ export class NativeGpuTelemetry {
         if (sample) observer.watchEnd(pass, sample.pass, passes);
         return pass;
       };
-      encoder.beginComputePass = function (descriptor = {}) {
+      encoder.beginComputePass = function (descriptor: GPUComputePassDescriptor = {}) {
         const sample = observer.pass(
           "compute",
           descriptor.label,
@@ -112,14 +112,14 @@ export class NativeGpuTelemetry {
         if (sample) observer.watchEnd(pass, sample.pass, passes);
         return pass;
       };
-      encoder.finish = function (descriptor) {
+      encoder.finish = function (descriptor?: GPUCommandBufferDescriptor) {
         const buffer = finish.call(this, descriptor);
         observer.buffers.set(buffer, passes);
         return buffer;
       };
       return encoder;
     };
-    device.queue.submit = function (commands) {
+    device.queue.submit = function (commands: Iterable<GPUCommandBuffer>) {
       const submitted = Array.from(commands);
       observer.submitQueue.call(this, submitted);
       observer.count++;

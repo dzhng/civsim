@@ -1,0 +1,70 @@
+{
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "description": ""
+  },
+  "identity": {
+    "submissionId": 2,
+    "backend": "raw",
+    "source": "battle-draw"
+  },
+  "valid": {
+    "submissionId": 2,
+    "backend": "raw",
+    "source": "battle-draw",
+    "sequence": 1,
+    "status": "complete",
+    "reason": null,
+    "missingQueries": 0,
+    "renderMs": 0.01875,
+    "computeMs": 0.007,
+    "measuredPassGpuMs": 0.02575,
+    "stages": [
+      {
+        "kind": "compute",
+        "label": "pose",
+        "queries": 1,
+        "missingQueries": 0,
+        "ms": 0.007
+      },
+      {
+        "kind": "render",
+        "label": "main",
+        "queries": 1,
+        "missingQueries": 0,
+        "ms": 0.01875
+      }
+    ]
+  },
+  "failed": {
+    "submissionId": 4,
+    "backend": "raw",
+    "source": "battle-draw",
+    "sequence": 2,
+    "status": "incomplete",
+    "reason": "submission-validation-failed",
+    "missingQueries": 0,
+    "renderMs": null,
+    "computeMs": null,
+    "measuredPassGpuMs": null,
+    "stages": [
+      {
+        "kind": "compute",
+        "label": "other-compute",
+        "queries": 1,
+        "missingQueries": 0,
+        "ms": null
+      }
+    ]
+  },
+  "stats": {
+    "supported": true,
+    "submissionCount": 5,
+    "outsideSubmissionPasses": 0,
+    "querySlots": 1,
+    "busyQuerySlots": 0
+  },
+  "errors": [],
+  "passed": true
+}

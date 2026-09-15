@@ -106,7 +106,12 @@ export class CommandGate {
       !Number.isInteger(command.target)
     )
       throw new Error("invalid ordered command");
-    this.pending = command;
+    this.pending = {
+      seq: command.seq,
+      tick: command.tick,
+      unit: command.unit,
+      target: command.target,
+    };
     this.next++;
   }
   apply(game, tick) {

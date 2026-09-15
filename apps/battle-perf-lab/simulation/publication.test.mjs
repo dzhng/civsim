@@ -3,13 +3,18 @@ import assert from "node:assert/strict";
 import { Worker } from "node:worker_threads";
 import { once } from "node:events";
 import { resolve } from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { CommandGate, CAPACITY } from "./publication.mjs";
 
 const wasmDirectory = resolve("web/src/wasm");
 test("ordered commands reject overflow, stale ticks and duplicate sequence", () => {
   const gate = new CommandGate();
   assert.throws(() => gate.accept({ seq: 1, tick: 4, unit: 0, target: 1 }, 4));
-  gate.accept({ seq: 1, tick: 5, unit: 0, target: 1 }, 4);
+  const submitted = { seq: 1, tick: 5, unit: 0, target: 1 };
+  gate.accept(submitted, 4);
+  submitted.tick = 100;
+  submitted.target = 0;
   assert.throws(() => gate.accept({ seq: 2, tick: 6, unit: 0, target: 1 }, 4));
   const applied = [];
   const game = {
@@ -88,5 +93,31 @@ test(
     } finally {
       await worker.terminate();
     }
+  },
+);
+
+test(
+  "CLI fails promptly when worker preparation cannot load WASM",
+  { timeout: 10_000 },
+  async () => {
+    await assert.rejects(
+      promisify(execFile)(
+        process.execPath,
+        [
+          "apps/battle-perf-lab/simulation/probe.mjs",
+          "worker",
+          "throwaway/publication/no-such-wasm",
+          "throwaway/publication/should-not-exist.json",
+          "0",
+          "8",
+        ],
+        { timeout: 5000 },
+      ),
+      (error) => {
+        assert.equal(error.killed, false);
+        assert.match(error.stderr, /ENOENT/);
+        return true;
+      },
+    );
   },
 );

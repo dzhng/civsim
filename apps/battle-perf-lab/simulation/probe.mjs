@@ -92,7 +92,13 @@ if (mode === "worker") {
       worker.terminate();
       reject(new Error("probe timeout"));
     }, 20 * 60_000);
-    worker.on("error", reject);
+    async function fail(error) {
+      clearTimeout(watchdog);
+      clearInterval(gapTimer);
+      reject(error);
+      await worker.terminate();
+    }
+    worker.on("error", fail);
     worker.on("message", async (message) => {
       try {
         if (message.type === "identity") {
@@ -137,13 +143,15 @@ if (mode === "worker") {
         lastBuffer = null;
         handling = false;
       } catch (error) {
-        clearTimeout(watchdog);
-        await worker.terminate();
-        reject(error);
+        await fail(error);
       }
     });
     worker.on("exit", (code) => {
-      if (code !== 0) reject(new Error(`worker exit ${code}`));
+      if (code !== 0) {
+        clearTimeout(watchdog);
+        clearInterval(gapTimer);
+        reject(new Error(`worker exit ${code}`));
+      }
     });
   });
 } else {

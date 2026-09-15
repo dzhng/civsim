@@ -19,5 +19,10 @@
   "outputCapBytes": 2097152,
   "snapshotCapacityBytes": 4194304,
   "timingConditions": "Separate explicit root-granted quiet direct/worker contact intervals, no active renderer/browser/build/tests; unmeasured preparation and gate waits excluded. Separate quiet uninstrumented control after worker.",
-  "tests": "node --test apps/battle-perf-lab/simulation/publication.test.mjs:2passed,0failed; includes cancellation before and during preparation."
+  "tests": "node --test apps/battle-perf-lab/simulation/publication.test.mjs:2passed,0failed; includes cancellation before and during preparation.",
+  "measuredRuntimeCommit": "4f134597",
+  "finalRobustnessCheck": {
+    "command": "node --test apps/battle-perf-lab/simulation/publication.test.mjs",
+    "result": "3passed0failed; short9snapshot direct/worker parity also passed. Not new quiet timing evidence."
+  }
 }

@@ -117,3 +117,12 @@ the direct and worker arms, in its own quiet slot. Its slower result means this
 ordered, single-run set cannot isolate publication overhead from runtime/tiering
 or host-state variation. Do not subtract those runs or infer a throughput
 improvement. Sustained and repeated browser acceptance remains unmeasured.
+
+The measured runtime is preserved in commit `4f134597`. A subsequent robustness
+pass copies accepted command fields (so a direct caller cannot mutate its queued
+intent) and clears timers on worker failure while preserving the original error.
+The final tree passes three focused tests and the short direct/worker parity
+replay; the canonical timing pair was not rerun after those changes. The ordering
+test now also verifies caller mutation cannot alter an accepted order; the new
+CLI failure test verifies missing WASM exits promptly with the original cause.
+No existing production test changed behavior or tolerance.

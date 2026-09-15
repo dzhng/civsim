@@ -85,3 +85,8 @@ Retire the stale diagnostic lookup while retaining the presence requirement.
 The unprimed reviewer also flags rectangular political-wash patches and clipped
 label/card fragments near overlays and edges. Their migration provenance remains
 unclassified; they are not recorded as new defects here.
+
+[The atmosphere-only label control](../label-fog-control/README.md) confirms a
+partial outline improvement with exact repeat, while the original brightness
+gate remains red. It also identifies the global WebGPU tone-map boundary for
+the next isolated diagnostic.

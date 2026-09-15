@@ -79,3 +79,12 @@ Pure terrain and water parameters now have backend-independent owners. The compa
 ### vgpu targets have explicit checked disposal
 
 The pinned vgpu runtime exposes target destruction but omits it from its public TypeScript interface. Borrowed-device disposal leaves target attachments alive. One checked helper calls that runtime method and fails clearly if it disappears; candidate controls verify every owned texture is destroyed. This is an experimental API maintenance cost for the backend decision, not a production compatibility layer.
+
+
+### Impostor atlases are authored offline and shared as immutable inputs
+
+The comparison uses one saved property-atlas artifact for Three and all native candidates. Three is allowed in authoring, while the runtime loader has no Three dependency. Input and payload hashes detect stale or damaged assets; a separate fresh-bake check exposes the source's small GPU rounding variation instead of silently changing the comparison input. This adds upfront loading/decompression and avoids runtime atlas baking.
+
+### vgpu pose computation uses its public submission model
+
+The pinned vgpu compute API submits each dispatch itself. Its candidate therefore submits one active-rig compute pass before frame drawing, preserving queue order and reporting the extra submissions as a backend cost. It does not reach into private pipelines to mimic TypeGPU's shared-encoder path.

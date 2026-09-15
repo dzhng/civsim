@@ -39,3 +39,7 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 ## Shared owner checkpoint
 
 The existing response now lives in `landscape/waterMaterial.ts`; terrain, ocean and lake consumers import it directly. Geometry and displacement remain mode-specific. The [extraction control](../assets/slice-09/owner/README.md) preserves the prior water output. Next add separate campaign coverage/shore/depth inputs and review the composed water; this extraction alone does not complete09.
+
+## Source-distance response checkpoint
+
+The [response evidence](../assets/slice-09/response/README.md) now covers explicit source-shore capability, bounded campaign depth proxy, weak clock-driven normal detail, broken shore lace and fixed-source dry-pixel controls. CampaignWorld and the regional route consume it; battle and synthetic field fixtures retain the existing response. Seven exact repeat frames and all CPU tests pass. Regular wave bands were rejected. Independent fresh visual critique remains pending after the agent thread limit rejected both spawn attempts, so this checkpoint does not close09 or claim reference-quality acceptance.

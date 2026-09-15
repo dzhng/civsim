@@ -1,0 +1,137 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T03:44:28.509Z",
+  "target": "http://localhost:5187",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "photoreal-sea",
+      "file": "battle/photoreal-sea.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "water-sea",
+      "file": "campaign/water-sea.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "photoreal-sea",
+      "name": "sea: Gerstner TSL is the only active displacement tier",
+      "ok": true,
+      "detail": "{\"source\":\"gerstner-tsl\",\"tier\":\"gerstner-tsl\",\"resolution\":1,\"cascades\":1,\"storageBytes\":0,\"surface\":{\"owner\":\"skyModel-ibl-standard-pbr\",\"skyReflection\":\"scene.environment:skyModel-lut\",\"sunGlint\":\"mesh-standard-ggx\",\"shallowAlbedo\":[0.22,0.58,0.6],\"deepAlbedo\":[0.025,0.095,0.22],\"foamAlbedo\":[0.92,0.93,0.94],\"sandTurbidityAlbedo\":[0.66,0.58,0.4],\"roughness\":0.105,\"foamRoughness\":0.78,\"normalDetail\":{\"near\":0.84,\"far\":0.18,\"fadeStart\":720,\"fadeEnd\":2300},\"foam\":{\"heightStart\":0.28600000000000003,\"heightEnd\":0.8525000000000001,\"slopeStart\":0.12,\"slopeEnd\":0.58,\"speckleStart\":0.56,\"speckleEnd\":0.78,\"scale\":0.74},\"shore\":{\"ramp\":{\"depthNear\":12,\"depthFar\":300,\"hazeNear\":520,\"hazeFar\":1900},\"sandTurbidityDepthStart\":0.04,\"sandTurbidityDepthEnd\":0.26,\"heightfieldDatum\":true,\"farExtent\":7200},\"glint\":{\"roughnessFloor\":0.105,\"normalDetailCeiling\":0.84,\"hotLumaThreshold\":246,\"hotFractionMax\":0.07,\"centerShareMin\":0.6}}}"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "sea: PBR surface reflects the SkyModel LUT and uses distance-faded normal detail",
+      "ok": true,
+      "detail": "{\"owner\":\"skyModel-ibl-standard-pbr\",\"skyReflection\":\"scene.environment:skyModel-lut\",\"sunGlint\":\"mesh-standard-ggx\",\"shallowAlbedo\":[0.22,0.58,0.6],\"deepAlbedo\":[0.025,0.095,0.22],\"foamAlbedo\":[0.92,0.93,0.94],\"sandTurbidityAlbedo\":[0.66,0.58,0.4],\"roughness\":0.105,\"foamRoughness\":0.78,\"normalDetail\":{\"near\":0.84,\"far\":0.18,\"fadeStart\":720,\"fadeEnd\":2300},\"foam\":{\"heightStart\":0.28600000000000003,\"heightEnd\":0.8525000000000001,\"slopeStart\":0.12,\"slopeEnd\":0.58,\"speckleStart\":0.56,\"speckleEnd\":0.78,\"scale\":0.74},\"shore\":{\"ramp\":{\"depthNear\":12,\"depthFar\":300,\"hazeNear\":520,\"hazeFar\":1900},\"sandTurbidityDepthStart\":0.04,\"sandTurbidityDepthEnd\":0.26,\"heightfieldDatum\":true,\"farExtent\":7200},\"glint\":{\"roughnessFloor\":0.105,\"normalDetailCeiling\":0.84,\"hotLumaThreshold\":246,\"hotFractionMax\":0.07,\"centerShareMin\":0.6}}"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "sea: atmosphere owner still provides horizon haze",
+      "ok": true,
+      "detail": "{\"sky\":{\"owner\":\"skyModel\",\"tier\":\"skyview-fragment-lut\",\"lut\":\"384x192\",\"turbidity\":2,\"overcast\":0},\"aerial\":{\"owner\":\"aerialPerspective\",\"extinctionKm\":[0.0461,0.081,0.1689],\"visibilityKm\":39.65,\"distanceScale\":4.5,\"clearRadiusM\":140,\"rangeFog\":{\"nearM\":140,\"farM\":1700,\"power\":1.28,\"strength\":0},\"sunMie\":{\"tint\":[1,0.86,0.62],\"strength\":0,\"power\":3.4},\"valleyMist\":{\"color\":[0.84,0.82,0.72],\"heightBottomM\":8,\"heightTopM\":46,\"distanceStartM\":520,\"distanceFullM\":1600,\"colorStrength\":0,\"opacityBoost\":0}}}"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "sea-horizon: near sea below the haze band remains blue and readable",
+      "ok": true,
+      "detail": "{\"blueFraction\":1,\"lumaSpread\":24.4}"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "snapshot photoreal-sea/sea-horizon",
+      "ok": false,
+      "detail": "263670 px differ (79.2278%) — see shots/diff/photoreal-sea/sea-horizon.png"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "sea-mid: open water reads deep blue with no blanket foam",
+      "ok": true,
+      "detail": "{\"blueFraction\":1,\"foamFraction\":0}"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "snapshot photoreal-sea/sea-mid",
+      "ok": false,
+      "detail": "121126 px differ (92.0410%) — see shots/diff/photoreal-sea/sea-mid.png"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "sea-foreground: the near water is dominant deep blue",
+      "ok": true,
+      "detail": "{\"sandFraction\":0,\"turquoiseFraction\":1,\"deepBlueFraction\":1,\"blueFraction\":1}"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "snapshot photoreal-sea/shore-line",
+      "ok": false,
+      "detail": "148914 px differ (64.6328%) — see shots/diff/photoreal-sea/shore-line.png"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "sea centre stays below the bloom tripwire (no blown highlight)",
+      "ok": true,
+      "detail": "{\"hotFraction\":0,\"centerShare\":0,\"maxLuma\":139.76}"
+    },
+    {
+      "scenario": "photoreal-sea",
+      "name": "snapshot photoreal-sea/sun-glint",
+      "ok": false,
+      "detail": "91175 px differ (80.4012%) — see shots/diff/photoreal-sea/sun-glint.png"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "campaign-sea: the sea comes alive close in (a real band of it shimmers)",
+      "ok": true,
+      "detail": "{\"moved\":43017,\"seaMoved\":43017}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "campaign-sea: from altitude the chart is still (the gate is closed)",
+      "ok": true,
+      "detail": "{\"moved\":0,\"seaMoved\":0}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "campaign-sea: the sea is a muted chart blue, not a bright battle ocean",
+      "ok": true,
+      "detail": "{\"seaFrac\":0.4945556673829666,\"seaMeanB\":136.99762943895806}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "snapshot water/campaign-sea-near",
+      "ok": true,
+      "detail": "57 px differ (0.0078%)"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "snapshot water/campaign-sea-far",
+      "ok": false,
+      "detail": "35024 px differ (4.7635%) — see shots/diff/water/campaign-sea-far.png"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "photoreal-sea: snapshot photoreal-sea/sea-horizon",
+    "photoreal-sea: snapshot photoreal-sea/sea-mid",
+    "photoreal-sea: snapshot photoreal-sea/shore-line",
+    "photoreal-sea: snapshot photoreal-sea/sun-glint",
+    "water-sea: snapshot water/campaign-sea-far"
+  ],
+  "pageErrors": []
+}

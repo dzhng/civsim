@@ -1,4 +1,15 @@
-import { float, length, mix, vec2 } from "three/tsl";
+import {
+  cos,
+  float,
+  length,
+  max,
+  mix,
+  normalize,
+  sin,
+  transformNormalToView,
+  vec2,
+  vec3,
+} from "three/tsl";
 import {
   FIELD_WATER_RAMP,
   type WaterShoreRamp,
@@ -41,6 +52,7 @@ interface WaterSurfaceNodes {
   albedo: Vec3Node;
   foam: FloatNode;
   roughness: FloatNode;
+  normal?: Vec3Node;
 }
 
 /** Linear water albedo and roughness shared by terrain, ocean and lakes.
@@ -85,4 +97,40 @@ export function fieldWaterSurfaceNodes(
     shoreDepthNode(FIELD_WATER_RAMP, shoreDist),
     swash.mul(lace).mul(0.7).mul(detail),
   );
+}
+
+/** Campaign distance is signed kilometres (negative wet). Depth is a bounded
+ * visual proxy, not bathymetry: narrow rivers remain shallow and calm. Coverage
+ * belongs to the source-conforming mesh and is applied by the ground material. */
+export function campaignWaterSurfaceNodes(
+  frame: LandscapeFrameUniforms,
+  p: Vec2Node,
+  signedShore: FloatNode,
+) {
+  const offshore = max(signedShore.negate(), 0).toVar();
+  const depthProxy = smoothstepN(0.25, 12, offshore).mul(0.82).toVar();
+  const phase = frame.time.mod(8).mul(Math.PI / 4);
+  const lace = smoothstepN(0.36, 0.72, fnoiseN(p.mul(1.7))).toVar();
+  const pulse = sin(offshore.mul(5).sub(phase)).mul(0.12).add(0.88);
+  const surf = float(1)
+    .sub(smoothstepN(0.05, 0.85, offshore))
+    .mul(lace)
+    .mul(pulse)
+    .mul(0.35);
+  const water = waterSurfaceNodes(depthProxy, surf);
+  const detail = smoothstepN(0.4, 4, offshore).mul(0.008);
+  const drift = vec2(sin(phase), cos(phase)).mul(0.35);
+  const ripples = p.mul(0.75).add(drift);
+  const normal = transformNormalToView(
+    normalize(
+      vec3(
+        fnoiseN(ripples).sub(0.5).mul(detail),
+        fnoiseN(ripples.add(vec2(17, 9)))
+          .sub(0.5)
+          .mul(detail),
+        1,
+      ),
+    ),
+  );
+  return { ...water, roughness: max(water.roughness, 0.24), normal };
 }

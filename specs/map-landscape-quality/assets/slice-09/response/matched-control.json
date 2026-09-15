@@ -1,0 +1,68 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T03:41:11.854Z",
+  "target": "http://localhost:5187",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "campaign-landscape",
+      "file": "campaign/campaign-landscape.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-landscape",
+      "name": "alps: continuous terrain and trees render",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-810,\"oy\":630,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-450,990.023281698255,43.54799751617458],\"normal\":[0.5201136418368212,0.6174448694127381,0.5901217101675936],\"revision\":\"campaign:0\",\"triangle\":162754,\"barycentric\":[0.9883591508724976,0.011640849127502406,0]}},\"drawCalls\":16,\"triangles\":3083107,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":321448,\"trees\":2206,\"mountainProps\":0,\"center\":[-450,990],\"material\":\"shared-landscape-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "alps: GPU validation is clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "snapshot landscape-alps",
+      "ok": false,
+      "detail": "23750 px differ (2.3193%) — see shots/diff/landscape-alps.png"
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "italy: continuous terrain and trees render",
+      "ok": true,
+      "detail": "{\"ok\":true,\"route\":\"campaign-landscape\",\"projection\":\"camera3d-viewProj-reverse-z\",\"stats\":{\"surface\":{\"domains\":[{\"ox\":-686,\"oy\":280,\"columns\":361,\"rows\":361,\"cell\":2,\"units\":\"kilometers\"}],\"revision\":\"campaign:0\",\"centerRay\":{\"position\":[-325,639.9977355931635,0],\"normal\":[0,0,1],\"revision\":\"campaign:0\",\"triangle\":155710,\"barycentric\":[0.0011322034182512652,0.49886779658174873,0.5]}},\"drawCalls\":16,\"triangles\":1858787,\"gpuTimeMs\":null,\"timeSeconds\":0,\"device\":\"google / swiftshader\",\"terrainTriangles\":316825,\"trees\":1125,\"mountainProps\":0,\"center\":[-325,640],\"material\":\"shared-landscape-ground\",\"environment\":\"golden\"}}"
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "italy: GPU validation is clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "snapshot landscape-italy",
+      "ok": false,
+      "detail": "405356 px differ (39.5855%) — see shots/diff/landscape-italy.png"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "campaign-landscape: snapshot landscape-alps",
+    "campaign-landscape: snapshot landscape-italy"
+  ],
+  "pageErrors": []
+}

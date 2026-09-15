@@ -62,7 +62,9 @@ export async function route(ctx: LabContext) {
   });
   const terrainMaterial = clay
     ? new THREE.MeshStandardNodeMaterial({ color: 0x9c967f, roughness: 0.95 })
-    : createLandscapeGroundMaterial(frame);
+    : createLandscapeGroundMaterial(frame, undefined, {
+        sourceShore: !!landscapes[0].surface.mesh.shoreDistance,
+      });
   const grounds = landscapes.map((landscape) => {
     const ground = createLandscapeGroundMesh(landscape.surface.mesh, terrainMaterial);
     ground.name = "campaign-continuous-landscape";

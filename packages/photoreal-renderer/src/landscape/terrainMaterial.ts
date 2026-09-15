@@ -28,7 +28,7 @@ import {
   TERRAIN_MATERIAL,
   type TerrainProfile,
 } from "../../../game-renderer/src/terrain/materialProfile";
-import { fieldWaterSurfaceNodes } from "./waterMaterial";
+import { campaignWaterSurfaceNodes, fieldWaterSurfaceNodes } from "./waterMaterial";
 import {
   fbmN,
   linearAlbedo,
@@ -196,20 +196,24 @@ export function applyTerrainSurface(
   dryRoughness: FloatNode,
   dryRoughnessFloor: FloatNode = float(0),
   normal?: Vec3Node,
+  campaignShore?: FloatNode,
 ) {
   const { surfaceWorld, rawWaterBlend, waterBlend, worldNormal } = surface;
-  material.normalNode = normal ?? transformNormalToView(worldNormal);
-  // Field water: the shared water surface blended by the box-filtered weight
-  // (albedo + roughness — wet ground gets a real sun sheen).
-  const fieldWater = fieldWaterSurfaceNodes(frame, surfaceWorld, rawWaterBlend);
+  const dryNormal = normal ?? transformNormalToView(worldNormal);
+  material.normalNode = dryNormal;
+  // Campaign shore data and battle filtered water weights are distinct inputs.
+  const waterSurface = campaignShore
+    ? campaignWaterSurfaceNodes(frame, surfaceWorld, campaignShore)
+    : fieldWaterSurfaceNodes(frame, surfaceWorld, rawWaterBlend);
+  if (waterSurface.normal) material.normalNode = mix(dryNormal, waterSurface.normal, waterBlend);
   // Water is already linear; convert only the display-authored dry surface.
   material.colorNode = vec4(
-    mix(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), fieldWater.albedo, waterBlend),
+    mix(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), waterSurface.albedo, waterBlend),
     1.0,
   );
   material.roughnessNode = mix(
     max(dryRoughness, dryRoughnessFloor),
-    fieldWater.roughness,
+    waterSurface.roughness,
     waterBlend,
   );
 }
@@ -218,6 +222,7 @@ export function applyTerrainSurface(
 export function createLandscapeGroundMaterial(
   frame: LandscapeFrameUniforms,
   profile: TerrainProfile = CAMPAIGN_TERRAIN_PROFILE,
+  options: { sourceShore?: boolean } = {},
 ) {
   const surface = terrainSignals(profile.detailScale);
   const masks = terrainSlopeMasks(
@@ -240,6 +245,7 @@ export function createLandscapeGroundMaterial(
     response.dryRoughness,
     float(0),
     response.normal,
+    options.sourceShore ? varying(attribute<"float">("gShore", "float")) : undefined,
   );
   return material;
 }

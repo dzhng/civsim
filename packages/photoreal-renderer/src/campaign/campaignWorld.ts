@@ -156,7 +156,9 @@ export class PhotorealCampaignWorld {
     }
     this.standards = new PhotorealStandardLayer(world.scene, world.uTime);
     // Tiles share one graph: Three's node-builder cache keys include node identity.
-    const terrainMaterial = createLandscapeGroundMaterial(this.frame);
+    const terrainMaterial = createLandscapeGroundMaterial(this.frame, undefined, {
+      sourceShore: !!composition.surface.mesh.shoreDistance,
+    });
     this.colorLandscapeMaterial(terrainMaterial, true);
     this.terrain = new PhotorealTiledTerrain(
       world.scene,
@@ -358,7 +360,7 @@ export class PhotorealCampaignWorld {
     this.selection.geometry.dispose();
     this.selection.geometry = colorGeometry(Float32Array.from(vertices), 7, 3);
   }
-  render(pose: Camera3DParams, width: number, height: number, dpr = 1) {
+  render(pose: Camera3DParams, width: number, height: number, dpr = 1, time = 0) {
     this.pose = pose;
     this.width = width;
     this.height = height;
@@ -381,7 +383,8 @@ export class PhotorealCampaignWorld {
         })),
     );
     this.scenery.prepareRender(this.camera, height);
-    this.world.setTime(0);
+    this.frame.time.value = time;
+    this.world.setTime(time);
     this.world.render(this.camera);
   }
   project(x: number, y: number, z: number) {

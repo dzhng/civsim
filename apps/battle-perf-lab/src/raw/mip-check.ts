@@ -38,6 +38,7 @@ async function run() {
   };
   const results = [];
   try {
+    const packed = new URLSearchParams(location.search).has("packed");
     for (const colorSpace of ["srgb", "linear"] as const)
       for (const [width, height] of [
         [32, 16],
@@ -49,13 +50,18 @@ async function run() {
         for (let i = 0; i < data.length; i++) data[i] = (i * 37 + (i % 7) * 59) % 256;
         const bitmap = await createImageBitmap(new ImageData(data, width, height)),
           options = { colorSpace, generateMipmaps: true };
-        const reference = await uploadImageTexture(device, bitmap, options);
+        const storage = new Uint8Array(data.length + 11);
+        storage.set(data, 7);
+        const input = packed
+          ? { width, height, data: storage.subarray(7, 7 + data.length) }
+          : bitmap;
+        const reference = await uploadImageTexture(device, input, options);
         try {
           for (const backend of ["typegpu", "vgpu"] as const) {
             const candidate =
               backend === "typegpu"
-                ? await createTypegpuImageTexture(device, bitmap, options)
-                : await createVgpuImageTexture(device, bitmap, options);
+                ? await createTypegpuImageTexture(device, input, options)
+                : await createVgpuImageTexture(device, input, options);
             try {
               const output =
                 "gpu" in candidate.texture
@@ -72,6 +78,7 @@ async function run() {
                 mips.push({ mip, maxDifference: max });
               }
               results.push({
+                packed,
                 backend,
                 colorSpace,
                 width,

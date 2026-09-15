@@ -86,8 +86,6 @@ async function run() {
     });
     const shadows = new URL(location.href).searchParams.has("shadows");
     const scenery = new URL(location.href).searchParams.has("scenery");
-    if (scenery && backend !== "raw")
-      throw Error("Scenery control not implemented for this backend yet");
     const env = CIVSIM_ENVIRONMENTS.golden;
     const world = own(
       await PhotorealWorld.create(document.createElement("canvas"), { antialias: samples === 4 }),
@@ -140,23 +138,24 @@ async function run() {
           )
         : undefined;
     const sourceScenery = scenery ? own(new PhotorealScenery(world.scene)) : undefined;
-    const nativeScenery = scenery
-      ? own(await createRawScenery(device, nativeFrame!.cameraLayout, nativeEnv!, samples))
-      : undefined;
-    if (scenery) {
-      const props = BATTLE_SCENERY_KINDS.map((kind, i) => ({
-        kind,
-        x: ((i % 3) - 1) * 9,
-        y: i < 3 ? 7 : -7,
-        z: 0,
-        size: kind === "rock" ? 3 : 4.5,
-        height: kind === "bush" ? 3 : 4.5,
-        shade: 0.5 + i * 0.07,
-        yaw: i * 0.7,
-      }));
-      sourceScenery!.upload(props);
-      nativeScenery!.upload(props);
-    }
+    const nativeScenery =
+      scenery && backend === "raw"
+        ? own(await createRawScenery(device, nativeFrame!.cameraLayout, nativeEnv!, samples))
+        : undefined;
+    const props = scenery
+      ? BATTLE_SCENERY_KINDS.map((kind, i) => ({
+          kind,
+          x: ((i % 3) - 1) * 9,
+          y: i < 3 ? 7 : -7,
+          z: 0,
+          size: kind === "rock" ? 3 : 4.5,
+          height: kind === "bush" ? 3 : 4.5,
+          shade: 0.5 + i * 0.07,
+          yaw: i * 0.7,
+        }))
+      : [];
+    sourceScenery?.upload(props);
+    nativeScenery?.upload(props);
     const grid = {
       w: 20,
       h: 20,
@@ -194,6 +193,8 @@ async function run() {
               height,
               samples,
               shadows ? data.rect : undefined,
+              scenery ? props : undefined,
+              new URLSearchParams(location.search).has("scenery-growth"),
             ),
           );
     const nativeGround =
@@ -370,6 +371,7 @@ async function run() {
       samples,
       shadows,
       scenery,
+      sceneryLifecycle: driver?.sceneryLifecycle,
       nativeDiagnostic,
       results,
       errors,

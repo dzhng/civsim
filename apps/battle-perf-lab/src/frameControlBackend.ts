@@ -1,3 +1,7 @@
+import { checkSceneryGrowthLifetime } from "./sceneryLifetimeCheck";
+import { createTypegpuScenery } from "../candidates/typegpu/scenery";
+import { createVgpuScenery } from "./vgpu/scenery";
+import type { CampaignSceneryInstance } from "../../../packages/game-renderer/src/campaign/sceneryPass";
 import { createTypegpuSunShadow } from "../candidates/typegpu/shadow";
 import { createVgpuSunShadow } from "./vgpu/shadow";
 import { tgpu } from "typegpu";
@@ -29,6 +33,8 @@ export async function createFrameControlBackend(
   height: number,
   samples: 1 | 4,
   shadowRect?: readonly [number, number, number, number],
+  sceneryInstances?: readonly CampaignSceneryInstance[],
+  checkSceneryLifecycle = false,
 ) {
   const release: (() => void)[] = [];
   let disposed = false;
@@ -65,6 +71,25 @@ export async function createFrameControlBackend(
         samples,
       );
       release.push(crowd.dispose);
+      const sceneryLifecycle =
+        checkSceneryLifecycle && sceneryInstances?.length
+          ? await checkSceneryGrowthLifetime(
+              device,
+              () => createTypegpuScenery(device, frame.cameraGroup, environment, samples),
+              sceneryInstances,
+            )
+          : undefined;
+      const scenery = sceneryInstances
+        ? await createTypegpuScenery(device, frame.cameraGroup, environment, samples)
+        : undefined;
+      if (scenery) {
+        release.push(scenery.dispose);
+        if (checkSceneryLifecycle) {
+          await scenery.upload(Array.from({ length: 65 }, () => sceneryInstances![0]));
+          await scenery.upload([]);
+        }
+        await scenery.upload(sceneryInstances!);
+      }
       const terrain = await createTypegpuTerrain(
         device,
         frame.cameraBuffer,
@@ -81,6 +106,7 @@ export async function createFrameControlBackend(
         .$usage("render");
       release.push(() => output.destroy());
       return {
+        sceneryLifecycle,
         hdr: frame.hdr,
         output: root.unwrap(output),
         upload: (instances: readonly CrowdInstance[], plan: CrowdAudiencePlan) =>
@@ -95,11 +121,15 @@ export async function createFrameControlBackend(
             root.unwrap(output).createView(),
             (encoder) => {
               crowd.precompute(root.unwrap(encoder));
-              shadow?.encode(encoder, (pass) => crowd.draw(pass, "shadow", shadow.cameraGroup));
+              shadow?.encode(encoder, (pass) => {
+                crowd.draw(pass, "shadow", shadow.cameraGroup);
+                scenery?.draw(pass, shadow.cameraGroup, "shadow");
+              });
             },
             (pass) => {
               terrain.draw(pass);
               crowd.draw(pass);
+              scenery?.draw(pass);
             },
             bloom,
           );
@@ -127,6 +157,25 @@ export async function createFrameControlBackend(
     release.push(() => frame.dispose());
     const crowd = await createVgpuCrowd(gpu, assets, frame.camera, environment, samples);
     release.push(crowd.dispose);
+    const sceneryLifecycle =
+      checkSceneryLifecycle && sceneryInstances?.length
+        ? await checkSceneryGrowthLifetime(
+            device,
+            () => createVgpuScenery(gpu, frame.camera, environment, samples),
+            sceneryInstances,
+          )
+        : undefined;
+    const scenery = sceneryInstances
+      ? await createVgpuScenery(gpu, frame.camera, environment, samples)
+      : undefined;
+    if (scenery) {
+      release.push(scenery.dispose);
+      if (checkSceneryLifecycle) {
+        await scenery.upload(Array.from({ length: 65 }, () => sceneryInstances![0]));
+        await scenery.upload([]);
+      }
+      await scenery.upload(sceneryInstances!);
+    }
     const terrain = await createVgpuTerrain(
       gpu,
       frame.camera,
@@ -141,6 +190,7 @@ export async function createFrameControlBackend(
     const output = target(gpu, { size: [width, height], format: "rgba16float" });
     release.push(() => destroyVgpuTarget(output));
     return {
+      sceneryLifecycle,
       hdr: frame.hdr,
       output: output.color.gpu,
       upload: (instances: readonly CrowdInstance[], plan: CrowdAudiencePlan) =>
@@ -157,9 +207,14 @@ export async function createFrameControlBackend(
           (pass) => {
             terrain.draw(pass);
             crowd.draw(pass);
+            scenery?.draw(pass);
           },
           bloom,
-          (current) => shadow?.encode(current, (pass) => crowd.draw(pass, "shadow", shadow.camera)),
+          (current) =>
+            shadow?.encode(current, (pass) => {
+              crowd.draw(pass, "shadow", shadow.camera);
+              scenery?.draw(pass, shadow.camera, "shadow");
+            }),
         );
       },
       dispose,

@@ -1,6 +1,10 @@
+import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d } from "typegpu";
 import { imageMipBodyWgsl } from "../../../../packages/renderer-core/src/imageMipWgsl";
-import type { ImageTextureOptions } from "../../../../packages/renderer-core/src/imageTexture";
+import type {
+  ImageTextureOptions,
+  RgbaTextureData,
+} from "../../../../packages/renderer-core/src/imageTexture";
 import { beginGpuAdmission } from "../../src/gpuAdmission";
 const input = tgpu.bindGroupLayout({ source: { texture: d.texture2d() } });
 const corners = tgpu.const(d.arrayOf(d.vec2f, 3), [
@@ -12,7 +16,7 @@ const downsample = tgpu.fn([d.texture2d(), d.vec2f], d.vec4f)(imageMipBodyWgsl);
 /** Borrowed device/image; typed texture and all mip passes owned here. */
 export async function createTypegpuImageTexture(
   device: GPUDevice,
-  image: ImageBitmap,
+  image: ImageBitmap | RgbaTextureData,
   options: ImageTextureOptions,
 ) {
   const root = tgpu.initFromDevice({ device }),
@@ -28,19 +32,23 @@ export async function createTypegpuImageTexture(
   try {
     const { width, height } = image;
     if (
+      !Number.isInteger(width) ||
+      !Number.isInteger(height) ||
       width < 1 ||
       height < 1 ||
       width > device.limits.maxTextureDimension2D ||
       height > device.limits.maxTextureDimension2D
     )
       throw new Error("Image texture dimensions exceed device limit");
+    if ("data" in image && image.data.byteLength !== width * height * 4)
+      throw Error("RGBA texture data must contain exactly four bytes per pixel");
     const format = options.colorSpace === "srgb" ? "rgba8unorm-srgb" : "rgba8unorm";
     const levels = options.generateMipmaps ? Math.floor(Math.log2(Math.max(width, height))) + 1 : 1;
     const texture = root
       .createTexture({ size: [width, height], format, mipLevelCount: levels })
       .$usage("sampled", "render");
     owned.push(texture);
-    texture.write(image);
+    texture.write("data" in image ? typegpuTextureBytes(image.data) : image);
     if (levels > 1) {
       const pipeline = root.createRenderPipeline({
         vertex: tgpu.vertexFn({

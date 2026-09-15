@@ -1,0 +1,257 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-15T05:07:28.914Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 4,
+  "worstPair": "landscape-alps",
+  "results": [
+    {
+      "id": "landscape-alps",
+      "current": "specs/map-landscape-quality/assets/slice-05/material-regions/before/landscape-alps.png",
+      "candidate": "specs/map-landscape-quality/assets/slice-05/material-regions/candidate/landscape-alps.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.01174,
+      "grayscale": {
+        "mae": 5.96083,
+        "rmse": 9.10359,
+        "diffRatio16": 0.14123,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.0001
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.87614,
+        "terrainLikeRatioCandidate": 0.90942,
+        "avgLuminanceCurrent": 108.40744,
+        "avgLuminanceCandidate": 114.36827,
+        "avgLuminanceDelta": 5.96083,
+        "edgeEnergyCurrent": 0.10966,
+        "edgeEnergyCandidate": 0.10576,
+        "edgeEnergyRatio": 0.96445,
+        "edgeDiffRatio32": 0.01552
+      },
+      "worldCrop": {
+        "label": "regional mountain faces",
+        "bounds": {
+          "x": 220,
+          "y": 120,
+          "width": 550,
+          "height": 450
+        },
+        "parityDistance": 0.02022,
+        "grayscale": {
+          "mae": 9.77817,
+          "rmse": 12.16365,
+          "diffRatio16": 0.29126,
+          "diffRatio32": 0,
+          "diffRatio64": 0,
+          "pixelmatchRatio": 0.00019
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 0.79674,
+          "terrainLikeRatioCandidate": 0.8879,
+          "avgLuminanceCurrent": 100.7511,
+          "avgLuminanceCandidate": 110.52927,
+          "avgLuminanceDelta": 9.77817,
+          "edgeEnergyCurrent": 0.12208,
+          "edgeEnergyCandidate": 0.11552,
+          "edgeEnergyRatio": 0.9462,
+          "edgeDiffRatio32": 0.03282
+        }
+      }
+    },
+    {
+      "id": "landscape-italy",
+      "current": "specs/map-landscape-quality/assets/slice-05/material-regions/before/landscape-italy.png",
+      "candidate": "specs/map-landscape-quality/assets/slice-05/material-regions/candidate/landscape-italy.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.00553,
+      "grayscale": {
+        "mae": 3.13543,
+        "rmse": 6.60918,
+        "diffRatio16": 0.08366,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00017
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.56872,
+        "terrainLikeRatioCandidate": 0.5716,
+        "avgLuminanceCurrent": 95.42407,
+        "avgLuminanceCandidate": 98.55949,
+        "avgLuminanceDelta": 3.13543,
+        "edgeEnergyCurrent": 0.07859,
+        "edgeEnergyCandidate": 0.07719,
+        "edgeEnergyRatio": 0.98219,
+        "edgeDiffRatio32": 0.00639
+      },
+      "worldCrop": {
+        "label": "rock and grassy shoulders",
+        "bounds": {
+          "x": 0,
+          "y": 230,
+          "width": 590,
+          "height": 550
+        },
+        "parityDistance": 0.00825,
+        "grayscale": {
+          "mae": 3.3571,
+          "rmse": 6.15199,
+          "diffRatio16": 0.04737,
+          "diffRatio32": 0,
+          "diffRatio64": 0,
+          "pixelmatchRatio": 2e-05
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 0.81525,
+          "terrainLikeRatioCandidate": 0.81969,
+          "avgLuminanceCurrent": 112.71143,
+          "avgLuminanceCandidate": 116.06853,
+          "avgLuminanceDelta": 3.3571,
+          "edgeEnergyCurrent": 0.0831,
+          "edgeEnergyCandidate": 0.08036,
+          "edgeEnergyRatio": 0.96694,
+          "edgeDiffRatio32": 0.00387
+        }
+      }
+    },
+    {
+      "id": "landscape-materials-near",
+      "current": "specs/map-landscape-quality/assets/slice-05/material-regions/before/landscape-materials-near.png",
+      "candidate": "specs/map-landscape-quality/assets/slice-05/material-regions/candidate/landscape-materials-near.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.0025,
+      "grayscale": {
+        "mae": 1.46728,
+        "rmse": 4.89337,
+        "diffRatio16": 0.05894,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00012
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 138.2842,
+        "avgLuminanceCandidate": 139.75148,
+        "avgLuminanceDelta": 1.46728,
+        "edgeEnergyCurrent": 0.05379,
+        "edgeEnergyCandidate": 0.05439,
+        "edgeEnergyRatio": 1.01131,
+        "edgeDiffRatio32": 0.00015
+      },
+      "worldCrop": {
+        "label": "near rock and transition",
+        "bounds": {
+          "x": 260,
+          "y": 40,
+          "width": 620,
+          "height": 700
+        },
+        "parityDistance": 0.0053,
+        "grayscale": {
+          "mae": 3.13695,
+          "rmse": 7.15132,
+          "diffRatio16": 0.12585,
+          "diffRatio32": 0,
+          "diffRatio64": 0,
+          "pixelmatchRatio": 0.00025
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 1,
+          "terrainLikeRatioCandidate": 1,
+          "avgLuminanceCurrent": 137.29958,
+          "avgLuminanceCandidate": 140.43654,
+          "avgLuminanceDelta": 3.13695,
+          "edgeEnergyCurrent": 0.05444,
+          "edgeEnergyCandidate": 0.05576,
+          "edgeEnergyRatio": 1.02419,
+          "edgeDiffRatio32": 0.00026
+        }
+      }
+    },
+    {
+      "id": "landscape-materials-far",
+      "current": "specs/map-landscape-quality/assets/slice-05/material-regions/before/landscape-materials-far.png",
+      "candidate": "specs/map-landscape-quality/assets/slice-05/material-regions/candidate/landscape-materials-far.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.00139,
+      "grayscale": {
+        "mae": 0.17847,
+        "rmse": 1.71945,
+        "diffRatio16": 0.00777,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 1e-05
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 154.97289,
+        "avgLuminanceCandidate": 155.15136,
+        "avgLuminanceDelta": 0.17847,
+        "edgeEnergyCurrent": 0.00759,
+        "edgeEnergyCandidate": 0.00764,
+        "edgeEnergyRatio": 1.0063,
+        "edgeDiffRatio32": 0.00012
+      },
+      "worldCrop": {
+        "label": "far material regions",
+        "bounds": {
+          "x": 200,
+          "y": 100,
+          "width": 850,
+          "height": 550
+        },
+        "parityDistance": 0.00155,
+        "grayscale": {
+          "mae": 0.39092,
+          "rmse": 2.54477,
+          "diffRatio16": 0.01701,
+          "diffRatio32": 0,
+          "diffRatio64": 0,
+          "pixelmatchRatio": 2e-05
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 1,
+          "terrainLikeRatioCandidate": 1,
+          "avgLuminanceCurrent": 149.55386,
+          "avgLuminanceCandidate": 149.94478,
+          "avgLuminanceDelta": 0.39092,
+          "edgeEnergyCurrent": 0.01531,
+          "edgeEnergyCandidate": 0.01542,
+          "edgeEnergyRatio": 1.00685,
+          "edgeDiffRatio32": 0.00026
+        }
+      }
+    }
+  ]
+}

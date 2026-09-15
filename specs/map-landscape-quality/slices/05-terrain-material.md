@@ -54,6 +54,14 @@ and lost identity regionally. Both are rejected and their code removed. Shared
 consumer/source/water controls remained green. Further anisotropy alone is not
 the next material solution; regional geological readability remains open.
 
-## Next material decision
+## Material region boundary
 
-The directional-face probes changed fine texture without improving regional geological readability. Freeze geometry and address irregular grass/scree/rock transitions and their color separation in the existing shared response before adding more directional noise. Campaign and battle must still produce identical results for equivalent inputs; preserve water and authored tint semantics. A regional improvement must survive both Italy and Alps framing as well as the near fixture.
+The [bounded region probe](../assets/slice-05/material-regions/README.md) combines
+irregular partial exposure with clearer rock/scree values on fixed geometry.
+Fresh review slightly prefers its rock/grass contrast, but finds no substantial
+regional gain or distinct loose-stone material. Close boundaries remain smooth
+and rock remains cloudy. The patch is rejected and removed; existing material
+and baselines remain authoritative. Palette contrast plus broad mask noise is
+insufficient to complete 05.
+
+Return to structural mountain form before another material-only comparison. The fixed-geometry probes have not resolved regional geological readability.

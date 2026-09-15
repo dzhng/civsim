@@ -43,3 +43,14 @@ Diagnostic feature ablations (grass off, shadows off, frozen animation, lower di
 ## In-game reporting
 
 The exact FPS formulas and spike-preserving chart contract live in [01c](slices/01c-benchmark-results.md). Use those same formulas in exported reports and backend comparisons. Freeze scenario/tour version, start tick, seed, rosters and orders before timing candidates. Menu preparation pre-roll stays outside the timed window; the actual five minutes execute live simulation at normal speed. Compare both overall and labeled per-phase results.
+
+Native comparison instrumentation observes standard WebGPU encoding and submission
+without replacing each library's drawing. A presentation's identity is its final
+actual scene submission; the later timestamp resolve/copy submission is counted as
+measurement overhead and excluded from measured pass time. Complete timing requires
+both readable queries and successful validation of the originating commands. Work
+encoded outside the measurement, unavailable queries, and ring saturation make the
+sample incomplete. Query storage referenced by unsubmitted commands is quarantined
+until disposal. The implementation lives in
+[the native observer](../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts); hardware
+correlation and instrumentation-overhead controls remain required before ranking.

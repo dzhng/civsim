@@ -158,3 +158,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 
 - **Settled:** Build one camera/time/crowd/cue packet before asynchronous presentation. Keep the source synchronous fast path, while actual asynchronous backends finish their presentation before another frame starts. Active CPU, elapsed renderer work and time awaiting a renderer are separate measurements.
 - **Settled:** Exiting a battle aborts input/readiness immediately and drains the current frame before freeing its Game or reusing scene resources. Preserve unrelated failures instead of treating every error after exit as cancellation.
+
+### Native measurement ownership
+
+- **Settled:** Observe the libraries' public WebGPU commands with one device-owned timing observer. Keep actual scene submission identity separate from the observer's later query-copy submission. A result is usable only after the original commands validate; missing or out-of-boundary work cannot be reported as zero GPU cost. This observer belongs to the comparison lab and does not choose the production renderer.

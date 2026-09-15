@@ -1,8 +1,9 @@
+/// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { describe, expect, test } from "bun:test";
 import { compareRuns, type RunInput, type RunManifest } from "./compareRuns";
 import { summarizeFrameIntervals } from "../../../web/src/battle/benchmark/benchmarkMetrics";
 import { BENCHMARK_CAMERA_PHASES } from "../../../web/src/battle/benchmark/benchmarkCamera";
@@ -236,14 +237,20 @@ describe("offline matched benchmark report", () => {
         output = join(dir, "result.json");
       writeFileSync(left, JSON.stringify(a));
       writeFileSync(right, JSON.stringify(b));
-      const args = [join(import.meta.dir, "compare.ts"), "parity", left, right, output];
-      expect(spawnSync(process.execPath, args).status).toBe(1);
+      const args = [
+        fileURLToPath(new URL("./compare.ts", import.meta.url)),
+        "parity",
+        left,
+        right,
+        output,
+      ];
+      expect(spawnSync("bun", args).status).toBe(1);
       const before = readFileSync(output, "utf8");
       expect(JSON.parse(before)).toMatchObject({
         eligible: false,
         inputs: [{ path: left }, { path: right }],
       });
-      expect(spawnSync(process.execPath, args).status).not.toBe(0);
+      expect(spawnSync("bun", args).status).not.toBe(0);
       expect(readFileSync(output, "utf8")).toBe(before);
     } finally {
       rmSync(dir, { recursive: true, force: true });

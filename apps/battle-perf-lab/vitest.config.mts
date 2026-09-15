@@ -9,6 +9,6 @@ export default {
     root: fileURLToPath(new URL(".", import.meta.url)),
     environment: "node",
     globals: true,
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.ts", "report/**/*.test.ts"],
   },
 };

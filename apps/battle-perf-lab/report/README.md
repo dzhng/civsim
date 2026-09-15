@@ -32,3 +32,7 @@ pending results and cursor loss rather than waiting for queries or treating them
 as zero. CPU and GPU distributions are separate and must never be summed into a
 frame total. Phase labels, consecutive presentation IDs and the first terminal
 crossing are checked against the recording boundaries.
+
+The normal lab Vitest configuration discovers these tests. The colocated TypeScript
+configuration checks this offline Node/Bun surface separately from browser GPU
+controls, so server runtime declarations do not alter their DOM types.

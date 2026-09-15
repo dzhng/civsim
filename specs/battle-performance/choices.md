@@ -162,3 +162,8 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Native measurement ownership
 
 - **Settled:** Observe the libraries' public WebGPU commands with one device-owned timing observer. Keep actual scene submission identity separate from the observer's later query-copy submission. A result is usable only after the original commands validate; missing or out-of-boundary work cannot be reported as zero GPU cost. This observer belongs to the comparison lab and does not choose the production renderer.
+
+### Comparison accounting
+
+- **Settled:** Track requested native buffer/texture payloads and explicit destruction with bounded counters. Include profiler allocations; keep unknown formats unavailable. These figures are logical allocation accounting, not physical VRAM and not equivalent to source Three object counts.
+- **Settled:** Validate exported runs offline using the game's FPS owner and explicit experiment manifests. Pair eligibility establishes comparable cadence evidence only; simulation progress, incomplete GPU data, visual parity and repeated-run acceptance remain separate decisions. Preserve rejected-pair evidence instead of producing a winner from incomplete measurements.

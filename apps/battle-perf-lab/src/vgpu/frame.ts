@@ -1,3 +1,5 @@
+import { createSceneLifecycle } from "../sceneLifecycle";
+import { beginGpuAdmission } from "../gpuAdmission";
 import { frame, target, type Gpu, type FramePass, type Frame, type Target } from "vgpu";
 import type { VgpuEnvironment } from "./environment";
 import { createVgpuPost } from "./post";
@@ -6,15 +8,30 @@ import { frameCamera, type FrameCameraSnapshot } from "../frameCamera";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
 /** Frame/Target own scene/post encoding; pose dispatches precede this frame through vgpu's public API. */
 export class VgpuBattleFrame {
-  private disposed = false;
+  private readonly life: ReturnType<typeof createSceneLifecycle>;
+  private view?: {
+    snapshot: FrameCameraSnapshot;
+    observer: readonly [number, number, number];
+    grade: BattlePostGradeUniforms;
+  };
+  get width() {
+    return this.resources.width;
+  }
+  get height() {
+    return this.resources.height;
+  }
   private constructor(
     private readonly gpu: Gpu,
     private readonly environment: VgpuEnvironment,
-    readonly width: number,
-    readonly height: number,
     readonly samples: 1 | 4,
-    private readonly resources: Awaited<ReturnType<typeof frameResources>>,
-  ) {}
+    private readonly format: GPUTextureFormat,
+    readonly camera: ReturnType<Gpu["device"]["createBuffer"]>,
+    private resources: Awaited<ReturnType<typeof frameResources>>,
+  ) {
+    this.life = createSceneLifecycle(() =>
+      releaseAll([() => this.camera.destroy(), () => this.resources.dispose()]),
+    );
+  }
   static async create(
     gpu: Gpu,
     environment: VgpuEnvironment,
@@ -23,21 +40,56 @@ export class VgpuBattleFrame {
     samples: 1 | 4,
     format: GPUTextureFormat,
   ) {
-    return new VgpuBattleFrame(
-      gpu,
-      environment,
-      width,
-      height,
-      samples,
-      await frameResources(gpu, width, height, samples, format),
-    );
+    const camera = gpu.device.createBuffer({ size: 192, usage: ["uniform", "copy_dst"] });
+    try {
+      return new VgpuBattleFrame(
+        gpu,
+        environment,
+        samples,
+        format,
+        camera,
+        await frameResources(gpu, width, height, samples, format),
+      );
+    } catch (error) {
+      try {
+        camera.destroy();
+      } catch (cleanup) {
+        throw new AggregateError([error, cleanup], "Frame camera cleanup failed");
+      }
+      throw error;
+    }
   }
-  get camera() {
-    this.assertLive();
-    return this.resources.camera;
+  async resize(width: number, height: number) {
+    this.life.idle();
+    if (width === this.width && height === this.height) return;
+    return this.life.run(async () => {
+      let next: Awaited<ReturnType<typeof frameResources>> | undefined;
+      try {
+        next = await frameResources(this.gpu, width, height, this.samples, this.format);
+        this.life.check();
+        if (this.view) this.writeCamera(this.view, next);
+        const previous = this.resources;
+        this.resources = next;
+        next = undefined;
+        try {
+          previous.dispose();
+        } catch (error) {
+          this.life.dispose();
+          throw error;
+        }
+      } catch (error) {
+        try {
+          next?.dispose();
+        } catch (cleanup) {
+          throw new AggregateError([error, cleanup], "Frame resize and cleanup failed");
+        }
+        throw error;
+      }
+    });
   }
+
   get hdr() {
-    this.assertLive();
+    this.life.check();
     return this.resources.target.color.gpu;
   }
   setCamera(
@@ -45,12 +97,27 @@ export class VgpuBattleFrame {
     observer: readonly [number, number, number],
     grade: BattlePostGradeUniforms,
   ) {
-    this.assertLive();
-    const state = frameCamera(snapshot, this.width, this.height);
-    this.resources.camera.write(state.bytes);
-    this.environment.setView(state.view, observer);
+    this.life.check();
+    const view: NonNullable<VgpuBattleFrame["view"]> = {
+      snapshot: {
+        ...snapshot,
+        camera3d: { ...snapshot.camera3d, target: [...snapshot.camera3d.target] },
+      },
+      observer: [...observer],
+      grade: { ...grade },
+    };
+    this.writeCamera(view, this.resources);
+    this.view = view;
+  }
+  private writeCamera(
+    view: NonNullable<VgpuBattleFrame["view"]>,
+    resources: VgpuBattleFrame["resources"],
+  ) {
+    const state = frameCamera(view.snapshot, resources.width, resources.height);
+    resources.post.setGrade(view.grade, this.environment.exposure);
+    this.camera.write(state.bytes);
+    this.environment.setView(state.view, view.observer);
     this.environment.sky.setRays(state.rays);
-    this.resources.post.setGrade(grade, this.environment.exposure);
   }
   async render(
     output: Target,
@@ -58,28 +125,36 @@ export class VgpuBattleFrame {
     draw: (pass: FramePass) => void,
     bloom: boolean,
     beforeWorld?: (current: Frame) => void,
+    postEnabled = true,
   ) {
-    this.assertLive();
-    prepare();
-    const r = this.resources;
-    await frame(this.gpu, (current) => {
-      beforeWorld?.(current);
-      current.pass({ target: r.target, clear: [0, 0, 0, 1], clearDepth: 0 }, (pass) => {
-        this.environment.sky.drawBackground(pass);
-        draw(pass);
-      });
-      r.post.encode(current, output, bloom);
-    }).done;
-  }
-  private assertLive() {
-    if (this.disposed) throw new Error("vgpu frame disposed");
+    return this.life.run(async () => {
+      prepare();
+      const r = this.resources;
+      await frame(this.gpu, (current) => {
+        beforeWorld?.(current);
+        current.pass({ target: r.target, clear: [0, 0, 0, 1], clearDepth: 0 }, (pass) => {
+          this.environment.sky.drawBackground(pass);
+          draw(pass);
+        });
+        r.post.encode(current, output, bloom, postEnabled);
+      }).done;
+    });
   }
   dispose() {
-    if (this.disposed) return;
-    this.disposed = true;
-    this.resources.dispose();
+    this.life.dispose();
   }
 }
+function releaseAll(releases: (() => void)[]) {
+  const errors: unknown[] = [];
+  for (const release of releases.splice(0).reverse())
+    try {
+      release();
+    } catch (error) {
+      errors.push(error);
+    }
+  if (errors.length) throw new AggregateError(errors, "Frame resource cleanup failed");
+}
+
 async function frameResources(
   gpu: Gpu,
   width: number,
@@ -88,12 +163,9 @@ async function frameResources(
   format: GPUTextureFormat,
 ) {
   const owned: (() => void)[] = [];
-  const dispose = () => {
-    for (const f of owned.reverse()) f();
-  };
+  const dispose = () => releaseAll(owned);
+  const finish = beginGpuAdmission(gpu.device.gpu);
   try {
-    const camera = gpu.device.createBuffer({ size: 192, usage: ["uniform", "copy_dst"] });
-    owned.push(() => camera.destroy());
     const hdr = target(gpu, {
       size: [width, height],
       format: "rgba16float",
@@ -101,6 +173,7 @@ async function frameResources(
       msaa: samples === 4,
     });
     owned.push(() => destroyVgpuTarget(hdr));
+    await finish();
     const post = await createVgpuPost(
       gpu.device.gpu,
       hdr.color.gpu.createView(),
@@ -109,9 +182,14 @@ async function frameResources(
       format,
     );
     owned.push(post.dispose);
-    return { camera, target: hdr, post, dispose };
+    return { width, height, target: hdr, post, dispose };
   } catch (error) {
-    dispose();
+    await finish().catch(() => {});
+    try {
+      dispose();
+    } catch (cleanup) {
+      throw new AggregateError([error, cleanup], "Frame construction and cleanup failed");
+    }
     throw error;
   }
 }

@@ -1,6 +1,8 @@
+import { beginGpuAdmission } from "../gpuAdmission";
 import { destroyVgpuTarget } from "./targetLifetime";
 import {
   draw,
+  frame,
   initFromDevice,
   sampler,
   target,
@@ -19,6 +21,7 @@ import {
   bloomBlurWgsl,
   bloomCompositeWgsl,
   postFinalWgsl,
+  postDirectWgsl,
 } from "../shared/postShader";
 
 /** Five-level HDR bloom plus grade/AgX/output. Device/input/output are borrowed;
@@ -42,6 +45,7 @@ export async function createVgpuPost(
     for (const t of targets) destroyVgpuTarget(t);
     gpu.dispose();
   };
+  const finishAdmission = beginGpuAdmission(device);
   try {
     const linearSampler = sampler(gpu, { minFilter: "linear", magFilter: "linear" });
     const grade = uniforms(gpu, {
@@ -134,10 +138,49 @@ fn finalColor${postFinalWgsl}
         label: "vgpu grade AgX output",
       }),
     );
+    const direct = draw(gpu, {
+      shader:
+        fullscreenWGSL +
+        postColorWGSL +
+        `
+        @group(0) @binding(0) var linearSampler:sampler;
+        @group(0) @binding(1) var scene:texture_2d<f32>;
+        @group(0) @binding(2) var<uniform> grade:Grade;
+        fn directOutput${postDirectWgsl}
+        @fragment fn fragment(v:VertexOut)->@location(0) vec4f {
+          return directOutput(textureSample(scene,linearSampler,v.uv),grade.exposure);
+        }`,
+      vertices: 3,
+      set: { linearSampler, scene: input, grade },
+      label: "vgpu direct AgX output",
+    });
     await Promise.all([
+      finishAdmission(),
       ...compile,
+      direct.compile({ colors: [outputFormat] }),
       ...finals.map((render) => render.compile({ colors: [outputFormat] })),
     ]);
+    // compile() does not create bind groups. Encode a cancelled public Frame to
+    // admit every binding without submitting work or touching caller output.
+    const finishBindings = beginGpuAdmission(device);
+    let admissionTarget: Target | undefined;
+    try {
+      admissionTarget = target(gpu, { size: [1, 1], format: outputFormat });
+      const probe = frame(gpu);
+      try {
+        for (const stage of stages)
+          probe.pass({ target: stage.output, clear: [0, 0, 0, 0] }, stage.render);
+        for (const render of [...finals, direct])
+          probe.pass({ target: admissionTarget, clear: [0, 0, 0, 0] }, render);
+      } finally {
+        probe.cancel();
+      }
+      await finishBindings();
+    } finally {
+      await finishBindings().finally(() => {
+        if (admissionTarget) destroyVgpuTarget(admissionTarget);
+      });
+    }
     return {
       gpu,
       setGrade(value: BattlePostGradeUniforms, exposure: number) {
@@ -154,8 +197,12 @@ fn finalColor${postFinalWgsl}
           throw new Error("Post parameters must be finite");
         grade.set(values);
       },
-      encode(current: Frame, output: Target, bloom = true) {
+      encode(current: Frame, output: Target, bloom = true, enabled = true) {
         if (gpu.disposed) throw new Error("Vgpu post is disposed");
+        if (!enabled) {
+          current.pass({ target: output, clear: [0, 0, 0, 0] }, direct);
+          return;
+        }
         if (bloom)
           for (const stage of stages)
             current.pass({ target: stage.output, clear: [0, 0, 0, 0] }, stage.render);
@@ -164,7 +211,14 @@ fn finalColor${postFinalWgsl}
       dispose,
     };
   } catch (error) {
-    dispose();
+    try {
+      await finishAdmission();
+    } catch (admission) {
+      if (admission !== error)
+        error = new AggregateError([error, admission], "Post admission failed");
+    } finally {
+      dispose();
+    }
     throw error;
   }
 }

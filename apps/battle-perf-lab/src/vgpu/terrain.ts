@@ -1,4 +1,5 @@
-import { draw, geometry, texture, sampler, type Gpu, type FramePass } from "vgpu";
+import { WORLD_CAMERA_WGSL } from "../../../../packages/renderer-core/src/cameraWgsl";
+import { draw, geometry, texture, sampler, type Gpu, type FramePass, type Draw } from "vgpu";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
@@ -105,6 +106,7 @@ export async function createVgpuTerrain(
           : {}),
       }),
     ];
+    let horizonShadow: Draw | undefined;
     if (horizon?.mesh.indices.length) {
       const mesh = geometry(gpu, {
         buffers: [
@@ -121,6 +123,24 @@ export async function createVgpuTerrain(
         indices: horizon.mesh.indices,
       });
       owned.push(mesh);
+      horizonShadow = draw(gpu, {
+        shader:
+          WORLD_CAMERA_WGSL +
+          `
+          @vertex fn vertex(@location(0) p:vec3f)->@builtin(position) vec4f { return projectWorld(p); }
+          @fragment fn fragment()->@location(0) vec4f { return vec4f(0); }`,
+        geometry: mesh,
+        set: { cam: camera },
+        cull: "front",
+        frontFace: "ccw",
+        depth: { write: true, compare: "greater-equal" },
+        writeMask: [],
+      });
+      await horizonShadow.compile({
+        colors: ["rgba8unorm"],
+        depth: "depth32float",
+        sampleCount: 1,
+      });
       draws.push(
         draw(gpu, {
           shader: shaders.horizon,
@@ -141,6 +161,13 @@ export async function createVgpuTerrain(
       setState(farStrength: number, shadow = 1) {
         if (disposed) throw Error("vgpu terrain disposed");
         state.write(new Float32Array([farStrength, shadow, 0, 0]));
+      },
+      drawHorizonShadow(pass: FramePass, shadowCamera: typeof camera) {
+        if (disposed) throw Error("vgpu terrain disposed");
+        if (horizonShadow) {
+          horizonShadow.set({ cam: shadowCamera });
+          pass.draw(horizonShadow);
+        }
       },
       draw(pass: FramePass) {
         if (disposed) throw Error("vgpu terrain disposed");

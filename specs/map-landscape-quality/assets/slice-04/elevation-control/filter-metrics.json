@@ -1,0 +1,88 @@
+{
+  "alps": {
+    "footprintKm": 4,
+    "quadratureSamples": 16,
+    "coastPolicy": "exclude authoritative raster water samples; normalize land weights; no valid samples gives zero",
+    "raw": {
+      "landNodes": 109231,
+      "heightRangeMeters": [
+        100.00797271728516,
+        4109.67138671875
+      ],
+      "meanMeters": 711.5395717536859,
+      "gradientMetersPerKm": {
+        "p95": 227.40791906615615,
+        "max": 595.5818117222573
+      },
+      "highFrequencyResidualMeters": {
+        "mean": 69.80547099960489,
+        "p95": 288.1705780029297
+      },
+      "fourNeighborPeaks": 11792
+    },
+    "filtered": {
+      "landNodes": 109231,
+      "heightRangeMeters": [
+        40.246681213378906,
+        3925.203857421875
+      ],
+      "meanMeters": 711.4967455905468,
+      "gradientMetersPerKm": {
+        "p95": 160.83102767864267,
+        "max": 429.0160967496122
+      },
+      "highFrequencyResidualMeters": {
+        "mean": 27.14876026628398,
+        "p95": 114.32072448730469
+      },
+      "fourNeighborPeaks": 4089
+    },
+    "regional16kmMeanDifferenceMeters": {
+      "mean": 4.6863409923686365,
+      "max": 164.376718044281
+    }
+  },
+  "italy": {
+    "footprintKm": 4,
+    "quadratureSamples": 16,
+    "coastPolicy": "exclude authoritative raster water samples; normalize land weights; no valid samples gives zero",
+    "raw": {
+      "landNodes": 69358,
+      "heightRangeMeters": [
+        100.00797271728516,
+        3522.535888671875
+      ],
+      "meanMeters": 653.7766041930714,
+      "gradientMetersPerKm": {
+        "p95": 218.77467407854851,
+        "max": 539.7233660448271
+      },
+      "highFrequencyResidualMeters": {
+        "mean": 73.70766269577263,
+        "p95": 265.15052795410156
+      },
+      "fourNeighborPeaks": 7126
+    },
+    "filtered": {
+      "landNodes": 69358,
+      "heightRangeMeters": [
+        17.973934173583984,
+        3378.855712890625
+      ],
+      "meanMeters": 652.6029423855832,
+      "gradientMetersPerKm": {
+        "p95": 159.24446624972563,
+        "max": 416.57408868254316
+      },
+      "highFrequencyResidualMeters": {
+        "mean": 30.09040019087576,
+        "p95": 108.61801147460938
+      },
+      "fourNeighborPeaks": 2592
+    },
+    "regional16kmMeanDifferenceMeters": {
+      "mean": 4.4490550600188845,
+      "max": 43.16153268888593
+    }
+  }
+}

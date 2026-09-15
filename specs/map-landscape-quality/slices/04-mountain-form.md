@@ -113,3 +113,14 @@ explains the encoded inputs; its [attribution requirements](https://github.com/t
 apply to derived data and must be retained. Use only the small region needed for
 the first control. This candidate tests geographic branching already present in
 measured data, rather than another tuning of enclosing procedural ridge contours.
+
+The [first measured-elevation control](../assets/slice-04/elevation-control/README.md)
+shows meaningful regional branching/foothill gains under fresh critique but is
+not accepted:2km point resampling leaves crowded teeth and comb-like fringes.
+A single4km area-filtered pre-bake at the same10× exaggeration is now captured.
+Fresh critique gives Alps a qualified bounded improvement but withholds Italy
+acceptance: reduced detail alone does not establish a better foothill hierarchy.
+The filtered pass excludes raster-water samples before averaging. No further
+filter sweep or blanket form acceptance follows. Projection, provenance, sampling loss and the proposed
+existing-loader seam are recorded with the evidence. No runtime data adoption
+or city-apron acceptance follows from the initial clay pair.

@@ -32,6 +32,23 @@ export async function run(ctx) {
   await page.evaluate(() => {
     window.__campaignTerrainDisposals = [];
     window.__campaign.cam(0, 450, 6);
+    const retired = [];
+    const prototype = Object.getPrototypeOf(window.__campaign.rendererOwner().world.world);
+    const dispose = prototype.dispose;
+    prototype.dispose = function (...args) {
+      if (!this.disposed) retired.push([new WeakRef(this), new WeakRef(this.renderer)]);
+      return dispose.apply(this, args);
+    };
+    window.__rendererRetirement = {
+      sample: () =>
+        retired.map(([world, renderer]) => ({
+          worldAlive: Boolean(world.deref()),
+          rendererAlive: Boolean(renderer.deref()),
+        })),
+      restore: () => {
+        prototype.dispose = dispose;
+      },
+    };
   });
 
   try {
@@ -134,8 +151,25 @@ export async function run(ctx) {
           return null;
         }
       });
+      // Dereference only after GC and memory measurement, in a separate task.
+      const retired = await page.evaluate(() => window.__rendererRetirement.sample());
+      // Three's shared bloom quad can retain the latest battle renderer until the
+      // next battle replaces its material. Earlier generations must collect.
+      ctx.check(
+        `cycle ${cycle} collects retired worlds and older renderers`,
+        retired.length === cycle * 2 &&
+          retired.every(
+            (item, index) =>
+              !item.worldAlive && (!item.rendererAlive || index === retired.length - 1),
+          ),
+        JSON.stringify(retired),
+      );
       const sample = {
         cycle,
+        retired,
+        reactRefresh: await page.evaluate(
+          () => typeof window.__registerBeforePerformReactRefresh === "function",
+        ),
         ...renderer,
         userAgentBytes: userAgentMemory?.bytes ?? null,
         userAgentBreakdown: userAgentMemory?.breakdown ?? null,
@@ -160,6 +194,12 @@ export async function run(ctx) {
       JSON.stringify(series),
     );
   } finally {
+    await page
+      .evaluate(() => {
+        window.__rendererRetirement?.restore();
+        delete window.__rendererRetirement;
+      })
+      .catch(() => {});
     page.off("worker", observeWorker);
     terrainWorkers.clear();
     await page.close();

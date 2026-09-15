@@ -1,0 +1,401 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T09:30:29.609Z",
+  "target": "http://127.0.0.1:5184",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "renderer-lifecycle",
+      "file": "system/renderer-lifecycle.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 creates an encounter",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":1},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":1,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":303401277,\"userAgentBreakdown\":[{\"bytes\":613853,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":16691200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":284305375,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":1188079,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 creates an encounter",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":2},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":2,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":295919267,\"userAgentBreakdown\":[{\"bytes\":612609,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":285631324,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":573364,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 creates an encounter",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":3},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":3,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":300257555,\"userAgentBreakdown\":[{\"bytes\":285846557,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":600695,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":612333,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 creates an encounter",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":4},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":4,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":300879425,\"userAgentBreakdown\":[{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":637224,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":286430618,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":129688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 creates an encounter",
+      "ok": true,
+      "detail": "4"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":5},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":5,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":301334479,\"userAgentBreakdown\":[{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":286884729,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":637591,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 creates an encounter",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":6},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":6,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":297458611,\"userAgentBreakdown\":[{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287095852,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":613529,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":646660,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 creates an encounter",
+      "ok": true,
+      "detail": "6"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":7},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":7,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":297756145,\"userAgentBreakdown\":[{\"bytes\":133384,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":612609,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":647635,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287390211,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 creates an encounter",
+      "ok": true,
+      "detail": "7"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":8},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":8,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":301936357,\"userAgentBreakdown\":[{\"bytes\":287487091,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":613833,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":636863,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 creates an encounter",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":9},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":9,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":298324553,\"userAgentBreakdown\":[{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":687456,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":133384,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":287917818,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 creates an encounter",
+      "ok": true,
+      "detail": "9"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":10},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 collects retired worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 samples renderer resources",
+      "ok": true,
+      "detail": "{\"cycle\":10,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":298124689,\"userAgentBreakdown\":[{\"bytes\":590704,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":129688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287818402,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "renderer counters stay flat across dispose cycles",
+      "ok": true,
+      "detail": "[{\"cycle\":1,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":303401277,\"userAgentBreakdown\":[{\"bytes\":613853,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":16691200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":284305375,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":1188079,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":2,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":295919267,\"userAgentBreakdown\":[{\"bytes\":612609,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":285631324,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":573364,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":3,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":300257555,\"userAgentBreakdown\":[{\"bytes\":285846557,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":600695,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":612333,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]}]},{\"cycle\":4,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":300879425,\"userAgentBreakdown\":[{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":637224,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":286430618,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":129688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]}]},{\"cycle\":5,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":301334479,\"userAgentBreakdown\":[{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":286884729,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":637591,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":6,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":297458611,\"userAgentBreakdown\":[{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287095852,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":613529,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":646660,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]}]},{\"cycle\":7,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":297756145,\"userAgentBreakdown\":[{\"bytes\":133384,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":612609,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":647635,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287390211,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]}]},{\"cycle\":8,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":301936357,\"userAgentBreakdown\":[{\"bytes\":287487091,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":613833,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":636863,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]}]},{\"cycle\":9,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":298324553,\"userAgentBreakdown\":[{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":687456,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":133384,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":287917818,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]}]},{\"cycle\":10,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":298124689,\"userAgentBreakdown\":[{\"bytes\":590704,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":129688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287818402,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]}]}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "user-agent memory series is available",
+      "ok": true,
+      "detail": "[{\"cycle\":1,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":303401277,\"userAgentBreakdown\":[{\"bytes\":613853,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":16691200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":284305375,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":1188079,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":2,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":295919267,\"userAgentBreakdown\":[{\"bytes\":612609,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":285631324,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":573364,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":3,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":300257555,\"userAgentBreakdown\":[{\"bytes\":285846557,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":129664,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":600695,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":612333,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]}]},{\"cycle\":4,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":300879425,\"userAgentBreakdown\":[{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":637224,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":286430618,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":129688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]}]},{\"cycle\":5,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":301334479,\"userAgentBreakdown\":[{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":286884729,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":637591,\"types\":[\"Shared\"],\"urls\":[]}]},{\"cycle\":6,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":297458611,\"userAgentBreakdown\":[{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287095852,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":613529,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":646660,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]}]},{\"cycle\":7,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":297756145,\"userAgentBreakdown\":[{\"bytes\":133384,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":612609,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":647635,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287390211,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]}]},{\"cycle\":8,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":301936357,\"userAgentBreakdown\":[{\"bytes\":287487091,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":613833,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":636863,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":130264,\"types\":[\"DOM\"],\"urls\":[]}]},{\"cycle\":9,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":298324553,\"userAgentBreakdown\":[{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":687456,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":133384,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]},{\"bytes\":287917818,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]}]},{\"cycle\":10,\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":true}],\"reactRefresh\":false,\"geometries\":33,\"textures\":181,\"programs\":null,\"wasmMemoryBytes\":12910592,\"userAgentBytes\":298124689,\"userAgentBreakdown\":[{\"bytes\":590704,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":129688,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":287818402,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/?campaign=handoff\"]},{\"bytes\":473106,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/ai-worker-BetrmOun.js\"]},{\"bytes\":613589,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5184/assets/terrainWorkerEntry-BIBs1--1.js\"]}]}]"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

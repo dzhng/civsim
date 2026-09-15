@@ -1,0 +1,3116 @@
+{
+  "scope": "Hardware Chrome, three campaign/battle/campaign cycles on Vite development server; root paths exclude weak and WeakMap ephemeron shortcut edges. Paths establish strong references, not exclusive retained sizes.",
+  "beforePatchRendererRoots": [
+    {
+      "target": {
+        "index": 2678800,
+        "id": 5357617,
+        "name": "WebGPURenderer",
+        "type": "object",
+        "self": 292
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 29
+          },
+          "to": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "base::OnceCallback<void (Args...)> blink::ScriptPromiseResolver<blink::IDLUndefined>::WrapCallbackInScriptScope(base::OnceCallback<void (ScriptPromiseResolver<IDLResolvedType> *, Args...)>) [IDLResolvedType = blink::IDLUndefined, Args = <wgpu::MapAsyncStatus, wgpu::dawn::wire::client::StringView>]@../../third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h:355"
+          },
+          "to": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          }
+        },
+        {
+          "from": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          },
+          "edge": {
+            "type": "element",
+            "name": 2
+          },
+          "to": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "reactions_or_result"
+          },
+          "to": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          },
+          "edge": {
+            "type": "hidden",
+            "name": 1
+          },
+          "to": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "extension"
+          },
+          "to": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          }
+        },
+        {
+          "from": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          }
+        },
+        {
+          "from": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          },
+          "edge": {
+            "type": "context",
+            "name": "lut"
+          },
+          "to": {
+            "index": 2418233,
+            "id": 4836477,
+            "name": "DataTexture",
+            "type": "object",
+            "self": 164
+          }
+        },
+        {
+          "from": {
+            "index": 2418233,
+            "id": 4836477,
+            "name": "DataTexture",
+            "type": "object",
+            "self": 164
+          },
+          "edge": {
+            "type": "property",
+            "name": "_listeners"
+          },
+          "to": {
+            "index": 4536568,
+            "id": 9073137,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4536568,
+            "id": 9073137,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          },
+          "edge": {
+            "type": "property",
+            "name": "dispose"
+          },
+          "to": {
+            "index": 4536527,
+            "id": 9073055,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 4536527,
+            "id": 9073055,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 5
+          },
+          "to": {
+            "index": 3375885,
+            "id": 6752053,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 3375885,
+            "id": 6752053,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 3375886,
+            "id": 6752055,
+            "name": "system / Context / scope @4836781",
+            "type": "object",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 3375886,
+            "id": 6752055,
+            "name": "system / Context / scope @4836781",
+            "type": "object",
+            "self": 24
+          },
+          "edge": {
+            "type": "context",
+            "name": "this"
+          },
+          "to": {
+            "index": 2678869,
+            "id": 5357755,
+            "name": "Textures",
+            "type": "object",
+            "self": 32
+          }
+        },
+        {
+          "from": {
+            "index": 2678869,
+            "id": 5357755,
+            "name": "Textures",
+            "type": "object",
+            "self": 32
+          },
+          "edge": {
+            "type": "property",
+            "name": "renderer"
+          },
+          "to": {
+            "index": 2678800,
+            "id": 5357617,
+            "name": "WebGPURenderer",
+            "type": "object",
+            "self": 292
+          }
+        }
+      ]
+    },
+    {
+      "target": {
+        "index": 2776927,
+        "id": 5553955,
+        "name": "WebGPURenderer",
+        "type": "object",
+        "self": 292
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 29
+          },
+          "to": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "base::OnceCallback<void (Args...)> blink::ScriptPromiseResolver<blink::IDLUndefined>::WrapCallbackInScriptScope(base::OnceCallback<void (ScriptPromiseResolver<IDLResolvedType> *, Args...)>) [IDLResolvedType = blink::IDLUndefined, Args = <wgpu::MapAsyncStatus, wgpu::dawn::wire::client::StringView>]@../../third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h:355"
+          },
+          "to": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          }
+        },
+        {
+          "from": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          },
+          "edge": {
+            "type": "element",
+            "name": 2
+          },
+          "to": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "reactions_or_result"
+          },
+          "to": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          },
+          "edge": {
+            "type": "hidden",
+            "name": 1
+          },
+          "to": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "extension"
+          },
+          "to": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          }
+        },
+        {
+          "from": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          }
+        },
+        {
+          "from": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          },
+          "edge": {
+            "type": "context",
+            "name": "_geometry"
+          },
+          "to": {
+            "index": 2906413,
+            "id": 5812899,
+            "name": "QuadGeometry",
+            "type": "object",
+            "self": 124
+          }
+        },
+        {
+          "from": {
+            "index": 2906413,
+            "id": 5812899,
+            "name": "QuadGeometry",
+            "type": "object",
+            "self": 124
+          },
+          "edge": {
+            "type": "property",
+            "name": "_listeners"
+          },
+          "to": {
+            "index": 3606764,
+            "id": 7213759,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 3606764,
+            "id": 7213759,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          },
+          "edge": {
+            "type": "property",
+            "name": "dispose"
+          },
+          "to": {
+            "index": 4096900,
+            "id": 8193905,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 4096900,
+            "id": 8193905,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 2
+          },
+          "to": {
+            "index": 2427778,
+            "id": 4855565,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 2427778,
+            "id": 4855565,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2427777,
+            "id": 4855563,
+            "name": "system / Context / scope @4832795",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 2427777,
+            "id": 4855563,
+            "name": "system / Context / scope @4832795",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "context",
+            "name": "this"
+          },
+          "to": {
+            "index": 2576461,
+            "id": 5152939,
+            "name": "RenderObject",
+            "type": "object",
+            "self": 140
+          }
+        },
+        {
+          "from": {
+            "index": 2576461,
+            "id": 5152939,
+            "name": "RenderObject",
+            "type": "object",
+            "self": 140
+          },
+          "edge": {
+            "type": "property",
+            "name": "renderer"
+          },
+          "to": {
+            "index": 2776927,
+            "id": 5553955,
+            "name": "WebGPURenderer",
+            "type": "object",
+            "self": 292
+          }
+        }
+      ]
+    },
+    {
+      "target": {
+        "index": 2894866,
+        "id": 5789809,
+        "name": "WebGPURenderer",
+        "type": "object",
+        "self": 292
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 29
+          },
+          "to": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "base::OnceCallback<void (Args...)> blink::ScriptPromiseResolver<blink::IDLUndefined>::WrapCallbackInScriptScope(base::OnceCallback<void (ScriptPromiseResolver<IDLResolvedType> *, Args...)>) [IDLResolvedType = blink::IDLUndefined, Args = <wgpu::MapAsyncStatus, wgpu::dawn::wire::client::StringView>]@../../third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h:355"
+          },
+          "to": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          }
+        },
+        {
+          "from": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          },
+          "edge": {
+            "type": "element",
+            "name": 2
+          },
+          "to": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "reactions_or_result"
+          },
+          "to": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          },
+          "edge": {
+            "type": "hidden",
+            "name": 1
+          },
+          "to": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "extension"
+          },
+          "to": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          }
+        },
+        {
+          "from": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          }
+        },
+        {
+          "from": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          },
+          "edge": {
+            "type": "context",
+            "name": "lut"
+          },
+          "to": {
+            "index": 2418233,
+            "id": 4836477,
+            "name": "DataTexture",
+            "type": "object",
+            "self": 164
+          }
+        },
+        {
+          "from": {
+            "index": 2418233,
+            "id": 4836477,
+            "name": "DataTexture",
+            "type": "object",
+            "self": 164
+          },
+          "edge": {
+            "type": "property",
+            "name": "_listeners"
+          },
+          "to": {
+            "index": 4536568,
+            "id": 9073137,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4536568,
+            "id": 9073137,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          },
+          "edge": {
+            "type": "property",
+            "name": "dispose"
+          },
+          "to": {
+            "index": 4536527,
+            "id": 9073055,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 4536527,
+            "id": 9073055,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 3599425,
+            "id": 7199087,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 3599425,
+            "id": 7199087,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2709008,
+            "id": 5418039,
+            "name": "system / Context / scope @4836781",
+            "type": "object",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 2709008,
+            "id": 5418039,
+            "name": "system / Context / scope @4836781",
+            "type": "object",
+            "self": 24
+          },
+          "edge": {
+            "type": "context",
+            "name": "this"
+          },
+          "to": {
+            "index": 2709009,
+            "id": 5418041,
+            "name": "Textures",
+            "type": "object",
+            "self": 32
+          }
+        },
+        {
+          "from": {
+            "index": 2709009,
+            "id": 5418041,
+            "name": "Textures",
+            "type": "object",
+            "self": 32
+          },
+          "edge": {
+            "type": "property",
+            "name": "renderer"
+          },
+          "to": {
+            "index": 2894866,
+            "id": 5789809,
+            "name": "WebGPURenderer",
+            "type": "object",
+            "self": 292
+          }
+        }
+      ]
+    },
+    {
+      "target": {
+        "index": 2894868,
+        "id": 5789813,
+        "name": "WebGPURenderer",
+        "type": "object",
+        "self": 292
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 29
+          },
+          "to": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "base::OnceCallback<void (Args...)> blink::ScriptPromiseResolver<blink::IDLUndefined>::WrapCallbackInScriptScope(base::OnceCallback<void (ScriptPromiseResolver<IDLResolvedType> *, Args...)>) [IDLResolvedType = blink::IDLUndefined, Args = <wgpu::MapAsyncStatus, wgpu::dawn::wire::client::StringView>]@../../third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h:355"
+          },
+          "to": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          }
+        },
+        {
+          "from": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          },
+          "edge": {
+            "type": "element",
+            "name": 2
+          },
+          "to": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "reactions_or_result"
+          },
+          "to": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          },
+          "edge": {
+            "type": "hidden",
+            "name": 1
+          },
+          "to": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "extension"
+          },
+          "to": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          }
+        },
+        {
+          "from": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          }
+        },
+        {
+          "from": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          },
+          "edge": {
+            "type": "context",
+            "name": "lut"
+          },
+          "to": {
+            "index": 2418233,
+            "id": 4836477,
+            "name": "DataTexture",
+            "type": "object",
+            "self": 164
+          }
+        },
+        {
+          "from": {
+            "index": 2418233,
+            "id": 4836477,
+            "name": "DataTexture",
+            "type": "object",
+            "self": 164
+          },
+          "edge": {
+            "type": "property",
+            "name": "_listeners"
+          },
+          "to": {
+            "index": 4536568,
+            "id": 9073137,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4536568,
+            "id": 9073137,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          },
+          "edge": {
+            "type": "property",
+            "name": "dispose"
+          },
+          "to": {
+            "index": 4536527,
+            "id": 9073055,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 4536527,
+            "id": 9073055,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 3
+          },
+          "to": {
+            "index": 2606342,
+            "id": 5212701,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 2606342,
+            "id": 5212701,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2606345,
+            "id": 5212707,
+            "name": "system / Context / scope @4836781",
+            "type": "object",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 2606345,
+            "id": 5212707,
+            "name": "system / Context / scope @4836781",
+            "type": "object",
+            "self": 24
+          },
+          "edge": {
+            "type": "context",
+            "name": "this"
+          },
+          "to": {
+            "index": 2775699,
+            "id": 5551499,
+            "name": "Textures",
+            "type": "object",
+            "self": 32
+          }
+        },
+        {
+          "from": {
+            "index": 2775699,
+            "id": 5551499,
+            "name": "Textures",
+            "type": "object",
+            "self": 32
+          },
+          "edge": {
+            "type": "property",
+            "name": "renderer"
+          },
+          "to": {
+            "index": 2894868,
+            "id": 5789813,
+            "name": "WebGPURenderer",
+            "type": "object",
+            "self": 292
+          }
+        }
+      ]
+    },
+    {
+      "target": {
+        "index": 2894871,
+        "id": 5789819,
+        "name": "WebGPURenderer",
+        "type": "object",
+        "self": 292
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 29
+          },
+          "to": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "base::OnceCallback<void (Args...)> blink::ScriptPromiseResolver<blink::IDLUndefined>::WrapCallbackInScriptScope(base::OnceCallback<void (ScriptPromiseResolver<IDLResolvedType> *, Args...)>) [IDLResolvedType = blink::IDLUndefined, Args = <wgpu::MapAsyncStatus, wgpu::dawn::wire::client::StringView>]@../../third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h:355"
+          },
+          "to": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          }
+        },
+        {
+          "from": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          },
+          "edge": {
+            "type": "element",
+            "name": 2
+          },
+          "to": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "reactions_or_result"
+          },
+          "to": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          },
+          "edge": {
+            "type": "hidden",
+            "name": 1
+          },
+          "to": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "extension"
+          },
+          "to": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          }
+        },
+        {
+          "from": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          }
+        },
+        {
+          "from": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          },
+          "edge": {
+            "type": "context",
+            "name": "_geometry"
+          },
+          "to": {
+            "index": 2906413,
+            "id": 5812899,
+            "name": "QuadGeometry",
+            "type": "object",
+            "self": 124
+          }
+        },
+        {
+          "from": {
+            "index": 2906413,
+            "id": 5812899,
+            "name": "QuadGeometry",
+            "type": "object",
+            "self": 124
+          },
+          "edge": {
+            "type": "property",
+            "name": "_listeners"
+          },
+          "to": {
+            "index": 3606764,
+            "id": 7213759,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 3606764,
+            "id": 7213759,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          },
+          "edge": {
+            "type": "property",
+            "name": "dispose"
+          },
+          "to": {
+            "index": 4096900,
+            "id": 8193905,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 4096900,
+            "id": 8193905,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 2906425,
+            "id": 5812923,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 2906425,
+            "id": 5812923,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 3250924,
+            "id": 6501911,
+            "name": "system / Context / scope @4832795",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 3250924,
+            "id": 6501911,
+            "name": "system / Context / scope @4832795",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "context",
+            "name": "this"
+          },
+          "to": {
+            "index": 2906393,
+            "id": 5812859,
+            "name": "RenderObject",
+            "type": "object",
+            "self": 140
+          }
+        },
+        {
+          "from": {
+            "index": 2906393,
+            "id": 5812859,
+            "name": "RenderObject",
+            "type": "object",
+            "self": 140
+          },
+          "edge": {
+            "type": "property",
+            "name": "renderer"
+          },
+          "to": {
+            "index": 2894871,
+            "id": 5789819,
+            "name": "WebGPURenderer",
+            "type": "object",
+            "self": 292
+          }
+        }
+      ]
+    },
+    {
+      "target": {
+        "index": 2894873,
+        "id": 5789823,
+        "name": "WebGPURenderer",
+        "type": "object",
+        "self": 292
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 29
+          },
+          "to": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 4730726,
+            "id": 9461453,
+            "name": "C++ Persistent roots",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "base::OnceCallback<void (Args...)> blink::ScriptPromiseResolver<blink::IDLUndefined>::WrapCallbackInScriptScope(base::OnceCallback<void (ScriptPromiseResolver<IDLResolvedType> *, Args...)>) [IDLResolvedType = blink::IDLUndefined, Args = <wgpu::MapAsyncStatus, wgpu::dawn::wire::client::StringView>]@../../third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h:355"
+          },
+          "to": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          }
+        },
+        {
+          "from": {
+            "index": 4730754,
+            "id": 56,
+            "name": "blink::ScriptPromiseResolver<blink::IDLUndefined>",
+            "type": "native",
+            "self": 72
+          },
+          "edge": {
+            "type": "element",
+            "name": 2
+          },
+          "to": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4650048,
+            "id": 9300097,
+            "name": "Promise",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "reactions_or_result"
+          },
+          "to": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 4649761,
+            "id": 9299523,
+            "name": "system / PromiseReaction",
+            "type": "native",
+            "self": 24
+          },
+          "edge": {
+            "type": "hidden",
+            "name": 1
+          },
+          "to": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4649760,
+            "id": 9299521,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4649759,
+            "id": 9299519,
+            "name": "system / Context / scope @459",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "internal",
+            "name": "extension"
+          },
+          "to": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          }
+        },
+        {
+          "from": {
+            "index": 4650038,
+            "id": 9300077,
+            "name": "Generator",
+            "type": "object",
+            "self": 56
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          }
+        },
+        {
+          "from": {
+            "index": 2418388,
+            "id": 4836787,
+            "name": "system / Context / scope @1871875",
+            "type": "object",
+            "self": 3776
+          },
+          "edge": {
+            "type": "context",
+            "name": "_geometry"
+          },
+          "to": {
+            "index": 2906413,
+            "id": 5812899,
+            "name": "QuadGeometry",
+            "type": "object",
+            "self": 124
+          }
+        },
+        {
+          "from": {
+            "index": 2906413,
+            "id": 5812899,
+            "name": "QuadGeometry",
+            "type": "object",
+            "self": 124
+          },
+          "edge": {
+            "type": "property",
+            "name": "_listeners"
+          },
+          "to": {
+            "index": 3606764,
+            "id": 7213759,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 3606764,
+            "id": 7213759,
+            "name": "Object",
+            "type": "object",
+            "self": 28
+          },
+          "edge": {
+            "type": "property",
+            "name": "dispose"
+          },
+          "to": {
+            "index": 4096900,
+            "id": 8193905,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 4096900,
+            "id": 8193905,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 0
+          },
+          "to": {
+            "index": 3129020,
+            "id": 6258147,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 3129020,
+            "id": 6258147,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 3129019,
+            "id": 6258145,
+            "name": "system / Context / scope @4832795",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 3129019,
+            "id": 6258145,
+            "name": "system / Context / scope @4832795",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "context",
+            "name": "this"
+          },
+          "to": {
+            "index": 3472454,
+            "id": 6945169,
+            "name": "RenderObject",
+            "type": "object",
+            "self": 140
+          }
+        },
+        {
+          "from": {
+            "index": 3472454,
+            "id": 6945169,
+            "name": "RenderObject",
+            "type": "object",
+            "self": 140
+          },
+          "edge": {
+            "type": "property",
+            "name": "renderer"
+          },
+          "to": {
+            "index": 2894873,
+            "id": 5789823,
+            "name": "WebGPURenderer",
+            "type": "object",
+            "self": 292
+          }
+        }
+      ]
+    }
+  ],
+  "afterPatchBoundedLatestBattleRenderer": {
+    "target": {
+      "index": 2054986,
+      "id": 4110005,
+      "name": "WebGPURenderer",
+      "type": "object",
+      "self": 292
+    },
+    "path": [
+      {
+        "from": {
+          "index": 0,
+          "id": 1,
+          "name": "",
+          "type": "synthetic",
+          "self": 0
+        },
+        "edge": {
+          "type": "element",
+          "name": 1
+        },
+        "to": {
+          "index": 1,
+          "id": 3,
+          "name": "(GC roots)",
+          "type": "synthetic",
+          "self": 0
+        }
+      },
+      {
+        "from": {
+          "index": 1,
+          "id": 3,
+          "name": "(GC roots)",
+          "type": "synthetic",
+          "self": 0
+        },
+        "edge": {
+          "type": "element",
+          "name": 29
+        },
+        "to": {
+          "index": 4753193,
+          "id": 9506387,
+          "name": "C++ Persistent roots",
+          "type": "synthetic",
+          "self": 0
+        }
+      },
+      {
+        "from": {
+          "index": 4753193,
+          "id": 9506387,
+          "name": "C++ Persistent roots",
+          "type": "synthetic",
+          "self": 0
+        },
+        "edge": {
+          "type": "internal",
+          "name": "blink::ScriptState::ScriptState(v8::Local<v8::Context>, DOMWrapperWorld *, ExecutionContext *)@../../third_party/blink/renderer/platform/bindings/script_state.cc:31"
+        },
+        "to": {
+          "index": 4753239,
+          "id": 92,
+          "name": "blink::ScriptStateImpl",
+          "type": "native",
+          "self": 96
+        }
+      },
+      {
+        "from": {
+          "index": 4753239,
+          "id": 92,
+          "name": "blink::ScriptStateImpl",
+          "type": "native",
+          "self": 96
+        },
+        "edge": {
+          "type": "element",
+          "name": 1
+        },
+        "to": {
+          "index": 4776933,
+          "id": 47478,
+          "name": "blink::V8PerContextData",
+          "type": "native",
+          "self": 112
+        }
+      },
+      {
+        "from": {
+          "index": 4776933,
+          "id": 47478,
+          "name": "blink::V8PerContextData",
+          "type": "native",
+          "self": 112
+        },
+        "edge": {
+          "type": "element",
+          "name": 3
+        },
+        "to": {
+          "index": 4776936,
+          "id": 47484,
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::V8PerContextData::Data, cppgc::internal::StrongMemb",
+          "type": "native",
+          "self": 136
+        }
+      },
+      {
+        "from": {
+          "index": 4776936,
+          "id": 47484,
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::V8PerContextData::Data, cppgc::internal::StrongMemb",
+          "type": "native",
+          "self": 136
+        },
+        "edge": {
+          "type": "element",
+          "name": 1
+        },
+        "to": {
+          "index": 4755211,
+          "id": 4034,
+          "name": "Modulator",
+          "type": "native",
+          "self": 112
+        }
+      },
+      {
+        "from": {
+          "index": 4755211,
+          "id": 4034,
+          "name": "Modulator",
+          "type": "native",
+          "self": 112
+        },
+        "edge": {
+          "type": "element",
+          "name": 4
+        },
+        "to": {
+          "index": 4776951,
+          "id": 47514,
+          "name": "blink::ModuleRecordResolverImpl",
+          "type": "native",
+          "self": 64
+        }
+      },
+      {
+        "from": {
+          "index": 4776951,
+          "id": 47514,
+          "name": "blink::ModuleRecordResolverImpl",
+          "type": "native",
+          "self": 64
+        },
+        "edge": {
+          "type": "element",
+          "name": 2
+        },
+        "to": {
+          "index": 4776953,
+          "id": 47518,
+          "name": "blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::BoxedV8Module, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blin",
+          "type": "native",
+          "self": 4104
+        }
+      },
+      {
+        "from": {
+          "index": 4776953,
+          "id": 47518,
+          "name": "blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::BoxedV8Module, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blin",
+          "type": "native",
+          "self": 4104
+        },
+        "edge": {
+          "type": "element",
+          "name": 409
+        },
+        "to": {
+          "index": 4755500,
+          "id": 4612,
+          "name": "blink::BoxedV8Module",
+          "type": "native",
+          "self": 24
+        }
+      },
+      {
+        "from": {
+          "index": 4755500,
+          "id": 4612,
+          "name": "blink::BoxedV8Module",
+          "type": "native",
+          "self": 24
+        },
+        "edge": {
+          "type": "element",
+          "name": 1
+        },
+        "to": {
+          "index": 3759358,
+          "id": 7518907,
+          "name": "system / SourceTextModule",
+          "type": "native",
+          "self": 76
+        }
+      },
+      {
+        "from": {
+          "index": 3759358,
+          "id": 7518907,
+          "name": "system / SourceTextModule",
+          "type": "native",
+          "self": 76
+        },
+        "edge": {
+          "type": "hidden",
+          "name": 5
+        },
+        "to": {
+          "index": 3760613,
+          "id": 7521441,
+          "name": "Generator",
+          "type": "object",
+          "self": 84
+        }
+      },
+      {
+        "from": {
+          "index": 3760613,
+          "id": 7521441,
+          "name": "Generator",
+          "type": "object",
+          "self": 84
+        },
+        "edge": {
+          "type": "internal",
+          "name": "context"
+        },
+        "to": {
+          "index": 2257459,
+          "id": 4515179,
+          "name": "system / Context / scope @4515177",
+          "type": "object",
+          "self": 44
+        }
+      },
+      {
+        "from": {
+          "index": 2257459,
+          "id": 4515179,
+          "name": "system / Context / scope @4515177",
+          "type": "object",
+          "self": 44
+        },
+        "edge": {
+          "type": "context",
+          "name": "_quadMesh"
+        },
+        "to": {
+          "index": 2623202,
+          "id": 5246799,
+          "name": "QuadMesh",
+          "type": "object",
+          "self": 168
+        }
+      },
+      {
+        "from": {
+          "index": 2623202,
+          "id": 5246799,
+          "name": "QuadMesh",
+          "type": "object",
+          "self": 168
+        },
+        "edge": {
+          "type": "property",
+          "name": "material"
+        },
+        "to": {
+          "index": 2623217,
+          "id": 5246829,
+          "name": "NodeMaterial",
+          "type": "object",
+          "self": 332
+        }
+      },
+      {
+        "from": {
+          "index": 2623217,
+          "id": 5246829,
+          "name": "NodeMaterial",
+          "type": "object",
+          "self": 332
+        },
+        "edge": {
+          "type": "property",
+          "name": "fragmentNode"
+        },
+        "to": {
+          "index": 4529659,
+          "id": 9059321,
+          "name": "ContextNode",
+          "type": "object",
+          "self": 84
+        }
+      },
+      {
+        "from": {
+          "index": 4529659,
+          "id": 9059321,
+          "name": "ContextNode",
+          "type": "object",
+          "self": 84
+        },
+        "edge": {
+          "type": "property",
+          "name": "value"
+        },
+        "to": {
+          "index": 4529662,
+          "id": 9059327,
+          "name": "Object",
+          "type": "object",
+          "self": 12
+        }
+      },
+      {
+        "from": {
+          "index": 4529662,
+          "id": 9059327,
+          "name": "Object",
+          "type": "object",
+          "self": 12
+        },
+        "edge": {
+          "type": "property",
+          "name": "renderPipeline"
+        },
+        "to": {
+          "index": 4528167,
+          "id": 9056337,
+          "name": "RenderPipeline",
+          "type": "object",
+          "self": 76
+        }
+      },
+      {
+        "from": {
+          "index": 4528167,
+          "id": 9056337,
+          "name": "RenderPipeline",
+          "type": "object",
+          "self": 76
+        },
+        "edge": {
+          "type": "property",
+          "name": "renderer"
+        },
+        "to": {
+          "index": 2054986,
+          "id": 4110005,
+          "name": "WebGPURenderer",
+          "type": "object",
+          "self": 292
+        }
+      }
+    ]
+  },
+  "afterPatchDevelopmentOnlyCatalogRoots": [
+    {
+      "target": {
+        "index": 3198538,
+        "id": 6397275,
+        "name": "BattleCrowd",
+        "type": "object",
+        "self": 116
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 11
+          },
+          "to": {
+            "index": 12,
+            "id": 25,
+            "name": "(Handle scope)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 12,
+            "id": 25,
+            "name": "(Handle scope)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "42"
+          },
+          "to": {
+            "index": 3979,
+            "id": 7959,
+            "name": "Window [JSGlobalObject] / http://127.0.0.1:5184",
+            "type": "object",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 3979,
+            "id": 7959,
+            "name": "Window [JSGlobalObject] / http://127.0.0.1:5184",
+            "type": "object",
+            "self": 24
+          },
+          "edge": {
+            "type": "property",
+            "name": "__registerBeforePerformReactRefresh"
+          },
+          "to": {
+            "index": 2634272,
+            "id": 5268923,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 2634272,
+            "id": 5268923,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2187464,
+            "id": 4374981,
+            "name": "system / Context / scope @4374979",
+            "type": "object",
+            "self": 132
+          }
+        },
+        {
+          "from": {
+            "index": 2187464,
+            "id": 4374981,
+            "name": "system / Context / scope @4374979",
+            "type": "object",
+            "self": 132
+          },
+          "edge": {
+            "type": "context",
+            "name": "helpersByRoot"
+          },
+          "to": {
+            "index": 2188759,
+            "id": 4377697,
+            "name": "Map",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 2188759,
+            "id": 4377697,
+            "name": "Map",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "internal",
+            "name": "table"
+          },
+          "to": {
+            "index": 2188760,
+            "id": 4377699,
+            "name": "",
+            "type": "array",
+            "self": 132
+          }
+        },
+        {
+          "from": {
+            "index": 2188760,
+            "id": 4377699,
+            "name": "",
+            "type": "array",
+            "self": 132
+          },
+          "edge": {
+            "type": "internal",
+            "name": "13"
+          },
+          "to": {
+            "index": 3197463,
+            "id": 6395121,
+            "name": "FiberRootNode",
+            "type": "object",
+            "self": 156
+          }
+        },
+        {
+          "from": {
+            "index": 3197463,
+            "id": 6395121,
+            "name": "FiberRootNode",
+            "type": "object",
+            "self": 156
+          },
+          "edge": {
+            "type": "property",
+            "name": "current"
+          },
+          "to": {
+            "index": 4083520,
+            "id": 8167125,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 4083520,
+            "id": 8167125,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "property",
+            "name": "alternate"
+          },
+          "to": {
+            "index": 4083597,
+            "id": 8167279,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 4083597,
+            "id": 8167279,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "property",
+            "name": "deletions"
+          },
+          "to": {
+            "index": 4083600,
+            "id": 8167285,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 4083600,
+            "id": 8167285,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 0
+          },
+          "to": {
+            "index": 4083652,
+            "id": 8167389,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 4083652,
+            "id": 8167389,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "property",
+            "name": "ref"
+          },
+          "to": {
+            "index": 4083519,
+            "id": 8167123,
+            "name": "capture",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4083519,
+            "id": 8167123,
+            "name": "capture",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4083517,
+            "id": 8167119,
+            "name": "system / Context / scope @5796809",
+            "type": "object",
+            "self": 40
+          }
+        },
+        {
+          "from": {
+            "index": 4083517,
+            "id": 8167119,
+            "name": "system / Context / scope @5796809",
+            "type": "object",
+            "self": 40
+          },
+          "edge": {
+            "type": "context",
+            "name": "cb"
+          },
+          "to": {
+            "index": 4083514,
+            "id": 8167113,
+            "name": "Object",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4083514,
+            "id": 8167113,
+            "name": "Object",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "property",
+            "name": "onToolbarCmd"
+          },
+          "to": {
+            "index": 4083515,
+            "id": 8167115,
+            "name": "onToolbarCmd",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4083515,
+            "id": 8167115,
+            "name": "onToolbarCmd",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2950724,
+            "id": 5901769,
+            "name": "system / Context / scope @5219679",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 2950724,
+            "id": 5901769,
+            "name": "system / Context / scope @5219679",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "context",
+            "name": "crowd"
+          },
+          "to": {
+            "index": 3198538,
+            "id": 6397275,
+            "name": "BattleCrowd",
+            "type": "object",
+            "self": 116
+          }
+        }
+      ]
+    },
+    {
+      "target": {
+        "index": 3688726,
+        "id": 7377631,
+        "name": "BattleCrowd",
+        "type": "object",
+        "self": 116
+      },
+      "path": [
+        {
+          "from": {
+            "index": 0,
+            "id": 1,
+            "name": "",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 1
+          },
+          "to": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 1,
+            "id": 3,
+            "name": "(GC roots)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "element",
+            "name": 11
+          },
+          "to": {
+            "index": 12,
+            "id": 25,
+            "name": "(Handle scope)",
+            "type": "synthetic",
+            "self": 0
+          }
+        },
+        {
+          "from": {
+            "index": 12,
+            "id": 25,
+            "name": "(Handle scope)",
+            "type": "synthetic",
+            "self": 0
+          },
+          "edge": {
+            "type": "internal",
+            "name": "42"
+          },
+          "to": {
+            "index": 3979,
+            "id": 7959,
+            "name": "Window [JSGlobalObject] / http://127.0.0.1:5184",
+            "type": "object",
+            "self": 24
+          }
+        },
+        {
+          "from": {
+            "index": 3979,
+            "id": 7959,
+            "name": "Window [JSGlobalObject] / http://127.0.0.1:5184",
+            "type": "object",
+            "self": 24
+          },
+          "edge": {
+            "type": "property",
+            "name": "__registerBeforePerformReactRefresh"
+          },
+          "to": {
+            "index": 2634272,
+            "id": 5268923,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 2634272,
+            "id": 5268923,
+            "name": "",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 2187464,
+            "id": 4374981,
+            "name": "system / Context / scope @4374979",
+            "type": "object",
+            "self": 132
+          }
+        },
+        {
+          "from": {
+            "index": 2187464,
+            "id": 4374981,
+            "name": "system / Context / scope @4374979",
+            "type": "object",
+            "self": 132
+          },
+          "edge": {
+            "type": "context",
+            "name": "helpersByRoot"
+          },
+          "to": {
+            "index": 2188759,
+            "id": 4377697,
+            "name": "Map",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 2188759,
+            "id": 4377697,
+            "name": "Map",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "internal",
+            "name": "table"
+          },
+          "to": {
+            "index": 2188760,
+            "id": 4377699,
+            "name": "",
+            "type": "array",
+            "self": 132
+          }
+        },
+        {
+          "from": {
+            "index": 2188760,
+            "id": 4377699,
+            "name": "",
+            "type": "array",
+            "self": 132
+          },
+          "edge": {
+            "type": "internal",
+            "name": "10"
+          },
+          "to": {
+            "index": 3197464,
+            "id": 6395123,
+            "name": "FiberRootNode",
+            "type": "object",
+            "self": 156
+          }
+        },
+        {
+          "from": {
+            "index": 3197464,
+            "id": 6395123,
+            "name": "FiberRootNode",
+            "type": "object",
+            "self": 156
+          },
+          "edge": {
+            "type": "property",
+            "name": "current"
+          },
+          "to": {
+            "index": 4433175,
+            "id": 8866353,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 4433175,
+            "id": 8866353,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "property",
+            "name": "alternate"
+          },
+          "to": {
+            "index": 4433254,
+            "id": 8866511,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 4433254,
+            "id": 8866511,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "property",
+            "name": "deletions"
+          },
+          "to": {
+            "index": 2818183,
+            "id": 5636719,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          }
+        },
+        {
+          "from": {
+            "index": 2818183,
+            "id": 5636719,
+            "name": "Array",
+            "type": "object",
+            "self": 16
+          },
+          "edge": {
+            "type": "element",
+            "name": 0
+          },
+          "to": {
+            "index": 2818184,
+            "id": 5636721,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 2818184,
+            "id": 5636721,
+            "name": "FiberNode",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "property",
+            "name": "ref"
+          },
+          "to": {
+            "index": 4433174,
+            "id": 8866351,
+            "name": "capture",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4433174,
+            "id": 8866351,
+            "name": "capture",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 4433172,
+            "id": 8866347,
+            "name": "system / Context / scope @5796809",
+            "type": "object",
+            "self": 40
+          }
+        },
+        {
+          "from": {
+            "index": 4433172,
+            "id": 8866347,
+            "name": "system / Context / scope @5796809",
+            "type": "object",
+            "self": 40
+          },
+          "edge": {
+            "type": "context",
+            "name": "cb"
+          },
+          "to": {
+            "index": 4433169,
+            "id": 8866341,
+            "name": "Object",
+            "type": "object",
+            "self": 20
+          }
+        },
+        {
+          "from": {
+            "index": 4433169,
+            "id": 8866341,
+            "name": "Object",
+            "type": "object",
+            "self": 20
+          },
+          "edge": {
+            "type": "property",
+            "name": "onToolbarCmd"
+          },
+          "to": {
+            "index": 4433170,
+            "id": 8866343,
+            "name": "onToolbarCmd",
+            "type": "closure",
+            "self": 28
+          }
+        },
+        {
+          "from": {
+            "index": 4433170,
+            "id": 8866343,
+            "name": "onToolbarCmd",
+            "type": "closure",
+            "self": 28
+          },
+          "edge": {
+            "type": "internal",
+            "name": "context"
+          },
+          "to": {
+            "index": 3689493,
+            "id": 7379165,
+            "name": "system / Context / scope @5219679",
+            "type": "object",
+            "self": 144
+          }
+        },
+        {
+          "from": {
+            "index": 3689493,
+            "id": 7379165,
+            "name": "system / Context / scope @5219679",
+            "type": "object",
+            "self": 144
+          },
+          "edge": {
+            "type": "context",
+            "name": "crowd"
+          },
+          "to": {
+            "index": 3688726,
+            "id": 7377631,
+            "name": "BattleCrowd",
+            "type": "object",
+            "self": 116
+          }
+        }
+      ]
+    }
+  ],
+  "sourceSeams": {
+    "latestBattle": "three/examples/jsm/tsl/display/BloomNode.js:4,384; three/src/renderers/common/RenderPipeline.js:201",
+    "developmentCatalogs": "@vitejs/plugin-react/dist/refresh-runtime.js:393,425",
+    "textureListeners": "three/src/nodes/functions/BSDF/DFGLUT.js:33; three/src/renderers/common/Textures.js:404",
+    "geometryListeners": "three/src/renderers/common/QuadMesh.js:37; three/src/renderers/common/RenderObject.js:347"
+  },
+  "heapSha256": {
+    "retention-after3.heapsnapshot": "9a63ed01ff0cfab8efec1ee3a74d5992183caa5cd577e6bee69b82876b2a8cee",
+    "retention-candidate-after3.heapsnapshot": "4c4544d54d91e3d47f9c0a6ce5c09c1fa62b49f9d985ab85b7d1b208711a02d8"
+  }
+}

@@ -1,0 +1,11 @@
+# Native battle overlays
+
+The native component preserves the actual source overlay material and placement contracts: display-colour conversion before scene grade, unlit alpha-blended lines/triangles/rings, terrain-height ring seating with read-only depth, and opaque cutout billboards in the background marker band. Shared CPU upload writers and marker/ring material constants have one owner. Each native layer owns a stable pipeline and growable buffers; the frame owns camera, attachments and draw order.
+
+The final control uses visible opaque geometry plus a matched unoccluded view. All24 one/four-sample cases pass the unchanged1/255 HDR gate (maximum0.001220703125), with zero GPU/browser errors, nonfinite pixels, or retained native buffers/textures after disposal. Cases cover each layer, composition, horizon, growth, shrink and empty state. Source and native active counts are recorded separately; capacity remains allocated after shrinking while active draw counts shrink. The growth case deliberately repeats translucent cues, so both source and native become brighter. Shrink returns to the composed image.
+
+[Final captures](visible-occluder/samples-1/report.json) and [four-sample captures](visible-occluder/samples-4/report.json) include the reported counts. [Fresh visual review](visual-review/report.md) finds no visible pair regression. Covered ring/line intervals align with the visible block; the unoccluded view restores them. Marker tops align with the background plane boundary. The fully hidden-marker image alone cannot prove placement, so its submission/count evidence remains distinct from visual evidence.
+
+The initial controls and [first review](initial-review/review.md) remain here because they exposed verification gaps: markers needed an exposed view, and an occluder matching the ground colour could not explain the missing central arcs visually. The revised fixture fixes those evidence gaps without changing the native layer algorithms.
+
+Shared limitations remain explicit: faint thin lines, weak marker identity and flattened horizon rings. These are isolated controls, not the user's crowded tactical scene, animation stability or measured performance. TypeGPU/vgpu overlay ports and complete-scene integration remain open. No standing test threshold or production graphics setting changed.

@@ -115,3 +115,12 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 ### Shared overlay preparation
 
 - **Settled:** Keep tactical geometry placement and marker packing in shared CPU data while each renderer retains its growable arrays. Preserve source draping, partial-input behavior and defaults exactly so a backend comparison cannot silently change visible cues or their upload workload.
+
+### Native overlay material and ordering
+
+- **Settled:** Preserve the source's background marker band and distinct depth-tested ground cues versus late effects in the comparison. Share authored marker/ring constants and placement data; each runtime owns its stable pipelines and growable buffers. Improving cue readability at the horizon would be a separate visual change, not a hidden reduction or redesign in backend timing.
+
+### Experimental public API costs
+
+- **Settled:** TypeGPU's scenery cutout depth pass forwards raster depth through its public fragment-depth output because the pinned generator cannot emit a colourless discard-only stage. Keep the possible early-depth cost visible in the backend decision rather than using a hidden raw pass.
+- **Settled:** vgpu water owns individual public buffers and lends their handles to geometry, allowing cleanup if construction fails partway through. TypeGPU realizes its owned state and bind groups before admission completes, so readiness includes their real allocations rather than deferring failure until the first draw.

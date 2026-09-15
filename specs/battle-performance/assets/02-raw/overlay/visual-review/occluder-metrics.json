@@ -1,0 +1,24 @@
+[
+  {
+    "samples": 1,
+    "comparison": "actual composed vs actual unoccluded",
+    "changedPixels": 1292,
+    "diffBoundsInclusive": [
+      302,
+      193,
+      337,
+      228
+    ]
+  },
+  {
+    "samples": 4,
+    "comparison": "actual composed vs actual unoccluded",
+    "changedPixels": 1333,
+    "diffBoundsInclusive": [
+      301,
+      193,
+      338,
+      228
+    ]
+  }
+]

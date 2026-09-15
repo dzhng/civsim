@@ -9,6 +9,8 @@
 // each overlay linearizes through the one linearAlbedo seam, so authored overlay
 // colors keep their hue through the transform.
 import {
+  BATTLE_MARKER_PROFILE,
+  BATTLE_RING_TINT_GAIN,
   prepareBattleLineVertices,
   writeBattleLineVertices,
   writeBattleTriangleVertices,
@@ -241,7 +243,7 @@ export class PhotorealRingLayer {
       )
       .mul(P.fillAlpha);
     material.colorNode = vec4(
-      linearAlbedo(color.rgb.mul(1.08)),
+      linearAlbedo(color.rgb.mul(BATTLE_RING_TINT_GAIN)),
       max(ring.mul(P.ringAlpha), fill).mul(color.a),
     );
 
@@ -316,8 +318,8 @@ export class PhotorealMarkerLayer {
     const quad = attribute<"vec3">("position", "vec3");
     const inst = attribute<"vec4">("markerInst", "vec4"); // (x, y, facing, faction)
     const meta = attribute<"vec4">("markerMeta", "vec4"); // (size, lod, 0, 0)
-    const right = vec3(this.camRight).mul(quad.x.mul(meta.x).mul(0.34));
-    const up = vec3(this.camUp).mul(quad.y.mul(meta.x).mul(0.58));
+    const right = vec3(this.camRight).mul(quad.x.mul(meta.x).mul(BATTLE_MARKER_PROFILE.halfWidth));
+    const up = vec3(this.camUp).mul(quad.y.mul(meta.x).mul(BATTLE_MARKER_PROFILE.halfHeight));
     material.positionNode = vec3(inst.x, inst.y, 0.0).add(right).add(up);
     const local = varying(quad.xy).toVar();
     const faction = varying(inst.w);
@@ -328,14 +330,18 @@ export class PhotorealMarkerLayer {
     let accent = mix(blue, red, step(0.5, faction));
     accent = mix(accent, neutral, step(1.5, faction));
     const d = length(local);
-    const inside = float(1.0).sub(step(1.15, d));
+    const inside = float(1.0).sub(step(BATTLE_MARKER_PROFILE.edgeRadius, d));
     const body = mix(
-      vec3(0.56, 0.41, 0.24),
-      vec3(0.78, 0.65, 0.42),
+      vec3(...BATTLE_MARKER_PROFILE.bodyLow),
+      vec3(...BATTLE_MARKER_PROFILE.bodyHigh),
       clamp(float(1.0).sub(local.y.abs()), 0.0, 1.0),
     );
-    const stripe = smoothstep(float(0.02), float(0.0), local.x.add(0.32).abs());
-    const lodDim = float(1.0).sub(lod.mul(0.08));
+    const stripe = smoothstep(
+      float(BATTLE_MARKER_PROFILE.stripeHalfWidth),
+      float(0.0),
+      local.x.add(-BATTLE_MARKER_PROFILE.stripeCenter).abs(),
+    );
+    const lodDim = float(1.0).sub(lod.mul(BATTLE_MARKER_PROFILE.lodDim));
     material.colorNode = vec4(linearAlbedo(mix(body, accent, stripe).mul(lodDim)), inside);
 
     this.mesh = new THREE.Mesh(this.geometry, material);

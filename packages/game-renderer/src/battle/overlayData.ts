@@ -144,3 +144,16 @@ export function writeBattleMarkerInstances(
     meta[o + 1] = m.lod ?? 0;
   }
 }
+
+/** Battle cue materials compose display colours before the shared transfer. */
+export const BATTLE_RING_TINT_GAIN = 1.08;
+export const BATTLE_MARKER_PROFILE = {
+  halfWidth: 0.34,
+  halfHeight: 0.58,
+  edgeRadius: 1.15,
+  bodyLow: [0.56, 0.41, 0.24],
+  bodyHigh: [0.78, 0.65, 0.42],
+  stripeCenter: -0.32,
+  stripeHalfWidth: 0.02,
+  lodDim: 0.08,
+} as const;

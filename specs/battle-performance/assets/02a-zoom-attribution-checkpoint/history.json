@@ -1,0 +1,128 @@
+{
+  "frames": 354,
+  "failedFrames": 0,
+  "failures": [],
+  "publications": [
+    {
+      "frameId": 1,
+      "elapsedMs": 0,
+      "baseRevision": 2,
+      "ringRevision": 2,
+      "pending": false,
+      "baseCircle": {
+        "center": [
+          0,
+          -672
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "publishedLayers": [
+        "base",
+        "ring"
+      ]
+    },
+    {
+      "frameId": 12,
+      "elapsedMs": 0,
+      "baseRevision": 2,
+      "ringRevision": 2,
+      "pending": true,
+      "baseCircle": {
+        "center": [
+          0,
+          -672
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "publishedLayers": []
+    },
+    {
+      "frameId": 13,
+      "elapsedMs": 0,
+      "baseRevision": 2,
+      "ringRevision": 3,
+      "pending": false,
+      "baseCircle": {
+        "center": [
+          48,
+          -144
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "publishedLayers": [
+        "ring"
+      ]
+    },
+    {
+      "frameId": 180,
+      "elapsedMs": 37165.17999999999,
+      "baseRevision": 2,
+      "ringRevision": 3,
+      "pending": true,
+      "baseCircle": {
+        "center": [
+          48,
+          -144
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "publishedLayers": []
+    },
+    {
+      "frameId": 203,
+      "elapsedMs": 43698.255000000005,
+      "baseRevision": 2,
+      "ringRevision": 4,
+      "pending": false,
+      "baseCircle": {
+        "center": [
+          -48,
+          -96
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "publishedLayers": [
+        "ring"
+      ]
+    },
+    {
+      "frameId": 251,
+      "elapsedMs": 58780.98000000001,
+      "baseRevision": 2,
+      "ringRevision": 4,
+      "pending": true,
+      "baseCircle": {
+        "center": [
+          -48,
+          -96
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "publishedLayers": []
+    },
+    {
+      "frameId": 337,
+      "elapsedMs": 98379.4,
+      "baseRevision": 2,
+      "ringRevision": 5,
+      "pending": false,
+      "baseCircle": {
+        "center": [
+          48,
+          -144
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "publishedLayers": [
+        "ring"
+      ]
+    }
+  ]
+}

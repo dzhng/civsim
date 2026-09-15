@@ -381,6 +381,17 @@ try {
         );
         delete result.localization[key].png;
       }
+      for (const [index, row] of (result.localization.attribution ?? []).entries()) {
+        await boundedWrite(`${name}-object-${index}-crop.png`, Buffer.from(row.png, "base64"));
+        delete row.png;
+      }
+      if (result.localization.restored) {
+        await boundedWrite(
+          `${name}-restored-crop.png`,
+          Buffer.from(result.localization.restored.png, "base64"),
+        );
+        delete result.localization.restored.png;
+      }
       await boundedWrite(`${name}-localization.json`, JSON.stringify(result.localization, null, 2));
     }
     if (sourceBytes && replayBytes && !diagnostic) {

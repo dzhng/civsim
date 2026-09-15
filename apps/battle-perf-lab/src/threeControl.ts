@@ -103,6 +103,85 @@ export class ThreeControl {
     return { frameId: frame.frameId, simTick: frame.simTick, stats: this.world.stats() };
   }
 
+  diagnosticObjects(prefix: string) {
+    const rows: {
+      name: string;
+      visible: boolean;
+      count: number | null;
+      indexCount: number | null;
+    }[] = [];
+    this.world.world.scene.traverse((object) => {
+      if (object.name.startsWith(prefix) && "geometry" in object) {
+        const mesh = object as import("three/webgpu").Mesh;
+        rows.push({
+          name: object.name,
+          visible: object.visible,
+          count: "count" in object ? Number(object.count) : null,
+          indexCount: mesh.geometry.index?.count ?? null,
+        });
+      }
+    });
+    return rows;
+  }
+  redrawExcluding(names: readonly string[]) {
+    const objects: { object: import("three/webgpu").Object3D; visible: boolean }[] = [];
+    const shadows: {
+      shadow: import("three/webgpu").LightShadow;
+      autoUpdate: boolean;
+      needsUpdate: boolean;
+    }[] = [];
+    this.world.world.scene.traverse((object) => {
+      if (names.includes(object.name)) {
+        objects.push({ object, visible: object.visible });
+        object.visible = false;
+      }
+      if ("shadow" in object && object.shadow) {
+        const shadow = object.shadow as import("three/webgpu").LightShadow;
+        shadows.push({ shadow, autoUpdate: shadow.autoUpdate, needsUpdate: shadow.needsUpdate });
+        shadow.autoUpdate = false;
+        shadow.needsUpdate = false;
+      }
+    });
+    try {
+      this.world.world.render(this.world.camera);
+    } finally {
+      for (const row of objects) row.object.visible = row.visible;
+      for (const row of shadows) {
+        row.shadow.autoUpdate = row.autoUpdate;
+        row.shadow.needsUpdate = row.needsUpdate;
+      }
+    }
+  }
+  async inspectGrassStorage() {
+    const nodes = new Set<import("three/webgpu").Node>();
+    this.world.world.scene.traverse((object) => {
+      if (!object.name.startsWith("battle-grass") || !("material" in object)) return;
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      for (const material of materials) {
+        const position = (material as { positionNode?: import("three/webgpu").Node }).positionNode;
+        position?.traverse((node) => nodes.add(node));
+      }
+    });
+    const rows = [];
+    for (const node of nodes) {
+      const value = (node as unknown as { value?: import("three/webgpu").StorageBufferAttribute })
+        .value;
+      if (!value?.isStorageBufferAttribute) continue;
+      const bytes = await this.world.world.renderer.getArrayBufferAsync(value);
+      const data = new Uint8Array(bytes);
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", data)), (v) =>
+        v.toString(16).padStart(2, "0"),
+      ).join("");
+      rows.push({
+        name: node.name,
+        bytes: bytes.byteLength,
+        hash,
+        prefix: Array.from(new Uint32Array(bytes).subarray(0, 32)),
+      });
+    }
+    return { nodes: nodes.size, storage: rows };
+  }
+
   /** Diagnostic only: redraw the prepared scene without advancing simulation or residency. */
   redrawPrepared(hideGrass: boolean) {
     const changed: { object: import("three/webgpu").Object3D; visible: boolean }[] = [];

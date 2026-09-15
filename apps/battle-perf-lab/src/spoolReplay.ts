@@ -129,7 +129,31 @@ export async function createSpoolReplay(
         control.redrawPrepared(true);
         const grassHidden = await crop(await snapshot());
         control.redrawPrepared(false);
-        localization = { x, y, original, repeated, grassHidden };
+        const prefix = packet.selection.windowIndex === 0 ? "battle-grass" : "battle-crowd";
+        const objects = control.diagnosticObjects(prefix).filter((row) => row.visible);
+        const attribution = [];
+        // One object at a time, bounded by the production catalog and grass tier count.
+        if (objects.length > 256) throw Error("Diagnostic object budget exceeded");
+        for (const object of objects) {
+          control.redrawExcluding([object.name]);
+          const observation = await crop(await snapshot());
+          if (observation.pixel.some((v, i) => v !== original.pixel[i]))
+            attribution.push({ object, ...observation });
+        }
+        control.redrawExcluding([]);
+        const restored = await crop(await snapshot());
+        const grassStorage =
+          packet.selection.windowIndex === 0 ? await control.inspectGrassStorage() : undefined;
+        localization = {
+          x,
+          y,
+          original,
+          repeated,
+          grassHidden,
+          attribution,
+          restored,
+          grassStorage,
+        };
       }
       return {
         localization,

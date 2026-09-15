@@ -1,0 +1,47 @@
+[
+  {
+    "name": "94ca15bb",
+    "width": 1280,
+    "height": 800,
+    "white": 5922,
+    "total": 977920,
+    "ratio": 0.0060557100785340314,
+    "pass": true
+  },
+  {
+    "name": "2e06d5b2",
+    "width": 1280,
+    "height": 800,
+    "white": 3892,
+    "total": 977920,
+    "ratio": 0.003979875654450262,
+    "pass": true
+  },
+  {
+    "name": "99da9f03",
+    "width": 1280,
+    "height": 800,
+    "white": 3143,
+    "total": 977920,
+    "ratio": 0.003213964332460733,
+    "pass": true
+  },
+  {
+    "name": "c87418b5",
+    "width": 1280,
+    "height": 800,
+    "white": 2956,
+    "total": 977920,
+    "ratio": 0.0030227421465968585,
+    "pass": true
+  },
+  {
+    "name": "candidate",
+    "width": 1280,
+    "height": 800,
+    "white": 1019,
+    "total": 977920,
+    "ratio": 0.0010420075261780104,
+    "pass": false
+  }
+]

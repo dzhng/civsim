@@ -13,18 +13,24 @@ is now integrated too; the latest550 frontend tests and typecheck pass. The UI
 production build passes; independent code review reports no actionable defects. Matched production
 controls show brighter glyphs and standards with exact repeats and unchanged
 non-label regional/Alpine pixels. The unchanged regional label floor still fails
-because visible glyph coverage is sparse; do not lower it. See
+despite restored glyph ink; do not lower it. The historical whole-frame metric
+also counts card chrome and bright terrain, so its coverage contract is under audit. See
 [production UI evidence](assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md).
 
-**Current pickup:** audit the remaining regional label oracle and adopt the
-shared rock-height texture in both production maps.
-The texture prototype improves three real-terrain views with exact repeats;
-rounded landforms, stepped grass edges and ecological richness remain open.
-Claude is implementing its shared resource lifetime in
-`/Users/david/dev/game-rock-texture-probe`. Painted-halo bounds are integrated
-after31 browser checks, exact repeats and550 frontend tests; conservative culling trades some name density for separation.
-The regional white-pixel floor remains red. Keep matching controls
-until their results are integrated; retired spike worktrees have been removed.
+**Current pickup:** integrate the shared rock-height texture and evaluate low
+vegetation in both map types. The texture prototype improves three real-terrain
+views with exact repeats; production wiring is under review in
+`/Users/david/dev/game-rock-texture-probe`. A bounded existing-shrub prototype is
+running in `/Users/david/dev/game-landscape-understory`, preserving mature trees
+and existing budgets. Rounded landforms, grass edges and ecological richness
+remain open; these visual properties are the priority.
+
+Painted-halo bounds are integrated after31 browser checks, exact repeats and550
+frontend tests, with the recorded conservative-culling tradeoff. The historical
+label-oracle audit proves its whole-frame white count cannot establish neutral
+name coverage; a direct positive/negative owner-aware check must precede any
+replacement. Keep the old floor unchanged meanwhile. Matching controls remain
+available; retired spike worktrees have been removed.
 
 Then rerun canonical campaign acceptance with the shared natural-ground/cart
 verifiers, the controlled-fixture battle handoff, and battle acceptance. Profile

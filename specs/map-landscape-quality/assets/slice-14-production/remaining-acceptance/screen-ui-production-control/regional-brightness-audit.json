@@ -6,8 +6,8 @@
   "atlasWhite": 889,
   "outsideInkWhite": 134,
   "outsideAtlasWhite": 134,
-  "requiredWhite": 1956,
-  "shortfall": 933,
+  "requiredWhite": 1907,
+  "shortfall": 884,
   "perLabel": [
     {
       "text": "AESERNIA",
@@ -250,5 +250,6 @@
     "insideReportedCards": 131,
     "topBand36to64": 3,
     "elsewhere": 0
-  }
+  },
+  "roundingCorrection": "The gate compares Number((white/total).toFixed(4)) >= 0.002; minimum is1907 here. A strict unrounded0.002 floor would need1956, which was the earlier misreported requirement."
 }

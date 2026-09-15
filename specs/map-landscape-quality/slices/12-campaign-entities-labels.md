@@ -145,3 +145,10 @@ It resolves the Alpine joined-name case, with a recorded conservative-culling
 tradeoff in another readable pair. Collision, own-city-card and DPR/raised-label
 contracts pass with exact repeats. The regional white-pixel coverage gate remains
 open and is being audited independently; typography and its threshold are unchanged.
+
+The [historical label-oracle audit](../assets/slice-14-production/remaining-acceptance/label-oracle-audit/report.md)
+shows that the legacy whole-frame white count can pass after all seven neutral
+canvas names are excluded; legitimate DOM names and other bright surfaces still
+contribute. It therefore does not prove coverage of those names. Before replacing
+it, validate a direct owner-aware readability/coverage contract with real missing
+canvas-name and missing-card-title controls. No threshold has been lowered.

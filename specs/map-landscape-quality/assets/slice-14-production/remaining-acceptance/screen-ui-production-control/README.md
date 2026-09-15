@@ -46,8 +46,9 @@ observed pixel in the rectangle, not an inferred shader input. Union counts
 avoid double attribution.
 
 The 1023 bright pixels comprise **889 in labels, 131 in DOM card boxes and
-3 in the top HUD band**, with none elsewhere. The .002 floor needs 1956
-pixels, leaving a shortfall of 933. Every reported label has opacity 1;
+3 in the top HUD band**, with none elsewhere. The implemented .002 comparison rounds the ratio to four decimals first, so it
+needs1907 pixels, leaving a shortfall of884. A strict unrounded floor would need
+1956; that was the earlier incorrectly reported requirement. Every reported label has opacity 1;
 this is not an opacity fade. Seven labels contribute bright pixels:
 
 | Label | Visible ink-box area | White pixels | Peak RGB |

@@ -1,0 +1,65 @@
+{
+  "method": "CPU counterfactual exclusion only; original PNG unmodified; broad manually inspected neutral-city text rectangles",
+  "total": 2956,
+  "removed": 761,
+  "remaining": 2195,
+  "remainingRatio": 0.002244559882198953,
+  "per": [
+    {
+      "name": "SPOLETIUM",
+      "x": 595,
+      "y": 127,
+      "w": 95,
+      "h": 22,
+      "white": 76
+    },
+    {
+      "name": "ATERNUM",
+      "x": 940,
+      "y": 236,
+      "w": 87,
+      "h": 25,
+      "white": 74
+    },
+    {
+      "name": "CORFINIUM",
+      "x": 850,
+      "y": 331,
+      "w": 99,
+      "h": 25,
+      "white": 154
+    },
+    {
+      "name": "LARINUM",
+      "x": 1128,
+      "y": 448,
+      "w": 88,
+      "h": 25,
+      "white": 92
+    },
+    {
+      "name": "AESERNIA",
+      "x": 951,
+      "y": 508,
+      "w": 95,
+      "h": 30,
+      "white": 102
+    },
+    {
+      "name": "BENEVENTUM",
+      "x": 1076,
+      "y": 673,
+      "w": 115,
+      "h": 27,
+      "white": 135
+    },
+    {
+      "name": "PUTEOLI",
+      "x": 934,
+      "y": 769,
+      "w": 95,
+      "h": 30,
+      "white": 128
+    }
+  ]
+}

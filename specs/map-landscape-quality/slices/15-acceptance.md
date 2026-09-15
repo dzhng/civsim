@@ -37,3 +37,12 @@ Feedback that would change the slice: User feedback can change the art target at
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
 Pending battle verification follow-up: full-frame hardware bronze-cardbar drift remains separate from zero-difference forest-world captures. Preserve canonical tolerances. The standing 30k scene's close zoom 24/28 requests settle at 8; correct its actual camera coverage before claiming those close-stop budgets. See the [density evidence](../assets/slice-07/battle-density/README.md).
+
+## Current lifetime acceptance gap
+
+Explicit terrain disposal and flat GPU resource counters do not prove JavaScript
+collectability. The ten-cycle journey shows growing memory; a three-cycle weak
+reference probe collects outer worlds but retains their disposed Three renderers.
+Resolve the measured retaining path before claiming stable whole-game lifetime.
+Do not substitute timestamp-map counts or disposal events for retained-size
+measurement. Diagnostic boundaries live in the production journey evidence.

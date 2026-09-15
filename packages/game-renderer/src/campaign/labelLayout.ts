@@ -56,13 +56,16 @@ export interface CampaignLabelDebugRect {
   opacity: number;
   box: { x: number; y: number; w: number; h: number };
   corners: [number, number][];
-  /** Transparent halo margin inside the box, CSS px per side. Deflating the
-   * box by this gives the ink rect (icon + glyphs) — the visible label. */
+  /** Fully transparent margin inside the box, CSS px per side — the part of the
+   * atlas gutter the halo stroke never reaches. Deflating the box by this gives
+   * the ink rect (icon + glyphs + their halo) — the visible label. */
   padPx: number;
   /** The exact ink-rect AABB the occupancy arbitration used for this label
-   * (deflate-to-ink THEN rotate THEN AABB). For a tilted label this is tighter
-   * than deflating `box` (the full-quad AABB) by `padPx` — consumers checking
-   * overlaps must use this so the test agrees with what arbitration enforced. */
+   * (deflate-to-ink THEN rotate THEN AABB). Ink is everything painted: the
+   * glyph fills AND the halo struck around them. For a tilted label this is
+   * tighter than deflating `box` (the full-quad AABB) by `padPx` — consumers
+   * checking overlaps must use this so the test agrees with what arbitration
+   * enforced. */
   inkRect: { x: number; y: number; w: number; h: number };
   /** Icon-above city labels only: the drawn settlement-icon sub-rect in
    * CSS px (the marker footprint). Absent for labels with no above-icon. */
@@ -291,6 +294,7 @@ interface AtlasEntry extends VisibleCampaignLabel {
   width: number;
   height: number;
   padding: number;
+  inkInset: number;
   u0: number;
   v0: number;
   u1: number;
@@ -608,6 +612,7 @@ export function buildLabelAtlas(
       width: entry.width,
       height: entry.height,
       padding: entry.style.padding,
+      inkInset: inkInsetPx(entry.style),
       u0: entry.x / atlasWidth,
       v0: entry.y / atlasHeight,
       u1: (entry.x + entry.width) / atlasWidth,
@@ -760,9 +765,15 @@ function entryInkRect(entry: MeasuredCampaignLabel, dpr: number): ScreenRect {
   );
 }
 
-/** The visible ink box: the atlas rect deflated by its transparent halo
- * padding, placed with the same anchor math the GPU quad uses (the padding is
- * margin nobody sees — counting it would make labels yield to empty air). */
+/** A centered halo stroke consumes half its width from the transparent gutter.
+ * These rectangular claims are conservative around individual glyph shapes. */
+function inkInsetPx(style: ReturnType<typeof labelStyle>) {
+  return Math.max(0, style.padding - style.haloWidth * 0.5);
+}
+
+/** The painted ink box: the atlas rect deflated to the extent that actually
+ * carries paint (see inkInsetPx), placed with the same anchor math the GPU quad
+ * uses. Deflate THEN rotate, so a tilted label's ink follows its own axes. */
 function inkRectAt(
   entry: MeasuredCampaignLabel,
   offsetX: number,
@@ -771,12 +782,12 @@ function inkRectAt(
   anchorY: CampaignLabel["screenAnchorY"],
   dpr: number,
 ): ScreenRect {
-  const pad = entry.style.padding;
+  const inset = inkInsetPx(entry.style);
   const corners = labelCornersCss(
     entry.screenX + anchorCenterOffsetX(anchorX, offsetX, entry.width),
     entry.screenY + anchorCenterOffsetY(anchorY, offsetY, entry.height),
-    Math.max(1, entry.width - pad * 2),
-    Math.max(1, entry.height - pad * 2),
+    Math.max(1, entry.width - inset * 2),
+    Math.max(1, entry.height - inset * 2),
     entry.label.angle ?? 0,
     dpr,
   );
@@ -852,14 +863,14 @@ export function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLab
       entry.screenY + anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, entry.height);
     const angle = label.angle ?? 0;
     const corners = labelCornersCss(centerX, centerY, entry.width, entry.height, angle, dpr);
-    // Ink rect the arbitration enforced: deflate to ink, THEN rotate, THEN AABB
-    // (mirrors inkRectAt). For a tilted label this differs from deflating the
-    // full-quad AABB `box`.
+    // Ink rect the arbitration enforced: deflate to painted ink (glyphs plus
+    // the halo stroke around them), THEN rotate, THEN AABB (mirrors inkRectAt).
+    // For a tilted label this differs from deflating the full-quad AABB `box`.
     const inkCorners = labelCornersCss(
       centerX,
       centerY,
-      Math.max(1, entry.width - entry.padding * 2),
-      Math.max(1, entry.height - entry.padding * 2),
+      Math.max(1, entry.width - entry.inkInset * 2),
+      Math.max(1, entry.height - entry.inkInset * 2),
       angle,
       dpr,
     );
@@ -884,7 +895,7 @@ export function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLab
       opacity: roundPx(entry.opacity),
       box: cornersAabb(corners),
       corners,
-      padPx: roundPx(entry.padding / dpr),
+      padPx: roundPx(entry.inkInset / dpr),
       inkRect: cornersAabb(inkCorners),
       ...(iconRect ? { iconRect } : {}),
       ...(label.kind === "faction" ? { minor: label.factionMinor === true } : {}),

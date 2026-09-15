@@ -137,3 +137,11 @@ zoom culling band keeps its tier policy. [Actual-scene evidence](../assets/slice
 records Tibur's 199.684 px correction, unchanged city bodies, all original
 collision/visibility checks, and three exact repeats. Offshore Ostia and general
 card/model association remain limited by the existing downward-only policy.
+
+
+The [painted-halo occupancy checkpoint](../assets/slice-12/painted-label-bounds/README.md)
+uses the existing rectangle/importance policy with the visible stroke reserved.
+It resolves the Alpine joined-name case, with a recorded conservative-culling
+tradeoff in another readable pair. Collision, own-city-card and DPR/raised-label
+contracts pass with exact repeats. The regional white-pixel coverage gate remains
+open and is being audited independently; typography and its threshold are unchanged.

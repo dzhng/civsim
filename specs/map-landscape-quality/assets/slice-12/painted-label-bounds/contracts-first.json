@@ -1,0 +1,187 @@
+{
+  "stage": "first",
+  "target": "http://127.0.0.1:5213",
+  "checks": [
+    {
+      "scene": "collision",
+      "name": "overview shows LONDINIUM beside (not under) the ARVERNI engraving",
+      "ok": true,
+      "detail": "{\"arverni\":{\"x\":272.605,\"y\":146.892,\"w\":186.854,\"h\":69.574},\"londinium\":{\"x\":287.816,\"y\":23.667,\"w\":80.1,\"h\":39.1}}"
+    },
+    {
+      "scene": "collision",
+      "name": "collision overview: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": "{\"labelPairs\":[],\"cardPairs\":[],\"cardLabelPairs\":[],\"labels\":15,\"cards\":1}"
+    },
+    {
+      "scene": "collision",
+      "name": "snapshot collision-overview-political",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scene": "collision",
+      "name": "reported card rects are same-frame with the DOM; entering cards settle in one frame (ordering pin)",
+      "ok": true,
+      "detail": "{\"frame1\":{\"reported\":1,\"stale\":[]},\"frame2\":{\"reported\":15,\"dom\":15,\"stale\":[]}}"
+    },
+    {
+      "scene": "collision",
+      "name": "Roma cluster city cards all visible at full-tilt zoom (nudged, never culled)",
+      "ok": true,
+      "detail": "{\"visible\":[\"ALBA FUCENS\",\"ASCULUM\",\"CAPUA\",\"CASINUM\",\"CLUSIUM\",\"COSA\",\"FERENTINUM\",\"MINTURNAE\",\"NARNIA\",\"OSTIA/PORTUS\",\"REATE\",\"ROMA\",\"TARRACINA\",\"TIBUR\",\"VOLSINII\"],\"culled\":[\"city:CASTRUM TRUENTINUM\"]}"
+    },
+    {
+      "scene": "collision",
+      "name": "collision regional-roma: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": "{\"labelPairs\":[],\"cardPairs\":[],\"cardLabelPairs\":[],\"labels\":12,\"cards\":15}"
+    },
+    {
+      "scene": "collision",
+      "name": "snapshot collision-regional-roma",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scene": "collision",
+      "name": "campaign map has Pella",
+      "ok": true,
+      "detail": "[380.68280257537094,317.71036298550746]"
+    },
+    {
+      "scene": "collision",
+      "name": "collision pella: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": "{\"labelPairs\":[],\"cardPairs\":[],\"cardLabelPairs\":[],\"labels\":14,\"cards\":0}"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 atlas draws accepted labels",
+      "ok": true,
+      "detail": "{\"labels\":3,\"visibleLabels\":3,\"visibleLabelNames\":[\"city:Ridge settlement\",\"army:Field army\",\"army:Rear army\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"Ridge settlement\",\"kind\":\"city\",\"opacity\":1,\"box\":{\"x\":327.535,\"y\":530.298,\"w\":183,\"h\":42},\"corners\":[[327.535,530.298],[510.535,530.298],[510.535,572.298],[327.535,572.298]],\"padPx\":6.45,\"inkRect\":{\"x\":333.985,\"y\":536.748,\"w\":170.1,\"h\":29.1}}],\"visibleArmyLabelRects\":[{\"text\":\"Field army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":746.7,\"y\":476.187,\"w\":98,\"h\":34},\"corners\":[[746.7,476.187],[844.7,476.187],[844.7,510.187],[746.7,510.187]],\"padPx\":4.45,\"inkRect\":{\"x\":751.15,\"y\":480.637,\"w\":89.1,\"h\":25.1}},{\"text\":\"Rear army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":564.578,\"y\":339.584,\"w\":95,\"h\":34},\"corners\":[[564.578,339.584],[659.578,339.584],[659.578,373.584],[564.578,373.584]],\"padPx\":4.45,\"inkRect\":{\"x\":569.028,\"y\":344.034,\"w\":86.1,\"h\":25.1}}],\"visibleFactionLabelRects\":[],\"collisionCulls\":0,\"collisionCulledLabels\":[],\"atlasWidth\":1024,\"atlasHeight\":64,\"vertices\":18,\"layer\":\"physical-gpu-glyph-atlas\"}"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 no DOM label substitute",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "snapshot campaign-raised-labels-dpr1",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 accepted ink is actually drawn: Ridge settlement",
+      "ok": true,
+      "detail": "2370 changed pixels"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 accepted ink is actually drawn: Field army",
+      "ok": true,
+      "detail": "1090 changed pixels"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 accepted ink is actually drawn: Rear army",
+      "ok": true,
+      "detail": "1043 changed pixels"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 card occupancy culls army label",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 replacement moves accepted army ink",
+      "ok": true,
+      "detail": "{\"before\":{\"x\":751.15,\"y\":480.637,\"w\":89.1,\"h\":25.1},\"after\":{\"x\":754.138,\"y\":447.463,\"w\":89.1,\"h\":25.1}}"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 resize refreshes ink",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 fog removes hidden army ink",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "DPR1 recreated world retains one canvas and visible labels",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 atlas draws accepted labels",
+      "ok": true,
+      "detail": "{\"labels\":3,\"visibleLabels\":3,\"visibleLabelNames\":[\"city:Ridge settlement\",\"army:Field army\",\"army:Rear army\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"Ridge settlement\",\"kind\":\"city\",\"opacity\":1,\"box\":{\"x\":328.285,\"y\":530.298,\"w\":181.5,\"h\":41},\"corners\":[[328.285,530.298],[509.785,530.298],[509.785,571.298],[328.285,571.298]],\"padPx\":5.95,\"inkRect\":{\"x\":334.235,\"y\":536.248,\"w\":169.6,\"h\":29.1}}],\"visibleArmyLabelRects\":[{\"text\":\"Field army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":746.7,\"y\":476.187,\"w\":98,\"h\":34},\"corners\":[[746.7,476.187],[844.7,476.187],[844.7,510.187],[746.7,510.187]],\"padPx\":4.45,\"inkRect\":{\"x\":751.15,\"y\":480.637,\"w\":89.1,\"h\":25.1}},{\"text\":\"Rear army\",\"kind\":\"army\",\"opacity\":1,\"box\":{\"x\":564.578,\"y\":339.584,\"w\":95,\"h\":34},\"corners\":[[564.578,339.584],[659.578,339.584],[659.578,373.584],[564.578,373.584]],\"padPx\":4.45,\"inkRect\":{\"x\":569.028,\"y\":344.034,\"w\":86.1,\"h\":25.1}}],\"visibleFactionLabelRects\":[],\"collisionCulls\":0,\"collisionCulledLabels\":[],\"atlasWidth\":1024,\"atlasHeight\":128,\"vertices\":18,\"layer\":\"physical-gpu-glyph-atlas\"}"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 no DOM label substitute",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "snapshot campaign-raised-labels-dpr2",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 accepted ink is actually drawn: Ridge settlement",
+      "ok": true,
+      "detail": "8373 changed pixels"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 accepted ink is actually drawn: Field army",
+      "ok": true,
+      "detail": "3859 changed pixels"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 accepted ink is actually drawn: Rear army",
+      "ok": true,
+      "detail": "3653 changed pixels"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 card occupancy culls army label",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 replacement moves accepted army ink",
+      "ok": true,
+      "detail": "{\"before\":{\"x\":751.15,\"y\":480.637,\"w\":89.1,\"h\":25.1},\"after\":{\"x\":754.138,\"y\":447.463,\"w\":89.1,\"h\":25.1}}"
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 resize refreshes ink",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 fog removes hidden army ink",
+      "ok": true
+    },
+    {
+      "scene": "raised",
+      "name": "DPR2 recreated world retains one canvas and visible labels",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "devices": [
+    "apple / metal-3",
+    "apple / metal-3"
+  ]
+}

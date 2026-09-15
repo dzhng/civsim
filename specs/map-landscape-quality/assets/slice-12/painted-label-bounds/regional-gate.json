@@ -1,0 +1,584 @@
+{
+  "checks": [
+    {
+      "name": "natural-ground classifier accepts reference yellow field",
+      "ok": true,
+      "detail": "[186,164,63]"
+    },
+    {
+      "name": "natural-ground classifier accepts reference olive field",
+      "ok": true,
+      "detail": "[123,133,46]"
+    },
+    {
+      "name": "natural-ground classifier rejects blue water",
+      "ok": true,
+      "detail": "[52,84,110]"
+    },
+    {
+      "name": "natural-ground classifier rejects neutral gray rock",
+      "ok": true,
+      "detail": "[140,140,140]"
+    },
+    {
+      "name": "natural-ground classifier rejects red-brown soil",
+      "ok": true,
+      "detail": "[154,100,60]"
+    },
+    {
+      "name": "real campaign LoD scene found Roma, Ostia, and player army",
+      "ok": true,
+      "detail": "{\"roma\":288,\"ostia\":251,\"armyId\":0}"
+    },
+    {
+      "name": "campaign-lod-whole-political stats match LoD contract",
+      "ok": true,
+      "detail": "{\"rawSha256\":\"c454b085b1565411d2b94973ef7cc3d9a865273371d1ed1a6783b2e5809e610e\",\"visibleLabels\":23,\"labelCollisionCulls\":11,\"device\":\"apple / metal-3\"}"
+    },
+    {
+      "name": "snapshot campaign-lod-whole-political",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "campaign-lod-whole-natural stats match LoD contract",
+      "ok": true,
+      "detail": "{\"rawSha256\":\"43e9fbd42bc6ab149a30b70c5be165a75d44db436ae0ed5fae5a38f90e95cd51\",\"visibleLabels\":22,\"labelCollisionCulls\":1,\"device\":\"apple / metal-3\"}"
+    },
+    {
+      "name": "snapshot campaign-lod-whole-natural",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "campaign-lod-whole-fog stats match LoD contract",
+      "ok": true,
+      "detail": "{\"rawSha256\":\"ee1d32b457fbebf04a9248112650e9b13d546ef5012d1ef7d917ebd7cd1263c6\",\"visibleLabels\":1,\"labelCollisionCulls\":0,\"device\":\"apple / metal-3\"}"
+    },
+    {
+      "name": "snapshot campaign-lod-whole-fog",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "campaign-lod-regional-italy-natural stats match LoD contract",
+      "ok": true,
+      "detail": "{\"rawSha256\":\"f80cdec95de2f9b1d93c711981799b4d1244dad2e7c627c48e1e6fd6fe5b1176\",\"visibleLabels\":12,\"labelCollisionCulls\":1,\"device\":\"apple / metal-3\"}"
+    },
+    {
+      "name": "campaign-lod-regional-italy-natural semantic mainland Italy cities and roads stay on land",
+      "ok": true,
+      "detail": "{\"badSemanticCities\":[],\"badSemanticRoads\":[],\"checkedCities\":12,\"checkedRoadSamples\":69}"
+    },
+    {
+      "name": "campaign-lod-regional-italy-natural rendered mainland Italy anchors do not sit in visible water",
+      "ok": true,
+      "detail": "{\"width\":1280,\"height\":800,\"visibleCities\":12,\"visibleRoads\":69,\"badCities\":[],\"badRoads\":[]}"
+    },
+    {
+      "name": "campaign-lod-regional-italy-natural visible central Italy roads are continuous above terrain",
+      "ok": true,
+      "detail": "{\"visibleRoads\":69,\"roadColorSamples\":65,\"roadHitRatio\":0.942,\"missingRoads\":[{\"name\":\"Roma-Ferentinum\",\"sx\":670.3,\"sy\":446},{\"name\":\"Roma-Ferentinum\",\"sx\":640.9,\"sy\":442.2},{\"name\":\"Clusium-Volsinii\",\"sx\":464.4,\"sy\":57.8},{\"name\":\"Clusium-Volsinii\",\"sx\":471.5,\"sy\":110.7}]}"
+    },
+    {
+      "name": "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads, labels; no political wash)",
+      "ok": false,
+      "detail": "{\"width\":1280,\"height\":800,\"waterRatio\":0.4607,\"landRatio\":0.3849,\"roadRatio\":0.0171,\"labelRatio\":0.001,\"modelRatio\":0.0283,\"politicalWashRatio\":0.0056}"
+    },
+    {
+      "name": "campaign-lod-regional-italy-natural keeps named mountain and forest crops readable",
+      "ok": true,
+      "detail": "{\"northern-apennines\":{\"crop\":{\"total\":83467,\"mountainRatio\":0.7456,\"darkFeatureRatio\":0.1734,\"naturalGroundRatio\":0.7406},\"ok\":true},\"central-apennines\":{\"crop\":{\"total\":104574,\"mountainRatio\":0.6819,\"darkFeatureRatio\":0.1734,\"naturalGroundRatio\":0.6615},\"ok\":true},\"southern-apennines\":{\"crop\":{\"total\":55176,\"mountainRatio\":0.6636,\"darkFeatureRatio\":0.1718,\"naturalGroundRatio\":0.6041},\"ok\":true}}"
+    },
+    {
+      "name": "snapshot campaign-lod-regional-italy-natural",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ],
+  "errors": [],
+  "regional": {
+    "camera": {
+      "x": -430,
+      "y": 445,
+      "scale": 3,
+      "pitchDeg": 46.9825392007275
+    },
+    "labels": {
+      "labels": 404,
+      "visibleLabels": 12,
+      "visibleLabelNames": [
+        "city:AESERNIA",
+        "city:ATERNUM",
+        "city:BENEVENTUM",
+        "city:CORFINIUM",
+        "city:LARINUM",
+        "city:POMPEII",
+        "city:PUTEOLI",
+        "city:SIPONTUM",
+        "city:SPOLETIUM",
+        "city:VENUSIA",
+        "city:ALERIA",
+        "city:POPULONIUM"
+      ],
+      "visibleSeaLabelRects": [],
+      "visibleCityLabelRects": [
+        {
+          "text": "AESERNIA",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 961.99,
+            "y": 516.552,
+            "w": 80,
+            "h": 32
+          },
+          "corners": [
+            [
+              961.99,
+              516.552
+            ],
+            [
+              1041.99,
+              516.552
+            ],
+            [
+              1041.99,
+              548.552
+            ],
+            [
+              961.99,
+              548.552
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 966.44,
+            "y": 521.002,
+            "w": 71.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "ATERNUM",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 940.812,
+            "y": 247.255,
+            "w": 81,
+            "h": 32
+          },
+          "corners": [
+            [
+              940.812,
+              247.255
+            ],
+            [
+              1021.812,
+              247.255
+            ],
+            [
+              1021.812,
+              279.255
+            ],
+            [
+              940.812,
+              279.255
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 945.262,
+            "y": 251.705,
+            "w": 72.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "BENEVENTUM",
+          "kind": "city",
+          "importance": 6,
+          "opacity": 1,
+          "box": {
+            "x": 1089.784,
+            "y": 682.2,
+            "w": 109,
+            "h": 32
+          },
+          "corners": [
+            [
+              1089.784,
+              682.2
+            ],
+            [
+              1198.784,
+              682.2
+            ],
+            [
+              1198.784,
+              714.2
+            ],
+            [
+              1089.784,
+              714.2
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 1094.234,
+            "y": 686.65,
+            "w": 100.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "CORFINIUM",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 855.454,
+            "y": 337.288,
+            "w": 95,
+            "h": 32
+          },
+          "corners": [
+            [
+              855.454,
+              337.288
+            ],
+            [
+              950.454,
+              337.288
+            ],
+            [
+              950.454,
+              369.288
+            ],
+            [
+              855.454,
+              369.288
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 859.904,
+            "y": 341.738,
+            "w": 86.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "LARINUM",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 1130.553,
+            "y": 456.088,
+            "w": 78,
+            "h": 32
+          },
+          "corners": [
+            [
+              1130.553,
+              456.088
+            ],
+            [
+              1208.553,
+              456.088
+            ],
+            [
+              1208.553,
+              488.088
+            ],
+            [
+              1130.553,
+              488.088
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 1135.003,
+            "y": 460.538,
+            "w": 69.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "POMPEII",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 1028.332,
+            "y": 820.686,
+            "w": 71,
+            "h": 32
+          },
+          "corners": [
+            [
+              1028.332,
+              820.686
+            ],
+            [
+              1099.332,
+              820.686
+            ],
+            [
+              1099.332,
+              852.686
+            ],
+            [
+              1028.332,
+              852.686
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 1032.782,
+            "y": 825.136,
+            "w": 62.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "PUTEOLI",
+          "kind": "city",
+          "importance": 6,
+          "opacity": 1,
+          "box": {
+            "x": 935.03,
+            "y": 779.5,
+            "w": 72,
+            "h": 32
+          },
+          "corners": [
+            [
+              935.03,
+              779.5
+            ],
+            [
+              1007.03,
+              779.5
+            ],
+            [
+              1007.03,
+              811.5
+            ],
+            [
+              935.03,
+              811.5
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 939.48,
+            "y": 783.95,
+            "w": 63.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "SIPONTUM",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 1365.495,
+            "y": 530.086,
+            "w": 87,
+            "h": 32
+          },
+          "corners": [
+            [
+              1365.495,
+              530.086
+            ],
+            [
+              1452.495,
+              530.086
+            ],
+            [
+              1452.495,
+              562.086
+            ],
+            [
+              1365.495,
+              562.086
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 1369.945,
+            "y": 534.536,
+            "w": 78.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "SPOLETIUM",
+          "kind": "city",
+          "importance": 6,
+          "opacity": 1,
+          "box": {
+            "x": 594.562,
+            "y": 133.765,
+            "w": 92,
+            "h": 32
+          },
+          "corners": [
+            [
+              594.562,
+              133.765
+            ],
+            [
+              686.562,
+              133.765
+            ],
+            [
+              686.562,
+              165.765
+            ],
+            [
+              594.562,
+              165.765
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 599.012,
+            "y": 138.215,
+            "w": 83.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "VENUSIA",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 1386.639,
+            "y": 754.11,
+            "w": 74,
+            "h": 32
+          },
+          "corners": [
+            [
+              1386.639,
+              754.11
+            ],
+            [
+              1460.639,
+              754.11
+            ],
+            [
+              1460.639,
+              786.11
+            ],
+            [
+              1386.639,
+              786.11
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 1391.089,
+            "y": 758.56,
+            "w": 65.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "ALERIA",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": -182.913,
+            "y": 275.136,
+            "w": 62,
+            "h": 32
+          },
+          "corners": [
+            [
+              -182.913,
+              275.136
+            ],
+            [
+              -120.913,
+              275.136
+            ],
+            [
+              -120.913,
+              307.136
+            ],
+            [
+              -182.913,
+              307.136
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": -178.463,
+            "y": 279.586,
+            "w": 53.1,
+            "h": 23.1
+          }
+        },
+        {
+          "text": "POPULONIUM",
+          "kind": "city",
+          "importance": 3,
+          "opacity": 1,
+          "box": {
+            "x": 92.511,
+            "y": 38.402,
+            "w": 109,
+            "h": 32
+          },
+          "corners": [
+            [
+              92.511,
+              38.402
+            ],
+            [
+              201.511,
+              38.402
+            ],
+            [
+              201.511,
+              70.402
+            ],
+            [
+              92.511,
+              70.402
+            ]
+          ],
+          "padPx": 4.45,
+          "inkRect": {
+            "x": 96.961,
+            "y": 42.852,
+            "w": 100.1,
+            "h": 23.1
+          }
+        }
+      ],
+      "visibleArmyLabelRects": [],
+      "visibleFactionLabelRects": [],
+      "collisionCulls": 1,
+      "collisionCulledLabels": [
+        "city:CASTRUM TRUENTINUM"
+      ],
+      "atlasWidth": 1024,
+      "atlasHeight": 128,
+      "vertices": 72,
+      "layer": "physical-gpu-glyph-atlas"
+    },
+    "device": "apple / metal-3"
+  }
+}

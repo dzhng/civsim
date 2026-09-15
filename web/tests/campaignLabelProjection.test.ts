@@ -39,6 +39,7 @@ describe("raised campaign label projection", () => {
         width: 100 * dpr,
         height: 20 * dpr,
         padding: 2 * dpr,
+        inkInset: 0.5 * dpr,
         u0: 0,
         v0: 0,
         u1: 1,

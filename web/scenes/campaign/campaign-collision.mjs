@@ -151,9 +151,10 @@ export async function run(ctx) {
 }
 
 /** Post-arbitration collision surface: label ink rects (the arbitration's own
- * currency — box deflated by the transparent halo padding) plus the reported
- * card rects, restricted to the participants (sea labels and fading ghosts
- * below 0.3 opacity stay out on both sides, mirroring the authority). */
+ * currency — the painted extent, glyph fills plus the halo struck around them,
+ * so two names whose halos merge into one word count as overlapping) plus the
+ * reported card rects, restricted to the participants (sea labels and fading
+ * ghosts below 0.3 opacity stay out on both sides, mirroring the authority). */
 async function collectCollisionState(page) {
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   const labels = [

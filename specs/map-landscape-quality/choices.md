@@ -196,3 +196,16 @@ before/after visual evidence.
   sample its own destination. The phase restores both the active and output
   targets, including on a thrown draw, before presenting. This follows the
   pinned renderer's actual state contract and keeps callers from inheriting it.
+
+
+## Painted label occupancy
+
+- **Sound, medium confidence — reserve the halo within the existing rectangular claim.**
+  When two names fit by their letter fills but their dark outlines touch, their
+  labels previously both survived. The shared collision rectangle now includes
+  half the stroke width on each side, so the existing importance rule chooses
+  which name remains. Rectangles are conservative around the individual letters:
+  the tested OVILAVA/LAURIACUM pair loses a distinguishable name too. The plan did
+  not choose per-glyph collision geometry. Keeping the established rectangle
+  policy is simpler and consistent with other map labels, at a known cost in name
+  density; both city models and all-own-card visibility remain unchanged.

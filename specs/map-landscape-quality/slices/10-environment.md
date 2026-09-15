@@ -69,3 +69,27 @@ It does not tune atmosphere density or establish distant battle readability.
 The [merged campaign proof](../assets/integration/production-shadow/README.md)
 accepts contact, UI and water continuity in controlled production/composition
 frames with exact repeats; regional reference quality remains a separate gate.
+
+## Ungraded screen-space UI output
+
+The campaign label control isolates two effects. Opting out of scene fog improves
+outline contrast but leaves the existing brightness gate failing. The pinned
+WebGPU renderer applies tone mapping in a global output pass; the material's
+`toneMapped=false` flag does not exempt labels from it. Source ink must not be
+brightened to compensate for AgX.
+
+Run a bounded output-composition proof with known screen-space UI colors over
+the unchanged graded world. Use public renderer/TSL APIs and the existing
+PhotorealWorld/output owners: one renderer, canvas, time and frame contract.
+The UI needs no world-depth test; keep battle's depth-tested readouts and all
+physical surface/lighting behavior unchanged in this proof. Establish the
+smallest shared output boundary before adopting it in production, and reconcile
+it with the existing battle post-chain rather than adding a second permanent
+post-processing implementation. No new user settings or inverse-tone-map hacks.
+
+Judge exact UI color/outline crops, the unchanged labelRatio>=0.002 gate, and
+zero-difference world pixels outside UI influence. Then run existing production
+frame/collision checks, a deterministic repeat and an unprimed visual critique.
+This is a color/output-phase variable; card placement, typography, terrain and
+palette remain frozen. Temporary proof wiring must be removed when the shared
+output owner adopts the verified path.

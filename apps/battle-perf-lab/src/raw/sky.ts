@@ -14,7 +14,11 @@ import { fullscreenWGSL } from "../shared/postShader";
 
 /** Native sky comparison component, with the same linear HDR contract as the
  * typed candidates. Device/output are borrowed; resources are private. */
-export async function createRawSky(device: GPUDevice, params: SkyModelParams) {
+export async function createRawSky(
+  device: GPUDevice,
+  params: SkyModelParams,
+  backgroundSamples: 1 | 4 = 1,
+) {
   const lut = device.createTexture({
     label: "raw sky LUT",
     size: [SKY_LUT_WIDTH, SKY_LUT_HEIGHT],
@@ -37,10 +41,11 @@ export async function createRawSky(device: GPUDevice, params: SkyModelParams) {
     rays.destroy();
   };
   try {
-    const pipeline = (code: string) => {
+    const pipeline = (code: string, samples: 1 | 4 = 1) => {
       const module = device.createShaderModule({ code: fullscreenWGSL + code });
       return device.createRenderPipelineAsync({
         layout: "auto",
+        multisample: { count: samples },
         vertex: { module, entryPoint: "vertex" },
         fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
         primitive: { topology: "triangle-list" },
@@ -51,7 +56,8 @@ export async function createRawSky(device: GPUDevice, params: SkyModelParams) {
         @fragment fn fragment(v: VertexOut) -> @location(0) vec4f {
           return max(vec4f(radiance(direction(v.uv)),1),vec4f(0));
         }`),
-      pipeline(`fn equirectUv${equirectUvWgsl}\nfn disc${skyDiscWgsl(params)}
+      pipeline(
+        `fn equirectUv${equirectUvWgsl}\nfn disc${skyDiscWgsl(params)}
         struct Rays { origin:vec3f, dx:vec3f, dy:vec3f };
         @group(0) @binding(0) var<uniform> rays:Rays;
         @group(0) @binding(1) var sky:texture_2d<f32>;
@@ -59,7 +65,9 @@ export async function createRawSky(device: GPUDevice, params: SkyModelParams) {
         @fragment fn fragment(v:VertexOut) -> @location(0) vec4f {
           let dir=normalize(rays.origin+rays.dx*v.uv.x+rays.dy*v.uv.y);
           return max(vec4f(textureSampleLevel(sky,linearSampler,equirectUv(dir),0).rgb+disc(dir),1),vec4f(0));
-        }`),
+        }`,
+        backgroundSamples,
+      ),
     ]);
     const group = device.createBindGroup({
       layout: background.getBindGroupLayout(0),

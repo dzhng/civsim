@@ -44,7 +44,11 @@ export function rawEnvironmentWgsl(
 
 /** Prepared once per environment. This owns the sky, IBL, DFG and one small view
  * buffer; borrowed device/camera data/output attachments retain their owners. */
-export async function createRawEnvironment(device: GPUDevice, env: CivsimEnvironment) {
+export async function createRawEnvironment(
+  device: GPUDevice,
+  env: CivsimEnvironment,
+  backgroundSamples: 1 | 4 = 1,
+) {
   const spec = photorealEnvironment(env);
   let sky: Awaited<ReturnType<typeof createRawSky>> | undefined;
   let pmrem: Awaited<ReturnType<typeof createRawPmrem>> | undefined;
@@ -59,7 +63,7 @@ export async function createRawEnvironment(device: GPUDevice, env: CivsimEnviron
     uniform?.destroy();
   };
   try {
-    sky = await createRawSky(device, skyModelParams(env));
+    sky = await createRawSky(device, skyModelParams(env), backgroundSamples);
     pmrem = await createRawPmrem(device, sky.lut);
     dfg = device.createTexture({
       size: [DFG_LUT_SIZE, DFG_LUT_SIZE],

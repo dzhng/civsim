@@ -1,3 +1,4 @@
+import { PNG } from "pngjs";
 import { campaign } from "../worlds.mjs";
 import { hasCampaignWorldDepthContract } from "../_renderer-contract.mjs";
 export const meta = {
@@ -11,6 +12,7 @@ export const meta = {
 export async function run(ctx) {
   const page = await campaign(ctx, "new", {
     viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 1,
     errorPrefix: "physical-overview",
     timeout: 120000,
   });
@@ -44,8 +46,28 @@ export async function run(ctx) {
     "mountains come from terrain, without mountain props",
     stats.sceneryCandidateStats.mountains === 0,
   );
+  const shot = await page.screenshot();
+  const pixels = PNG.sync.read(shot);
+  // Three equally spaced sea patches straddle the reported below-camera
+  // artifact. Smooth aerial variation is allowed; the old LUT block cut
+  // the middle patch by 34 RGB levels relative to its two neighbors.
+  const mean = (x) => {
+    let sum = 0;
+    for (let y = 645; y < 675; y++)
+      for (let px = x; px < x + 20; px++) {
+        const i = (y * pixels.width + px) * 4;
+        sum += (pixels.data[i] + pixels.data[i + 1] + pixels.data[i + 2]) / 3;
+      }
+    return sum / 600;
+  };
+  const seaTrough = (mean(620) + mean(690)) / 2 - mean(655);
+  ctx.check(
+    "below-camera sea has no deep rectangular aerial-light trough",
+    seaTrough < 20,
+    JSON.stringify({ seaTrough, maximum: 20 }),
+  );
   await ctx.snap(null, "campaign-production-overview", {
-    shot: await page.screenshot(),
+    shot,
     threshold: 0,
     maxDiffRatio: 0,
   });

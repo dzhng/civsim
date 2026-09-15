@@ -59,3 +59,7 @@ production raw passes and mountain-prop placement are retired where unconsumed.
 record the functional checkpoint, exact repeats and remaining visual defects.
 This does not complete full campaign-suite, lifecycle, geographic atmosphere or
 hardware acceptance, and active independent raw lab/model consumers remain.
+
+The shared atmosphere ray must use one normalized direction for its intersection
+and integration samples; [aerial-ray evidence](../assets/slice-14-production/aerial-ray/README.md)
+records the below-camera rectangle diagnosis and focused regression contract.

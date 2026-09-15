@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { CIVSIM_ENVIRONMENTS } from "../../../packages/game-renderer/src/environment/environment.ts";
 
 // Every battle preset renders with the physical sky and atmosphere
 // /renderer/photoreal-battle at the SAME fixed setTime and vista framing
@@ -40,11 +41,10 @@ const FRAMING = "map=gen&seed=7&t=0&ref=1&zoom=5&cx=0&cy=-310";
 const SKY_TIER = "skyview-fragment-lut";
 // battle alias → the civsim preset id the stats identity must report.
 const PRESETS = [
-  { env: "golden-hour", preset: "golden", turbidity: 2.6 },
-  { env: "noon", preset: "noon", turbidity: 2.0 },
-  { env: "dusk", preset: "dusk", turbidity: 3.6 },
-  // 7.2 keeps ranges readable through haze.
-  { env: "overcast-foggy", preset: "overcast-highland", turbidity: 7.2 },
+  { env: "golden-hour", preset: "golden" },
+  { env: "noon", preset: "noon" },
+  { env: "dusk", preset: "dusk" },
+  { env: "overcast-foggy", preset: "overcast-highland" },
 ];
 
 export async function run(ctx) {
@@ -55,7 +55,8 @@ export async function run(ctx) {
   const hardware = process.env.VERIFY_GPU_ADAPTER === "hardware";
   const skyBands = new Map();
 
-  for (const { env, preset, turbidity } of PRESETS) {
+  for (const { env, preset } of PRESETS) {
+    const turbidity = CIVSIM_ENVIRONMENTS[preset].physical.turbidity;
     const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: env });
     await page.goto(`${ctx.target}/renderer/photoreal-battle?${FRAMING}&env=${env}`);
     await page.waitForFunction(

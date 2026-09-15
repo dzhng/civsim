@@ -314,11 +314,13 @@ export class SkyModel {
     const sunDir = vec3(...p.sunDirection);
     const r0 = PLANET_RADIUS_KM + EYE_ALTITUDE_KM;
 
-    // Sky is evaluated just above the horizon; below-horizon texels reuse the
-    // horizon radiance with a ground-bounce tint (smooth across the seam).
+    // Bend below-horizon rays upward for the atmospheric march. The original
+    // direction still controls the ground-bounce tint after integration.
     const dirIn = vec3(dirRaw).toVar();
-    const mu = max(dirIn.z, 0.004).toVar();
-    const dir = normalize(vec3(dirIn.x, dirIn.y, mu)).toVar();
+    const dir = normalize(vec3(dirIn.x, dirIn.y, max(dirIn.z, 0.004))).toVar();
+    // The sphere intersection must use the ray we actually march. Clamping
+    // below-horizon z changes its length, especially near the downward pole.
+    const mu = dir.z;
 
     const tTop = float(r0 * r0)
       .mul(mu.mul(mu).sub(1.0))

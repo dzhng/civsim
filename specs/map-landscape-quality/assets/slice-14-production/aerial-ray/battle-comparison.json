@@ -1,0 +1,25 @@
+{
+  "backend": "Chrome / hardware",
+  "oldSubstitutions": 1,
+  "oldErrors": [],
+  "fixedErrors": [],
+  "cameraEqual": true,
+  "camera": {
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "distance": 3199.4894405078235,
+    "pitch": 0.12,
+    "yaw": 0,
+    "fovY": 0.5,
+    "aspect": 1.6,
+    "near": 1
+  },
+  "changed": 12024,
+  "total": 1024000,
+  "meanRgbDelta": 0.0039853515625,
+  "maxRgbSum": 3,
+  "skyChanged": 3
+}

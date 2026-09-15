@@ -1,3 +1,4 @@
+import { createCrowdControlBackend } from "../crowdControlBackend";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
 import { sampleRigLocalPose } from "../../../../packages/soldier-assets/src/localPose";
 import type { WorldSurfaceDiagnostic } from "../shaders/environment";
@@ -51,6 +52,7 @@ import {
 import { createRawCrowd } from "./crowd";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 
+const backend = new URL(location.href).searchParams.get("backend") ?? "raw";
 const W = 768,
   H = 512;
 const sampleCount = new URL(location.href).searchParams.get("samples") === "4" ? 4 : 1;
@@ -164,8 +166,14 @@ async function run() {
     for (const child of world.scene.children)
       if (child instanceof THREE.Mesh) child.visible = false;
     const source = own(await PhotorealCrowd.create(renderer, world.scene, assets));
-    const environment = own(await createRawEnvironment(device, env));
-    if (diagnostic) environment.shader = rawEnvironmentWgsl(env, diagnostic);
+    if (!["raw", "typegpu", "vgpu"].includes(backend)) throw new Error("Unknown crowd backend");
+    if (backend !== "raw" && (diagnostic || vertexDiagnostic))
+      throw new Error(
+        "Candidate port diagnostics require raw control; full material oracle unchanged",
+      );
+    const environment =
+      backend === "raw" ? own(await createRawEnvironment(device, env)) : undefined;
+    if (diagnostic && environment) environment.shader = rawEnvironmentWgsl(env, diagnostic);
     const cameraBuffer = own(
       device.createBuffer({
         size: 192,
@@ -231,7 +239,7 @@ async function run() {
     const camera = new THREE.PerspectiveCamera();
     applyCamera3d(camera, params);
     const view = viewMatrix(params);
-    environment.setView(view, [0, 0, 0]);
+    environment?.setView(view, [0, 0, 0]);
     device.queue.writeBuffer(
       cameraBuffer,
       0,
@@ -271,16 +279,36 @@ async function run() {
     );
     const candidateTextures = trackTextureLifetime(device);
     cleanup.push(candidateTextures.restore);
-    const candidate = own(
-      await createRawCrowd(device, caps, assets, cameraLayout, environment, {
-        sampleCount,
-        diagnostic: vertexDiagnostic ?? undefined,
-        format: vertexDiagnostic ? "rgba32float" : "rgba16float",
-        invariantPosition,
-      }),
-    );
+    const driver =
+      backend === "raw"
+        ? undefined
+        : own(
+            await createCrowdControlBackend(
+              backend as "typegpu" | "vgpu",
+              device,
+              assets,
+              env,
+              W,
+              H,
+              sampleCount,
+            ),
+          );
+    driver?.setView(params);
+    const candidate =
+      driver ??
+      own(
+        await createRawCrowd(device, caps, assets, cameraLayout, environment!, {
+          sampleCount,
+          diagnostic: vertexDiagnostic ?? undefined,
+          format: vertexDiagnostic ? "rgba32float" : "rgba16float",
+          invariantPosition,
+        }),
+      );
     candidateTextures.restore();
+    let lastInstances: readonly CrowdInstance[] = [];
+    const lifecycle: object[] = [];
     let previousLevels: Uint8Array | undefined;
+    const repeatResults: object[] = [];
     const cases: readonly (readonly [string, number, number, boolean])[] = motion
       ? Array.from(
           { length: 12 },
@@ -301,7 +329,7 @@ async function run() {
         params.target = [(caseIndex - 5.5) * 0.008, 0, 0];
         params.yaw = -Math.PI / 2 + (caseIndex - 5.5) * 0.0005;
         applyCamera3d(camera, params);
-        environment.setView(viewMatrix(params), [0, 0, 0]);
+        environment?.setView(viewMatrix(params), [0, 0, 0]);
         const cameraBytes = cameraUniformData({
           camera3d: params,
           x: 0,
@@ -434,42 +462,49 @@ async function run() {
                         )
                       : vec4(uv(), uv().x.dFdx(), uv().y.dFdy().negate());
           }
+      lastInstances = instances;
       const plan = planCrowdLods(instances, views, assets, previousLevels);
       previousLevels = plan.levels;
-      candidate.upload(instances, plan);
-      const encoder = device.createCommandEncoder();
-      candidate.precompute(encoder);
-      const pass = encoder.beginRenderPass({
-        colorAttachments: [
-          {
-            view: (multisampled ?? output).createView(),
-            resolveTarget: multisampled ? output.createView() : undefined,
-            clearValue: [0, 0, 0, 0],
-            loadOp: "clear",
-            storeOp: "store",
+      await candidate.upload(instances, plan);
+      if (driver) {
+        driver.setView(params);
+        await driver.render();
+      } else {
+        const encoder = device.createCommandEncoder();
+        if (!("precompute" in candidate)) throw new Error("Missing raw compute");
+        candidate.precompute(encoder);
+        const pass = encoder.beginRenderPass({
+          colorAttachments: [
+            {
+              view: (multisampled ?? output).createView(),
+              resolveTarget: multisampled ? output.createView() : undefined,
+              clearValue: [0, 0, 0, 0],
+              loadOp: "clear",
+              storeOp: "store",
+            },
+          ],
+          depthStencilAttachment: {
+            view: depth.createView(),
+            depthClearValue: 0,
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
           },
-        ],
-        depthStencilAttachment: {
-          view: depth.createView(),
-          depthClearValue: 0,
-          depthLoadOp: "clear",
-          depthStoreOp: "store",
-        },
-      });
-      candidate.draw(pass, cameraGroup);
-      pass.end();
-      const shadowPass = encoder.beginRenderPass({
-        colorAttachments: [],
-        depthStencilAttachment: {
-          view: shadowDepth.createView(),
-          depthClearValue: 0,
-          depthLoadOp: "clear",
-          depthStoreOp: "store",
-        },
-      });
-      candidate.draw(shadowPass, cameraGroup, "shadow");
-      shadowPass.end();
-      device.queue.submit([encoder.finish()]);
+        });
+        candidate.draw(pass, cameraGroup);
+        pass.end();
+        const shadowPass = encoder.beginRenderPass({
+          colorAttachments: [],
+          depthStencilAttachment: {
+            view: shadowDepth.createView(),
+            depthClearValue: 0,
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+          },
+        });
+        candidate.draw(shadowPass, cameraGroup, "shadow");
+        shadowPass.end();
+        device.queue.submit([encoder.finish()]);
+      }
       await new Promise<void>((r) => requestAnimationFrame(() => r()));
       renderer.setRenderTarget(reference);
       renderer.render(world.scene, camera);
@@ -486,9 +521,21 @@ async function run() {
       }
       const actual = Array.from(
         await (vertexDiagnostic
-          ? readFloatTexture(device, output)
-          : readHdrTexture(device, output)),
+          ? readFloatTexture(device, driver?.output ?? output)
+          : readHdrTexture(device, driver?.output ?? output)),
       );
+      if (driver) {
+        await driver.render();
+        const repeated = await readHdrTexture(device, driver.output);
+        let maxAbs = 0,
+          different = 0;
+        for (let i = 0; i < actual.length; i++) {
+          const error = Math.abs(actual[i] - repeated[i]);
+          maxAbs = Math.max(maxAbs, error);
+          if (error) different++;
+        }
+        repeatResults.push({ label, phase: "first-vs-identical-repeat", maxAbs, different });
+      }
       const rawReference = await renderer.readRenderTargetPixelsAsync(reference, 0, 0, W, H);
       const expected =
         rawReference instanceof Float32Array
@@ -604,19 +651,47 @@ async function run() {
         expectedRgba: encodeRgba8Base64(Uint8Array.from(rgba(expected))),
       });
     }
+    if (driver) {
+      const population = Array.from({ length: 257 }, (_, i) => ({
+        ...lastInstances[0],
+        x: i === 0 ? lastInstances[0].x : 100000 + i,
+        y: i === 0 ? lastInstances[0].y : 100000,
+      }));
+      await driver.upload(population, {
+        levels: new Uint8Array(257),
+        shadowLevels: new Uint8Array(257),
+        visibility: new Uint8Array(257).fill(3),
+      });
+      await driver.render();
+      const grown = driver.stats();
+      await driver.upload([], { levels: [], shadowLevels: [], visibility: [] });
+      await driver.render();
+      const cleared = (await readHdrTexture(device, driver.output)).every((v) => v === 0);
+      lifecycle.push({
+        case: "grow257-then-empty",
+        mainDraws: grown.mainDraws,
+        shadowDraws: grown.shadowDraws,
+        cleared,
+      });
+      if (!cleared || grown.mainDraws !== 1 || grown.shadowDraws !== 1)
+        throw new Error("Crowd growth/empty control failed");
+    }
     candidate.dispose();
     candidate.dispose();
     return {
+      backend,
       canonical,
       sampleCount,
       isolatedTriangle,
       motion,
       deindexed,
-      invariantPosition,
+      invariantPosition: backend === "typegpu" ? false : invariantPosition,
       diagnostic,
       vertexDiagnostic,
       shaders,
       results,
+      repeatResults,
+      lifecycle,
       errors,
       liveCandidateTexturesAfterDispose: candidateTextures.liveCount(),
       passed:

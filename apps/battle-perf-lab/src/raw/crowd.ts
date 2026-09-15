@@ -1,3 +1,4 @@
+import { crowdRigGroups, packCrowdFrame, type CrowdAudiencePlan } from "../crowdData";
 import type { AppearanceBundle } from "../../../../packages/soldier-assets/src/appearanceBundle";
 import {
   packSoldierVertices,
@@ -11,10 +12,7 @@ import {
   type SoldierSurface,
   type SoldierTextureChannel,
 } from "../../../../packages/soldier-assets/src/material";
-import {
-  corpsePresentationStrength,
-  type CrowdInstance,
-} from "../../../../packages/crowd-runtime/src/instanceData";
+import { type CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import { RawPosePalette } from "../../../../packages/renderer-core/src/rawPosePalette";
 import type { GpuDeviceCaps } from "../../../../packages/renderer-core/src/capabilities";
 import {
@@ -33,18 +31,12 @@ type Bucket = {
   vertices: GPUBuffer;
   indices: GPUBuffer;
   instances: Record<Audience, GrowableBuffer>;
-  pending: Record<Audience, number[]>;
+  counts: Record<Audience, number>;
   palette: RawPosePalette;
   material: GPUBindGroup;
   beauty: GPURenderPipeline;
   depth: GPURenderPipeline;
 };
-export interface CrowdAudiencePlan {
-  levels: ArrayLike<number>;
-  shadowLevels: ArrayLike<number>;
-  visibility: ArrayLike<number>;
-}
-
 /** Mesh tiers only; the caller owns the canonical visibility plan and must draw
  * its reported impostors separately. Depth encoding supplies casters; receiving
  * directional shadows remains a separate world-lighting integration contract. */
@@ -74,7 +66,6 @@ export async function createRawCrowd(
     return buffer;
   };
   const buckets = new Map<number, Bucket[]>();
-  const paletteIndices = new Map<RawPosePalette, number[]>();
   let ready = false,
     disposed = false,
     impostorCount = 0;
@@ -233,18 +224,7 @@ export async function createRawCrowd(
       surfaceCache.set(surface, result);
       return result;
     };
-    const rigGroups: Record<number, AppearanceBundle>[] = [];
-    for (const [id, bundle] of Object.entries(assets)) {
-      let group = rigGroups.find((g) => {
-        const first = Object.values(g)[0];
-        return first.rig === bundle.rig && first.animation === bundle.animation;
-      });
-      if (!group) {
-        group = {};
-        rigGroups.push(group);
-      }
-      group[Number(id)] = bundle;
-    }
+    const rigGroups = crowdRigGroups(assets);
     const paletteFor = new Map<number, RawPosePalette>();
     for (const group of rigGroups) {
       const first = Object.values(group)[0];
@@ -258,7 +238,6 @@ export async function createRawCrowd(
         paletteLayout,
       );
       palettes.push(palette);
-      paletteIndices.set(palette, []);
       for (const id of Object.keys(group)) paletteFor.set(Number(id), palette);
     }
     const pipelines = new Map<string, { beauty: GPURenderPipeline; depth: GPURenderPipeline }>();
@@ -318,7 +297,7 @@ export async function createRawCrowd(
               new GrowableBuffer(device, "native crowd shadow", GPUBufferUsage.VERTEX, 256 * 48),
             ),
           },
-          pending: { main: [], shadow: [] },
+          counts: { main: 0, shadow: 0 },
           palette,
           material: surface.binding,
           ...pipeline,
@@ -329,71 +308,22 @@ export async function createRawCrowd(
         assertLive();
         ready = false;
         impostorCount = 0;
-        if (
-          [plan.levels, plan.shadowLevels, plan.visibility].some((v) => v.length < instances.length)
-        )
-          throw new Error("Crowd plan omits instances");
-        for (const list of buckets.values())
-          for (const b of list) {
-            b.pending.main.length = 0;
-            b.pending.shadow.length = 0;
-          }
-        for (const indices of paletteIndices.values()) indices.length = 0;
-        const slots = new Uint32Array(instances.length);
-        for (let i = 0; i < instances.length; i++) {
-          const inst = instances[i],
-            list = buckets.get(inst.classId);
-          if (!list) throw new Error(`Missing appearance ${inst.classId}`);
-          if (!plan.visibility[i]) continue;
-          const main = (plan.visibility[i] & 1) !== 0,
-            shadow = (plan.visibility[i] & 2) !== 0;
-          const mainLevel = plan.levels[i],
-            shadowLevel = plan.shadowLevels[i];
-          if (main && mainLevel === 3) impostorCount++;
-          const beauty = main && mainLevel !== 3 ? list[mainLevel] : undefined,
-            depth = shadow ? list[shadowLevel] : undefined;
-          if ((main && mainLevel !== 3 && !beauty) || (shadow && !depth))
-            throw new Error("Invalid crowd tier");
-          if (!beauty && !depth) continue;
-          const group = paletteIndices.get((beauty ?? depth)!.palette)!;
-          slots[i] = group.length;
-          group.push(i);
-          beauty?.pending.main.push(i);
-          depth?.pending.shadow.push(i);
-        }
-        for (const [palette, indices] of paletteIndices)
+        const packed = packCrowdFrame(instances, plan, rigGroups);
+        impostorCount = packed.impostorsPending;
+        palettes.forEach((palette, i) => {
+          const indices = packed.rigIndices[i];
           palette.upload(
             indices.length,
             (j) => instances[indices[j]].playback ?? instances[indices[j]],
             (j) => instances[indices[j]].classId,
           );
-        for (const list of buckets.values())
-          for (const b of list)
+        });
+        for (const [id, list] of buckets)
+          for (const [lod, b] of list.entries())
             for (const audience of ["main", "shadow"] as const) {
-              const indices = b.pending[audience];
-              if (!indices.length) continue;
-              const data = new Float32Array(indices.length * 12);
-              for (const [j, i] of indices.entries()) {
-                const inst = instances[i];
-                data.set(
-                  [
-                    inst.x,
-                    inst.y,
-                    inst.facing,
-                    inst.faction,
-                    1,
-                    slots[i],
-                    0,
-                    0,
-                    inst.elevation ?? 0,
-                    0,
-                    corpsePresentationStrength(inst),
-                    0,
-                  ],
-                  j * 12,
-                );
-              }
-              b.instances[audience].write(data);
+              const data = packed.packed.get(id)![audience][lod];
+              b.counts[audience] = data.length / 12;
+              if (data.length) b.instances[audience].write(data);
             }
         ready = true;
       },
@@ -409,7 +339,7 @@ export async function createRawCrowd(
         pass.setBindGroup(3, environment.bindGroup);
         for (const list of buckets.values())
           for (const b of list) {
-            const count = b.pending[audience].length;
+            const count = b.counts[audience];
             if (!count) continue;
             pass.setPipeline(audience === "main" ? b.beauty : b.depth);
             pass.setBindGroup(1, b.palette.bindGroup);
@@ -435,7 +365,7 @@ export async function createRawCrowd(
         for (const list of buckets.values())
           for (const b of list)
             for (const audience of ["main", "shadow"] as const) {
-              const n = b.pending[audience].length;
+              const n = b.counts[audience];
               if (n) {
                 result[`${audience}Triangles`] += (b.mesh.indices.length / 3) * n;
                 result[`${audience}Draws`]++;

@@ -16,6 +16,7 @@ export async function createVgpuEnvironment(
   gpu: Gpu,
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
+  groupIndex = 2,
 ) {
   const owned: { dispose(): void }[] = [];
   let disposed = false;
@@ -49,11 +50,11 @@ export async function createVgpuEnvironment(
     const spec = photorealEnvironment(env);
     const shader = `
 struct Environment {worldToView:mat4x4f,observer:vec4f,sunDirection:vec4f,sunRadiance:vec4f,settings:vec4f};
-@group(2) @binding(0) var<uniform> environment:Environment;
-@group(2) @binding(1) var environmentSky:texture_2d<f32>;
-@group(2) @binding(2) var environmentPmrem:texture_2d<f32>;
-@group(2) @binding(3) var environmentDfg:texture_2d<f32>;
-@group(2) @binding(4) var environmentSampler:sampler;
+@group(${groupIndex}) @binding(0) var<uniform> environment:Environment;
+@group(${groupIndex}) @binding(1) var environmentSky:texture_2d<f32>;
+@group(${groupIndex}) @binding(2) var environmentPmrem:texture_2d<f32>;
+@group(${groupIndex}) @binding(3) var environmentDfg:texture_2d<f32>;
+@group(${groupIndex}) @binding(4) var environmentSampler:sampler;
 ${cubeUvWGSL}
 fn standardPbr${standardPbrWgsl}
 fn equirectUv${equirectUvWgsl}

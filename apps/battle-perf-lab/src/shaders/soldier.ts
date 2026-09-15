@@ -20,6 +20,7 @@ export function soldierShader(
   images: { baseColor: boolean; normal: boolean; orm: boolean },
   diagnostic?: SoldierDiagnostic,
   invariantPosition = true,
+  depthOnly = false,
 ): string {
   return `${WORLD_CAMERA_WGSL}
     ${environment}
@@ -33,11 +34,7 @@ export function soldierShader(
     @group(2) @binding(4) var normalSampler:sampler;
     @group(2) @binding(5) var ormMap:texture_2d<f32>;
     @group(2) @binding(6) var ormSampler:sampler;
-    fn unitDirection(d:vec3f,fallback:vec3f)->vec3f {
-      let largest=max(max(abs(d.x),abs(d.y)),abs(d.z));
-      let bounded=d/max(largest,select(0.0,1.0,largest==0.0));
-      return mix(fallback,bounded/sqrt(max(dot(bounded,bounded),${TANGENT_FRAME_EPSILON_SQUARED})),select(0.0,1.0,largest>0.0));
-    }
+    fn unitDirection${soldierUnitDirectionWgsl}
     ${soldierFactionWGSL}
     struct VertexOut {
       @builtin(position) ${invariantPosition ? "@invariant" : ""} position:vec4f,
@@ -56,7 +53,26 @@ export function soldierShader(
       @location(6) tangent:vec4f,@location(7) material:f32,@location(8) factionMask:f32,
       @location(9) inst0:vec4f,@location(10) inst1:vec4f,@location(11) inst2:vec4f,
     )->VertexOut {
-      let start=u32(inst1.y)*${bones}u;
+${soldierVertexBodyWgsl(bones, diagnostic)}
+    }
+    ${
+      depthOnly
+        ? ""
+        : `@fragment fn fragment(v:VertexOut,@builtin(front_facing) front:bool)->@location(0) vec4f {
+${soldierSurfacePreludeWgsl(images)}      return ${diagnostic === "quad" ? "crowdQuad(v.uv,v.geometryNormalView)" : diagnostic === "primitive" ? "vec4f(f32(v.vertexId)+1.0,f32(v.material),v.uv)" : diagnostic === "derivatives" ? "crowdDerivatives(v.uv,v.geometryNormalView)" : diagnostic === "geometry-normal" ? "vec4f(normalize(v.geometryNormalView),geometryRoughnessFromView(v.geometryNormalView))" : diagnostic === "uv" ? "vec4f(v.uv,dpdx(v.uv.x),dpdy(v.uv.y))" : "shadeWorldSurface(clamp(albedo,vec3f(0),vec3f(1)),vec3f(0),properties.r*mix(1.0,orm.g,flags.b),geometryRoughnessFromView(v.geometryNormalView),properties.g*mix(1.0,orm.b,flags.b),mix(1.0,orm.r,flags.a*properties.b)*v.properties.z,n,v.world,1.0)"};
+    }`
+    }
+  `;
+}
+
+export const soldierUnitDirectionWgsl = `(d:vec3f,fallback:vec3f)->vec3f {
+      let largest=max(max(abs(d.x),abs(d.y)),abs(d.z));
+      let bounded=d/max(largest,select(0.0,1.0,largest==0.0));
+      return mix(fallback,bounded/sqrt(max(dot(bounded,bounded),${TANGENT_FRAME_EPSILON_SQUARED})),select(0.0,1.0,largest>0.0));
+    }`;
+
+export function soldierVertexBodyWgsl(bones: number, diagnostic?: SoldierDiagnostic) {
+  return `      let start=u32(inst1.y)*${bones}u;
       let a=palette[start+u32(joints.x)];let b=palette[start+u32(joints.y)];
       let c=palette[start+u32(joints.z)];let d=palette[start+u32(joints.w)];
       let c0=a[0]*weights.x+b[0]*weights.y+c[0]*weights.z+d[0]*weights.w;
@@ -72,10 +88,15 @@ export function soldierShader(
       let worldN=vec3f(n.x*co-n.y*si,n.x*si+n.y*co,n.z);
       let worldT=vec3f(t.x*co-t.y*si,t.x*si+t.y*co,t.z);
       let contact=mix(0.45,1.0,smoothstep(0.0,0.42,local.z));
-      return VertexOut(projectWorld(world),world,worldN,worldT,uv,color.rgb,u32(material),factionMask,vec3f(inst0.w,inst2.z,mix(1.0,contact,1.0-inst2.z)),tangent.w,normalize((environment.worldToView*vec4f(worldN,0)).xyz)${diagnostic === "primitive" ? ",vertexIndex" : ""});
-    }
-    @fragment fn fragment(v:VertexOut,@builtin(front_facing) front:bool)->@location(0) vec4f {
-      let base=textureLoad(materialTable,vec2i(i32(v.material),0),0);
+      return VertexOut(projectWorld(world),world,worldN,worldT,uv,color.rgb,u32(material),factionMask,vec3f(inst0.w,inst2.z,mix(1.0,contact,1.0-inst2.z)),tangent.w,normalize((environment.worldToView*vec4f(worldN,0)).xyz)${diagnostic === "primitive" ? ",vertexIndex" : ""});`;
+}
+
+export function soldierSurfacePreludeWgsl(images: {
+  baseColor: boolean;
+  normal: boolean;
+  orm: boolean;
+}) {
+  return `      let base=textureLoad(materialTable,vec2i(i32(v.material),0),0);
       let properties=textureLoad(materialTable,vec2i(i32(v.material),1),0);
       let flags=textureLoad(materialTable,vec2i(i32(v.material),2),0);
       let albedoMap=${images.baseColor ? "textureSample(baseMap,baseSampler,v.uv).rgb" : "vec3f(1)"};
@@ -103,7 +124,5 @@ export function soldierShader(
       let corpse=v.properties.y;
       let lum=dot(albedo,vec3f(0.3,0.59,0.11));
       albedo=mix(albedo,vec3f(lum)*0.62+vec3f(0.06,0.04,0.03),corpse*0.7);
-      return ${diagnostic === "quad" ? "crowdQuad(v.uv,v.geometryNormalView)" : diagnostic === "primitive" ? "vec4f(f32(v.vertexId)+1.0,f32(v.material),v.uv)" : diagnostic === "derivatives" ? "crowdDerivatives(v.uv,v.geometryNormalView)" : diagnostic === "geometry-normal" ? "vec4f(normalize(v.geometryNormalView),geometryRoughnessFromView(v.geometryNormalView))" : diagnostic === "uv" ? "vec4f(v.uv,dpdx(v.uv.x),dpdy(v.uv.y))" : "shadeWorldSurface(clamp(albedo,vec3f(0),vec3f(1)),vec3f(0),properties.r*mix(1.0,orm.g,flags.b),geometryRoughnessFromView(v.geometryNormalView),properties.g*mix(1.0,orm.b,flags.b),mix(1.0,orm.r,flags.a*properties.b)*v.properties.z,n,v.world,1.0)"};
-    }
-  `;
+`;
 }

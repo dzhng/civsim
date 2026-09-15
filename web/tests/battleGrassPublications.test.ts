@@ -78,6 +78,7 @@ test("publication replay preserves a pending ring until the recorded publication
       queueGrassPublications(batch);
       replay.prepareRender(camera, 900);
       assertGrassPublicationsConsumed();
+      expect(batch).toHaveLength(1);
       expect(replay.stats().rebuild.pending).toBe(true);
     }
     queueGrassPublications(published);

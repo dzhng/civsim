@@ -31,9 +31,9 @@ export function beginGrassPublicationReplay() {
   replay = true;
   replayPending = [];
 }
-export function queueGrassPublications(publications: GrassPublication[]) {
+export function queueGrassPublications(publications: readonly GrassPublication[]) {
   if (replayPending.length) throw Error("Previous grass publication batch was not consumed");
-  replayPending = publications;
+  replayPending = [...publications];
 }
 export function assertGrassPublicationsConsumed() {
   if (replayPending.length) throw Error("Replay omitted a source grass prepareRender boundary");

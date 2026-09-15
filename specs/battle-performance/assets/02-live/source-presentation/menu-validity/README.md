@@ -1,6 +1,6 @@
 # Source Menu validity after asynchronous presentation ownership
 
-The unchanged full benchmark scene passes on the integrated source renderer: canonical contact state, all camera phases, near/wide/horizon ranges, a new primary frame per recorded callback, exact interval/run-clock agreement, visible result actions and JSON export. The separate cancellation flow also passes its original checks for input lock, retained preparation image, no invented FPS, partial export and return to Menu. All running frames report zero renderAwaitMs because source presentation remains synchronous.
+The unchanged full benchmark scene passes on the integrated source renderer: canonical contact state, all camera phases, near/wide/horizon ranges, a new primary frame per recorded callback, exact interval/run-clock agreement, visible result actions and JSON export. The separate [cancellation flow](cancellation-checks.json) also passes its original checks for input lock, retained preparation image, no invented FPS, partial export and return to Menu. All running frames report zero renderAwaitMs because source presentation remains synchronous.
 
 This is shared-host functional evidence, not quiet repeated performance acceptance. The complete report records about4.05 average FPS and160.9 simulated seconds over300.09 wall seconds; it remains far below the performance target. No improvement is claimed from comparison with earlier runs.
 

@@ -19,6 +19,7 @@ Follow the slice graph below and the [complete-scene pickup](composition.md). Pa
 - [ ] [02 — matched backend comparison](slices/02-backend-comparison.md), including all three alternative backends
 - [ ] [03 — choose one backend and resolve the remaining graph](slices/03-backend-decision.md)
 - [ ] [03a — simulation publication and camera scheduling](slices/03a-simulation-publication.md)
+- [ ] [03b — shared immutable surface images](slices/03b-shared-surface-images.md)
 - [ ] [04 — bounded grass residency](slices/04-grass-residency.md)
 - [ ] [05 — grass GPU work and temporal coverage](slices/05-grass-routing.md)
 - [ ] [06a — animation-transition preparation](slices/06a-animation-transitions.md)
@@ -52,7 +53,7 @@ The user additionally requested an in-game menu benchmark: a real battle, using 
 - Battle rendering, camera-to-render scheduling, grass, crowd preparation/visibility and shadows. Shared render utilities may change only with their other consumers verified. Campaign migration, gameplay/balance changes, map redesign, new art and unrelated HUD restyling are out of scope. The benchmark menu/progress/results UI is explicitly in scope.
 - Preserve the current physical framebuffer, normal graphics quality, army/scenery content, camera range, input responsiveness, recognizable units and animation. No reduced DPR, narrower horizon, disappearing armies, hidden HUD, paused simulation or disabled grass/shadows in the final acceptance workload.
 - Render optimization may alter representation if image/temporal evidence proves equivalent readability and coverage. Record triangle counts, coverage and LOD histograms; fewer triangles are allowed, missing content is not.
-- One canonical camera/projection/depth contract (`renderer-core`), one terrain height source, one environment/light owner, one battle frame coordinator, one grass residency owner, one crowd state owner and one audience policy owner. Keep view and shadow audiences distinct consumers of that policy.
+- One canonical camera/projection/depth contract (`renderer-core`), one terrain height source, one environment/light owner, one battle frame coordinator, one grass residency owner, one crowd state owner, one immutable material-image owner per world/catalog preparation, and one audience policy owner. Keep view and shadow audiences distinct consumers of that policy.
 - Keep production WebGPU-only behavior, readiness/error handling, resize, asset replacement and disposal. No permanent backend switch, legacy renderer option or compatibility adapter. Existing experiment worktrees are read-only research inputs, not active instructions to push or merge their PRs.
 
 ## Slice graph and review map
@@ -66,8 +67,9 @@ The user additionally requested an in-game menu benchmark: a real battle, using 
                             └→ 06a animation → 06b state → 07 ─┴→ 08 shadows
                                                                → 09 stability
                                                                → 10 acceptance
+03 → 03b shared surface images → 10
 03 materializes any replacement migration graph before dependent GPU work.
-10 joins simulation publication, presentation, GPU work and migration.
+10 joins simulation publication, shared-image residency, presentation, GPU work and migration.
 ```
 
 03a joins final live acceptance; it cannot claim that moving slow ticks to a worker restores simulation throughput. 06a owns measured transition preparation above every backend; shared-layer changes require refreshed controls. 08 follows both 05 and 07. 09 follows 08. Grass and crowd tracks may run in parallel after 03 fixes shared ownership. Early shadow probes belong in 02 so backend selection includes their cost. A slice whose hypothesis is disproved closes with evidence and no production edit; update downstream dependencies rather than adding machinery for completeness.

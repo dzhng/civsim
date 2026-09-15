@@ -187,3 +187,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Served asset identity
 
 - **Settled:** Verify recorded shared assets through the links the production build actually creates. Bundled and linked files may share a directory; reject a wrong shared subtree without requiring its parent to be a symlink. Keep one canonical manifest schema and name missing fields explicitly.
+
+### Immutable image residency
+
+- **Provisional, verify in 03b:** Share identical immutable GPU material images within the selected world/catalog preparation, while preserving appearance-specific material tables and renderer lifetime. The catalog exposes 60 definitions of three image/sampler combinations; actual unique allocations and visual equivalence decide the implementation, not the definition count alone.

@@ -8,6 +8,8 @@ Does the shipped battle satisfy smooth camera motion and readable default shadow
 
 `BattleRenderer` remains the production lifecycle entry; its single selected world owner receives shared camera/terrain/assets/environment inputs. Remove temporary adapters, lab-only production selectors and obsolete battle owners once all consumers switch. Retain feature evidence and a compact reusable replay harness; remove losing runtime dependencies and generated build assets. Do not delete another task's experiment branches/worktrees. Campaign dependencies survive where used. Audit source imports and build output so the selected backend identity is true.
 
+Include [03b’s image-residency contract](03b-shared-surface-images.md) in the final resource and reload audit: count unique owned images separately from material references, and prove the selected lifetime releases shared resources once.
+
 ## Runnable verdict
 
 Click Battle Benchmark in the actual menu, run its full five-minute live contact window with action-following camera, and inspect FPS lows/highs and spike chart; verify rerun/export/cancel. Run the complete measurement.md matrix on named hardware with real HUD and live simulation. Compare baseline A, optimized original-shadow B and optimized readable-shadow C in paired runs. Require net improvement beyond noise and the provisional/finalized absolute target. Carry pre-existing reds explicitly and resolve any acceptance blocker attributable to this change; do not lower old content floors or reinterpret software timings as hardware results.

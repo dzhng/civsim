@@ -124,3 +124,11 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 
 - **Settled:** TypeGPU's scenery cutout depth pass forwards raster depth through its public fragment-depth output because the pinned generator cannot emit a colourless discard-only stage. Keep the possible early-depth cost visible in the backend decision rather than using a hidden raw pass.
 - **Settled:** vgpu water owns individual public buffers and lends their handles to geometry, allowing cleanup if construction fails partway through. TypeGPU realizes its owned state and bind groups before admission completes, so readiness includes their real allocations rather than deferring failure until the first draw.
+
+### Readout texture lifetime
+
+- **Settled:** Replace and dispose the source atlas texture when canvas dimensions change, then rebind the texture node. Repainting alone retained an incorrectly sized physical texture. Keep the shared glyph/layout recipe unchanged. Candidate owners stage atlas and instance updates before committing them; vgpu’s public admission draw and retained spare buffers are explicit comparison costs.
+
+### Terrain underlay comparison
+
+- **Settled:** Include the two live terrain underlay draws in the matched workload, even when opaque terrain later hides their pixels. Keep their authored style values shared and prepare native style pipelines before rendering. Measure any later reduction in overdraw as a separate optimization, rather than omitting source work from the comparison.

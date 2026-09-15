@@ -1,0 +1,258 @@
+[
+  {
+    "samples": 1,
+    "name": "backdrop",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 349,
+    "changedPercent": 0.136328125,
+    "meanAbsoluteChannelDelta": 0.0003447265625,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 1,
+    "name": "default",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 1565,
+    "changedPercent": 0.611328125,
+    "meanAbsoluteChannelDelta": 0.0015537109375,
+    "maxChannelDelta": 1,
+    "bbox": [
+      0,
+      0,
+      639,
+      399
+    ]
+  },
+  {
+    "samples": 1,
+    "name": "wide-detail",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 1568,
+    "changedPercent": 0.6125,
+    "meanAbsoluteChannelDelta": 0.001556640625,
+    "maxChannelDelta": 1,
+    "bbox": [
+      0,
+      0,
+      639,
+      399
+    ]
+  },
+  {
+    "samples": 1,
+    "name": "composed",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 348,
+    "changedPercent": 0.1359375,
+    "meanAbsoluteChannelDelta": 0.00034375,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 1,
+    "name": "composed-wide",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 351,
+    "changedPercent": 0.13710937499999998,
+    "meanAbsoluteChannelDelta": 0.0003466796875,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      284
+    ]
+  },
+  {
+    "samples": 1,
+    "name": "restore",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 348,
+    "changedPercent": 0.1359375,
+    "meanAbsoluteChannelDelta": 0.00034375,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 1,
+    "name": "shifted",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 349,
+    "changedPercent": 0.136328125,
+    "meanAbsoluteChannelDelta": 0.0003447265625,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 1,
+    "name": "horizon",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 747,
+    "changedPercent": 0.291796875,
+    "meanAbsoluteChannelDelta": 0.000740234375,
+    "maxChannelDelta": 1,
+    "bbox": [
+      0,
+      0,
+      639,
+      393
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "backdrop",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 349,
+    "changedPercent": 0.136328125,
+    "meanAbsoluteChannelDelta": 0.0003447265625,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "default",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 1567,
+    "changedPercent": 0.612109375,
+    "meanAbsoluteChannelDelta": 0.0015556640625,
+    "maxChannelDelta": 1,
+    "bbox": [
+      0,
+      0,
+      639,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "wide-detail",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 1571,
+    "changedPercent": 0.613671875,
+    "meanAbsoluteChannelDelta": 0.0015595703125,
+    "maxChannelDelta": 1,
+    "bbox": [
+      0,
+      0,
+      639,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "composed",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 348,
+    "changedPercent": 0.1359375,
+    "meanAbsoluteChannelDelta": 0.00034375,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "composed-wide",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 351,
+    "changedPercent": 0.13710937499999998,
+    "meanAbsoluteChannelDelta": 0.0003466796875,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      284
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "restore",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 348,
+    "changedPercent": 0.1359375,
+    "meanAbsoluteChannelDelta": 0.00034375,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "shifted",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 349,
+    "changedPercent": 0.136328125,
+    "meanAbsoluteChannelDelta": 0.0003447265625,
+    "maxChannelDelta": 1,
+    "bbox": [
+      2,
+      0,
+      639,
+      234
+    ]
+  },
+  {
+    "samples": 4,
+    "name": "horizon",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 748,
+    "changedPercent": 0.2921875,
+    "meanAbsoluteChannelDelta": 0.0007412109375,
+    "maxChannelDelta": 1,
+    "bbox": [
+      0,
+      0,
+      639,
+      393
+    ]
+  }
+]

@@ -1,3 +1,7 @@
+import {
+  resolveSunShadowMode,
+  type SunShadowMode,
+} from "../../../game-renderer/src/battle/shadowPolicy";
 import type { WorldRay } from "../../../renderer-core/src/camera3d";
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
@@ -54,12 +58,7 @@ import {
 import { updateWindUniforms } from "../../../game-renderer/src/battle/windSignal";
 import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
-import {
-  configureSunShadows,
-  resolveSunShadowMode,
-  type SunShadowMode,
-  type SunShadowRig,
-} from "./shadowRig";
+import { configureSunShadows, type SunShadowRig } from "./shadowRig";
 import {
   PhotorealLineLayer,
   PhotorealMarkerLayer,

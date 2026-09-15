@@ -13,7 +13,7 @@ import {
   CSM_MAP_SIZE,
   resolveSunShadowMode,
   shadowRadiusForTurbidity,
-} from "@packages/photoreal-renderer/src/battle/shadowRig.ts";
+} from "@packages/game-renderer/src/battle/shadowPolicy.ts";
 
 test("software rasterizer adapters resolve to the single tier by name", () => {
   assert.equal(resolveSunShadowMode("google / swiftshader / SwiftShader driver"), "single");

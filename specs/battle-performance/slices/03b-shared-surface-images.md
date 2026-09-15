@@ -4,6 +4,8 @@
 
 Can the selected renderer share identical material image storage across appearances, preserving every visible material while reducing retained resources and preparation work? The [catalog and source-stat audit](../assets/03b-image-residency/catalog-and-source-stats.json) finds 60 texture definitions across 20 appearances but only three channel/image/sampler combinations. The retained source frame reports 60 corresponding 2048², 12-mip entries totalling 1,342,177,200 logical bytes. The loader already shares immutable image bytes; native `prepareSurface` caches by surface identity, and source surface preparation separately owns its images. These are measured definitions and reported payloads, not proof of a frame-time saving or physical VRAM usage.
 
+The [source hardware allocation control](../assets/03b-image-residency/source-gpu-allocation-summary.json) now confirms 60 distinct live WebGPU image textures, each 2048² with 12 mips: 20 sRGB and 40 linear. Their logical payload agrees with the earlier resource report. This proves duplicate allocations exist, while physical VRAM and performance effects remain unmeasured. An isolated source candidate may establish sharing and lifetime correctness before backend selection; it cannot alter fixed comparison inputs or settle the backend decision.
+
 Production integration follows slice 03's backend ownership decision. This is an independent optimization track alongside grass and crowd work, and joins final acceptance in 10. Preserve the fixed comparison baseline. A no-change result needs evidence that existing resources are already shared or that the proposed ownership is unsound; do not add a cache merely to close the slice.
 
 ## Ownership seam

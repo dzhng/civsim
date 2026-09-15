@@ -1,0 +1,24 @@
+{
+  "sourceCommit": "a72bb34310f3cbecc70c2171b14d299702c5d24f",
+  "physicalFramebuffer": [
+    2880,
+    1800
+  ],
+  "tick": 30,
+  "actualLiveImageTextures": 60,
+  "srgb": 20,
+  "linear": 40,
+  "logicalImageBytes": 1342177200,
+  "repeatPixels": 0,
+  "scope": "Actual WebGPU creation identities under a public API observer. Logical payload bytes, not physical VRAM or frame-time savings.",
+  "shots": [
+    {
+      "name": "single-1.png",
+      "sha256": "7ab1858fce86a8082f14462df5ee88393d78868a8efae683785f07ec3251d21a"
+    },
+    {
+      "name": "single-0.png",
+      "sha256": "7ab1858fce86a8082f14462df5ee88393d78868a8efae683785f07ec3251d21a"
+    }
+  ]
+}

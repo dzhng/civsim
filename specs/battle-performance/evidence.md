@@ -41,3 +41,5 @@ Native query-control hardware checks: [operation evidence and vgpu startup failu
 The independent [canonical worker consumer run](assets/03a-publication/canonical-consumer.json) passes309 ticks, zero mismatches, identity and checkpoint hashes, one-credit bounds and clean disposal on14c97a68. This is CPU correctness only; browser scheduling, long-window timeline playback and live throughput remain open.
 
 The [corrected vgpu map-A control](assets/02-live/native-query-control/vgpu-fixed.json) passes enabled/disabled readiness, query operations and submission identity on fixed1356d6a7 builds. Integrated19864817; root120 lab tests pass. Cross-mode one-pixel difference retained; no timing or visual acceptance claim.
+
+[Source image-sharing tactical control](assets/03b-image-residency/tactical-control/README.md): actual60→3 GPU images,95% logical payload reduction; independent visual tie, cross-launch pixel differences retained. The material scene fails the same stale AO-oracle access on baseline and candidate; no full material or performance acceptance yet.

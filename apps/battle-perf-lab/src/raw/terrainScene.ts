@@ -85,6 +85,8 @@ export async function createRawBattleTerrainScene(
       const lakes = input.lakes.map((l) => ({ ...l }));
       const slopeBands = input.slopeBands ? { ...input.slopeBands } : null;
       const data = buildBattleTerrainData(grid, cover, input.vista);
+      // These surfaces have no same-view equal-depth prepass; invariant clip output can
+      // constrain upstream arithmetic and change grazing interpolants.
       const ground = await admitted(
         () =>
           new RawBattleTerrain(
@@ -96,6 +98,7 @@ export async function createRawBattleTerrainScene(
             { earthDistance: data.ground.earthDistance, slopeBands, farGrass: true },
             "beauty",
             samples,
+            false,
           ),
       );
       const opaqueVista: RawBattleTerrain[] = [],
@@ -112,6 +115,7 @@ export async function createRawBattleTerrainScene(
               { vistaBand: ring.name, slopeBands, farGrass: true },
               "beauty",
               samples,
+              false,
             ),
         );
         (ring.name === "farFog" ? transparentVista : opaqueVista).push(layer);

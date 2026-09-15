@@ -156,6 +156,12 @@ async function run() {
     const native = own(
       await createRawBattleTerrainScene(device, frame.cameraLayout, environment, samples, a),
     );
+    const ownedSnapshot =
+      native.grid() !== a.grid &&
+      native.grid().tint !== a.grid.tint &&
+      native.grid().height === native.field().height &&
+      native.cover() === a.cover;
+    if (!ownedSnapshot) throw Error("Terrain and grass do not share an owned grid/field snapshot");
     const setSource = (input: RawBattleTerrainInput) => {
       const built = buildBattleTerrain({
         grid: input.grid,
@@ -263,6 +269,13 @@ async function run() {
         [0, 0, 0],
         post.stats().grade.uniforms,
       );
+      const queries = [
+        [-10, 0],
+        [0, 0],
+        [160, 0],
+      ].map(([x, y]) => ({ x, y, actual: native.heightAt(x, y), expected: source.heightAt(x, y) }));
+      if (queries.some((q) => q.actual !== q.expected))
+        throw Error("Terrain height query mismatch");
       const encoder = device.createCommandEncoder();
       shadow.encode(encoder, (pass) => native.drawShadow(pass, shadowCamera));
       frame.encode(
@@ -290,14 +303,6 @@ async function run() {
       if (preserved?.maxAbs)
         throw Error("Pending/failed terrain changed previously rendered frame");
       if (label === "repeat") repeat = actual;
-      const queries = [
-        [-10, 0],
-        [0, 0],
-        [160, 0],
-      ].map(([x, y]) => ({ x, y, actual: native.heightAt(x, y), expected: source.heightAt(x, y) }));
-      // pending-old may have committed by asynchronous readback; query proof belongs to synchronous check above.
-      if (label !== "pending-old" && queries.some((q) => q.actual !== q.expected))
-        throw Error("Terrain height query mismatch");
       const bytes = (data: number[]) =>
         encodeRgba8Base64(
           Uint8Array.from(data, (v) => Math.round(Math.max(0, Math.min(1, v)) * 255)),
@@ -331,6 +336,7 @@ async function run() {
     return {
       samples,
       results,
+      ownedSnapshot,
       failedReplacement,
       pendingPreserved,
       cancelledRejected,

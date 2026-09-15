@@ -259,15 +259,17 @@ function disposeSharedRenderer(renderer: BattleRenderer): void {
   sharedRenderer = null;
 }
 
-export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): BattleWorld {
+export function createBattleWorld(
+  cfg: BattleConfig,
+  cleanups: (() => void)[],
+  signal: AbortSignal,
+): BattleWorld {
   const ui = document.getElementById("battle-ui")!;
   ui.style.display = "block";
   cleanups.push(() => {
     ui.style.display = "none";
   });
   cleanups.push(installViewportGate(document.getElementById("viewport-too-small")!));
-  const abortController = new AbortController();
-  cleanups.push(() => abortController.abort());
 
   const { game, wasm } = cfg;
   const canvas = document.getElementById("battlefield") as HTMLCanvasElement;
@@ -311,7 +313,7 @@ export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): 
     renderer,
     disposeRenderer: () => disposeSharedRenderer(renderer),
     audio,
-    signal: abortController.signal,
+    signal,
     stride,
     ...createBattleViews(game, wasm.memory),
   };

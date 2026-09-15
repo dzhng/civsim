@@ -177,7 +177,7 @@ export class BattleRenderer {
   present(
     packet: BattlePresentation,
     signal?: AbortSignal,
-    afterUploads?: () => void,
+    startupAfterUploads?: () => void,
   ): BattlePresentationReceipt | Promise<BattlePresentationReceipt> {
     signal?.throwIfAborted();
     const start = performance.now();
@@ -197,7 +197,7 @@ export class BattleRenderer {
       );
       if (c.triangles.length) this.drawTris(c.triangles, packet.camera);
     }
-    afterUploads?.();
+    startupAfterUploads?.();
     signal?.throwIfAborted();
     this.drawTacticalLines(packet.tacticalLines, packet.camera);
     return {
@@ -373,13 +373,17 @@ export class BattleRenderer {
     await this.world.reloadSoldierAssets();
   }
 
-  async settlePresentedFrame() {
-    if (!this.world) return;
-    await this.world.settlePresentedFrame();
+  async settlePresentedFrame(signal?: AbortSignal) {
+    const world = this.world;
+    const current = () => !signal?.aborted && !this.disposed && this.world === world;
+    if (!world || !current()) return;
+    await world.settlePresentedFrame();
+    if (!current()) return;
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
     );
-    await this.world.settlePresentedFrame();
+    if (!current()) return;
+    await world.settlePresentedFrame();
   }
 
   private async init() {

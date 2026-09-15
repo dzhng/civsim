@@ -21,6 +21,9 @@ const camera = () =>
     }),
   });
 const packet = (): BattlePresentation => ({
+  timeSeconds: 1,
+  fixedTime: null,
+  preserveFrozenEffects: false,
   camera: camera(),
   tacticalLines: {
     groundCues: new Float32Array(),
@@ -107,4 +110,27 @@ test("camera packet remains fixed after live camera and its target arrays change
   expect(captured.params().target).toEqual([1, 2, 3]);
   expect(captured.viewCenter()).toEqual([5, 6]);
   expect(captured.zoom).toBe(2);
+});
+
+test("aborted startup readiness cannot settle the shared renderer again after two animation frames", async () => {
+  const callbacks: FrameRequestCallback[] = [];
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+    callbacks.push(callback);
+    return 1;
+  });
+  try {
+    const renderer = Object.create(BattleRenderer.prototype) as BattleRenderer;
+    const world = { settlePresentedFrame: vi.fn(async () => {}) };
+    Object.assign(renderer, { world, disposed: false });
+    const abort = new AbortController();
+    const pending = renderer.settlePresentedFrame(abort.signal);
+    await Promise.resolve();
+    abort.abort();
+    callbacks.shift()!(0);
+    callbacks.shift()!(0);
+    await pending;
+    expect(world.settlePresentedFrame).toHaveBeenCalledTimes(1);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

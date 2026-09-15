@@ -1,3 +1,4 @@
+import { startSceneFrames } from "./shared/sceneFrames";
 import {
   BATTLE_BENCHMARK_SCENARIO,
   benchmarkOpeningOrders,
@@ -264,11 +265,11 @@ async function main() {
     launchBattle(map === "gen" ? "gen" : params.get("map") === "B" ? "mapB" : "mapA");
   } else switchScene(menu);
 
-  function frame(now: number) {
-    currentScene()?.frame(now);
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
+  startSceneFrames(
+    (now) => currentScene()?.frame(now),
+    (callback) => requestAnimationFrame(callback),
+    (error) => window.reportError(error),
+  );
 }
 
 function parseGeneratedSeed(raw: string): bigint {

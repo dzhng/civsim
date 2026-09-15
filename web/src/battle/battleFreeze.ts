@@ -9,6 +9,7 @@ export class BattleFreeze {
     private clock: SimClock,
     private renderer: BattleRenderer,
     private syncAudioSuspension: () => void,
+    private signal?: AbortSignal,
   ) {}
 
   doFreeze(on = true): void {
@@ -33,6 +34,6 @@ export class BattleFreeze {
     const ticks = target - currentTick();
     if (ticks > 0) advance(ticks);
     afterAdvance();
-    return this.renderer.settlePresentedFrame();
+    return this.renderer.settlePresentedFrame(this.signal);
   }
 }

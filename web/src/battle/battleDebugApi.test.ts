@@ -30,6 +30,8 @@ it("reads raw completed frame snapshots without traversing full game or renderer
     ticksAdvanced: 3,
     simCpuMs: 4.123456,
     renderCpuMs: 6.234567,
+    renderAwaitMs: 0,
+    renderWallMs: 6.234567,
     loopCpuMs: 12.345678,
     renderer: {
       renderedFrameId: 1,

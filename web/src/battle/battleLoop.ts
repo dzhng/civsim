@@ -1,4 +1,9 @@
-import { captureBattleRenderCamera } from "./battlePresentation";
+import {
+  completeBattlePresentation,
+  reportBattlePresentationFailure,
+} from "./presentationCompletion";
+import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+import { captureBattleRenderCamera, type BattleRenderCamera } from "./battlePresentation";
 import { applyBenchmarkCamera, sampleBenchmarkCamera } from "./benchmark/benchmarkCamera";
 import { BenchmarkRecording } from "./benchmark/benchmarkRecording";
 import { createBenchmarkReport, type BenchmarkIdentity } from "./benchmark/benchmarkReport";
@@ -30,8 +35,9 @@ export function enterBattleScene(
   cfg: BattleConfig,
   cleanups: (() => void)[],
   restartBattle: () => void,
-): (now: number) => void {
-  const world = createBattleWorld(cfg, cleanups);
+  sceneSignal: AbortSignal,
+): (now: number) => void | Promise<void> {
+  const world = createBattleWorld(cfg, cleanups, sceneSignal);
   const {
     audio: battleAudio,
     camera,
@@ -100,7 +106,7 @@ export function enterBattleScene(
 
   // --- Time control ------------------------------------------------------------
   const syncAudioSuspension = () => battleAudio.setSuspended(document.hidden || clock.frozen);
-  const freeze = new BattleFreeze(clock, renderer, syncAudioSuspension);
+  const freeze = new BattleFreeze(clock, renderer, syncAudioSuspension, signal);
   document.addEventListener("visibilitychange", syncAudioSuspension, { signal });
   syncAudioSuspension();
   // Absolute sim ticks driven so far (real-time loop + scripted advance). The
@@ -191,7 +197,12 @@ export function enterBattleScene(
     simCpuMs: number,
     renderCpuMs: number,
     cpuStartedAt: number,
+    renderAwaitMs = 0,
+    asyncRenderCpuMs = 0,
+    renderWallMs = renderCpuMs,
+    presentedCamera: BattleRenderCamera = camera,
   ) => {
+    if (signal.aborted) return;
     frameMetrics = {
       frameId: ++frameId,
       timestampMs: now,
@@ -201,11 +212,13 @@ export function enterBattleScene(
       ticksAdvanced: ticks,
       simCpuMs,
       renderCpuMs,
-      loopCpuMs: performance.now() - cpuStartedAt,
+      renderAwaitMs,
+      renderWallMs,
+      loopCpuMs: performance.now() - cpuStartedAt - renderAwaitMs + asyncRenderCpuMs,
       renderer: renderer.frameMetrics(),
     };
     if (benchmark?.status().phase === "running") {
-      const achieved = camera.params();
+      const achieved = presentedCamera.params();
       const intended = sampleBenchmarkCamera(benchmark.elapsedAt(now));
       recording!.record(
         frameMetrics,
@@ -223,7 +236,9 @@ export function enterBattleScene(
     }
   };
 
-  const frame = (now: number) => {
+  let presentationFailed = false;
+  const frame = (now: number): void | Promise<void> => {
+    if (signal.aborted || presentationFailed) return;
     // Asset/GPU preparation must not spend simulation time behind the loading screen.
     if (benchmark) {
       if (window.__gpuFatal) benchmark.fail(window.__gpuFatal.detail, now, simTick);
@@ -324,61 +339,88 @@ export function enterBattleScene(
       input.selected,
     );
     const packet = {
+      timeSeconds: renderer.fixedTime ?? performance.now() / 1000,
+      fixedTime: renderer.fixedTime,
+      preserveFrozenEffects: renderer.preserveFrozenEffects,
       crowd: presentedCrowd,
       camera: captureBattleRenderCamera(camera),
       tacticalLines: orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
     };
-    renderer.present(packet, signal, () => {
-      if (!preparingFrame) {
-        preparingFrame = true;
-        awaitRendererReady(
-          renderer.settlePresentedFrame(),
-          canvas,
-          () => {
-            battleReady = true;
-            window.__ready = true;
-            loading.remove();
-          },
-          signal,
-          loading.remove,
+    return completeBattlePresentation(
+      renderStartedAt,
+      signal,
+      () =>
+        renderer.present(packet, signal, () => {
+          if (!preparingFrame) {
+            preparingFrame = true;
+            awaitRendererReady(
+              renderer.settlePresentedFrame(signal),
+              canvas,
+              () => {
+                battleReady = true;
+                window.__ready = true;
+                loading.remove();
+              },
+              signal,
+              loading.remove,
+            );
+          }
+        }),
+      (_receipt, timing) => {
+        if (
+          preparingBenchmark &&
+          simTick >= benchmark!.scenario.startTick &&
+          !benchmarkViewPending
+        ) {
+          benchmarkViewPending = true;
+          awaitRendererReady(
+            renderer.settlePresentedFrame(signal),
+            canvas,
+            () => {
+              benchmarkViewReady = true;
+            },
+            signal,
+          );
+        }
+
+        const { renderCpuMs, renderAwaitMs, asyncRenderCpuMs, renderWallMs } = timing;
+
+        // DOM selection rectangle.
+        if (input.box) {
+          selbox.style.display = "block";
+          selbox.style.left = Math.min(input.box.x0, input.box.x1) + "px";
+          selbox.style.top = Math.min(input.box.y0, input.box.y1) + "px";
+          selbox.style.width = Math.abs(input.box.x1 - input.box.x0) + "px";
+          selbox.style.height = Math.abs(input.box.y1 - input.box.y0) + "px";
+        } else {
+          selbox.style.display = "none";
+        }
+
+        hudBridge.tickCards();
+        if (signal.aborted) return;
+        hudTimer += frameDt;
+        if (hudTimer > 0.2) {
+          hudTimer = 0;
+          orders.tickGroupAttacks();
+          hudBridge.updateHud(clock.frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
+          if (!benchmark) hudBridge.checkGameover();
+          if (signal.aborted) return;
+          battleMinimap.drawMinimap();
+        }
+        completeFrame(
+          now,
+          intervalMs,
+          ticks,
+          simCpuMs,
+          renderCpuMs,
+          cpuStartedAt,
+          renderAwaitMs,
+          asyncRenderCpuMs,
+          renderWallMs,
+          packet.camera,
         );
-      }
-    });
-    if (preparingBenchmark && simTick >= benchmark!.scenario.startTick && !benchmarkViewPending) {
-      benchmarkViewPending = true;
-      awaitRendererReady(
-        renderer.settlePresentedFrame(),
-        canvas,
-        () => {
-          benchmarkViewReady = true;
-        },
-        signal,
-      );
-    }
-
-    const renderCpuMs = performance.now() - renderStartedAt;
-
-    // DOM selection rectangle.
-    if (input.box) {
-      selbox.style.display = "block";
-      selbox.style.left = Math.min(input.box.x0, input.box.x1) + "px";
-      selbox.style.top = Math.min(input.box.y0, input.box.y1) + "px";
-      selbox.style.width = Math.abs(input.box.x1 - input.box.x0) + "px";
-      selbox.style.height = Math.abs(input.box.y1 - input.box.y0) + "px";
-    } else {
-      selbox.style.display = "none";
-    }
-
-    hudBridge.tickCards();
-    hudTimer += frameDt;
-    if (hudTimer > 0.2) {
-      hudTimer = 0;
-      orders.tickGroupAttacks();
-      hudBridge.updateHud(clock.frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
-      if (!benchmark) hudBridge.checkGameover();
-      battleMinimap.drawMinimap();
-    }
-    completeFrame(now, intervalMs, ticks, simCpuMs, renderCpuMs, cpuStartedAt);
+      },
+    );
   };
 
   // --- Debug/verify API ------------------------------------------------------------
@@ -440,17 +482,19 @@ export function enterBattleScene(
     unitInfo,
     wasm,
   });
-  return benchmark
-    ? (now) => {
-        try {
-          frame(now);
-        } catch (error) {
-          benchmark.fail(
-            error instanceof Error ? error.message : String(error),
-            performance.now(),
-            simTick,
-          );
-        }
-      }
-    : frame;
+  return (now) => {
+    const failed = (error: unknown) =>
+      reportBattlePresentationFailure(error, signal, (error) => {
+        presentationFailed = true;
+        const message = error instanceof Error ? error.message : String(error);
+        if (benchmark) benchmark.fail(message, performance.now(), simTick);
+        else showFatalErrorSurface(canvas, fatalSurfaceFor("submission", message));
+      });
+    try {
+      const pending = frame(now);
+      if (pending) return pending.catch(failed);
+    } catch (error) {
+      failed(error);
+    }
+  };
 }

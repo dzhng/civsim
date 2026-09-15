@@ -11,6 +11,8 @@ const frame = (id: number, time: number): BattleLoopFrameMetrics => ({
   ticksAdvanced: 1,
   simCpuMs: 3,
   renderCpuMs: 2,
+  renderAwaitMs: 0,
+  renderWallMs: 2,
   loopCpuMs: 6,
   renderer: {
     renderedFrameId: id,

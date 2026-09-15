@@ -32,6 +32,11 @@ export interface BattleCrowdPresentation {
 /** Built synchronously after interpolation. Owned presentation arrays stay borrowed
  * until present settles; the scene must not prepare another packet concurrently. */
 export interface BattlePresentation {
+  /** Candidate presentation time is captured before resource awaits. The synchronous
+   * source keeps its existing per-hook clock sampling until temporal parity is reviewed. */
+  timeSeconds: number;
+  fixedTime: number | null;
+  preserveFrozenEffects: boolean;
   crowd: BattleCrowdPresentation | null;
   camera: BattleRenderCamera;
   tacticalLines: BattleTacticalLineFrame;

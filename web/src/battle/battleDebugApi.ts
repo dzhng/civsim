@@ -29,6 +29,8 @@ export interface BattleLoopFrameMetrics {
   ticksAdvanced: number;
   simCpuMs: number;
   renderCpuMs: number;
+  renderAwaitMs: number;
+  renderWallMs: number;
   loopCpuMs: number;
   renderer: ReturnType<BattleRenderer["frameMetrics"]>;
 }

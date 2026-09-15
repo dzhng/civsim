@@ -21,7 +21,7 @@ export type PostFactory = (
 
 const WIDTH = 127,
   HEIGHT = 95;
-function syntheticHdr(width: number, height: number) {
+export function syntheticHdr(width: number, height: number) {
   const result = new Uint16Array(width * height * 4);
   for (let y = 0; y < height; y++)
     for (let x = 0; x < width; x++) {

@@ -37,3 +37,15 @@ backend owns its output and submission API: vgpu uses its public frame/target
 encoding while raw and TypeGPU use their native-encoder contracts. All candidates
 retain the same five bloom levels and shared shader algorithms. This adapter is
 only a numerical-control seam; it does not force a common production runtime.
+
+The [post timing diagnostic](timing.html) runs the unchanged numerical control
+first, then measures a fixed HDR field at the physical battle framebuffer size
+with bloom on and off. Ordered per-pass timestamps distinguish the blur pyramid,
+composite, and final output without changing command batching. Only this
+diagnostic opts into detailed telemetry; ordinary exports retain aggregate stages.
+The [driver](time.mjs) writes a durable report even when the page fails. With the
+server above running and exclusive GPU access granted, run
+`node apps/battle-perf-lab/candidates/raw-post/time.mjs typegpu throwaway/post-timing-typegpu`
+(substitute `raw` or `vgpu` for another candidate). Partial or missing query data
+fails the diagnostic; it never becomes zero-cost work. This isolates post workload
+and cannot rank complete battle renderers.

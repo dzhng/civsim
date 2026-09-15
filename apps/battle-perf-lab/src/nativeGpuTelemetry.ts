@@ -34,6 +34,8 @@ export interface NativeGpuEvent extends NativeSubmissionIdentity {
   renderMs: number | null;
   computeMs: number | null;
   measuredPassGpuMs: number | null;
+  /** Opt-in diagnostic detail; order is command encoding order. */
+  passes?: { kind: Pass["kind"]; label: string; ms: number | null }[];
   stages: {
     kind: Pass["kind"];
     label: string;
@@ -73,6 +75,7 @@ export class NativeGpuTelemetry {
   constructor(
     private readonly device: GPUDevice,
     private readonly backend: NativeGpuBackend,
+    private readonly options: { passDetails?: boolean } = {},
   ) {
     if (observers.has(device)) throw Error("GPU device already has a native telemetry owner");
     this.supported = device.features.has("timestamp-query");
@@ -258,7 +261,11 @@ export class NativeGpuTelemetry {
       cursorGap: afterSequence < oldestRetainedSequence - 1,
       events: this.events
         .filter((event) => event.sequence > afterSequence)
-        .map((event) => ({ ...event, stages: event.stages.map((stage) => ({ ...stage })) })),
+        .map((event) => ({
+          ...event,
+          stages: event.stages.map((stage) => ({ ...stage })),
+          ...(event.passes ? { passes: event.passes.map((pass) => ({ ...pass })) } : {}),
+        })),
     };
   }
 
@@ -395,6 +402,15 @@ export class NativeGpuTelemetry {
       computeMs,
       measuredPassGpuMs: complete ? renderMs! + computeMs! : null,
       stages,
+      ...(this.options.passDetails
+        ? {
+            passes: record.passes.map(({ kind, label, ms }) => ({
+              kind,
+              label,
+              ms: complete ? ms : null,
+            })),
+          }
+        : {}),
     });
   }
 }

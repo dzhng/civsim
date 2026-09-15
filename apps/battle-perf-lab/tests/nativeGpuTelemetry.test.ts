@@ -219,3 +219,33 @@ test("failed originating validation cannot become a complete GPU timing", async 
   });
   telemetry.dispose();
 });
+
+it("publishes ordered diagnostic pass details only when requested, without changing aggregate stages", async () => {
+  const f = deviceFixture();
+  const telemetry = new NativeGpuTelemetry(f.device, "raw", { passDetails: true });
+  telemetry.beginSubmission("render-only");
+  nativeGpuScope(f.device, "post", () => {
+    f.encode();
+    f.encode();
+  });
+  telemetry.endSubmission(Promise.resolve());
+  await f.drain();
+  const event = telemetry.eventsSince(0)!.events[0];
+  expect(event.stages).toEqual([
+    { kind: "render", label: "post", queries: 2, missingQueries: 0, ms: 4 },
+  ]);
+  expect(event.passes).toEqual([
+    { kind: "render", label: "post", ms: 2 },
+    { kind: "render", label: "post", ms: 2 },
+  ]);
+  event.passes![0].ms = 999;
+  expect(telemetry.eventsSince(0)!.events[0].passes![0].ms).toBe(2);
+  telemetry.dispose();
+  const plain = new NativeGpuTelemetry(f.device, "raw");
+  plain.beginSubmission("render-only");
+  f.encode();
+  plain.endSubmission(Promise.resolve());
+  await f.drain();
+  expect(plain.eventsSince(0)!.events[0]).not.toHaveProperty("passes");
+  plain.dispose();
+});

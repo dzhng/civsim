@@ -8,6 +8,11 @@ export default {
     outDir: fileURLToPath(new URL("../../../../throwaway/post-control/dist", import.meta.url)),
     emptyOutDir: true,
     copyPublicDir: false,
-    rolldownOptions: { input: fileURLToPath(new URL("./check.html", import.meta.url)) },
+    rolldownOptions: {
+      input: {
+        check: fileURLToPath(new URL("./check.html", import.meta.url)),
+        timing: fileURLToPath(new URL("./timing.html", import.meta.url)),
+      },
+    },
   },
 };

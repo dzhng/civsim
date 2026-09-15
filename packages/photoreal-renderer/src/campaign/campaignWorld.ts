@@ -4,6 +4,7 @@ import type {
   CampaignEntityFrame,
   CampaignStandardInstance,
 } from "../../../game-renderer/src/campaign/entityFrame";
+import { fitSunShadowRect, fitSunShadowView } from "../landscape/sunShadow";
 import { PhotorealCrowd } from "../crowd/crowdLayer";
 import { CROWD_SHADOW_LAYER } from "../crowd/crowdAudience";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
@@ -167,26 +168,16 @@ export class PhotorealCampaignWorld {
     });
     const sun = world.sunLight!;
     const domain = composition.surface.domain;
-    const cx = domain.ox + ((domain.columns - 1) * domain.cell) / 2,
-      cy = domain.oy + ((domain.rows - 1) * domain.cell) / 2;
-    const extent = Math.max(domain.columns, domain.rows) * domain.cell * 0.8;
-    sun.position.set(
-      cx + environment.sunDirection[0] * extent * 2,
-      cy + environment.sunDirection[1] * extent * 2,
-      environment.sunDirection[2] * extent * 2,
-    );
-    sun.target.position.set(cx, cy, 0);
+    sun.position.set(...environment.sunDirection);
+    sun.target.position.set(0, 0, 0);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
-    Object.assign(sun.shadow.camera, {
-      left: -extent,
-      right: extent,
-      top: extent,
-      bottom: -extent,
-      near: 1,
-      far: extent * 5,
-    });
-    sun.shadow.camera.updateProjectionMatrix();
+    fitSunShadowRect(sun, [
+      domain.ox,
+      domain.oy,
+      (domain.columns - 1) * domain.cell,
+      (domain.rows - 1) * domain.cell,
+    ]);
     sun.shadow.camera.layers.enable(CROWD_SHADOW_LAYER);
     sun.shadow.normalBias = 0.08;
     // Deliberately submit objects before terrain: the common depth buffer must
@@ -490,6 +481,7 @@ export class PhotorealCampaignWorld {
     this.world.resize(width, height, dpr);
     this.frame.focus.value.set(pose.target[0], pose.target[1]);
     applyCamera3d(this.camera, pose);
+    fitSunShadowView(this.world.sunLight!, pose);
     this.standards.upload(this.seatedStandards);
     if (this.crowd) {
       const sun = this.world.sunLight!;

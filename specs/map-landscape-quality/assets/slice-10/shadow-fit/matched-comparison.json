@@ -1,0 +1,26 @@
+[
+  {
+    "name": "fixture",
+    "changedPixels": 9210,
+    "totalPixels": 1024000,
+    "meanAbsoluteRGB": 0.026154296875
+  },
+  {
+    "name": "perge-attalea",
+    "changedPixels": 310697,
+    "totalPixels": 1024000,
+    "meanAbsoluteRGB": 1.6152897135416666
+  },
+  {
+    "name": "cyrene-apollonia",
+    "changedPixels": 296375,
+    "totalPixels": 1024000,
+    "meanAbsoluteRGB": 1.6301510416666667
+  },
+  {
+    "name": "scodra",
+    "changedPixels": 270949,
+    "totalPixels": 1024000,
+    "meanAbsoluteRGB": 1.043064453125
+  }
+]

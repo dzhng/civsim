@@ -1,0 +1,15 @@
+{
+  "camera": {
+    "x": 2260,
+    "y": 1000,
+    "zoom": 3
+  },
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "p95": 16.670000000000073,
+  "max": 16.670000000000073,
+  "returnChangedPixels": 0,
+  "errors": []
+}

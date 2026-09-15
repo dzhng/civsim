@@ -124,3 +124,9 @@ a renderer-only offset would duplicate placement policy and separate figures
 from their shared label/marker anchor. Field-army figures and troop state stay
 unchanged. The army/cart checkpoint carries the differential frame test and
 before/after visual evidence.
+
+
+## Campaign sun fitting
+
+- **Sound, high confidence:** Share battle's existing sun-rectangle fit and retain its battle behavior. Campaign supplies its visible ground footprint, improving nearby contact without another light, larger shadow texture or new quality setting.
+- **Sound, high confidence:** Keep the full view extent across map boundaries and snap the sun/target together to shadow texels. Trimming the rectangle to the map changed shadow resolution during panning and defeated stabilization.

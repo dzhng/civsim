@@ -1,3 +1,4 @@
+import { fitSunShadowRect } from "../landscape/sunShadow";
 // shadowRig — real cascaded sun shadows for the battle world. One rig per
 // world, configured once from the SAME sun DirectionalLight
 // applyCivsimEnvironment builds — direction and colour stay owned by the ONE
@@ -192,29 +193,7 @@ export function configureSunShadows(
 
   // 'single': one orthographic shadow camera fit to the whole terrain rect.
   shadow.mapSize.set(SINGLE_MAP_SIZE, SINGLE_MAP_SIZE);
-  const fit = (rect: [number, number, number, number]) => {
-    const [x, y, w, h] = rect;
-    const cx = x + w / 2;
-    const cy = y + h / 2;
-    // Re-anchor the sun on the map centre (same direction — shading identical)
-    // so the ortho volume needs only the map's half-diagonal.
-    const dir = sun.position.clone().sub(sun.target.position).normalize();
-    sun.target.position.set(cx, cy, 0);
-    const half = Math.hypot(w, h) / 2 + 40;
-    // The light must sit OUTSIDE the whole ortho volume; real battle rectangles
-    // can span roughly 1500 m in light space.
-    const reach = half + 200;
-    sun.position.set(cx + dir.x * reach, cy + dir.y * reach, dir.z * reach);
-    const cam = shadow.camera;
-    cam.left = -half;
-    cam.right = half;
-    cam.top = half;
-    cam.bottom = -half;
-    cam.near = 1;
-    cam.far = reach * 2;
-    cam.updateProjectionMatrix();
-    shadow.needsUpdate = true;
-  };
+  const fit = (rect: [number, number, number, number]) => fitSunShadowRect(sun, rect);
   fit([-220, -180, 440, 360]);
   return {
     mode,

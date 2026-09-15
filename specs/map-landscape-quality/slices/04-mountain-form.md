@@ -82,3 +82,10 @@ Italy is a tie. Natural Alps shows no clear benefit, while source-derived cover
 and city-area heights change. Keep the source unchanged for the next isolated
 relief-profile assessment; duplicate shaping removal is not justified solely as
 an architectural simplification. No new profile is accepted by this evidence.
+
+The [signed-profile control](../assets/slice-04/signed-profile/README.md) preserves
+source geography and changes only the existing relief owner's crest response.
+Its 2km sampling error improves, but fresh real-region critique rejects both
+Alps and Italy: rounded curtain-like masses replace readable summits, saddles,
+spurs and valley openings. The accepted relief is restored. Numeric smoothness
+alone does not satisfy the mountain-form target; no parameter sweep follows.

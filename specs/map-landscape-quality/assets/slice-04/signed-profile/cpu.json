@@ -1,0 +1,45 @@
+{
+  "before": {
+    "count": 226728,
+    "heightRange": [
+      10.827986846819822,
+      31.121361768036387
+    ],
+    "profileRange": [
+      0.31279265999722417,
+      0.9284625906636287
+    ],
+    "maxAdjacent2kmHeightStep": 4.494103066880264,
+    "triangleError": {
+      "mean": 0.08661728690199008,
+      "p95": 0.24504696502798495,
+      "max": 1.3681391976268742
+    },
+    "probeMs": 650.8634159999999
+  },
+  "candidate": {
+    "count": 226728,
+    "heightRange": [
+      12.820589853081799,
+      29.342547153808646
+    ],
+    "profileRange": [
+      0.36064447966253343,
+      0.8787541199858029
+    ],
+    "maxAdjacent2kmHeightStep": 1.603465749013825,
+    "triangleError": {
+      "mean": 0.021372457204149566,
+      "p95": 0.05610940237681561,
+      "max": 0.17659553863792254
+    },
+    "probeMs": 619.662875
+  },
+  "contract": {
+    "deterministic": true,
+    "coastZero": true,
+    "sourceUnchanged": true,
+    "sourceHeight": 15,
+    "scope": "constant source envelope; regional coordinates; actual 2km triangle sampling; not real source overshoot or frame timing"
+  }
+}

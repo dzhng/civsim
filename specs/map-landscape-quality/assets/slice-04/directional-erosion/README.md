@@ -80,13 +80,40 @@ The reusable lesson is an input contract: directional synthesis needs a continuo
 source-gradient field. Passing that contract alone does not establish believable
 mountain structure at the intended mesh resolution.
 
-## Uncaptured causal control
+## Plain-base causal control
 
-The plain signed base without erosion was timed on CPU but was not captured.
-The candidate patch reproduces the complete clean-source/C1-base/filter state.
-Replacing only the local `shaped` assignment with the existing base `height`
-provides the next causal control; reuse the recorded camera matrices rather
-than recentering on its changed height. No such variant is implemented here.
+[Plain base](plain-base.png) disables only the erosion assignment in the archived
+candidate, retaining the signed body, C1 height reconstruction and source cleanup.
+It uses the filtered 2km capture's exact world and projection matrices, clay and
+no shadows. [Capture telemetry](plain-base.json) records zero camera difference,
+28,479 terrain triangles and no page or GPU validation errors. The snapshot is
+new diagnostic evidence, not a changed production baseline; no repeat was run.
+The reported center ray belongs to the route's original camera setup and is not
+an alignment assertion for the forced capture camera.
+
+The broad continuous wall remains without erosion. The lower-right thin pillar
+and repeated sharp diagonal/zigzag features visible in the filtered image are
+absent. Thus the filter composition adds those problematic features, while the
+wall's continuity already exists in the base. This control does not establish
+visual acceptance for either field.
+
+The coastal fixture itself imposes a continuous Gaussian ridge:
+`3 + 12 * exp(-((x - 12 - sin(y / 38) * 10) / 24)^2)` on land.
+Its ridge position bends along y, but its amplitude has no along-ridge valleys.
+Preserving that envelope naturally preserves continuity. The fixture remains
+useful for sampling and coastal continuity; it cannot alone establish whether a
+replacement produces useful branching and open valleys on campaign geography.
+The next form assessment needs a fixed real regional clay view alongside these
+numeric/sampling controls, and must distinguish source-imposed structure from
+synthesis artifacts before rejecting or accepting either. No new algorithm,
+parameter sweep or regional capture is part of this control.
+
+The source-constructor cleanup also affects height-derived cover/light channels
+on real campaign inputs, as the static review noted. It remains diagnostic only;
+this synthetic fixture does not exercise that constructor. All production and
+test changes were restored after capture. Reproduce from `candidate.patch`,
+replace the local `shaped` assignment with `height`, and use the recorded camera
+matrices without recentering on the changed terrain height.
 
 Primary references: [the author's technique](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html)
 and [the pinned CPU reference](https://github.com/korbindeman/bevy_erosion_filter/blob/494b366960eec25604a56e05e56acdc2d6a62429/src/cpu.rs).

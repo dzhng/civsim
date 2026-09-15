@@ -52,7 +52,8 @@ the source-form model before trying another local-link or noise adjustment.
 
 ## One landform owner
 
-The source height producer already modulates geographic ranges with ridge noise; the presentation field applies a second ridge pattern. Preserve range-distance geography and city aprons at the source, and move detailed landform shaping into the existing relief owner. The rejected comparison used a plain base and two stateless slope-directed erosion-noise octaves. This is a procedural shaping function, not a drainage or erosion simulation. Read the [primary algorithm explanation](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html) and preserve source-license notices for any port. Close clay and a shadow-free diagnostic must win before regional captures; measure query cost and keep coast, terrain-join and gameplay contracts protected. No new schema, cache or package dependency is planned.
+The source height producer already modulates geographic ranges with ridge noise; the presentation field applies a second ridge pattern. Preserve range-distance geography and city aprons at the source, and move detailed landform shaping into the existing relief owner. The rejected comparison used a plain base and two stateless slope-directed erosion-noise octaves. This is a procedural shaping function, not a drainage or erosion simulation. Read the [primary algorithm explanation](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html) and preserve source-license notices for any port. Use close clay for sampling/coastal correctness and fixed real regional clay for branching/open-valley judgment; measure query cost and keep coast, terrain-join and gameplay contracts protected. No new schema, cache or package dependency is planned.
+
 ## Directional synthesis boundary
 
 The [stateless directional-erosion investigation](../assets/slice-04/directional-erosion/README.md)
@@ -65,4 +66,11 @@ edits are removed, and no regional captures or parameter sweep follow. Future
 directional synthesis must satisfy the continuous-gradient input contract and
 its actual mesh sampling limit before visual acceptance can be assessed.
 
-The next causal control is the same cleaned source and plain base with erosion disabled. It was not captured in this pass. Use the archived patch and camera matrices to distinguish defects inherited from the base from defects introduced by the filter before choosing another algorithm.
+The same-camera plain-base control separates two causes: the wall persists
+without erosion because the synthetic fixture imposes a continuous Gaussian
+ridge, while the thin pillar and sharp repeated zigzags disappear. Keep this
+fixture for sampling and coast checks; the next form assessment also needs a
+fixed real regional clay view to judge branching, open valleys and foothills.
+Source-imposed continuity alone is not evidence against a synthesis algorithm.
+The current filter remains rejected for its added artifacts; no replacement is
+accepted or implemented by this diagnostic.

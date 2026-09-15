@@ -1,0 +1,110 @@
+{
+  "stats": {
+    "ok": true,
+    "route": "landscape-surface",
+    "projection": "camera3d-viewProj-reverse-z",
+    "stats": {
+      "surface": {
+        "domains": [
+          {
+            "ox": -160,
+            "oy": -80,
+            "columns": 81,
+            "rows": 81,
+            "cell": 2,
+            "units": "kilometers"
+          },
+          {
+            "ox": 0,
+            "oy": -80,
+            "columns": 81,
+            "rows": 81,
+            "cell": 2,
+            "units": "kilometers"
+          }
+        ],
+        "revision": "campaign:1",
+        "centerRay": {
+          "position": [
+            2.831204028755113e-19,
+            -0.0027715013127505017,
+            20.073371000045597
+          ],
+          "normal": [
+            -0.666506090414769,
+            0.09392183902629755,
+            0.7395595443194132
+          ],
+          "revision": "campaign:1",
+          "triangle": 6240,
+          "barycentric": [
+            0.0013857506563752506,
+            0.9986142493436247,
+            1.4156020143775564e-19
+          ]
+        }
+      },
+      "drawCalls": 4,
+      "triangles": 30688,
+      "gpuTimeMs": null,
+      "timeSeconds": 0,
+      "device": "google / swiftshader",
+      "terrainTriangles": 28479,
+      "trees": 1277,
+      "mountainProps": 0,
+      "center": [
+        0,
+        0
+      ],
+      "material": "shared-landscape-ground",
+      "environment": "golden"
+    }
+  },
+  "camera": {
+    "projection": [
+      2.2151446643453205,
+      0,
+      0,
+      0,
+      0,
+      3.544231462952513,
+      0,
+      0,
+      0,
+      0,
+      1.00000010000001e-7,
+      -1,
+      0,
+      0,
+      1.00000010000001,
+      0
+    ],
+    "world": [
+      1,
+      6.123233995736765e-17,
+      -6.162975822039155e-33,
+      0,
+      -5.220207135674002e-17,
+      0.8525245220595057,
+      0.5226872289306593,
+      0,
+      3.2005362093256573e-17,
+      -0.5226872289306593,
+      0.8525245220595057,
+      0,
+      7.56229408760718e-15,
+      -123.50163480396705,
+      220.3138438373375,
+      1
+    ]
+  },
+  "cameraDelta": 0,
+  "issues": [],
+  "checks": [
+    {
+      "name": "snapshot plain-base",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ]
+}

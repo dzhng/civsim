@@ -1,20 +1,38 @@
-import { tgpu, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
+import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { tgpu, type TgpuRenderPass, type TgpuBindGroup, type TgpuCommandEncoder } from "typegpu";
 import { Camera, typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 import { createTypegpuPost } from "./post";
 import { frameCamera, type FrameCameraSnapshot } from "../../src/frameCamera";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
-/** Typed frame resources and one submission; components borrow its camera and pass. */
+/** Stable camera bindings; replacement owns only attachments and their post chain. */
 export class TypegpuBattleFrame {
   private disposed = false;
+  private resizing = false;
+  private view?: {
+    snapshot: FrameCameraSnapshot;
+    observer: readonly [number, number, number];
+    grade: BattlePostGradeUniforms;
+  };
+  private readonly camera;
+  readonly cameraGroup;
   private constructor(
     private readonly root: ReturnType<typeof tgpu.initFromDevice>,
+    private readonly device: GPUDevice,
     private readonly environment: TypegpuEnvironment,
-    readonly width: number,
-    readonly height: number,
     readonly samples: 1 | 4,
-    private readonly resources: Awaited<ReturnType<typeof frameResources>>,
-  ) {}
+    private readonly outputFormat: GPUTextureFormat,
+    private resources: Awaited<ReturnType<typeof frameResources>>,
+  ) {
+    this.camera = root.createBuffer(Camera).$usage("uniform");
+    try {
+      this.cameraGroup = root.createBindGroup(typegpuCameraLayout, { cam: this.camera });
+      root.unwrap(this.cameraGroup);
+    } catch (error) {
+      this.camera.destroy();
+      throw error;
+    }
+  }
   static async create(
     device: GPUDevice,
     environment: TypegpuEnvironment,
@@ -24,31 +42,65 @@ export class TypegpuBattleFrame {
     outputFormat: GPUTextureFormat,
   ) {
     const root = tgpu.initFromDevice({ device });
+    let resources: Awaited<ReturnType<typeof frameResources>> | undefined;
     try {
-      return new TypegpuBattleFrame(
-        root,
-        environment,
-        width,
-        height,
-        samples,
-        await frameResources(root, device, width, height, samples, outputFormat),
-      );
+      resources = await frameResources(root, device, width, height, samples, outputFormat);
+      const admit = beginGpuAdmission(device);
+      let frame: TypegpuBattleFrame | undefined;
+      try {
+        frame = new TypegpuBattleFrame(root, device, environment, samples, outputFormat, resources);
+        await admit();
+        return frame;
+      } catch (error) {
+        frame?.camera.destroy();
+        await admit().catch(() => {});
+        throw error;
+      }
     } catch (error) {
+      resources?.dispose();
       root.destroy();
       throw error;
     }
   }
+  get width() {
+    return this.resources.width;
+  }
+  get height() {
+    return this.resources.height;
+  }
   get cameraBuffer() {
     this.assertLive();
-    return this.root.unwrap(this.resources.camera);
-  }
-  get cameraGroup() {
-    this.assertLive();
-    return this.resources.group;
+    return this.root.unwrap(this.camera);
   }
   get hdr() {
     this.assertLive();
     return this.root.unwrap(this.resources.hdr);
+  }
+  async resize(width: number, height: number) {
+    this.assertLive();
+    if (this.resizing) throw Error("TypeGPU frame resize already pending");
+    if (width === this.width && height === this.height) return;
+    this.resizing = true;
+    let next: Awaited<ReturnType<typeof frameResources>> | undefined;
+    try {
+      next = await frameResources(
+        this.root,
+        this.device,
+        width,
+        height,
+        this.samples,
+        this.outputFormat,
+      );
+      this.assertLive();
+      if (this.view) this.writeCamera(this.view, next);
+      const previous = this.resources;
+      this.resources = next;
+      next = undefined;
+      previous.dispose();
+    } finally {
+      next?.dispose();
+      this.resizing = false;
+    }
   }
   setCamera(
     snapshot: FrameCameraSnapshot,
@@ -56,23 +108,48 @@ export class TypegpuBattleFrame {
     grade: BattlePostGradeUniforms,
   ) {
     this.assertLive();
-    const state = frameCamera(snapshot, this.width, this.height);
-    this.resources.camera.write(state.bytes.buffer);
-    this.environment.setView(state.view, observer);
-    this.environment.sky.setRays(state.rays);
-    this.resources.post.setGrade(grade, this.environment.exposure);
+    const view = {
+      snapshot: {
+        ...snapshot,
+        camera3d: {
+          ...snapshot.camera3d,
+          target: [...snapshot.camera3d.target] as [number, number, number],
+        },
+      },
+      observer: [...observer] as [number, number, number],
+      grade: { ...grade },
+    };
+    this.writeCamera(view, this.resources);
+    this.view = view;
   }
-  render(
+  private writeCamera(
+    view: NonNullable<TypegpuBattleFrame["view"]>,
+    resources: Awaited<ReturnType<typeof frameResources>>,
+  ) {
+    const state = frameCamera(view.snapshot, resources.width, resources.height);
+    this.camera.write(state.bytes.buffer);
+    this.environment.setView(state.view, view.observer);
+    this.environment.sky.setRays(state.rays);
+    resources.post.setGrade(view.grade, this.environment.exposure);
+  }
+  createCommandEncoder() {
+    this.assertLive();
+    return this.root["~unstable"].createCommandEncoder();
+  }
+  /** Public unwrap interop for library-owned pose/sky/post encoding. */
+  nativeEncoder(encoder: TgpuCommandEncoder) {
+    return this.root.unwrap(encoder);
+  }
+  encode(
+    encoder: TgpuCommandEncoder,
     output: GPUTextureView,
-    prepare: (encoder: ReturnType<(typeof this.root)["~unstable"]["createCommandEncoder"]>) => void,
     draw: (pass: TgpuRenderPass, camera: TgpuBindGroup) => void,
     bloom: boolean,
+    post = true,
   ) {
     this.assertLive();
-    const encoder = this.root["~unstable"].createCommandEncoder(),
-      raw = this.root.unwrap(encoder);
-    prepare(encoder);
-    const r = this.resources;
+    const raw = this.root.unwrap(encoder),
+      r = this.resources;
     this.environment.sky.encodeBackground(raw, this.root.unwrap(r.color).createView());
     const pass = encoder.beginRenderPass({
       colorAttachments: [
@@ -83,23 +160,40 @@ export class TypegpuBattleFrame {
           storeOp: "store",
         },
       ],
-      depthStencilAttachment: { view: r.depth, depthClearValue: 0 },
+      depthStencilAttachment: {
+        view: r.depth,
+        depthClearValue: 0,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+      },
     });
     try {
-      draw(pass, r.group);
+      draw(pass, this.cameraGroup);
     } finally {
       pass.end();
     }
-    r.post.encode(raw, output, bloom);
+    r.post.encode(raw, output, bloom, post);
+  }
+  render(
+    output: GPUTextureView,
+    prepare: (encoder: TgpuCommandEncoder) => void,
+    draw: (pass: TgpuRenderPass, camera: TgpuBindGroup) => void,
+    bloom: boolean,
+    post = true,
+  ) {
+    const encoder = this.createCommandEncoder();
+    prepare(encoder);
+    this.encode(encoder, output, draw, bloom, post);
     encoder.submit();
   }
   private assertLive() {
-    if (this.disposed) throw new Error("TypeGPU frame disposed");
+    if (this.disposed) throw Error("TypeGPU frame disposed");
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
     this.resources.dispose();
+    this.camera.destroy();
     this.root.destroy();
   }
 }
@@ -111,17 +205,18 @@ async function frameResources(
   samples: 1 | 4,
   outputFormat: GPUTextureFormat,
 ) {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 64 || height < 64)
+    throw Error("TypeGPU frame requires integer dimensions at least 64×64");
   const owned: (() => void)[] = [];
   const own = <T extends { destroy(): void }>(x: T) => {
     owned.push(() => x.destroy());
     return x;
   };
   const dispose = () => {
-    for (const f of owned.reverse()) f();
+    for (const f of owned.splice(0).reverse()) f();
   };
+  const admit = beginGpuAdmission(device);
   try {
-    const camera = own(root.createBuffer(Camera).$usage("uniform")),
-      group = root.createBindGroup(typegpuCameraLayout, { cam: camera });
     const hdr = own(
       root
         .createTexture({ size: [width, height], format: "rgba16float" })
@@ -140,6 +235,10 @@ async function frameResources(
         .createTexture({ size: [width, height], format: "depth32float", sampleCount: samples })
         .$usage("render"),
     );
+    root.unwrap(hdr);
+    root.unwrap(color);
+    root.unwrap(depth);
+    await admit();
     const post = await createTypegpuPost(
       device,
       root.unwrap(hdr).createView(),
@@ -148,8 +247,9 @@ async function frameResources(
       outputFormat,
     );
     owned.push(post.dispose);
-    return { camera, group, hdr, color, depth, post, dispose };
+    return { width, height, hdr, color, depth, post, dispose };
   } catch (error) {
+    await admit().catch(() => {});
     dispose();
     throw error;
   }

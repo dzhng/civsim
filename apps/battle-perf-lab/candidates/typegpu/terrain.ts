@@ -1,6 +1,7 @@
+import { beginGpuAdmission } from "../../src/gpuAdmission";
 import { vistaOpacityWgsl } from "../../src/shaders/terrain";
 import { typegpuTextureBytes } from "./textureUpload";
-import { tgpu, d, std, type TgpuRenderPass } from "typegpu";
+import { tgpu, d, std, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
@@ -72,6 +73,8 @@ export async function createTypegpuTerrain(
     for (const r of owned) r.destroy();
     root.destroy();
   };
+  const admission = beginGpuAdmission(device);
+  const init: Promise<unknown>[] = [];
   try {
     const camera = root.createBuffer(Camera, cameraBuffer).$usage("uniform");
     owned.push(camera);
@@ -230,7 +233,8 @@ export async function createTypegpuTerrain(
     const draws: ((pass: TgpuRenderPass) => void)[] = [
       (pass) => boundGround.with(pass).drawIndexed(ground.indices.length),
     ];
-    const init = [groundPipeline.initAsync()];
+    init.push(groundPipeline.initAsync());
+    let drawHorizonShadow = (_pass: TgpuRenderPass, _camera: TgpuBindGroup) => {};
     if (horizon && horizon.mesh.indices.length) {
       const h = horizon.mesh,
         hv = root.createBuffer(geometry.schemaForCount(h.vertices.length / 10)).$usage("vertex"),
@@ -242,6 +246,8 @@ export async function createTypegpuTerrain(
       const indexData = new Uint16Array(h.indices.length + (h.indices.length % 2));
       indexData.set(h.indices);
       hi.write(bytes(indexData));
+      root.unwrap(hv);
+      root.unwrap(hi);
       const hVertex = tgpu.vertexFn({
         in: { position: d.vec3f, normal: d.vec3f, color: d.vec3f },
         out: Varyings,
@@ -289,12 +295,49 @@ export async function createTypegpuTerrain(
         .withIndexBuffer(hi);
       draws.push((pass) => bound.with(pass).drawIndexed(h.indices.length));
       init.push(pipeline.initAsync());
+      const shadowVertex = tgpu.vertexFn({
+        in: { position: d.vec3f },
+        out: { clip: d.builtin.position },
+      })((v) => {
+        "use gpu";
+        return { clip: std.mul(cameraLayout.$.cam.viewProj, d.vec4f(v.position, 1)) };
+      });
+      const shadowPipeline = root.createRenderPipeline({
+        attribs: { position: geometry.attrib.position },
+        vertex: shadowVertex,
+        primitive: { topology: "triangle-list", cullMode: "front" },
+        depthStencil: {
+          format: "depth32float",
+          depthWriteEnabled: true,
+          depthCompare: "greater-equal",
+        },
+      });
+      init.push(shadowPipeline.initAsync());
+      drawHorizonShadow = (pass, camera) =>
+        shadowPipeline
+          .with(camera)
+          .with(geometry, hv)
+          .withIndexBuffer(hi)
+          .with(pass)
+          .drawIndexed(h.indices.length);
     }
-    await Promise.all(init);
+    root.unwrap(vertices);
+    root.unwrap(tints);
+    root.unwrap(colors);
+    root.unwrap(indices);
+    root.unwrap(cameraGroup);
+    root.unwrap(group);
+    root.unwrap(linear);
+    const pipelinesReady = Promise.all(init);
+    await Promise.all([pipelinesReady, admission()]);
     return {
       setState(farStrength: number, shadow = 1) {
         if (disposed) throw Error("TypeGPU terrain disposed");
         state.write(d.vec4f(farStrength, shadow, 0, 0));
+      },
+      drawHorizonShadow(pass: TgpuRenderPass, camera: TgpuBindGroup) {
+        if (disposed) throw Error("TypeGPU terrain disposed");
+        drawHorizonShadow(pass, camera);
       },
       draw(pass: TgpuRenderPass) {
         if (disposed) throw Error("TypeGPU terrain disposed");
@@ -325,6 +368,7 @@ export async function createTypegpuTerrain(
       dispose,
     };
   } catch (error) {
+    await Promise.allSettled([...init, admission()]);
     dispose();
     throw error;
   }

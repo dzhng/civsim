@@ -94,7 +94,6 @@ a few low-sun, below-horizon LUT texels. The port preserves that operation rathe
 than modifying the atmosphere equations. The current comparison gate allows one
 half-float step at the measured radiance range and rejects all nonfinite values.
 
-
 ## Post pass
 
 [post.ts](post.ts) owns the bloom pyramid, grade uniform, bind groups and pipelines
@@ -130,3 +129,27 @@ with actual TypeGPU ground/horizon pipelines and one- or four-sample attachments
 The shared material algorithms and production geometry are preserved. Its
 single-sample ground gate passes; coplanar horizon and four-sample beauty gates
 remain open, so this is not a complete or eligible benchmark backend.
+
+## Complete scene composition
+
+`battleScene.ts` composes the existing TypeGPU component owners with the shared
+camera, crowd history, terrain preparation and grass publication policy. Crowd
+updates are awaited and submit pose work even when no frame follows. UI updates
+remain separate; `prepare` refreshes camera-dependent presentation, and `encode`
+records grass routing, shadows, HDR world and final output into a caller-submitted
+TypeGPU command encoder. Public native-encoder interop is used by TypeGPU-owned
+pose, sky and post pipelines; no raw candidate performs their work.
+
+Camera buffer and bind-group identities survive framebuffer resize. Replacement
+attachments and the entire post chain are admitted before commit. Disabling post
+uses the source direct AgX/sRGB output, bypassing both bloom and artistic grading.
+A failed terrain staging operation preserves the old prepared scene; a failure
+in a dependent owner after terrain commits closes the scene rather than exposing
+mixed terrain generations. Disposal closes the scene immediately and awaits an
+active operation's cleanup through that operation's promise.
+
+The dedicated CPU lifecycle tests cover these boundaries, including late GPU
+admission errors and pose-update ordering. Complete-scene browser controls and
+fresh visual review are still pending for this composition; existing component
+edge/cold-frame diagnostics remain open. This checkpoint establishes neither
+full-scene fidelity nor performance eligibility.

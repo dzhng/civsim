@@ -1,4 +1,5 @@
-import { tgpu, d, common, type TgpuFn } from "typegpu";
+import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { tgpu, d, std, common, type TgpuFn, type TgpuBindGroup } from "typegpu";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
 import { GRADE_LUMA } from "../../../../packages/game-renderer/src/environment/postParameters";
 import {
@@ -10,6 +11,7 @@ import {
   agxWgsl,
   outputSrgbWgsl,
   postFinalWgsl,
+  postDirectWgsl,
 } from "../../src/shared/postShader";
 
 const Grade = d.struct({
@@ -68,12 +70,21 @@ export async function createTypegpuPost(
       .createTexture({ size: [w, h], format: "rgba16float" })
       .$usage("render", "sampled");
     owned.push(result);
+    root.unwrap(result);
     return result;
+  };
+  const admission = beginGpuAdmission(device);
+  const init: Promise<unknown>[] = [];
+  const admittedGroup = <T extends TgpuBindGroup>(group: T): T => {
+    root.unwrap(group);
+    return group;
   };
   try {
     const sampler = root.createSampler({ minFilter: "linear", magFilter: "linear" });
     const uniform = root.createBuffer(Grade).$usage("uniform");
     owned.push(uniform);
+    root.unwrap(uniform);
+    root.unwrap(sampler);
     const pipeline = (
       shade: TgpuFn<(uv: d.Vec2f) => d.Vec4f>,
       format: GPUTextureFormat = "rgba16float",
@@ -86,7 +97,6 @@ export async function createTypegpuPost(
         }),
         targets: { format },
       });
-    const init: Promise<unknown>[] = [];
     const stages: ((encoder: GPUCommandEncoder) => void)[] = [];
     const blurStage = (
       body: string,
@@ -102,7 +112,7 @@ export async function createTypegpuPost(
         return algorithm(uv, sampled.$.source, sampled.$.linearSampler);
       });
       const p = pipeline(shader).with(
-        root.createBindGroup(sampled, { source, linearSampler: sampler }),
+        admittedGroup(root.createBindGroup(sampled, { source, linearSampler: sampler })),
       );
       init.push(p.initAsync());
       const targetView = target.createView("render");
@@ -159,14 +169,16 @@ export async function createTypegpuPost(
       );
     });
     const composite = pipeline(compositeShader).with(
-      root.createBindGroup(compositeLayout, {
-        linearSampler: sampler,
-        level0: levels[0],
-        level1: levels[1],
-        level2: levels[2],
-        level3: levels[3],
-        level4: levels[4],
-      }),
+      admittedGroup(
+        root.createBindGroup(compositeLayout, {
+          linearSampler: sampler,
+          level0: levels[0],
+          level1: levels[1],
+          level2: levels[2],
+          level3: levels[3],
+          level4: levels[4],
+        }),
+      ),
     );
     init.push(composite.initAsync());
     const compositeView = compositeTarget!.createView("render");
@@ -203,18 +215,39 @@ export async function createTypegpuPost(
         finalLayout.$.grade,
       );
     });
+    const directAlgorithm = tgpu
+      .fn(
+        [d.vec4f, d.f32],
+        d.vec4f,
+      )(postDirectWgsl)
+      .$uses({ agx, outputSrgb });
+    const directShader = tgpu.fn(
+      [d.vec2f],
+      d.vec4f,
+    )((uv) => {
+      "use gpu";
+      return directAlgorithm(
+        std.textureSample(finalLayout.$.scene, finalLayout.$.linearSampler, uv),
+        finalLayout.$.grade.exposure,
+      );
+    });
+    const direct = pipeline(directShader, outputFormat);
+    init.push(direct.initAsync());
     const final = pipeline(finalShader, outputFormat);
     init.push(final.initAsync());
     const zero = texture(1, 1);
     const groups = [zero, compositeTarget!].map((bloom) =>
-      root.createBindGroup(finalLayout, {
-        linearSampler: sampler,
-        scene: input,
-        bloom,
-        grade: uniform,
-      }),
+      admittedGroup(
+        root.createBindGroup(finalLayout, {
+          linearSampler: sampler,
+          scene: input,
+          bloom,
+          grade: uniform,
+        }),
+      ),
     );
-    await Promise.all(init);
+    const pipelinesReady = Promise.all(init);
+    await Promise.all([pipelinesReady, admission()]);
     return {
       setGrade(grade: BattlePostGradeUniforms, exposure: number) {
         if (disposed) throw new Error("TypeGPU post is disposed");
@@ -223,8 +256,16 @@ export async function createTypegpuPost(
           throw new Error("Post parameters must be finite");
         uniform.write(value);
       },
-      encode(encoder: GPUCommandEncoder, output: GPUTextureView, bloom = true) {
+      encode(encoder: GPUCommandEncoder, output: GPUTextureView, bloom = true, enabled = true) {
         if (disposed) throw new Error("TypeGPU post is disposed");
+        if (!enabled) {
+          direct
+            .with(groups[0])
+            .with(encoder)
+            .withColorAttachment({ view: output, clearValue: [0, 0, 0, 0] })
+            .draw(3);
+          return;
+        }
         if (bloom) for (const stage of stages) stage(encoder);
         final
           .with(groups[bloom ? 1 : 0])
@@ -235,6 +276,7 @@ export async function createTypegpuPost(
       dispose,
     };
   } catch (error) {
+    await Promise.allSettled([...init, admission()]);
     dispose();
     throw error;
   }

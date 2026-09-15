@@ -1,0 +1,1 @@
+Static review found no actionable defects. The bounded neighborhood covers every contributing link without boundary discontinuities; overlap is deterministic, source arrays remain unchanged, coast attenuation is preserved, and geometry/ecology both consume campaignRelief. No files were changed or browser/GPU checks run.

@@ -1,0 +1,20 @@
+{
+  "queries": 10201,
+  "beforeMs": [
+    3.8784169999999847,
+    3.7817079999999805,
+    3.7365410000000168
+  ],
+  "candidateMs": [
+    12.521250000000009,
+    13.193666000000007,
+    14.027040999999997
+  ],
+  "changed": 3205,
+  "minimumRatio": 0.6646888892090186,
+  "maxDrop": 9.46206593610124,
+  "sourceUnchanged": true,
+  "coastZero": true,
+  "deterministic": true,
+  "checksum": 535659.4475652139
+}

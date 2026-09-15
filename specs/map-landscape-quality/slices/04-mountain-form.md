@@ -41,6 +41,15 @@ The raw-mask and extracted-spine replacements were rejected by fresh visual comp
 
 Local foundation probes covered all 401 in-bounds settlements using the actual city meshes, but the candidate produced circular shelves in clay views. That implementation is deferred to slice12; existing source aprons and placement behavior remain authoritative in this pass. The detailed-grid result is distinct from coarse overview seating. Evidence, rejected paths, allocation boundaries and review results are in [the form investigation](../assets/slice-04/README.md). The independent pass accepts only a bounded perimeter/serration cleanup. The fresh reviewer explicitly leaves the larger valley/foothill character open; tiled-world integration and final verification remain pending.
 
-## Next form decision
+## Downhill-link incision boundary
 
-The ridge-separation probes in [retained evidence](../assets/slice-04/ridge-separation/README.md) did not resolve the enclosed ribs. Further contour exponent or amplitude tuning is not the next experiment. Test open, descending valley cuts within the existing geographic envelope, with connected shoulders, first in the close clay fixture. Keep source geography, water, material and planting fixed. Reject regular teeth, isolated pyramids or closed bowls before expanding to regional views. No persistent range graph, erosion simulation or new cache is required. This is an unproven bounded hypothesis, not an accepted replacement.
+The [bounded valley-incision probe](../assets/slice-04/valley-incision/README.md)
+was rejected at the first close clay fixture. Local downhill links over the
+existing source height create diagonal trenches/ribs and isolated nubs; query
+cost also rises about 3.4× in the fixture sample probe. No regional captures or
+baseline changes follow, and all candidate production code is removed. Revisit
+the source-form model before trying another local-link or noise adjustment.
+
+## One landform owner
+
+The source height producer already modulates geographic ranges with ridge noise; the presentation field applies a second ridge pattern. Preserve range-distance geography and city aprons at the source, and move detailed landform shaping into the existing relief owner. The next bounded comparison uses a plain base and two stateless slope-directed erosion-noise octaves. This is a procedural shaping function, not a drainage or erosion simulation. Read the [primary algorithm explanation](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html) and preserve source-license notices for any port. Close clay and a shadow-free diagnostic must win before regional captures; measure query cost and keep coast, terrain-join and gameplay contracts protected. No new schema, cache or package dependency is planned.

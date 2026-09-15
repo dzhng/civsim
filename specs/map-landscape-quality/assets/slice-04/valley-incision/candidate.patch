@@ -1,0 +1,55 @@
+diff --git a/packages/game-renderer/src/terrain/campaignRelief.ts b/packages/game-renderer/src/terrain/campaignRelief.ts
+index ec0d98d8..6f54fb4b 100644
+--- a/packages/game-renderer/src/terrain/campaignRelief.ts
++++ b/packages/game-renderer/src/terrain/campaignRelief.ts
+@@ -46 +46,49 @@ export function campaignRelief(source: CampaignReliefSource, cell: number) {
+-    return (foothill + envelope * 2.5 * folds) * smoothstep(0, 16, inland);
++    const incision = envelope > 0 ? valleyAt(x, y) : 0;
++    return (foothill + envelope * 2.5 * folds * (1 - incision * 0.35)) * smoothstep(0, 16, inland);
++  };
++  // A coarse, jittered downhill network opens folds without following their
++  // enclosed noise contours. Links are evaluated locally, never retained.
++  const stride = 4,
++    spacing = source.cell * stride;
++  const heightAtNode = (i: number, j: number) =>
++    i < 0 || j < 0 || i * stride >= source.w || j * stride >= source.h
++      ? Infinity
++      : source.height[j * stride * source.w + i * stride];
++  const nodeX = (i: number, j: number) =>
++    source.minX + (i * stride + 0.5) * source.cell + (hash2(i, j) - 0.5) * spacing * 0.36;
++  const nodeY = (i: number, j: number) =>
++    source.maxY - (j * stride + 0.5) * source.cell + (hash2(i + 19, j - 7) - 0.5) * spacing * 0.36;
++  const valleyAt = (x: number, y: number) => {
++    const gx = Math.floor((x - source.minX - source.cell * 0.5) / spacing),
++      gy = Math.floor((source.maxY - y - source.cell * 0.5) / spacing);
++    let cut = 0;
++    for (let j = gy - 2; j <= gy + 2; j++) {
++      for (let i = gx - 2; i <= gx + 2; i++) {
++        const h = heightAtNode(i, j);
++        if (!Number.isFinite(h) || h <= 2.2) continue;
++        let ni = i,
++          nj = j,
++          descent = 0;
++        for (let dy = -1; dy <= 1; dy++) {
++          for (let dx = -1; dx <= 1; dx++) {
++            if (!dx && !dy) continue;
++            const drop = (h - heightAtNode(i + dx, j + dy)) / Math.hypot(dx, dy);
++            if (drop > descent) {
++              descent = drop;
++              ni = i + dx;
++              nj = j + dy;
++            }
++          }
++        }
++        if (ni === i && nj === j) continue;
++        const ax = nodeX(i, j),
++          ay = nodeY(i, j),
++          dx = nodeX(ni, nj) - ax,
++          dy = nodeY(ni, nj) - ay;
++        const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)));
++        const distance = Math.hypot(x - ax - t * dx, y - ay - t * dy);
++        const width = spacing * (0.2 + hash2(i - 31, j + 23) * 0.1);
++        cut = Math.max(cut, 1 - smoothstep(0, width, distance));
++      }
++    }
++    return cut;

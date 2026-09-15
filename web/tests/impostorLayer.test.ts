@@ -128,7 +128,7 @@ test.each(["render", "falsy render", "GPU validation", "scope rejection"])(
         renderer as unknown as THREE.WebGPURenderer,
         mesh,
         palette,
-        { table: new THREE.DataTexture(), images: {}, stats: [], dispose() {} },
+        { table: new THREE.DataTexture(), images: {}, dispose() {} },
       );
       if (failure === "falsy render") await expect(preparation).rejects.toBe(0);
       else await expect(preparation).rejects.toThrow(`deliberate ${failure}`);

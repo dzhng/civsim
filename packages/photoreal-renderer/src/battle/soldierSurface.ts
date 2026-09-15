@@ -20,11 +20,10 @@ import { TANGENT_FRAME_EPSILON_SQUARED } from "../../../soldier-assets/src/skin"
 import {
   packSoldierMaterials,
   SOLDIER_MATERIAL_ROWS,
-  SOLDIER_TEXTURE_COLOR_SPACES,
   type SoldierSurface,
   type SoldierTextureChannel,
 } from "../../../soldier-assets/src/material";
-import { uploadImageTexture } from "../../../renderer-core/src/imageTexture";
+import { createSoldierImageOwner, type OwnedSoldierImage } from "./soldierImages";
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import { linearAlbedo } from "./battleTsl";
 
@@ -58,21 +57,22 @@ export function soldierFactionAccent(faction: THREE.Node<"float">) {
 export interface PreparedSoldierSurface {
   table: THREE.DataTexture;
   images: Partial<Record<SoldierTextureChannel, THREE.ExternalTexture>>;
-  stats: {
-    channel: SoldierTextureChannel;
-    width: number;
-    height: number;
-    mipLevels: number;
-    bytes: number;
-  }[];
   dispose(): void;
 }
 
-/** Images belong to this preparation, never to a shared decoded-image cache. */
+/**
+ * The material table is authored per appearance and always allocated here; the
+ * images are borrowed from `owner`, which shares one GPU allocation between
+ * appearances whose bytes and sampling requirements are identical. A caller
+ * without a world-wide owner gets a private one, so its surface owns its images
+ * outright. Disposal releases the borrows: the owner destroys each image once,
+ * when the last surface holding it is gone.
+ */
 export async function prepareSoldierSurface(
   renderer: THREE.WebGPURenderer,
   source: SoldierSurface,
   assertUsable?: () => void,
+  owner = createSoldierImageOwner(),
 ): Promise<PreparedSoldierSurface> {
   const table = new THREE.DataTexture(
     packSoldierMaterials(source.materials),
@@ -86,16 +86,13 @@ export async function prepareSoldierSurface(
   table.generateMipmaps = false;
   table.needsUpdate = true;
   const images: PreparedSoldierSurface["images"] = {};
-  const stats: PreparedSoldierSurface["stats"] = [];
-  const owned = new Set<GPUTexture>();
+  const borrowed: OwnedSoldierImage[] = [];
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     table.dispose();
-    for (const image of Object.values(images)) image.dispose();
-    // ExternalTexture deliberately borrows; its dispose does not free the GPU image.
-    for (const image of owned) image.destroy();
+    for (const image of borrowed) image.release();
   };
   try {
     assertUsable?.();
@@ -103,64 +100,14 @@ export async function prepareSoldierSurface(
     if (!device) throw new Error("Soldier surfaces require an initialized WebGPU device");
     for (const [key, definition] of Object.entries(source.textures)) {
       const channel = key as SoldierTextureChannel;
-      const bitmap = await createImageBitmap(
-        new Blob([definition.image], { type: definition.mimeType }),
-        {
-          colorSpaceConversion: "none",
-          premultiplyAlpha: "none",
-          imageOrientation: "none",
-        },
-      );
-      try {
-        assertUsable?.();
-        const gpu = await uploadImageTexture(device, bitmap, {
-          colorSpace: SOLDIER_TEXTURE_COLOR_SPACES[channel],
-          generateMipmaps: definition.sampler.mipmapFilter !== "none",
-        });
-        owned.add(gpu);
-        assertUsable?.();
-        const image = new THREE.ExternalTexture(gpu);
-        images[channel] = image;
-        image.colorSpace = channel === "baseColor" ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-        image.flipY = false;
-        image.generateMipmaps = false;
-        const sampler = definition.sampler;
-        image.magFilter =
-          sampler.magFilter === "nearest" ? THREE.NearestFilter : THREE.LinearFilter;
-        image.minFilter =
-          sampler.mipmapFilter === "none"
-            ? sampler.minFilter === "nearest"
-              ? THREE.NearestFilter
-              : THREE.LinearFilter
-            : sampler.mipmapFilter === "nearest"
-              ? sampler.minFilter === "nearest"
-                ? THREE.NearestMipmapNearestFilter
-                : THREE.LinearMipmapNearestFilter
-              : sampler.minFilter === "nearest"
-                ? THREE.NearestMipmapLinearFilter
-                : THREE.LinearMipmapLinearFilter;
-        const wraps = {
-          repeat: THREE.RepeatWrapping,
-          "clamp-to-edge": THREE.ClampToEdgeWrapping,
-          "mirror-repeat": THREE.MirroredRepeatWrapping,
-        } as const;
-        image.wrapS = wraps[sampler.wrapS];
-        image.wrapT = wraps[sampler.wrapT];
-        let bytes = 0;
-        for (let level = 0; level < gpu.mipLevelCount; level++)
-          bytes += Math.max(1, gpu.width >> level) * Math.max(1, gpu.height >> level) * 4;
-        stats.push({
-          channel,
-          width: gpu.width,
-          height: gpu.height,
-          mipLevels: gpu.mipLevelCount,
-          bytes,
-        });
-      } finally {
-        bitmap.close();
-      }
+      const image = await owner.acquire(device, channel, definition, assertUsable);
+      // Tracked before the next cancellation check so no acquired image escapes
+      // this surface's disposal.
+      borrowed.push(image);
+      assertUsable?.();
+      images[channel] = image.texture;
     }
-    return { table, images, stats, dispose };
+    return { table, images, dispose };
   } catch (error) {
     dispose();
     throw error;

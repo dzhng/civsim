@@ -89,7 +89,6 @@ test("prepared surfaces preserve declared sampling and own GPU images independen
   expect(prepared.images.baseColor?.magFilter).toBe(THREE.NearestFilter);
   expect(prepared.images.baseColor?.wrapS).toBe(THREE.MirroredRepeatWrapping);
   expect(prepared.images.baseColor?.wrapT).toBe(THREE.ClampToEdgeWrapping);
-  expect(prepared.stats.map(({ bytes }) => bytes)).toEqual([172, 172]);
   for (const bitmap of bitmaps) expect(bitmap.close).toHaveBeenCalledTimes(1);
   prepared.images.baseColor!.dispose();
   expect(gpu[0].destroy).not.toHaveBeenCalled();

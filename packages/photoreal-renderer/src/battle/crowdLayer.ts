@@ -41,6 +41,7 @@ import { RENDER_ORDER } from "./terrainLayer";
 import { weightedPaletteColumns } from "./skinNodes";
 import { SoldierPosePalette, type PaletteColumns } from "./posePalette";
 import { soldierGeometry } from "./meshGeometry";
+import { createSoldierImageOwner } from "./soldierImages";
 import {
   prepareSoldierSurface,
   type PreparedSoldierSurface,
@@ -139,6 +140,8 @@ export class PhotorealCrowd {
   private readonly impostors: Record<number, OctahedralImpostorLayer> = {};
   private readonly groups: PaletteGroup[] = [];
   private readonly surfaces = new Set<PreparedSoldierSurface>();
+  /** This preparation's immutable material images; appearances borrow from it. */
+  private readonly images = createSoldierImageOwner();
   private instanceCount = 0;
   private readonly materialIdentity = soldierMaterialIdentity();
   private lodBuffers = createCrowdLodBuffers(0);
@@ -187,7 +190,7 @@ export class PhotorealCrowd {
     ): Promise<PreparedSoldierSurface> => {
       let surface = surfaces.get(source);
       if (!surface) {
-        surface = await prepareSoldierSurface(renderer, source, assertUsable);
+        surface = await prepareSoldierSurface(renderer, source, assertUsable, this.images);
         surfaces.set(source, surface);
         this.surfaces.add(surface);
       }
@@ -519,7 +522,7 @@ export class PhotorealCrowd {
       culling: { ...this.culling },
       impostors,
       material: this.materialIdentity,
-      surfaceImages: [...this.surfaces].flatMap((surface) => surface.stats),
+      surfaceImages: this.images.stats(),
       palettes: this.groups.map((group) => group.palette.stats()),
       uploadFailed: this.uploadFailed,
     };

@@ -1,3 +1,4 @@
+import { nativeGpuScope } from "../nativeGpuTelemetry";
 import type { Gpu, Target } from "vgpu";
 import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
 import { createSceneLifecycle } from "../sceneLifecycle";
@@ -219,7 +220,7 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
             camera.impostor,
           );
           life.check();
-          crowd.precompute();
+          nativeGpuScope(gpu.device.gpu, "pose", () => crowd.precompute());
         });
       },
       uploadReadouts(
@@ -287,7 +288,7 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
           if (!prepared) throw Error("Battle scene has no completed preparation");
           await frame.render(
             output,
-            () => grass.route(),
+            () => nativeGpuScope(gpu.device.gpu, "grass", () => grass.route()),
             (pass) => {
               terrain.drawOpaque(pass);
               crowd.draw(pass);
@@ -303,10 +304,12 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
             bloom,
             (current) => {
               if (shadow)
-                shadow.encode(current, (pass) => {
-                  terrain.drawShadow(pass, shadow.camera);
-                  crowd.draw(pass, "shadow", shadow.camera);
-                });
+                nativeGpuScope(gpu.device.gpu, "shadow", () =>
+                  shadow.encode(current, (pass) => {
+                    terrain.drawShadow(pass, shadow.camera);
+                    crowd.draw(pass, "shadow", shadow.camera);
+                  }),
+                );
             },
             post,
           );

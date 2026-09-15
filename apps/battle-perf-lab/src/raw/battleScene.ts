@@ -1,3 +1,4 @@
+import { nativeGpuScope } from "../nativeGpuTelemetry";
 import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
 import { createRawEnvironment } from "./environment";
 import { RawBattleFrame } from "./frame";
@@ -244,7 +245,7 @@ export async function createRawBattleScene(
         );
         // Source pose work belongs to each draw update, including updates before a render.
         const encoder = device.createCommandEncoder({ label: "battle pose update" });
-        crowd.precompute(encoder);
+        nativeGpuScope(device, "pose", () => crowd.precompute(encoder));
         device.queue.submit([encoder.finish()]);
       },
       async uploadReadouts(
@@ -322,12 +323,14 @@ export async function createRawBattleScene(
       encode(encoder: GPUCommandEncoder, output: GPUTextureView) {
         check();
         if (!prepared || busy) throw Error("Battle scene has no completed preparation");
-        grass.route(encoder);
+        nativeGpuScope(device, "grass", () => grass.route(encoder));
         if (shadow && shadowCamera)
-          shadow.encode(encoder, (pass) => {
-            terrain.drawShadow(pass, shadowCamera);
-            crowd.draw(pass, shadowCamera, "shadow");
-          });
+          nativeGpuScope(device, "shadow", () =>
+            shadow.encode(encoder, (pass) => {
+              terrain.drawShadow(pass, shadowCamera);
+              crowd.draw(pass, shadowCamera, "shadow");
+            }),
+          );
         frame.encode(
           encoder,
           output,

@@ -1,3 +1,4 @@
+import { nativeGpuScope } from "../../src/nativeGpuTelemetry";
 import type { TgpuCommandEncoder } from "typegpu";
 import { createSceneLifecycle } from "../../src/sceneLifecycle";
 import type { BattleSceneOptions } from "../../src/sceneTypes";
@@ -242,7 +243,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           check();
           // Source pose work belongs to each draw update, including updates before a render.
           const encoder = frame.createCommandEncoder();
-          crowd.precompute(frame.nativeEncoder(encoder));
+          nativeGpuScope(device, "pose", () => crowd.precompute(frame.nativeEncoder(encoder)));
           encoder.submit();
         });
       },
@@ -320,12 +321,14 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       encode(encoder: TgpuCommandEncoder, output: GPUTextureView) {
         check();
         if (!prepared || lifecycle.busy) throw Error("Battle scene has no completed preparation");
-        grass.route(encoder);
+        nativeGpuScope(device, "grass", () => grass.route(encoder));
         if (shadow && shadowCamera)
-          shadow.encode(encoder, (pass) => {
-            terrain.drawShadow(pass, shadowCamera);
-            crowd.draw(pass, "shadow", shadowCamera);
-          });
+          nativeGpuScope(device, "shadow", () =>
+            shadow.encode(encoder, (pass) => {
+              terrain.drawShadow(pass, shadowCamera);
+              crowd.draw(pass, "shadow", shadowCamera);
+            }),
+          );
         frame.encode(
           encoder,
           output,

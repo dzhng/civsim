@@ -1,3 +1,4 @@
+import { nativeGpuScope } from "../nativeGpuTelemetry";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import { beginGpuAdmission } from "../gpuAdmission";
 import { frame, target, type Gpu, type FramePass, type Frame, type Target } from "vgpu";
@@ -132,11 +133,15 @@ export class VgpuBattleFrame {
       const r = this.resources;
       await frame(this.gpu, (current) => {
         beforeWorld?.(current);
-        current.pass({ target: r.target, clear: [0, 0, 0, 1], clearDepth: 0 }, (pass) => {
-          this.environment.sky.drawBackground(pass);
-          draw(pass);
+        nativeGpuScope(this.gpu.device.gpu, "main", () => {
+          current.pass({ target: r.target, clear: [0, 0, 0, 1], clearDepth: 0 }, (pass) => {
+            this.environment.sky.drawBackground(pass);
+            draw(pass);
+          });
         });
-        r.post.encode(current, output, bloom, postEnabled);
+        nativeGpuScope(this.gpu.device.gpu, "post", () =>
+          r.post.encode(current, output, bloom, postEnabled),
+        );
       }).done;
     });
   }

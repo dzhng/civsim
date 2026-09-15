@@ -1,3 +1,4 @@
+import { nativeGpuScope } from "../nativeGpuTelemetry";
 import { beginGpuAdmission } from "../gpuAdmission";
 import { frameCamera, type FrameCameraSnapshot } from "../frameCamera";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
@@ -174,30 +175,34 @@ export class RawBattleFrame {
     postEnabled = true,
   ) {
     this.assertLive();
-    this.environment.sky.encodeBackground(encoder, this.attachments.color.createView());
-    const pass = encoder.beginRenderPass({
-      label: "native composed scene",
-      colorAttachments: [
-        {
-          view: this.attachments.color.createView(),
-          resolveTarget: this.samples === 4 ? this.hdr.createView() : undefined,
-          loadOp: "load",
-          storeOp: "store",
+    nativeGpuScope(this.device, "main", () => {
+      this.environment.sky.encodeBackground(encoder, this.attachments.color.createView());
+      const pass = encoder.beginRenderPass({
+        label: "native composed scene",
+        colorAttachments: [
+          {
+            view: this.attachments.color.createView(),
+            resolveTarget: this.samples === 4 ? this.hdr.createView() : undefined,
+            loadOp: "load",
+            storeOp: "store",
+          },
+        ],
+        depthStencilAttachment: {
+          view: this.attachments.depth.createView(),
+          depthClearValue: 0,
+          depthLoadOp: "clear",
+          depthStoreOp: "store",
         },
-      ],
-      depthStencilAttachment: {
-        view: this.attachments.depth.createView(),
-        depthClearValue: 0,
-        depthLoadOp: "clear",
-        depthStoreOp: "store",
-      },
+      });
+      try {
+        draw(pass, this.cameraGroup);
+      } finally {
+        pass.end();
+      }
     });
-    try {
-      draw(pass, this.cameraGroup);
-    } finally {
-      pass.end();
-    }
-    this.attachments.post.encode(encoder, output, bloom, postEnabled);
+    nativeGpuScope(this.device, "post", () =>
+      this.attachments.post.encode(encoder, output, bloom, postEnabled),
+    );
   }
   private assertLive() {
     if (this.disposed) throw new Error("Native frame is disposed");

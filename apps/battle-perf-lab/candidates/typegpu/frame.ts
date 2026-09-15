@@ -1,3 +1,4 @@
+import { nativeGpuScope } from "../../src/nativeGpuTelemetry";
 import { beginGpuAdmission } from "../../src/gpuAdmission";
 import { tgpu, type TgpuRenderPass, type TgpuBindGroup, type TgpuCommandEncoder } from "typegpu";
 import { Camera, typegpuCameraLayout } from "./camera";
@@ -150,29 +151,31 @@ export class TypegpuBattleFrame {
     this.assertLive();
     const raw = this.root.unwrap(encoder),
       r = this.resources;
-    this.environment.sky.encodeBackground(raw, this.root.unwrap(r.color).createView());
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [
-        {
-          view: r.color,
-          resolveTarget: this.samples === 4 ? r.hdr : undefined,
-          loadOp: "load",
-          storeOp: "store",
+    nativeGpuScope(this.device, "main", () => {
+      this.environment.sky.encodeBackground(raw, this.root.unwrap(r.color).createView());
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [
+          {
+            view: r.color,
+            resolveTarget: this.samples === 4 ? r.hdr : undefined,
+            loadOp: "load",
+            storeOp: "store",
+          },
+        ],
+        depthStencilAttachment: {
+          view: r.depth,
+          depthClearValue: 0,
+          depthLoadOp: "clear",
+          depthStoreOp: "store",
         },
-      ],
-      depthStencilAttachment: {
-        view: r.depth,
-        depthClearValue: 0,
-        depthLoadOp: "clear",
-        depthStoreOp: "store",
-      },
+      });
+      try {
+        draw(pass, this.cameraGroup);
+      } finally {
+        pass.end();
+      }
     });
-    try {
-      draw(pass, this.cameraGroup);
-    } finally {
-      pass.end();
-    }
-    r.post.encode(raw, output, bloom, post);
+    nativeGpuScope(this.device, "post", () => r.post.encode(raw, output, bloom, post));
   }
   render(
     output: GPUTextureView,

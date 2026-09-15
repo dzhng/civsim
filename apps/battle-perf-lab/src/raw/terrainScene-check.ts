@@ -25,12 +25,13 @@ import type { Camera3DParams } from "../../../../packages/renderer-core/src/came
 import { RawBattleFrame } from "./frame";
 import { createRawEnvironment } from "./environment";
 import { RawSunShadow } from "./shadow";
-import { createRawBattleTerrainScene, type RawBattleTerrainInput } from "./terrainScene";
+import { createRawBattleTerrainScene } from "./terrainScene";
+import type { BattleTerrainInput } from "../sceneTypes";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
 import { trackBufferLifetime } from "../bufferLifetimeCheck";
-function fixture(vista: boolean): RawBattleTerrainInput {
+function fixture(vista: boolean): BattleTerrainInput {
   const w = vista ? 32 : 16,
     h = w,
     cell = 8,
@@ -162,7 +163,7 @@ async function run() {
       native.grid().height === native.field().height &&
       native.cover() === a.cover;
     if (!ownedSnapshot) throw Error("Terrain and grass do not share an owned grid/field snapshot");
-    const setSource = (input: RawBattleTerrainInput) => {
+    const setSource = (input: BattleTerrainInput) => {
       const built = buildBattleTerrain({
         grid: input.grid,
         cover: input.cover,

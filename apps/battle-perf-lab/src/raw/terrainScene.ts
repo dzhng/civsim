@@ -1,6 +1,5 @@
 import { prepareBattleTerrain } from "../terrainScenePreparation";
-import type { BattleTerrainInput as RawBattleTerrainInput } from "../sceneTypes";
-export type { BattleTerrainInput as RawBattleTerrainInput } from "../sceneTypes";
+import type { BattleTerrainInput } from "../sceneTypes";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import {
   battleTerrainHeightAt,
@@ -20,7 +19,7 @@ export async function createRawBattleTerrainScene(
   cameraLayout: GPUBindGroupLayout,
   environment: RawEnvironment,
   samples: 1 | 4,
-  initial: RawBattleTerrainInput,
+  initial: BattleTerrainInput,
 ) {
   let disposed = false,
     pending = false,
@@ -31,7 +30,7 @@ export async function createRawBattleTerrainScene(
   const check = () => {
     if (disposed) throw Error("Terrain scene disposed");
   };
-  async function prepare(input: RawBattleTerrainInput) {
+  async function prepare(input: BattleTerrainInput) {
     const resources: Disposable[] = [];
     let cancelled = false;
     const dispose = () => {
@@ -139,7 +138,7 @@ export async function createRawBattleTerrainScene(
       throw error;
     }
   }
-  async function replace(input: RawBattleTerrainInput) {
+  async function replace(input: BattleTerrainInput) {
     check();
     if (pending) throw Error("Terrain replacement already pending");
     pending = true;

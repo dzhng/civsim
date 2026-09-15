@@ -143,3 +143,8 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 
 - **Settled:** A failed staged terrain allocation retains the prepared scene. If terrain has already committed and a dependent grass/shadow update fails, terminate that scene instead of allowing mixed terrain generations to render. Ordinary camera updates do not replace terrain generations.
 - **Settled:** Use ordinary vertex positions for composed terrain, which has no equal-depth prepass. Keep invariant positions where a separate matching depth pass requires them; do not impose that constraint on unrelated geometry.
+
+### Shared scene preparation and pending ownership
+
+- **Settled:** All comparison backends consume one terrain snapshot recipe and one scene input contract; callers import those types directly. Share the output-conversion math unchanged, while each runtime still owns its actual resources and submissions.
+- **Settled:** An asynchronous scene operation owns its resources until its promise settles. Disposal closes the scene immediately but defers resource destruction until that operation finishes; overlapping mutations are rejected. Preserve an original operation failure even if cleanup also fails.

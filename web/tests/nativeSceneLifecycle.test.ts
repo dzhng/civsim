@@ -1,3 +1,4 @@
+import type { BattleSceneOptions } from "../../apps/battle-perf-lab/src/sceneTypes";
 // @vitest-environment node
 import { beforeEach, expect, test, vi } from "vitest";
 const state = vi.hoisted(() => ({
@@ -81,10 +82,7 @@ vi.mock("../../apps/battle-perf-lab/src/raw/overlay", () => ({
   createRawRingLayer: async () => layer(),
   createRawTriangleLayer: async () => layer(),
 }));
-import {
-  createRawBattleScene,
-  type RawBattleSceneOptions,
-} from "../../apps/battle-perf-lab/src/raw/battleScene";
+import { createRawBattleScene } from "../../apps/battle-perf-lab/src/raw/battleScene";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { productionBladeFieldProfile } from "@packages/game-renderer/src/battle/battleGrassResidency";
 const camera = {
@@ -108,7 +106,7 @@ const terrain = {
   vista: null,
   lakes: [],
 };
-const options: RawBattleSceneOptions = {
+const options: BattleSceneOptions = {
   environment: CIVSIM_ENVIRONMENTS.golden,
   assets: {},
   atlases: {},

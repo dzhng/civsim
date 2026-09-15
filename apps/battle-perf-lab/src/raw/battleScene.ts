@@ -1,10 +1,9 @@
-import type { BattleSceneOptions as RawBattleSceneOptions } from "../sceneTypes";
-export type { BattleSceneOptions as RawBattleSceneOptions } from "../sceneTypes";
+import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
 import { createRawEnvironment } from "./environment";
 import { RawBattleFrame } from "./frame";
 import { RawSunShadow } from "./shadow";
 import { createRawCrowdAudience } from "./crowdAudience";
-import { createRawBattleTerrainScene, type RawBattleTerrainInput } from "./terrainScene";
+import { createRawBattleTerrainScene } from "./terrainScene";
 import { createRawGrassField } from "./grassField";
 import { createRawStandards } from "./standards";
 import { createRawReadout } from "./readout";
@@ -33,7 +32,7 @@ import type {
 export async function createRawBattleScene(
   device: GPUDevice,
   caps: GpuDeviceCaps,
-  options: RawBattleSceneOptions,
+  options: BattleSceneOptions,
 ) {
   options.signal?.throwIfAborted();
   const releases: (() => void)[] = [];
@@ -161,7 +160,7 @@ export async function createRawBattleScene(
       grassRoutingBuffers: () => grass.routingBuffers(),
       heightAt: terrain.heightAt,
       seatingHeightAt: (x: number, y: number) => terrainHeightAt(terrain.field(), x, y),
-      async replaceTerrain(input: RawBattleTerrainInput) {
+      async replaceTerrain(input: BattleTerrainInput) {
         check();
         if (busy) throw Error("Battle scene preparation already in flight");
         busy = true;

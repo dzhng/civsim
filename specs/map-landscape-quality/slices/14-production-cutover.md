@@ -68,3 +68,8 @@ records the below-camera rectangle diagnosis and focused regression contract.
 records the synthetic bitmap class correction and the reference-grounded color
 oracle. Fixture/source and UI acceptance remain distinct from material quality;
 full-frame repeat evidence is required before those baselines are adopted.
+
+The [shared verification-input ledger](../assets/slice-14-production/remaining-acceptance/verifier-inputs.md)
+records the real-map color-oracle transfer and the cart check's migration to
+seated physical anchors. Numeric floors remain fixed; browser acceptance and
+canonical image updates remain pending the actual label/card fixes.

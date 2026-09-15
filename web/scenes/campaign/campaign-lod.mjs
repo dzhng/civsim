@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { PNG } from "pngjs";
 import { campaign, campaignPresentationReady } from "../worlds.mjs";
+import { checkNaturalGroundClassifier, naturalGroundColor } from "./natural-ground-lib.js";
 
 const CAMPAIGN_MAP_JSON = new URL("../../public/data/campaign-map.json", import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
@@ -70,6 +71,7 @@ export const meta = {
 };
 
 export async function run(ctx) {
+  checkNaturalGroundClassifier(ctx);
   if (process.env.VERIFY_GPU !== "1") {
     ctx.check(
       "campaign WebGPU LoD scenes require VERIFY_GPU=1",
@@ -183,7 +185,7 @@ export async function run(ctx) {
       hasRoadJunctionGeometry(stats) &&
       hasTerrainFeatureDensity(stats),
     realItalyAlignment: "close",
-    greenTerrainFloor: 0.42,
+    naturalGroundFloor: 0.42,
   });
 
   {
@@ -217,7 +219,7 @@ export async function run(ctx) {
       stats.garrisonedArmySelections >= 1 &&
       stats.maxSelectionRadius >= 11 &&
       stats.maxSelectionRadius < 13,
-    greenTerrainFloor: 0.42,
+    naturalGroundFloor: 0.42,
   });
 
   await snapCampaign(page, ctx, "campaign-lod-selected-city", {
@@ -274,7 +276,7 @@ async function snapCampaign(
   page,
   ctx,
   name,
-  { before, stats, checkStructure = false, realItalyAlignment = null, greenTerrainFloor = null },
+  { before, stats, checkStructure = false, realItalyAlignment = null, naturalGroundFloor = null },
 ) {
   await before();
   await campaignPresentationReady(page);
@@ -287,11 +289,11 @@ async function snapCampaign(
   if (checkStructure) {
     checkRegionalMapStructure(ctx, PNG.sync.read(shot));
   }
-  if (greenTerrainFloor !== null) {
-    const metrics = greenTerrainMetrics(PNG.sync.read(shot));
+  if (naturalGroundFloor !== null) {
+    const metrics = naturalGroundMetrics(PNG.sync.read(shot));
     ctx.check(
-      `${name} natural terrain keeps green campaign readability`,
-      metrics.greenRatio >= greenTerrainFloor,
+      `${name} natural terrain keeps its yellow-olive ground coverage`,
+      metrics.naturalGroundRatio >= naturalGroundFloor,
       JSON.stringify(metrics),
     );
   }
@@ -420,9 +422,12 @@ function checkRegionalMapStructure(ctx, current) {
         name,
         {
           crop,
-          // Keep relief contrast and vegetation coverage as separate visual gates.
+          // Relief contrast, dark features and natural-ground color coverage
+          // stay three separate visual gates.
           ok:
-            crop.mountainRatio >= 0.07 && crop.darkFeatureRatio >= 0.04 && crop.greenRatio >= 0.55,
+            crop.mountainRatio >= 0.07 &&
+            crop.darkFeatureRatio >= 0.04 &&
+            crop.naturalGroundRatio >= 0.55,
         },
       ];
     }),
@@ -472,9 +477,9 @@ function campaign3dMetrics(png) {
   };
 }
 
-function greenTerrainMetrics(png) {
+function naturalGroundMetrics(png) {
   let total = 0;
-  let green = 0;
+  let naturalGround = 0;
   for (let y = 36; y < png.height; y++) {
     for (let x = 0; x < png.width; x++) {
       const i = (y * png.width + x) * 4;
@@ -487,12 +492,12 @@ function greenTerrainMetrics(png) {
       const cityRoof = r > 135 && r > g + 24 && g > 70 && b < 110;
       if (cityRoof) continue;
       total++;
-      if (g > r * 1.03 && g > b * 1.16 && g > 90 && r > 75) green++;
+      if (naturalGroundColor(r, g, b).olive) naturalGround++;
     }
   }
   return {
     total,
-    greenRatio: Number((green / Math.max(1, total)).toFixed(4)),
+    naturalGroundRatio: Number((naturalGround / Math.max(1, total)).toFixed(4)),
   };
 }
 
@@ -509,7 +514,7 @@ function terrainFeatureMetrics(png, crop) {
   let total = 0;
   let mountain = 0;
   let darkFeature = 0;
-  let green = 0;
+  let naturalGround = 0;
   for (let y = Math.max(36, crop.y); y < Math.min(png.height, crop.y + crop.h); y++) {
     for (let x = Math.max(0, crop.x); x < Math.min(png.width, crop.x + crop.w); x++) {
       const i = (y * png.width + x) * 4;
@@ -535,7 +540,7 @@ function terrainFeatureMetrics(png, crop) {
         g >= b * 1.08;
       if (greyStone || warmStone) mountain++;
       if ((max < 105 && min > 20 && saturation < 65) || (warmStone && max < 130)) darkFeature++;
-      if (g > r * 1.03 && g > b * 1.1 && g > 80 && r < 175 && b < 150) green++;
+      if (naturalGroundColor(r, g, b).olive) naturalGround++;
     }
   }
   const ratio = (value) => Number((value / Math.max(1, total)).toFixed(4));
@@ -543,7 +548,7 @@ function terrainFeatureMetrics(png, crop) {
     total,
     mountainRatio: ratio(mountain),
     darkFeatureRatio: ratio(darkFeature),
-    greenRatio: ratio(green),
+    naturalGroundRatio: ratio(naturalGround),
   };
 }
 

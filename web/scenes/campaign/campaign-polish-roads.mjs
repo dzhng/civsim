@@ -87,11 +87,15 @@ export async function run(ctx) {
     JSON.stringify({ cards: cardNames, canvas: stats.visibleLabelNames }),
   );
   // Road life: deterministic carts ride the spokes at this close camera (frozen
-  // scene time pins them to a fixed spot for the snapshot).
+  // scene time pins them to a fixed spot for the snapshot). Count seated
+  // instances from the physical world, which owns scenery placement.
+  const cartAnchors = stats.physicalWorld?.sceneryAnchors?.filter(
+    (anchor) => anchor.kind === "cart",
+  );
   ctx.check(
     "road life: at least one cart rides the Roma spokes",
-    (stats.sceneryStats?.carts ?? 0) >= 1,
-    JSON.stringify({ carts: stats.sceneryStats?.carts }),
+    cartAnchors !== undefined && cartAnchors.length >= 1,
+    JSON.stringify({ carts: cartAnchors?.length ?? "physical world reported no sceneryAnchors" }),
   );
 
   // Densely resample each spoke, project to screen, and confirm a road pixel

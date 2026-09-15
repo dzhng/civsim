@@ -5,6 +5,39 @@
 // haze comes ONLY from the shared aerial-perspective hook (scene.fogNode) —
 // the sea dissolves into the sky through it, never through an
 // inline haze mix.
+import {
+  LAKE_SHORE_RAMP,
+  SEA_NORMAL_DETAIL_NEAR,
+  SEA_NORMAL_DETAIL_FAR,
+  SEA_NORMAL_DETAIL_FADE_START,
+  SEA_NORMAL_DETAIL_FADE_END,
+  SEA_GLINT_HOT_LUMA_THRESHOLD,
+  SEA_GLINT_HOT_FRACTION_MAX,
+  SEA_GLINT_CENTER_SHARE_MIN,
+  SEA_SURFACE_OWNER,
+  SEA_SWELL_SCALE,
+  SEA_FOAM_HEIGHT_START,
+  SEA_FOAM_HEIGHT_END,
+  SEA_FOAM_SLOPE_START,
+  SEA_FOAM_SLOPE_END,
+  SEA_FOAM_SPECKLE_START,
+  SEA_FOAM_SPECKLE_END,
+  SEA_FOAM_SCALE,
+  SEA_SAND_TURBIDITY_DEPTH_START,
+  SEA_SAND_TURBIDITY_DEPTH_END,
+  LAKE_SURFACE_LIFT_M,
+  LAKE_SWELL_SCALE,
+  LAKE_NORMAL_STRENGTH,
+  LAKE_NORMAL_DETAIL_FAR,
+  FIELD_WATER_DETAIL_FADE_START,
+  FIELD_WATER_DETAIL_FADE_END,
+} from "../../../game-renderer/src/water/photorealWaterPolicy";
+import {
+  buildOceanPlaneGeometry,
+  buildLakePlaneGeometry,
+  type BattleLakeSurfaceSpec,
+} from "../../../game-renderer/src/water/battleWaterGeometry";
+export type { BattleLakeSurfaceSpec } from "../../../game-renderer/src/water/battleWaterGeometry";
 import * as THREE from "three/webgpu";
 import {
   dot,
@@ -20,7 +53,7 @@ import {
   max,
 } from "three/tsl";
 import { attribute } from "three/tsl";
-import { bakeGerstnerWaves } from "../../../game-renderer/src/water/gerstnerField";
+import { photorealGerstnerWaves } from "../../../game-renderer/src/water/photorealGerstnerWaves";
 import {
   BATTLE_OCEAN_RAMP,
   FIELD_WATER_RAMP,
@@ -51,64 +84,11 @@ import {
   LAKE_NORMAL_DETAIL_FADE_END,
 } from "../../../game-renderer/src/water/physicalWaterPolicy";
 
-// 12b trap: the sea looked right nearby but sparkled like aliasing in the
-// grazing upper band. Fade normal detail with distance from the battle focus;
-// aerial haze remains owned by scene.fogNode.
-const SEA_NORMAL_DETAIL_NEAR = 0.84;
-const SEA_NORMAL_DETAIL_FAR = 0.18;
-const SEA_NORMAL_DETAIL_FADE_START = 720;
-const SEA_NORMAL_DETAIL_FADE_END = 2300;
-const SEA_GLINT_HOT_LUMA_THRESHOLD = 246;
-const SEA_GLINT_HOT_FRACTION_MAX = 0.07;
-const SEA_GLINT_CENTER_SHARE_MIN = 0.6;
-const SEA_SURFACE_OWNER = "skyModel-ibl-standard-pbr" as const;
-// Sea state: calm Aegean, waves present but not choppy, with battle water near
-// shore. One knob scales every
-// wave amplitude (photoreal sea only; the shared bespoke baker is untouched).
-// Foam height thresholds scale with it so whitecap coverage stays consistent.
-const SEA_SWELL_SCALE = 0.55;
-const SEA_FOAM_HEIGHT_START = 0.52 * SEA_SWELL_SCALE;
-const SEA_FOAM_HEIGHT_END = 1.55 * SEA_SWELL_SCALE;
-const SEA_FOAM_SLOPE_START = 0.12;
-const SEA_FOAM_SLOPE_END = 0.58;
-const SEA_FOAM_SPECKLE_START = 0.56;
-const SEA_FOAM_SPECKLE_END = 0.78;
-const SEA_FOAM_SCALE = 0.74;
-const SEA_SAND_TURBIDITY_DEPTH_START = 0.04;
-const SEA_SAND_TURBIDITY_DEPTH_END = 0.26;
-const LAKE_SHORE_RAMP: WaterShoreRamp = { depthNear: 2, depthFar: 90, hazeNear: 160, hazeFar: 900 };
-// 0.035 z-fought the ground at vista distance (cobblestone mosaic - compose
-// rounds 1-2); 0.3 stays visually seated and clears depth precision.
-const LAKE_SURFACE_LIFT_M = 0.3;
-const LAKE_SWELL_SCALE = 0.035;
-// Enough ripple normal to break the sun disk - at ocean-glint smoothness a
-// becalmed lake becomes a mirror and renders as a blown-white patch.
-const LAKE_NORMAL_STRENGTH = 0.42;
-const LAKE_NORMAL_DETAIL_FAR = 0.08;
-const FIELD_WATER_DETAIL_FADE_START = LAKE_NORMAL_DETAIL_FADE_START;
-const FIELD_WATER_DETAIL_FADE_END = LAKE_NORMAL_DETAIL_FADE_END;
-const WATER_TINT = 1;
-
-export interface BattleLakeSurfaceSpec {
-  id: number;
-  level: number;
-  minCellX: number;
-  minCellY: number;
-  maxCellX: number;
-  maxCellY: number;
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-  cells: number;
-}
-
 interface WaterSampleNodes {
   height: FloatNode;
   normal: Vec3Node;
   foam: FloatNode;
 }
-
 
 interface SeaSurfaceStats {
   owner: typeof SEA_SURFACE_OWNER;
@@ -244,17 +224,14 @@ function seaSurfaceStats(): SeaSurfaceStats {
  *  TSL node graph over the shared baked wave list. Wave phases are baked in JS
  *  (the WGSL hashed them per-wave from the same constants). */
 function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
-  const waves = bakeGerstnerWaves();
-  const g = 9.81;
+  const waves = photorealGerstnerWaves();
   let h: FloatNode = float(0.0);
   let slopeX: FloatNode = float(0.0);
   let slopeY: FloatNode = float(0.0);
   for (let i = 0; i < waves.length; i++) {
     const wv = waves[i];
-    const k = 6.2831853 / wv.wavelength;
-    const w = Math.sqrt(g * k);
+    const { k, omega: w, phase: ph0 } = wv;
     // Per-wave phase offset so the trains don't all align at the world origin.
-    const ph0 = fract53(Math.sin(i * 127.1 + wv.wavelength * 3.71) * 43758.5453) * 6.2831853;
     const phase = dot(vec2(wv.dirX, wv.dirY), p)
       .mul(k)
       .sub(t.mul(w * 0.42))
@@ -292,14 +269,11 @@ function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
 /** The vertex-stage displacement height only (the plane pass evaluates the
  *  field twice: vertex for displacement, fragment for the crisp normal). */
 function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
-  const waves = bakeGerstnerWaves();
-  const g = 9.81;
+  const waves = photorealGerstnerWaves();
   let h: FloatNode = float(0.0);
   for (let i = 0; i < waves.length; i++) {
     const wv = waves[i];
-    const k = 6.2831853 / wv.wavelength;
-    const w = Math.sqrt(g * k);
-    const ph0 = fract53(Math.sin(i * 127.1 + wv.wavelength * 3.71) * 43758.5453) * 6.2831853;
+    const { k, omega: w, phase: ph0 } = wv;
     const phase = dot(vec2(wv.dirX, wv.dirY), p)
       .mul(k)
       .sub(t.mul(w * 0.42))
@@ -381,33 +355,7 @@ export function createOceanPlaneMesh(
   spec: BattleOceanPlaneSpec,
   displacement: SeaDisplacementSource = createSeaDisplacementSource(),
 ): THREE.Mesh {
-  const { rect } = spec;
-  const side = rect.res + 1;
-  const positions = new Float32Array(side * side * 3);
-  for (let j = 0; j < side; j++) {
-    for (let i = 0; i < side; i++) {
-      const o = (j * side + i) * 3;
-      positions[o] = rect.x0 + ((rect.x1 - rect.x0) * i) / rect.res;
-      positions[o + 1] = rect.y0 + ((rect.y1 - rect.y0) * j) / rect.res;
-      positions[o + 2] = 0;
-    }
-  }
-  const indices = new Uint32Array(rect.res * rect.res * 6);
-  let k = 0;
-  for (let j = 0; j < rect.res; j++) {
-    for (let i = 0; i < rect.res; i++) {
-      const a = j * side + i;
-      const b = a + 1;
-      const c = a + side;
-      const d = c + 1;
-      indices[k++] = a;
-      indices[k++] = b;
-      indices[k++] = c;
-      indices[k++] = b;
-      indices[k++] = d;
-      indices[k++] = c;
-    }
-  }
+  const { positions, indices } = buildOceanPlaneGeometry(spec);
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
@@ -490,8 +438,16 @@ export function createLakePlaneMesh(
   const shoreJitter = fnoiseN(fragXY.mul(0.09).add(vec2(3.0, 7.0)))
     .sub(0.5)
     .mul(13.0)
-    .add(fnoiseN(fragXY.mul(0.28).add(vec2(11.0, 2.0))).sub(0.5).mul(5.0))
-    .add(fnoiseN(fragXY.mul(0.62).add(vec2(5.0, 9.0))).sub(0.5).mul(2.2))
+    .add(
+      fnoiseN(fragXY.mul(0.28).add(vec2(11.0, 2.0)))
+        .sub(0.5)
+        .mul(5.0),
+    )
+    .add(
+      fnoiseN(fragXY.mul(0.62).add(vec2(5.0, 9.0)))
+        .sub(0.5)
+        .mul(2.2),
+    )
     .toVar();
   const jShore = shoreDist.add(shoreJitter).max(float(0.0)).toVar();
   const depth01 = shoreDepthNode(LAKE_SHORE_RAMP, jShore);
@@ -526,104 +482,4 @@ export function createLakePlaneMesh(
   lake.name = `battle-lake-plane-${spec.id}`;
   lake.frustumCulled = false;
   return lake;
-}
-
-function buildLakePlaneGeometry(
-  spec: BattleLakeSurfaceSpec,
-  grid: BattleTerrainGrid,
-): { positions: Float32Array; shoreDist: Float32Array; indices: Uint32Array } | null {
-  const minX = Math.max(0, Math.min(grid.w - 1, Math.floor(spec.minCellX)));
-  const minY = Math.max(0, Math.min(grid.h - 1, Math.floor(spec.minCellY)));
-  const maxX = Math.max(minX, Math.min(grid.w - 1, Math.floor(spec.maxCellX)));
-  const maxY = Math.max(minY, Math.min(grid.h - 1, Math.floor(spec.maxCellY)));
-  const waterCells: Array<{ cx: number; cy: number; shore: number }> = [];
-  const shoreCells = lakeShoreDistanceCells(grid, minX, minY, maxX, maxY);
-  for (let cy = minY; cy <= maxY; cy++) {
-    for (let cx = minX; cx <= maxX; cx++) {
-      const i = cy * grid.w + cx;
-      if (grid.tint[i] !== WATER_TINT) continue;
-      waterCells.push({ cx, cy, shore: (shoreCells.get(i) ?? 0) * grid.cell });
-    }
-  }
-  if (waterCells.length === 0) return null;
-
-  const positions = new Float32Array(waterCells.length * 4 * 3);
-  const shoreDist = new Float32Array(waterCells.length * 4);
-  const indices = new Uint32Array(waterCells.length * 6);
-  let pv = 0;
-  let sv = 0;
-  let iv = 0;
-  for (let n = 0; n < waterCells.length; n++) {
-    const { cx, cy, shore } = waterCells[n];
-    const x0 = grid.ox + cx * grid.cell;
-    const x1 = x0 + grid.cell;
-    const y0 = grid.oy + cy * grid.cell;
-    const y1 = y0 + grid.cell;
-    positions.set(
-      [x0, y0, spec.level, x1, y0, spec.level, x0, y1, spec.level, x1, y1, spec.level],
-      pv,
-    );
-    shoreDist.set([shore, shore, shore, shore], sv);
-    const b = n * 4;
-    indices.set([b, b + 1, b + 2, b + 1, b + 3, b + 2], iv);
-    pv += 12;
-    sv += 4;
-    iv += 6;
-  }
-  return { positions, shoreDist, indices };
-}
-
-function lakeShoreDistanceCells(
-  grid: BattleTerrainGrid,
-  minX: number,
-  minY: number,
-  maxX: number,
-  maxY: number,
-): Map<number, number> {
-  const dist = new Map<number, number>();
-  const queue: number[] = [];
-  const push = (i: number, d: number) => {
-    if (dist.has(i)) return;
-    dist.set(i, d);
-    queue.push(i);
-  };
-  for (let cy = minY; cy <= maxY; cy++) {
-    for (let cx = minX; cx <= maxX; cx++) {
-      const i = cy * grid.w + cx;
-      if (grid.tint[i] !== WATER_TINT) continue;
-      if (
-        cx === 0 ||
-        cy === 0 ||
-        cx === grid.w - 1 ||
-        cy === grid.h - 1 ||
-        grid.tint[i - 1] !== WATER_TINT ||
-        grid.tint[i + 1] !== WATER_TINT ||
-        grid.tint[i - grid.w] !== WATER_TINT ||
-        grid.tint[i + grid.w] !== WATER_TINT
-      ) {
-        push(i, 0);
-      }
-    }
-  }
-  for (let head = 0; head < queue.length; head++) {
-    const i = queue[head];
-    const d = dist.get(i) ?? 0;
-    const cx = i % grid.w;
-    const cy = Math.floor(i / grid.w);
-    const neighbors = [
-      cx > minX ? i - 1 : -1,
-      cx < maxX ? i + 1 : -1,
-      cy > minY ? i - grid.w : -1,
-      cy < maxY ? i + grid.w : -1,
-    ];
-    for (const ni of neighbors) {
-      if (ni < 0 || grid.tint[ni] !== WATER_TINT || dist.has(ni)) continue;
-      push(ni, d + 1);
-    }
-  }
-  return dist;
-}
-
-function fract53(x: number): number {
-  return x - Math.floor(x);
 }

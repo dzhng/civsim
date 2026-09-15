@@ -75,7 +75,6 @@ import type { BladeFieldTransitionUniforms } from "./bladeFieldLayer";
 export const RENDER_ORDER = {
   backdrop: -10,
   terrain: -9,
-  markers: -8,
   worldOpaque: 0,
   groundCues: 3,
   effectLines: 10,

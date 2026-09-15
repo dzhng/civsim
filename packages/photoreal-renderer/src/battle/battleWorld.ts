@@ -1,4 +1,3 @@
-import type { MarkerInstance } from "../../../game-renderer/src/battle/overlayData";
 import {
   resolveSunShadowMode,
   type SunShadowMode,
@@ -62,7 +61,6 @@ import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import { configureSunShadows, type SunShadowRig } from "./shadowRig";
 import {
   PhotorealLineLayer,
-  PhotorealMarkerLayer,
   PhotorealRingLayer,
   PhotorealTriangleLayer,
 } from "./overlayLayer";
@@ -113,7 +111,6 @@ export class PhotorealBattleWorld {
   private readonly effectLines: PhotorealLineLayer;
   private readonly debugTriangles: PhotorealTriangleLayer;
   private readonly debugBlocks: PhotorealTriangleLayer;
-  private readonly markerLayer: PhotorealMarkerLayer;
   private readonly standardLayer: PhotorealStandardLayer;
   private readonly readoutLayer: PhotorealReadoutLayer;
   private mountedClasses: number[];
@@ -138,7 +135,6 @@ export class PhotorealBattleWorld {
   private cameraInitialized = false;
   private instances: CrowdInstance[] = [];
   private readonly instancePool: CrowdInstance[] = [];
-  private markers: MarkerInstance[] = [];
   private seating = { checked: 0, matches: true, span: 0 };
   private lastCamera: BattleCameraSnapshot = {
     x: 0,
@@ -214,7 +210,6 @@ export class PhotorealBattleWorld {
     });
     this.debugBlocks = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugBlocks);
     this.debugTriangles = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugTriangles);
-    this.markerLayer = new PhotorealMarkerLayer(scene);
     this.standardLayer = new PhotorealStandardLayer(scene, world.uTime);
     this.readoutLayer = new PhotorealReadoutLayer(scene);
 
@@ -355,9 +350,7 @@ export class PhotorealBattleWorld {
     this.unitClass = classes.map((cls) => Math.max(0, Math.floor(cls || 0)));
     this.staticSoldiers = soldierUnit.length;
     this.instances = [];
-    this.markers = [];
     this.crowd.upload([]);
-    this.markerLayer.upload([]);
     this.standardLayer.upload([]);
     this.readoutLayer.upload([]);
     this.selectionRings.upload(new Float32Array());
@@ -451,7 +444,6 @@ export class PhotorealBattleWorld {
     this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
     this.setCamera(camera);
     this.instances = instances;
-    this.markers = [];
     this.updateSeating(instances);
     this.updateGrass();
     applyCamera3d(this.camera, this.lastCamera.camera3d);
@@ -459,7 +451,6 @@ export class PhotorealBattleWorld {
     this.world.gpuTelemetry.withScope("pose", () =>
       this.crowd.upload(this.instances, this.crowdVisibilityScope()),
     );
-    this.markerLayer.upload(this.markers);
   }
 
   debugSoldierAnim(index: number) {
@@ -551,7 +542,6 @@ export class PhotorealBattleWorld {
       this.grass.prepareRender(this.world.renderer, this.lastCamera.camera3d),
     );
     this.crowd.refreshCamera(this.camera);
-    this.markerLayer.setCameraBasis(this.camera);
     this.readoutLayer.setCameraBasis(this.camera);
     this.background.setStyle(this.lastCamera.zoom < 1.2 ? "wide-detail" : "default");
     this.world.render(this.camera);
@@ -627,7 +617,7 @@ export class PhotorealBattleWorld {
       environment: this.environment.environment.id,
       width: this.world.renderer.domElement.width,
       height: this.world.renderer.domElement.height,
-      soldiers: this.instances.length + this.markers.length,
+      soldiers: this.instances.length,
       expectedSoldiers: this.staticSoldiers,
       drawCalls: world.drawCalls,
       triangles: world.triangles,
@@ -666,7 +656,6 @@ export class PhotorealBattleWorld {
         rings: this.selectionRings.stats(),
         effects: this.effectLines.stats(),
       },
-      markers: this.markerLayer.stats(),
       standards: { ...this.standardLayer.stats(), timeSeconds: this.world.time },
       readouts: this.readoutLayer.stats(),
       gpuTelemetry: this.world.gpuTelemetry.snapshot(),
@@ -708,7 +697,6 @@ export class PhotorealBattleWorld {
     this.effectLines.dispose();
     this.debugTriangles.dispose();
     this.debugBlocks.dispose();
-    this.markerLayer.dispose();
     this.standardLayer.dispose();
     this.readoutLayer.dispose();
     this.world.dispose();

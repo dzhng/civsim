@@ -1,15 +1,6 @@
 /** Exact battle overlay placement and upload preparation. Renderers retain their own
  * growable arrays; these writers touch only the active records. Colours stay
  * display-referred until the material applies the shared transfer function. */
-export interface MarkerInstance {
-  x: number;
-  y: number;
-  facing?: number;
-  faction?: 0 | 1 | 2;
-  size?: number;
-  lod?: number;
-}
-
 export interface BattleLinePlacement {
   z: number;
   perVertexZ?: boolean;
@@ -128,32 +119,5 @@ export function writeBattleRingInstances(
   }
 }
 
-export function writeBattleMarkerInstances(
-  markers: readonly MarkerInstance[],
-  inst: Float32Array,
-  meta: Float32Array,
-): void {
-  for (let i = 0; i < markers.length; i++) {
-    const m = markers[i];
-    const o = i * 4;
-    inst[o] = m.x;
-    inst[o + 1] = m.y;
-    inst[o + 2] = m.facing ?? 0;
-    inst[o + 3] = m.faction ?? 0;
-    meta[o] = m.size ?? 1;
-    meta[o + 1] = m.lod ?? 0;
-  }
-}
-
 /** Battle cue materials compose display colours before the shared transfer. */
 export const BATTLE_RING_TINT_GAIN = 1.08;
-export const BATTLE_MARKER_PROFILE = {
-  halfWidth: 0.34,
-  halfHeight: 0.58,
-  edgeRadius: 1.15,
-  bodyLow: [0.56, 0.41, 0.24],
-  bodyHigh: [0.78, 0.65, 0.42],
-  stripeCenter: -0.32,
-  stripeHalfWidth: 0.02,
-  lodDim: 0.08,
-} as const;

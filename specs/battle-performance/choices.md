@@ -132,3 +132,6 @@ The pinned vgpu compute API submits each dispatch itself. Its candidate therefor
 ### Terrain underlay comparison
 
 - **Settled:** Include the two live terrain underlay draws in the matched workload, even when opaque terrain later hides their pixels. Keep their authored style values shared and prepare native style pipelines before rendering. Measure any later reduction in overdraw as a separate optimization, rather than omitting source work from the comparison.
+### Complete-scene requirements follow live owners, not unused APIs
+
+A caller audit found the legacy battle marker layer only received empty arrays; far-LOD soldiers already render through crowd impostors. Retire that empty source layer and the newly added native marker/control scaffolding rather than porting a test-only scene component to more backends. Historical marker images remain evidence of the superseded experiment. Live ground/effect lines, rings and debug triangles share staging and shader policy across all three runtimes; actual crowd L3 rendering remains mandatory. See [the overlay correction ledger](assets/02-preflight/overlay-ports/change-ledger.md).

@@ -1,11 +1,23 @@
-# Native battle overlays
+# Historical native battle overlay controls
 
-The native component preserves the actual source overlay material and placement contracts: display-colour conversion before scene grade, unlit alpha-blended lines/triangles/rings, terrain-height ring seating with read-only depth, and opaque cutout billboards in the background marker band. Shared CPU upload writers and marker/ring material constants have one owner. Each native layer owns a stable pipeline and growable buffers; the frame owns camera, attachments and draw order.
+These captures include a legacy marker-billboard API subsequently found to receive
+only empty production uploads. That source layer and candidate wrapper are now
+retired; actual crowd L3 impostors remain required. The original implementation
+and control are preserved in commit `a658ce8a`. See the
+[live overlay ports and correction ledger](../../02-preflight/overlay-ports/README.md)
+for the current scope. Marker captures here document the superseded experiment,
+not an additional live-scene requirement.
 
-The final control uses visible opaque geometry plus a matched unoccluded view. All24 one/four-sample cases pass the unchanged1/255 HDR gate (maximum0.001220703125), with zero GPU/browser errors, nonfinite pixels, or retained native buffers/textures after disposal. Cases cover each layer, composition, horizon, growth, shrink and empty state. Source and native active counts are recorded separately; capacity remains allocated after shrinking while active draw counts shrink. The growth case deliberately repeats translucent cues, so both source and native become brighter. Shrink returns to the composed image.
+The [visible-occluder captures](visible-occluder/samples-1/report.json) and
+[four-sample captures](visible-occluder/samples-4/report.json) preserve the measured
+source/native output and counts. They passed the standing 1/255 gate with no
+retained candidate resources. The [fresh visual review](visual-review/report.md)
+found no visible pair regression: the raised block explained the missing central
+ring/line intervals, and removing it restored those intervals. Populated marker
+tops matched the background-plane boundary in this artificial fixture.
 
-[Final captures](visible-occluder/samples-1/report.json) and [four-sample captures](visible-occluder/samples-4/report.json) include the reported counts. [Fresh visual review](visual-review/report.md) finds no visible pair regression. Covered ring/line intervals align with the visible block; the unoccluded view restores them. Marker tops align with the background plane boundary. The fully hidden-marker image alone cannot prove placement, so its submission/count evidence remains distinct from visual evidence.
-
-The initial controls and [first review](initial-review/review.md) remain here because they exposed verification gaps: markers needed an exposed view, and an occluder matching the ground colour could not explain the missing central arcs visually. The revised fixture fixes those evidence gaps without changing the native layer algorithms.
-
-Shared limitations remain explicit: faint thin lines, weak marker identity and flattened horizon rings. These are isolated controls, not the user's crowded tactical scene, animation stability or measured performance. TypeGPU/vgpu overlay ports and complete-scene integration remain open. No standing test threshold or production graphics setting changed.
+The initial captures and [first review](initial-review/review.md) remain because
+they exposed verification gaps: hidden geometry alone could not prove marker
+placement, and an occluder matching the ground color could not explain missing
+arcs visually. The revised fixture made those mechanisms visible. Neither phase
+represented the user's crowded tactical scene or measured battle performance.

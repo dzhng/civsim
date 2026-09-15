@@ -53,7 +53,7 @@ export class PhotorealReadoutLayer {
     this.atlasTexture.generateMipmaps = false;
     this.atlasTexture.needsUpdate = true;
 
-    // OPAQUE + alphaTest cutout, exactly like PhotorealMarkerLayer — the
+    // OPAQUE + alphaTest cutout — the
     // ONE recipe proven to keep UI quads unwashed in this world (a
     // `transparent: true` quad ends up veiled by the transparent-pass
     // ordering against the sky backdrop). UI also opts out of the scene

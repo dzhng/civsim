@@ -10,5 +10,5 @@
     "typegpu",
     "vgpu"
   ],
-  "initialTypegpuAttempt": "Earlier base47cb0890; stage telemetry and immutable control-file hashes were not recorded for the timed-out attempt. Preserve as unresolved reliability evidence, not timing comparison."
+  "initialTypegpuAttempt": "Invalidated: raw tsconfig edited at14:08:02 during14:07:36\u201314:17:36 run. Earlier base47cb0890; no stage telemetry or immutable control-file hashes. Preserve log; not reliable renderer startup evidence."
 }

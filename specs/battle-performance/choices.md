@@ -152,4 +152,9 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Complete library control ownership
 
 - **Settled:** Keep one full-scene fixture across comparison backends and use their actual public submission APIs. Capture at final submission before asynchronous validation can release the canvas image, then await validation before the next update. All runtime-owned caches and the presentation surface are included in teardown accounting.
-- **Settled:** Keep numerical failures and the unexplained TypeGPU timeout visible even when later images look equivalent. Successful stills do not waive motion, lifecycle, loading or live performance requirements.
+- **Settled:** Keep numerical failures visible even when images look equivalent; exclude attempts changed in flight from fixed-code conclusions. Successful stills do not waive motion, lifecycle, loading or live performance requirements.
+
+### Live presentation ownership
+
+- **Settled:** Build one camera/time/crowd/cue packet before asynchronous presentation. Keep the source synchronous fast path, while actual asynchronous backends finish their presentation before another frame starts. Active CPU, elapsed renderer work and time awaiting a renderer are separate measurements.
+- **Settled:** Exiting a battle aborts input/readiness immediately and drains the current frame before freeing its Game or reusing scene resources. Preserve unrelated failures instead of treating every error after exit as cancellation.

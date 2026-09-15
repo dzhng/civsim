@@ -54,8 +54,7 @@ New regression gates cover delayed scheduling, rejection, cancellation/drain,
 reentrant and queued scene transitions, real BattleScene cleanup order, delayed
 readiness cancellation, synchronous source receipts, and CPU/suspension accounting.
 Existing benchmark/debug fixtures add zero wait and their previous CPU duration as
-wall duration; their cadence and submission assertions are unchanged. No browser
-or hardware timing gate has been run for these live changes.
+wall duration; their cadence and submission assertions are unchanged. The integrated source passes the actual [Menu validity controls](menu-validity/README.md); frozen/capture controls and performance acceptance remain separate.
 
 Scheduler verification: 21 focused source/ownership/timing tests and all 20 existing
 crowd/action tests pass. Web typecheck passes. Independent review found teardown
@@ -63,3 +62,5 @@ was suppressing unrelated asynchronous errors after abort; the corrected handler
 suppresses only actual cancellation and a new regression preserves other failures.
 The lab control typecheck also requires its source @packages alias mapping (owned
 and corrected in the parent control pass). No existing assertion was re-pinned.
+
+Parent integration:36 focused packet, frame, exit and crowd/action tests passed, and independent static review found no concrete source scheduling defect. The shared replay test-only async mock typing was corrected separately before the full web typecheck passed.

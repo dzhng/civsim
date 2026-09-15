@@ -23,3 +23,19 @@ Each recorded draw owns its crowd upload and pose compute. A render-only command
 ## Live asynchronous presentation
 
 The production loop currently treats crowd/readout uploads and tactical-line submission as synchronous, and its application frame callback ignores return values. Library candidates have real asynchronous resource admission. Their live integration must therefore await the ordered presentation before recording its completion and exclude overlapping frame mutation. A promise queued behind a synchronous facade is not a completed presentation and must not inflate the benchmark's submission count. Preserve each ActionTimeline input and include elapsed preparation in frame latency, while recording asynchronous wait separately from CPU work. GPU queue-completion fences remain capture/readiness tools, not a per-frame scheduling policy. Scene exit must prevent an awaiting frame from touching released simulation state or HUD.
+
+## Post-cost attribution checkpoint
+
+The first instrumented TypeGPU live control reports substantial post-pass time.
+Those shared-host runs advance different amounts of simulation and cannot rank
+backends. A read-only audit finds matching physical resolutions, thirteen passes,
+sampling counts and bloom formulas across native and Three implementations. One
+unproven code-generation difference is dynamically indexed local blur weights in
+native WGSL versus uniform coefficients in Three.
+
+Before interpreting that cost as an engine disadvantage, reuse the fixed-HDR post
+control at the same physical framebuffer. Record each post pass without changing
+batching or awaiting per-pass fences, with bloom enabled and disabled. Preserve
+the existing image/numerical comparison. Only if blur dominates should a later
+single-variable coefficient-storage experiment follow. This checkpoint attributes
+cost; it does not replace complete Menu trials or authorize a fidelity reduction.

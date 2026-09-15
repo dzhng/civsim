@@ -33,6 +33,7 @@ import type {
 } from "../../../game-renderer/src/battle/terrainFeatures";
 import { eyePosition, projectionFootprint } from "../../../renderer-core/src/camera3d";
 import {
+  heightFieldRange,
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../game-renderer/src/terrain/heightField";
@@ -382,7 +383,7 @@ export class PhotorealBattleWorld {
     });
     this.terrainSurface.replace(built);
     this.scenery.upload(built.scenery);
-    this.shadowRig.setWorldRect(this.terrainRect);
+    this.shadowRig.setWorldRect(this.terrainRect, heightFieldRange(built.field));
     this.background.setRects(this.terrainRect, expandedBattleTerrainRect(this.terrainRect));
     this.grass.setTerrain(grid, built.field, this.groundCover);
     this.updateGrass();
@@ -435,7 +436,7 @@ export class PhotorealBattleWorld {
     this.updateSeating(instances);
     this.updateGrass();
     applyCamera3d(this.camera, this.lastCamera.camera3d);
-    this.shadowRig.update(this.camera);
+    this.shadowRig.update(this.lastCamera.camera3d);
     this.world.gpuTelemetry.withScope("pose", () =>
       this.crowd.upload(this.instances, this.crowdVisibilityScope()),
     );
@@ -517,7 +518,7 @@ export class PhotorealBattleWorld {
     if (!this.world.gpuTelemetry.hasActiveSubmission)
       this.world.gpuTelemetry.beginSubmission(this.camera);
     applyCamera3d(this.camera, this.lastCamera.camera3d);
-    this.shadowRig.update(this.camera);
+    this.shadowRig.update(this.lastCamera.camera3d);
     if (this.world.sunLight) {
       this.sunDirectionScratch
         .copy(this.world.sunLight.position)

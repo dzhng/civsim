@@ -1,4 +1,16 @@
-# CPU publication feasibility
+# Simulation publication evidence
+
+## Current implementation
+
+The production worker and campaign boundary are integrated in `fea12281` and
+`c7a88be1`. The two-buffer production authority replaces the original single-credit
+lab runtime; that runtime and its duplicate reader have been deleted. Use
+`apps/battle-perf-lab/tests/canonicalBattleWindow.canonical.ts` for the current
+canonical correctness comparison. The original experiments below describe the
+commits that produced their saved artifacts, not runnable paths in the current
+tree. Their timing is not evidence of an integrated speedup.
+
+## Historical feasibility experiment
 
 This lab-only experiment tests transfer of completed-tick observations from one
 worker-owned production `Game`. It does not integrate a worker into the game.
@@ -175,6 +187,6 @@ No existing production test changed behavior or tolerance.
 
 ## Browser candidate checkpoint
 
-[Candidate e71f4ac8](browser-worker-candidate.json) boots a real module worker, advances a standalone battle with matching soldier counts, and passes all seven existing hardware Chrome Menu preparation/cancel/export checks. Preparation holds the rendered battle frame while ticks advance. This candidate remains isolated: campaign encounter entry is not preserved yet and a follow-up is repairing that boundary. No live frame-rate, campaign, full five-minute or final integrated acceptance is implied. Earlier software-adapter timeouts and a local WASM serving denial are invalid hardware controls, retained separately in scratch logs.
+[Candidate e71f4ac8](browser-worker-candidate.json) boots a real module worker, advances a standalone battle with matching soldier counts, and passes all seven existing hardware Chrome Menu preparation/cancel/export checks. Preparation holds the rendered battle frame while ticks advance. This was the standalone checkpoint before the now-integrated campaign follow-up. No live frame-rate, campaign, full five-minute or final integrated acceptance is implied. Earlier software-adapter timeouts and a local WASM serving denial are invalid hardware controls, retained separately in scratch logs.
 
-[Campaign worker hardware follow-up](campaign-worker-browser.json) passes existing campaign entry/exit and reinforcement scenes after a separate rebuilt WASM boundary. The campaign retains its authority and receives the worker battle outcome; generated terrain identity comes from the constructed Game. Seven Rust handoff tests and 28 focused worker tests pass. This follow-up is not integrated yet: independent review and canonical contact-window comparison are running. Full live performance remains open.
+[Campaign worker hardware follow-up](campaign-worker-browser.json) passes existing campaign entry/exit and reinforcement scenes after a separate rebuilt WASM boundary. The campaign retains its authority and receives the worker battle outcome; generated terrain identity comes from the constructed Game. Seven Rust handoff tests and 28 focused worker tests pass. The follow-up is now integrated after review, campaign worker lifetime repair and the 309-tick canonical comparison. Full live performance remains open.

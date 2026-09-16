@@ -27,28 +27,27 @@ Apply the root review and motion-verification contract when implementation begin
 
 The [paired CPU replay](../assets/03a-build-feasibility/summary.json) matched the canonical tick 9000/9300 hashes in two opposite-order pairs using fresh Node processes. Production averaged 37.79/38.90 ms per tick; the existing profiling build without wasm-opt averaged 31.39/31.74 ms. This establishes a repeatable difference over the measured window, not a stable kernel speedup or a browser throughput pass: one production run contains a transient spike cluster and then approaches the no-opt cost. The optimized profiling and production artifacts differ in executable sections, and both builds use fat LTO, so neither wasm-opt nor tiering nor LTO is isolated as the cause. Preserve the production build. Any follow-up must separate build-stage controls and compilation tracing before a full-browser acceptance run; the 30 Hz/60 fps targets remain unchanged.
 
-## CPU publication probe
+## Integrated worker checkpoint
 
-[Lab-only publication evidence](../assets/03a-publication/README.md) matches
-direct and worker raw observations through the canonical contact checkpoints
-and an acknowledged idempotent command. Single-credit backpressure bounds
-retained snapshots by stopping ticks during consumer starvation. CPU tick
-throughput is effectively unchanged. This is a feasibility result for transport,
-not production adapter/timeline integration or browser acceptance; those gates
-remain open.
+The production battle now owns its Game in a module worker and publishes every
+completed tick through a bounded two-buffer pool. The existing action adapter
+and timeline consume observations immediately on receipt; render cadence does
+not own publication credit. Campaign entry serializes the existing BattleSetup
+and AI teams, and exit reports the real BattleResult to the retained campaign.
+The obsolete lab producer/reader/runtime have been deleted. The enduring
+ownership contract is in [battle authority](../../../docs/battle-authority.md).
 
-Bounded consumer checks now also run the existing `BattleActionAdapter`, and one
-real `ActionTimeline` transient, over published buffers through a disposable
-lab reader. Observations, facings, unit and projectile records match the live
-`Game` tick for tick; weapon, posture and release transitions decode identically;
-unchanged ticks reuse; and returning the credit leaves no retained view.
+The canonical production-authority test at
+`apps/battle-perf-lab/tests/canonicalBattleWindow.canonical.ts` compares all 309
+completed ticks from 9000 through 9308 against direct execution, including
+pinned state hashes, observations and render facings. This is CPU semantic
+parity, not browser throughput. Focused combined tests cover worker lifecycle,
+campaign handoff, timeline and shared-image behavior. Historical CPU timing
+remains [retained evidence](../assets/03a-publication/README.md), never a timing
+claim for the integrated runtime.
 
-A separate heavy entry, outside the fast lab suite, carries that same adapter
-across the canonical contact window through the actual single-credit worker
-transport, and compares every completed tick against direct execution of the
-same seed, map, initialization, orders and command log: observations, facings,
-raw unit and projectile records, the pinned 9000/9300 hashes, the single
-acknowledgement and the 9308 endstate, alongside machine-readable bounded
-resource and cleanup evidence. It makes no timing claim. The idempotent command,
-the browser consumers, `ActionTimeline` playback over a long window and the
-30 Hz/60 fps gate stay open.
+Hardware Chrome checks cover actual campaign entry/exit, reinforcements and
+Menu preparation/cancellation/export. Full moving-camera frame cadence,
+publication age, command-to-visible latency and sustained simulation throughput
+remain acceptance gates. A responsive camera over an increasingly stale battle
+still fails this slice.

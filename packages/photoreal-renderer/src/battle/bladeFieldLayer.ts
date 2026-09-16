@@ -67,10 +67,7 @@ import {
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
 } from "../../../game-renderer/src/battle/grassField";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
-import {
-  MEADOW_GRASS_MESH_NAME_PREFIX,
-  type MeadowGrassLayer,
-} from "./meadowGrassLayer";
+import { MEADOW_GRASS_MESH_NAME_PREFIX, type MeadowGrassLayer } from "./meadowGrassLayer";
 import {
   linearAlbedo,
   rgbNode,
@@ -344,7 +341,6 @@ interface StorageUploadAttribute {
   array: Float32Array;
   addUpdateRange(start: number, count: number): void;
   clearUpdateRanges(): void;
-  setUsage?(usage: number): StorageUploadAttribute;
   needsUpdate: boolean;
   dispose(): void;
 }
@@ -467,10 +463,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         ? transition
         : createBladeFieldTransitionUniforms(transition);
     this.activeTransition = this.applyTransitionProfile(this.transitionUniforms.transition());
-    this.thinning = thinningProfileForTransition(
-      edgeFade,
-      this.farDensityProfile,
-    );
+    this.thinning = thinningProfileForTransition(edgeFade, this.farDensityProfile);
     this.materials = options.materials ?? createBladeFieldMaterialSet();
     const placeholder = new THREE.MeshStandardNodeMaterial({
       side: THREE.DoubleSide,
@@ -501,10 +494,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       if (prepassMaterial) this.placeholderMaterials.add(prepassMaterial);
       const prepassMesh = prepassMaterial ? new THREE.Mesh(geometry, prepassMaterial) : null;
       if (prepassMesh) {
-        prepassMesh.name = grassMeshName(
-          options.nameSuffix,
-          `blades-${spec.id}-depth-prepass`,
-        );
+        prepassMesh.name = grassMeshName(options.nameSuffix, `blades-${spec.id}-depth-prepass`);
         prepassMesh.frustumCulled = false;
         prepassMesh.renderOrder = tierPrepassRenderOrder(spec.id);
         prepassMesh.visible = false;
@@ -538,7 +528,9 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   }
 
   materialCompileCount(): number {
-    return this.tiers.length + this.tiers.filter((tier) => BLADE_FIELD_PREPASS_TIERS.has(tier.id)).length;
+    return (
+      this.tiers.length + this.tiers.filter((tier) => BLADE_FIELD_PREPASS_TIERS.has(tier.id)).length
+    );
   }
 
   /** Whole-field replacement, for fields their owner builds once: the lab
@@ -581,7 +573,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     }
     const previousRuntime = this.runtime;
     const runtime = createGpuRuntime(buffer, this.buckets, this.transitionUniforms, this.thinning);
-    runtime.recordData.setUsage?.(THREE.DynamicDrawUsage);
+    // Keep version-gated storage: Three's DynamicDrawUsage uploads on every
+    // binding, after the first consumer has already cleared the edit ranges.
     this.adoptedBuffer = buffer;
     this.packedRecords = buffer;
     this.recordHash = "00000000";
@@ -858,10 +851,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   setTransition(profile: BladeFieldTransitionProfile): Readonly<BladeFieldTransition> {
     const previous = this.activeTransition;
     this.activeTransition = this.applyTransitionProfile(profile);
-    this.thinning = thinningProfileForTransition(
-      this.thinning.enabled,
-      this.farDensityProfile,
-    );
+    this.thinning = thinningProfileForTransition(this.thinning.enabled, this.farDensityProfile);
     if (!sameTransition(previous, this.activeTransition)) this.statsDirty = true;
     return this.activeTransition;
   }
@@ -979,10 +969,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
           Number(this.cullWedge.forward.x.toFixed(4)),
           Number(this.cullWedge.forward.y.toFixed(4)),
         ],
-        side: [
-          Number(this.cullWedge.side.x.toFixed(4)),
-          Number(this.cullWedge.side.y.toFixed(4)),
-        ],
+        side: [Number(this.cullWedge.side.x.toFixed(4)), Number(this.cullWedge.side.y.toFixed(4))],
         halfWidthSlope: Number(this.cullWedge.halfWidthSlope.toFixed(4)),
         backMarginM: Number(this.cullWedge.backMarginM.toFixed(3)),
         farMarginM: Number(this.cullWedge.farMarginM.toFixed(3)),
@@ -1108,11 +1095,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private applyTransitionProfile(
     profile: BladeFieldTransitionProfile,
   ): Readonly<BladeFieldTransition> {
-    const clamped = transitionProfileForTiers(
-      this.tiers,
-      profile,
-      this.farDensityProfile,
-    );
+    const clamped = transitionProfileForTiers(this.tiers, profile, this.farDensityProfile);
     return this.transitionUniforms.update(clamped);
   }
 }

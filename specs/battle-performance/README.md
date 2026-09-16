@@ -13,7 +13,8 @@ rejects a blind threshold increase because cheaper meshes lose visible armor and
 spear detail. A [4k phalanx prototype](assets/07-projected-detail/intermediate-pilot/README.md)
 is the candidate for canonical pose and camera-reversal checks; production
 assets/policy remain unchanged. Validate that representation before broader
-adoption, then use repeated,
+adoption; use the [contact-state recipe](assets/07-projected-detail/contact-fixture.md)
+for subsequent feature attribution, with its hash assertion required. Then use repeated,
 balanced renderer comparisons to choose ownership. No backend has won. The full
 live throughput, moving-camera visual checks and net-shadow savings remain open.
 

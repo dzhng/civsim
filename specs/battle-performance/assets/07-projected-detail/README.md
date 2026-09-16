@@ -33,3 +33,7 @@ representation before changing production policy.
 [Intermediate phalanx representations](intermediate-pilot/README.md) retain source
 rig/material semantics. The 4k candidate is closer in reviewed stills; canonical
 poses and camera reversals remain before any production adoption.
+
+The [ordinary contact-state fixture recipe](contact-fixture.md) preserves the
+canonical battle for follow-up feature controls without the benchmark controller;
+it still needs execution and hash verification.

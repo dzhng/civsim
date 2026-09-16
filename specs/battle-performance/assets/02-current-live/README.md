@@ -16,3 +16,9 @@ files; decompressing reproduces their original recorded bytes.
 Native functional trials follow serially. No backend has been selected. Quiet
 repeated runs, matched recorded inputs, visual parity and incremental
 instrumentation controls remain necessary before attributing a renderer win.
+
+Raw trial1 also completes every functional check. It records14.42FPS average,
+5.31FPS1% low and199.83 simulated seconds during300.15 real seconds. It is also
+unrankable: shared WindowServer work and other process/load activity violate the
+same unchanged isolation policy. Different host conditions and simulated progress
+make its average incomparable to Three trial0 as an engine speedup claim.

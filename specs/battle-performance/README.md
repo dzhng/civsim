@@ -16,12 +16,15 @@ It recorded 12.16 FPS and 93.47 simulated seconds in 300.02 real seconds; do not
 compare those numbers as a clean regression or speedup. Source trial/server are
 terminal and their old handles/PIDs are absent.
 
-Active raw trial: exec session 39865, output
-`throwaway/matched-current-58b2a9bd/trials/raw-1`, log
-`throwaway/claude-agents/matched-current-raw-1.log`. Preview session 47702 serves
-raw on port 5281. Poll this job; its empty directory during execution is expected.
-After completion inspect trial/run/host evidence, stop that preview, serve
-TypeGPU then vgpu, and use new output directories/orders 2/3 with the same
+Raw trial1 also completed all functional checks and is archived beside Three;
+its host evidence is unrankable. It records14.42FPS and199.83 simulated seconds
+in300.15 real seconds, which cannot establish a backend speedup.
+
+Active TypeGPU trial: exec session14773, output
+`throwaway/matched-current-58b2a9bd/trials/typegpu-2`, log
+`throwaway/claude-agents/matched-current-typegpu-2.log`. Preview session37732
+serves TypeGPU on port5281. Poll the existing job. After completion inspect its
+evidence, stop the preview and run vgpu with a fresh output/order3 and the same
 manifest/config. Current host load is still not quiet; preserve functional
 results without treating them as rankings. No user applications were stopped.
 Refresh disabled instrumentation arms before attributing a possible winner.

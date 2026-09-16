@@ -73,3 +73,5 @@ The [typed observation-source rerun](assets/03a-publication/canonical-observatio
 - Integrated endpoint pose evaluation: 192 differential playbacks match the former recipe exactly; root and independent review pass all 64 focused action-timeline tests and root web typechecking passes. No retained-source mutation or shared result storage. The 06a preparation/motion/performance gates remain open.
 
 - [Retained native crowd packing](assets/06b-crowd-packing/README.md): exact CPU payload comparison, backing allocation counts and three hardware camera smoke controls; no live-FPS claim.
+
+- [Current fixed builds at 98fc8a45](assets/02-paired-controls-98fc8a45/README.md): eight clean-source builds with identical emitted WASM, including billboard caching and retained packing; runtime ranking remains pending.

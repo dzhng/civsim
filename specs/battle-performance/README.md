@@ -4,76 +4,41 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: refresh matched renderer controls after crowd-packing and
-billboard changes, then obtain quiet live evidence before ranking. No backend is selected. All GPU jobs and servers from this pass
-are terminal. The tracked runtime includes the billboard cache and retained crowd packing below.
+Current pickup: compare the fixed builds at runtime **98fc8a45** before more
+component optimization. Start with the current Menu controls, then use repeated,
+balanced renderer comparisons to choose ownership. No backend has won. The full
+live throughput, moving-camera visual checks and net-shadow savings remain open.
 
-[Retained crowd packing](assets/06b-crowd-packing/README.md) preserves all tested
-payload bytes and pose slots while removing payload backing allocations after
-warmup. All three native routes complete the hardware camera control; this is
-not a measured live-FPS improvement.
+[Current fixed builds](assets/02-paired-controls-98fc8a45/README.md) include
+billboard deduplication and retained crowd packing; all eight emitted WASM files
+match. Builds and commands are retained under
+`throwaway/matched-current-98fc8a45/{enabled,disabled}`. Compare instrumentation
+modes within each backend; disabled modes remove different observers across
+Three/native. Older build directories are historical and must stay unchanged.
 
-[Billboard refresh deduplication](assets/06b-billboard-refresh/README.md) halves
-repeated camera metadata preparation in the production Three renderer and record
-uploads in the raw control. The same native ownership rule serves TypeGPU/vgpu.
-Matching camera packets and final data fingerprints preserve the measured inputs
-and records. All 38 relevant tests, five type configurations and the unchanged
-18-check hardware floor pass; independent review is clean. This is work-count
-proof, not a full live speedup or visual acceptance claim.
+Recent component evidence: [billboard caching](assets/06b-billboard-refresh/README.md)
+halves measured duplicate preparation; [crowd packing](assets/06b-crowd-packing/README.md)
+preserves payload bytes while removing warmed payload backing allocations;
+[native admission batching](assets/02-native-admission-batch/README.md) shortens
+observed preparation waits. The unchanged [standing hardware gate](assets/04-grass-camera-gate/README.md)
+passes all 18 checks. These component controls do not establish live FPS or
+visual acceptance. Earlier [live controls](assets/02-current-live/README.md) and
+the [9374dbc9 raw disabled run](assets/02-paired-controls-9374dbc9/README.md) remain
+unrankable under their recorded host policy; retain those verdicts.
 
-[Eight fixed builds](assets/02-paired-controls-9374dbc9/README.md) pin runtime
-9374dbc9 under `throwaway/matched-current-9374dbc9/{enabled,disabled}`. They include
-admission batching but predate billboard deduplication; preserve them as historical
-controls. Raw disabled trial 0 completes the five-minute Menu flow but is unrankable
-under its recorded host activity. No incremental query cost can be inferred from
-that lone arm. Each mode has its own manifest and common root render configuration;
-all emitted WASM matches the archived release. Disabled controls remove different
-incremental observers for Three/native, so compare them within each backend.
-
-[Native admission batching](assets/02-native-admission-batch/README.md) overlaps
-routine validation and eliminates empty reconciliation checks while preserving
-resource admission, failed-frame identity and cleanup ownership. In raw-renderer
-baseline/candidate/candidate/baseline controls at paused tick 30, identical camera
-packets and matching crowd fingerprints produced median renderer wall times of
-14.6–15.8 ms versus 10.4–11.2 ms; p95 was 20.5–22.0 versus 14.1–15.2 ms. This is a
-short shared-host component comparison, not live FPS or backend selection evidence.
-All 21 live tests, both live type configurations, native camera probes and the
-unchanged 18-check standing hardware gate pass. Independent review is clean.
-
-[Four enabled live controls](assets/02-current-live/README.md) at runtime 58b2a9bd
-completed all functional checks with common WASM and graphics settings. Background
-load makes all four unrankable. Those immutable builds under
-`throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` predate the
-admission change; do not present them as current timing. Use the refreshed paired controls above before attributing a possible backend win. No user
-applications were stopped. `renderAwaitMs` includes Promise-continuation work and
-cannot be added to `renderCpuMs` as if they were disjoint costs.
-
-The [camera-only publication checkpoint](assets/06b-camera-reprojection/README.md)
-is verified across all four renderers. The [standing grass/camera gate](assets/04-grass-camera-gate/README.md)
-now passes all 18 checks on hardware with its 33 ms threshold and content floors
-intact. Base/focus accepted records are explicit; padding cannot count as content.
-The gate verifies distinct 20 m/10 m submitted views, a real 200 m pan, and a complete
-near-and-return sweep. Previous grass-accounting failures and unreachable zoom
-requests are explained by evidence, not waived. This paused-simulation floor is
-not live performance acceptance. 27 focused grass tests and web types pass.
-
-The current runtime includes worker/campaign handoff, immutable image sharing,
-exact animation endpoints, progressive grass residency, shared view-fitted
-shadows and the shadow depth guard. Their component proofs are linked in
-[evidence.md](evidence.md). The [real GPU upload regression](assets/04-grass-upload-bound/README.md)
-proves bounded grass edits; the [exact-WASM cutoff comparison](assets/03a-friend-cutoff/README.md)
-preserves recorded battle hashes. Neither establishes live acceptance. Remaining
-costs include simulation targeting/projection/repulsion, crowd preparation and
-native frame orchestration. Native simulation profiling diverges from WASM and
-cannot substitute for exact-target evidence.
+The [evidence ledger](evidence.md) owns prior measurements and limitations.
+Prioritize complete renderer attribution, then remaining simulation/crowd work,
+then default shadow readability/stability and final acceptance. Quiet-host
+classification is conservative: whole-machine load includes the benchmark and
+shared WindowServer work has unknown attribution. Do not relabel failed quiet
+checks as passes; any counterbalanced conditional comparison needs a declared
+method and cannot replace absolute product acceptance.
 
 Claude Opus stopped at its spend limit; root continues locally. Serialize GPU
-jobs. Reuse the [bounded source archive](assets/02-preflight/native-spool/README.md)
-for correctness, not current timing. GPU interval sums are diagnostics, not
-elapsed-time rankings. Continuous camera/grass/shadow stability, sustained live
-throughput and the final net-shadow savings remain unproven. Preserve gameplay,
-quality, default gates and the hard-cutover/no-compatibility decision. Historical
-runs and component checkpoints belong in the evidence ledger rather than here.
+jobs and stop our builds/tests during measurements. Preserve gameplay, graphics
+quality, default gates and the hard-cutover/no-compatibility decision. The
+retained recorded archive is a correctness control, not a timing oracle. GPU
+pass sums overlap and cannot be treated as elapsed GPU frame time.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 

@@ -215,3 +215,8 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Gap:** The plan requires equivalent poses but leaves evaluation strategy open; removing unused reads also removes their incidental validation. Keeping validation only on contributing data preserves useful failure checks without performing discarded work.
 - **Reach:** This engine-independent change enters the working branch before backend selection; fixed builds remain untouched and final comparisons must all include it. It creates no cache, mode, dependency or extra timeline.
 - **Verdict:** Sound, high confidence. Exact differential and ownership checks support the behavior; live timing remains an open gate.
+
+## Progressive grass coverage candidate
+
+- **Provisional — motion gate remains open:** Show the largest fully resident inner region while the outer detail loads, using the same complementary base/detail mask. This keeps one coverage owner and avoids a new per-tile GPU occupancy resource. Region growth may still be noticeable; motion evidence must decide acceptance.
+- **Settled:** Give incoming camera coverage first use of the existing bounded upload allowance, then use the remaining allowance to remove retired tiles. Camera motion needs forward progress; cleanup cannot consume the entire allowance indefinitely.

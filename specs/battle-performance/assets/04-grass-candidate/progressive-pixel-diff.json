@@ -1,0 +1,35 @@
+{
+  "scope": "Same camera path, unsynchronized residency scheduling; differences prove rendered change, not a deterministic image regression verdict",
+  "diffs": [
+    {
+      "frame": 0,
+      "pixels": 27672,
+      "meanRgb": 0.0920818544238683
+    },
+    {
+      "frame": 1,
+      "pixels": 9445,
+      "meanRgb": 0.031016139403292182
+    },
+    {
+      "frame": 2,
+      "pixels": 1,
+      "meanRgb": 6.430041152263375e-8
+    },
+    {
+      "frame": 3,
+      "pixels": 1840,
+      "meanRgb": 0.005655349794238683
+    },
+    {
+      "frame": 4,
+      "pixels": 2861,
+      "meanRgb": 0.008354809670781893
+    },
+    {
+      "frame": 5,
+      "pixels": 3,
+      "meanRgb": 1.9290123456790122e-7
+    }
+  ]
+}

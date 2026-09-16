@@ -100,7 +100,7 @@ export interface TrialRecord {
 
 const TRIAL_LIMITATIONS = [
   "Provenance and cadence validity only: this runner makes no performance, visual or backend-selection claim.",
-  "Quiet ranking is a declared host policy over a sampled process listing, not proof that nothing competed: `ps` reports lifetime-average CPU, so it bounds sustained load rather than instantaneous contention.",
+  "Quiet ranking is a declared host policy over a sampled process listing, not proof that nothing competed: `ps` reports platform-averaged CPU (a decaying average over up to a minute on macOS), not instantaneous contention.",
   "Window-server and kernel CPU is shared by every client of the machine; it is recorded, never charged to a competitor and never credited to this trial, and a busy one leaves isolation unknown.",
   "Shared asset trees are hashed on disk, not over HTTP; the served prefixes are only evidenced by resolving the build's own links to those trees.",
   "The render configuration is an operator declaration compared against the recording's identity; it does not read the build's compiled settings.",

@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Latest combined runtime](assets/combined-optimized-runtime/README.md): all11 full-run functional checks pass;20.79FPS and135.9 simulated seconds in300.09 real seconds remain below target. Corrected host-process exclusion does not establish quiet conditions.
+
 - [Crowd terrain sampling](assets/06b-seating-sampling/README.md): actual hardware camera control proves2→1 samples per soldier per frame with unchanged seating diagnostics. Eight focused tests and typechecking pass; live cadence remains open.
 
 - [Friend-sample cutoff](assets/03a-friend-cutoff/README.md): canonical early/later fingerprints match; uninstrumented later Node window49.65 versus53.85ms/tick. Live browser acceptance remains open.

@@ -4,18 +4,14 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: refresh live motion/performance with the integrated friend-sample
-cutoff cache and [single-sample terrain building](assets/06b-seating-sampling/README.md).
-The hardware camera control proves2→1 terrain samples per soldier per frame with
-identical seating metadata. Explicit borrowed instances still validate eagerly;
-the rejected deferred prototype is absent. This removes redundant work but does
-not establish frame cadence.
-The combined full hardware benchmark is running in session `45558` against
-runtime `a4c250d3`; poll that handle and inspect
-`throwaway/claude-agents/combined-optimized-run.log` before starting another GPU
-job. Its host observer now runs inside the trial process and excludes that
-process's browser descendants correctly. The primary Vite server is session
-`18295`, port5294. Do not edit runtime inputs while this measurement is active.
+Current pickup: share the stateful single-map shadow policy with the native
+candidates, including matching caster projections and the lower-depth guard,
+then refresh matched comparison controls. See the read-only seam audit at
+`throwaway/claude-agents/matched-shadow-policy-audit.txt`. The latest
+[combined full hardware run](assets/combined-optimized-runtime/README.md) passes
+all functional checks but still delivers20.79FPS and135.9 simulated seconds in
+five real minutes. It is not quiet ranking evidence. The primary Vite server is
+session `18295`, port5294; the measurement has completed.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
 early/later battle hashes and reduces the uninstrumented later Node window by
 about7.8%; it does not establish browser cadence or30Hz simulation. The tested

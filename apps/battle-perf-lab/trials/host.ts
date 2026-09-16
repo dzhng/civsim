@@ -50,9 +50,8 @@ export interface HardwareEvidence {
  * A declared ranking policy, not a physical guarantee. Recorded with every run
  * so a reviewer can disagree with the thresholds instead of guessing them.
  *
- * `ps` reports `pcpu` as a process's CPU use averaged over its whole lifetime,
- * so the series bounds sustained competing load and cannot prove instantaneous
- * exclusivity. That is why a quiet verdict is only ever admissibility to a
+ * `ps` reports platform-averaged `pcpu`; on macOS it is a decaying average
+ * over up to a minute. The series cannot prove instantaneous exclusivity. That is why a quiet verdict is only ever admissibility to a
  * comparison, never evidence that nothing competed.
  */
 export const QUIET_HOST_POLICY = {

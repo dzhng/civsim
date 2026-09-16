@@ -8,7 +8,11 @@ Current pickup: optimize the measured targeting/projection scans without changin
 simulation ordering or results, alongside measured crowd-state work. The
 [exact-WASM stage profile](assets/03a-wasm-stages/README.md) identifies these as the
 largest contact-window costs. Native canonical profiling was rejected on hash
-divergence; use WASM for exact comparisons. Later combat remains unmeasured. The [combined five-minute hardware run](assets/combined-runtime/README.md)
+divergence; use WASM for exact comparisons. The bucket-check prefilter showed no
+selective gain and was reverted. A later-combat stage probe is running in session
+`11099`; inspect `throwaway/claude-agents/kernel-later-stages.log` and its
+`.json.later.json` output before starting another measurement. Later combat is not
+yet validated against an independent production fingerprint. The [combined five-minute hardware run](assets/combined-runtime/README.md)
 passes all functional checks but records 19.10 FPS and only 150.83 simulated
 seconds in 300.10 real seconds. This is not performance acceptance or a matched
 speedup comparison. Its separate host observer includes the benchmark process in

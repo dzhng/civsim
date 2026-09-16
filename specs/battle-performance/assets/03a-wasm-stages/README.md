@@ -31,3 +31,8 @@ imports, exports and other non-data sections to current production. Sixteen data
 bytes differ, consistent with shifted source-location metadata; therefore full
 binary identity is **not** claimed. Production WASM was not replaced. Both
 independent reviews found no blocking issue; the zero-count edge was fixed.
+
+A [duplicate-bucket prefilter candidate](rejected-filter.json) preserved all
+canonical checkpoints but showed no selective timing benefit in the single
+instrumented comparison. It was reverted. [Raw candidate data](rejected-filter-raw.json.gz)
+remains evidence of the rejected experiment, not proof of a causal slowdown.

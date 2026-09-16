@@ -13,7 +13,7 @@ import {
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import {
   crowdRigGroups,
-  packCrowdFrame,
+  CrowdFramePacker,
   type CrowdAudiencePlan,
   type CrowdAudience,
 } from "../crowdData";
@@ -33,7 +33,9 @@ export async function createVgpuCrowd(
 ) {
   const device = gpu.device.gpu,
     groups = crowdRigGroups(assets),
+    packer = new CrowdFramePacker(groups),
     owned: (() => void)[] = [];
+  let uploading = false;
   let disposed = false,
     ready = false,
     impostorsPending = 0;
@@ -216,6 +218,7 @@ export async function createVgpuCrowd(
                   const nextDraw = makeDraw(next);
                   await nextDraw.compile(target);
                   await finish();
+                  if (disposed) throw new Error("Crowd disposed during growth");
                   geometryNow.destroy();
                   geometryNow = next;
                   render = nextDraw;
@@ -248,19 +251,30 @@ export async function createVgpuCrowd(
     return {
       async upload(instances: readonly CrowdInstance[], plan: CrowdAudiencePlan) {
         if (disposed) throw new Error("vgpu crowd disposed");
-        ready = false;
-        const p = packCrowdFrame(instances, plan, groups);
-        impostorsPending = p.impostorsPending;
-        for (let i = 0; i < palettes.length; i++) {
-          const indices = p.rigIndices[i];
-          await palettes[i].upload(
-            indices.length,
-            (j) => instances[indices[j]].playback ?? instances[indices[j]],
-            (j) => instances[indices[j]].classId,
-          );
+        if (uploading) throw new Error("Crowd upload already pending");
+        uploading = true;
+        try {
+          ready = false;
+          const p = packer.pack(instances, plan);
+          impostorsPending = p.impostorsPending;
+          for (let i = 0; i < palettes.length; i++) {
+            if (disposed) throw new Error("Crowd disposed during upload");
+            const indices = p.rigIndices[i];
+            await palettes[i].upload(
+              indices.length,
+              (j) => instances[indices[j]].playback ?? instances[indices[j]],
+              (j) => instances[indices[j]].classId,
+            );
+          }
+          for (const b of buckets) {
+            if (disposed) throw new Error("Crowd disposed during upload");
+            await b.update(p.packed.get(b.id)![b.audience][b.lod]);
+          }
+          if (disposed) throw new Error("Crowd disposed during upload");
+          ready = true;
+        } finally {
+          uploading = false;
         }
-        for (const b of buckets) await b.update(p.packed.get(b.id)![b.audience][b.lod]);
-        ready = true;
       },
       precompute() {
         assertReady();

@@ -41,10 +41,12 @@ must not be presented as a measured live-frame speedup.
 [Billboard refresh ownership](../assets/06b-billboard-refresh/README.md) avoids
 repeating camera preparation after an upload in Three and native owners. Matching
 camera/state controls halve source metadata work and raw record writes; this is
-work-count evidence, not live performance acceptance. A remaining candidate is
-native `packCrowdFrame`'s per-frame maps and soldier-sized payload allocations.
-Measure those before replacing its stateless API. Any retained storage must stay
-owned through asynchronous uploads, expose only active prefixes and preserve
-shared main/shadow palette slots. TypeGPU currently uploads `data.buffer`; a
-capacity-backed prefix requires an explicit active byte range rather than the
-whole backing allocation.
+work-count evidence, not live performance acceptance.
+
+[Retained native packing](../assets/06b-crowd-packing/README.md) removes repeated
+payload backing allocations after bucket capacities warm. Main/shadow records and
+pose slots match the prior packer byte-for-byte in the CPU control. Async mesh
+owners reject overlapping uploads; TypeGPU submits an explicit active host-buffer
+range. Ordinary hardware camera sweeps pass all native routes. This is still not
+live allocation, FPS or temporal visual acceptance; refresh matched renderer
+controls before attributing a backend win.

@@ -4,10 +4,14 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: measure native crowd-packing allocations and remove demonstrated
-per-frame churn, then refresh matched controls and obtain quiet live evidence
-before ranking. No backend is selected. All GPU jobs and servers from this pass
-are terminal. The tracked runtime includes the billboard cache changes below.
+Current pickup: refresh matched renderer controls after crowd-packing and
+billboard changes, then obtain quiet live evidence before ranking. No backend is selected. All GPU jobs and servers from this pass
+are terminal. The tracked runtime includes the billboard cache and retained crowd packing below.
+
+[Retained crowd packing](assets/06b-crowd-packing/README.md) preserves all tested
+payload bytes and pose slots while removing payload backing allocations after
+warmup. All three native routes complete the hardware camera control; this is
+not a measured live-FPS improvement.
 
 [Billboard refresh deduplication](assets/06b-billboard-refresh/README.md) halves
 repeated camera metadata preparation in the production Three renderer and record

@@ -1,4 +1,4 @@
-import { crowdRigGroups, packCrowdFrame, type CrowdAudiencePlan } from "../crowdData";
+import { crowdRigGroups, CrowdFramePacker, type CrowdAudiencePlan } from "../crowdData";
 import type { AppearanceBundle } from "../../../../packages/soldier-assets/src/appearanceBundle";
 import {
   packSoldierVertices,
@@ -228,6 +228,7 @@ export async function createRawCrowd(
       return result;
     };
     const rigGroups = crowdRigGroups(assets);
+    const packer = new CrowdFramePacker(rigGroups);
     const paletteFor = new Map<number, RawPosePalette>();
     for (const group of rigGroups) {
       const first = Object.values(group)[0];
@@ -317,7 +318,7 @@ export async function createRawCrowd(
         assertLive();
         ready = false;
         impostorCount = 0;
-        const packed = packCrowdFrame(instances, plan, rigGroups);
+        const packed = packer.pack(instances, plan);
         impostorCount = packed.impostorsPending;
         palettes.forEach((palette, i) => {
           const indices = packed.rigIndices[i];

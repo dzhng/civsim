@@ -71,3 +71,5 @@ The [corrected vgpu map-A control](assets/02-live/native-query-control/vgpu-fixe
 The [typed observation-source rerun](assets/03a-publication/canonical-observation-seam.json) passes309 ticks with zero mismatches and is [identical to the prior consumer evidence](assets/03a-publication/canonical-seam-comparison.json) for both arms, identity and resource accounting. The Game-shaped proxy is deleted; unchanged-tick reads avoid raw-view construction. Actual browser worker scheduling remains in progress.
 
 - Integrated endpoint pose evaluation: 192 differential playbacks match the former recipe exactly; root and independent review pass all 64 focused action-timeline tests and root web typechecking passes. No retained-source mutation or shared result storage. The 06a preparation/motion/performance gates remain open.
+
+- [Retained native crowd packing](assets/06b-crowd-packing/README.md): exact CPU payload comparison, backing allocation counts and three hardware camera smoke controls; no live-FPS claim.

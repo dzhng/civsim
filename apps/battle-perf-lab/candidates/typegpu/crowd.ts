@@ -10,7 +10,7 @@ import {
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import {
   crowdRigGroups,
-  packCrowdFrame,
+  CrowdFramePacker,
   type CrowdAudiencePlan,
   type CrowdAudience,
 } from "../../src/crowdData";
@@ -63,7 +63,9 @@ export async function createTypegpuCrowd(
 ) {
   const root = tgpu.initFromDevice({ device }),
     groups = crowdRigGroups(assets),
+    packer = new CrowdFramePacker(groups),
     owned: (() => void)[] = [];
+  let uploading = false;
   let disposed = false,
     ready = false,
     impostorsPending = 0;
@@ -264,6 +266,7 @@ export async function createTypegpuCrowd(
                     .$usage("vertex");
                   root.unwrap(next);
                   await finish();
+                  if (disposed) throw new Error("Crowd disposed during growth");
                   instances.destroy();
                   instances = next;
                   capacity = nextCapacity;
@@ -278,7 +281,11 @@ export async function createTypegpuCrowd(
                   throw error;
                 }
               }
-              if (count) instances.write(data.buffer);
+              if (count) {
+                const host = instances.arrayBuffer;
+                new Float32Array(host).set(data);
+                instances.write(host, { startOffset: 0, endOffset: data.byteLength });
+              }
             },
             draw(pass: TgpuRenderPass, cameraGroup: TgpuBindGroup) {
               if (!count) return;
@@ -312,19 +319,30 @@ export async function createTypegpuCrowd(
     return {
       async upload(instances: readonly CrowdInstance[], plan: CrowdAudiencePlan) {
         if (disposed) throw new Error("TypeGPU crowd disposed");
-        ready = false;
-        const p = packCrowdFrame(instances, plan, groups);
-        impostorsPending = p.impostorsPending;
-        for (let i = 0; i < palettes.length; i++) {
-          const indices = p.rigIndices[i];
-          await palettes[i].upload(
-            indices.length,
-            (j) => instances[indices[j]].playback ?? instances[indices[j]],
-            (j) => instances[indices[j]].classId,
-          );
+        if (uploading) throw new Error("Crowd upload already pending");
+        uploading = true;
+        try {
+          ready = false;
+          const p = packer.pack(instances, plan);
+          impostorsPending = p.impostorsPending;
+          for (let i = 0; i < palettes.length; i++) {
+            if (disposed) throw new Error("Crowd disposed during upload");
+            const indices = p.rigIndices[i];
+            await palettes[i].upload(
+              indices.length,
+              (j) => instances[indices[j]].playback ?? instances[indices[j]],
+              (j) => instances[indices[j]].classId,
+            );
+          }
+          for (const b of buckets) {
+            if (disposed) throw new Error("Crowd disposed during upload");
+            await b.update(p.packed.get(b.id)![b.audience][b.lod]);
+          }
+          if (disposed) throw new Error("Crowd disposed during upload");
+          ready = true;
+        } finally {
+          uploading = false;
         }
-        for (const b of buckets) await b.update(p.packed.get(b.id)![b.audience][b.lod]);
-        ready = true;
       },
       precompute(encoder: GPUCommandEncoder) {
         assertReady();

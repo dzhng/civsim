@@ -370,3 +370,17 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Verdict:** Sound, high confidence. Tests exercise field mutation, parent-camera
   motion, source changes and failure readiness; actual game-route controls retain
   matching final data fingerprints while halving the measured duplicate work.
+
+### Keep native crowd packing capacity with the mesh owner
+
+- **Choice:** Retain each appearance/audience/LOD payload at its observed peak,
+  overwrite active records directly, and borrow the result until upload settles.
+- **Gap:** The spec requires bounded frame work but does not prescribe payload
+  ownership. Rebuilding maps, index buckets and record arrays repeats avoidable
+  work during camera changes.
+- **Reach:** Memory follows the largest bucket demand seen by that owner and is
+  released with it. This trades retained capacity for fewer allocations. Async
+  mesh uploads reject overlap before touching borrowed data. TypeGPU uses its
+  public host buffer and an active byte range, preserving its existing CPU copy.
+- **Verdict:** Sound for the measured workload. Exact payload/slot comparison and
+  ownership tests support correctness; live frame-time benefit remains unproven.

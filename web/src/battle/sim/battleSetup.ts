@@ -1,10 +1,10 @@
 /** How a battle begins, as data rather than as an already-constructed `Game`.
  *
- * The authority now lives in a worker, so the shell can no longer hand it an
- * object: every battle entry describes its opening here and the authority builds
- * the one `Game` from that description. Seeds, map choice, armies, AI sides and
- * opening orders are exactly the calls the shell used to make itself, in the same
- * order, so a described battle and a directly constructed one are the same battle. */
+ * The authority now lives in a worker, so nothing can hand it an object: every
+ * battle entry describes its opening here and the authority builds the one `Game`
+ * from that description. Seeds, map choice, armies, AI sides and opening orders are
+ * exactly the calls the shell used to make itself, in the same order, so a described
+ * battle and a directly constructed one are the same battle. */
 import { Game } from "../../wasm/game_wasm.js";
 import { benchmarkOpeningOrders } from "../benchmark/benchmarkScenario";
 
@@ -21,19 +21,21 @@ export type BattleStart =
   | { kind: "generated"; mapSeed: string }
   | { kind: "custom"; map: BattleMapChoice; teams: readonly (readonly number[])[] };
 
-export interface BattleSimSetup {
-  simSeed: number;
-  start: BattleStart;
-  /** Teams the sim commander drives. */
-  aiTeams: readonly number[];
-  openingOrders: "none" | "player-nearest-enemy";
-}
-
-export function isGeneratedBattle(setup: BattleSimSetup): boolean {
-  const { start } = setup;
-  if (start.kind === "generated") return true;
-  return start.kind === "custom" && start.map.kind === "generated";
-}
+export type BattleSimSetup =
+  /** Menu, deep link, quick battle and benchmark entries: the shell names the
+   * opening and which teams the sim commander drives. */
+  | {
+      source: "shell";
+      simSeed: number;
+      start: BattleStart;
+      /** Teams the sim commander drives. */
+      aiTeams: readonly number[];
+      openingOrders: "none" | "player-nearest-enemy";
+    }
+  /** A campaign encounter. The campaign describes the whole fight — terrain, seed,
+   * armies, reinforcements and which sides the sim commands — as one `BattleHandoff`
+   * string, and nothing on this side re-decides any of it. */
+  | { source: "campaign"; handoff: string };
 
 const seedOf = (digits: string): bigint => {
   const seed = BigInt(digits);
@@ -42,6 +44,11 @@ const seedOf = (digits: string): bigint => {
 
 /** Build the battle this setup describes. Runs where the authority runs. */
 export function createBattleGame(setup: BattleSimSetup, memory: WebAssembly.Memory): Game {
+  if (setup.source === "campaign") {
+    const game = Game.from_campaign_handoff(setup.handoff);
+    if (!game) throw new Error("the campaign encounter does not describe a battle");
+    return game;
+  }
   const game = new Game(setup.simSeed);
   const { start } = setup;
   if (start.kind === "duel") game.start_duel(start.a, start.b);

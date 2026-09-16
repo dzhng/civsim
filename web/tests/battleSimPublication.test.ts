@@ -24,6 +24,9 @@ import { HeldPublication, PUBLISHED_FIELD } from "../src/battle/sim/publicationR
 import { PublishedBattleRecords } from "../src/battle/sim/publishedRecords";
 import type { PublicationHeader } from "../src/battle/sim/protocol";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
+import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
+import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
+import { ActionTimeline } from "@packages/crowd-runtime/src/actionTimeline";
 
 let wasm: Awaited<ReturnType<typeof initWasm>>;
 beforeAll(async () => {
@@ -232,6 +235,108 @@ test("published unit records carry the fields the HUD and orders read", () => {
     expect(info[UNIT_INFO.hasTarget]).toBeGreaterThan(0.5);
     expect(header.victor).toBe(game.victor());
     expect(header.stateHash).toBe(game.state_hash().toString());
+  } finally {
+    game.free();
+  }
+});
+
+/** Fixture appearances for the classes in one fight, the way the crowd tests load them. */
+async function fixtureAppearances(
+  classes: readonly number[],
+): Promise<Record<number, AppearanceBundle>> {
+  const read = async (url: URL) => JSON.parse(await readFile(url, "utf8"));
+  const catalog: Record<number, AppearanceBundle> = {};
+  for (const [id, descriptor] of APPEARANCE_DESCRIPTORS.entries()) {
+    if (!classes.includes(descriptor.selection.unitClass)) continue;
+    const url = new URL(
+      `../public/assets/soldiers/fixtures/placeholder-soldiers/appearances/${descriptor.name}/appearance.json`,
+      import.meta.url,
+    );
+    const manifest = await read(url);
+    catalog[id] = {
+      manifest,
+      rig: await read(new URL(manifest.skeleton, url)),
+      animation: await read(new URL(manifest.animation, url)),
+    } as AppearanceBundle;
+  }
+  return catalog;
+}
+
+/** Byte parity is not playback: a release that only exists inside one publication
+ * still has to reach the clip the crowd actually plays. */
+test("a release carried by a publication drives the real timeline to its release clip", async () => {
+  const game = new Game(37);
+  try {
+    game.spawn_class(0, 0, 0, 5, 3, 4, 0);
+    game.spawn_class(40, 0, Math.PI, 5, 3, 0, 1);
+    const releaseDuration = game.loosing_duration();
+    const held = new HeldPublication();
+    const records = new PublishedBattleRecords(
+      battleObservationMetadata(game.class_specs(), releaseDuration),
+    );
+    const published = new BattleActionAdapter(records);
+    const direct = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
+    const timeline = new ActionTimeline(await fixtureAppearances([0, 4]));
+    let released = -1;
+    let releases = new Float32Array(0);
+    for (let tick = 0; tick <= 2; tick++) {
+      if (tick > 0) game.advance_ticks(1);
+      const { header, buffer } = publish(game, tick);
+      held.adopt(header, buffer);
+      releases = held.f32(PUBLISHED_FIELD.releases).slice();
+      records.absorb(held, header);
+      held.release();
+      const { observations } = published.read(tick);
+      expect(observations).toEqual(direct.read(tick).observations);
+      observations.forEach((observation, soldier) => {
+        expect(observation.releaseTtl).toBe(releases[soldier]);
+        expect(observation.releaseAgeSeconds).toBe(
+          releases[soldier] > 0 ? releaseDuration - releases[soldier] : 0,
+        );
+      });
+      timeline.update(tick, observations);
+      if (released < 0 && observations.some((observation) => observation.releaseTtl > 0))
+        released = tick;
+    }
+    expect(released, "archers loosed inside the window").toBeGreaterThanOrEqual(0);
+    expect(game.projectile_count()).toBeGreaterThan(0);
+    const playback = timeline.sample(released);
+    expect(releases.some((ttl) => ttl > 0)).toBe(true);
+    releases.forEach((ttl, soldier) => {
+      if (ttl > 0) expect(playback[soldier].base.destination.clip).toBe("bow_release");
+    });
+  } finally {
+    game.free();
+  }
+});
+
+/** The presentation follows the publication actually held, in both directions: a
+ * republished tick that carries fewer soldiers shrinks it rather than answering from
+ * what a larger publication of the same tick already derived. */
+test("a republished tick is presented at the count the held publication carries", () => {
+  const game = new Game(37);
+  try {
+    game.spawn_class(0, 0, 0, 1, 1, 3, 0);
+    const held = new HeldPublication();
+    const records = new PublishedBattleRecords(
+      battleObservationMetadata(game.class_specs(), game.loosing_duration()),
+    );
+    const adapter = new BattleActionAdapter(records);
+    const one = publish(game, 2);
+    game.spawn_class(4, 0, 0, 1, 1, 3, 0);
+    const two = publish(game, 2);
+
+    held.adopt(two.header, two.buffer);
+    records.absorb(held, two.header);
+    held.release();
+    expect(adapter.read(2).observations).toHaveLength(2);
+
+    held.adopt(one.header, one.buffer);
+    records.absorb(held, one.header);
+    held.release();
+    const shrunk = adapter.read(2);
+    expect(shrunk.observations).toHaveLength(1);
+    expect(shrunk.facings).toHaveLength(1);
   } finally {
     game.free();
   }

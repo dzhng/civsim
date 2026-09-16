@@ -9,6 +9,7 @@ import { BATTLE_TICK_MS } from "../src/battle/sim/simTiming";
 import { LocalBattleSim, loadSimWasm } from "./support/localBattleSim";
 
 const SETUP: BattleSimSetup = {
+  source: "shell",
   simSeed: 0x5eedc0de,
   start: { kind: "sandbox", variant: 1 },
   aiTeams: [1],

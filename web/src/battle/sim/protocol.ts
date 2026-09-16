@@ -132,6 +132,7 @@ export type BattleSimRequest =
   | { type: "script"; id: number; ticks: number; toTick: number | null; yieldBatch: number }
   | { type: "cancelScript" }
   | { type: "pick"; id: number; x: number; y: number; radius: number }
+  | { type: "result"; id: number }
   | { type: "clockProbe"; id: number; t0: number }
   | { type: "dispose" };
 
@@ -139,6 +140,16 @@ export type BattleSimReply =
   | { type: "ready"; identity: BattleSimIdentity }
   | { type: "snapshot"; header: PublicationHeader; buffer: ArrayBuffer }
   | { type: "pick"; id: number; unit: number }
+  | { type: "result"; id: number; result: string | null }
   | { type: "clockProbe"; id: number; t0: number; t1: number }
-  | { type: "failure"; message: string; stack: string | null; tick: number }
+  /** `result` is the outcome the `Game` could still state as it went down, so a
+   * campaign encounter is not stranded by a fault in this transport; null when even
+   * that could not be read. */
+  | {
+      type: "failure";
+      message: string;
+      stack: string | null;
+      tick: number;
+      result: string | null;
+    }
   | { type: "disposed"; liveGames: number; retainedBuffers: number; tick: number };

@@ -7,7 +7,7 @@ export default {
   ...base,
   test: {
     ...base.test,
-    include: ["simulation/**/*.canonical.ts"],
+    include: ["tests/**/*.canonical.ts"],
     // One authoritative Game at a time on the host, whatever ends up matching the glob.
     fileParallelism: false,
     testTimeout: 90 * 60_000,

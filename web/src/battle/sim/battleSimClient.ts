@@ -122,6 +122,10 @@ export class BattleSimClient {
   private script: { id: number; resolve(cancelled: boolean): void } | null = null;
   private nextPickId = 1;
   private readonly picks = new Map<number, (unit: number) => void>();
+  private nextResultId = 1;
+  private readonly results = new Map<number, (result: string | null) => void>();
+  /** The outcome the authority managed to state as it failed, if it managed one. */
+  private failureResult: string | null = null;
   private nextProbeId = 1;
   private readonly probes = new Map<number, (t1: number) => void>();
   private clockOffsetMs: number | null = null;
@@ -415,6 +419,20 @@ export class BattleSimClient {
     });
   }
 
+  /** How the battle ended, as the one authoritative `Game` reports it: the sim's
+   * verdict, or the outcome forced by remaining strength when the fight was cut
+   * short. Null when the authority cannot state one, so a campaign encounter stays
+   * outstanding instead of being resolved on a guess. */
+  battleResult(): Promise<string | null> {
+    if (this.failure !== null) return Promise.resolve(this.failureResult);
+    if (this.closed) return Promise.resolve(null);
+    const id = this.nextResultId++;
+    return new Promise<string | null>((resolve) => {
+      this.results.set(id, resolve);
+      this.request({ type: "result", id });
+    });
+  }
+
   // --- lifecycle ----------------------------------------------------------------
 
   dispose(): Promise<void> {
@@ -423,6 +441,8 @@ export class BattleSimClient {
     this.outbox = [];
     for (const resolve of this.picks.values()) resolve(-1);
     this.picks.clear();
+    for (const resolve of this.results.values()) resolve(null);
+    this.results.clear();
     for (const resolve of this.probes.values()) resolve(Number.NaN);
     this.probes.clear();
     this.script?.resolve(true);
@@ -465,6 +485,8 @@ export class BattleSimClient {
     this.script = null;
     for (const resolve of this.picks.values()) resolve(-1);
     this.picks.clear();
+    for (const resolve of this.results.values()) resolve(this.failureResult);
+    this.results.clear();
     for (const handler of this.failureHandlers) handler(error);
   }
 
@@ -493,6 +515,12 @@ export class BattleSimClient {
         resolve?.(reply.unit);
         return;
       }
+      case "result": {
+        const resolve = this.results.get(reply.id);
+        this.results.delete(reply.id);
+        resolve?.(reply.result);
+        return;
+      }
       case "clockProbe": {
         const resolve = this.probes.get(reply.id);
         this.probes.delete(reply.id);
@@ -500,6 +528,7 @@ export class BattleSimClient {
         return;
       }
       case "failure":
+        this.failureResult = reply.result;
         this.reportFailure(decorate(reply.message, reply.stack, reply.tick));
         return;
       case "disposed":

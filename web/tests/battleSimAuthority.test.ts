@@ -10,6 +10,7 @@ import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { BattleActionAdapter } from "../src/battle/battleActionAdapter";
 
 const SANDBOX: BattleSimSetup = {
+  source: "shell",
   simSeed: 0x5eedc0de,
   start: { kind: "sandbox", variant: 1 },
   aiTeams: [],

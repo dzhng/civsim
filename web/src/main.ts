@@ -51,6 +51,7 @@ async function main() {
   function describeBattle(kind: BattleKind): BattleSimSetup {
     if (kind === "duel")
       return {
+        source: "shell",
         simSeed: BATTLE_SEED,
         start: { kind: "duel", a: duel.a, b: duel.b },
         aiTeams: duel.ai ? [1] : [],
@@ -67,6 +68,7 @@ async function main() {
               ? { kind: "generated", mapSeed: generatedSeed.toString() }
               : { kind: "authored", map: kind === "mapB" ? 1 : 0 };
     return {
+      source: "shell",
       simSeed: BATTLE_SEED,
       start,
       aiTeams: AI_ON ? [1] : [],
@@ -80,6 +82,7 @@ async function main() {
     switchScene(
       new BattleScene({
         setup: {
+          source: "shell",
           simSeed: scenario.simSeed,
           start: { kind: "generated", mapSeed: scenario.mapSeed },
           aiTeams: [1],
@@ -115,6 +118,7 @@ async function main() {
     switchScene(
       new BattleScene({
         setup: {
+          source: "shell",
           simSeed: BATTLE_SEED,
           start: {
             kind: "custom",
@@ -168,18 +172,25 @@ async function main() {
       data,
       mapJson,
       onExit: () => location.assign("/"),
-      // UNMET MIGRATION ITEM. The battle authority now owns its `Game` in a
-      // worker and builds it from a describable setup. A campaign encounter is
-      // not describable: `start_campaign_battle` needs the live `Campaign`, and
-      // `report_battle` needs the campaign and the finished battle in one address
-      // space. Closing this needs a serialisable setup/result exchange in
-      // game-wasm, which this pass does not build. The encounter is reported
-      // straight back — exactly what already happens when a player enters a
-      // campaign battle and leaves it at once — so no campaign state is stranded.
-      onBattle: (game, done) => {
-        done();
-        game.free();
-        showCampaignBattleUnavailable();
+      // The campaign describes the encounter; the authority builds its one `Game`
+      // from that description in the worker and reports the outcome back here.
+      onBattle: (handoff, report) => {
+        setActiveFactions();
+        const battle: BattleScene = new BattleScene({
+          setup: { source: "campaign", handoff },
+          kind: "mapA", // cosmetic only; relaunch buttons are neutered below
+          inCampaign: true,
+          onExit: () => {
+            // The result has to be asked for before the scene switch disposes the
+            // authority. A battle that cannot state its outcome keeps its own error
+            // surface and leaves the encounter outstanding rather than resolving it.
+            void battle.battleResult().then((result) => {
+              if (report(result)) switchScene(scene);
+            });
+          },
+          onLaunch: () => {}, // campaign battles can't be swapped for sandboxes
+        });
+        switchScene(battle);
       },
     });
     switchScene(scene);
@@ -253,40 +264,6 @@ function parseGeneratedSeed(raw: string): bigint {
   } catch {
     return 0n;
   }
-}
-
-/** The campaign handoff is the one battle entry the worker authority cannot take.
- * Say so plainly rather than dropping the player into a battle that cannot start. */
-function showCampaignBattleUnavailable() {
-  (window as unknown as { __campaignBattleUnavailable?: string }).__campaignBattleUnavailable =
-    "campaign encounters need a serialisable battle setup/result exchange in game-wasm";
-  const notice = document.createElement("div");
-  Object.assign(notice.style, {
-    position: "fixed",
-    inset: "auto 0 24px 0",
-    margin: "0 auto",
-    maxWidth: "520px",
-    background: "rgba(18, 14, 12, 0.92)",
-    color: "#f4ece0",
-    font: "15px/1.5 system-ui, sans-serif",
-    textAlign: "center",
-    padding: "16px 20px",
-    borderRadius: "8px",
-    zIndex: "80",
-  } satisfies Partial<CSSStyleDeclaration>);
-  notice.textContent =
-    "Campaign battles cannot be fought in this build: the battle simulation now runs " +
-    "in a worker, and handing it a campaign encounter needs a simulation-side setup " +
-    "and result exchange that is not built yet. The encounter was resolved by " +
-    "remaining strength, exactly as leaving a battle the moment it opens already does.";
-  const dismiss = document.createElement("button");
-  dismiss.type = "button";
-  dismiss.textContent = "Dismiss";
-  dismiss.style.marginTop = "12px";
-  dismiss.addEventListener("click", () => notice.remove());
-  notice.appendChild(document.createElement("br"));
-  notice.appendChild(dismiss);
-  document.body.appendChild(notice);
 }
 
 function publishAppShellStats() {

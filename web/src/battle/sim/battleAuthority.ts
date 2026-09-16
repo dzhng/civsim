@@ -10,7 +10,7 @@
  * The host supplies the clock, the timer and the channel, so this whole state
  * machine runs the same in a browser worker and in a CPU test. */
 import init, { type Game } from "../../wasm/game_wasm.js";
-import { createBattleGame, isGeneratedBattle, type BattleSimSetup } from "./battleSetup";
+import { createBattleGame, type BattleSimSetup } from "./battleSetup";
 import { readStaticWorld } from "./staticWorld";
 import {
   NO_OVERLAYS,
@@ -88,6 +88,8 @@ export function createBattleAuthority(host: AuthorityHost): BattleAuthority {
 
   let overlays: OverlayRequest = NO_OVERLAYS;
   let republishRequested = false;
+  /** Outcome questions asked before the battle existed; answered the moment it does. */
+  const resultRequests: number[] = [];
 
   let nextTickAt = 0;
   let lastTickMs = 0;
@@ -96,6 +98,22 @@ export function createBattleAuthority(host: AuthorityHost): BattleAuthority {
   let starvedMs = 0;
 
   const now = () => host.now();
+
+  /** What the campaign applies when this battle is over, read from the one `Game`
+   * that fought it. Answered as soon as there is a battle to ask, and null once
+   * there is no longer one — the campaign must not resolve an encounter on a guess. */
+  function battleResult(): string | null {
+    if (!game) return null;
+    try {
+      return game.campaign_battle_result();
+    } catch {
+      return null;
+    }
+  }
+
+  function answerResults(result: string | null): void {
+    for (const id of resultRequests.splice(0)) host.post({ type: "result", id, result });
+  }
 
   function teardown(): void {
     if (disposed) return;
@@ -112,13 +130,18 @@ export function createBattleAuthority(host: AuthorityHost): BattleAuthority {
     if (disposed) return;
     const message = error instanceof Error ? error.message : String(error);
     const stack = error instanceof Error ? (error.stack ?? null) : null;
+    // Whatever went wrong here, the battle may still be able to say how it ended.
+    // Ask before the `Game` is freed, so a campaign encounter is not stranded.
+    const result = battleResult();
+    answerResults(result);
     teardown();
-    host.post({ type: "failure", message, stack, tick });
+    host.post({ type: "failure", message, stack, tick, result });
     host.close();
   }
 
   function dispose(): void {
     if (disposed) return;
+    answerResults(battleResult());
     teardown();
     host.post({ type: "disposed", liveGames: 0, retainedBuffers: 0, tick });
     host.close();
@@ -424,13 +447,9 @@ export function createBattleAuthority(host: AuthorityHost): BattleAuthority {
         layoutPublication(publicationCounts(game), scratch.offsets, scratch.lengths),
       ),
     );
-    const { identity, transfers } = readStaticWorld(
-      game,
-      memory,
-      isGeneratedBattle(setup),
-      capacity,
-    );
+    const { identity, transfers } = readStaticWorld(game, memory, capacity);
     host.post({ type: "ready", identity }, transfers);
+    answerResults(battleResult());
     // The opening deployment is a completed state the scene frames its camera and
     // static crowd from, so it is published before any tick runs.
     publish({ scriptId: null, scriptCancelled: false, preparing: false });
@@ -501,6 +520,11 @@ export function createBattleAuthority(host: AuthorityHost): BattleAuthority {
               id: request.id,
               unit: game ? game.pick_unit(request.x, request.y, request.radius) : -1,
             });
+            return;
+          case "result":
+            resultRequests.push(request.id);
+            // A battle asked about before it is built answers when `start` finishes.
+            if (game) answerResults(battleResult());
             return;
           case "clockProbe":
             host.post({ type: "clockProbe", id: request.id, t0: request.t0, t1: now() });

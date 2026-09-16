@@ -48,7 +48,8 @@ export async function createTypegpuImageTexture(
       .createTexture({ size: [width, height], format, mipLevelCount: levels })
       .$usage("sampled", "render");
     owned.push(texture);
-    texture.write("data" in image ? typegpuTextureBytes(image.data) : image);
+    if ("data" in image) texture.write(typegpuTextureBytes(image.data));
+    else texture.write(image);
     if (levels > 1) {
       const pipeline = root.createRenderPipeline({
         vertex: tgpu.vertexFn({

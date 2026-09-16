@@ -45,6 +45,13 @@ export class BattleScene implements Scene {
     (this.cfg.restart ?? (() => this.cfg.onLaunch(this.cfg.kind)))();
   };
 
+  /** How this battle ended, for the campaign that started it: the outcome the one
+   * authoritative `Game` reports, or null when it cannot state one. Asked before the
+   * scene is torn down, because disposal frees that `Game`. */
+  battleResult(): Promise<string | null> {
+    return this.sim?.battleResult() ?? Promise.resolve(null);
+  }
+
   frame(now: number) {
     return this.frames.frame(now);
   }

@@ -3,13 +3,7 @@
 // untouched), reads zero-copy army/city arrays from wasm each frame, and
 // hands Pending battles to the battle scene (or auto-resolves them).
 
-import {
-  Campaign,
-  Game,
-  start_campaign_battle,
-  report_battle,
-  type InitOutput,
-} from "../wasm/game_wasm.js";
+import { Campaign, Game, type InitOutput } from "../wasm/game_wasm.js";
 import type { Scene } from "../scene";
 import { type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
@@ -66,8 +60,11 @@ export interface CampaignConfig {
    *  can load posted state snapshots. */
   mapJson: string;
   onExit: () => void;
-  /** Hand a battle Game to the battle scene; call done() when it ends. */
-  onBattle: (game: Game, done: () => void) => void;
+  /** Open this encounter's battle. `handoff` describes the whole fight, so the
+   *  battle's one `Game` can be built wherever it runs. `report` hands the finished
+   *  battle's outcome back and answers whether the campaign took it: a battle that
+   *  cannot say how it ended leaves its encounter outstanding. */
+  onBattle: (handoff: string, report: (result: string | null) => boolean) => void;
 }
 
 interface EncounterSide {
@@ -304,6 +301,8 @@ export class CampaignScene implements Scene {
   /** Spin up the off-thread AI: a worker computes commander decisions on posted
    *  snapshots, which the host applies on a fixed delay. The AI never runs in
    *  the tick loop, so this is the sole driver. */
+  private battleInProgress = false;
+
   private startAiWorker() {
     const worker = new Worker(new URL("./ai-worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (e: MessageEvent<{ applyAt: number; json: string }>) => {
@@ -315,8 +314,12 @@ export class CampaignScene implements Scene {
 
   exit() {
     markCampaignReady(false);
-    this.aiWorker?.terminate();
-    this.aiWorker = null;
+    // A battle suspends this scene, but the campaign still owns any pending
+    // commander request. Keep its worker so that request can finish.
+    if (!this.battleInProgress) {
+      this.aiWorker?.terminate();
+      this.aiWorker = null;
+    }
     this.ac?.abort();
     this.ac = null;
     this.cameraKeys?.dispose();
@@ -965,19 +968,27 @@ export class CampaignScene implements Scene {
   private fight(eid: number) {
     this.closeModal();
     const c = this.cfg.campaign;
-    const game = start_campaign_battle(c, eid);
-    if (!game) return;
-    this.cfg.onBattle(game, () => {
-      report_battle(c, game);
+    const handoff = c.begin_campaign_battle(eid);
+    if (!handoff) return;
+    this.battleInProgress = true;
+    this.cfg.onBattle(handoff, (result) => {
+      if (result === null || !c.report_campaign_battle(result)) return false;
+      this.battleInProgress = false;
       this.refreshViews();
       this.clock.paused = true;
+      return true;
     });
   }
 
+  /** Resolving without watching is a campaign-side answer, not a battle the player
+   * enters: it builds the same described battle here, runs it headless and never
+   * renders it. Nothing else on this thread owns a battle `Game`. */
   private autoResolve(eid: number) {
     this.closeModal();
     const c = this.cfg.campaign;
-    const game = start_campaign_battle(c, eid);
+    const handoff = c.begin_campaign_battle(eid);
+    if (!handoff) return;
+    const game = Game.from_campaign_handoff(handoff);
     if (!game) return;
     this.autoResolving = true;
     this.campaignHud?.setProgressModal("0:00");
@@ -993,7 +1004,7 @@ export class CampaignScene implements Scene {
         `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")} battle time`,
       );
       if (v >= 0 || ticks >= cap) {
-        report_battle(c, game);
+        c.report_campaign_battle(game.campaign_battle_result());
         game.free();
         this.autoResolving = false;
         this.closeModal();

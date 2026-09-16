@@ -52,10 +52,11 @@ export function readGeneratedVistaGrid(
 export function readStaticWorld(
   game: Game,
   memory: WebAssembly.Memory,
-  generated: boolean,
   publicationCapacityBytes: number,
 ): { identity: BattleSimIdentity; transfers: Transferable[] } {
   const terrain = readBattleTerrainGrid(game, memory);
+  // The constructed battle owns its terrain identity, including campaign handoffs.
+  const generated = game.generated_vista_band_count() > 0;
   const generatedMap = generated
     ? (JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor)
     : null;

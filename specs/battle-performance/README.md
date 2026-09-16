@@ -4,12 +4,11 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: integrate and verify the isolated exact-zero [skin influence pass](assets/06b-skin-influences/README.md)
-from `codex/battle-skin-influences` (9e3f7d95): inspect emitted WGSL, run numerical
-GPU and matched main/shadow pixels, then measure hardware cost before retaining it.
-The source baseline captures are under `throwaway/skin-branch-reference/`.
-In parallel, Claude is preparing a scratch complete-roster 4k chain in
-`/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/`.
+Current pickup: verify and measure the complete-roster 4k chain prepared by Claude
+under `/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/`.
+The exact-zero [skin influence experiment](assets/06b-skin-influences/README.md)
+was reverted: numerical and sampled pixel checks passed, but the cost controls
+established no gain. Do not resurrect it from source-work count alone.
 The [geometry diagnostic](assets/07-projected-detail/main-geometry-cost/README.md)
 shows a material opportunity. Dense phalanx rejects unmodified 2k shading and
 favors 4k; [infantry evidence](assets/07-projected-detail/README.md) remains bounded.
@@ -45,7 +44,7 @@ shared WindowServer work has unknown attribution. Do not relabel failed quiet
 checks as passes; any counterbalanced conditional comparison needs a declared
 method and cannot replace absolute product acceptance.
 
-Claude Opus stopped at its spend limit; root continues locally. Serialize GPU
+Claude Opus implementation agents are available again. Serialize GPU
 jobs and stop our builds/tests during measurements. Preserve gameplay, graphics
 quality, default gates and the hard-cutover/no-compatibility decision. The
 retained recorded archive is a correctness control, not a timing oracle. GPU

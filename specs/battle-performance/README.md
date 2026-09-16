@@ -4,10 +4,11 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: attribute simulation tick stages using an exact canonical
-profiler, alongside measured crowd-state work. The [current-WASM contact profile](assets/03a-current-kernel/README.md)
-places most sampled cost inside the inlined battle tick; export refresh is small
-in that window. Do not infer later-combat or browser throughput from it. The [combined five-minute hardware run](assets/combined-runtime/README.md)
+Current pickup: optimize the measured targeting/projection scans without changing
+simulation ordering or results, alongside measured crowd-state work. The
+[exact-WASM stage profile](assets/03a-wasm-stages/README.md) identifies these as the
+largest contact-window costs. Native canonical profiling was rejected on hash
+divergence; use WASM for exact comparisons. Later combat remains unmeasured. The [combined five-minute hardware run](assets/combined-runtime/README.md)
 passes all functional checks but records 19.10 FPS and only 150.83 simulated
 seconds in 300.10 real seconds. This is not performance acceptance or a matched
 speedup comparison. Its separate host observer includes the benchmark process in

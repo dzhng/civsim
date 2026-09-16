@@ -473,7 +473,12 @@ ticks the same generated battle natively for a sampling profiler and ends in
 mode is how a physics-pass speedup proves itself bit-identical in melee.
 
 The native fighting-tick budget is enforced by `scripts/test-perf`. Stage
-timers are opt-in diagnostics behind `sim`'s `perf_timing` feature; the budget
+timers are opt-in diagnostics behind `sim`'s `perf_timing` feature. The matching
+`game-wasm` feature installs the WASM host's monotonic clock at module startup;
+reset after preparation and read stage averages over a nonempty measured window.
+These scopes include instrumentation overhead and must never supply release
+budget numbers. Verify scenario fingerprints on the measured target before using
+native results to explain WASM behavior. The budget
 uses an uninstrumented native build with `parallel` enabled and eight Rayon
 workers. Ordinary and wasm builds remain serial. The [measurement contract and evidence](specs/done/sim-perf/README.md)
 distinguish army size, actual combat participation, and machine variation.

@@ -240,3 +240,18 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   motion, shadow cost and net performance remain required gates.
 - **Verdict:** Sound, medium confidence. Combined testing is useful now, provided
   mismatched old and new workloads cannot decide the renderer.
+
+### Keep stage clocks inside the existing diagnostic owner
+
+- **When:** Exact-WASM stage attribution.
+- **Choice:** The optional WASM timing build installs its own monotonic clock in
+  the existing simulation profiler when the module loads. Every battle entry then
+  measures the same stage scopes; normal builds contain none of this timing code.
+- **Gap:** The existing profiler used a native clock unavailable in WASM. Native
+  execution diverged from the benchmark hashes, so it could not substitute for
+  timing the actual simulation target.
+- **Reach:** No extra simulation implementation or dependency is introduced.
+  Diagnostic builds expose reset and average-report operations; their overhead
+  cannot count as release performance. Native tools keep their original clock.
+- **Verdict:** Sound, high confidence. One timing owner and target-specific clock
+  preserve the measured workload while leaving normal gameplay code unchanged.

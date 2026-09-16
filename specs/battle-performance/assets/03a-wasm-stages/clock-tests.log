@@ -1,0 +1,10 @@
+   Compiling sim v0.1.0 (/Users/david/dev/game-battle-performance-spec/crates/sim)
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.37s
+     Running unittests src/lib.rs (target/debug/deps/sim-d884f2ca67d86968)
+
+running 2 tests
+test perf_timing::enabled::tests::nested_scopes_report_exclusive_time_and_reset ... ok
+test perf_timing::enabled::tests::empty_window_has_no_stage_average - should panic ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+

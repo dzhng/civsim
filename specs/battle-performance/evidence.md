@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Native admission batching](assets/02-native-admission-batch/README.md): matched paused raw controls reduce renderer wall time; failure handling, other native camera probes and the standing hardware floor pass. Full live ranking remains open.
+
 - [Native admission diagnostic](assets/02-native-admission/README.md): 120 ordinary paused camera frames expose validation-wait tails and crowd invocation cost; no FPS win is claimed.
 
 - [Current fixed-build live controls](assets/02-current-live/README.md): refreshed shared runtime and release WASM; completed runs retain functional and host-isolation verdicts separately. No backend ranking yet.

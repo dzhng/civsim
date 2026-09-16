@@ -4,38 +4,29 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: measure native per-frame admission overhead, then obtain
-quiet matched evidence before ranking. Builds are under
-`throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` with the
-`enabled/manifest.json` and common root `render-config.json`. All emitted WASM
-binaries match the archived release binary. Older controls remain untouched.
+Current pickup: refresh comparison controls for the native admission improvement,
+then continue measured crowd preparation and obtain quiet matched evidence before
+ranking. No backend is selected. All GPU jobs and servers from this pass are
+terminal; the tracked runtime includes the validated candidate.
 
-[Three trial 0](assets/02-current-live/README.md) completed all functional checks,
-but is unrankable: Diablo IV and shared system activity contaminated the run.
-It recorded 12.16 FPS and 93.47 simulated seconds in 300.02 real seconds; do not
-compare those numbers as a clean regression or speedup. Source trial/server are
-terminal and their old handles/PIDs are absent.
+[Native admission batching](assets/02-native-admission-batch/README.md) overlaps
+routine validation and eliminates empty reconciliation checks while preserving
+resource admission, failed-frame identity and cleanup ownership. In raw-renderer
+baseline/candidate/candidate/baseline controls at paused tick 30, identical camera
+packets and matching crowd fingerprints produced median renderer wall times of
+14.6–15.8 ms versus 10.4–11.2 ms; p95 was 20.5–22.0 versus 14.1–15.2 ms. This is a
+short shared-host component comparison, not live FPS or backend selection evidence.
+All 21 live tests, both live type configurations, native camera probes and the
+unchanged 18-check standing hardware gate pass. Independent review is clean.
 
-Raw trial1 also completed all functional checks and is archived beside Three;
-its host evidence is unrankable. It records14.42FPS and199.83 simulated seconds
-in300.15 real seconds, which cannot establish a backend speedup.
-
-TypeGPU trial 2 and vgpu trial 3 also completed all functional checks and are
-archived with their host observations. All four runs are unrankable. Their trial
-jobs and previews are terminal. No user applications were stopped. Refresh
-disabled instrumentation arms before attributing a possible backend win.
-
-The [native admission diagnostic](assets/02-native-admission/README.md) completed
-120 paused camera-sweep presentations. Seven sequential outer admissions plus
-nested submit validation are confirmed. Crowd invocation costs 16.81 ms at the
-median; reconcile/readout post-operation waits have 17.42/14.31 ms p95 tails.
-These are shared-host observed wall durations, not a measured optimization win.
-Next: test consolidation of routine validation waits while preserving failed-frame
-receipts, cancellation and resource replacement admission, then compare against
-the unchanged baseline. `renderAwaitMs` includes Promise-continuation work and
-cannot be added to `renderCpuMs` as disjoint CPU cost. All GPU jobs and servers
-from this pass are terminal. Invalid initial probes cloned function-bearing camera
-objects; the successful scratch probe stores evaluated values instead.
+[Four enabled live controls](assets/02-current-live/README.md) at runtime 58b2a9bd
+completed all functional checks with common WASM and graphics settings. Background
+load makes all four unrankable. Those immutable builds under
+`throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` predate the
+admission change; do not present them as current timing. Refresh enabled and
+disabled instrumentation arms before attributing a possible backend win. No user
+applications were stopped. `renderAwaitMs` includes Promise-continuation work and
+cannot be added to `renderCpuMs` as if they were disjoint costs.
 
 The [camera-only publication checkpoint](assets/06b-camera-reprojection/README.md)
 is verified across all four renderers. The [standing grass/camera gate](assets/04-grass-camera-gate/README.md)

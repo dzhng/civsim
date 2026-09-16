@@ -58,7 +58,7 @@ import { createSceneLifecycle } from "../sceneLifecycle";
 import { createTerrainPicking } from "../terrainPicking";
 import { NativeGpuTelemetry, type NativeTimingQueryMode } from "../nativeGpuTelemetry";
 import { trackNativeGpuAllocations } from "../nativeGpuAllocations";
-import { beginGpuAdmission } from "../gpuAdmission";
+import { beginGpuAdmission, GpuAdmissionBatch } from "../gpuAdmission";
 import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
 
 declare const __BATTLE_NATIVE_BACKEND__: SceneBackend;
@@ -366,16 +366,16 @@ export class BattleRenderer implements BattleRendererApi {
     if (this.pendingTerrain) {
       const input = this.pendingTerrain;
       this.pendingTerrain = null;
-      await owner.scene.replaceTerrain(input);
+      await this.admitted(() => owner.scene.replaceTerrain(input));
       this.picking = createTerrainPicking(owner.scene.pickingMeshes());
       this.check(signal);
     }
     const { width, height } = this.size;
     if (this.canvas.width !== width || this.canvas.height !== height) {
-      await owner.scene.resize(width, height);
+      await this.admitted(() => owner.scene.resize(width, height));
       this.check(signal);
       try {
-        owner.resizeOutput(width, height);
+        await this.admitted(() => owner.resizeOutput(width, height));
         this.canvas.width = width;
         this.canvas.height = height;
       } catch (error) {
@@ -411,133 +411,152 @@ export class BattleRenderer implements BattleRendererApi {
             cpuMs += performance.now() - start;
           }
         };
+        const admissions = new GpuAdmissionBatch(this.device);
         const step = async (f: () => void | Promise<void>) => {
-          await this.admitted(() => sync(f));
+          await admissions.run(() => sync(f));
           this.check(signal);
         };
-        this.telemetry!.beginSubmission("battle-draw");
-        await step(() => this.reconcile(signal));
-        const c = packet.crowd;
-        if (!c) throw Error("Native presentation requires admitted soldier assets");
-        const key =
-          packet.fixedTime === null
-            ? null
-            : `${frozenFrameKey(packet.camera, c.count)}|tick=${c.observationTick}|effects=${packet.preserveFrozenEffects ? 1 : 0}|${readoutsKey(c.standards, c.readouts)}`;
-        if (key && key === this.frozenKey) {
-          this.telemetry!.cancelSubmission();
+        const submit = async (source: "battle-draw" | "render-only") => {
+          await admissions.settle();
+          this.check(signal);
+          await sync(() => this.submit(source));
+          this.check(signal);
+        };
+        let failed = false;
+        try {
+          this.telemetry!.beginSubmission("battle-draw");
+          await sync(() => this.reconcile(signal));
+          this.check(signal);
+          const c = packet.crowd;
+          if (!c) throw Error("Native presentation requires admitted soldier assets");
+          const key =
+            packet.fixedTime === null
+              ? null
+              : `${frozenFrameKey(packet.camera, c.count)}|tick=${c.observationTick}|effects=${packet.preserveFrozenEffects ? 1 : 0}|${readoutsKey(c.standards, c.readouts)}`;
+          if (key && key === this.frozenKey) {
+            this.telemetry!.cancelSubmission();
+            this.metrics = {
+              ...this.metrics,
+              skippedFrozenFrame: true,
+              buildMs: 0,
+              uploadMs: 0,
+              drawMs: 0,
+              frameCpuMs: cpuMs,
+            };
+            return {
+              submitted: false,
+              renderedFrameId: this.renderedFrameId,
+              gpuSubmission: this.latestSubmission,
+              submittedAtMs: performance.now(),
+              cpuMs,
+            };
+          }
+          const view = { camera: cameraSnapshot(packet.camera), time: packet.timeSeconds };
+          const owner = this.owner!;
+          const buildStart = cpuMs;
+          sync(() => {
+            const built = buildCrowdInstances(
+              {
+                positions: c.positions,
+                facings: c.facings,
+                playback: c.playback,
+                alive: c.alive,
+                count: c.count,
+                soldierUnit: this.staticData.soldierUnit,
+                unitTeam: this.staticData.teams,
+                mountedClasses: Object.entries(this.soldierAssets!)
+                  .filter(([, a]) => a.manifest.mounted)
+                  .map(([id]) => Number(id)),
+                terrainHeight: owner.scene.seatingHeightAt,
+              },
+              this.instances,
+            );
+            this.instances = built.instances;
+          });
+          buildMs = cpuMs - buildStart;
+          const uploadStart = cpuMs;
+          await step(() => owner.scene.uploadReadouts(c.standards, c.readouts));
+          await step(() => owner.scene.uploadCrowd(this.instances, view.camera, view.time));
+          if (c.triangles.length) await step(() => owner.scene.uploadTriangles(c.triangles));
+          this.startupCallback = true;
+          try {
+            sync(() => startupAfterUploads?.());
+          } finally {
+            this.startupCallback = false;
+          }
+          if (this.startupRequested) {
+            // The first startup render closes the pose+initial presentation record.
+            // Later readiness renders have their own render-only measurement.
+            if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
+            await step(() => owner.scene.settleGrass(view.camera));
+            await step(() => owner.scene.prepare(view));
+            await submit("render-only");
+            this.readinessSubmissions++;
+          }
+          if (!c.triangles.length) await step(() => owner.scene.uploadTriangles(c.triangles));
+          const lines = packet.tacticalLines;
+          await step(() =>
+            owner.scene.uploadTacticalLines({
+              groundCues:
+                packet.fixedTime === null
+                  ? lines.groundCues
+                  : frozenSelectionGroundCues(lines.groundCues),
+              rings: lines.rings,
+              effects:
+                packet.fixedTime !== null && !packet.preserveFrozenEffects
+                  ? new Float32Array()
+                  : lines.effects,
+            }),
+          );
+          uploadMs = cpuMs - uploadStart;
+          const drawStart = cpuMs;
+          if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("battle-draw");
+          await step(() => owner.scene.prepare(view));
+          await submit("battle-draw");
+          drawMs = cpuMs - drawStart;
+          this.lastView = view;
+          if (this.startupRequested) {
+            await this.device.queue.onSubmittedWorkDone();
+            await twoFrames();
+            this.check(signal);
+            if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
+            await step(() => owner.scene.settleGrass(view.camera));
+            await step(() => owner.scene.prepare(view));
+            await submit("render-only");
+            this.readinessSubmissions++;
+            await this.device.queue.onSubmittedWorkDone();
+            this.check(signal);
+            this.startupRequested = false;
+            this.startupReady?.resolve();
+            this.startupReady = null;
+          }
+          this.renderedFrameId++;
+          this.frozenKey = generation === this.invalidation ? key : null;
           this.metrics = {
-            ...this.metrics,
-            skippedFrozenFrame: true,
-            buildMs: 0,
-            uploadMs: 0,
-            drawMs: 0,
+            renderedFrameId: this.renderedFrameId,
+            gpuSubmission: this.latestSubmission,
+            skippedFrozenFrame: false,
+            buildMs,
+            uploadMs,
+            drawMs,
             frameCpuMs: cpuMs,
           };
           return {
-            submitted: false,
+            submitted: true,
             renderedFrameId: this.renderedFrameId,
             gpuSubmission: this.latestSubmission,
             submittedAtMs: performance.now(),
             cpuMs,
           };
-        }
-        const view = { camera: cameraSnapshot(packet.camera), time: packet.timeSeconds };
-        const owner = this.owner!;
-        const buildStart = cpuMs;
-        sync(() => {
-          const built = buildCrowdInstances(
-            {
-              positions: c.positions,
-              facings: c.facings,
-              playback: c.playback,
-              alive: c.alive,
-              count: c.count,
-              soldierUnit: this.staticData.soldierUnit,
-              unitTeam: this.staticData.teams,
-              mountedClasses: Object.entries(this.soldierAssets!)
-                .filter(([, a]) => a.manifest.mounted)
-                .map(([id]) => Number(id)),
-              terrainHeight: owner.scene.seatingHeightAt,
-            },
-            this.instances,
-          );
-          this.instances = built.instances;
-        });
-        buildMs = cpuMs - buildStart;
-        const uploadStart = cpuMs;
-        await step(() => owner.scene.uploadReadouts(c.standards, c.readouts));
-        await step(() => owner.scene.uploadCrowd(this.instances, view.camera, view.time));
-        if (c.triangles.length) await step(() => owner.scene.uploadTriangles(c.triangles));
-        this.startupCallback = true;
-        try {
-          sync(() => startupAfterUploads?.());
+        } catch (error) {
+          failed = true;
+          throw error;
         } finally {
-          this.startupCallback = false;
+          // Drain before lifecycle ownership can release GPU resources. Keep the
+          // operation/cancellation error if validation also failed during cleanup.
+          if (failed) await admissions.settle().catch(() => {});
+          else await admissions.settle();
         }
-        if (this.startupRequested) {
-          // The first startup render closes the pose+initial presentation record.
-          // Later readiness renders have their own render-only measurement.
-          if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
-          await step(() => owner.scene.settleGrass(view.camera));
-          await step(() => owner.scene.prepare(view));
-          await step(() => this.submit("render-only"));
-          this.readinessSubmissions++;
-        }
-        if (!c.triangles.length) await step(() => owner.scene.uploadTriangles(c.triangles));
-        const lines = packet.tacticalLines;
-        await step(() =>
-          owner.scene.uploadTacticalLines({
-            groundCues:
-              packet.fixedTime === null
-                ? lines.groundCues
-                : frozenSelectionGroundCues(lines.groundCues),
-            rings: lines.rings,
-            effects:
-              packet.fixedTime !== null && !packet.preserveFrozenEffects
-                ? new Float32Array()
-                : lines.effects,
-          }),
-        );
-        uploadMs = cpuMs - uploadStart;
-        const drawStart = cpuMs;
-        if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("battle-draw");
-        await step(() => owner.scene.prepare(view));
-        await step(() => this.submit("battle-draw"));
-        drawMs = cpuMs - drawStart;
-        this.lastView = view;
-        if (this.startupRequested) {
-          await this.device.queue.onSubmittedWorkDone();
-          await twoFrames();
-          this.check(signal);
-          if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
-          await step(() => owner.scene.settleGrass(view.camera));
-          await step(() => owner.scene.prepare(view));
-          await step(() => this.submit("render-only"));
-          this.readinessSubmissions++;
-          await this.device.queue.onSubmittedWorkDone();
-          this.check(signal);
-          this.startupRequested = false;
-          this.startupReady?.resolve();
-          this.startupReady = null;
-        }
-        this.renderedFrameId++;
-        this.frozenKey = generation === this.invalidation ? key : null;
-        this.metrics = {
-          renderedFrameId: this.renderedFrameId,
-          gpuSubmission: this.latestSubmission,
-          skippedFrozenFrame: false,
-          buildMs,
-          uploadMs,
-          drawMs,
-          frameCpuMs: cpuMs,
-        };
-        return {
-          submitted: true,
-          renderedFrameId: this.renderedFrameId,
-          gpuSubmission: this.latestSubmission,
-          submittedAtMs: performance.now(),
-          cpuMs,
-        };
       });
     })();
     this.pendingPresentation = task;

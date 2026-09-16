@@ -332,3 +332,23 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   Tactical pan replaces a clamped overview pan so its200m movement is real.
 - **Verdict:** Sound, high confidence. The gate verifies more of its original
   intent without widening the player's camera or lowering performance standards.
+
+
+### Join routine GPU validation before presentation
+
+- **When:** Native admission scheduling pass.
+- **Choice:** When a native frame uploads crowd and overlay data, let the GPU's
+  error checks finish while later preparation runs. Wait for every check before
+  drawing the frame. Terrain/resize changes and the final draw retain their own
+  validation; CPU-only visibility reconciliation creates no empty GPU check.
+  On failure, wait for remaining checks before freeing resources.
+- **Gap:** The plan requires correct failure handling but does not require each
+  upload to wait separately for its error report. The old sequence introduced
+  measurable waits between otherwise independent preparation steps.
+- **Reach:** Later CPU preparation and pose work can occur before an earlier
+  upload error is known. This is bounded to the current frame, cannot produce a
+  successful frame receipt, and does not promise state rollback. Operation and
+  cancellation errors remain the reported cause when cleanup also finds an error.
+- **Verdict:** Sound, high confidence for correctness; performance acceptance
+  still requires controlled measurements. Deferred-error, startup, submission
+  identity and ownership-drain tests cover the changed ordering.

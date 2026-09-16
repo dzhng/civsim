@@ -35,9 +35,15 @@ synchronous API entry and instance packing; asynchronous continuations are not
 CPU-profiled. GPU pass timings use the shared native observer when timestamp-query
 is supported; missing results stay explicit.
 Submission identities count actual queue submissions, without a fictitious Three
-frame number. Each measured synchronous owner call has a validation scope popped before await;
-this admission and timestamp instrumentation overhead is part of the instrumented
-control. Readback helpers are counted globally but never replace final render IDs.
+frame number. Routine preparation closes each validation scope before awaiting its
+operation, allowing validation to overlap subsequent preparation. Every presentation
+submission waits for the complete batch, including startup submissions. Terrain/resize
+resource mutations and final submission retain immediate admission. Failure drains
+outstanding checks inside lifecycle ownership before resources can be released; cleanup preserves the
+original operation or cancellation error. This does not promise rollback of CPU
+state or already-submitted pose compute. Admission and timestamp instrumentation
+remain part of the measured control. Readback helpers are counted globally but
+never replace final render IDs.
 
 The benchmark's default single shadows, canvas scale, post/grade, grass settings,
 and frozen behavior are retained. CSM, debug-block rendering and development asset

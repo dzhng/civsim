@@ -103,7 +103,7 @@ function fixture(build: { timingQueries?: "enabled" | "disabled"; timestampQuery
     destroy: vi.fn(),
     lost: new Promise(() => {}),
     pushErrorScope() {},
-    popErrorScope: async () => null,
+    popErrorScope: async (): Promise<GPUError | null> => null,
     createQuerySet: vi.fn(() => ({ destroy: vi.fn() })),
     createBuffer: vi.fn(() => ({ destroy: vi.fn() })),
   };
@@ -391,4 +391,147 @@ test("the disabled lab timing control removes query work while the same device a
     labBuild: { timingQueries: "enabled" },
   });
   on.renderer.dispose();
+});
+
+test("upload validation overlaps later preparation but gates final submission", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  state.calls = [];
+  const release: Array<() => void> = [];
+  f.device.popErrorScope = () => new Promise((resolve) => release.push(() => resolve(null)));
+  const pending = f.renderer.present(packet());
+  await progress(f.callbacks);
+  const prepared = state.calls.some((call) => call[0] === "prepare");
+  const submitted = state.calls.some((call) => call[0] === "submit");
+  f.device.popErrorScope = async () => null;
+  release.forEach((resolve) => resolve());
+  await pending;
+  f.renderer.dispose();
+  expect(prepared).toBe(true);
+  expect(submitted).toBe(false);
+});
+
+test.each([false, true])(
+  "failed upload validation drains before disposal and never presents (startup %s)",
+  async (startup) => {
+    const f = fixture();
+    await f.renderer.ready;
+    const previous = await f.renderer.present(packet());
+    state.calls = [];
+    const release: Array<(error: GPUError | null) => void> = [];
+    state.owner.scene.uploadReadouts = () => {
+      f.device.popErrorScope = () => new Promise((resolve) => release.push(resolve));
+    };
+    const pending = f.renderer
+      .present(
+        packet(),
+        undefined,
+        startup
+          ? () => {
+              void f.renderer.settlePresentedFrame().catch(() => {});
+            }
+          : undefined,
+      )
+      .catch((error) => error);
+    await progress(f.callbacks);
+    // Fail one complete admission while later admissions still own pending checks.
+    release
+      .slice(0, 3)
+      .forEach((resolve, i) => resolve(i === 0 ? { message: "bad upload" } : null));
+    f.renderer.dispose();
+    await progress(f.callbacks);
+    expect(state.disposed).not.toHaveBeenCalled();
+    expect(state.calls.some((call) => call[0] === "submit")).toBe(false);
+    release.slice(3).forEach((resolve) => resolve(null));
+    expect(await pending).toMatchObject({ message: "bad upload" });
+    expect(f.renderer.frameMetrics().renderedFrameId).toBe(previous.renderedFrameId);
+    expect(state.disposed).toHaveBeenCalledTimes(1);
+  },
+);
+
+test("operation failure keeps its cause while pending validation drains", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const release: Array<(error: GPUError | null) => void> = [];
+  state.owner.scene.uploadReadouts = () => {
+    f.device.popErrorScope = () => new Promise((resolve) => release.push(resolve));
+  };
+  state.owner.scene.prepare = () => {
+    throw Error("prepare failed");
+  };
+  let finished = false;
+  const pending = f.renderer.present(packet()).catch((error) => {
+    finished = true;
+    return error;
+  });
+  await progress(f.callbacks);
+  f.renderer.dispose();
+  await progress(f.callbacks);
+  expect(finished).toBe(false);
+  expect(state.disposed).not.toHaveBeenCalled();
+  release.forEach((resolve) => resolve({ message: "secondary validation failure" }));
+  expect(await pending).toMatchObject({ message: "prepare failed" });
+  expect(state.disposed).toHaveBeenCalledTimes(1);
+});
+
+test("final GPU validation still gates frame identity and receipt", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  const previous = await f.renderer.present(packet());
+  const release: Array<(error: GPUError | null) => void> = [];
+  const submit = state.owner.submitPresentation;
+  state.owner.submitPresentation = () => {
+    submit();
+    f.device.popErrorScope = () => new Promise((resolve) => release.push(resolve));
+  };
+  let finished = false;
+  const pending = f.renderer.present(packet()).catch((error) => {
+    finished = true;
+    return error;
+  });
+  await progress(f.callbacks);
+  expect(finished).toBe(false);
+  expect(f.renderer.frameMetrics().gpuSubmission).toEqual(previous.gpuSubmission);
+  release.forEach((resolve, i) => resolve(i === 0 ? { message: "bad draw" } : null));
+  expect(await pending).toMatchObject({ message: "bad draw" });
+  expect(f.renderer.frameMetrics().renderedFrameId).toBe(previous.renderedFrameId);
+  expect(f.renderer.frameMetrics().gpuSubmission).toEqual(previous.gpuSubmission);
+  f.renderer.dispose();
+});
+
+test("output resize must pass validation before dimensions commit", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const oldWidth = f.canvas.width;
+  Object.defineProperty(f.canvas, "clientWidth", { value: 800 });
+  f.renderer.resize();
+  state.owner.resizeOutput = () => {
+    f.device.popErrorScope = async () => ({ message: "bad output resize" });
+  };
+  await expect(f.renderer.present(packet())).rejects.toThrow("bad output resize");
+  expect(f.canvas.width).toBe(oldWidth);
+  expect(state.disposed).toHaveBeenCalledTimes(1);
+});
+
+test("cancellation during batched validation cannot submit a late frame", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  const previous = await f.renderer.present(packet());
+  state.calls = [];
+  const release: Array<() => void> = [];
+  f.device.popErrorScope = () => new Promise((resolve) => release.push(() => resolve(null)));
+  const abort = new AbortController();
+  const pending = f.renderer.present(packet(), abort.signal).catch((error) => error);
+  await progress(f.callbacks);
+  abort.abort();
+  f.device.popErrorScope = async () => null;
+  release.forEach((resolve) => resolve());
+  expect(await pending).toMatchObject({ name: "AbortError" });
+  expect(state.calls.some((call) => call[0] === "submit")).toBe(false);
+  expect(f.renderer.frameMetrics().renderedFrameId).toBe(previous.renderedFrameId);
+  await expect(f.renderer.present(packet())).resolves.toMatchObject({ submitted: true });
+  f.renderer.dispose();
 });

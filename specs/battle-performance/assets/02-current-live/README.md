@@ -24,3 +24,5 @@ same unchanged isolation policy. Different host conditions and simulated progres
 make its average incomparable to Three trial0 as an engine speedup claim.
 
 TypeGPU trial 2 completes every functional check. It records 11.72 FPS average, 6.77 FPS 1% low and 132.97 simulated seconds in five real minutes. Its host observations also violate the isolation policy; these results establish functional completion only, not a backend ranking.
+
+vgpu trial 3 completes every functional check. It records 9.13 FPS average, 3.50 FPS 1% low and 115.13 simulated seconds in five real minutes. Shared system activity and competing processes make this run unrankable as well. All four current enabled controls are functionally complete; none supplies a quiet comparison.

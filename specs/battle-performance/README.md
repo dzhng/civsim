@@ -4,7 +4,7 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: finish the current fixed-build native live trials, then obtain
+Current pickup: measure native per-frame admission overhead, then obtain
 quiet matched evidence before ranking. Builds are under
 `throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` with the
 `enabled/manifest.json` and common root `render-config.json`. All emitted WASM
@@ -20,13 +20,14 @@ Raw trial1 also completed all functional checks and is archived beside Three;
 its host evidence is unrankable. It records14.42FPS and199.83 simulated seconds
 in300.15 real seconds, which cannot establish a backend speedup.
 
-TypeGPU trial 2 completed all functional checks and is archived with its host
-observations; it is also unrankable. Active vgpu trial: exec session 99158, output
-`throwaway/matched-current-58b2a9bd/trials/vgpu-3`, log
-`throwaway/claude-agents/matched-current-vgpu-3.log`. Preview session 35421 serves
-vgpu on port 5281. Poll the existing job before any new GPU work. Preserve
-functional results without treating them as rankings; no user applications were
-stopped. Refresh disabled instrumentation arms before attributing a possible win.
+TypeGPU trial 2 and vgpu trial 3 also completed all functional checks and are
+archived with their host observations. All four runs are unrankable. Their trial
+jobs and previews are terminal. No user applications were stopped. Refresh
+disabled instrumentation arms before attributing a possible backend win.
+
+Current GPU job is the scratch native admission probe on raw: output/log under
+`throwaway/native-admission-probe.{json,log}`, native Vite server session 38181
+on port 5294. Probe exec session 85394. Poll this existing job before launching more GPU work.
 
 Next diagnostic: ordinary native presentation awaits seven sequential admission
 boundaries, including a nested submit admission (24 GPU error-scope pops). Three

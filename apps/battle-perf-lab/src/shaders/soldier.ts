@@ -74,12 +74,12 @@ export const soldierUnitDirectionWgsl = `(d:vec3f,fallback:vec3f)->vec3f {
 
 export function soldierVertexBodyWgsl(bones: number, diagnostic?: SoldierDiagnostic) {
   return `      let start=u32(inst1.y)*${bones}u;
-      let a=palette[start+u32(joints.x)];let b=palette[start+u32(joints.y)];
-      let c=palette[start+u32(joints.z)];let d=palette[start+u32(joints.w)];
-      let c0=a[0]*weights.x+b[0]*weights.y+c[0]*weights.z+d[0]*weights.w;
-      let c1=a[1]*weights.x+b[1]*weights.y+c[1]*weights.z+d[1]*weights.w;
-      let c2=a[2]*weights.x+b[2]*weights.y+c[2]*weights.z+d[2]*weights.w;
-      let c3=a[3]*weights.x+b[3]*weights.y+c[3]*weights.z+d[3]*weights.w;
+      // Exact-zero influences after the first add nothing; skip their palette loads.
+      var skin=palette[start+u32(joints.x)]*weights.x;
+      if(weights.y!=0.0){skin+=palette[start+u32(joints.y)]*weights.y;}
+      if(weights.z!=0.0){skin+=palette[start+u32(joints.z)]*weights.z;}
+      if(weights.w!=0.0){skin+=palette[start+u32(joints.w)]*weights.w;}
+      let c0=skin[0];let c1=skin[1];let c2=skin[2];let c3=skin[3];
       let local=c0*position.x+c1*position.y+c2*position.z+c3;
       let n=normalize((c0*normal.x+c1*normal.y+c2*normal.z).xyz);
       let t=unitDirection((c0*tangent.x+c1*tangent.y+c2*tangent.z).xyz,vec3f(0));

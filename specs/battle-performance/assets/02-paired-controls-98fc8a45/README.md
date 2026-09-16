@@ -11,3 +11,7 @@ native disabled mode removes queries and readbacks; Three's disabled mode remove
 its additional range callback, retaining existing timing. Do not rank the disabled
 backends as equivalent uninstrumented implementations. A comparison must retain
 first-traversal work, matched graphics/content, run order and host observations.
+
+[The first full live round](live-round-0/README.md) passes functional checks in all
+four backends. Every quiet-host verdict remains false; no winner is established.
+The main drawing pass is the next attribution target.

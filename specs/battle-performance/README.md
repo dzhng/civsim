@@ -3,7 +3,7 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **implementation in progress; no backend selected**, updated 2026-09-16.
+Status: **implementation in progress; no backend selected**, updated 2026-09-17.
 Current pickup: finish the current fixed-build native live trials, then obtain
 quiet matched evidence before ranking. Builds are under
 `throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` with the
@@ -44,42 +44,23 @@ near-and-return sweep. Previous grass-accounting failures and unreachable zoom
 requests are explained by evidence, not waived. This paused-simulation floor is
 not live performance acceptance. 27 focused grass tests and web types pass.
 
-The latest [combined full hardware run](assets/combined-optimized-runtime/README.md)
-passes functional checks but delivers 20.79 FPS and 135.9 simulated seconds in five
-real minutes. It is not quiet ranking evidence. The development servers are stopped; the fixed-build trial described above is active. The [shared fit extraction](assets/08-shared-shadow-policy/README.md)
-and [native resource controls](assets/08-native-shadow-fit/README.md) preserve the
-common shadow contract; old fixed builds remain research controls only.
-The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
-early/later battle hashes and reduces the uninstrumented later Node window by
-about7.8%; it does not establish browser cadence or30Hz simulation. The tested
-release WASM is installed locally; the previous worker binary is retained under
-`throwaway/claude-agents/wasm-before-friend-cutoff`. Exact-WASM profiling still
-identifies targeting, projection and weapon repulsion as remaining costs. Native
-canonical profiling diverges and cannot substitute for exact WASM comparisons. The [combined five-minute hardware run](assets/combined-runtime/README.md)
-passes all functional checks but records 19.10 FPS and only 150.83 simulated
-seconds in 300.10 real seconds. This is not performance acceptance or a matched
-speedup comparison. Its separate host observer includes the benchmark process in
-its competing-process list; correct trial-tree exclusion before future rankings.
+The current runtime includes worker/campaign handoff, immutable image sharing,
+exact animation endpoints, progressive grass residency, shared view-fitted
+shadows and the shadow depth guard. Their component proofs are linked in
+[evidence.md](evidence.md). The [real GPU upload regression](assets/04-grass-upload-bound/README.md)
+proves bounded grass edits; the [exact-WASM cutoff comparison](assets/03a-friend-cutoff/README.md)
+preserves recorded battle hashes. Neither establishes live acceptance. Remaining
+costs include simulation targeting/projection/repulsion, crowd preparation and
+native frame orchestration. Native simulation profiling diverges from WASM and
+cannot substitute for exact-target evidence.
 
-The primary worktree now integrates the worker/campaign handoff, immutable image
-sharing, exact animation endpoints, progressive grass residency, view-fitted
-shadows and the shadow depth guard. The [real GPU upload regression](assets/04-grass-upload-bound/README.md)
-found and fixed repeated whole-buffer grass uploads; the camera probe now submits
-only bounded partial edits. The [shadow depth regression](assets/08-shadow-depth-boundary/README.md)
-fixes the moving-camera wedge. Neither bounded uploads nor reviewed stills prove
-smooth continuous motion. Focused integration tests and hardware lifecycle checks
-pass; simulation throughput, crowd state/visibility work, shadow temporal stability
-and final net-shadow savings remain open.
-
-Claude Opus stopped at its spend limit; root continues locally. Keep the original
-fixed comparison builds and WASM intact. Refresh common scheduling, grass and
-shadow policies across all candidates before the final four-backend comparison;
-new source view-fitted shadows versus old native whole-map shadows is not equal
-work. Reuse the [bounded source archive](assets/02-preflight/native-spool/README.md)
-for correctness controls, not timing. GPU interval sums remain diagnostics,
-never elapsed-time rankings. Preserve gameplay, default gates and the hard
-cutover/no-compatibility decision. Detailed historical evidence lives in
-[evidence.md](evidence.md), not this pickup prompt.
+Claude Opus stopped at its spend limit; root continues locally. Serialize GPU
+jobs. Reuse the [bounded source archive](assets/02-preflight/native-spool/README.md)
+for correctness, not current timing. GPU interval sums are diagnostics, not
+elapsed-time rankings. Continuous camera/grass/shadow stability, sustained live
+throughput and the final net-shadow savings remain unproven. Preserve gameplay,
+quality, default gates and the hard-cutover/no-compatibility decision. Historical
+runs and component checkpoints belong in the evidence ledger rather than here.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 

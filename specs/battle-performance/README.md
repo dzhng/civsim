@@ -4,10 +4,16 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: refresh comparison controls for the native admission improvement,
-then continue measured crowd preparation and obtain quiet matched evidence before
+Current pickup: run matched controls from the refreshed enabled/disabled builds,
+then continue measured crowd preparation and obtain quiet live evidence before
 ranking. No backend is selected. All GPU jobs and servers from this pass are
 terminal; the tracked runtime includes the validated candidate.
+[Eight fixed builds](assets/02-paired-controls-9374dbc9/README.md) now pin runtime
+9374dbc9 under `throwaway/matched-current-9374dbc9/{enabled,disabled}`. Each mode has
+its own manifest and the root has the common render configuration. All eight
+emitted WASM files match the archived release digest. Builds have not yet supplied
+new runtime rankings; disabled controls measure different incremental observers
+for Three versus native and must be compared within each backend.
 
 [Native admission batching](assets/02-native-admission-batch/README.md) overlaps
 routine validation and eliminates empty reconciliation checks while preserving
@@ -23,8 +29,7 @@ unchanged 18-check standing hardware gate pass. Independent review is clean.
 completed all functional checks with common WASM and graphics settings. Background
 load makes all four unrankable. Those immutable builds under
 `throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` predate the
-admission change; do not present them as current timing. Refresh enabled and
-disabled instrumentation arms before attributing a possible backend win. No user
+admission change; do not present them as current timing. Use the refreshed paired controls above before attributing a possible backend win. No user
 applications were stopped. `renderAwaitMs` includes Promise-continuation work and
 cannot be added to `renderCpuMs` as if they were disjoint costs.
 

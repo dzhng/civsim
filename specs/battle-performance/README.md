@@ -4,16 +4,27 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: run matched controls from the refreshed enabled/disabled builds,
-then continue measured crowd preparation and obtain quiet live evidence before
-ranking. No backend is selected. All GPU jobs and servers from this pass are
-terminal; the tracked runtime includes the validated candidate.
-[Eight fixed builds](assets/02-paired-controls-9374dbc9/README.md) now pin runtime
-9374dbc9 under `throwaway/matched-current-9374dbc9/{enabled,disabled}`. Each mode has
-its own manifest and the root has the common render configuration. All eight
-emitted WASM files match the archived release digest. Builds have not yet supplied
-new runtime rankings; disabled controls measure different incremental observers
-for Three versus native and must be compared within each backend.
+Current pickup: measure native crowd-packing allocations and remove demonstrated
+per-frame churn, then refresh matched controls and obtain quiet live evidence
+before ranking. No backend is selected. All GPU jobs and servers from this pass
+are terminal. The tracked runtime includes the billboard cache changes below.
+
+[Billboard refresh deduplication](assets/06b-billboard-refresh/README.md) halves
+repeated camera metadata preparation in the production Three renderer and record
+uploads in the raw control. The same native ownership rule serves TypeGPU/vgpu.
+Matching camera packets and final data fingerprints preserve the measured inputs
+and records. All 38 relevant tests, five type configurations and the unchanged
+18-check hardware floor pass; independent review is clean. This is work-count
+proof, not a full live speedup or visual acceptance claim.
+
+[Eight fixed builds](assets/02-paired-controls-9374dbc9/README.md) pin runtime
+9374dbc9 under `throwaway/matched-current-9374dbc9/{enabled,disabled}`. They include
+admission batching but predate billboard deduplication; preserve them as historical
+controls. Raw disabled trial 0 completes the five-minute Menu flow but is unrankable
+under its recorded host activity. No incremental query cost can be inferred from
+that lone arm. Each mode has its own manifest and common root render configuration;
+all emitted WASM matches the archived release. Disabled controls remove different
+incremental observers for Three/native, so compare them within each backend.
 
 [Native admission batching](assets/02-native-admission-batch/README.md) overlaps
 routine validation and eliminates empty reconciliation checks while preserving

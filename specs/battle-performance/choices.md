@@ -352,3 +352,21 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Verdict:** Sound, high confidence for correctness; performance acceptance
   still requires controlled measurements. Deferred-error, startup, submission
   identity and ownership-drain tests cover the changed ordering.
+
+
+### Cache successful billboard camera preparation at its owner
+
+- **When:** Billboard refresh deduplication pass.
+- **Choice:** A crowd upload still refreshes every changed soldier. If preparation
+  immediately asks for the same billboard camera again, reuse the already prepared
+  data. Native audience history owns copied eye/basis/FOV values; Three's billboard
+  layer owns a copied camera transform/FOV and invalidates it on source upload.
+- **Gap:** Visibility history alone does not describe billboard orientation and
+  size, and callers can mutate camera objects in place. Object identity cannot
+  establish that the view is unchanged.
+- **Reach:** Camera movement and source changes still update normally. Failed
+  refreshes cannot turn valid by returning to a formerly cached camera. No visual
+  quality policy changes; the cache avoids repeating successful work only.
+- **Verdict:** Sound, high confidence. Tests exercise field mutation, parent-camera
+  motion, source changes and failure readiness; actual game-route controls retain
+  matching final data fingerprints while halving the measured duplicate work.

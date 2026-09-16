@@ -64,7 +64,7 @@ export async function createTypegpuCrowdAudience(
         await meshOwner.upload(publication.instances, publication.plan);
         history.check();
         for (const [id, layer] of far) layer.update(publication.groups.get(id)!, view);
-        history.commit(publication);
+        history.commit(publication, view);
       } catch (error) {
         history.abort(publication);
         failure = { error };
@@ -93,7 +93,7 @@ export async function createTypegpuCrowdAudience(
         return true;
       },
       refreshCamera(view: ImpostorView) {
-        history.refreshImpostors((groups) => {
+        history.refreshImpostors(view, (groups) => {
           for (const [id, layer] of far) layer.update(groups.get(id)!, view);
         });
       },

@@ -189,3 +189,66 @@ test("published histograms count actual main and shadow audiences without counti
     owner.dispose();
   }
 });
+
+test("crowd upload and reproject do not repeat an identical billboard refresh", async () => {
+  const owner = await create();
+  const layer = layers.at(-1)!;
+  try {
+    owner.upload([soldier], [view(0.1)], camera);
+    owner.refreshCamera({ ...camera, eye: [...camera.eye] });
+    expect(layer.update).toHaveBeenCalledTimes(1);
+    expect(owner.reproject([view(0.12)], camera)).toBe(true);
+    owner.refreshCamera(camera);
+    expect(layer.update).toHaveBeenCalledTimes(2);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("billboard refresh compares copied camera values rather than caller identity", async () => {
+  const owner = await create();
+  const layer = layers.at(-1)!;
+  const moving = {
+    right: [...camera.right] as [number, number, number],
+    up: [...camera.up] as [number, number, number],
+    eye: [...camera.eye] as [number, number, number],
+    fovY: Number(camera.fovY),
+  };
+  try {
+    owner.upload([soldier], [view(0.1)], moving);
+    let expected = 1;
+    for (const field of ["right", "up", "eye"] as const) {
+      for (let axis = 0; axis < 3; axis++) {
+        moving[field][axis] += 1;
+        owner.refreshCamera(moving);
+        owner.refreshCamera(moving);
+        expect(layer.update).toHaveBeenCalledTimes(++expected);
+      }
+    }
+    moving.fovY = 0.8;
+    owner.refreshCamera(moving);
+    owner.refreshCamera(moving);
+    expect(layer.update).toHaveBeenCalledTimes(++expected);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("failed billboard refresh cannot make the preceding camera drawable", async () => {
+  const owner = await create();
+  const layer = layers.at(-1)!;
+  try {
+    owner.upload([soldier], [view(0.1)], camera);
+    layer.update.mockImplementationOnce(() => {
+      throw Error("billboard upload failed");
+    });
+    expect(() => owner.refreshCamera({ ...camera, fovY: 0.8 })).toThrow("billboard upload failed");
+    expect(() => owner.refreshCamera(camera)).toThrow("not ready");
+    expect(() => owner.draw({} as never, {} as never)).toThrow("not ready");
+    owner.upload([soldier], [view(0.1)], camera);
+    owner.refreshCamera(camera);
+    expect(layer.update).toHaveBeenCalledTimes(3);
+  } finally {
+    owner.dispose();
+  }
+});

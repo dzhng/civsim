@@ -36,3 +36,15 @@ This checkpoint does not close this slice. Live frames still build and submit
 current observation/playback state, and the final allocation/upload, growth,
 continuous-motion and performance gates remain required. Camera-only correction
 must not be presented as a measured live-frame speedup.
+
+
+[Billboard refresh ownership](../assets/06b-billboard-refresh/README.md) avoids
+repeating camera preparation after an upload in Three and native owners. Matching
+camera/state controls halve source metadata work and raw record writes; this is
+work-count evidence, not live performance acceptance. A remaining candidate is
+native `packCrowdFrame`'s per-frame maps and soldier-sized payload allocations.
+Measure those before replacing its stateless API. Any retained storage must stay
+owned through asynchronous uploads, expose only active prefixes and preserve
+shared main/shadow palette slots. TypeGPU currently uploads `data.buffer`; a
+capacity-backed prefix requires an explicit active byte range rather than the
+whole backing allocation.

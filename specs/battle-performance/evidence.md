@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Billboard camera refresh](assets/06b-billboard-refresh/README.md): matching camera/data controls halve source metadata work and native billboard record writes; live performance and visual acceptance remain separate.
+
 - [Refreshed eight fixed builds](assets/02-paired-controls-9374dbc9/README.md): enabled and incremental-instrumentation controls share runtime 9374dbc9 and verified release WASM; runtime comparison remains next.
 
 - [Native admission batching](assets/02-native-admission-batch/README.md): matched paused raw controls reduce renderer wall time; failure handling, other native camera probes and the standing hardware floor pass. Full live ranking remains open.

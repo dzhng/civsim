@@ -48,7 +48,7 @@ export async function createRawCrowdAudience(
       try {
         meshOwner.upload(publication.instances, publication.plan);
         for (const [id, layer] of far) layer.update(publication.groups.get(id)!, view);
-        history.commit(publication);
+        history.commit(publication, view);
       } catch (error) {
         history.abort(publication);
         throw error;
@@ -63,7 +63,7 @@ export async function createRawCrowdAudience(
         return true;
       },
       refreshCamera(view: ImpostorView) {
-        history.refreshImpostors((groups) => {
+        history.refreshImpostors(view, (groups) => {
           for (const [id, layer] of far) layer.update(groups.get(id)!, view);
         });
       },

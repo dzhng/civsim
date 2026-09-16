@@ -182,6 +182,10 @@ export class OctahedralImpostorLayer {
   private living = new Float32Array(0);
   private source: CrowdInstance[] = [];
   private readonly tileDirs: Float64Array;
+  private readonly preparedCameraWorld = new THREE.Matrix4();
+  private readonly cameraEye = new THREE.Vector3();
+  private preparedFovY = NaN;
+  private cameraDirty = true;
 
   constructor(
     scene: THREE.Scene,
@@ -257,6 +261,7 @@ export class OctahedralImpostorLayer {
   }
 
   upload(instances: CrowdInstance[]): void {
+    this.cameraDirty = true;
     this.source = instances;
     this.mesh.visible = instances.length > 0;
     if (instances.length === 0) {
@@ -300,13 +305,18 @@ export class OctahedralImpostorLayer {
   }
 
   setCamera(camera: THREE.Camera): void {
+    const eye = this.cameraEye;
+    camera.getWorldPosition(eye);
+    const fovY = "fov" in camera ? ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180 : 0;
+    if (
+      !this.cameraDirty &&
+      this.preparedFovY === fovY &&
+      this.preparedCameraWorld.equals(camera.matrixWorld)
+    )
+      return;
     const m = camera.matrixWorld.elements;
     this.camRight.value.set(m[0], m[1], m[2]).normalize();
     this.camUp.value.set(m[4], m[5], m[6]).normalize();
-    const eye = new THREE.Vector3();
-    camera.getWorldPosition(eye);
-    // Half-angle of the vertical FOV, for the projected screen-size floor below.
-    const fovY = "fov" in camera ? ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180 : 0;
     const tanHalfFov = fovY > 0 ? Math.tan(fovY / 2) : 0;
     const localDir = new THREE.Vector3();
     for (let i = 0; i < this.source.length; i++) {
@@ -342,6 +352,9 @@ export class OctahedralImpostorLayer {
       | THREE.InstancedBufferAttribute
       | undefined;
     if (attr) attr.needsUpdate = true;
+    this.preparedCameraWorld.copy(camera.matrixWorld);
+    this.preparedFovY = fovY;
+    this.cameraDirty = false;
   }
 
   stats() {

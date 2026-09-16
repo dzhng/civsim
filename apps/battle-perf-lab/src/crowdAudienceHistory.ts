@@ -1,3 +1,4 @@
+import type { ImpostorView } from "./impostorData";
 import { CrowdFrameSnapshot } from "../../../packages/crowd-runtime/src/frameSnapshot";
 import { CrowdViewState } from "../../../packages/crowd-runtime/src/viewState";
 import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appearanceBundle";
@@ -16,6 +17,26 @@ export function createCrowdAudienceHistory(
   atlases: Record<number, ImpostorAtlasData>,
 ) {
   const snapshot = new CrowdFrameSnapshot();
+  const billboardView = new Float64Array(10);
+  const rememberBillboardView = (view: ImpostorView) => {
+    billboardView[0] = view.fovY;
+    for (let i = 0; i < 3; i++) {
+      billboardView[1 + i] = view.right[i];
+      billboardView[4 + i] = view.up[i];
+      billboardView[7 + i] = view.eye[i];
+    }
+  };
+  const matchesBillboardView = (view: ImpostorView) => {
+    if (billboardView[0] !== view.fovY) return false;
+    for (let i = 0; i < 3; i++)
+      if (
+        billboardView[1 + i] !== view.right[i] ||
+        billboardView[4 + i] !== view.up[i] ||
+        billboardView[7 + i] !== view.eye[i]
+      )
+        return false;
+    return true;
+  };
   let viewState = new CrowdViewState(),
     nextViews = new CrowdViewState();
   const ids = Object.keys(assets).map(Number);
@@ -75,7 +96,7 @@ export function createCrowdAudienceHistory(
       pending = { count: instances.length, instances: snapshot.instances, plan, groups };
       return pending;
     },
-    commit(publication: Publication) {
+    commit(publication: Publication, view: ImpostorView) {
       check();
       if (pending !== publication) throw Error("Crowd audience publication is not pending");
       [previous, next] = [next, previous];
@@ -89,6 +110,7 @@ export function createCrowdAudienceHistory(
           visibleTierHistogram[`l${previous.levels[i]}` as keyof typeof visibleTierHistogram]++;
       shadowTierHistogram = { ...publication.plan.shadowCounts };
       [viewState, nextViews] = [nextViews, viewState];
+      rememberBillboardView(view);
       pending = undefined;
       ready = true;
     },
@@ -98,11 +120,16 @@ export function createCrowdAudienceHistory(
         if (disposed) snapshot.clear();
       }
     },
-    refreshImpostors(update: (groups: ReadonlyMap<number, readonly CrowdInstance[]>) => void) {
+    refreshImpostors(
+      view: ImpostorView,
+      update: (groups: ReadonlyMap<number, readonly CrowdInstance[]>) => void,
+    ) {
       check(true);
+      if (matchesBillboardView(view)) return;
       ready = false;
       update(selected);
       check();
+      rememberBillboardView(view);
       ready = true;
     },
     stats() {

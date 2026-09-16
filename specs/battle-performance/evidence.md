@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Current kernel profile](assets/03a-current-kernel/README.md): exact current-WASM contact control averages28.02ms/tick; matching executable sections validate restored symbols. Most sampled time belongs to the inlined battle tick. This is short Node diagnostic evidence, not sustained browser throughput.
+
 - [Combined runtime](assets/combined-runtime/README.md): worker, grass and fitted shadows pass the full canonical five-minute flow. Recorded cadence and simulation throughput remain below target; host-process attribution is incomplete. This is functional evidence, not a backend ranking.
 
 - Baseline source: `c924e5ce`; plan checkpoint `76b45cca`; telemetry `5518110f`; pure metrics `8978a174`.

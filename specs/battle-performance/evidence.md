@@ -1,5 +1,9 @@
 # Evidence ledger
 
+- [Current fixed-build live controls](assets/02-current-live/README.md): refreshed shared runtime and release WASM; completed runs retain functional and host-isolation verdicts separately. No backend ranking yet.
+- [Camera-only publication](assets/06b-camera-reprojection/README.md) and [standing camera gate](assets/04-grass-camera-gate/README.md): submitted-state coherence across backends and all 18 paused-renderer checks, without proving live acceptance.
+- [Shared shadow policy](assets/08-shared-shadow-policy/README.md), [native fitted resources](assets/08-native-shadow-fit/README.md) and [shadow depth boundary](assets/08-shadow-depth-boundary/README.md): common fit ownership and focused correctness controls; continuous motion and net cost remain open.
+
 - [Latest combined runtime](assets/combined-optimized-runtime/README.md): all11 full-run functional checks pass;20.79FPS and135.9 simulated seconds in300.09 real seconds remain below target. Corrected host-process exclusion does not establish quiet conditions.
 
 - [Crowd terrain sampling](assets/06b-seating-sampling/README.md): actual hardware camera control proves2→1 samples per soldier per frame with unchanged seating diagnostics. Eight focused tests and typechecking pass; live cadence remains open.

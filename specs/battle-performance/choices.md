@@ -220,3 +220,7 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 
 - **Provisional — motion gate remains open:** Show the largest fully resident inner region while the outer detail loads, using the same complementary base/detail mask. This keeps one coverage owner and avoids a new per-tile GPU occupancy resource. Region growth may still be noticeable; motion evidence must decide acceptance.
 - **Settled:** Give incoming camera coverage first use of the existing bounded upload allowance, then use the remaining allowance to remove retired tiles. Camera motion needs forward progress; cleanup cannot consume the entire allowance indefinitely.
+
+### Fitted shadow depth validity
+
+- **Settled:** The default fitted shadow map uses the renderer’s public filter hook to reject receivers outside the lower depth bound while retaining its PCF kernel. This repairs reversed-depth sampling without patching the dependency or altering caster geometry. The separate CSM path keeps its prior behavior.

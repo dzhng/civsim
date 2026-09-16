@@ -192,10 +192,6 @@ const MEADOW_FOCUS_RING_DEDUPE_MARGIN_M = 20;
 /** Radius of the coverage the focus field samples around its snapped centre. */
 const MEADOW_FOCUS_RING_COVER_RADIUS_M =
   MEADOW_FOCUS_RING_RADIUS_M - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M;
-/** Radius of the coverage actually published to both route passes. It sits just
- *  inside the sampled radius so the tiles the GPU claims are always a subset of
- *  the tiles that were sampled. */
-const MEADOW_FOCUS_RING_MASK_RADIUS_M = MEADOW_FOCUS_RING_COVER_RADIUS_M - GRASS_COVERAGE_MARGIN_M;
 /** Residency granularity. 24 m divides the 48 m focus snap and the 0.6 m field
  *  cell, so a tile is exactly 40x40 cells and adjacent tiles partition the
  *  world. Smaller tiles track the cover circle more tightly and shrink every
@@ -326,6 +322,7 @@ export class BattleGrassResidency {
   private baseSampleStats: GrassFieldStats | null = null;
   private focusTiles: GrassFocusTileField | null = null;
   private focusRequest: GrassFocusCenter | null = null;
+  private activeRadiusM = 0;
   private activeCoverKeys: ReadonlySet<number> = new Set();
   private sampleScheduled = false;
   private requestedAt = 0;
@@ -380,8 +377,8 @@ export class BattleGrassResidency {
       cancelledCells: 0,
       retiredFocusGenerations: 0,
       coverageTileM: MEADOW_FOCUS_TILE_M,
-      coverageRadiusM: MEADOW_FOCUS_RING_MASK_RADIUS_M,
-      coverageSampledRadiusM: MEADOW_FOCUS_RING_COVER_RADIUS_M,
+      coverageRadiusM: this.activeRadiusM,
+      coverageSampledRadiusM: this.activeRadiusM + GRASS_COVERAGE_MARGIN_M / 2,
       publishedCoverageTiles: 0,
       activeCoverageResident: true,
       activeFocus: null,
@@ -407,6 +404,7 @@ export class BattleGrassResidency {
     this.sampleScheduled = false;
     this.rebuild.pending = false;
     this.rebuild.activeFocus = null;
+    this.activeRadiusM = 0;
     this.rebuild.pendingFocus = null;
     this.rebuild.activeGeneration = 0;
     this.baseVisible = false;
@@ -537,8 +535,8 @@ export class BattleGrassResidency {
       cancelledCells: tiles?.cancelledCells ?? 0,
       retiredFocusGenerations: this.rebuild.retiredFocusGenerations,
       coverageTileM: MEADOW_FOCUS_TILE_M,
-      coverageRadiusM: MEADOW_FOCUS_RING_MASK_RADIUS_M,
-      coverageSampledRadiusM: MEADOW_FOCUS_RING_COVER_RADIUS_M,
+      coverageRadiusM: this.activeRadiusM,
+      coverageSampledRadiusM: this.activeRadiusM + GRASS_COVERAGE_MARGIN_M / 2,
       publishedCoverageTiles: this.baseMask ? this.activeCoverKeys.size : 0,
       activeCoverageResident:
         this.rebuild.activeFocus === null || (tiles?.hasAll(this.activeCoverKeys) ?? false),
@@ -587,6 +585,7 @@ export class BattleGrassResidency {
     this.focusTiles = null;
     this.focusRequest = null;
     this.rebuild.activeFocus = null;
+    this.activeRadiusM = 0;
     this.activeCoverKeys = new Set();
     this.baseMask = null;
     this.ringMask = null;
@@ -796,24 +795,31 @@ export class BattleGrassResidency {
     this.updateRoutingState();
   }
 
-  /**
-   * Coverage may only move onto tiles that are already resident, so a focus
-   * becomes active exactly when every tile of its cover circle has landed.
-   * Until then the previously published coverage stays in force: the tiles
-   * arriving for the new focus are resident but owned by neither field's
-   * published coverage, so they wait rather than double up on the base field.
-   */
+  /** Publish the resident inner disc immediately, growing it as tiles arrive.
+   * The previous disc remains protected until the new center has coverage. */
   private admitCoveredFocus(): void {
     const tiles = this.focusTiles;
     const focus = this.focusRequest;
-    if (!tiles || !focus || tiles.missingTiles > 0) return;
+    if (!tiles || !focus) return;
+    if (tiles.requiredTiles === 0) {
+      this.retireActiveFocus();
+      this.rebuild.activeGeneration = this.rebuild.requestedGeneration;
+      this.rebuild.pendingFocus = null;
+      return;
+    }
+    const radius = tiles.residentRadius;
+    if (radius <= 0) return;
+    if (tiles.missingTiles === 0) {
+      this.rebuild.activeGeneration = this.rebuild.requestedGeneration;
+      this.rebuild.pendingFocus = null;
+    }
     const active = this.rebuild.activeFocus;
-    if (active && active.x === focus.x && active.y === focus.y) return;
+    if (active && active.x === focus.x && active.y === focus.y && this.activeRadiusM === radius)
+      return;
     this.rebuild.activeFocus = focus;
-    this.rebuild.activeGeneration = this.rebuild.requestedGeneration;
-    this.rebuild.pendingFocus = null;
+    this.activeRadiusM = radius;
     this.rebuild.rebuilds += 1;
-    this.activeCoverKeys = tiles.coverKeys(focus.x, focus.y, MEADOW_FOCUS_RING_COVER_RADIUS_M);
+    this.activeCoverKeys = tiles.coverKeys(focus.x, focus.y, radius + GRASS_COVERAGE_MARGIN_M / 2);
     tiles.protect(this.activeCoverKeys);
   }
 
@@ -823,6 +829,7 @@ export class BattleGrassResidency {
   private retireActiveFocus(): void {
     if (!this.rebuild.activeFocus) return;
     this.rebuild.activeFocus = null;
+    this.activeRadiusM = 0;
     this.rebuild.retiredFocusGenerations += 1;
     this.activeCoverKeys = new Set();
     this.focusTiles?.protect(this.activeCoverKeys);
@@ -876,7 +883,7 @@ export class BattleGrassResidency {
       this.baseMask = null;
       this.ringMask = null;
     } else {
-      const radiusSq = MEADOW_FOCUS_RING_MASK_RADIUS_M * MEADOW_FOCUS_RING_MASK_RADIUS_M;
+      const radiusSq = this.activeRadiusM * this.activeRadiusM;
       const coverage = {
         center: [active.x, active.y] as [number, number],
         radiusSq,

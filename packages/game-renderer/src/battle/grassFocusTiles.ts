@@ -5,7 +5,7 @@ import {
   type GrassFieldStats,
 } from "./grassField";
 import { hashPackedRecordsRange, hashToString } from "./bladeFieldRecordHash";
-import { tileCentreDistanceSq } from "./grassCoverage";
+import { GRASS_COVERAGE_MARGIN_M, tileCentreDistanceSq } from "./grassCoverage";
 
 /** A half-open record range inside the persistent focus buffer. */
 export interface GrassRecordEdit {
@@ -152,6 +152,14 @@ export class GrassFocusTileField {
     return missing;
   }
 
+  /** Largest inner disc whose claimed tiles are all resident. Required tiles
+   * are nearest-first; keep a float margin before the first missing tile. */
+  get residentRadius(): number {
+    if (!this.center || this.required.length === 0) return 0;
+    const missing = this.required.find((tile) => !this.tiles.has(tile.key));
+    return Math.max(0, (missing?.distance ?? this.center.radius) - GRASS_COVERAGE_MARGIN_M);
+  }
+
   get pending(): boolean {
     return this.pendingRelease || this.task !== null || this.missingIndex < this.required.length;
   }
@@ -231,7 +239,6 @@ export class GrassFocusTileField {
     if (this.unconsumed.length > 0) return this.pending;
     const started = now();
     const edits: GrassRecordEdit[] = [];
-    this.releaseUnretained(edits);
     while (edits.length < this.options.publishPerStep) {
       const task = this.task ?? this.startNextTask();
       if (!task) break;
@@ -250,6 +257,8 @@ export class GrassFocusTileField {
       }
       if (now() - started >= budgetMs) break;
     }
+    // New camera coverage has priority over packing away retired tiles.
+    this.releaseUnretained(edits);
     if (edits.length > 0) {
       this.unconsumed = edits;
       this.editSerial++;

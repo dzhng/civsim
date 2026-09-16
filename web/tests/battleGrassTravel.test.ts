@@ -83,8 +83,14 @@ test("sustained travel keeps publishing focus coverage instead of restarting the
     renderSlices(4);
     // Travel west to east across 12 snapped focus cells, four sampling slices per step.
     for (let step = 1; step <= 12; step++) {
-      owner.update(at(step * 48, 0), 900);
+      owner.update(at(-240 + (step % 11) * 48, 0), 900);
       renderSlices(4);
+      const current = owner.snapshot().ring;
+      expect(current.visible).toBe(true);
+      expect(current.mask).not.toBeNull();
+      expect(Math.abs(current.mask!.center[0] - (-240 + (step % 11) * 48))).toBeLessThanOrEqual(48);
+      expect(current.mask!.radiusSq).toBeGreaterThan(0);
+      expect(owner.stats().rebuild.activeCoverageResident).toBe(true);
     }
     const ring = owner.snapshot().ring;
     expect(ring.records).not.toBeNull();
@@ -203,7 +209,6 @@ test("the published coverage only moves onto tiles that are already resident", (
         mask = next;
         if (owner.snapshot().base.mask) {
           const stats = owner.stats().rebuild;
-          expect(stats.missingTiles).toBe(0);
           expect(stats.activeCoverageResident).toBe(true);
           // The coverage handed to the GPU is strictly inside the coverage that
           // was sampled, so no tile can be claimed and then found missing.
@@ -410,27 +415,31 @@ test("every slice that moves records inside the buffer also publishes their rang
   }
 });
 
-test("the focus field draws nothing until the owner publishes coverage for it", () => {
+test("resident inner coverage becomes visible and grows before the whole request completes", () => {
   const { owner, renderSlices, at } = travelFixture();
   try {
     owner.update(at(0, 0), 900);
-    // Tiles arrive long before the whole cover circle is resident. Drawing them
-    // as they land would put focus-density grass on top of a base field that is
-    // not culled there yet.
-    let partial = 0;
-    for (let slice = 0; slice < 6; slice++) {
+    let previousRadius = 0;
+    let growth = 0;
+    for (let slice = 0; slice < 12; slice++) {
       renderSlices(1);
       const { ring } = owner.snapshot();
-      if (owner.stats().rebuild.missingTiles === 0) break;
-      expect(ring.recordCount).toBeGreaterThan(0);
-      expect(ring.visible).toBe(false);
-      expect(ring.mask).toBeNull();
-      partial++;
+      const stats = owner.stats().rebuild;
+      expect(stats.missingTiles).toBeGreaterThan(0);
+      expect(stats.activeCoverageResident).toBe(true);
+      if (!ring.visible) continue;
+      expect(ring.mask).not.toBeNull();
+      expect(recordSurvivesRouteMask(ring.mask, 0, 0)).toBe(true);
+      expect(stats.coverageRadiusM).toBeGreaterThanOrEqual(previousRadius);
+      if (stats.coverageRadiusM > previousRadius) growth++;
+      previousRadius = stats.coverageRadiusM;
+      expect(stats.activeGeneration).toBeLessThan(stats.requestedGeneration);
+      expect(fieldsDrawing(owner, 0, 0)).toBe(1);
     }
-    expect(partial).toBeGreaterThan(0);
+    expect(growth).toBeGreaterThan(1);
     owner.settle();
     expect(owner.snapshot().ring.visible).toBe(true);
-    expect(owner.snapshot().ring.mask).not.toBeNull();
+    expect(owner.stats().rebuild.activeGeneration).toBe(owner.stats().rebuild.requestedGeneration);
   } finally {
     owner.dispose();
   }
@@ -491,6 +500,27 @@ test("the coverage boundary is a tile edge, so neither field can round it differ
       expect(Math.floor(x / tile)).not.toBe(Math.floor((x + tile / 4) / tile));
     }
     expect(flips).toBe(1);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("an off-terrain request retires coverage and releases all old tiles", () => {
+  const { owner, at } = travelFixture();
+  try {
+    owner.update(at(0, 0), 900);
+    owner.settle();
+    expect(owner.snapshot().ring.visible).toBe(true);
+    owner.update(at(1000, 0), 900);
+    owner.settle();
+    const stats = owner.stats().rebuild;
+    expect(stats.requiredTiles).toBe(0);
+    expect(stats.residentTiles).toBe(0);
+    expect(stats.activeGeneration).toBe(stats.requestedGeneration);
+    expect(stats.pending).toBe(false);
+    expect(owner.snapshot().ring.recordCount).toBe(0);
+    expect(owner.snapshot().ring.visible).toBe(false);
+    expect(owner.snapshot().base.mask).toBeNull();
   } finally {
     owner.dispose();
   }

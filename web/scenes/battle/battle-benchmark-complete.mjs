@@ -28,6 +28,10 @@ export async function run(ctx) {
     "entire live window completed",
     report.completeWindow && report.status.elapsedMs >= 300000,
   );
+  ctx.check(
+    "timing starts at the canonical tick",
+    report.status.startTick === report.status.scenario.startTick,
+  );
   ctx.check("canonical contact state", report.identity?.initialStateHash === "9928381812590497427");
   ctx.check(
     "simulation remained live",

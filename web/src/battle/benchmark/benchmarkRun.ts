@@ -58,7 +58,14 @@ export class BenchmarkRun {
     if (this.state.phase === "preparing") {
       this.state.preparationMs = Math.max(0, now - this.createdAt);
       if (victor >= 0) return this.finish("failed", "Battle ended during preparation", now, tick);
-      if (tick >= this.scenario.startTick) {
+      if (tick > this.scenario.startTick)
+        return this.finish(
+          "failed",
+          "Preparation advanced past the canonical start tick",
+          now,
+          tick,
+        );
+      if (tick === this.scenario.startTick) {
         this.runningAt = now;
         this.state.startTick = tick;
         this.state.phase = "running";

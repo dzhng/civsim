@@ -1,0 +1,88 @@
+{
+  "scope": "Full hardware browser functional verification; shared busy host, not an eligible performance ranking.",
+  "status": {
+    "phase": "complete",
+    "scenario": {
+      "id": "generated-seven-heavy-combat",
+      "version": 1,
+      "simSeed": 1592639710,
+      "mapSeed": "7",
+      "armySource": "generated-default",
+      "orders": "player-nearest-enemy-at-tick-zero",
+      "startTick": 9000,
+      "durationMs": 300000,
+      "cameraScript": "contact-9000-v2"
+    },
+    "preparationMs": 71230.92999997616,
+    "elapsedMs": 300004.67000000004,
+    "startTick": 9000,
+    "tick": 13492,
+    "reason": "Timed window complete"
+  },
+  "summary": {
+    "validCount": 5828,
+    "invalidCount": 0,
+    "durationMs": 300004.67000000074,
+    "averageFps": 19.426364262929592,
+    "low1PercentFps": 6.604720360057856,
+    "low01PercentFps": 5.1429967384831174,
+    "minFps": 4.000080001600106,
+    "maxFps": 60.02400960393381,
+    "p50FrameMs": 49.99499999999534,
+    "p95FrameMs": 116.66499999997905,
+    "p99FrameMs": 133.3300000000163,
+    "maxFrameMs": 249.99499999999534,
+    "spikes": {
+      "over25Ms": 4444,
+      "over33_33Ms": 4191,
+      "over50Ms": 1990
+    }
+  },
+  "simulatedSeconds": 149.73333333333332,
+  "identity": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "adapter": "apple / metal-3",
+    "viewport": [
+      1440,
+      900
+    ],
+    "framebuffer": [
+      2880,
+      1800
+    ],
+    "dpr": 2,
+    "initialStateHash": "9928381812590497427",
+    "soldiers": 15560,
+    "graphics": {
+      "shadows": "single",
+      "grassQuality": "standard",
+      "grass": true,
+      "farGrass": true,
+      "bloom": true,
+      "audio": {
+        "masterVolume": 0.55,
+        "muted": true,
+        "birds": true,
+        "water": true
+      }
+    }
+  },
+  "checks": [
+    "PASS  battle-benchmark-complete: entire live window completed",
+    "PASS  battle-benchmark-complete: timing starts at the canonical tick",
+    "PASS  battle-benchmark-complete: canonical contact state",
+    "PASS  battle-benchmark-complete: simulation remained live",
+    "PASS  battle-benchmark-complete: all camera phases recorded",
+    "PASS  battle-benchmark-complete: camera reached near wide and horizon views",
+    "PASS  battle-benchmark-complete: every recorded callback submitted a new primary frame",
+    "PASS  battle-benchmark-complete: recorded interval total agrees with run clock",
+    "PASS  battle-benchmark-complete: result actions remain inside the initial viewport",
+    "PASS  battle-benchmark-complete: export retains the full raw recording",
+    "PASS  runner: no page errors",
+    "",
+    "ALL CHECKS PASSED"
+  ],
+  "regressionTests": 13,
+  "typeScript": "pass",
+  "independentReview": "no actionable findings"
+}

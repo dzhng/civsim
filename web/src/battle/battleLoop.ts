@@ -327,8 +327,10 @@ function buildBattleScene(
       }
       if (sim.tick() < benchmark.scenario.startTick || benchmarkViewReady)
         benchmark.frame(now, sim.tick(), sim.victor());
-      if (benchmark.status().phase === "running")
+      if (benchmark.status().phase === "running") {
         recording!.start(now, renderer.gpuEventsSince(0)?.nextSequence ?? 0);
+        time.setHolding(false);
+      }
     }
     if (benchmark?.status().phase === "running")
       applyBenchmarkCamera(camera, benchmark.elapsedAt(now));
@@ -410,7 +412,9 @@ function buildBattleScene(
                 battleReady = true;
                 window.__ready = true;
                 // The battle only starts running once it is actually on screen.
-                time.setHolding(false);
+                // Benchmark preparation advances explicitly and must hold its
+                // final tick until the contact frame is ready and timing begins.
+                time.setHolding(benchmark !== null);
                 loading.remove();
               },
               signal,

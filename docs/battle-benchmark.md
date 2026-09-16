@@ -10,7 +10,9 @@ Preparation advances real simulation ticks in bounded chunks while retaining a
 valid displayed frame. Those ticks run in the battle authority (see
 [docs/battle-authority.md](battle-authority.md)), so preparation does not spend
 the drawing thread's time, and cancelling it remains serviced throughout. The
-initial contact view is rendered and settled before timing starts. Camera
+initial contact view is rendered and settled before timing starts. The authority
+holds that exact contact tick throughout settling and resumes only when the
+recording clock starts; a run that overshoots its declared start is rejected. Camera
 movement during the timed window is measured as it happens; newly encountered
 grass, model detail or shader work is not warmed away.
 

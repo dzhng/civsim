@@ -190,3 +190,15 @@ No existing production test changed behavior or tolerance.
 [Candidate e71f4ac8](browser-worker-candidate.json) boots a real module worker, advances a standalone battle with matching soldier counts, and passes all seven existing hardware Chrome Menu preparation/cancel/export checks. Preparation holds the rendered battle frame while ticks advance. This was the standalone checkpoint before the now-integrated campaign follow-up. No live frame-rate, campaign, full five-minute or final integrated acceptance is implied. Earlier software-adapter timeouts and a local WASM serving denial are invalid hardware controls, retained separately in scratch logs.
 
 [Campaign worker hardware follow-up](campaign-worker-browser.json) passes existing campaign entry/exit and reinforcement scenes after a separate rebuilt WASM boundary. The campaign retains its authority and receives the worker battle outcome; generated terrain identity comes from the constructed Game. Seven Rust handoff tests and 28 focused worker tests pass. The follow-up is now integrated after review, campaign worker lifetime repair and the 309-tick canonical comparison. Full live performance remains open.
+
+## Integrated full-window verification
+
+The first full worker run exposed preparation drift: identity was captured at
+tick 9000 but timing began at 9011. The [rejected report](integrated-full-drift-summary.json)
+is retained. Holding the authority through contact-frame settling and releasing
+it when recording starts fixes the boundary; overshot preparation is now rejected.
+The [corrected full run](integrated-full-canonical-summary.json) passes the exact
+start tick, complete five-minute window, camera phases, new-frame identity and
+export checks. [The test ledger](benchmark-start-change-ledger.md) records the
+strengthened gates. Neither run is eligible for performance ranking on the busy
+host, and neither establishes the required simulation or rendering cadence.

@@ -91,6 +91,17 @@ describe("battle benchmark lifecycle", () => {
     expect(seen).toEqual(["preparing:0", "preparing:0", "preparing:3", "running:6", "cancelled:6"]);
   });
 
+  it("rejects preparation that advances past the canonical start", () => {
+    const run = new BenchmarkRun(scenario, 0);
+    run.frame(1000, 7, -1);
+    expect(run.status()).toMatchObject({
+      phase: "failed",
+      startTick: null,
+      elapsedMs: 0,
+      reason: "Preparation advanced past the canonical start tick",
+    });
+  });
+
   it("rejects a scenario that ends before its timed start", () => {
     const run = new BenchmarkRun(scenario, 0);
     run.frame(1000, 4, 0);

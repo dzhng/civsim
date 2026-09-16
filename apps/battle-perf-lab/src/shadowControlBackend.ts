@@ -104,6 +104,7 @@ export async function createShadowControlBackend(
       return {
         output: root.unwrap(output),
         setWorldRect: shadow.setWorldRect,
+        update: shadow.update,
         unusedColorBytes: 0,
         async render(vp: Float32Array) {
           if (disposed) throw Error("Shadow control disposed");
@@ -172,6 +173,7 @@ export async function createShadowControlBackend(
     return {
       output: output.color.gpu,
       setWorldRect: shadow.setWorldRect,
+      update: shadow.update,
       unusedColorBytes: shadow.unusedColorBytes,
       async render(vp: Float32Array) {
         if (disposed) throw Error("Shadow control disposed");

@@ -98,7 +98,7 @@ async function run() {
       ["whole-map", 0.65, 18, [-220, -180, 440, 360]],
     ] as const) {
       rig.setWorldRect([...rect]);
-      const fit = native.setWorldRect(rect);
+      let fit = native.setWorldRect(rect);
       const params: Camera3DParams = {
         target: [0, 0, 0],
         distance,
@@ -109,6 +109,10 @@ async function run() {
         near: 0.1,
         far: 3000,
       };
+      if (new URLSearchParams(location.search).has("fitted")) {
+        rig.update(params);
+        fit = native.update(params);
+      }
       applyCamera3d(camera, params);
       await native.render(multiply(projMatrix(params), viewMatrix(params)));
       await new Promise<void>((r) => requestAnimationFrame(() => r()));

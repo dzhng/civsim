@@ -110,6 +110,7 @@ export function createRawShadowControl(
     return {
       output,
       setWorldRect: native.setWorldRect.bind(native),
+      update: native.update.bind(native),
       unusedColorBytes: 0,
       async render(vp: Float32Array) {
         if (disposed) throw Error("Raw shadow control disposed");

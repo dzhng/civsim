@@ -1,8 +1,9 @@
-import { shadowFrameData } from "../shadowData";
+import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
+import { NativeShadowFrame } from "../shadowData";
 import { SINGLE_MAP_SIZE } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 
-/** One existing whole-map directional depth pass. Owns depth/uniform buffers;
+/** One camera-fitted directional depth pass. Owns depth/uniform buffers;
  * the world owns caster selection and binds the same pose with a distinct camera. */
 export class RawSunShadow {
   readonly depth: GPUTexture;
@@ -11,9 +12,10 @@ export class RawSunShadow {
   readonly camera: GPUBuffer;
   private readonly owned: { destroy(): void }[] = [];
   private disposed = false;
+  private readonly frameData: NativeShadowFrame;
   constructor(
     private readonly device: GPUDevice,
-    private readonly environment: CivsimEnvironment,
+    environment: CivsimEnvironment,
   ) {
     const own = <T extends { destroy(): void }>(r: T): T => {
       this.owned.push(r);
@@ -52,17 +54,25 @@ export class RawSunShadow {
         addressModeU: "clamp-to-edge",
         addressModeV: "clamp-to-edge",
       });
+      this.frameData = new NativeShadowFrame(environment, (data) => {
+        device.queue.writeBuffer(this.camera, 0, data.camera);
+        device.queue.writeBuffer(this.state, 0, data.state);
+      });
     } catch (error) {
       this.dispose();
       throw error;
     }
   }
-  setWorldRect(rect: readonly [number, number, number, number]) {
+  setWorldRect(
+    rect: readonly [number, number, number, number],
+    elevation?: readonly [number, number],
+  ) {
     this.assertLive();
-    const data = shadowFrameData(this.environment, rect);
-    this.device.queue.writeBuffer(this.camera, 0, data.camera);
-    this.device.queue.writeBuffer(this.state, 0, data.state);
-    return data;
+    return this.frameData.setWorldRect(rect, elevation);
+  }
+  update(camera: Camera3DParams) {
+    this.assertLive();
+    return this.frameData.update(camera);
   }
 
   encode(encoder: GPUCommandEncoder, draw: (pass: GPURenderPassEncoder) => void) {

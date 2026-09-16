@@ -1,7 +1,8 @@
+import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { tgpu, d, type TgpuRenderPass } from "typegpu";
 import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../src/shaders/shadow";
 import { Camera, typegpuCameraLayout } from "./camera";
-import { shadowFrameData } from "../../src/shadowData";
+import { NativeShadowFrame } from "../../src/shadowData";
 import { SINGLE_MAP_SIZE } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 export const SunSampling = d.struct({ vp: d.mat4x4f, settings: d.vec4f });
@@ -59,6 +60,10 @@ export function createTypegpuSunShadow(device: GPUDevice, environment: CivsimEnv
       depth: depth.createView(),
       compare: comparison,
     });
+    const frameData = new NativeShadowFrame(environment, (data) => {
+      camera.write(data.camera.buffer);
+      state.write(data.state.buffer);
+    });
     return {
       depth,
       camera,
@@ -66,12 +71,16 @@ export function createTypegpuSunShadow(device: GPUDevice, environment: CivsimEnv
       comparison,
       cameraGroup,
       samplingGroup,
-      setWorldRect(rect: readonly [number, number, number, number]) {
+      setWorldRect(
+        rect: readonly [number, number, number, number],
+        elevation?: readonly [number, number],
+      ) {
         live();
-        const data = shadowFrameData(environment, rect);
-        camera.write(data.camera.buffer);
-        state.write(data.state.buffer);
-        return data;
+        return frameData.setWorldRect(rect, elevation);
+      },
+      update(camera: Camera3DParams) {
+        live();
+        return frameData.update(camera);
       },
       encode(
         encoder: ReturnType<(typeof root)["~unstable"]["createCommandEncoder"]>,

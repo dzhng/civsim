@@ -1,5 +1,6 @@
+import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { target, sampler, type Gpu, type Frame, type FramePass } from "vgpu";
-import { shadowFrameData } from "../shadowData";
+import { NativeShadowFrame } from "../shadowData";
 import { SINGLE_MAP_SIZE } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import { destroyVgpuTarget } from "./targetLifetime";
@@ -34,18 +35,26 @@ export function createVgpuSunShadow(gpu: Gpu, environment: CivsimEnvironment) {
       addressModeU: "clamp-to-edge",
       addressModeV: "clamp-to-edge",
     });
+    const frameData = new NativeShadowFrame(environment, (data) => {
+      camera.write(data.camera);
+      state.write(data.state);
+    });
     return {
       depth: output.depth,
       camera,
       state,
       comparison,
       unusedColorBytes: SINGLE_MAP_SIZE * SINGLE_MAP_SIZE * 4,
-      setWorldRect(rect: readonly [number, number, number, number]) {
+      setWorldRect(
+        rect: readonly [number, number, number, number],
+        elevation?: readonly [number, number],
+      ) {
         live();
-        const data = shadowFrameData(environment, rect);
-        camera.write(data.camera);
-        state.write(data.state);
-        return data;
+        return frameData.setWorldRect(rect, elevation);
+      },
+      update(camera: Camera3DParams) {
+        live();
+        return frameData.update(camera);
       },
       encode(current: Frame, draw: (pass: FramePass) => void) {
         live();

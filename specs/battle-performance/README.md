@@ -4,14 +4,22 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: wire the shared stateful single-map shadow policy into the native
-candidates, including matching caster projections and the lower-depth guard,
-then refresh matched comparison controls. See the read-only seam audit at
-`throwaway/claude-agents/matched-shadow-policy-audit.txt`. The latest
-[combined full hardware run](assets/combined-optimized-runtime/README.md) passes
-all functional checks but still delivers20.79FPS and135.9 simulated seconds in
-five real minutes. It is not quiet ranking evidence. The primary Vite server is
-stopped; the measurement has completed. The [shared policy extraction](assets/08-shared-shadow-policy/README.md) preserves all 128 recorded Three camera states.
+Current pickup: finish camera-only audience refresh from owned submitted crowd
+state, then complete native fitted-shadow scene wiring and refresh matched
+comparison controls. The shared fit and [native resource controls](assets/08-native-shadow-fit/README.md)
+are verified; scene wiring remains uncommitted pending that coherence fix.
+`CrowdFrameSnapshot` and its two tests are a started, unintegrated implementation
+in the working tree. Retain pooled scalar/playback shells, sharing readonly frozen
+pose arrays; never recull borrowed caller arrays. A changed physical camera,
+framebuffer or shadow domain must reselect and prepare newly visible poses;
+unchanged/time-only preparations must avoid additional pose work. Both Three and
+native scene owners have the existing stale-audience edge case.
+The latest [combined full hardware run](assets/combined-optimized-runtime/README.md)
+passes all functional checks but still delivers 20.79 FPS and 135.9 simulated
+seconds in five real minutes. It is not quiet ranking evidence. The primary Vite
+server is stopped. The shadow-control Vite server is session25531 on port5295;
+all three fitted GPU control jobs are complete. The [shared policy extraction](assets/08-shared-shadow-policy/README.md)
+preserves all 128 recorded Three camera states.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
 early/later battle hashes and reduces the uninstrumented later Node window by
 about7.8%; it does not establish browser cadence or30Hz simulation. The tested

@@ -284,3 +284,16 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   same policy before engine ranking.
 - **Verdict:** Sound, high confidence. One owner avoids independent hysteresis
   histories accidentally changing the workload being compared.
+
+### Pack one native shadow frame for all three experimental backends
+
+- **When:** Matched fitted-shadow resource checkpoint.
+- **Choice:** Share native projection packing and upload revision tracking.
+  Each backend retains ownership of its buffers. Crowd selection uses the body
+  caster ceiling while terrain rasterization keeps the full terrain depth range.
+- **Gap:** Backend APIs differ, but that does not justify different matrix,
+  bias or caster policies in the comparison.
+- **Reach:** No backend is selected. The lab has one packing owner; unchanged
+  fits skip redundant uniform writes in each native resource adapter.
+- **Verdict:** Sound, high confidence. Common policy and packing keep the
+  comparison about backend costs rather than different shadow work.

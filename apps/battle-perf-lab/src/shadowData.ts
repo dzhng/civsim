@@ -5,23 +5,23 @@ import {
   orthographicReverseZ,
 } from "../../../packages/renderer-core/src/mat4";
 import {
-  singleShadowFit,
+  SingleShadowPolicy,
+  type ShadowViewFit,
   SINGLE_MAP_SIZE,
   SHADOW_BIAS,
-  SHADOW_NORMAL_BIAS,
   shadowRadiusForTurbidity,
 } from "../../../packages/game-renderer/src/battle/shadowPolicy";
+import {
+  projectionFootprint,
+  type Camera3DParams,
+} from "../../../packages/renderer-core/src/camera3d";
+import { reverseZFrustumPlanes } from "./crowdFrustum";
+import type { CrowdProjectionView } from "../../../packages/crowd-runtime/src/visibility";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../packages/game-renderer/src/environment/physicalEnvironment";
 
-export function shadowFrameData(
-  environment: CivsimEnvironment,
-  rect: readonly [number, number, number, number],
-) {
-  const spec = photorealEnvironment(environment);
-  const fit = singleShadowFit(rect, spec.sunDirection);
-  // Three's directional shadow camera retains its default +Y up axis.
-  const view = lookAt(fit.position, fit.target, [0, 1, 0]);
+function shadowFrameData(environment: CivsimEnvironment, fit: ShadowViewFit) {
+  const view = lookAt(fit.position, fit.target, fit.up);
   const projection = orthographicReverseZ(
     fit.left,
     fit.right,
@@ -44,10 +44,28 @@ export function shadowFrameData(
   const state = new Float32Array(20);
   state.set(viewProjection);
   state.set(
-    [SHADOW_BIAS, SHADOW_NORMAL_BIAS, shadowRadiusForTurbidity(environment.physical.turbidity), 1],
+    [SHADOW_BIAS, fit.normalBias, shadowRadiusForTurbidity(environment.physical.turbidity), 1],
     16,
   );
+  // Terrain rasterization keeps the full elevation range; bodies only cast
+  // within the independently fitted crowd depth range.
+  const crowdProjection = orthographicReverseZ(
+    fit.left,
+    fit.right,
+    fit.top,
+    fit.bottom,
+    fit.crowdNear,
+    fit.far,
+  );
+  const crowdViews: CrowdProjectionView[] = [
+    {
+      shadow: true,
+      frustum: { planes: reverseZFrustumPlanes(multiply(crowdProjection, view)) },
+      projection: projectionFootprint(view, crowdProjection, SINGLE_MAP_SIZE, fit.crowdNear),
+    },
+  ];
   return {
+    crowdViews,
     camera,
     state,
     view,
@@ -56,4 +74,42 @@ export function shadowFrameData(
     near: fit.near,
     mapSize: SINGLE_MAP_SIZE,
   };
+}
+
+/** Native packing and upload cadence for the shared fit. Resource adapters own
+ * the buffers; every native backend consumes these same matrices and audience. */
+export class NativeShadowFrame {
+  private readonly policy: SingleShadowPolicy;
+  private revision = 0;
+  private data!: ReturnType<typeof shadowFrameData>;
+
+  constructor(
+    private readonly environment: CivsimEnvironment,
+    private readonly upload: (data: ReturnType<typeof shadowFrameData>) => void,
+  ) {
+    this.policy = new SingleShadowPolicy(photorealEnvironment(environment).sunDirection);
+  }
+
+  setWorldRect(
+    rect: readonly [number, number, number, number],
+    elevation: readonly [number, number] = [0, 0],
+  ) {
+    this.policy.setWorldRect(rect, elevation);
+    return this.install();
+  }
+
+  update(camera: Camera3DParams) {
+    this.policy.update(camera);
+    return this.install();
+  }
+
+  private install() {
+    if (this.revision !== this.policy.refits) {
+      const data = shadowFrameData(this.environment, this.policy.fit);
+      this.upload(data);
+      this.data = data;
+      this.revision = this.policy.refits;
+    }
+    return this.data;
+  }
 }

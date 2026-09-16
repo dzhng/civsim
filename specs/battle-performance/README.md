@@ -20,14 +20,20 @@ Raw trial1 also completed all functional checks and is archived beside Three;
 its host evidence is unrankable. It records14.42FPS and199.83 simulated seconds
 in300.15 real seconds, which cannot establish a backend speedup.
 
-Active TypeGPU trial: exec session14773, output
-`throwaway/matched-current-58b2a9bd/trials/typegpu-2`, log
-`throwaway/claude-agents/matched-current-typegpu-2.log`. Preview session37732
-serves TypeGPU on port5281. Poll the existing job. After completion inspect its
-evidence, stop the preview and run vgpu with a fresh output/order3 and the same
-manifest/config. Current host load is still not quiet; preserve functional
-results without treating them as rankings. No user applications were stopped.
-Refresh disabled instrumentation arms before attributing a possible winner.
+TypeGPU trial 2 completed all functional checks and is archived with its host
+observations; it is also unrankable. Active vgpu trial: exec session 99158, output
+`throwaway/matched-current-58b2a9bd/trials/vgpu-3`, log
+`throwaway/claude-agents/matched-current-vgpu-3.log`. Preview session 35421 serves
+vgpu on port 5281. Poll the existing job before any new GPU work. Preserve
+functional results without treating them as rankings; no user applications were
+stopped. Refresh disabled instrumentation arms before attributing a possible win.
+
+Next diagnostic: ordinary native presentation awaits seven sequential admission
+boundaries, including a nested submit admission (24 GPU error-scope pops). Three
+returns ordinary submission synchronously. Measure operation/admission wall time
+before changing validation; preserve failed-frame receipt and lifecycle semantics.
+Native `renderAwaitMs` includes Promise-continuation CPU work and must not be added
+to `renderCpuMs` as if the two were disjoint costs.
 
 The [camera-only publication checkpoint](assets/06b-camera-reprojection/README.md)
 is verified across all four renderers. The [standing grass/camera gate](assets/04-grass-camera-gate/README.md)

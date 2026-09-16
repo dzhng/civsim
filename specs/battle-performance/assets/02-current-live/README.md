@@ -22,3 +22,5 @@ Raw trial1 also completes every functional check. It records14.42FPS average,
 unrankable: shared WindowServer work and other process/load activity violate the
 same unchanged isolation policy. Different host conditions and simulated progress
 make its average incomparable to Three trial0 as an engine speedup claim.
+
+TypeGPU trial 2 completes every functional check. It records 11.72 FPS average, 6.77 FPS 1% low and 132.97 simulated seconds in five real minutes. Its host observations also violate the isolation policy; these results establish functional completion only, not a backend ranking.

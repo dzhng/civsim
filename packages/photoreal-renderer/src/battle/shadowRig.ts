@@ -34,10 +34,7 @@ export interface SunShadowRig {
    *  the single-tier fit clamps to. Elevation is optional for the comparison
    *  runtimes, which never pose a camera and stay on the whole-map fit. No-op
    *  for csm. */
-  setWorldRect(
-    rect: [number, number, number, number],
-    elevation?: readonly [number, number],
-  ): void;
+  setWorldRect(rect: [number, number, number, number], elevation?: readonly [number, number]): void;
   /** Matching shadow frusta and texel projections keep off-screen casters alive
    * at the detail demanded by the map that actually draws their shadows. */
   cullingViews(): CrowdProjectionView[];
@@ -152,7 +149,8 @@ export function configureSunShadows(
   let sunAxis: [number, number, number] = readSunDirection(sun);
   const sunDirection = (): [number, number, number] => {
     const dir = readSunDirection(sun);
-    const drift = Math.abs(dir[0] - sunAxis[0]) + Math.abs(dir[1] - sunAxis[1]) + Math.abs(dir[2] - sunAxis[2]);
+    const drift =
+      Math.abs(dir[0] - sunAxis[0]) + Math.abs(dir[1] - sunAxis[1]) + Math.abs(dir[2] - sunAxis[2]);
     if (drift > 1e-9) sunAxis = dir;
     return sunAxis;
   };
@@ -181,14 +179,16 @@ export function configureSunShadows(
       // beyond its reach: the whole map is both its audience and its coverage.
       crowdNear: whole.near,
       coverage: extent,
-      box: {
-        x0: rect[0],
-        y0: rect[1],
-        x1: rect[0] + rect[2],
-        y1: rect[1] + rect[3],
-        z0: elevation[0],
-        z1: elevation[1],
-      },
+      regions: [
+        {
+          x0: rect[0],
+          y0: rect[1],
+          x1: rect[0] + rect[2],
+          y1: rect[1] + rect[3],
+          z0: elevation[0],
+          z1: elevation[1],
+        },
+      ],
     };
   };
 

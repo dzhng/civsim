@@ -4,6 +4,7 @@
  * rig runs per frame. Both live here so one owner answers "where does the sun
  * map point, and how wide is a texel". */
 import { eyePosition, type Camera3DParams, type Vec3 } from "../../../renderer-core/src/camera3d";
+import { BATTLE_HORIZON_BOUNDS } from "./horizonPass";
 
 export type SunShadowMode = "csm" | "single" | "off";
 export const CSM_CASCADES = 2;
@@ -76,6 +77,13 @@ export function singleShadowFit(
 //   - The light basis is a function of the sun alone, so light-plane
 //     coordinates are world-anchored. Snapping the fitted centre to that grid
 //     is what stops the shadow pattern swimming under camera motion.
+//
+// "The receivers this camera can see" is resolved as a CONVEX INTERSECTION, not
+// by sampling rays through the frustum. A sampled fit is not merely imprecise,
+// it is unsound: the widest visible ground sits where a ray stops being clipped
+// by the depth reach and starts being clipped by the ground slab, and that
+// crossing lies between samples at an arbitrary screen position, not on the
+// frustum rim where a grid would look for it.
 
 /** How far PAST the orbit target one map is asked to reach, as a multiple of
  *  the orbit distance. The battle rig ties distance to zoom, so this is the zoom
@@ -86,18 +94,21 @@ export const SHADOW_COVERAGE_MIN = 160;
 /** Ceiling: past this the receiver rect below is the binding bound anyway, so
  *  the fit degrades back to whole-map density rather than past it. */
 const SHADOW_COVERAGE_MAX = 2400;
-/** Receiver domain outside the playable rect: the sealed-edge cliff band that
- *  throws onto the field (nearest horizon row sits ~86 units beyond the edge). */
+/** Ground slack past the playable rect: the field mesh's own skirt, and the
+ *  open (north/south) edges, which carry no blocker. The sealed west/east band
+ *  is a receiver region in its own right — BATTLE_HORIZON_BOUNDS. */
 export const SHADOW_RECEIVER_MARGIN = 120;
 
-/** Tallest battle RECEIVER above the ground datum — a max-scale tree (species
+/** Tallest ON-FIELD receiver above the ground datum — a max-scale tree (species
  *  height 1.6 x instance scale 6.4 ~ 10.3) with headroom. Drives the light-plane
- *  box, so every unit of it costs texel density on the up-sun side. */
+ *  box, so every unit of it costs texel density on the up-sun side. The sealed
+ *  edges stand far higher and are carried as their own region instead, so this
+ *  stays a tree's ceiling rather than a mountain's. */
 export const SHADOW_RECEIVER_CEILING = 16;
-/** Tallest battle CASTER above the ground datum — the horizon blocker peaks
- *  (row height 226 x 1.29 jitter ~ 292) that are meant to throw long shadows
- *  onto the field at low sun. Depth-only: it costs depth range, not texels. */
-export const SHADOW_CASTER_CEILING = 360;
+/** Tallest battle CASTER above the ground datum: a sealed-edge peak, plus
+ *  headroom for anything standing on one. Depth-only — it costs depth range,
+ *  not texels — so it is spent across the whole fit, not just the edge band. */
+export const SHADOW_CASTER_CEILING = BATTLE_HORIZON_BOUNDS.ceiling + 60;
 /** Tallest CROWD caster — a mounted soldier. The crowd is the only audience
  *  culled per body, and a man does not throw a cliff's shadow, so its view
  *  stops here instead of at the cliff ceiling. */
@@ -119,12 +130,6 @@ const SHADOW_FIT_SHRINK_RUNGS = 2;
 /** Light-depth quantum: near/far move in steps so depth precision holds still. */
 const SHADOW_DEPTH_QUANTUM = 4;
 const SHADOW_FIT_NEAR = 1;
-/** Slack on the sampled view box, covering the gap between samples. */
-const SHADOW_FIT_PAD = 6;
-/** Frustum samples per axis when measuring the visible ground. The lateral
- *  extremes of a pinhole frustum sit on the rim at zero offset in the other
- *  axis, so an odd grid lands on them exactly. */
-const VIEW_SAMPLES = 7;
 
 /** Normal offset expressed in TEXELS, because that is what the offset is for:
  *  clearing the depth quantisation of one texel. Held as a world constant it
@@ -140,7 +145,8 @@ export function shadowNormalBiasFor(worldUnitsPerTexel: number): number {
 }
 
 export function shadowCoverageRadius(cameraDistance: number): number {
-  const wanted = (Number.isFinite(cameraDistance) ? cameraDistance : 0) * SHADOW_COVERAGE_DISTANCE_FACTOR;
+  const wanted =
+    (Number.isFinite(cameraDistance) ? cameraDistance : 0) * SHADOW_COVERAGE_DISTANCE_FACTOR;
   return Math.min(SHADOW_COVERAGE_MAX, Math.max(SHADOW_COVERAGE_MIN, wanted));
 }
 
@@ -149,7 +155,9 @@ export function shadowCoverageRadius(cameraDistance: number): number {
 export function shadowExtentRung(required: number, mapSize: number): number {
   const usable = 1 - (2 * SHADOW_FIT_BORDER_TEXELS) / Math.max(16, mapSize);
   const need = Math.max(1e-6, required) / usable;
-  const rung = Math.ceil(Math.log(need / SHADOW_FIT_EXTENT_BASE) / Math.log(SHADOW_FIT_EXTENT_RATIO));
+  const rung = Math.ceil(
+    Math.log(need / SHADOW_FIT_EXTENT_BASE) / Math.log(SHADOW_FIT_EXTENT_RATIO),
+  );
   return Math.max(0, rung);
 }
 
@@ -190,7 +198,9 @@ export interface ShadowLightBasis {
   up: Vec3;
 }
 
-export function shadowLightBasis(unitSunDirection: readonly [number, number, number]): ShadowLightBasis {
+export function shadowLightBasis(
+  unitSunDirection: readonly [number, number, number],
+): ShadowLightBasis {
   const depth = unit3(unitSunDirection, [0, 0, 1]);
   // Three's shadow camera keeps its default +Y up; only a sun lying along it
   // would degenerate the cross product.
@@ -245,98 +255,350 @@ export interface ShadowViewFit {
   crowdNear: number;
   /** What this camera asked one map to reach past its orbit target. Evidence. */
   coverage: number;
-  /** The receiver region this fit promises to cover without cropping. */
-  box: ShadowReceiverBox;
+  /** The receiver regions this fit promises to cover without cropping: the
+   *  visible share of the field, and the visible share of each sealed edge. */
+  regions: readonly ShadowReceiverBox[];
 }
 
-/** Ground the camera can see, bounded by the view reach, the receiver slab and
- *  the receiver domain. Sampled across the frustum: rays that never enter the
- *  slab (everything above the horizon) contribute nothing, and rays that skim it
- *  stop at `reach` — which is what keeps a horizon framing bounded. */
-function visibleReceiverBox(
-  camera: Camera3DParams,
-  rect: readonly [number, number, number, number],
-  zLo: number,
-  zHi: number,
-  coverage: number,
-): ShadowReceiverBox {
-  const eye = eyePosition(camera);
+// ---------------------------------------------------------------------------
+// The visible receiver set, as a convex intersection
+//
+// Three convex bodies decide what one map owes this camera:
+//   VOLUME   the view frustum, truncated at the coverage reach
+//   DOMAIN   the receiver regions (field slab; sealed-edge bands) below
+//   BALL     the reach itself, |p - eye| <= reach
+// The answer is AABB(VOLUME n DOMAIN n BALL), per region. Both bounds below are
+// supersets of BALL, so intersecting them is conservative in the only direction
+// that matters — the fit can promise more ground than it has to, never less:
+//   - a far plane at view DEPTH `reach`, since depth <= |p - eye| always;
+//   - BALL's own AABB, [eye - reach, eye + reach] per axis, which the far plane
+//     cannot supply and which is what actually tightens a grazing framing.
+
+/** Six inward half-spaces (n.p + d >= 0) and the six quad faces of the
+ *  truncated frustum. Reused across fits; the fit itself is the only caller. */
+interface ViewVolume {
+  planes: Float64Array;
+  faces: Float64Array;
+}
+
+const VIEW_VOLUME: ViewVolume = { planes: new Float64Array(24), faces: new Float64Array(72) };
+const VOLUME_CORNERS = new Float64Array(24);
+/** Near quad 0-3, far quad 4-7, then the four sides. */
+const VOLUME_QUADS = [
+  [0, 1, 2, 3],
+  [4, 5, 6, 7],
+  [0, 1, 5, 4],
+  [1, 2, 6, 5],
+  [2, 3, 7, 6],
+  [3, 0, 4, 7],
+];
+/** A quad meeting twelve half-spaces gains at most one vertex per plane. */
+const CLIP_A = new Float64Array(72);
+const CLIP_B = new Float64Array(72);
+const REGION_PLANES = new Float64Array(24);
+const REGION_FACES = new Float64Array(72);
+
+function viewVolume(camera: Camera3DParams, eye: Vec3, reach: number): ViewVolume {
   const forward = unit3(sub3(camera.target, eye), [1, 0, 0]);
   const right = unit3(cross3(forward, [0, 0, 1]), [1, 0, 0]);
   const up = cross3(right, forward);
   const tanY = Math.tan(Math.min(Math.max(camera.fovY, 1e-3), Math.PI - 1e-3) / 2);
   const tanX = tanY * Math.max(1e-3, camera.aspect);
   const near = Math.max(1e-3, camera.near);
-  const reach = Math.max(near, camera.distance) + coverage;
+  const far = Math.max(near + 1e-3, reach);
+  const eyeDepth = forward[0] * eye[0] + forward[1] * eye[1] + forward[2] * eye[2];
 
-  let x0 = Infinity,
-    y0 = Infinity,
-    x1 = -Infinity,
-    y1 = -Infinity,
-    seen = false;
-  // Scalar throughout: this runs every frame, and a per-ray vector would be the
-  // only allocation the fit makes.
-  for (let i = 0; i < VIEW_SAMPLES; i++) {
-    const sx = -1 + (2 * i) / (VIEW_SAMPLES - 1);
-    for (let j = 0; j < VIEW_SAMPLES; j++) {
-      const sy = -1 + (2 * j) / (VIEW_SAMPLES - 1);
-      const dx = forward[0] + sx * tanX * right[0] + sy * tanY * up[0];
-      const dy = forward[1] + sx * tanX * right[1] + sy * tanY * up[1];
-      const dz = forward[2] + sx * tanX * right[2] + sy * tanY * up[2];
-      const length = Math.hypot(dx, dy, dz) || 1;
-      const ux = dx / length,
-        uy = dy / length,
-        uz = dz / length;
-      // March to the orbit target and `coverage` past it. Bounding the RAY is
-      // what keeps a horizon framing finite: a ray that skims the slab runs out
-      // of reach instead of fitting a box out to the vanishing point.
-      let enter = near,
-        exit = reach;
-      if (Math.abs(uz) < 1e-9) {
-        if (eye[2] < zLo || eye[2] > zHi) continue;
-      } else {
-        const ta = (zLo - eye[2]) / uz;
-        const tb = (zHi - eye[2]) / uz;
-        enter = Math.max(enter, Math.min(ta, tb));
-        exit = Math.min(exit, Math.max(ta, tb));
-      }
-      if (exit < enter) continue;
-      seen = true;
-      for (let end = 0; end < 2; end++) {
-        const t = end === 0 ? enter : exit;
-        const px = eye[0] + ux * t;
-        const py = eye[1] + uy * t;
-        if (px < x0) x0 = px;
-        if (px > x1) x1 = px;
-        if (py < y0) y0 = py;
-        if (py > y1) y1 = py;
+  const planes = VIEW_VOLUME.planes;
+  planes.set([forward[0], forward[1], forward[2], -eyeDepth - near], 0);
+  planes.set([-forward[0], -forward[1], -forward[2], eyeDepth + far], 4);
+  // A side plane is |p.axis| <= tan * depth written as one linear form, so the
+  // frustum needs no normalisation to be clipped against.
+  let slot = 8;
+  for (const [axis, tan] of [
+    [right, tanX],
+    [up, tanY],
+  ] as const) {
+    for (const sign of [1, -1]) {
+      const nx = tan * forward[0] - sign * axis[0];
+      const ny = tan * forward[1] - sign * axis[1];
+      const nz = tan * forward[2] - sign * axis[2];
+      planes.set([nx, ny, nz, -(nx * eye[0] + ny * eye[1] + nz * eye[2])], slot);
+      slot += 4;
+    }
+  }
+
+  let corner = 0;
+  for (const depth of [near, far]) {
+    for (const [sx, sy] of [
+      [-1, -1],
+      [1, -1],
+      [1, 1],
+      [-1, 1],
+    ]) {
+      for (let axis = 0; axis < 3; axis++) {
+        VOLUME_CORNERS[corner++] =
+          eye[axis] + depth * (forward[axis] + sx * tanX * right[axis] + sy * tanY * up[axis]);
       }
     }
   }
-  if (!seen) {
-    // Nothing in the slab is in frame (a sky-only pose). Keep a legal, stable
-    // box on the orbit target rather than an empty or infinite one.
-    const half = SHADOW_COVERAGE_MIN / 2;
-    x0 = camera.target[0] - half;
-    x1 = camera.target[0] + half;
-    y0 = camera.target[1] - half;
-    y1 = camera.target[1] + half;
+  const faces = VIEW_VOLUME.faces;
+  for (let q = 0; q < 6; q++) {
+    for (let v = 0; v < 4; v++) {
+      const from = VOLUME_QUADS[q][v] * 3;
+      const to = q * 12 + v * 3;
+      faces[to] = VOLUME_CORNERS[from];
+      faces[to + 1] = VOLUME_CORNERS[from + 1];
+      faces[to + 2] = VOLUME_CORNERS[from + 2];
+    }
   }
-  x0 -= SHADOW_FIT_PAD;
-  y0 -= SHADOW_FIT_PAD;
-  x1 += SHADOW_FIT_PAD;
-  y1 += SHADOW_FIT_PAD;
-  // The rays already stopped at `reach`; the receiver domain is the only other
-  // bound, and ground outside it carries no shadow today either.
-  const x = tightenSpan(
-    [x0, x1],
-    [rect[0] - SHADOW_RECEIVER_MARGIN, rect[0] + rect[2] + SHADOW_RECEIVER_MARGIN],
-  );
-  const y = tightenSpan(
-    [y0, y1],
-    [rect[1] - SHADOW_RECEIVER_MARGIN, rect[1] + rect[3] + SHADOW_RECEIVER_MARGIN],
-  );
-  return { x0: x[0], y0: y[0], x1: x[1], y1: y[1], z0: zLo, z1: zHi };
+  return VIEW_VOLUME;
+}
+
+/** Sutherland-Hodgman against one half-space. Convex in, convex out. */
+function clipPolygon(
+  src: Float64Array,
+  count: number,
+  dst: Float64Array,
+  nx: number,
+  ny: number,
+  nz: number,
+  d: number,
+): number {
+  let out = 0;
+  for (let i = 0; i < count; i++) {
+    const a = i * 3;
+    const b = ((i + 1) % count) * 3;
+    const da = src[a] * nx + src[a + 1] * ny + src[a + 2] * nz + d;
+    const db = src[b] * nx + src[b + 1] * ny + src[b + 2] * nz + d;
+    if (da >= 0) {
+      dst[out++] = src[a];
+      dst[out++] = src[a + 1];
+      dst[out++] = src[a + 2];
+    }
+    if (da >= 0 !== db >= 0) {
+      const t = da / (da - db);
+      dst[out++] = src[a] + (src[b] - src[a]) * t;
+      dst[out++] = src[a + 1] + (src[b + 1] - src[a + 1]) * t;
+      dst[out++] = src[a + 2] + (src[b + 2] - src[a + 2]) * t;
+    }
+  }
+  return out / 3;
+}
+
+/** One quad (4 vertices at `faces[offset]`) run through `planeCount` planes,
+ *  with the survivors folded into `span`. */
+function foldClippedFace(
+  faces: Float64Array,
+  offset: number,
+  planes: Float64Array,
+  planeCount: number,
+  span: number[],
+): boolean {
+  let source = CLIP_A;
+  let target = CLIP_B;
+  for (let i = 0; i < 12; i++) source[i] = faces[offset + i];
+  let count = 4;
+  for (let i = 0; i < planeCount && count > 0; i++) {
+    count = clipPolygon(
+      source,
+      count,
+      target,
+      planes[i * 4],
+      planes[i * 4 + 1],
+      planes[i * 4 + 2],
+      planes[i * 4 + 3],
+    );
+    const swap = source;
+    source = target;
+    target = swap;
+  }
+  for (let v = 0; v < count; v++) {
+    for (let axis = 0; axis < 3; axis++) {
+      const value = source[v * 3 + axis];
+      if (value < span[axis]) span[axis] = value;
+      if (value > span[axis + 3]) span[axis + 3] = value;
+    }
+  }
+  return count > 0;
+}
+
+/** Exact AABB of the view volume intersected with an axis-aligned region, or
+ *  null when they miss. The boundary of a convex intersection is
+ *  (dA n B) u (dB n A), so clipping BOTH bodies' faces against the other's
+ *  half-spaces and taking the extremes of what survives is exact — nothing is
+ *  sampled, so no direction can be stepped past. */
+function clipRegion(volume: ViewVolume, region: ShadowReceiverBox): ShadowReceiverBox | null {
+  REGION_PLANES.set([
+    1,
+    0,
+    0,
+    -region.x0,
+    -1,
+    0,
+    0,
+    region.x1,
+    0,
+    1,
+    0,
+    -region.y0,
+    0,
+    -1,
+    0,
+    region.y1,
+    0,
+    0,
+    1,
+    -region.z0,
+    0,
+    0,
+    -1,
+    region.z1,
+  ]);
+  const { x0, y0, z0, x1, y1, z1 } = region;
+  REGION_FACES.set([
+    x0,
+    y0,
+    z0,
+    x1,
+    y0,
+    z0,
+    x1,
+    y1,
+    z0,
+    x0,
+    y1,
+    z0,
+    x0,
+    y0,
+    z1,
+    x1,
+    y0,
+    z1,
+    x1,
+    y1,
+    z1,
+    x0,
+    y1,
+    z1,
+    x0,
+    y0,
+    z0,
+    x1,
+    y0,
+    z0,
+    x1,
+    y0,
+    z1,
+    x0,
+    y0,
+    z1,
+    x0,
+    y1,
+    z0,
+    x1,
+    y1,
+    z0,
+    x1,
+    y1,
+    z1,
+    x0,
+    y1,
+    z1,
+    x0,
+    y0,
+    z0,
+    x0,
+    y1,
+    z0,
+    x0,
+    y1,
+    z1,
+    x0,
+    y0,
+    z1,
+    x1,
+    y0,
+    z0,
+    x1,
+    y1,
+    z0,
+    x1,
+    y1,
+    z1,
+    x1,
+    y0,
+    z1,
+  ]);
+  const span = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  let met = false;
+  for (let face = 0; face < 6; face++) {
+    if (foldClippedFace(volume.faces, face * 12, REGION_PLANES, 6, span)) met = true;
+    if (foldClippedFace(REGION_FACES, face * 12, volume.planes, 6, span)) met = true;
+  }
+  return met
+    ? { x0: span[0], y0: span[1], z0: span[2], x1: span[3], y1: span[4], z1: span[5] }
+    : null;
+}
+
+/** The receiver domain, as the regions it is actually made of: the field slab,
+ *  and the two sealed edges, whose blockers stand ten times higher than any
+ *  tree. Keeping them apart is what lets a mountain be covered without every
+ *  framing paying a mountain's worth of light-plane span across the whole field. */
+function receiverDomain(
+  rect: readonly [number, number, number, number],
+  groundLo: number,
+  groundHi: number,
+): ShadowReceiverBox[] {
+  const west = rect[0];
+  const east = rect[0] + rect[2];
+  const band = BATTLE_HORIZON_BOUNDS;
+  const bandSlab = { z0: groundLo - band.drop, z1: groundHi + band.ceiling };
+  const bandY = { y0: rect[1] - band.overhang, y1: rect[1] + rect[3] + band.overhang };
+  return [
+    {
+      x0: west - SHADOW_RECEIVER_MARGIN,
+      x1: east + SHADOW_RECEIVER_MARGIN,
+      y0: rect[1] - SHADOW_RECEIVER_MARGIN,
+      y1: rect[1] + rect[3] + SHADOW_RECEIVER_MARGIN,
+      z0: groundLo,
+      z1: groundHi + SHADOW_RECEIVER_CEILING,
+    },
+    { x0: west - band.reach, x1: west + band.lap, ...bandY, ...bandSlab },
+    { x0: east - band.lap, x1: east + band.reach, ...bandY, ...bandSlab },
+  ];
+}
+
+/** Every receiver region this camera can see, clipped to what it can see of it.
+ *  Empty when the framing holds no receiver at all (a sky-only pose, or a camera
+ *  parked off the field). */
+function visibleReceiverRegions(
+  camera: Camera3DParams,
+  eye: Vec3,
+  rect: readonly [number, number, number, number],
+  groundLo: number,
+  groundHi: number,
+  coverage: number,
+): ShadowReceiverBox[] {
+  const reach = Math.max(camera.near, camera.distance) + coverage;
+  const volume = viewVolume(camera, eye, reach);
+  const visible: ShadowReceiverBox[] = [];
+  for (const region of receiverDomain(rect, groundLo, groundHi)) {
+    // The reach ball's own AABB, applied before the volume clip. The far plane
+    // bounds view depth; this bounds each world axis, and on a grazing framing
+    // that is the tighter of the two by a wide margin.
+    const capped: ShadowReceiverBox = {
+      x0: Math.max(region.x0, eye[0] - reach),
+      x1: Math.min(region.x1, eye[0] + reach),
+      y0: Math.max(region.y0, eye[1] - reach),
+      y1: Math.min(region.y1, eye[1] + reach),
+      z0: Math.max(region.z0, eye[2] - reach),
+      z1: Math.min(region.z1, eye[2] + reach),
+    };
+    if (capped.x1 <= capped.x0 || capped.y1 <= capped.y0 || capped.z1 <= capped.z0) continue;
+    const clipped = clipRegion(volume, capped);
+    if (clipped) visible.push(clipped);
+  }
+  return visible;
 }
 
 /** One orthographic map fitted to the ground the camera can see, holding every
@@ -347,36 +609,56 @@ export function viewShadowFit(input: ShadowViewFitInput): ShadowViewFit {
   const coverage = shadowCoverageRadius(input.camera.distance);
   const groundLo = Math.min(input.elevation[0], input.elevation[1]) - SHADOW_GROUND_MARGIN;
   const groundHi = Math.max(input.elevation[0], input.elevation[1]);
-  const box = visibleReceiverBox(
+  const eye = eyePosition(input.camera);
+  const regions = visibleReceiverRegions(
     input.camera,
+    eye,
     input.rect,
     groundLo,
-    groundHi + SHADOW_RECEIVER_CEILING,
+    groundHi,
     coverage,
   );
+  if (regions.length === 0) {
+    // Nothing this camera can see is a receiver (a sky-only pose, or a camera
+    // parked off the field). Keep a legal, stable map on the orbit target
+    // rather than an empty or an infinite one.
+    const half = SHADOW_COVERAGE_MIN / 2;
+    regions.push({
+      x0: input.camera.target[0] - half,
+      x1: input.camera.target[0] + half,
+      y0: input.camera.target[1] - half,
+      y1: input.camera.target[1] + half,
+      z0: groundLo,
+      z1: groundHi + SHADOW_RECEIVER_CEILING,
+    });
+  }
 
-  // The receiver box gives all three light-space bounds. Casters are then
+  // The receiver regions give all three light-space bounds. Casters are then
   // admitted by pushing the near side UP THE SUN RAY: a caster `h` above the
   // receiver it shades sits h/sin(sun elevation) nearer the light and, by the
   // invariant above, at the same light-plane XY — so no texel is spent on it.
+  // Folding the regions SEPARATELY is what keeps the edge band's height off the
+  // middle of the field: a union box would pair a mountain's z with the field's x.
   let lxMin = Infinity,
     lxMax = -Infinity,
     lyMin = Infinity,
     lyMax = -Infinity,
     ldMin = Infinity,
     ldMax = -Infinity;
-  for (const x of [box.x0, box.x1]) {
-    for (const y of [box.y0, box.y1]) {
-      for (const z of [box.z0, box.z1]) {
-        const lx = x * basis.right[0] + y * basis.right[1] + z * basis.right[2];
-        const ly = x * basis.upAxis[0] + y * basis.upAxis[1] + z * basis.upAxis[2];
-        const ld = x * basis.depth[0] + y * basis.depth[1] + z * basis.depth[2];
-        if (lx < lxMin) lxMin = lx;
-        if (lx > lxMax) lxMax = lx;
-        if (ly < lyMin) lyMin = ly;
-        if (ly > lyMax) lyMax = ly;
-        if (ld < ldMin) ldMin = ld;
-        if (ld > ldMax) ldMax = ld;
+  for (const region of regions) {
+    for (const x of [region.x0, region.x1]) {
+      for (const y of [region.y0, region.y1]) {
+        for (const z of [region.z0, region.z1]) {
+          const lx = x * basis.right[0] + y * basis.right[1] + z * basis.right[2];
+          const ly = x * basis.upAxis[0] + y * basis.upAxis[1] + z * basis.upAxis[2];
+          const ld = x * basis.depth[0] + y * basis.depth[1] + z * basis.depth[2];
+          if (lx < lxMin) lxMin = lx;
+          if (lx > lxMax) lxMax = lx;
+          if (ly < lyMin) lyMin = ly;
+          if (ly > lyMax) lyMax = ly;
+          if (ld < ldMin) ldMin = ld;
+          if (ld > ldMax) ldMax = ld;
+        }
       }
     }
   }
@@ -429,20 +711,8 @@ export function viewShadowFit(input: ShadowViewFitInput): ShadowViewFit {
     normalBias: shadowNormalBiasFor(worldUnitsPerTexel),
     crowdNear: Math.min(far, Math.max(near, eyeDepth - ldCrowdMax)),
     coverage,
-    box,
+    regions,
   };
-}
-
-/** The sampled span, trimmed to a bound. A camera parked off the receiver domain
- *  intersects to nothing; the sampled span is still the honest answer there, so
- *  an empty intersection keeps it rather than collapsing the map to a point. */
-function tightenSpan(
-  span: readonly [number, number],
-  bound: readonly [number, number],
-): [number, number] {
-  const lo = Math.max(span[0], bound[0]);
-  const hi = Math.min(span[1], bound[1]);
-  return hi > lo ? [lo, hi] : [span[0], span[1]];
 }
 
 function sub3(a: readonly number[], b: readonly number[]): Vec3 {
@@ -450,11 +720,7 @@ function sub3(a: readonly number[], b: readonly number[]): Vec3 {
 }
 
 function cross3(a: readonly number[], b: readonly number[]): Vec3 {
-  return [
-    a[1] * b[2] - a[2] * b[1],
-    a[2] * b[0] - a[0] * b[2],
-    a[0] * b[1] - a[1] * b[0],
-  ];
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 
 function unit3(v: readonly number[], fallback: Vec3): Vec3 {

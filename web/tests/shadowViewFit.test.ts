@@ -29,7 +29,11 @@ import {
 import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "@packages/game-renderer/src/environment/physicalEnvironment";
-import { eyePosition, type Camera3DParams } from "@packages/renderer-core/src/camera3d";
+import {
+  eyePosition,
+  projectPoint,
+  type Camera3DParams,
+} from "@packages/renderer-core/src/camera3d";
 
 // The production battle field and the framings the zoom rig actually produces
 // at its two endpoints (web/src/battle/cameraRig.ts BATTLE_CURVE).
@@ -99,19 +103,19 @@ test("the fitted map contains every receiver in the box it promises to cover", (
       const sun = photorealEnvironment(env).sunDirection;
       const fit = fitFor(camera, sun);
       const frustum = shadowFrustum(fit);
-      const { box } = fit;
-      for (let i = 0; i <= 8; i++) {
-        for (let j = 0; j <= 8; j++) {
-          const x = box.x0 + ((box.x1 - box.x0) * i) / 8;
-          const y = box.y0 + ((box.y1 - box.y0) * j) / 8;
-          for (const z of [box.z0, (box.z0 + box.z1) / 2, box.z1]) {
-            assert.ok(
-              frustum.containsPoint(new THREE.Vector3(x, y, z)),
-              `${env.id}: receiver (${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}) fell outside the fit`,
-            );
+      for (const box of fit.regions)
+        for (let i = 0; i <= 8; i++) {
+          for (let j = 0; j <= 8; j++) {
+            const x = box.x0 + ((box.x1 - box.x0) * i) / 8;
+            const y = box.y0 + ((box.y1 - box.y0) * j) / 8;
+            for (const z of [box.z0, (box.z0 + box.z1) / 2, box.z1]) {
+              assert.ok(
+                frustum.containsPoint(new THREE.Vector3(x, y, z)),
+                `${env.id}: receiver (${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}) fell outside the fit`,
+              );
+            }
           }
         }
-      }
     }
   }
 });
@@ -154,7 +158,7 @@ test("the promised box holds the ground this camera can see, out to its reach", 
           continue;
         hits++;
         assert.ok(
-          x >= fit.box.x0 && x <= fit.box.x1 && y >= fit.box.y0 && y <= fit.box.y1,
+          shadowFrustum(fit).containsPoint(new THREE.Vector3(x, y, ELEVATION[0])),
           `visible ground (${x.toFixed(1)}, ${y.toFixed(1)}) fell outside the promised box`,
         );
       }
@@ -169,26 +173,26 @@ test("offscreen casters that reach a visible receiver stay inside the fit", () =
   // all the way up to the horizon-blocker ceiling.
   const fit = fitFor(TACTICAL);
   const frustum = shadowFrustum(fit);
-  const { box } = fit;
-  for (const height of [SHADOW_RECEIVER_CEILING, 120, SHADOW_CASTER_CEILING]) {
-    // Walk up the sun ray from a receiver in the middle of the coverage region.
-    const lift = height / SUN[2];
-    for (const [rx, ry] of [
-      [(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2],
-      [box.x0 + 1, box.y0 + 1],
-      [box.x1 - 1, box.y1 - 1],
-    ]) {
-      const caster = new THREE.Vector3(
-        rx + SUN[0] * lift,
-        ry + SUN[1] * lift,
-        ELEVATION[1] + SUN[2] * lift,
-      );
-      assert.ok(
-        frustum.containsPoint(caster),
-        `caster ${height} above the receiver at (${rx.toFixed(0)}, ${ry.toFixed(0)}) fell outside the fit`,
-      );
+  for (const box of fit.regions)
+    for (const height of [SHADOW_RECEIVER_CEILING, 120, SHADOW_CASTER_CEILING]) {
+      // Walk up the sun ray from a receiver in the middle of the coverage region.
+      const lift = height / SUN[2];
+      for (const [rx, ry] of [
+        [(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2],
+        [box.x0 + 1, box.y0 + 1],
+        [box.x1 - 1, box.y1 - 1],
+      ]) {
+        const caster = new THREE.Vector3(
+          rx + SUN[0] * lift,
+          ry + SUN[1] * lift,
+          ELEVATION[1] + SUN[2] * lift,
+        );
+        assert.ok(
+          frustum.containsPoint(caster),
+          `caster ${height} above the receiver at (${rx.toFixed(0)}, ${ry.toFixed(0)}) fell outside the fit`,
+        );
+      }
     }
-  }
 });
 
 test("the horizon does not blow the fit up; every framing beats the whole-map texel", () => {
@@ -426,3 +430,44 @@ function unit(v: readonly number[]): [number, number, number] {
   const length = Math.hypot(v[0], v[1], v[2]) || 1;
   return [v[0] / length, v[1] / length, v[2] / length];
 }
+
+test("shallow views retain ground between the old sampled frustum rays", () => {
+  const camera: Camera3DParams = {
+    target: [0, 0, 0],
+    distance: 300,
+    pitch: 0.15,
+    yaw: 0,
+    fovY: 0.85,
+    aspect: 1.6,
+    near: 1,
+  };
+  const sun: [number, number, number] = [0.4, 0.5, 0.7681145747868608];
+  const fit = viewShadowFit({
+    camera,
+    rect: RECT,
+    elevation: [0, 0],
+    unitSunDirection: sun,
+    mapSize: 1024,
+  });
+  const frustum = shadowFrustum(fit);
+  const eye = eyePosition(camera);
+  let checked = 0;
+  for (let x = -1200; x <= 1200; x += 12)
+    for (let y = -800; y <= 800; y += 12) {
+      const point: [number, number, number] = [x, y, 0];
+      const { ndc, clipW } = projectPoint(camera, point);
+      if (
+        clipW < camera.near ||
+        Math.abs(ndc[0]) > 1 ||
+        Math.abs(ndc[1]) > 1 ||
+        Math.hypot(x - eye[0], y - eye[1], eye[2]) > camera.distance + fit.coverage
+      )
+        continue;
+      checked++;
+      assert.ok(
+        frustum.containsPoint(new THREE.Vector3(...point)),
+        `visible ground ${point} cropped`,
+      );
+    }
+  assert.ok(checked > 1000);
+});

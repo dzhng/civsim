@@ -1,0 +1,9 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-performance-spec/web
+
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  19:18:08
+   Duration  438ms (transform 251ms, setup 153ms, import 319ms, tests 155ms, environment 0ms)
+

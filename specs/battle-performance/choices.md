@@ -255,3 +255,18 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   cannot count as release performance. Native tools keep their original clock.
 - **Verdict:** Sound, high confidence. One timing owner and target-specific clock
   preserve the measured workload while leaving normal gameplay code unchanged.
+
+### Derive owned crowd seating while building instances
+
+- **When:** 06b duplicate terrain sampling pass.
+- **Choice:** When the normal builder assigns elevations from the terrain field,
+  it also records their height range. The world reports those facts directly.
+  Explicit caller-owned instances still receive the original eager terrain check,
+  so later caller mutations cannot change the report of a submitted frame.
+- **Gap:** The existing diagnostics repeated the builder's pure height lookup;
+  the plan did not prescribe how to remove that redundant work safely.
+- **Reach:** The builder returns one additional scalar, elevation span. There is
+  no delayed scan, retained copy, new dependency or alternate drawing path.
+- **Verdict:** Sound, high confidence. The same owner establishes normal elevation
+  values; external values retain validation, and matched hardware counts confirm
+  fewer samples with identical diagnostics.

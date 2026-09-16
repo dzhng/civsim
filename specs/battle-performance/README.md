@@ -4,11 +4,12 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: remove the duplicate terrain scan by collecting seating height
-range during the existing instance build, preserving eager diagnostics for
-explicit borrowed instances. A demand-driven prototype was reverted: review
-found that caller mutation and setStatic could change its report. Then refresh
-live motion/performance with the integrated friend-sample cutoff cache.
+Current pickup: refresh live motion/performance with the integrated friend-sample
+cutoff cache and [single-sample terrain building](assets/06b-seating-sampling/README.md).
+The hardware camera control proves2→1 terrain samples per soldier per frame with
+identical seating metadata. Explicit borrowed instances still validate eagerly;
+the rejected deferred prototype is absent. This removes redundant work but does
+not establish frame cadence.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
 early/later battle hashes and reduces the uninstrumented later Node window by
 about7.8%; it does not establish browser cadence or30Hz simulation. The tested

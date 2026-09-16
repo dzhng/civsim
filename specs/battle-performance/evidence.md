@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Crowd terrain sampling](assets/06b-seating-sampling/README.md): actual hardware camera control proves2→1 samples per soldier per frame with unchanged seating diagnostics. Eight focused tests and typechecking pass; live cadence remains open.
+
 - [Friend-sample cutoff](assets/03a-friend-cutoff/README.md): canonical early/later fingerprints match; uninstrumented later Node window49.65 versus53.85ms/tick. Live browser acceptance remains open.
 
 - [Exact-WASM stages](assets/03a-wasm-stages/README.md): canonical hashes pass; targeting and collision projection dominate the contact window. Native fingerprint divergence rejects native substitution. Default code/import/export sections remain identical; instrumentation stays opt-in.

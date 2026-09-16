@@ -410,6 +410,7 @@ export class PhotorealBattleWorld {
     camera: BattleCameraSnapshot,
     frameDt = 0,
   ): void {
+    const terrainHeight = this.terrainSurface.heightSampler();
     const built = buildCrowdInstances(
       {
         positions,
@@ -419,21 +420,35 @@ export class PhotorealBattleWorld {
         soldierUnit: this.soldierUnit,
         unitTeam: this.unitTeam,
         mountedClasses: this.mountedClasses,
-        terrainHeight: this.terrainSurface.heightSampler(),
+        terrainHeight,
         count,
       },
       this.instancePool,
     );
-    this.drawInstances(built.instances, camera, frameDt);
+    // The builder just assigned these elevations from the same immutable field.
+    this.seating = {
+      checked: terrainHeight ? built.instances.length : 0,
+      matches: true,
+      span: Number(built.elevationSpan.toFixed(3)),
+    };
+    this.submitInstances(built.instances, camera, frameDt);
   }
 
   /** Explicit poses and battle observations share the exact same production submission path. */
   drawInstances(instances: CrowdInstance[], camera: BattleCameraSnapshot, frameDt = 0): void {
+    this.updateSeating(instances);
+    this.submitInstances(instances, camera, frameDt);
+  }
+
+  private submitInstances(
+    instances: CrowdInstance[],
+    camera: BattleCameraSnapshot,
+    frameDt: number,
+  ): void {
     this.world.gpuTelemetry.beginSubmission(this.camera, "battle-draw");
     this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
     this.setCamera(camera);
     this.instances = instances;
-    this.updateSeating(instances);
     this.updateGrass();
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.lastCamera.camera3d);

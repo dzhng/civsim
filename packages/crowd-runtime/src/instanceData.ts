@@ -58,11 +58,14 @@ export function buildCrowdInstances(
 ): {
   instances: CrowdInstance[];
   stats: CrowdBuildStats;
+  elevationSpan: number;
 } {
   const count = inputs.count ?? Math.floor(inputs.positions.length / 2);
   if (inputs.playback.length !== count) throw new Error("Playback count must match soldier count");
   const mountedClasses = new Set(inputs.mountedClasses ?? []);
   const stats: CrowdBuildStats = { input: count, written: 0, alive: 0, player: 0, enemy: 0 };
+  let lowest = Infinity;
+  let highest = -Infinity;
   for (let i = 0; i < count; i++) {
     const unit = inputs.soldierUnit?.[i] ?? 0;
     const faction = ((inputs.unitTeam?.[unit] ?? 0) === 1 ? 1 : 0) as 0 | 1;
@@ -95,13 +98,15 @@ export function buildCrowdInstances(
     inst.mounted = mountedClasses.has(classId);
     inst.lod = 0;
     inst.elevation = inputs.terrainHeight ? inputs.terrainHeight(inst.x, inst.y) : 0;
+    if (inst.elevation < lowest) lowest = inst.elevation;
+    if (inst.elevation > highest) highest = inst.elevation;
     stats.written++;
     if (alive) stats.alive++;
     if (faction === 0) stats.player++;
     if (faction === 1) stats.enemy++;
   }
   instances.length = stats.written;
-  return { instances, stats };
+  return { instances, stats, elevationSpan: instances.length ? highest - lowest : 0 };
 }
 
 export function deterministicInstanceSeed(index: number, unit: number): number {

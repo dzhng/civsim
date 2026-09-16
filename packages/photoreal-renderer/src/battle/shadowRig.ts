@@ -18,6 +18,7 @@ import {
   type SunShadowMode,
 } from "../../../game-renderer/src/battle/shadowPolicy";
 import * as THREE from "three/webgpu";
+import { float, PCFShadowFilter, vec3 } from "three/tsl";
 import { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
 import { projectionFootprint, type Camera3DParams } from "../../../renderer-core/src/camera3d";
@@ -137,6 +138,9 @@ export function configureSunShadows(
   // live camera can see (viewShadowFit) once a projection is available, and to
   // the whole terrain rect (singleShadowFit) before that — the same whole-map
   // fallback the comparison runtimes use, so an unposed rig behaves as it did.
+  // Three's filter guards z <= 1 only. Reversed depth also needs z >= 0:
+  // otherwise receivers beyond a fitted map's far plane shadow against clear depth.
+  guardShadowDepth(shadow);
   shadow.mapSize.set(SINGLE_MAP_SIZE, SINGLE_MAP_SIZE);
   const stabilizer = new ShadowFitStabilizer();
   let rect: [number, number, number, number] = [-220, -180, 440, 360];
@@ -345,4 +349,21 @@ function shadowViewsForCascadeLights(
     });
   }
   return out;
+}
+
+// Pinned Three exposes this object-shaped filter hook; its type package still
+// describes the older positional signature.
+interface ShadowFilterInput {
+  depthTexture: THREE.DepthTexture;
+  shadowCoord: ReturnType<typeof vec3>;
+  shadow: THREE.LightShadow;
+  depthLayer: number | null;
+}
+const filterPcf = PCFShadowFilter as unknown as (input: ShadowFilterInput) => THREE.Node<"float">;
+function guardShadowDepth(shadow: THREE.LightShadow): void {
+  const target = shadow as THREE.LightShadow & {
+    filterNode: (input: ShadowFilterInput) => THREE.Node<"float">;
+  };
+  target.filterNode = (input) =>
+    input.shadowCoord.z.greaterThanEqual(0).select(filterPcf(input), float(1));
 }

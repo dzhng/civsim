@@ -6,8 +6,9 @@ You are implementing this plan in `/Users/david/dev/game-battle-performance-spec
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
 Current pickup: compare the fixed builds at runtime **98fc8a45** before more
 component optimization. The [first current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
-passes all four backends but is unrankable. Next isolate the expensive main draw
-with grass controls and inspect the soldier LOD workload, then use repeated,
+passes all four backends but is unrankable. [Grass attribution](assets/05-grass-main-attribution/README.md) is complete as a
+limited fixed-state diagnostic. Next [calibrate authored soldier detail](assets/07-projected-detail/README.md)
+at actual projected sizes, then use repeated,
 balanced renderer comparisons to choose ownership. No backend has won. The full
 live throughput, moving-camera visual checks and net-shadow savings remain open.
 

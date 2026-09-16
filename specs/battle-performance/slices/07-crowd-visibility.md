@@ -21,3 +21,12 @@ Visual variable: silhouette/LOD transition continuity and presence. Crop formati
 Keep existing camera, crowd LOD, animation/pose, grass sampling, depth, default-renderer and lifecycle checks green; run the narrow affected checks plus the standing hardware `battle-perf-30k` gate for renderer changes. Preserve its thresholds. Record pre-existing reds separately; do not re-bless unrelated failures. Simulation semantics and campaign consumers must remain unchanged.
 
 For every visual artifact, inspect the actual candidate; use [compare-screenshots](../../../.agents/skills/compare-screenshots/SKILL.md) against the matched baseline/reference, then run an unprimed [screenshot-critique](../../../.agents/skills/screenshot-critique/SKILL.md) as the **last visual acceptance check**. Use screenshot-regression/snapCheck for captures. Motion claims need a frame sequence/video as well as stills. Store evidence under this spec. Open review shots via preview-shots, allow about five minutes while doing other work, then record an evidence-based decision if no reply arrives and close the shots. Human feedback is non-blocking; failed acceptance is not.
+
+## Current attribution checkpoint
+
+The [authored-detail inspection](../assets/07-projected-detail/README.md) identifies
+an uncalibrated historical policy operating on much denser current assets. Its
+next step is a same-camera representation comparison, not a new threshold chosen
+for timing. This shared-asset calibration can inform backend selection before
+committing to renderer-specific classification changes. The quality contract and
+all visible/caster preservation gates remain in force.

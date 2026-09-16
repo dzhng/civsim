@@ -10,7 +10,10 @@ passes all four backends but is unrankable. [Grass attribution](assets/05-grass-
 limited fixed-state diagnostic. Next [calibrate authored soldier detail](assets/07-projected-detail/README.md)
 at actual projected sizes. The [first pilot](assets/07-projected-detail/pilot/README.md)
 rejects a blind threshold increase because cheaper meshes lose visible armor and
-spear detail. Investigate a better intermediate mesh before changing policy, then use repeated,
+spear detail. A [4k phalanx prototype](assets/07-projected-detail/intermediate-pilot/README.md)
+is the candidate for canonical pose and camera-reversal checks; production
+assets/policy remain unchanged. Validate that representation before broader
+adoption, then use repeated,
 balanced renderer comparisons to choose ownership. No backend has won. The full
 live throughput, moving-camera visual checks and net-shadow savings remain open.
 

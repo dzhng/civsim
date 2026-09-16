@@ -29,3 +29,7 @@ required; an inspection technique cannot disable that behavior in gameplay.
 [The first image pilot](pilot/README.md) exposes armor and spear differences at
 larger sizes. A blanket threshold increase is rejected; improve or calibrate the
 representation before changing production policy.
+
+[Intermediate phalanx representations](intermediate-pilot/README.md) retain source
+rig/material semantics. The 4k candidate is closer in reviewed stills; canonical
+poses and camera reversals remain before any production adoption.

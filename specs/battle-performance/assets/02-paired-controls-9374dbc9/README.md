@@ -19,3 +19,11 @@ own enabled counterpart before attributing overhead or choosing a winner.
 Use the mode's original manifest and the root render configuration for each trial.
 Each new run needs a fresh output directory. Quiet host observations, equal scene
 work and repeated controls remain required for final performance attribution.
+
+
+Raw disabled trial 0 completes all five-minute Menu checks: 16.73 FPS average,
+7.87 FPS 1% low and 137.93 simulated seconds in 300.04 real seconds. Host activity
+makes it unrankable; root also ran CPU verification during this functional pass.
+No overhead can be inferred without its matched repeated enabled controls. This
+build includes admission batching but predates billboard-refresh deduplication.
+The original export, trial and host observations are retained under `raw-disabled-0`.

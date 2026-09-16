@@ -4,25 +4,27 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: wait for the first current fixed-build live trial, then run the
-other three candidates sequentially. Builds are complete under
-`throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` with
-`enabled/manifest.json` and the common root `render-config.json`. All four emitted
-WASM binaries match the archived release binary; `wasm-validation.json` records
-the check. Old fixed builds and WASM remain untouched.
+Current pickup: finish the current fixed-build native live trials, then obtain
+quiet matched evidence before ranking. Builds are under
+`throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` with the
+`enabled/manifest.json` and common root `render-config.json`. All emitted WASM
+binaries match the archived release binary. Older controls remain untouched.
 
-Active Three trial: exec session 31974, Node PID 70453, output
-`throwaway/matched-current-58b2a9bd/trials/three-0`, log
-`throwaway/claude-agents/matched-current-three-0.log`. Its browser process tree was
-verified active; an empty output directory during the run is expected because
-the trial archives at completion. Preview server session 64096 serves Three on
-port 5281. Wait/poll the existing job rather than restart on an observation timeout.
-After it completes, inspect trial/run/host evidence, stop that preview, serve the
-next backend output, and run runTrial.ts with the same manifest/render-config and
-new output/order. Refresh disabled instrumentation arms before attributing a win.
-Current native entrypoints share production worker/WASM, progressive grass,
-fitted shadows and the camera-only crowd contract. Only quiet, functionally valid
-matched trials may rank backends; no winner is selected.
+[Three trial 0](assets/02-current-live/README.md) completed all functional checks,
+but is unrankable: Diablo IV and shared system activity contaminated the run.
+It recorded 12.16 FPS and 93.47 simulated seconds in 300.02 real seconds; do not
+compare those numbers as a clean regression or speedup. Source trial/server are
+terminal and their old handles/PIDs are absent.
+
+Active raw trial: exec session 39865, output
+`throwaway/matched-current-58b2a9bd/trials/raw-1`, log
+`throwaway/claude-agents/matched-current-raw-1.log`. Preview session 47702 serves
+raw on port 5281. Poll this job; its empty directory during execution is expected.
+After completion inspect trial/run/host evidence, stop that preview, serve
+TypeGPU then vgpu, and use new output directories/orders 2/3 with the same
+manifest/config. Current host load is still not quiet; preserve functional
+results without treating them as rankings. No user applications were stopped.
+Refresh disabled instrumentation arms before attributing a possible winner.
 
 The [camera-only publication checkpoint](assets/06b-camera-reprojection/README.md)
 is verified across all four renderers. The [standing grass/camera gate](assets/04-grass-camera-gate/README.md)

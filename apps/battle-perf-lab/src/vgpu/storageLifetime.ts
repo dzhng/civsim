@@ -16,7 +16,5 @@ export function writeVgpuStorageAt(
   byteOffset: number,
   data: BufferSource,
 ): void {
-  if (value.write.length < 2)
-    throw Error("vgpu storage write() lacks its required destination offset");
   (value.write as OffsetWrite).call(value, data, byteOffset);
 }

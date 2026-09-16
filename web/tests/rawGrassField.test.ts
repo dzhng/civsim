@@ -182,3 +182,74 @@ test("a travelling native consumer uploads bounded ranges, never the whole focus
     native.dispose();
   }
 });
+
+test("edits published during capacity admission reach the GPU on the next prepare", async () => {
+  handles.length = 0;
+  const native = await createRawGrassField(
+    {} as GPUDevice,
+    {} as GPUBindGroupLayout,
+    {} as never,
+    productionBladeFieldProfile(),
+  );
+  const field = flatHeightField(-32, -32, 16, 16, 4);
+  const camera: Camera3DParams = {
+    target: [0, 0, 0],
+    distance: 24,
+    pitch: 0.5,
+    yaw: 0,
+    fovY: 0.8,
+    aspect: 1.5,
+    near: 0.1,
+  };
+  const wind = {
+    direction: [1, 0] as [number, number],
+    speed: 1,
+    gustPhase: 0,
+    velocity: [1, 0] as [number, number],
+    frequency: 1,
+    sharpness: 1,
+  };
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let adopted!: () => void;
+  const started = new Promise<void>((resolve) => {
+    adopted = resolve;
+  });
+  let gpu = new Float32Array();
+  const ring = handles[1];
+  ring.adoptRecordCapacity.mockImplementation(async (records: Float32Array) => {
+    gpu = new Float32Array(records);
+    adopted();
+    await held;
+  });
+  ring.writeRecordRanges.mockImplementation(
+    (records: Float32Array, edits: { start: number; count: number }[]) => {
+      for (const edit of edits)
+        gpu.set(records.subarray(edit.start * 16, (edit.start + edit.count) * 16), edit.start * 16);
+    },
+  );
+  try {
+    native.setTerrain({ ...field, tint: new Uint8Array(256) }, field, "green-grass");
+    const preparing = native.prepare(camera, 900, wind, [0, 0, 1]);
+    await started;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(native.snapshot().ring.recordCount).toBeGreaterThan(0);
+    release();
+    await preparing;
+    await native.prepare(camera, 900, wind, [0, 0, 1]);
+    const ringState = native.snapshot().ring;
+    expect(ring.writeRecordRanges).toHaveBeenCalled();
+    const bytes = ringState.recordCount * 16 * 4;
+    expect(
+      Buffer.compare(
+        Buffer.from(gpu.buffer, 0, bytes),
+        Buffer.from(ringState.records!.buffer, 0, bytes),
+      ),
+    ).toBe(0);
+  } finally {
+    release();
+    native.dispose();
+  }
+});

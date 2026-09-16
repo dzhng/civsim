@@ -81,7 +81,7 @@ export function createGrassField<
   const sync = () => {
     const job = pending.then(async () => {
       if (disposed) throw Error("Grass field disposed");
-      const snapshot = owner.snapshot();
+      let snapshot = owner.snapshot();
       // The base field is built once with the terrain, so a whole replacement
       // on its revision costs nothing per frame.
       if (revisions[0] !== snapshot.base.revision) {
@@ -89,6 +89,8 @@ export function createGrassField<
         revisions[0] = snapshot.base.revision;
         uploads[0]++;
       }
+      // Base admission can yield while sampling publishes ring edits.
+      snapshot = owner.snapshot();
       // The focus field is one capacity buffer the owner mutates in place.
       // Adoption sizes the GPU storage from the capacity, and every later
       // publication is the ranges the owner actually wrote - taking them is
@@ -96,8 +98,10 @@ export function createGrassField<
       // render rather than per sampling callback.
       const ring = snapshot.ring;
       if (ring.records && (ringBuffer !== ring.records || revisions[1] !== ring.revision)) {
-        await layers[1].adoptRecordCapacity(ring.records, ring.recordCount);
+        // These edits are covered by the synchronous initial copy. Take them
+        // before adoption yields so later publications remain pending.
         owner.takeRingEdits();
+        await layers[1].adoptRecordCapacity(ring.records, ring.recordCount);
         ringBuffer = ring.records;
         ringCount = ring.recordCount;
         revisions[1] = ring.revision;

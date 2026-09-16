@@ -1,0 +1,236 @@
+{
+  "createdAt": "2026-09-16T11:25:42.784Z",
+  "status": {
+    "phase": "complete",
+    "scenario": {
+      "id": "generated-seven-heavy-combat",
+      "version": 1,
+      "simSeed": 1592639710,
+      "mapSeed": "7",
+      "armySource": "generated-default",
+      "orders": "player-nearest-enemy-at-tick-zero",
+      "startTick": 9000,
+      "durationMs": 300000,
+      "cameraScript": "contact-9000-v2"
+    },
+    "preparationMs": 71586.0799999857,
+    "elapsedMs": 300104.665,
+    "startTick": 9000,
+    "tick": 13525,
+    "reason": "Timed window complete"
+  },
+  "identity": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "adapter": "apple / metal-3",
+    "viewport": [
+      1440,
+      900
+    ],
+    "framebuffer": [
+      2880,
+      1800
+    ],
+    "dpr": 2,
+    "initialStateHash": "9928381812590497427",
+    "soldiers": 15560,
+    "graphics": {
+      "shadows": "single",
+      "grassQuality": "standard",
+      "grass": true,
+      "farGrass": true,
+      "bloom": true,
+      "audio": {
+        "masterVolume": 0.55,
+        "muted": true,
+        "birds": true,
+        "water": true
+      }
+    }
+  },
+  "measurement": "Animation-frame cadence; GPU presentation latency is not measured",
+  "completeWindow": true,
+  "simulatedSeconds": 150.83333333333334,
+  "summary": {
+    "validCount": 5733,
+    "invalidCount": 0,
+    "durationMs": 300104.6649999996,
+    "averageFps": 19.103335164749964,
+    "low1PercentFps": 6.56625578509772,
+    "low01PercentFps": 5.14308490804584,
+    "minFps": 4.000160006400405,
+    "maxFps": 60.02400960393381,
+    "p50FrameMs": 49.99499999999534,
+    "p95FrameMs": 116.66500000000815,
+    "p99FrameMs": 133.33499999999185,
+    "maxFrameMs": 249.9899999999907,
+    "spikes": {
+      "over25Ms": 4476,
+      "over33_33Ms": 4185,
+      "over50Ms": 2048
+    }
+  },
+  "phases": [
+    {
+      "name": "tactical",
+      "startMs": 0,
+      "endMs": 30000,
+      "summary": {
+        "validCount": 714,
+        "invalidCount": 0,
+        "durationMs": 29998.800000000003,
+        "averageFps": 23.800952038081522,
+        "low1PercentFps": 9.600096000960043,
+        "low01PercentFps": 8.57155102215793,
+        "minFps": 8.57155102215793,
+        "maxFps": 60.02400960388138,
+        "p50FrameMs": 33.33499999999185,
+        "p95FrameMs": 83.33000000000175,
+        "p99FrameMs": 99.9950000000099,
+        "maxFrameMs": 116.6649999999936,
+        "spikes": {
+          "over25Ms": 572,
+          "over33_33Ms": 534,
+          "over50Ms": 149
+        }
+      }
+    },
+    {
+      "name": "pan",
+      "startMs": 30000,
+      "endMs": 90000,
+      "summary": {
+        "validCount": 1085,
+        "invalidCount": 0,
+        "durationMs": 59980.93499999998,
+        "averageFps": 18.08908113886521,
+        "low1PercentFps": 7.252922598128097,
+        "low01PercentFps": 6.316022169237837,
+        "minFps": 6.000240009600258,
+        "maxFps": 60.02400960388138,
+        "p50FrameMs": 50,
+        "p95FrameMs": 116.6649999999936,
+        "p99FrameMs": 133.33000000000175,
+        "maxFrameMs": 166.6600000000035,
+        "spikes": {
+          "over25Ms": 899,
+          "over33_33Ms": 857,
+          "over50Ms": 394
+        }
+      }
+    },
+    {
+      "name": "zoom",
+      "startMs": 90000,
+      "endMs": 150000,
+      "summary": {
+        "validCount": 1239,
+        "invalidCount": 0,
+        "durationMs": 59997.595,
+        "averageFps": 20.65082775401247,
+        "low1PercentFps": 7.5001658690530695,
+        "low01PercentFps": 7.499906251172319,
+        "minFps": 7.499906251172319,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 49.99499999999534,
+        "p95FrameMs": 116.66499999997905,
+        "p99FrameMs": 133.32500000001164,
+        "maxFrameMs": 133.33499999999185,
+        "spikes": {
+          "over25Ms": 902,
+          "over33_33Ms": 818,
+          "over50Ms": 368
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "startMs": 150000,
+      "endMs": 210000,
+      "summary": {
+        "validCount": 1174,
+        "invalidCount": 0,
+        "durationMs": 59964.274999999994,
+        "averageFps": 19.578323927038227,
+        "low1PercentFps": 6.605728818317542,
+        "low01PercentFps": 5.000187507031688,
+        "minFps": 4.000160006400405,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 49.99499999999534,
+        "p95FrameMs": 116.66499999997905,
+        "p99FrameMs": 133.3300000000163,
+        "maxFrameMs": 249.9899999999907,
+        "spikes": {
+          "over25Ms": 896,
+          "over33_33Ms": 823,
+          "over50Ms": 401
+        }
+      }
+    },
+    {
+      "name": "combined",
+      "startMs": 210000,
+      "endMs": 270000,
+      "summary": {
+        "validCount": 1058,
+        "invalidCount": 0,
+        "durationMs": 60047.59500000003,
+        "averageFps": 17.619356778568726,
+        "low1PercentFps": 6.111331798092519,
+        "low01PercentFps": 4.800192007680039,
+        "minFps": 4.285867352405229,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 50,
+        "p95FrameMs": 133.3300000000163,
+        "p99FrameMs": 149.99499999999534,
+        "maxFrameMs": 233.32500000001164,
+        "spikes": {
+          "over25Ms": 811,
+          "over33_33Ms": 769,
+          "over50Ms": 489
+        }
+      }
+    },
+    {
+      "name": "return",
+      "startMs": 270000,
+      "endMs": 300000,
+      "summary": {
+        "validCount": 463,
+        "invalidCount": 0,
+        "durationMs": 30115.464999999967,
+        "averageFps": 15.374160750963018,
+        "low1PercentFps": 6.6668444491854775,
+        "low01PercentFps": 6.666666666666667,
+        "minFps": 6.666666666666667,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 66.65999999997439,
+        "p95FrameMs": 133.3300000000163,
+        "p99FrameMs": 149.99499999999534,
+        "maxFrameMs": 150,
+        "spikes": {
+          "over25Ms": 396,
+          "over33_33Ms": 384,
+          "over50Ms": 247
+        }
+      }
+    }
+  ],
+  "revision": "e30d074c",
+  "scope": "Functional combined-runtime run, not an eligible paired performance comparison.",
+  "hostObservationLimit": "Separate observer incorrectly counted benchmark PID 62805 and its Chrome descendants as other processes. Shared WindowServer attribution and no repeated matched pairs still prevent quiet ranking. Do not infer external contention from the 73.8% maximum.",
+  "checks": [
+    "PASS  battle-benchmark-complete: entire live window completed",
+    "PASS  battle-benchmark-complete: timing starts at the canonical tick",
+    "PASS  battle-benchmark-complete: canonical contact state",
+    "PASS  battle-benchmark-complete: simulation remained live",
+    "PASS  battle-benchmark-complete: all camera phases recorded",
+    "PASS  battle-benchmark-complete: camera reached near wide and horizon views",
+    "PASS  battle-benchmark-complete: every recorded callback submitted a new primary frame",
+    "PASS  battle-benchmark-complete: recorded interval total agrees with run clock",
+    "PASS  battle-benchmark-complete: result actions remain inside the initial viewport",
+    "PASS  battle-benchmark-complete: export retains the full raw recording",
+    "PASS  runner: no page errors",
+    "",
+    "ALL CHECKS PASSED"
+  ]
+}

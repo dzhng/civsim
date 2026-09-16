@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Combined runtime](assets/combined-runtime/README.md): worker, grass and fitted shadows pass the full canonical five-minute flow. Recorded cadence and simulation throughput remain below target; host-process attribution is incomplete. This is functional evidence, not a backend ranking.
+
 - Baseline source: `c924e5ce`; plan checkpoint `76b45cca`; telemetry `5518110f`; pure metrics `8978a174`.
 - 43 focused tests, TypeScript checking and the production build pass. Actual-menu cancellation/input/export flow passes after fixing preparation to retain its ready frame instead of redrawing skipped history. Independent review found a missing deployment rewrite for `/benchmark`; it is corrected.
 - Named host: Apple M5 Pro, 20 GPU cores, 48GB. Chrome fixture confirms `apple / metal-3`, 1440×900 CSS at DPR2 → 2880×1800 framebuffer and 15,560 total soldiers.

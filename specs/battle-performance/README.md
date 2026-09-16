@@ -3,14 +3,33 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **implementation in progress — full backend comparison**, updated 2026-09-16. The actual menu now launches preparation, a live five-minute camera tour, results/chart and JSON export. The production grass binding fix restores missing published coverage without shader rebuilds; other rendering algorithms and default quality remain unchanged. Telemetry and pure parameter ownership have also been updated.
-Current pickup: finish motion/upload acceptance for progressive grass and validate view-fitted shadows in motion; the integrated worker now passes the full canonical-start benchmark. The isolated grass candidate now admits a fully resident inner region during travel (`fbbef362`), with 38 focused tests and an initial hardware motion probe. Review caught and fixed empty-request retention. Matched motion/visual acceptance remains open; see [candidate evidence](assets/04-grass-candidate/README.md). Image sharing is integrated and verified for allocation/lifecycle stability. In parallel, obtain quiet paired timing with the corrected fixed builds and finish the four-backend scorecard. [The native query control](assets/02-live/native-query-control/README.md) passes operation checks after correcting vgpu's caster attributes; use its refreshed manifests. The [full fixed raw Menu trial](assets/02-live/fixed-raw-full/README.md) passes functionally but is rejected for quiet ranking. No backend is selected.
+Status: **implementation in progress; no backend selected**, updated 2026-09-16.
+Current pickup: attribute the combined runtime's remaining frame and simulation
+costs, then make measured optimizations. The [combined five-minute hardware run](assets/combined-runtime/README.md)
+passes all functional checks but records 19.10 FPS and only 150.83 simulated
+seconds in 300.10 real seconds. This is not performance acceptance or a matched
+speedup comparison. Its separate host observer includes the benchmark process in
+its competing-process list; correct trial-tree exclusion before future rankings.
 
-Claude Opus implementation stopped at its spend limit; root is continuing locally. The actual worker runtime and campaign handoff are integrated (`fea12281`, `c7a88be1`): one worker-owned Game publishes every completed tick to the existing action timeline, and campaign setup/results cross a serialized domain boundary. The obsolete lab publication runtime is deleted. The canonical production-authority comparison matches all 309 contact-window ticks; 99 combined worker/campaign/animation/image tests pass. The integrated build passes hardware Chrome campaign entry/return, reinforcement rendering and Menu preparation/cancel/export checks; see [integration evidence](assets/03a-publication/integrated-worker.json). This does not establish simulation throughput or camera cadence. The first full worker window completed functionally but started at tick 9011 instead of 9000; [the rejected run](assets/03a-publication/integrated-full-drift-summary.json) preserves that measurement failure. The holding fix and explicit start-tick gate pass a [fresh full five-minute run](assets/03a-publication/integrated-full-canonical-summary.json). Host contention still rejects performance ranking; sustained simulation and frame cadence remain failed/unproven.
+The primary worktree now integrates the worker/campaign handoff, immutable image
+sharing, exact animation endpoints, progressive grass residency, view-fitted
+shadows and the shadow depth guard. The [real GPU upload regression](assets/04-grass-upload-bound/README.md)
+found and fixed repeated whole-buffer grass uploads; the camera probe now submits
+only bounded partial edits. The [shadow depth regression](assets/08-shadow-depth-boundary/README.md)
+fixes the moving-camera wedge. Neither bounded uploads nor reviewed stills prove
+smooth continuous motion. Focused integration tests and hardware lifecycle checks
+pass; simulation throughput, crowd state/visibility work, shadow temporal stability
+and final net-shadow savings remain open.
 
-Image sharing is integrated: hardware confirms 60→3 material images and correct replacement/disposal. Exact animation endpoints skip discarded pose samples after differential and ownership checks. The isolated shadow candidate passes conservative coverage tests and tactical hardware still review. Its camera-path probe exposed a reversed-depth boundary wedge, now fixed in `c34e6fe9` with a failing-before/passing-after GPU regression and fresh visual review; see [depth-boundary evidence](assets/08-shadow-depth-boundary/README.md). Continuous temporal stability, banding and cost remain open. Original fixed comparison WASM is preserved separately from the integrated worker build, so existing baseline inputs remain unchanged. GPU interval sums remain diagnostic, never elapsed-time rankings. Preserve gameplay, all default gates and the hard-cutover/no-compatibility decision.
-
-Reuse the existing bounded source archive; do not recapture its costly prefix for candidate correctness controls. [Native replay evidence](assets/02-preflight/native-spool/README.md) records matching input/work histories and independent still-image limits. Capture is not timing. Refreshed final source timing must include the grass and readout fixes; simulation publication and sustained throughput remain open.
+Claude Opus stopped at its spend limit; root continues locally. Keep the original
+fixed comparison builds and WASM intact. Refresh common scheduling, grass and
+shadow policies across all candidates before the final four-backend comparison;
+new source view-fitted shadows versus old native whole-map shadows is not equal
+work. Reuse the [bounded source archive](assets/02-preflight/native-spool/README.md)
+for correctness controls, not timing. GPU interval sums remain diagnostics,
+never elapsed-time rankings. Preserve gameplay, default gates and the hard
+cutover/no-compatibility decision. Detailed historical evidence lives in
+[evidence.md](evidence.md), not this pickup prompt.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 

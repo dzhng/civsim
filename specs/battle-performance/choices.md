@@ -224,3 +224,19 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 ### Fitted shadow depth validity
 
 - **Settled:** The default fitted shadow map uses the renderer’s public filter hook to reject receivers outside the lower depth bound while retaining its PCF kernel. This repairs reversed-depth sampling without patching the dependency or altering caster geometry. The separate CSM path keeps its prior behavior.
+
+### Integrate grass and shadow candidates before final backend selection
+
+- **When:** Combined-runtime checkpoint after `e30d074c`.
+- **Choice:** Put the verified grass and shadow fixes into the working game so the
+  five-minute benchmark can exercise their interactions with the worker and
+  shared images. Keep the old fixed comparison builds untouched. Waiting for
+  backend selection would leave these interactions untested for longer.
+- **Gap:** The planned graph deferred dependent production integration until a
+  renderer won; the individual fixes now have correctness evidence, while the
+  complete result still needs performance investigation.
+- **Reach:** This does not choose Three. All final backend candidates must receive
+  equivalent scheduling, grass and shadow policies before comparison. Continuous
+  motion, shadow cost and net performance remain required gates.
+- **Verdict:** Sound, medium confidence. Combined testing is useful now, provided
+  mismatched old and new workloads cannot decide the renderer.

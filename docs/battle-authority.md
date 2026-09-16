@@ -1,6 +1,6 @@
 # The battle authority
 
-One battle, one `Game`, one tick owner, one command authority — running in a
+One interactive battle, one `Game`, one tick owner, one command authority — running in a
 worker, not on the thread that draws. This is the contract the battle shell and
 the simulation now meet through, and the reasons it is shaped this way.
 
@@ -12,11 +12,15 @@ from that description; nothing constructs a battle `Game` on the drawing thread
 and hands it across. That is what makes "one authoritative `Game`" checkable
 rather than aspirational, and it is why every battle entry names a setup.
 
-**Unmet migration item.** A campaign encounter is not describable this way:
-starting one needs the live `Campaign`, and reporting its result needs the
-campaign and the finished battle in one address space. Until the simulation
-boundary offers a serialisable battle setup and result, campaign battles cannot
-reach the authority, and the shell says so instead of pretending otherwise.
+Campaign encounters cross the same boundary as a serialized battle description:
+the campaign supplies setup and AI teams, and the worker returns the actual
+battle result to the retained campaign. The campaign pauses until that result is
+applied; it need not share memory with the battle authority. The domain contract
+lives in `crates/contract`, with the WASM boundary in
+[campaign_bind.rs](../crates/game-wasm/src/campaign_bind.rs).
+
+Unwatched campaign auto-resolution uses that same description and result contract
+but runs a headless Game locally; it does not enter the interactive battle loop.
 
 ## A publication is one completed tick, owned by one side at a time
 

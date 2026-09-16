@@ -10,11 +10,8 @@ import {
   SHADOW_NORMAL_BIAS,
   SHADOW_CAM_NEAR,
   SHADOW_CAM_FAR,
-  ShadowFitStabilizer,
+  SingleShadowPolicy,
   shadowRadiusForTurbidity,
-  singleShadowFit,
-  viewShadowFit,
-  type ShadowViewFit,
   type SunShadowMode,
 } from "../../../game-renderer/src/battle/shadowPolicy";
 import * as THREE from "three/webgpu";
@@ -142,66 +139,13 @@ export function configureSunShadows(
   // otherwise receivers beyond a fitted map's far plane shadow against clear depth.
   guardShadowDepth(shadow);
   shadow.mapSize.set(SINGLE_MAP_SIZE, SINGLE_MAP_SIZE);
-  const stabilizer = new ShadowFitStabilizer();
-  let rect: [number, number, number, number] = [-220, -180, 440, 360];
-  let elevation: readonly [number, number] = [0, 0];
-  let lastView: Camera3DParams | null = null;
-
-  // The fit MOVES the light along its own axis, so reading the direction back
-  // round-trips through our own arithmetic. Latch it: last-bit noise from that
-  // round trip must not re-fit the map, while a real environment change must.
-  let sunAxis: [number, number, number] = readSunDirection(sun);
-  const sunDirection = (): [number, number, number] => {
-    const dir = readSunDirection(sun);
-    const drift =
-      Math.abs(dir[0] - sunAxis[0]) + Math.abs(dir[1] - sunAxis[1]) + Math.abs(dir[2] - sunAxis[2]);
-    if (drift > 1e-9) sunAxis = dir;
-    return sunAxis;
-  };
+  const policy = new SingleShadowPolicy(readSunDirection(sun));
   const cam = shadow.camera;
-
-  const viewFit = (view: Camera3DParams): ShadowViewFit =>
-    viewShadowFit({
-      camera: view,
-      rect,
-      elevation,
-      unitSunDirection: sunDirection(),
-      mapSize: SINGLE_MAP_SIZE,
-      stabilizer,
-    });
-
-  const wholeMapFit = (): ShadowViewFit => {
-    const whole = singleShadowFit(rect, sunDirection());
-    const extent = whole.right - whole.left;
-    return {
-      ...whole,
-      up: [0, 1, 0],
-      extent,
-      worldUnitsPerTexel: extent / SINGLE_MAP_SIZE,
-      normalBias: SHADOW_NORMAL_BIAS,
-      // No camera posed it, so nothing is offscreen to admit and nothing is
-      // beyond its reach: the whole map is both its audience and its coverage.
-      crowdNear: whole.near,
-      coverage: extent,
-      regions: [
-        {
-          x0: rect[0],
-          y0: rect[1],
-          x1: rect[0] + rect[2],
-          y1: rect[1] + rect[3],
-          z0: elevation[0],
-          z1: elevation[1],
-        },
-      ],
-    };
-  };
-
-  let applied = wholeMapFit();
-  let refits = 0;
-  const install = (next: ShadowViewFit): void => {
-    if (refits > 0 && sameShadowMap(applied, next)) return;
-    applied = next;
-    refits++;
+  let installedRevision = 0;
+  const install = (): void => {
+    if (installedRevision === policy.refits) return;
+    const next = policy.fit;
+    installedRevision = policy.refits;
     sun.target.position.set(...next.target);
     sun.position.set(...next.position);
     cam.up.set(...next.up);
@@ -218,48 +162,30 @@ export function configureSunShadows(
     shadow.needsUpdate = true;
   };
 
-  install(applied);
+  install();
   return {
     mode,
     update: (view) => {
-      lastView = view;
-      install(viewFit(view));
+      policy.update(view, readSunDirection(sun));
+      install();
     },
     setWorldRect: (next, nextElevation) => {
-      rect = next;
-      elevation = nextElevation ?? [0, 0];
-      // A new field invalidates the fitted extent, not the pose: re-rung from
-      // scratch against the live camera if this rig has already seen one.
-      stabilizer.reset();
-      install(lastView ? viewFit(lastView) : wholeMapFit());
+      policy.setWorldRect(next, nextElevation, readSunDirection(sun));
+      install();
     },
-    cullingViews: () => [crowdShadowView(sun, applied.crowdNear)],
+    cullingViews: () => [crowdShadowView(sun, policy.fit.crowdNear)],
     identity: () => ({
       ...identityFor(1, SINGLE_MAP_SIZE),
       fit: {
-        extent: applied.extent,
-        worldUnitsPerTexel: applied.worldUnitsPerTexel,
-        normalBias: applied.normalBias,
-        coverage: applied.coverage,
-        refits,
+        extent: policy.fit.extent,
+        worldUnitsPerTexel: policy.fit.worldUnitsPerTexel,
+        normalBias: policy.fit.normalBias,
+        coverage: policy.fit.coverage,
+        refits: policy.refits,
       },
     }),
     dispose: () => shadow.dispose(),
   };
-}
-
-/** Two fits that would rasterise the same map: the ortho bounds and the normal
- *  offset both derive from the extent, so extent plus pose settles it. A
- *  stationary camera skips the rebuild instead of paying for an identical one. */
-function sameShadowMap(a: ShadowViewFit, b: ShadowViewFit): boolean {
-  return (
-    a.extent === b.extent &&
-    a.near === b.near &&
-    a.far === b.far &&
-    a.position[0] === b.position[0] &&
-    a.position[1] === b.position[1] &&
-    a.position[2] === b.position[2]
-  );
 }
 
 /** The crowd's share of the single map: the same pose and the same texels, with

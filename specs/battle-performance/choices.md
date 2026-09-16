@@ -270,3 +270,17 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Verdict:** Sound, high confidence. The same owner establishes normal elevation
   values; external values retain validation, and matched hardware counts confirm
   fewer samples with identical diagnostics.
+
+### Share stateful shadow fitting across renderer adapters
+
+- **When:** Matched shadow comparison preparation.
+- **Choice:** Keep camera history, extent hysteresis, terrain bounds and sun
+  direction latching in one shared policy. Renderer adapters install the resolved
+  fit using its revision rather than owning copies of that state.
+- **Gap:** The plan required equal shadow work but did not prescribe ownership
+  of the existing Three fitting state.
+- **Reach:** No new quality option or dependency; the Three adapter retains its
+  existing raster and crowd depth behavior. Native adapters will consume the
+  same policy before engine ranking.
+- **Verdict:** Sound, high confidence. One owner avoids independent hysteresis
+  histories accidentally changing the workload being compared.

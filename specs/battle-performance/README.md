@@ -4,14 +4,14 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: share the stateful single-map shadow policy with the native
+Current pickup: wire the shared stateful single-map shadow policy into the native
 candidates, including matching caster projections and the lower-depth guard,
 then refresh matched comparison controls. See the read-only seam audit at
 `throwaway/claude-agents/matched-shadow-policy-audit.txt`. The latest
 [combined full hardware run](assets/combined-optimized-runtime/README.md) passes
 all functional checks but still delivers20.79FPS and135.9 simulated seconds in
 five real minutes. It is not quiet ranking evidence. The primary Vite server is
-session `18295`, port5294; the measurement has completed.
+stopped; the measurement has completed. The [shared policy extraction](assets/08-shared-shadow-policy/README.md) preserves all 128 recorded Three camera states.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
 early/later battle hashes and reduces the uninstrumented later Node window by
 about7.8%; it does not establish browser cadence or30Hz simulation. The tested

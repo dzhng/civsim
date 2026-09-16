@@ -260,6 +260,117 @@ export interface ShadowViewFit {
   regions: readonly ShadowReceiverBox[];
 }
 
+/** Persistent single-map fit shared by renderer adapters. Terrain replacement
+ * resets extent hysteresis while retaining the last camera; adapters consume
+ * refits to avoid uploading an unchanged map. */
+export class SingleShadowPolicy {
+  private readonly stabilizer = new ShadowFitStabilizer();
+  private rect: readonly [number, number, number, number] = [-220, -180, 440, 360];
+  private elevation: readonly [number, number] = [0, 0];
+  private lastView: Camera3DParams | null = null;
+  private sunAxis: Vec3;
+  private applied: ShadowViewFit;
+  private count = 1;
+
+  constructor(unitSunDirection: readonly [number, number, number]) {
+    this.sunAxis = [...unitSunDirection];
+    this.applied = this.wholeMapFit();
+  }
+
+  get fit(): ShadowViewFit {
+    return this.applied;
+  }
+  get refits(): number {
+    return this.count;
+  }
+
+  update(
+    view: Camera3DParams,
+    unitSunDirection: readonly [number, number, number] = this.sunAxis,
+  ): void {
+    this.latchSun(unitSunDirection);
+    this.lastView = view;
+    this.install(this.viewFit(view));
+  }
+
+  setWorldRect(
+    rect: readonly [number, number, number, number],
+    elevation: readonly [number, number] = [0, 0],
+    unitSunDirection: readonly [number, number, number] = this.sunAxis,
+  ): void {
+    this.latchSun(unitSunDirection);
+    this.rect = rect;
+    this.elevation = elevation;
+    this.stabilizer.reset();
+    this.install(this.lastView ? this.viewFit(this.lastView) : this.wholeMapFit());
+  }
+
+  private latchSun(direction: readonly [number, number, number]): void {
+    // Three moves its light to install the fit, then reads the direction back.
+    // Ignore that round-trip's last-bit noise, but retain real sun changes.
+    const drift =
+      Math.abs(direction[0] - this.sunAxis[0]) +
+      Math.abs(direction[1] - this.sunAxis[1]) +
+      Math.abs(direction[2] - this.sunAxis[2]);
+    if (drift > 1e-9) this.sunAxis = [...direction];
+  }
+
+  private viewFit(camera: Camera3DParams): ShadowViewFit {
+    return viewShadowFit({
+      camera,
+      rect: this.rect,
+      elevation: this.elevation,
+      unitSunDirection: this.sunAxis,
+      mapSize: SINGLE_MAP_SIZE,
+      stabilizer: this.stabilizer,
+    });
+  }
+
+  private wholeMapFit(): ShadowViewFit {
+    const whole = singleShadowFit(this.rect, this.sunAxis);
+    const extent = whole.right - whole.left;
+    return {
+      ...whole,
+      up: [0, 1, 0],
+      extent,
+      worldUnitsPerTexel: extent / SINGLE_MAP_SIZE,
+      normalBias: SHADOW_NORMAL_BIAS,
+      crowdNear: whole.near,
+      coverage: extent,
+      regions: [
+        {
+          x0: this.rect[0],
+          y0: this.rect[1],
+          x1: this.rect[0] + this.rect[2],
+          y1: this.rect[1] + this.rect[3],
+          z0: this.elevation[0],
+          z1: this.elevation[1],
+        },
+      ],
+    };
+  }
+
+  private install(next: ShadowViewFit): void {
+    if (sameShadowMap(this.applied, next)) return;
+    this.applied = next;
+    this.count++;
+  }
+}
+
+/** Two fits that would rasterise the same map: the ortho bounds and the normal
+ *  offset both derive from the extent, so extent plus pose settles it. A
+ *  stationary camera skips the rebuild instead of paying for an identical one. */
+function sameShadowMap(a: ShadowViewFit, b: ShadowViewFit): boolean {
+  return (
+    a.extent === b.extent &&
+    a.near === b.near &&
+    a.far === b.far &&
+    a.position[0] === b.position[0] &&
+    a.position[1] === b.position[1] &&
+    a.position[2] === b.position[2]
+  );
+}
+
 // ---------------------------------------------------------------------------
 // The visible receiver set, as a convex intersection
 //

@@ -297,3 +297,21 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   fits skip redundant uniform writes in each native resource adapter.
 - **Verdict:** Sound, high confidence. Common policy and packing keep the
   comparison about backend costs rather than different shadow work.
+
+### Own the last submitted crowd and invalidate actual visibility inputs
+
+- **When:** Camera-only fitted-shadow integration.
+- **Choice:** Crowd owners keep reusable copies of submitted soldier values and
+  small mutable animation descriptors, while sharing readonly frozen bone poses.
+  A changed frustum or projected body size refreshes the audience from that state;
+  the same view does no additional pose preparation. Native impostor groups borrow
+  this owned snapshot rather than maintaining a second set of copies.
+- **Gap:** Both renderer paths could refit a shadow map after their last crowd
+  upload. Keeping that old caster list would make the comparison incoherent.
+  Borrowing caller arrays for a later refresh would expose caller mutations.
+- **Reach:** One shared snapshot and visibility-input owner serve all four
+  renderers. Input storage survives pending asynchronous reads during disposal.
+  Snapshot storage grows to the observed population high-water mark and is
+  released with the world; frozen bone arrays are not cloned per frame.
+- **Verdict:** Sound, medium confidence. Ownership and invalidation are verified;
+  the added scalar-copy cost still belongs in the complete performance comparison.

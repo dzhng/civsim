@@ -1,3 +1,5 @@
+import { CrowdFrameSnapshot } from "../../../packages/crowd-runtime/src/frameSnapshot";
+import { CrowdViewState } from "../../../packages/crowd-runtime/src/viewState";
 import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appearanceBundle";
 import type { ImpostorAtlasData } from "../../../packages/soldier-assets/src/impostorAtlas";
 import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
@@ -13,6 +15,9 @@ export function createCrowdAudienceHistory(
   assets: Record<number, AppearanceBundle>,
   atlases: Record<number, ImpostorAtlasData>,
 ) {
+  const snapshot = new CrowdFrameSnapshot();
+  let viewState = new CrowdViewState(),
+    nextViews = new CrowdViewState();
   const ids = Object.keys(assets).map(Number);
   for (const id of ids)
     if (!atlases[id]) throw Error(`Missing prepared impostor atlas for appearance ${id}`);
@@ -25,6 +30,7 @@ export function createCrowdAudienceHistory(
     disposed = false;
   type Publication = {
     count: number;
+    instances: CrowdInstance[];
     plan: ReturnType<typeof planCrowdLods>;
     groups: Map<number, CrowdInstance[]>;
   };
@@ -39,10 +45,14 @@ export function createCrowdAudienceHistory(
   return {
     ids,
     check,
+    instances: () => snapshot.instances,
+    matchesViews: (views: readonly CrowdProjectionView[]) => ready && viewState.matches(views),
     begin(instances: readonly CrowdInstance[], views: readonly CrowdProjectionView[]): Publication {
       check();
       if (pending) throw Error("Crowd audience upload already pending");
       ready = false;
+      nextViews.commit(views);
+      if (instances !== snapshot.instances) instances = snapshot.capture(instances);
       for (const instance of instances)
         if (!assets[instance.classId]) throw Error(`Missing appearance ${instance.classId}`);
       if (next.levels.length < instances.length)
@@ -60,20 +70,9 @@ export function createCrowdAudienceHistory(
       for (let i = 0; i < instances.length; i++) {
         const instance = instances[i];
         if (plan.visibility[i] & 1 && plan.levels[i] === 3)
-          groups.get(instance.classId)!.push({
-            ...instance,
-            // Retain only the playback weight read by corpsePresentationStrength.
-            // No pose arrays, samples or assets are cloned for camera refresh.
-            playback:
-              !instance.alive && instance.playback
-                ? {
-                    appearanceId: instance.playback.appearanceId,
-                    base: { ...instance.playback.base },
-                  }
-                : undefined,
-          });
+          groups.get(instance.classId)!.push(instance);
       }
-      pending = { count: instances.length, plan, groups };
+      pending = { count: instances.length, instances: snapshot.instances, plan, groups };
       return pending;
     },
     commit(publication: Publication) {
@@ -89,11 +88,15 @@ export function createCrowdAudienceHistory(
         if (previous.visibility[i] & 1)
           visibleTierHistogram[`l${previous.levels[i]}` as keyof typeof visibleTierHistogram]++;
       shadowTierHistogram = { ...publication.plan.shadowCounts };
+      [viewState, nextViews] = [nextViews, viewState];
       pending = undefined;
       ready = true;
     },
     abort(publication: Publication) {
-      if (pending === publication) pending = undefined;
+      if (pending === publication) {
+        pending = undefined;
+        if (disposed) snapshot.clear();
+      }
     },
     refreshImpostors(update: (groups: ReadonlyMap<number, readonly CrowdInstance[]>) => void) {
       check(true);
@@ -116,8 +119,12 @@ export function createCrowdAudienceHistory(
     dispose() {
       disposed = true;
       ready = false;
-      pending = undefined;
       selected.clear();
+      // An asynchronous mesh upload still reads this admitted array after awaits.
+      // Its abort releases the storage after the upload has actually settled.
+      if (!pending) snapshot.clear();
+      viewState.clear();
+      nextViews.clear();
       previous = createCrowdLodBuffers(0);
       next = createCrowdLodBuffers(0);
     },

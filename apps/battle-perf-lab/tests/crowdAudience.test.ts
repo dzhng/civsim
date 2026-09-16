@@ -41,6 +41,9 @@ vi.mock("../candidates/typegpu/impostor", () => ({
 vi.mock("../src/vgpu/impostor", () => ({
   createVgpuImpostors: atlasFactory,
 }));
+vi.mock("../src/raw/crowd", () => ({ createRawCrowd: async () => state.mesh }));
+vi.mock("../src/raw/impostor", () => ({ createRawImpostors: atlasFactory }));
+import { createRawCrowdAudience } from "../src/raw/crowdAudience";
 import { createTypegpuCrowdAudience } from "../candidates/typegpu/crowdAudience";
 import { createVgpuCrowdAudience } from "../src/vgpu/crowdAudience";
 import type { CrowdProjectionView } from "../../../packages/crowd-runtime/src/visibility";
@@ -117,7 +120,14 @@ for (const backend of ["typegpu", "vgpu"] as const) {
       x: 0,
       facing: 0,
       alive: false,
-      playback: { base: { weight: 0.25 } },
+      playback: {
+        appearanceId: 0,
+        base: {
+          weight: 0.25,
+          source: { kind: "clip", sample: { clip: "die", phase: 0 } },
+          destination: { clip: "die", phase: 0.5 },
+        },
+      },
     };
     await owner.upload([dynamic] as never, [view(0.1)], camera);
     dynamic.x = 77;
@@ -161,6 +171,44 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     await owner.upload([soldier], [view(17 / 1.8)], camera);
     expect(state.mesh.upload.mock.lastCall![1].levels[0]).toBe(1);
     owner.dispose();
+  });
+  test(`${backend}: asynchronous upload retains the view and submitted data from admission`, async () => {
+    const owner = await create(backend);
+    let finish!: () => void;
+    state.mesh.upload.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const input = { ...soldier, x: 12 };
+    const projection = view(10);
+    const pending = owner.upload([input], [projection], camera);
+    input.x = 99;
+    projection.projection.pixelsPerViewUnit = 30;
+    finish();
+    await pending;
+    expect(state.mesh.upload.mock.lastCall![0][0].x).toBe(12);
+    expect(await owner.reproject([projection], camera)).toBe(true);
+    expect(await owner.reproject([projection], camera)).toBe(false);
+    owner.dispose();
+  });
+  test(`${backend}: disposal preserves admitted input until the last asynchronous mesh read`, async () => {
+    const owner = await create(backend);
+    let finish!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    let observed: number | undefined;
+    state.mesh.upload.mockImplementationOnce(async (instances) => {
+      await gate;
+      observed = instances[0].x;
+    });
+    const pending = owner.upload([{ ...soldier, x: 42 }], [view(10)], camera);
+    owner.dispose();
+    finish();
+    await expect(pending).rejects.toThrow("disposed");
+    expect(observed).toBe(42);
+    expect(state.mesh.dispose).toHaveBeenCalledOnce();
   });
   test(`${backend}: pending upload rejects concurrency and disposal is completed before the owned promise rejects`, async () => {
     const owner = await create(backend);
@@ -213,5 +261,56 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     await expect(create(backend)).rejects.toThrow("atlas admission failed");
     expect(state.mesh.dispose).toHaveBeenCalledOnce();
     expect(state.layers.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
+  });
+}
+
+for (const backend of ["raw", "typegpu", "vgpu"] as const) {
+  test(`${backend}: camera-only reproject selects new bodies from owned submission and skips equal views`, async () => {
+    const owner =
+      backend === "raw"
+        ? await createRawCrowdAudience(
+            {} as never,
+            {} as never,
+            assets as never,
+            atlases as never,
+            {} as never,
+            {} as never,
+          )
+        : await create(backend);
+    const input = {
+      ...soldier,
+      x: 50,
+      playback: {
+        appearanceId: 0,
+        base: {
+          source: { kind: "clip" as const, sample: { clip: "idle", phase: 0.1 } },
+          destination: { clip: "walk", phase: 0.2 },
+          weight: 0.5,
+        },
+      },
+    };
+    const hidden = {
+      ...view(10),
+      frustum: { planes: [{ normal: { x: -1, y: 0, z: 0 }, constant: 10 }] },
+    };
+    await owner.upload([input], [hidden], camera);
+    expect(owner.stats().mainVisible).toBe(0);
+    expect(await owner.reproject([hidden], camera)).toBe(false);
+    expect(state.mesh.upload).toHaveBeenCalledTimes(1);
+    input.x = 999;
+    input.playback.base.destination.phase = 0.9;
+    const visible = view(10);
+    expect(await owner.reproject([visible], camera)).toBe(true);
+    expect(owner.stats().mainVisible).toBe(1);
+    expect(state.mesh.upload.mock.lastCall![0][0].x).toBe(50);
+    expect(state.mesh.upload.mock.lastCall![0][0].playback.base.destination.phase).toBe(0.2);
+    expect(await owner.reproject([view(10)], camera)).toBe(false);
+    expect(state.mesh.upload).toHaveBeenCalledTimes(2);
+    // Mutable physical projection and independent caster changes both invalidate.
+    visible.projection.pixelsPerViewUnit = 20;
+    expect(await owner.reproject([visible], camera)).toBe(true);
+    expect(await owner.reproject([visible, view(10, true)], camera)).toBe(true);
+    expect(await owner.reproject([visible, view(10, true)], camera)).toBe(false);
+    owner.dispose();
   });
 }

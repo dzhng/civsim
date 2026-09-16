@@ -21,3 +21,18 @@ Visual variable: animation/pose continuity only; crop entire representative infa
 Keep existing camera, crowd LOD, animation/pose, grass sampling, depth, default-renderer and lifecycle checks green; run the narrow affected checks plus the standing hardware `battle-perf-30k` gate for renderer changes. Preserve its thresholds. Record pre-existing reds separately; do not re-bless unrelated failures. Simulation semantics and campaign consumers must remain unchanged.
 
 For every visual artifact, inspect the actual candidate; use [compare-screenshots](../../../.agents/skills/compare-screenshots/SKILL.md) against the matched baseline/reference, then run an unprimed [screenshot-critique](../../../.agents/skills/screenshot-critique/SKILL.md) as the **last visual acceptance check**. Use screenshot-regression/snapCheck for captures. Motion claims need a frame sequence/video as well as stills. Store evidence under this spec. Open review shots via preview-shots, allow about five minutes while doing other work, then record an evidence-based decision if no reply arrives and close the shots. Human feedback is non-blocking; failed acceptance is not.
+
+## Current implementation checkpoint
+
+[Owned camera-only publication](../assets/06b-camera-reprojection/README.md)
+keeps camera and shadow audiences coherent in all four renderers. The crowd owner
+retains reusable submitted state; copied frusta and projection footprints detect
+changed demand without treating elapsed time as a pose update. Normal new
+submissions still advance animation. Source and native owners share the snapshot
+and invalidation contracts; native asynchronous uploads retain their input until
+settlement even when disposed.
+
+This checkpoint does not close this slice. Live frames still build and submit
+current observation/playback state, and the final allocation/upload, growth,
+continuous-motion and performance gates remain required. Camera-only correction
+must not be presented as a measured live-frame speedup.

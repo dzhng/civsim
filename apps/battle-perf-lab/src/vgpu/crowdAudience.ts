@@ -10,8 +10,8 @@ import { createVgpuCrowd } from "./crowd";
 import { createVgpuImpostors } from "./impostor";
 
 /** Owns this library's mesh/pose and full-catalog atlas resources. Borrowed camera,
- * environment and submission context retain their owners. Upload input must remain
- * stable until its promise settles; concurrent uploads reject. */
+ * environment and submission context retain their owners. Submitted values are copied
+ * at admission; concurrent uploads reject. */
 export async function createVgpuCrowdAudience(
   gpu: Gpu,
   assets: Record<number, AppearanceBundle>,
@@ -52,38 +52,45 @@ export async function createVgpuCrowdAudience(
     for (const id of history.ids)
       far.set(id, await createVgpuImpostors(gpu, atlases[id], environment, camera, samples));
     const meshOwner = mesh;
-    return {
-      async upload(
-        instances: readonly CrowdInstance[],
-        views: readonly CrowdProjectionView[],
-        view: ImpostorView,
-      ) {
-        const publication = history.begin(instances, views);
-        uploading = true;
-        let failure: { error: unknown } | undefined;
-        try {
-          await meshOwner.upload(instances, publication.plan);
-          history.check();
-          for (const [id, layer] of far) layer.update(publication.groups.get(id)!, view);
-          history.commit(publication);
-        } catch (error) {
-          history.abort(publication);
-          failure = { error };
-        } finally {
-          uploading = false;
-          if (disposed) {
-            try {
-              release();
-            } catch (error) {
-              failure = {
-                error: failure
-                  ? new AggregateError([failure.error, error], "Crowd upload and cleanup failed")
-                  : error,
-              };
-            }
+    const upload = async (
+      instances: readonly CrowdInstance[],
+      views: readonly CrowdProjectionView[],
+      view: ImpostorView,
+    ) => {
+      const publication = history.begin(instances, views);
+      uploading = true;
+      let failure: { error: unknown } | undefined;
+      try {
+        await meshOwner.upload(publication.instances, publication.plan);
+        history.check();
+        for (const [id, layer] of far) layer.update(publication.groups.get(id)!, view);
+        history.commit(publication);
+      } catch (error) {
+        history.abort(publication);
+        failure = { error };
+      } finally {
+        uploading = false;
+        if (disposed) {
+          try {
+            release();
+          } catch (error) {
+            failure = {
+              error: failure
+                ? new AggregateError([failure.error, error], "Crowd upload and cleanup failed")
+                : error,
+            };
           }
         }
-        if (failure) throw failure.error;
+      }
+      if (failure) throw failure.error;
+    };
+    return {
+      upload,
+      async reproject(views: readonly CrowdProjectionView[], view: ImpostorView) {
+        history.check(true);
+        if (history.matchesViews(views)) return false;
+        await upload(history.instances(), views, view);
+        return true;
       },
       refreshCamera(view: ImpostorView) {
         history.refreshImpostors((groups) => {

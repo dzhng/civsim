@@ -15,8 +15,10 @@ import { battleSceneCamera } from "../sceneCamera";
 import { reverseZFrustumPlanes } from "../crowdFrustum";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import type { CrowdProjectionView } from "../../../../packages/crowd-runtime/src/visibility";
-import { terrainHeightAt } from "../../../../packages/game-renderer/src/terrain/heightField";
-import { projectionFootprint } from "../../../../packages/renderer-core/src/camera3d";
+import {
+  terrainHeightAt,
+  heightFieldRange,
+} from "../../../../packages/game-renderer/src/terrain/heightField";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
 import {
   createWindUniforms,
@@ -132,19 +134,17 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
       ),
     );
     const triangles = own(await createVgpuTriangleLayer(gpu, frame.camera, options.samples));
-    const updateShadowAudience = (): CrowdProjectionView[] => {
-      const data = shadow?.setWorldRect(terrain.rect());
-      return data
-        ? [
-            {
-              shadow: true,
-              frustum: { planes: reverseZFrustumPlanes(data.viewProjection) },
-              projection: projectionFootprint(data.view, data.projection, data.mapSize, data.near),
-            },
-          ]
-        : [];
-    };
-    let shadowViews = updateShadowAudience();
+    const updateShadowAudience = (): CrowdProjectionView[] =>
+      shadow?.setWorldRect(terrain.rect(), heightFieldRange(terrain.field())).crowdViews ?? [];
+    updateShadowAudience();
+    const crowdViews = (camera: ReturnType<typeof battleSceneCamera>): CrowdProjectionView[] => [
+      {
+        shadow: false,
+        frustum: { planes: reverseZFrustumPlanes(camera.viewProjection) },
+        projection: camera.projection,
+      },
+      ...(shadow?.update(camera.snapshot.camera3d).crowdViews ?? []),
+    ];
     const wind = createWindUniforms(),
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
@@ -169,7 +169,7 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
             committed = true;
             life.check();
             grass.setTerrain(terrain.grid(), terrain.field(), terrain.cover());
-            shadowViews = updateShadowAudience();
+            updateShadowAudience();
           } catch (error) {
             if (committed) life.dispose();
             throw error;
@@ -207,18 +207,7 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
             options.environment,
           );
           grass.update(camera.snapshot.camera3d, frame.height);
-          await crowd.upload(
-            instances,
-            [
-              {
-                shadow: false,
-                frustum: { planes: reverseZFrustumPlanes(camera.viewProjection) },
-                projection: camera.projection,
-              },
-              ...shadowViews,
-            ],
-            camera.impostor,
-          );
+          await crowd.upload(instances, crowdViews(camera), camera.impostor);
           life.check();
           nativeGpuScope(gpu.device.gpu, "pose", () => crowd.precompute());
         });
@@ -259,6 +248,9 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
           frame.setCamera(camera.snapshot, camera.observer, options.grade);
           standards.setView(camera.view, input.time);
           readouts.setCamera(camera.viewProjection, camera.world);
+          if (await crowd.reproject(crowdViews(camera), camera.impostor)) {
+            nativeGpuScope(gpu.device.gpu, "pose", () => crowd.precompute());
+          }
           crowd.refreshCamera(camera.impostor);
           updateWindUniforms(wind, input.time);
           await grass.prepare(

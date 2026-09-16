@@ -39,21 +39,28 @@ export async function createRawCrowdAudience(
         await createRawImpostors(device, atlases[id], cameraLayout, environment, sampleCount),
       );
     const meshOwner = mesh;
+    const upload = (
+      instances: readonly CrowdInstance[],
+      views: readonly CrowdProjectionView[],
+      view: ImpostorView,
+    ) => {
+      const publication = history.begin(instances, views);
+      try {
+        meshOwner.upload(publication.instances, publication.plan);
+        for (const [id, layer] of far) layer.update(publication.groups.get(id)!, view);
+        history.commit(publication);
+      } catch (error) {
+        history.abort(publication);
+        throw error;
+      }
+    };
     return {
-      upload(
-        instances: readonly CrowdInstance[],
-        views: readonly CrowdProjectionView[],
-        view: ImpostorView,
-      ) {
-        const publication = history.begin(instances, views);
-        try {
-          meshOwner.upload(instances, publication.plan);
-          for (const [id, layer] of far) layer.update(publication.groups.get(id)!, view);
-          history.commit(publication);
-        } catch (error) {
-          history.abort(publication);
-          throw error;
-        }
+      upload,
+      reproject(views: readonly CrowdProjectionView[], view: ImpostorView) {
+        history.check(true);
+        if (history.matchesViews(views)) return false;
+        upload(history.instances(), views, view);
+        return true;
       },
       refreshCamera(view: ImpostorView) {
         history.refreshImpostors((groups) => {

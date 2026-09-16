@@ -20,8 +20,10 @@ import { battleSceneCamera } from "../../src/sceneCamera";
 import { reverseZFrustumPlanes } from "../../src/crowdFrustum";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import type { CrowdProjectionView } from "../../../../packages/crowd-runtime/src/visibility";
-import { terrainHeightAt } from "../../../../packages/game-renderer/src/terrain/heightField";
-import { projectionFootprint } from "../../../../packages/renderer-core/src/camera3d";
+import {
+  terrainHeightAt,
+  heightFieldRange,
+} from "../../../../packages/game-renderer/src/terrain/heightField";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
 import {
   createWindUniforms,
@@ -145,19 +147,17 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       await createTypegpuTriangleLayer(device, frame.cameraGroup, options.samples),
     );
     const shadowCamera = shadow?.cameraGroup;
-    const updateShadowAudience = (): CrowdProjectionView[] => {
-      const data = shadow?.setWorldRect(terrain.rect());
-      return data
-        ? [
-            {
-              shadow: true,
-              frustum: { planes: reverseZFrustumPlanes(data.viewProjection) },
-              projection: projectionFootprint(data.view, data.projection, data.mapSize, data.near),
-            },
-          ]
-        : [];
-    };
-    let shadowViews = updateShadowAudience();
+    const updateShadowAudience = (): CrowdProjectionView[] =>
+      shadow?.setWorldRect(terrain.rect(), heightFieldRange(terrain.field())).crowdViews ?? [];
+    updateShadowAudience();
+    const crowdViews = (camera: ReturnType<typeof battleSceneCamera>): CrowdProjectionView[] => [
+      {
+        shadow: false,
+        frustum: { planes: reverseZFrustumPlanes(camera.viewProjection) },
+        projection: camera.projection,
+      },
+      ...(shadow?.update(camera.snapshot.camera3d).crowdViews ?? []),
+    ];
     const wind = createWindUniforms(),
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
@@ -179,7 +179,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
             committed = true;
             check();
             grass.setTerrain(terrain.grid(), terrain.field(), terrain.cover());
-            shadowViews = updateShadowAudience();
+            updateShadowAudience();
           } catch (error) {
             // A failed staged replacement preserves the old scene. After terrain commits,
             // a dependent failure is terminal rather than presenting mixed generations.
@@ -228,18 +228,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
             options.environment,
           );
           grass.update(camera.snapshot.camera3d, frame.height);
-          await crowd.upload(
-            instances,
-            [
-              {
-                shadow: false,
-                frustum: { planes: reverseZFrustumPlanes(camera.viewProjection) },
-                projection: camera.projection,
-              },
-              ...shadowViews,
-            ],
-            camera.impostor,
-          );
+          await crowd.upload(instances, crowdViews(camera), camera.impostor);
           check();
           // Source pose work belongs to each draw update, including updates before a render.
           const encoder = frame.createCommandEncoder();
@@ -290,6 +279,11 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           frame.setCamera(camera.snapshot, camera.observer, options.grade);
           standards.setView(camera.view, input.time);
           readouts.setCamera(camera.viewProjection, camera.world);
+          if (await crowd.reproject(crowdViews(camera), camera.impostor)) {
+            const encoder = frame.createCommandEncoder();
+            nativeGpuScope(device, "pose", () => crowd.precompute(frame.nativeEncoder(encoder)));
+            encoder.submit();
+          }
           crowd.refreshCamera(camera.impostor);
           updateWindUniforms(wind, input.time);
           await grass.prepare(

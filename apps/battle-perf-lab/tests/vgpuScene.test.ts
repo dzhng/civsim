@@ -52,7 +52,8 @@ vi.mock("../src/vgpu/shadow", () => ({
   createVgpuSunShadow: () =>
     layer("shadow", {
       camera: {},
-      setWorldRect: () => undefined,
+      setWorldRect: () => ({ crowdViews: [] }),
+      update: () => ({ crowdViews: [] }),
       encode: (_f: object, draw: () => void) => {
         state.events.push("shadow");
         draw();
@@ -63,7 +64,7 @@ vi.mock("../src/vgpu/terrainScene", () => ({
   createVgpuBattleTerrainScene: async () =>
     layer("terrain", {
       grid: () => ({}),
-      field: () => ({}),
+      field: () => ({ height: new Float32Array([0]), verticalScale: 1 }),
       cover: () => ({}),
       rect: () => [0, 0, 1, 1],
       heightAt: () => 0,
@@ -78,6 +79,7 @@ vi.mock("../src/vgpu/crowdAudience", () => ({
   createVgpuCrowdAudience: async () =>
     layer("crowd", {
       upload: (...args: unknown[]) => state.crowdUpload(...args),
+      reproject: async () => false,
       refreshCamera: () => state.events.push("far.refresh"),
       precompute: () => state.events.push("pose"),
       draw: (_p: object, audience = "main") => state.events.push(`crowd.${audience}`),

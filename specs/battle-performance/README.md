@@ -4,22 +4,30 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: finish camera-only audience refresh from owned submitted crowd
-state, then complete native fitted-shadow scene wiring and refresh matched
-comparison controls. The shared fit and [native resource controls](assets/08-native-shadow-fit/README.md)
-are verified; scene wiring remains uncommitted pending that coherence fix.
-`CrowdFrameSnapshot` and its two tests are a started, unintegrated implementation
-in the working tree. Retain pooled scalar/playback shells, sharing readonly frozen
-pose arrays; never recull borrowed caller arrays. A changed physical camera,
-framebuffer or shadow domain must reselect and prepare newly visible poses;
-unchanged/time-only preparations must avoid additional pose work. Both Three and
-native scene owners have the existing stale-audience edge case.
+Current pickup: reconcile the standing 30k gate's grass accounting and unreachable
+close-zoom requests without weakening its timing/content floors, then refresh
+matched four-backend controls for the final comparison. The [camera-only
+publication checkpoint](assets/06b-camera-reprojection/README.md) is verified:
+all four renderers retain submitted crowd state and reselect only when actual
+visibility inputs change. Native fitted-shadow wiring is integrated. The new
+production regression is red on prior source and green on the candidate; all 24
+native/source scene states match audience counts and LOD distributions.
+
+The standing 30k gate remains red on two grass-accounting assertions in both
+previous and current source. Its timing checks pass, but requested close zooms 24/28
+actually settle at 8, so that coverage cannot be claimed. Expose base sampling
+separately from resident-tile accepted/allocated records; keep static capacity 1M,
+accepted grass ≥40k, scenery ≥500, soldiers ≥30k and every 33 ms threshold. Validate
+actual camera endpoints before claiming the close-view timing rows. Do not merely
+substitute a new capacity constant or count padded focus slots as grass content.
+
 The latest [combined full hardware run](assets/combined-optimized-runtime/README.md)
-passes all functional checks but still delivers 20.79 FPS and 135.9 simulated
-seconds in five real minutes. It is not quiet ranking evidence. The primary Vite
-server is stopped. The shadow-control Vite server is session25531 on port5295;
-all three fitted GPU control jobs are complete. The [shared policy extraction](assets/08-shared-shadow-policy/README.md)
-preserves all 128 recorded Three camera states.
+passes functional checks but delivers 20.79 FPS and 135.9 simulated seconds in five
+real minutes. It is not quiet ranking evidence. The production Vite server is
+session 74952, port5294; native scene server session 10237, port5296. All current
+hardware jobs have finished. The [shared fit extraction](assets/08-shared-shadow-policy/README.md)
+and [native resource controls](assets/08-native-shadow-fit/README.md) preserve the
+common shadow contract; old fixed builds remain research controls only.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
 early/later battle hashes and reduces the uninstrumented later Node window by
 about7.8%; it does not establish browser cadence or30Hz simulation. The tested

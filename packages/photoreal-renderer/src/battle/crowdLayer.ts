@@ -1,3 +1,5 @@
+import { CrowdFrameSnapshot } from "../../../crowd-runtime/src/frameSnapshot";
+import { CrowdViewState } from "../../../crowd-runtime/src/viewState";
 // crowdLayer — the skinned crowd on the photoreal substrate: per-class meshes,
 // shared computed joint palettes, corpse desaturation, and faction accents. Soldiers use
 // a standard-material response with a NEUTRAL albedo; the sun + IBL light the
@@ -160,7 +162,8 @@ export class PhotorealCrowd {
     viewVisible: 0,
     shadowOnly: 0,
   };
-  private sourceInstances: CrowdInstance[] = [];
+  private readonly snapshot = new CrowdFrameSnapshot();
+  private readonly viewState = new CrowdViewState();
   private uploadFailed = false;
 
   private constructor(private readonly assets: Record<number, AppearanceBundle>) {}
@@ -292,13 +295,14 @@ export class PhotorealCrowd {
 
   upload(instances: CrowdInstance[], scope?: CrowdVisibilityScope): void {
     try {
+      if (instances !== this.snapshot.instances) instances = this.snapshot.capture(instances);
       this.uploadFrame(instances, scope);
+      this.viewState.commit(scope?.views ?? []);
       this.uploadFailed = false;
     } catch (error) {
       // No frame may mix newly prepared rig groups with old or missing palettes.
       // A later complete upload can recover; never hide the original error.
       this.uploadFailed = true;
-      this.sourceInstances = [];
       this.visibleCounts = emptyLodCounts();
       this.shadowCounts = emptyLodCounts();
       this.culling.visible = 0;
@@ -317,7 +321,6 @@ export class PhotorealCrowd {
 
   private uploadFrame(instances: CrowdInstance[], scope?: CrowdVisibilityScope): void {
     this.instanceCount = instances.length;
-    this.sourceInstances = instances;
     for (const group of this.groups) {
       for (const bucket of group.buckets) {
         bucket.pending.length = 0;
@@ -426,7 +429,7 @@ export class PhotorealCrowd {
   }
 
   debugSoldierAnim(index: number) {
-    const inst = this.sourceInstances[index];
+    const inst = this.uploadFailed ? undefined : this.snapshot.instances[index];
     if (!inst) return null;
     return {
       root: [inst.x, inst.y],
@@ -436,6 +439,11 @@ export class PhotorealCrowd {
       duration: this.assets[inst.classId].animation.clips.find((clip) => clip.name === inst.clip)!
         .duration,
     };
+  }
+
+  reproject(scope: CrowdVisibilityScope): void {
+    if (this.uploadFailed) throw Error("Crowd frame upload failed");
+    if (!this.viewState.matches(scope.views)) this.upload(this.snapshot.instances, scope);
   }
 
   refreshCamera(camera: THREE.Camera): void {
@@ -529,6 +537,8 @@ export class PhotorealCrowd {
   }
 
   dispose(): void {
+    this.snapshot.clear();
+    this.viewState.clear();
     for (const bucket of this.groups.flatMap((group) => group.buckets)) {
       bucket.mesh.removeFromParent();
       bucket.geometry.dispose();

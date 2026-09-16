@@ -545,6 +545,9 @@ export class PhotorealBattleWorld {
     this.world.gpuTelemetry.withScope("grass", () =>
       this.grass.prepareRender(this.world.renderer, this.lastCamera.camera3d),
     );
+    this.world.gpuTelemetry.withScope("pose", () =>
+      this.crowd.reproject(this.crowdVisibilityScope()),
+    );
     this.crowd.refreshCamera(this.camera);
     this.readoutLayer.setCameraBasis(this.camera);
     this.background.setStyle(terrainBackdropStyleForZoom(this.lastCamera.zoom));

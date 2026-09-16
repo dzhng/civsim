@@ -161,6 +161,7 @@ async function run() {
       -12, -8, 0.9, 0.2, 0.1, 0.3, 12, -8, 0.9, 0.2, 0.1, 0.3, 0, 10, 0.9, 0.2, 0.1, 0.3,
     ]);
     const results = [];
+    const cameraOnly = params.has("cameraOnly");
     for (const [label, distance, pitch] of [
       ["tactical", 150, 0.6],
       ["wide", 450, 0.5],
@@ -184,7 +185,8 @@ async function run() {
       };
       stage(`${label}:source-upload`);
       source.setTime(0);
-      source.drawInstances(instances, camera);
+      if (!cameraOnly || label === "tactical") source.drawInstances(instances, camera);
+      else source.drawTris(attack, camera);
       const readouts: BattleReadoutInstance[] = standards.map((s) => ({
         unitId: s.unitId,
         x: s.x,
@@ -199,7 +201,7 @@ async function run() {
       const sourceInitial = sourceCanvas.toDataURL();
       const sourceInitialStats = source.stats();
       stage(`${label}:candidate-upload`);
-      await scene.uploadCrowd(instances, camera, 0);
+      if (!cameraOnly || label === "tactical") await scene.uploadCrowd(instances, camera, 0);
       await scene.uploadReadouts(standards, readouts);
       await scene.uploadTriangles(attack);
       await scene.uploadTacticalLines(lines);
@@ -243,7 +245,15 @@ async function run() {
     stage("dispose");
     for (const fn of release.splice(0).reverse()) fn();
     const remaining = { textures: textures.liveCount(), buffers: buffers.liveCount() };
-    return { backend, results, errors, remaining, instances: instances.length, rankable: false };
+    return {
+      backend,
+      cameraOnly,
+      results,
+      errors,
+      remaining,
+      instances: instances.length,
+      rankable: false,
+    };
   } finally {
     for (const fn of release.reverse()) fn();
     device?.destroy();

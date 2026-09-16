@@ -23,9 +23,8 @@ substitute a new capacity constant or count padded focus slots as grass content.
 
 The latest [combined full hardware run](assets/combined-optimized-runtime/README.md)
 passes functional checks but delivers 20.79 FPS and 135.9 simulated seconds in five
-real minutes. It is not quiet ranking evidence. The production Vite server is
-session 74952, port5294; native scene server session 10237, port5296. All current
-hardware jobs have finished. The [shared fit extraction](assets/08-shared-shadow-policy/README.md)
+real minutes. It is not quiet ranking evidence. Both development servers are stopped and all current hardware jobs have
+finished. The [shared fit extraction](assets/08-shared-shadow-policy/README.md)
 and [native resource controls](assets/08-native-shadow-fit/README.md) preserve the
 common shadow contract; old fixed builds remain research controls only.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded

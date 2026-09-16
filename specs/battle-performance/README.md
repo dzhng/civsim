@@ -4,20 +4,19 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: measure a bounded original/4k phalanx cost comparison before
-expanding asset work. The [canonical contact fixture](assets/07-projected-detail/contact-opportunity/README.md)
-now verifies its tick/hash and identifies near-detail demand in selected views. The [first current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
-is functional across all four backends but unrankable. [Grass attribution](assets/05-grass-main-attribution/README.md)
-is limited to a non-contact fixture. A blind LOD threshold increase is rejected.
-The [4k phalanx prototype](assets/07-projected-detail/canonical-reversal/README.md)
-retains recognizable silhouettes and equipment in sampled canonical poses through
-a trial camera reversal,
-with a small armor-tonality change. It remains experimental. Its intended route
-to savings is a calibrated intermediate main-view interval; merely replacing the
-middle mesh without changing admission saves almost no work in the measured
-L0-heavy contact view. Test bounded paired contact cost before broader art work.
-Production assets and thresholds remain unchanged. Then refresh balanced backend
-comparisons to choose ownership. No backend has won; live throughput, moving-camera
+Current pickup: calibrate improved intermediate infantry meshes over the measured
+18–32-pixel main-view band, starting with the highest-count classes. The
+[same-crowd geometry control](assets/07-projected-detail/main-geometry-cost/README.md)
+shows a large reversible cost opportunity with unchanged audiences, grass and
+shadow counts; its existing-middle substitution has known visual defects and
+cannot ship. Preserve original close detail and validate canonical poses plus
+dense transitions before selecting a policy. The [single-class control](assets/07-projected-detail/phalanx-cost/README.md)
+is inconclusive because of drift. [Contact demand](assets/07-projected-detail/contact-opportunity/README.md)
+and [phalanx reversal evidence](assets/07-projected-detail/canonical-reversal/README.md)
+remain bounded diagnostics. Production assets and thresholds are unchanged.
+The [current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
+is functional across all four backends but unrankable. Refresh balanced comparisons
+after any adopted change. No backend has won; live throughput, moving-camera
 quality and net-shadow savings remain open.
 
 [Current fixed builds](assets/02-paired-controls-98fc8a45/README.md) include

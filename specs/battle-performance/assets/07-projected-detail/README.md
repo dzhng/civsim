@@ -40,3 +40,8 @@ The [ordinary contact-state fixture recipe](contact-fixture.md) preserves the
 canonical battle for follow-up feature controls without the benchmark controller;
 the [first execution](contact-opportunity/README.md) verifies its hash and
 identifies near-detail demand in seven selected camera poses.
+
+The [single-class cost control](phalanx-cost/README.md) verifies matching admissions
+but has substantial return-control drift. The [same-crowd main-geometry diagnostic](main-geometry-cost/README.md) then
+shows a large reversible cost opportunity. Its known-low-quality substitution
+cannot ship; calibrated intermediate representations remain necessary.

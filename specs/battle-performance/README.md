@@ -4,15 +4,15 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: optimize the measured targeting/projection scans without changing
-simulation ordering or results, alongside measured crowd-state work. The
-[exact-WASM stage profile](assets/03a-wasm-stages/README.md) identifies these as the
-largest contact-window costs. Native canonical profiling was rejected on hash
-divergence; use WASM for exact comparisons. The bucket-check prefilter showed no
-selective gain and was reverted. A later-combat stage probe is running in session
-`11099`; inspect `throwaway/claude-agents/kernel-later-stages.log` and its
-`.json.later.json` output before starting another measurement. Later combat is not
-yet validated against an independent production fingerprint. The [combined five-minute hardware run](assets/combined-runtime/README.md)
+Current pickup: verify the pending demand-driven seating diagnostic change, then
+refresh live motion/performance with the integrated friend-sample cutoff cache.
+The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
+early/later battle hashes and reduces the uninstrumented later Node window by
+about7.8%; it does not establish browser cadence or30Hz simulation. The tested
+release WASM is installed locally; the previous worker binary is retained under
+`throwaway/claude-agents/wasm-before-friend-cutoff`. Exact-WASM profiling still
+identifies targeting, projection and weapon repulsion as remaining costs. Native
+canonical profiling diverges and cannot substitute for exact WASM comparisons. The [combined five-minute hardware run](assets/combined-runtime/README.md)
 passes all functional checks but records 19.10 FPS and only 150.83 simulated
 seconds in 300.10 real seconds. This is not performance acceptance or a matched
 speedup comparison. Its separate host observer includes the benchmark process in

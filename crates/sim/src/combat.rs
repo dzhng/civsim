@@ -137,6 +137,7 @@ struct NearbyFriend {
 fn record_friend(
     friends: &mut [Option<NearbyFriend>; MAX_NEARBY_FRIENDS],
     friends_len: &mut usize,
+    least_preferred: &mut Option<usize>,
     friend: NearbyFriend,
     multiple_bodies: bool,
 ) {
@@ -150,6 +151,7 @@ fn record_friend(
         {
             if friend.distance < existing.distance {
                 *existing = friend;
+                *least_preferred = None;
             }
             return;
         }
@@ -158,15 +160,18 @@ fn record_friend(
         friends[*friends_len] = Some(friend);
         *friends_len += 1;
     } else {
-        let least_preferred = friends
-            .iter()
-            .flatten()
-            .enumerate()
-            .max_by_key(|(_, f)| f.priority)
-            .map(|(k, _)| k)
-            .unwrap();
-        if friend.priority < friends[least_preferred].unwrap().priority {
-            friends[least_preferred] = Some(friend);
+        let slot = *least_preferred.get_or_insert_with(|| {
+            friends
+                .iter()
+                .flatten()
+                .enumerate()
+                .max_by_key(|(_, f)| f.priority)
+                .map(|(k, _)| k)
+                .unwrap()
+        });
+        if friend.priority < friends[slot].unwrap().priority {
+            friends[slot] = Some(friend);
+            *least_preferred = None;
         }
     }
 }
@@ -414,12 +419,110 @@ mod tests {
     fn normalized(order: impl IntoIterator<Item = NearbyFriend>) -> Vec<NearbyFriend> {
         let mut friends = [None; MAX_NEARBY_FRIENDS];
         let mut friends_len = 0usize;
+        let mut least_preferred = None;
         for friend in order {
-            record_friend(&mut friends, &mut friends_len, friend, true);
+            record_friend(
+                &mut friends,
+                &mut friends_len,
+                &mut least_preferred,
+                friend,
+                true,
+            );
         }
         let mut measured: Vec<_> = friends[..friends_len].iter().flatten().copied().collect();
         measured.sort_by_key(|f| f.owner);
         measured
+    }
+
+    #[test]
+    fn nearer_mounted_body_refreshes_the_full_sample_cutoff() {
+        let friend = |owner, priority, distance| NearbyFriend {
+            owner,
+            priority: (priority, 0, owner),
+            distance,
+            bearing: 0.0,
+            fighting: true,
+        };
+        for (owner, priority, incoming, replaced_slot) in [(0, 100, 90, 0), (23, -1, 21, 22)] {
+            let mut friends = [None; MAX_NEARBY_FRIENDS];
+            let mut len = 0;
+            let mut cutoff = None;
+            for i in 0..24 {
+                record_friend(
+                    &mut friends,
+                    &mut len,
+                    &mut cutoff,
+                    friend(i, i as i32, 2.0),
+                    true,
+                );
+            }
+            // A rejected candidate establishes the cutoff before a second horse
+            // body changes either the maximum slot or an unrelated retained slot.
+            record_friend(
+                &mut friends,
+                &mut len,
+                &mut cutoff,
+                friend(24, 200, 2.0),
+                true,
+            );
+            record_friend(
+                &mut friends,
+                &mut len,
+                &mut cutoff,
+                friend(owner, priority, 1.0),
+                true,
+            );
+            record_friend(
+                &mut friends,
+                &mut len,
+                &mut cutoff,
+                friend(25, incoming, 2.0),
+                true,
+            );
+            assert_eq!(len, 24);
+            assert_eq!(friends[replaced_slot].unwrap().owner, 25);
+        }
+    }
+
+    #[test]
+    fn full_sample_preserves_last_maximum_slot_and_rejects_equal_priority() {
+        let mut friends = [None; MAX_NEARBY_FRIENDS];
+        let mut len = 0;
+        let mut cutoff = None;
+        let friend = |owner, priority| NearbyFriend {
+            owner,
+            priority,
+            distance: 1.0,
+            bearing: 0.0,
+            fighting: true,
+        };
+        for owner in 0..24 {
+            record_friend(
+                &mut friends,
+                &mut len,
+                &mut cutoff,
+                friend(owner, (0, 0, 0)),
+                false,
+            );
+        }
+        let before = friends;
+        record_friend(
+            &mut friends,
+            &mut len,
+            &mut cutoff,
+            friend(24, (0, 0, 0)),
+            false,
+        );
+        assert_eq!(friends, before);
+        record_friend(
+            &mut friends,
+            &mut len,
+            &mut cutoff,
+            friend(25, (-1, 0, 0)),
+            false,
+        );
+        assert_eq!(&friends[..23], &before[..23]);
+        assert_eq!(friends[23].unwrap().owner, 25);
     }
 
     #[test]

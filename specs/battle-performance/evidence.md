@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Friend-sample cutoff](assets/03a-friend-cutoff/README.md): canonical early/later fingerprints match; uninstrumented later Node window49.65 versus53.85ms/tick. Live browser acceptance remains open.
+
 - [Exact-WASM stages](assets/03a-wasm-stages/README.md): canonical hashes pass; targeting and collision projection dominate the contact window. Native fingerprint divergence rejects native substitution. Default code/import/export sections remain identical; instrumentation stays opt-in.
 
 - [Current kernel profile](assets/03a-current-kernel/README.md): exact current-WASM contact control averages28.02ms/tick; matching executable sections validate restored symbols. Most sampled time belongs to the inlined battle tick. This is short Node diagnostic evidence, not sustained browser throughput.

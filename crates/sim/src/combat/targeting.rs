@@ -68,6 +68,7 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
     // computed against facing or target bearing as needed).
     let mut friends: [Option<NearbyFriend>; MAX_NEARBY_FRIENDS] = [None; MAX_NEARBY_FRIENDS];
     let mut friends_len = 0usize;
+    let mut least_preferred_friend = None;
     let mut fight_near = 0u32;
 
     let cx = (p.x / cell).floor() as i32;
@@ -112,6 +113,7 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                         record_friend(
                             &mut friends,
                             &mut friends_len,
+                            &mut least_preferred_friend,
                             NearbyFriend {
                                 owner: j as u32,
                                 bearing: bearing(),

@@ -25,16 +25,17 @@ archived with their host observations. All four runs are unrankable. Their trial
 jobs and previews are terminal. No user applications were stopped. Refresh
 disabled instrumentation arms before attributing a possible backend win.
 
-Current GPU job is the scratch native admission probe on raw: output/log under
-`throwaway/native-admission-probe.{json,log}`, native Vite server session 38181
-on port 5294. Probe exec session 85394. Poll this existing job before launching more GPU work.
-
-Next diagnostic: ordinary native presentation awaits seven sequential admission
-boundaries, including a nested submit admission (24 GPU error-scope pops). Three
-returns ordinary submission synchronously. Measure operation/admission wall time
-before changing validation; preserve failed-frame receipt and lifecycle semantics.
-Native `renderAwaitMs` includes Promise-continuation CPU work and must not be added
-to `renderCpuMs` as if the two were disjoint costs.
+The [native admission diagnostic](assets/02-native-admission/README.md) completed
+120 paused camera-sweep presentations. Seven sequential outer admissions plus
+nested submit validation are confirmed. Crowd invocation costs 16.81 ms at the
+median; reconcile/readout post-operation waits have 17.42/14.31 ms p95 tails.
+These are shared-host observed wall durations, not a measured optimization win.
+Next: test consolidation of routine validation waits while preserving failed-frame
+receipts, cancellation and resource replacement admission, then compare against
+the unchanged baseline. `renderAwaitMs` includes Promise-continuation work and
+cannot be added to `renderCpuMs` as disjoint CPU cost. All GPU jobs and servers
+from this pass are terminal. Invalid initial probes cloned function-bearing camera
+objects; the successful scratch probe stores evaluated values instead.
 
 The [camera-only publication checkpoint](assets/06b-camera-reprojection/README.md)
 is verified across all four renderers. The [standing grass/camera gate](assets/04-grass-camera-gate/README.md)

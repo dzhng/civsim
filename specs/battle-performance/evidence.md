@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Native admission diagnostic](assets/02-native-admission/README.md): 120 ordinary paused camera frames expose validation-wait tails and crowd invocation cost; no FPS win is claimed.
+
 - [Current fixed-build live controls](assets/02-current-live/README.md): refreshed shared runtime and release WASM; completed runs retain functional and host-isolation verdicts separately. No backend ranking yet.
 - [Camera-only publication](assets/06b-camera-reprojection/README.md) and [standing camera gate](assets/04-grass-camera-gate/README.md): submitted-state coherence across backends and all 18 paused-renderer checks, without proving live acceptance.
 - [Shared shadow policy](assets/08-shared-shadow-policy/README.md), [native fitted resources](assets/08-native-shadow-fit/README.md) and [shadow depth boundary](assets/08-shadow-depth-boundary/README.md): common fit ownership and focused correctness controls; continuous motion and net cost remain open.

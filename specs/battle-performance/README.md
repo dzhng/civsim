@@ -4,22 +4,23 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: reconcile the standing 30k gate's grass accounting and unreachable
-close-zoom requests without weakening its timing/content floors, then refresh
-matched four-backend controls for the final comparison. The [camera-only
-publication checkpoint](assets/06b-camera-reprojection/README.md) is verified:
-all four renderers retain submitted crowd state and reselect only when actual
-visibility inputs change. Native fitted-shadow wiring is integrated. The new
-production regression is red on prior source and green on the candidate; all 24
-native/source scene states match audience counts and LOD distributions.
+Current pickup: build new immutable Three/raw/TypeGPU/vgpu controls from the
+current worktree, then run the matched live comparison. Current native entrypoints
+share the production worker/WASM, progressive grass owner, fitted shadow policy
+and camera-only crowd contract. The old fixed builds are not current controls.
+Use the source/live Vite configs and a new output root; hash emitted files before
+linking shared public assets/benchmark atlases. Archive the current release WASM
+and provenance using the existing fixedBuildFixture/digest contract. Refresh
+instrumentation-disabled arms before attributing a possible renderer win.
 
-The standing 30k gate remains red on two grass-accounting assertions in both
-previous and current source. Its timing checks pass, but requested close zooms 24/28
-actually settle at 8, so that coverage cannot be claimed. Expose base sampling
-separately from resident-tile accepted/allocated records; keep static capacity 1M,
-accepted grass ≥40k, scenery ≥500, soldiers ≥30k and every 33 ms threshold. Validate
-actual camera endpoints before claiming the close-view timing rows. Do not merely
-substitute a new capacity constant or count padded focus slots as grass content.
+The [camera-only publication checkpoint](assets/06b-camera-reprojection/README.md)
+is verified across all four renderers. The [standing grass/camera gate](assets/04-grass-camera-gate/README.md)
+now passes all 18 checks on hardware with its 33 ms threshold and content floors
+intact. Base/focus accepted records are explicit; padding cannot count as content.
+The gate verifies distinct 20 m/10 m submitted views, a real 200 m pan, and a complete
+near-and-return sweep. Previous grass-accounting failures and unreachable zoom
+requests are explained by evidence, not waived. This paused-simulation floor is
+not live performance acceptance. 27 focused grass tests and web types pass.
 
 The latest [combined full hardware run](assets/combined-optimized-runtime/README.md)
 passes functional checks but delivers 20.79 FPS and 135.9 simulated seconds in five

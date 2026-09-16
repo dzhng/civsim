@@ -286,7 +286,12 @@ export interface GrassResidencyStats {
   productionSamplingProfile: BladeFieldProfile;
   transitionOwner: "battleGrassResidency.update";
   activeTransition: BladeFieldTransitionProfile;
+  /** Active sampler summary for the current detail view. */
   sample: GrassFieldStats | null;
+  /** Whole-map accepted content, independent of focus engagement. */
+  baseSample: GrassFieldStats | null;
+  /** Resident tile content; acceptedRecords excludes padded slot entries. */
+  focusSample: GrassFieldStats | null;
   rebuild: GrassRebuildStats;
   detail: {
     bladePixels: number;
@@ -553,6 +558,8 @@ export class BattleGrassResidency {
       transitionOwner: "battleGrassResidency.update",
       activeTransition: this.activeTransition,
       sample: this.sampleStats,
+      baseSample: this.baseSampleStats,
+      focusSample: tiles?.sampleStats() ?? null,
       rebuild,
     };
   }

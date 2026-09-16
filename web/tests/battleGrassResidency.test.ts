@@ -131,3 +131,32 @@ test("camera detail gating retains settled records while disabling their routing
     owner.dispose();
   }
 });
+
+test("base sampling stays independently observable when resident focus includes padded slots", () => {
+  const { owner, camera } = fixture();
+  try {
+    owner.update({ ...camera, distance: 3200 }, 900);
+    const base = owner.stats().baseSample;
+    expect(base).toBeDefined();
+    expect(base!.recordCapacity).toBe(1_000_000);
+    expect(base!.acceptedRecords).toBeGreaterThan(0);
+    const baseCounts = structuredClone(base);
+    owner.update(camera, 900);
+    owner.settle();
+    const stats = owner.stats();
+    expect(stats.detail.focusRingActive).toBe(true);
+    expect(stats.baseSample).toEqual(baseCounts);
+    expect(stats.focusSample!.acceptedRecords).toBeGreaterThan(0);
+    expect(stats.focusSample!.recordCapacity).toBe(
+      stats.rebuild.slotCapacity * stats.rebuild.tileSlotRecords,
+    );
+    // This small field leaves many off-map cells padded in otherwise live slots.
+    expect(stats.focusSample!.acceptedRecords).toBeLessThan(owner.snapshot().ring.recordCount);
+    expect(stats.rebuild.activeCoverageResident).toBe(true);
+    owner.update({ ...camera, target: [20, 0, 0] }, 900);
+    owner.settle();
+    expect(owner.stats().baseSample).toEqual(baseCounts);
+  } finally {
+    owner.dispose();
+  }
+});

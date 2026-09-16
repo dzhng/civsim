@@ -315,3 +315,20 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   released with the world; frozen bone arrays are not cloned per frame.
 - **Verdict:** Sound, medium confidence. Ownership and invalidation are verified;
   the added scalar-copy cost still belongs in the complete performance comparison.
+
+### Check grass content separately from capacity and camera requests physically
+
+- **When:** Standing30k gate reconciliation after camera-only publication.
+- **Choice:** Expose whole-map and focus accepted sampling independently. Keep
+  the existing active summary for detail diagnostics. Check the static1M budget
+  and40k accepted-content floor directly, and validate focus slot capacity and
+  resident coverage without treating padded entries as grass.
+- **Gap:** The previous assertions read active focus metadata as though it were
+  the static sampler and assumed an obsolete pool size. Both old and new source
+  failed those checks despite unchanged content.
+- **Reach:** Timing, army and foliage floors are unchanged. Rendering and density
+  are unchanged. Camera checks use reachable20m/10m distances and actual rendered
+  travel; the old24/28 requests both clamped to10m after an earlier product change.
+  Tactical pan replaces a clamped overview pan so its200m movement is real.
+- **Verdict:** Sound, high confidence. The gate verifies more of its original
+  intent without widening the player's camera or lowering performance standards.

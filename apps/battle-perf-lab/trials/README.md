@@ -119,7 +119,7 @@ client of the machine at once, so their CPU can neither be charged to a competit
 nor credited to this trial: they are recorded in every observation, and one of
 them running hot leaves the trial's isolation _unknown_ — which blocks ranking
 with a reason that says so, rather than being quietly written off as the trial's
-own presentation. Note too that `ps` reports `pcpu` as a lifetime average, so the
+own presentation. Note too that `ps` reports `pcpu` as a decaying average over up to a minute, so the
 series bounds sustained competing load and is not proof of instantaneous
 exclusivity; a quiet verdict is admissibility to a comparison, never a physical
 guarantee. `QUIET_HOST_POLICY` in `host.ts` holds every threshold and the shared

@@ -1,0 +1,21 @@
+{
+  "handoff": [
+    "PASS  campaign-handoff: handoff fixture opens in the default WebGPU campaign renderer",
+    "PASS  campaign-handoff: campaign contact produces a pending player battle",
+    "PASS  campaign-handoff: fightReady launches the pending encounter",
+    "PASS  campaign-handoff: campaign open-field battle opens as a generated WebGPU battle",
+    "PASS  campaign-handoff: Continue returns to the same WebGPU campaign and clears battle state",
+    "PASS  runner: no page errors",
+    "ALL CHECKS PASSED"
+  ],
+  "reinforcements": [
+    "PASS  campaign-reinforcements: found a reinforcement approach to an independent city near Roma",
+    "PASS  campaign-reinforcements: split detaches and stages a nearby reinforcement stack",
+    "PASS  campaign-reinforcements: campaign forms a pending battle with reinforcements",
+    "PASS  campaign-reinforcements: initiation modal announces reinforcements",
+    "PASS  campaign-reinforcements: reinforcement column arrives and renders in the WebGPU battle",
+    "PASS  runner: no page errors",
+    "ALL CHECKS PASSED"
+  ],
+  "scope": "Hardware Chrome on uncommitted campaign handoff followup to e71f4ac8. Real entry, generated map identity, return and reinforcement rendering. No timing claim."
+}

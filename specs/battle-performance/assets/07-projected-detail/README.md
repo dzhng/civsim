@@ -25,3 +25,7 @@ must explicitly select its inspected representation in an isolated workbench or
 magnify pixels from the actual admitted view. Do not silently inspect L0 twice or
 re-bless the old sheet on that assumption. Production camera reprojection remains
 required; an inspection technique cannot disable that behavior in gameplay.
+
+[The first image pilot](pilot/README.md) exposes armor and spear differences at
+larger sizes. A blanket threshold increase is rejected; improve or calibrate the
+representation before changing production policy.

@@ -8,7 +8,9 @@ Current pickup: compare the fixed builds at runtime **98fc8a45** before more
 component optimization. The [first current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
 passes all four backends but is unrankable. [Grass attribution](assets/05-grass-main-attribution/README.md) is complete as a
 limited fixed-state diagnostic. Next [calibrate authored soldier detail](assets/07-projected-detail/README.md)
-at actual projected sizes, then use repeated,
+at actual projected sizes. The [first pilot](assets/07-projected-detail/pilot/README.md)
+rejects a blind threshold increase because cheaper meshes lose visible armor and
+spear detail. Investigate a better intermediate mesh before changing policy, then use repeated,
 balanced renderer comparisons to choose ownership. No backend has won. The full
 live throughput, moving-camera visual checks and net-shadow savings remain open.
 

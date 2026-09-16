@@ -30,3 +30,9 @@ next step is a same-camera representation comparison, not a new threshold chosen
 for timing. This shared-asset calibration can inform backend selection before
 committing to renderer-specific classification changes. The quality contract and
 all visible/caster preservation gates remain in force.
+
+Candidate adoption must protect lower-size work as well as the dense near view.
+Replacing the old middle mesh with a richer intermediate while only moving the
+near boundary increases cost throughout the old middle interval. Evaluate the
+whole representation chain and its boundaries, including any changed far/shadow
+mesh cost; do not infer a global win from one tactical camera.

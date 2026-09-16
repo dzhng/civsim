@@ -4,20 +4,21 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: calibrate improved intermediate infantry meshes over the measured
-18–32-pixel main-view band, starting with the highest-count classes. The
-[same-crowd geometry control](assets/07-projected-detail/main-geometry-cost/README.md)
-shows a large reversible cost opportunity with unchanged audiences, grass and
-shadow counts; its existing-middle substitution has known visual defects and
-cannot ship. Preserve original close detail and validate canonical poses plus
-dense transitions before selecting a policy. The [single-class control](assets/07-projected-detail/phalanx-cost/README.md)
-is inconclusive because of drift. [Contact demand](assets/07-projected-detail/contact-opportunity/README.md)
-and [phalanx reversal evidence](assets/07-projected-detail/canonical-reversal/README.md)
-remain bounded diagnostics. Production assets and thresholds are unchanged.
+Current pickup: integrate and verify the isolated exact-zero [skin influence pass](assets/06b-skin-influences/README.md)
+from `codex/battle-skin-influences` (9e3f7d95): inspect emitted WGSL, run numerical
+GPU and matched main/shadow pixels, then measure hardware cost before retaining it.
+The source baseline captures are under `throwaway/skin-branch-reference/`.
+In parallel, Claude is preparing a scratch complete-roster 4k chain in
+`/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/`.
+The [geometry diagnostic](assets/07-projected-detail/main-geometry-cost/README.md)
+shows a material opportunity. Dense phalanx rejects unmodified 2k shading and
+favors 4k; [infantry evidence](assets/07-projected-detail/README.md) remains bounded.
+Evaluate the whole chain and both boundaries so near savings do not increase
+old middle-range cost. Production assets and thresholds remain unchanged.
 The [current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
 is functional across all four backends but unrankable. Refresh balanced comparisons
-after any adopted change. No backend has won; live throughput, moving-camera
-quality and net-shadow savings remain open.
+after adopted changes. No backend has won; live throughput, moving-camera quality
+and net-shadow savings remain open.
 
 [Current fixed builds](assets/02-paired-controls-98fc8a45/README.md) include
 billboard deduplication and retained crowd packing; all eight emitted WASM files

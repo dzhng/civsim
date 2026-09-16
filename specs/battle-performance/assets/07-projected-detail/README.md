@@ -45,3 +45,22 @@ The [single-class cost control](phalanx-cost/README.md) verifies matching admiss
 but has substantial return-control drift. The [same-crowd main-geometry diagnostic](main-geometry-cost/README.md) then
 shows a large reversible cost opportunity. Its known-low-quality substitution
 cannot ship; calibrated intermediate representations remain necessary.
+
+[A smaller phalanx interval](small-reversal/README.md) retains equipment and pose
+in fixed-pose reversals with the 2k prototype, but shows a small armor-tonality
+change. Animation and dense transitions remain before production adoption.
+
+[Sampled animation phases](phalanx-phases/README.md) preserve 2k deformation, but
+[dense formation reversals](formation-2k/README.md) expose a native-visible
+shading transition and reject that candidate. The [4k formation](formation-4k/README.md)
+has no obvious native-scale flash in independent review and is the stronger
+bounded candidate. Preserve lower-size cost when defining adoption: raising the
+near boundary while replacing the existing middle mesh with 4k also makes the old
+9–18-pixel band more expensive. The representation chain and both boundaries
+must be evaluated together, including shadow cost.
+
+[Independent infantry prototypes](infantry-prototypes/README.md) preserve authored
+semantics. Dense [sword](formation-heavy-sword-4k/README.md) and
+[light-spear](formation-light-spear-4k/README.md) 4k reversals retain equipment and
+formation readability; light spear retains a subtle far-view stippling difference.
+These remain bounded candidates pending the complete chain and performance gates.

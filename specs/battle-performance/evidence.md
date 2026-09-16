@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Canonical phalanx reversal](assets/07-projected-detail/canonical-reversal/README.md) and [contact opportunity](assets/07-projected-detail/contact-opportunity/README.md): sampled pose silhouettes remain readable with a small armor-tonality change; exact contact hash and consumed cameras pass. Production assets/policy remain unchanged; cost attribution is next.
+
 - [Billboard camera refresh](assets/06b-billboard-refresh/README.md): matching camera/data controls halve source metadata work and native billboard record writes; live performance and visual acceptance remain separate.
 
 - [Refreshed eight fixed builds](assets/02-paired-controls-9374dbc9/README.md): enabled and incremental-instrumentation controls share runtime 9374dbc9 and verified release WASM; runtime comparison remains next.

@@ -4,19 +4,21 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: compare the fixed builds at runtime **98fc8a45** before more
-component optimization. The [first current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
-passes all four backends but is unrankable. [Grass attribution](assets/05-grass-main-attribution/README.md) is complete as a
-limited fixed-state diagnostic. Next [calibrate authored soldier detail](assets/07-projected-detail/README.md)
-at actual projected sizes. The [first pilot](assets/07-projected-detail/pilot/README.md)
-rejects a blind threshold increase because cheaper meshes lose visible armor and
-spear detail. A [4k phalanx prototype](assets/07-projected-detail/intermediate-pilot/README.md)
-is the candidate for canonical pose and camera-reversal checks; production
-assets/policy remain unchanged. Validate that representation before broader
-adoption; use the [contact-state recipe](assets/07-projected-detail/contact-fixture.md)
-for subsequent feature attribution, with its hash assertion required. Then use repeated,
-balanced renderer comparisons to choose ownership. No backend has won. The full
-live throughput, moving-camera visual checks and net-shadow savings remain open.
+Current pickup: measure a bounded original/4k phalanx cost comparison before
+expanding asset work. The [canonical contact fixture](assets/07-projected-detail/contact-opportunity/README.md)
+now verifies its tick/hash and identifies near-detail demand in selected views. The [first current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
+is functional across all four backends but unrankable. [Grass attribution](assets/05-grass-main-attribution/README.md)
+is limited to a non-contact fixture. A blind LOD threshold increase is rejected.
+The [4k phalanx prototype](assets/07-projected-detail/canonical-reversal/README.md)
+retains recognizable silhouettes and equipment in sampled canonical poses through
+a trial camera reversal,
+with a small armor-tonality change. It remains experimental. Its intended route
+to savings is a calibrated intermediate main-view interval; merely replacing the
+middle mesh without changing admission saves almost no work in the measured
+L0-heavy contact view. Test bounded paired contact cost before broader art work.
+Production assets and thresholds remain unchanged. Then refresh balanced backend
+comparisons to choose ownership. No backend has won; live throughput, moving-camera
+quality and net-shadow savings remain open.
 
 [Current fixed builds](assets/02-paired-controls-98fc8a45/README.md) include
 billboard deduplication and retained crowd packing; all eight emitted WASM files

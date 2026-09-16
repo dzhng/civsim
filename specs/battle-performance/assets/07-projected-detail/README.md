@@ -31,9 +31,12 @@ larger sizes. A blanket threshold increase is rejected; improve or calibrate the
 representation before changing production policy.
 
 [Intermediate phalanx representations](intermediate-pilot/README.md) retain source
-rig/material semantics. The 4k candidate is closer in reviewed stills; canonical
-poses and camera reversals remain before any production adoption.
+rig/material semantics. The 4k candidate is closer in reviewed stills.
+[Canonical-pose reversals](canonical-reversal/README.md) preserve geometry and
+hysteresis but retain a small armor-tonality change; broader adoption remains
+conditional on real contact demand, cost and temporal quality.
 
 The [ordinary contact-state fixture recipe](contact-fixture.md) preserves the
 canonical battle for follow-up feature controls without the benchmark controller;
-it still needs execution and hash verification.
+the [first execution](contact-opportunity/README.md) verifies its hash and
+identifies near-detail demand in seven selected camera poses.

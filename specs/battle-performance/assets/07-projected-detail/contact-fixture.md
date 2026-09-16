@@ -24,6 +24,6 @@ the runner's source environment and pass its resulting order list into the page;
 do not assume development module URLs are served by a production build and do not
 reimplement the nearest-enemy algorithm. Replay the existing camera path separately.
 
-This recipe is grounded in the current boot, control and authority code but has
-not yet been executed as a new contact-state feature control. Its assertions must
-pass before it can replace the tick-30 grass fixture for attribution.
+The [contact opportunity control](contact-opportunity/README.md) executes this
+recipe and verifies the canonical hash plus consumed cameras and continuing
+rendering. It establishes a reusable fixed state, not live throughput.

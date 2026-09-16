@@ -4,14 +4,25 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-16.
-Current pickup: build new immutable Three/raw/TypeGPU/vgpu controls from the
-current worktree, then run the matched live comparison. Current native entrypoints
-share the production worker/WASM, progressive grass owner, fitted shadow policy
-and camera-only crowd contract. The old fixed builds are not current controls.
-Use the source/live Vite configs and a new output root; hash emitted files before
-linking shared public assets/benchmark atlases. Archive the current release WASM
-and provenance using the existing fixedBuildFixture/digest contract. Refresh
-instrumentation-disabled arms before attributing a possible renderer win.
+Current pickup: wait for the first current fixed-build live trial, then run the
+other three candidates sequentially. Builds are complete under
+`throwaway/matched-current-58b2a9bd/enabled/{three,raw,typegpu,vgpu}` with
+`enabled/manifest.json` and the common root `render-config.json`. All four emitted
+WASM binaries match the archived release binary; `wasm-validation.json` records
+the check. Old fixed builds and WASM remain untouched.
+
+Active Three trial: exec session 31974, Node PID 70453, output
+`throwaway/matched-current-58b2a9bd/trials/three-0`, log
+`throwaway/claude-agents/matched-current-three-0.log`. Its browser process tree was
+verified active; an empty output directory during the run is expected because
+the trial archives at completion. Preview server session 64096 serves Three on
+port 5281. Wait/poll the existing job rather than restart on an observation timeout.
+After it completes, inspect trial/run/host evidence, stop that preview, serve the
+next backend output, and run runTrial.ts with the same manifest/render-config and
+new output/order. Refresh disabled instrumentation arms before attributing a win.
+Current native entrypoints share production worker/WASM, progressive grass,
+fitted shadows and the camera-only crowd contract. Only quiet, functionally valid
+matched trials may rank backends; no winner is selected.
 
 The [camera-only publication checkpoint](assets/06b-camera-reprojection/README.md)
 is verified across all four renderers. The [standing grass/camera gate](assets/04-grass-camera-gate/README.md)
@@ -24,8 +35,7 @@ not live performance acceptance. 27 focused grass tests and web types pass.
 
 The latest [combined full hardware run](assets/combined-optimized-runtime/README.md)
 passes functional checks but delivers 20.79 FPS and 135.9 simulated seconds in five
-real minutes. It is not quiet ranking evidence. Both development servers are stopped and all current hardware jobs have
-finished. The [shared fit extraction](assets/08-shared-shadow-policy/README.md)
+real minutes. It is not quiet ranking evidence. The development servers are stopped; the fixed-build trial described above is active. The [shared fit extraction](assets/08-shared-shadow-policy/README.md)
 and [native resource controls](assets/08-native-shadow-fit/README.md) preserve the
 common shadow contract; old fixed builds remain research controls only.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded

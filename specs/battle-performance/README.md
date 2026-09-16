@@ -10,6 +10,12 @@ The hardware camera control proves2→1 terrain samples per soldier per frame wi
 identical seating metadata. Explicit borrowed instances still validate eagerly;
 the rejected deferred prototype is absent. This removes redundant work but does
 not establish frame cadence.
+The combined full hardware benchmark is running in session `45558` against
+runtime `a4c250d3`; poll that handle and inspect
+`throwaway/claude-agents/combined-optimized-run.log` before starting another GPU
+job. Its host observer now runs inside the trial process and excludes that
+process's browser descendants correctly. The primary Vite server is session
+`18295`, port5294. Do not edit runtime inputs while this measurement is active.
 The [cutoff comparison](assets/03a-friend-cutoff/README.md) preserves all recorded
 early/later battle hashes and reduces the uninstrumented later Node window by
 about7.8%; it does not establish browser cadence or30Hz simulation. The tested

@@ -6,7 +6,9 @@ matching rendering history; capture work is excluded from timing. The
 [trial runner](trials/README.md) drives one already-built Menu artifact through
 that same benchmark and archives its provenance and host evidence, and the
 [offline scorecard](report/README.md) validates the resulting paired Menu exports
-and experiment manifests without choosing a renderer.
+and experiment manifests without choosing a renderer. A
+[held-authority build](src/held/README.md) runs the same benchmark as a renderer-only
+comparison at a fixed simulation state.
 
 The capture lab build runs the actual menu, battle loop and crowd presentation. Its
 importer-scoped Vite substitutions wrap the original renderer and real world

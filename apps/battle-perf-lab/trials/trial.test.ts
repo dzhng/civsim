@@ -159,6 +159,7 @@ describe("fixed-production-build Menu trial", () => {
     expect(trial.functional).toEqual({ eligible: true, issues: [] });
     expect(trial.ranking.eligible).toBe(true);
     expect(trial.status).toBe("complete");
+    expect(trial.measurement).toBe("live");
     const run = JSON.parse(await readFile(join(root, "trials/complete/run.json"), "utf8"));
     expect(run.manifest.backend).toBe("raw");
     expect(run.manifest.commit).toBe("a".repeat(40));
@@ -564,8 +565,14 @@ describe("report identity", () => {
     ]);
     expect(inspectMenuReport(menuReport(), "raw")).toEqual({
       adapter: "apple / metal-3",
+      measurement: "live",
       issues: [],
     });
+  });
+
+  it("labels a held recording renderer-only whatever kind it claims", () => {
+    const scope = { measurement: "renderer-only", simulation: "held", tick: 9000 };
+    expect(inspectMenuReport(menuReport({ scope }), "raw").measurement).toBe("renderer-only");
   });
 
   it("requires the source build to present without a native backend label", () => {

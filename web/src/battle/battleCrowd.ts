@@ -1,6 +1,7 @@
 import type { BattleCrowdPresentation } from "./battlePresentation";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import {
+  ACTION_TICK_SECONDS,
   ActionTimeline,
   type ActionObservation,
   type SoldierPlayback,
@@ -31,6 +32,7 @@ export class BattleCrowd {
   private readonly adapter: BattleActionAdapter;
   private timeline: ActionTimeline | null = null;
   private catalog: Record<number, AppearanceBundle> | null = null;
+  private heldReplaySeconds: number | null = null;
   private alive = new Float32Array(0);
   private renderPositions = new Float32Array(0);
   private renderFacings = new Float32Array(0);
@@ -73,14 +75,44 @@ export class BattleCrowd {
     frameDt: number,
     selectedUnits: number[],
   ): BattleCrowdPresentation | null {
-    if (!this.readyCatalog()) return null;
+    if (!this.sampleable()) return null;
+    const tick = Math.max(this.left!.tick, frozen ? this.right!.tick : renderTick);
+    return this.build(tick, tick, frozen, frameDt, selectedUnits);
+  }
+
+  /** Renderer-only benchmark presentation of a held authority. Bodies, life and
+   * weapons stay exactly on the newest completed tick; only actions play on. The
+   * timeline clamps one-shot clips at their end and no new tick restarts them, so
+   * the held interval replays once the catalog's longest one-shot could finish. */
+  prepareHeld(
+    elapsedSeconds: number,
+    frameDt: number,
+    selectedUnits: number[],
+  ): BattleCrowdPresentation | null {
+    if (!this.sampleable()) return null;
+    this.heldReplaySeconds ??= longestOneShotSeconds(this.catalog!);
+    const endpoint = this.right!.tick;
+    const replay = (elapsedSeconds % this.heldReplaySeconds) / ACTION_TICK_SECONDS;
+    return this.build(endpoint, endpoint + replay, false, frameDt, selectedUnits);
+  }
+
+  private sampleable(): boolean {
+    if (!this.readyCatalog()) return false;
     // A catalog that arrived between ticks, or a first frame before any tick was
     // consumed, still needs the newest completed tick before it can be sampled.
     if (this.catalogReplaced || !this.left) this.consume(this.world.sim.tick());
-    if (!this.left) return null;
-    const tick = Math.max(this.left.tick, frozen ? this.right!.tick : renderTick);
-    const playback: SoldierPlayback[] = this.timeline!.sample(tick);
-    this.present(tick);
+    return this.left !== null;
+  }
+
+  private build(
+    bodyTick: number,
+    poseTick: number,
+    frozen: boolean,
+    frameDt: number,
+    selectedUnits: number[],
+  ): BattleCrowdPresentation {
+    const playback: SoldierPlayback[] = this.timeline!.sample(poseTick);
+    this.present(bodyTick);
     const labels = this.presentation.build(selectedUnits, this.unitInfo);
     return {
       positions: this.renderPositions,
@@ -102,6 +134,7 @@ export class BattleCrowd {
     if (assets !== this.catalog) {
       this.catalog = assets;
       this.timeline = new ActionTimeline(assets);
+      this.heldReplaySeconds = null;
       this.catalogReplaced = true;
     }
     return true;
@@ -258,4 +291,16 @@ export class BattleCrowd {
     }
     return new Float32Array(triangles);
   }
+}
+
+function longestOneShotSeconds(catalog: Record<number, AppearanceBundle>): number {
+  return Math.max(
+    ...Object.values(catalog).flatMap(({ manifest, animation }) =>
+      Object.values(manifest.presentation?.actions ?? {}).flatMap((action) =>
+        animation.clips
+          .filter((clip) => clip.name === action?.clip && !clip.loop)
+          .map((clip) => clip.duration),
+      ),
+    ),
+  );
 }

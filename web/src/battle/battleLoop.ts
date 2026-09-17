@@ -5,6 +5,7 @@ import {
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import { captureBattleRenderCamera, type BattleRenderCamera } from "./battlePresentation";
 import { applyBenchmarkCamera, sampleBenchmarkCamera } from "./benchmark/benchmarkCamera";
+import { BENCHMARK_AUTHORITY } from "./benchmark/benchmarkAuthority";
 import { BenchmarkRecording } from "./benchmark/benchmarkRecording";
 import { createBenchmarkReport, type BenchmarkIdentity } from "./benchmark/benchmarkReport";
 import { lockBenchmarkInput } from "./benchmark/benchmarkInput";
@@ -154,7 +155,10 @@ function buildBattleScene(
     }),
   );
 
-  const benchmark = cfg.benchmark ? new BenchmarkRun(cfg.benchmark, performance.now()) : null;
+  const benchmark = cfg.benchmark
+    ? new BenchmarkRun(cfg.benchmark, performance.now(), BENCHMARK_AUTHORITY)
+    : null;
+  const heldBenchmark = BENCHMARK_AUTHORITY.kind === "held" ? benchmark : null;
   const recording = benchmark ? new BenchmarkRecording(benchmark.scenario.durationMs) : null;
   let benchmarkIdentity: BenchmarkIdentity | null = null;
   let terminalBenchmarkReport: ReturnType<typeof createBenchmarkReport> | null = null;
@@ -167,6 +171,7 @@ function buildBattleScene(
       recording!.samples(),
       recording!.firstFrame(),
       recording!.gpuSnapshot(),
+      benchmark!.heldScope(),
     );
     if (!benchmark!.active) terminalBenchmarkReport = report;
     return report;
@@ -291,7 +296,7 @@ function buildBattleScene(
         intended,
       );
       recording!.collectGpu(renderer.gpuEventsSince(recording!.gpuEventCursor));
-      benchmark.frame(now, sim.tick(), sim.victor());
+      benchmark.frame(now, sim.tick(), sim.victor(), sim.stateHash());
     }
   };
 
@@ -326,10 +331,10 @@ function buildBattleScene(
         void sim.advanceTo(benchmark.scenario.startTick).catch(failPresentation);
       }
       if (sim.tick() < benchmark.scenario.startTick || benchmarkViewReady)
-        benchmark.frame(now, sim.tick(), sim.victor());
+        benchmark.frame(now, sim.tick(), sim.victor(), sim.stateHash());
       if (benchmark.status().phase === "running") {
         recording!.start(now, renderer.gpuEventsSince(0)?.nextSequence ?? 0);
-        time.setHolding(false);
+        time.setHolding(benchmark.holdsAuthority);
       }
     }
     if (benchmark?.status().phase === "running")
@@ -384,14 +389,17 @@ function buildBattleScene(
     }
 
     const renderStartedAt = performance.now();
-    const presentedCrowd = crowd.prepare(
-      time.presentationTick(now),
-      time.frozen,
-      frameDt,
-      input.selected,
-    );
+    // A held benchmark shares one elapsed visual clock between camera, poses and
+    // environment; its bodies never leave the held tick.
+    const presentedCrowd =
+      heldBenchmark?.status().phase === "running"
+        ? crowd.prepareHeld(heldBenchmark.elapsedAt(now) / 1000, frameDt, input.selected)
+        : crowd.prepare(time.presentationTick(now), time.frozen, frameDt, input.selected);
     const packet = {
-      timeSeconds: renderer.fixedTime ?? performance.now() / 1000,
+      timeSeconds:
+        renderer.fixedTime ??
+        (heldBenchmark ? heldBenchmark.elapsedAt(now) : performance.now()) / 1000,
+      clock: heldBenchmark ? ("benchmark" as const) : ("wall" as const),
       fixedTime: renderer.fixedTime,
       preserveFrozenEffects: renderer.preserveFrozenEffects,
       crowd: presentedCrowd,
@@ -414,7 +422,7 @@ function buildBattleScene(
                 // The battle only starts running once it is actually on screen.
                 // Benchmark preparation advances explicitly and must hold its
                 // final tick until the contact frame is ready and timing begins.
-                time.setHolding(benchmark !== null);
+                time.setHolding(benchmark?.holdsAuthority ?? false);
                 loading.remove();
               },
               signal,

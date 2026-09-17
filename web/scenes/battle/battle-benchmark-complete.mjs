@@ -1,5 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 
+// Contact states pinned by independent canonical evidence. A held lab build at an
+// unpinned tick cannot pass until its state is pinned the same way.
+const CONTACT_STATE_HASHES = { 9000: "9928381812590497427" };
+
 export const meta = {
   name: "battle-benchmark-complete",
   kind: "flow",
@@ -7,7 +11,7 @@ export const meta = {
   tier: "full",
   snapshots: [],
   describe:
-    "Actual menu runs the full live camera benchmark and exports its unmodified measurements.",
+    "Actual menu runs the full camera benchmark, live or held in a renderer-only lab build, and exports its unmodified measurements.",
 };
 
 export async function run(ctx) {
@@ -32,11 +36,35 @@ export async function run(ctx) {
     "timing starts at the canonical tick",
     report.status.startTick === report.status.scenario.startTick,
   );
-  ctx.check("canonical contact state", report.identity?.initialStateHash === "9928381812590497427");
+  const contactState = CONTACT_STATE_HASHES[report.status.scenario.startTick];
   ctx.check(
-    "simulation remained live",
-    report.status.tick > report.status.startTick && report.simulatedSeconds > 0,
+    "canonical contact state",
+    contactState !== undefined && report.identity?.initialStateHash === contactState,
   );
+  // A held lab build measures rendering only; its report must say so and prove the
+  // authority never moved. Everything else here is the same camera-window contract.
+  const held = report.scope;
+  if (held) {
+    ctx.check(
+      "report declares a renderer-only held simulation",
+      report.kind === "battle-benchmark-renderer-only" &&
+        held.measurement === "renderer-only" &&
+        held.simulation === "held" &&
+        held.tick === report.status.startTick,
+    );
+    ctx.check(
+      "simulation stayed exactly at the held state",
+      report.status.tick === held.tick &&
+        report.simulatedSeconds === 0 &&
+        held.initialStateHash === report.identity?.initialStateHash &&
+        held.finalStateHash === held.initialStateHash,
+    );
+  } else {
+    ctx.check(
+      "simulation remained live",
+      report.status.tick > report.status.startTick && report.simulatedSeconds > 0,
+    );
+  }
   ctx.check(
     "all camera phases recorded",
     report.phases.every((phase) => phase.summary.validCount > 0),

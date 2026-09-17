@@ -1,10 +1,11 @@
 import { fileURLToPath } from "node:url";
 import base from "../../../../web/vite.config";
 import { sourceTimestampTapPlugin } from "./timestampTap";
+import { heldBenchmarkPlugins } from "../held/heldBenchmarkPlugin";
 export default {
   ...base,
   root: fileURLToPath(new URL("../../../../web", import.meta.url)),
-  plugins: [...(base.plugins ?? []), sourceTimestampTapPlugin()],
+  plugins: [...(base.plugins ?? []), sourceTimestampTapPlugin(), ...heldBenchmarkPlugins()],
   optimizeDeps: { ...base.optimizeDeps, exclude: ["three", "three/webgpu", "three/tsl"] },
   build: {
     ...base.build,

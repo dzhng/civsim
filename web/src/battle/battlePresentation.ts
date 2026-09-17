@@ -32,9 +32,12 @@ export interface BattleCrowdPresentation {
 /** Built synchronously after interpolation. Owned presentation arrays stay borrowed
  * until present settles; the scene must not prepare another packet concurrently. */
 export interface BattlePresentation {
-  /** Candidate presentation time is captured before resource awaits. The synchronous
-   * source keeps its existing per-hook clock sampling until temporal parity is reviewed. */
+  /** Candidate presentation time is captured before resource awaits. Under the `wall`
+   * clock the synchronous source keeps its existing per-hook clock sampling until
+   * temporal parity is reviewed; the `benchmark` clock is a held benchmark's elapsed
+   * visual time, which every renderer, the source included, animates from. */
   timeSeconds: number;
+  clock: "wall" | "benchmark";
   fixedTime: number | null;
   preserveFrozenEffects: boolean;
   crowd: BattleCrowdPresentation | null;

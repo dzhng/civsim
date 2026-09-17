@@ -53,8 +53,10 @@ export function BenchmarkResults({ report }: { report: BenchmarkReport }) {
         </p>
         <p>
           60 FPS cadence target:{" "}
-          {report.completeWindow ? (cadenceMet ? "met" : "not met") : "partial run"}. Simulation
-          advanced {report.simulatedSeconds.toFixed(1)} seconds.
+          {report.completeWindow ? (cadenceMet ? "met" : "not met") : "partial run"}.{" "}
+          {report.scope
+            ? `Renderer-only: simulation held at tick ${report.scope.tick.toLocaleString()}, not a live result.`
+            : `Simulation advanced ${report.simulatedSeconds.toFixed(1)} seconds.`}
         </p>
         <BenchmarkFrameChart
           samples={report.frames}

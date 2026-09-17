@@ -196,6 +196,8 @@ function inspect(input: RunInput) {
       issues.push(`scenario.${key} invalid`);
   if (r.kind !== "battle-benchmark" || r.version !== 2)
     issues.push("unsupported report kind/version");
+  if (r.scope !== undefined)
+    issues.push("renderer-only recording with a held simulation is not a live benchmark");
   const duration = number(status.elapsedMs, "elapsedMs");
   const requested = number(scenario.durationMs, "durationMs");
   if (

@@ -78,6 +78,8 @@ export interface TrialRecord {
   startedAt: string;
   completedAt: string;
   status: "complete" | "rejected" | "failed";
+  /** What the Menu recording measured; null when there is no readable export. */
+  measurement: TrialMeasurement | null;
   /** Did this trial actually produce a valid Menu recording of the fixed build? */
   functional: { eligible: boolean; issues: string[] };
   /** Is it additionally admissible to a quiet comparison? Never the same question. */
@@ -123,8 +125,11 @@ function asObject(value: unknown): Record<string, unknown> | null {
 
 export interface MenuReportInspection {
   adapter: string | null;
+  measurement: TrialMeasurement;
   issues: string[];
 }
+/** A renderer-only recording held its simulation; it is never live evidence. */
+export type TrialMeasurement = "live" | "renderer-only";
 
 /**
  * Every declared leaf must be the value the recording observed. The declaration
@@ -169,8 +174,9 @@ export function inspectMenuReport(
 ): MenuReportInspection {
   const issues: string[] = [];
   const root = asObject(report);
+  const measurement = root?.scope === undefined ? "live" : "renderer-only";
   const identity = asObject(root?.identity);
-  if (!identity) return { adapter: null, issues: ["report has no identity"] };
+  if (!identity) return { adapter: null, measurement, issues: ["report has no identity"] };
   const adapter =
     typeof identity.adapter === "string" && identity.adapter.trim() ? identity.adapter : null;
   if (!adapter) issues.push("report identity has no GPU adapter");
@@ -197,7 +203,7 @@ export function inspectMenuReport(
   if (submissions === 0) issues.push("report recorded no GPU submission identity");
   else if (mismatched)
     issues.push(`${mismatched} of ${submissions} submissions did not present as ${backend}`);
-  return { adapter, issues };
+  return { adapter, measurement, issues };
 }
 
 /**
@@ -409,6 +415,7 @@ export async function runTrial(options: TrialOptions, seams: TrialSeams): Promis
     startedAt,
     completedAt,
     status: !provenanceOk ? "rejected" : functionalIssues.length ? "failed" : "complete",
+    measurement: inspection?.measurement ?? null,
     functional: { eligible: functionalIssues.length === 0, issues: functionalIssues },
     ranking: { eligible: rankingIssues.length === 0, issues: rankingIssues },
     provenance,

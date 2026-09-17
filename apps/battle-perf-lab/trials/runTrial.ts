@@ -240,7 +240,7 @@ async function main(argv: string[]): Promise<number> {
     loadAverage: loadavg,
   });
   console.log(
-    `${trial.runId}: ${trial.status}; functional=${trial.functional.eligible} ` +
+    `${trial.runId}: ${trial.status} (${trial.measurement ?? "no export"}); functional=${trial.functional.eligible} ` +
       `quiet-rankable=${trial.ranking.eligible}; archived in ${options.outDir}`,
   );
   for (const issue of [...trial.functional.issues, ...trial.ranking.issues])

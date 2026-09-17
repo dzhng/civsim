@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import typegpu from "../../../../web/node_modules/unplugin-typegpu/vite.js";
 import base from "../../../../web/vite.config";
+import { heldBenchmarkPlugins } from "../held/heldBenchmarkPlugin";
 const backend = process.env.BATTLE_NATIVE_BACKEND;
 const atlas = process.env.BATTLE_NATIVE_ATLAS_CATALOG;
 // Lab-only incremental query/readback overhead control. The default keeps the
@@ -42,6 +43,7 @@ export default {
   plugins: [
     ...(base.plugins ?? []),
     typegpu(),
+    ...heldBenchmarkPlugins(),
     {
       name: "native-live-renderer",
       enforce: "pre",

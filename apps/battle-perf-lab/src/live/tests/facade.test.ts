@@ -38,6 +38,7 @@ import {
 } from "../../../../../web/src/battle/battlePresentation";
 const packet = (): BattlePresentation => ({
   timeSeconds: 77,
+  clock: "wall",
   fixedTime: null,
   preserveFrozenEffects: false,
   camera: captureBattleRenderCamera({

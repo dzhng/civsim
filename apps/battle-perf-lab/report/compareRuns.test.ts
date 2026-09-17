@@ -172,6 +172,44 @@ describe("offline matched benchmark report", () => {
     expect(result.issues).toContain("b: exported summary disagrees with raw intervals");
     expect(result.issues).toContain("b: nonmonotonic or inconsistent presentation history");
   });
+  test("rejects a renderer-only held recording as live evidence even when both runs match", () => {
+    const held = (runId: string) => {
+      const run = input(runId);
+      return {
+        ...run,
+        report: {
+          ...run.report,
+          kind: "battle-benchmark-renderer-only",
+          scope: {
+            measurement: "renderer-only",
+            simulation: "held",
+            tick: 9000,
+            initialStateHash: "same",
+            finalStateHash: "same",
+          },
+          status: { ...run.report.status, tick: 9000 },
+          simulatedSeconds: 0,
+        },
+      };
+    };
+    for (const mode of ["parity", "shadow-cost"] as const) {
+      const result = compareRuns(held("a"), held("b"), mode);
+      expect(result.eligible).toBe(false);
+      expect(result.issues).toEqual(
+        expect.arrayContaining([
+          "a: unsupported report kind/version",
+          "a: renderer-only recording with a held simulation is not a live benchmark",
+          "b: simulation did not advance from declared contact tick",
+        ]),
+      );
+    }
+    // The scope alone is disqualifying, whatever kind a report claims.
+    const relabeled = held("b");
+    relabeled.report.kind = "battle-benchmark";
+    expect(compareRuns(input("a"), relabeled).issues).toContain(
+      "b: renderer-only recording with a held simulation is not a live benchmark",
+    );
+  });
   test("rejects an early victory marked complete and an omitted phase", () => {
     const a = input("a"),
       b = input("b");

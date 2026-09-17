@@ -68,6 +68,7 @@ export class BattleRenderer implements BattleRendererApi {
   private pendingFrozenFrameKey: string | null = null;
   private frozenCatalog: Record<number, AppearanceBundle> | null = null;
   private skipFrozenFrame = false;
+  private benchmarkSeconds: number | null = null;
   private blockMode = new URLSearchParams(location.search).get("debug") === "blocks";
   private framePerf = {
     buildMs: 0,
@@ -191,6 +192,7 @@ export class BattleRenderer implements BattleRendererApi {
     signal?.throwIfAborted();
     const start = performance.now();
     const before = this.renderedFrameId;
+    this.benchmarkSeconds = packet.clock === "benchmark" ? packet.timeSeconds : null;
     const c = packet.crowd;
     if (c) {
       this.setUnitReadouts(c.standards, c.readouts);
@@ -245,8 +247,7 @@ export class BattleRenderer implements BattleRendererApi {
     }
     this.skipFrozenFrame = false;
     this.frameStart = performance.now();
-    const seconds = this.fixedTime ?? performance.now() / 1000;
-    this.world.setTime(seconds);
+    this.world.setTime(this.environmentSeconds());
     const cameraState = cameraSnapshot(camera);
     const buildStart = performance.now();
     this.world.draw(positions, facings, playback, alive, count, cameraState, frameDt);
@@ -279,7 +280,7 @@ export class BattleRenderer implements BattleRendererApi {
     if (this.skipFrozenFrame) return;
     const cameraState = cameraSnapshot(camera);
     if (this.frameStart === 0) this.frameStart = performance.now();
-    this.world.setTime(this.fixedTime ?? performance.now() / 1000);
+    this.world.setTime(this.environmentSeconds());
     const uploadStart = performance.now();
     // A frame without drawTris clears the previous frame's attack arcs.
     if (this.triangleVerts.length === 0) this.world.drawTris(this.triangleVerts, cameraState);
@@ -308,6 +309,10 @@ export class BattleRenderer implements BattleRendererApi {
     } else {
       this.frozenFrameKey = null;
     }
+  }
+
+  private environmentSeconds(): number {
+    return this.fixedTime ?? this.benchmarkSeconds ?? performance.now() / 1000;
   }
 
   /** True-projection pixels-per-world-meter; the chart projection diverges in swoop. */

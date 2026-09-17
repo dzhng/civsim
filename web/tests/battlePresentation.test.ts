@@ -22,6 +22,7 @@ const camera = () =>
   });
 const packet = (): BattlePresentation => ({
   timeSeconds: 1,
+  clock: "wall",
   fixedTime: null,
   preserveFrozenEffects: false,
   camera: camera(),
@@ -132,5 +133,39 @@ test("aborted startup readiness cannot settle the shared renderer again after tw
     expect(world.settlePresentedFrame).toHaveBeenCalledTimes(1);
   } finally {
     vi.unstubAllGlobals();
+  }
+});
+
+test("source environment time follows a held benchmark clock and otherwise keeps its wall clock", () => {
+  const renderer = Object.create(BattleRenderer.prototype) as BattleRenderer;
+  const times: number[] = [];
+  const world = {
+    soldierAssets: null,
+    setTime: (seconds: number) => times.push(seconds),
+    draw: () => {},
+    drawTris: () => {},
+    drawTacticalLines: () => {},
+    uploadUnitReadouts: () => {},
+    gpuSubmissionIdentity: () => null,
+  };
+  Object.assign(renderer, {
+    world,
+    fixedTime: null,
+    preserveFrozenEffects: false,
+    renderedFrameId: 0,
+    readoutFrameKey: "",
+    triangleVerts: new Float32Array(),
+    frameStart: 0,
+    framePerf: { buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 },
+  });
+  const clock = vi.spyOn(performance, "now").mockReturnValue(4000);
+  try {
+    renderer.present({ ...packet(), clock: "benchmark", timeSeconds: 12.5 });
+    expect(times).toEqual([12.5, 12.5]);
+    times.length = 0;
+    renderer.present({ ...packet(), timeSeconds: 12.5 });
+    expect(times).toEqual([4, 4]);
+  } finally {
+    clock.mockRestore();
   }
 });

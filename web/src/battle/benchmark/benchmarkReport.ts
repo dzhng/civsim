@@ -4,7 +4,7 @@ import type { GraphicsSettings } from "../../shared/graphicsSettings";
 import { summarizeFrameIntervals } from "./benchmarkMetrics";
 import { BENCHMARK_CAMERA_PHASES } from "./benchmarkCamera";
 import type { BenchmarkFrame, BenchmarkRecording } from "./benchmarkRecording";
-import type { BenchmarkStatus } from "./benchmarkRun";
+import type { BenchmarkStatus, HeldBenchmarkScope } from "./benchmarkRun";
 
 export interface BenchmarkIdentity {
   userAgent: string;
@@ -23,6 +23,7 @@ export function createBenchmarkReport(
   frames: readonly BenchmarkFrame[],
   firstFrame: BattleLoopFrameMetrics | null = null,
   gpu: ReturnType<BenchmarkRecording["gpuSnapshot"]> | null = null,
+  held: HeldBenchmarkScope | null = null,
 ) {
   const summary = summarizeFrameIntervals(frames.map((frame) => frame.intervalMs));
   const phases = BENCHMARK_CAMERA_PHASES.map((phase) => ({
@@ -32,8 +33,10 @@ export function createBenchmarkReport(
     ),
   }));
   return {
-    kind: "battle-benchmark" as const,
+    // A held recording gets its own kind so no live-benchmark acceptance can admit it.
+    kind: held ? ("battle-benchmark-renderer-only" as const) : ("battle-benchmark" as const),
     version: 2,
+    ...(held && { scope: held }),
     createdAt: new Date().toISOString(),
     status,
     identity,

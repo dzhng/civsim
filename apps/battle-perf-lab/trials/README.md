@@ -44,7 +44,9 @@ inside the declared policy, and every hardware field was actually read. A run ca
 be perfectly valid and still unrankable; that is the normal case on a shared
 machine, and the record says so rather than hiding it.
 
-Both verdicts, their reasons and every artifact digest land in `trial.json`. The
+Both verdicts, their reasons and every artifact digest land in `trial.json`, with
+the recording's `measurement`: a [held-authority](../src/held/README.md) build is
+`renderer-only`, can be functionally valid, and is never live evidence. The
 `{ manifest, report }` pair the scorecard consumes lands in `run.json`, carrying
 a `RunManifest` as `compareRuns.ts` defines it.
 

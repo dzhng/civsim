@@ -1,3 +1,4 @@
+import type { BenchmarkAuthority } from "./benchmarkAuthority";
 import type { BattleBenchmarkScenario } from "./benchmarkScenario";
 
 export type BenchmarkPhase = "preparing" | "running" | "complete" | "cancelled" | "failed";
@@ -10,21 +11,47 @@ export interface BenchmarkStatus {
   tick: number;
   reason: string | null;
 }
+/** A held run measures rendering only: its simulation never leaves the start tick. */
+export interface HeldBenchmarkScope {
+  measurement: "renderer-only";
+  simulation: "held";
+  tick: number;
+  /** Authority hash when timing started. */
+  initialStateHash: string | null;
+  /** Authority hash seen by the latest recorded frame; cancellation does not resample it. */
+  finalStateHash: string | null;
+}
 
 /** Timing and termination only. The production battle loop owns every sim tick. */
 export class BenchmarkRun {
+  readonly scenario: BattleBenchmarkScenario;
+  private readonly held: HeldBenchmarkScope | null;
   private state: BenchmarkStatus;
   private runningAt: number | null = null;
   private lastPublishedAt = -Infinity;
   private listeners = new Set<(status: BenchmarkStatus) => void>();
 
   constructor(
-    readonly scenario: BattleBenchmarkScenario,
+    scenario: BattleBenchmarkScenario,
     private readonly createdAt: number,
+    authority: BenchmarkAuthority,
   ) {
+    // Preparation is unchanged: a held run prepares to its held tick and times from it.
+    this.scenario =
+      authority.kind === "held" ? { ...scenario, startTick: authority.tick } : scenario;
+    this.held =
+      authority.kind === "held"
+        ? {
+            measurement: "renderer-only",
+            simulation: "held",
+            tick: authority.tick,
+            initialStateHash: null,
+            finalStateHash: null,
+          }
+        : null;
     this.state = {
       phase: "preparing",
-      scenario,
+      scenario: this.scenario,
       preparationMs: 0,
       elapsedMs: 0,
       startTick: null,
@@ -39,6 +66,13 @@ export class BenchmarkRun {
   elapsedAt(now: number) {
     return this.runningAt === null ? 0 : Math.max(0, now - this.runningAt);
   }
+  heldScope(): HeldBenchmarkScope | null {
+    return this.held && { ...this.held };
+  }
+  /** The authority holds its contact tick until timing starts; a held run never releases it. */
+  get holdsAuthority() {
+    return this.held !== null || this.runningAt === null;
+  }
   get active() {
     return this.state.phase === "preparing" || this.state.phase === "running";
   }
@@ -51,7 +85,7 @@ export class BenchmarkRun {
     };
   }
 
-  frame(now: number, tick: number, victor: number) {
+  frame(now: number, tick: number, victor: number, stateHash: string) {
     if (!this.active) return;
     const previousPhase = this.state.phase;
     this.state.tick = tick;
@@ -69,9 +103,15 @@ export class BenchmarkRun {
         this.runningAt = now;
         this.state.startTick = tick;
         this.state.phase = "running";
+        if (this.held) this.held.initialStateHash = this.held.finalStateHash = stateHash;
       }
     } else {
       this.state.elapsedMs = this.elapsedAt(now);
+      if (this.held) {
+        this.held.finalStateHash = stateHash;
+        if (tick !== this.held.tick || stateHash !== this.held.initialStateHash)
+          return this.finish("failed", "Held simulation authority changed", now, tick);
+      }
       if (victor >= 0) return this.finish("complete", "Early victory — short run", now, tick);
       if (this.state.elapsedMs >= this.scenario.durationMs)
         return this.finish("complete", "Timed window complete", now, tick);

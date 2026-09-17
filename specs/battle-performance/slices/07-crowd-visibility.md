@@ -36,3 +36,18 @@ Replacing the old middle mesh with a richer intermediate while only moving the
 near boundary increases cost throughout the old middle interval. Evaluate the
 whole representation chain and its boundaries, including any changed far/shadow
 mesh cost; do not infer a global win from one tactical camera.
+
+
+## Four-mesh candidate checkpoint
+
+The [whole-roster control](../assets/07-projected-detail/roster-chain/README.md)
+justifies retaining an additional mesh: replacing old far increases wide and
+shadow work. Implement one coherent chain near/intermediate/middle/far, then
+impostor, with proposed32/18/9/4 projected boundaries. Preserve old near, middle,
+far and impostor-source bytes; add only the proven source-derived intermediate.
+Update the asset schema, shared level/count policy, all Three/native consumers,
+histograms and fixtures together. Campaign readers must retain their existing
+appearance and gameplay behavior. Do not add a compatibility or backend switch.
+Verify all transitions (including shadow-floor and impostor routing), actual
+per-audience work, model/campaign consumers, the unchanged standing gate and
+moving-camera/live acceptance before adopting the new default.

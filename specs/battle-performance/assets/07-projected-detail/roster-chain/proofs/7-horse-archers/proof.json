@@ -1,0 +1,182 @@
+{
+  "id": 7,
+  "name": "horse-archers",
+  "selection": {
+    "unitClass": 7,
+    "state": "primary"
+  },
+  "pass": true,
+  "failures": [],
+  "catalogEntry": "/@fs/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/appearances/7-horse-archers/appearance.json",
+  "productionAppearance": "/Users/david/dev/game-battle-lod-prototypes/web/public/assets/soldiers/appearances/horse-archers/1b67e798e9236381",
+  "source": {
+    "key": "horse-archer",
+    "blend": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/horse-archer.blend",
+    "body": "horse-archer-Deform",
+    "scene": "FootVariant-rider-light",
+    "sha256": "249406fcbbc351a0367ea6c29012a6c0e17bf537e1705ea85e7783fd3eca2602",
+    "savedSourceRecordSha256": "249406fcbbc351a0367ea6c29012a6c0e17bf537e1705ea85e7783fd3eca2602",
+    "triangles": 102880,
+    "vertices": 51530
+  },
+  "candidate": {
+    "mode": "reduce",
+    "glb": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/horse-archer/near.glb",
+    "reduction": {
+      "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/horse-archer.blend",
+      "sourceSha256": "249406fcbbc351a0367ea6c29012a6c0e17bf537e1705ea85e7783fd3eca2602",
+      "tiers": [
+        {
+          "name": "near",
+          "targetTriangles": 4000,
+          "sourceTriangles": 102880,
+          "triangles": 3946,
+          "omittedBelowMetres": 0,
+          "retainedIslandTriangleFloor": 12,
+          "glbSha256": "f24aceb77e4769c8c6af1637030935206e924d37cb7743c2c58448b4c5869822"
+        }
+      ]
+    }
+  },
+  "tiers": [
+    {
+      "role": "original near",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/horse-archer/runtime/near.glb",
+      "sha256": "0f7c366d6e3db8339c07f50deacbd156c337ec62d24570785731b92ff604f54d",
+      "glb": {
+        "triangles": 7950,
+        "vertices": 8112,
+        "primitives": 10
+      },
+      "mesh": {
+        "triangles": 7950,
+        "vertices": 8112
+      }
+    },
+    {
+      "role": "candidate 4k",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/horse-archer/near.glb",
+      "sha256": "f24aceb77e4769c8c6af1637030935206e924d37cb7743c2c58448b4c5869822",
+      "glb": {
+        "triangles": 3946,
+        "vertices": 4781,
+        "primitives": 10
+      },
+      "mesh": {
+        "triangles": 3946,
+        "vertices": 4781
+      }
+    },
+    {
+      "role": "original mid",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/horse-archer/runtime/mid.glb",
+      "sha256": "138d65ff15a6d801d89cc075f86d2275d62ae8b522f515deeec97e0605a0a63d",
+      "glb": {
+        "triangles": 968,
+        "vertices": 1709,
+        "primitives": 10
+      },
+      "mesh": {
+        "triangles": 968,
+        "vertices": 1709
+      }
+    }
+  ],
+  "productionTier1Mesh": {
+    "triangles": 968,
+    "vertices": 1709
+  },
+  "identity": [
+    {
+      "candidate": "skeleton.json",
+      "production": "skeleton.json",
+      "equal": true,
+      "sha256": "fd3fe4bcf954c2bf6e8f9fe59decdf324f0415a4b09956ca15dd6c47c89bad5d"
+    },
+    {
+      "candidate": "animation.json",
+      "production": "animation.json",
+      "equal": true,
+      "sha256": "f1b9d7ff6692cb1bb83c415306c4c435331fae7cdf0513ad10aca396a9fb145d"
+    },
+    {
+      "candidate": "materials.json",
+      "production": "materials.json",
+      "equal": true,
+      "sha256": "ed7d075100b4a3e18e50642a3f5540fb4ef5b82dda68c756458efff5c6b35ca3"
+    },
+    {
+      "candidate": "tier-0.mesh.json",
+      "production": "tier-0.mesh.json",
+      "equal": true,
+      "sha256": "c4cf8178d9a454cb345aa43fba0fcdac2d3e09518108b948eda880946054b26f"
+    },
+    {
+      "candidate": "tier-2.mesh.json",
+      "production": "tier-1.mesh.json",
+      "equal": true,
+      "sha256": "3d89cfd0622a5547169eff0441e17f4c5111f58c1fe405b8ac9fbd4305bf8067"
+    },
+    {
+      "candidate": "source/tier-0.glb",
+      "production": "source/tier-0.glb",
+      "equal": true,
+      "sha256": "0f7c366d6e3db8339c07f50deacbd156c337ec62d24570785731b92ff604f54d"
+    },
+    {
+      "candidate": "source/tier-2.glb",
+      "production": "source/tier-1.glb",
+      "equal": true,
+      "sha256": "138d65ff15a6d801d89cc075f86d2275d62ae8b522f515deeec97e0605a0a63d"
+    },
+    {
+      "candidate": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "production": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "equal": true,
+      "sha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1"
+    },
+    {
+      "candidate": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "production": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "equal": true,
+      "sha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb"
+    },
+    {
+      "candidate": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "production": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "equal": true,
+      "sha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765"
+    }
+  ],
+  "appearanceJson": {
+    "differingFields": [],
+    "bounds": {
+      "candidate": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 3.5362741947174072
+      },
+      "production": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 3.5362741947174072
+      }
+    },
+    "far": {
+      "mesh": "tier-0.mesh.json",
+      "clip": "ready",
+      "phase": 0
+    }
+  },
+  "lodContract": {
+    "log": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/logs/invariants/horse-archer.log",
+    "pass": true,
+    "result": "{\"triangles\":[7950,3946,968],\"clips\":[\"death\",\"hit\",\"idle\",\"melee\",\"ready\",\"release\",\"run\",\"walk\"],\"invariant\":\"exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export\"}"
+  }
+}

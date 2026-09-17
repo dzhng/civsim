@@ -64,3 +64,5 @@ semantics. Dense [sword](formation-heavy-sword-4k/README.md) and
 [light-spear](formation-light-spear-4k/README.md) 4k reversals retain equipment and
 formation readability; light spear retains a subtle far-view stippling difference.
 These remain bounded candidates pending the complete chain and performance gates.
+
+The [complete-roster chain control](roster-chain/README.md) confirms tactical opportunity but rejects replacing the original far mesh. Continue with a four-mesh candidate and preserve both original lower-detail intervals.

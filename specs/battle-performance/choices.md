@@ -384,3 +384,24 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   public host buffer and an active byte range, preserving its existing CPU copy.
 - **Verdict:** Sound for the measured workload. Exact payload/slot comparison and
   ownership tests support correctness; live frame-time benefit remains unproven.
+
+### Add an intermediate mesh without replacing the distant meshes
+
+- **When:** Complete-roster geometry control.
+- **Choice:** At tactical distances, try a new model between the existing close
+  and middle models. Keep the original middle and far models at their existing
+  smaller screen sizes. This gives four mesh levels before the existing flat
+  impostor representation. Both visible soldiers and shadow casters use the
+  same ordered levels; the coarsest real mesh remains the shadow floor.
+- **Gap:** The plan allowed representation changes but did not prescribe a new
+  mesh count. Fitting the intermediate into three slots displaced the smallest
+  model and made the zoomed-out battlefield and shadow pass do more work.
+- **Reach:** The asset format, renderer routing and reported level counts must
+  move together. Loading retains one extra mesh per appearance. The proposed
+  new boundary is32 standing-height pixels; original18/9/4 boundaries stay.
+  No legacy format or quality toggle is added. The existing detailed models,
+  motion and texture data remain authoritative.
+- **Verdict:** Sound as the next candidate, medium confidence. It directly avoids
+  the measured distant-work increase while preserving the promising tactical
+  reduction. Production adoption remains subject to transition, memory, camera
+  and live-performance gates; a fourth level is not itself proof of a win.

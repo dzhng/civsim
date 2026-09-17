@@ -4,16 +4,15 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: verify and measure the complete-roster 4k chain prepared by Claude
-under `/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/`.
-The exact-zero [skin influence experiment](assets/06b-skin-influences/README.md)
-was reverted: numerical and sampled pixel checks passed, but the cost controls
-established no gain. Do not resurrect it from source-work count alone.
-The [geometry diagnostic](assets/07-projected-detail/main-geometry-cost/README.md)
-shows a material opportunity. Dense phalanx rejects unmodified 2k shading and
-favors 4k; [infantry evidence](assets/07-projected-detail/README.md) remains bounded.
-Evaluate the whole chain and both boundaries so near savings do not increase
-old middle-range cost. Production assets and thresholds remain unchanged.
+Current pickup: implement and verify a coherent four-mesh candidate retaining
+original near, new4k intermediate, original middle and original far, followed by
+impostors, at proposed32/18/9/4 boundaries. The [complete-roster control](assets/07-projected-detail/roster-chain/README.md)
+improves tactical/horizon cost but rejects the three-mesh arrangement's larger
+wide/shadow workload. All twenty intermediate appearances passed bounded still
+review; transition and live gates remain open. Root scratch prototypes are at
+`throwaway/roster-4k-chain/`; production assets/policy remain unchanged.
+The [skin influence experiment](assets/06b-skin-influences/README.md) was reverted:
+numerical and sampled pixels passed, but cost controls established no gain.
 The [current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
 is functional across all four backends but unrankable. Refresh balanced comparisons
 after adopted changes. No backend has won; live throughput, moving-camera quality

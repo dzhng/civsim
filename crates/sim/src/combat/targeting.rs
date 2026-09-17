@@ -24,6 +24,41 @@ pub(super) struct TargetSearch {
     pub(super) approach_speed: f32,
 }
 
+/// The distinct grid buckets one target search has visited, in first-visit
+/// order. Several cells of the scan can hash to the same bucket; each bucket
+/// is scanned once. `ids` is the exact membership. `bits` is keyed by a
+/// bucket's low ten bits and is set for every recorded id, so an unset bit
+/// proves the bucket is new; a set bit may be a different bucket sharing
+/// those bits (tables above 1024 buckets), so it defers to `ids`.
+struct SeenBuckets {
+    ids: [usize; 81], // 9x9: range_cells caps at 4
+    len: usize,
+    bits: [u64; 16],
+}
+
+impl SeenBuckets {
+    fn new() -> Self {
+        Self {
+            ids: [usize::MAX; 81],
+            len: 0,
+            bits: [0; 16],
+        }
+    }
+
+    /// Records `b` and returns true the first time it is offered.
+    fn insert(&mut self, b: usize) -> bool {
+        let slot = b & (self.bits.len() * 64 - 1);
+        let (word, bit) = (slot >> 6, 1u64 << (slot & 63));
+        if self.bits[word] & bit != 0 && self.ids[..self.len].contains(&b) {
+            return false;
+        }
+        self.bits[word] |= bit;
+        self.ids[self.len] = b;
+        self.len += 1;
+        true
+    }
+}
+
 pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeting> {
     perf_scope!(_timer, "combat targeting");
     let TargetSearch {
@@ -73,16 +108,13 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
 
     let cx = (p.x / cell).floor() as i32;
     let cy = (p.y / cell).floor() as i32;
-    let mut seen = [usize::MAX; 81]; // 9x9: range_cells caps at 4
-    let mut seen_len = 0;
+    let mut seen = SeenBuckets::new();
     for oy in -range_cells..=range_cells {
         for ox in -range_cells..=range_cells {
             let b = sim.grid.bucket(cx + ox, cy + oy);
-            if seen[..seen_len].contains(&b) {
+            if !seen.insert(b) {
                 continue;
             }
-            seen[seen_len] = b;
-            seen_len += 1;
             let (lo, hi) = (sim.grid.starts[b] as usize, sim.grid.starts[b + 1] as usize);
             for &bj in &sim.grid.entries[lo..hi] {
                 let bj = bj as usize;
@@ -232,4 +264,38 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
         friends,
         friends_len,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SeenBuckets;
+
+    fn admitted(offers: &[usize]) -> (Vec<usize>, Vec<usize>) {
+        let mut seen = SeenBuckets::new();
+        let order = offers.iter().copied().filter(|&b| seen.insert(b)).collect();
+        (order, seen.ids[..seen.len].to_vec())
+    }
+
+    #[test]
+    fn seen_buckets_admit_each_distinct_bucket_once_in_offer_order() {
+        // 17, 1041 and 2065 share their low ten bits, so once one is recorded
+        // the filter reports the others present too: only the exact list can
+        // tell a distinct colliding bucket from a revisit. 5 never collides.
+        let (order, ids) = admitted(&[17, 1041, 17, 5, 2065, 1041, 5, 2065, 17]);
+        assert_eq!(order, [17, 1041, 5, 2065]);
+        assert_eq!(ids, order);
+
+        // A full 9x9 scan over colliding, repeating buckets matches the plain
+        // first-occurrence list.
+        let offers: Vec<usize> = (0..81).map(|k| (k * 7 % 5) * 1024 + k % 3).collect();
+        let mut expected = Vec::new();
+        for &b in &offers {
+            if !expected.contains(&b) {
+                expected.push(b);
+            }
+        }
+        let (order, ids) = admitted(&offers);
+        assert_eq!(order, expected);
+        assert_eq!(ids, expected);
+    }
 }

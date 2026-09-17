@@ -4,13 +4,23 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: implement and verify a coherent four-mesh candidate retaining
+Current pickup: integrate and GPU-verify Claude's four-mesh implementation from
+`codex/battle-four-mesh-lods` in `/Users/david/dev/game-battle-lod-prototypes`
+(active job log: `throwaway/four-mesh-implementation.log`). Root owns all browser,
+motion and timing gates; do not run timing during the worker's CPU bakes/tests.
+The candidate retains
 original near, new4k intermediate, original middle and original far, followed by
 impostors, at proposed32/18/9/4 boundaries. The [complete-roster control](assets/07-projected-detail/roster-chain/README.md)
 improves tactical/horizon cost but rejects the three-mesh arrangement's larger
 wide/shadow workload. All twenty intermediate appearances passed bounded still
 review; transition and live gates remain open. Root scratch prototypes are at
 `throwaway/roster-4k-chain/`; production assets/policy remain unchanged.
+Moving-camera before-images are ready in `throwaway/roster-boundary-reference/`;
+rerun `throwaway/roster-boundary-motion.mjs` to a separate candidate directory
+using `LOD_CAPTURE_NAME` after integration. It samples four64-person formations
+through40→14→40 projected pixels with pan/yaw reversals and canonical melee phase.
+Original fixed-build soldier assets are [frozen and hash-verified](assets/02-paired-controls-98fc8a45/frozen-soldiers.json),
+including nineteen additional historical links; never mutate that snapshot.
 The [skin influence experiment](assets/06b-skin-influences/README.md) was reverted:
 numerical and sampled pixels passed, but cost controls established no gain.
 The [current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)

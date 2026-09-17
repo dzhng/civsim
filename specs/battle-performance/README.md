@@ -22,7 +22,10 @@ and reproduces its material failure. Other far-suite differences remain unclassi
 
 Root owns serialized browser/GPU jobs. No hardware timing during builds/tests.
 The unchanged30k hardware gate now passes all18 checks on the candidate.
-Next: refreshed balanced live backend comparison,
+[Stationary contact controls](assets/07-four-mesh-control/cost/README.md) reduce dense
+main-pass work while preserving distant/shadow geometry; wide timing remains a
+concern despite identical work. Next: refreshed fixed production builds and
+balanced live backend comparison,
 backend decision, remaining camera/grass/simulation work, default shadows and final
 net savings. No backend has won. Original fixed-build assets are
 [frozen and hash-verified](assets/02-paired-controls-98fc8a45/frozen-soldiers.json);

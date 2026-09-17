@@ -43,3 +43,7 @@ not live60fps acceptance.
 [Test changes](test-changes.md) records the review corrections and seven carried-in
 lifecycle/timing failures repaired without changing production behavior. Root and
 independent Codex review both passed all seven repaired tests.
+
+[Stationary contact cost](cost/README.md) now verifies preserved shadow and wide
+geometry while reducing dense main-pass work. Timings remain provisional; the wide
+view is slower despite identical work and host drift is substantial.

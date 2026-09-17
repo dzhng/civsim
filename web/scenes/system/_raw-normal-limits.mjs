@@ -147,7 +147,7 @@ export async function checkRawNormalLimits(ctx) {
         };
         const animation = bakeLocalAnimation(rig);
         pipeline = await SkinnedCrowdPipeline.create(shell, {
-          0: { ...source, surface, rig, animation, tiers: [mesh, mesh, mesh] },
+          0: { ...source, surface, rig, animation, tiers: source.tiers.map(() => mesh) },
         });
         pipeline.upload(
           [

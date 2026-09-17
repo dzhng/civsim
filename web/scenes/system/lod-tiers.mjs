@@ -7,7 +7,7 @@ export const meta = {
   tier: "full",
   snapshots: [],
   describe:
-    "Real LOD mesh tiers (L0/L1/L2) reduce geometry; per-instance distance binning coarsens monotonically with hysteresis.",
+    "Real LOD mesh tiers reduce geometry; per-instance distance binning coarsens monotonically with hysteresis.",
 };
 
 function countNonBlank(png) {
@@ -43,7 +43,7 @@ export async function run(ctx) {
     );
     ctx.check(
       "lod-tiers: per-instance distance binning coarsens monotonically and reaches every mesh tier",
-      stats.monotonic === true && stats.tiersReached >= stats.triCounts.length,
+      stats.monotonic === true && stats.tiersReached === stats.triCounts.length,
       JSON.stringify({ probeLevels: stats.probeLevels, tiersReached: stats.tiersReached }),
     );
     ctx.check(

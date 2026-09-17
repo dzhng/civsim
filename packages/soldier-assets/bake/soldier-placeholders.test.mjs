@@ -58,11 +58,13 @@ try {
         JSON.stringify(encodeSoldierMesh(source[id][tier])),
       );
     }
-    // Bare heads lose nothing between intermediate and mid; every other step reduces.
-    assert.equal(bundle.tiers.length, 4);
-    assert.ok(bundle.tiers[0].indices.length > bundle.tiers[1].indices.length);
-    assert.ok(bundle.tiers[1].indices.length >= bundle.tiers[2].indices.length);
-    assert.ok(bundle.tiers[2].indices.length > bundle.tiers[3].indices.length);
+    // Mid drops helmet and blanket, so only a bare or hooded foot soldier ties intermediate.
+    const { look } = generated.descriptors[id];
+    const ties = !look.mounted && ["bare", "hood"].includes(look.helmet);
+    const triangles = bundle.tiers.map((mesh) => mesh.indices.length);
+    assert.equal(triangles.length, 4);
+    assert.ok(triangles[0] > triangles[1] && triangles[2] > triangles[3], `${triangles}`);
+    assert.ok(ties ? triangles[1] === triangles[2] : triangles[1] > triangles[2], `${triangles}`);
     assert.equal(
       JSON.stringify(encodeSoldierMesh(bundle.farMesh)),
       JSON.stringify(encodeSoldierMesh(source[id][0])),

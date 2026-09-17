@@ -56,7 +56,9 @@ vi.mock("../../apps/battle-perf-lab/src/raw/terrainScene", () => ({
     }),
 }));
 vi.mock("../../apps/battle-perf-lab/src/raw/crowdAudience", () => ({
-  createRawCrowdAudience: async () => layer({ precompute: vi.fn(), refreshCamera: vi.fn() }),
+  // Prepare reuses the upload camera, so the audience reports unchanged views.
+  createRawCrowdAudience: async () =>
+    layer({ precompute: vi.fn(), reproject: vi.fn(() => false), refreshCamera: vi.fn() }),
 }));
 vi.mock("../../apps/battle-perf-lab/src/raw/grassField", () => ({
   createRawGrassField: async () =>

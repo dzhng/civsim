@@ -11,3 +11,7 @@ The tactical images are paused tick120 captures. `tactical-reference` uses targe
 Fresh unprimed visual review found noisy grass flecks, weak readable contact shadows and infantry silhouettes blending into dense textures. It also noted clipped formations, empty upper ground, truncated card labels and dark icons. Comparison with the supplied image shows the same grass/shadow symptoms; different framing/DPR makes whole-frame pixel distance uninformative. Those baseline issues remain, not fixes. HUD redesign is outside this spec. A frozen baseline deliberately displays `fps –`; live timing comes from the trace, not that label.
 
 `scenario-scout.json.gz` is an actual WASM simulation acquisition through tick18000. Fixed generated seed7, sim seed0x5eedc0de, existing team1 commander, explicit tick0 nearest-enemy attack orders for20 team0 units. First >500 engaged is tick8970. The9000–18000 window remains contested: start15,529 living/540engaged, end8,043living/596engaged, with substantial intervening fighting. Tick9000 hash is `9928381812590497427`. Camera anchors were updated to follow the west-side contact as the eastern fighting subsides, version`contact-9000-v2`. Browser integration must reproduce the hash and visually verify this camera path before freezing the scenario.
+
+[Current display inventory](current-displays.json) records both high-DPI screens.
+Logical desktop size is not physical framebuffer size; the actual normal game
+viewport and browser scale still need acceptance measurement.

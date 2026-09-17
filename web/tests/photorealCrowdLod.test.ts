@@ -12,6 +12,7 @@ import {
   emptyLodCounts,
   IMPOSTOR_LEVEL,
   lodWithHysteresis,
+  type LodCounts,
   type LodLevel,
   type LodPolicy,
 } from "@packages/crowd-runtime/src/lod";
@@ -76,18 +77,18 @@ function shadowView(extent = 1000, y = 0) {
   return projectionView(camera, 1024, true);
 }
 
-test("projected LOD keeps the exact pre-optimization audience sequence", () => {
-  // Captured on 5657d660 before changing arithmetic/storage and re-pinned for the
-  // four-mesh chain after reproducing the original hash with an unreachable near
-  // boundary. This is an exactness pin, not an art-quality or performance gate.
-  // Fixed inputs include culled, near-plane, elevated, mounted and asymmetric
-  // corpse bounds.
+/** Exactness pin, not an art-quality or performance gate. Fixed inputs include
+ * culled, near-plane, elevated, mounted and asymmetric corpse bounds. */
+function audienceSequenceHash(
+  policy: LodPolicy,
+  level: (level: number) => number = (value) => value,
+  counts: (counts: LodCounts) => object = (value) => value,
+) {
   const fixtureAssets = {
     0: {
       manifest: { bounds: { center: [0.13, -0.21, 0.9] as [number, number, number], radius: 1.3 } },
     },
   };
-  const policy: LodPolicy = { meshPixels: [32, 18, 9, 4], minScreenPixels: 2.25 };
   const rows: unknown[] = [];
   let mainHistory: number[] = [];
   let shadowHistory: number[] = [];
@@ -117,16 +118,16 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
     );
     // Preserve the pre-buffer serialized shape and exact golden, not typed-array JSON.
     rows.push({
-      assignments: Array.from(plan.levels.slice(0, count), (level, i) => ({
-        level,
+      assignments: Array.from(plan.levels.slice(0, count), (value, i) => ({
+        level: level(value),
         screenSize: plan.screenSizes[i],
       })),
-      counts: plan.counts,
-      shadowAssignments: Array.from(plan.shadowLevels.slice(0, count), (level, i) => ({
-        level,
+      counts: counts(plan.counts),
+      shadowAssignments: Array.from(plan.shadowLevels.slice(0, count), (value, i) => ({
+        level: level(value),
         screenSize: plan.shadowScreenSizes[i],
       })),
-      shadowCounts: plan.shadowCounts,
+      shadowCounts: counts(plan.shadowCounts),
       visibility: plan.visibility.slice(0, count),
       viewVisible: plan.viewVisible,
       shadowOnly: plan.shadowOnly,
@@ -137,10 +138,25 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
   const serialized = JSON.stringify(rows, (_key, value) =>
     typeof value === "number" && !Number.isFinite(value) ? String(value) : value,
   );
+  return createHash("sha256").update(serialized).digest("hex");
+}
+
+test("projected LOD keeps its exact four-mesh audience sequence", () => {
   assert.equal(
-    createHash("sha256").update(serialized).digest("hex"),
+    audienceSequenceHash({ meshPixels: [32, 18, 9, 4], minScreenPixels: 2.25 }),
     "abb54b79c2ef83ab21a826f50b791b24eb74dbefe737c13266e1af3813090e78",
   );
+});
+
+test("an unreachable near boundary reproduces the three-mesh audience sequence", () => {
+  // Captured on 5657d660 with boundaries 18/9/4 and the impostor at level 3. Only
+  // Infinity (the near plane) still reaches level 0, which both chains draw fully.
+  const hash = audienceSequenceHash(
+    { meshPixels: [Number.MAX_VALUE, 18, 9, 4], minScreenPixels: 2.25 },
+    (level) => Math.max(0, level - 1),
+    ({ l0, l1, l2, l3, l4 }) => ({ l0: l0 + l1, l1: l2, l2: l3, l3: l4 }),
+  );
+  assert.equal(hash, "b909f671d1ae98a8c6ecf58cf91898f9a1808750370c4cb9f6be6e655de7a78a");
 });
 
 test("production LOD follows projected depth through every mesh tier to the impostor", () => {
@@ -250,7 +266,7 @@ test("every boundary, including the impostor return, holds inside its deadband",
     assert.equal(lodWithHysteresis(finer, pixels - 1.5, chain), coarser, `leave ${finer}`);
   }
   assert.equal(lodWithHysteresis(IMPOSTOR_LEVEL, 6, chain), IMPOSTOR_LEVEL);
-  assert.equal(lodWithHysteresis(IMPOSTOR_LEVEL, 6.5, chain), COARSEST_SHADOW_LOD);
+  assert.equal(lodWithHysteresis(IMPOSTOR_LEVEL, 6.5, chain), IMPOSTOR_LEVEL - 1);
 });
 
 test("multi-level jumps commit only past the destination's own boundary", () => {

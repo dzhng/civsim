@@ -423,3 +423,19 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   Saved gameplay data and camera projection do not change.
 - **Verdict:** Sound, high confidence. This keeps the asset-format fact distinct
   from the render-quality decision while making their shared arity explicit.
+
+### Remove superseded generated bundles after freezing historical controls
+
+- **When:** Four-mesh review cleanup.
+- **Choice:** Current catalogs keep only the generated versions they actually
+  load. Historical benchmark builds use a separate hash-verified snapshot of
+  their old assets, so cleaning the working tree cannot silently change their
+  workload. The rejected alternative was keeping both generations in every
+  production asset tree, consuming disk and shipping unreferenced data.
+- **Gap:** The plan required reproducible controls but did not prescribe how to
+  retain old content after an asset cutover.
+- **Reach:** Future asset cleanup must inspect resolved catalog references and
+  preserve any frozen benchmark snapshot. Git history retains prior generated
+  versions, while the snapshot retains immediately runnable controls.
+- **Verdict:** Sound, high confidence. All126 current catalog references resolve
+  to existing four-tier manifests and none resolves into the removed directories.

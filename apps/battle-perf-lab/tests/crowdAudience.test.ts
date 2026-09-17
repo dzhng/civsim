@@ -84,7 +84,7 @@ beforeEach(() => {
   state.failAtlas = -1;
 });
 for (const backend of ["typegpu", "vgpu"] as const) {
-  test(`${backend}: full catalog L3 groups are main-only while plural shadow views retain mesh casters`, async () => {
+  test(`${backend}: full catalog impostor groups are main-only while plural shadow views retain mesh casters`, async () => {
     const owner = await create(backend);
     expect(state.layers).toHaveLength(3);
     const hidden = {

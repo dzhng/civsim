@@ -29,7 +29,7 @@ export interface CrowdInstance {
   seed: number;
   /** This class rides a mount (horse). Drives LOD scale and mount composition. */
   mounted: boolean;
-  /** Mesh tier 0=full … 3=impostor, assigned per-instance by camera distance. */
+  /** Mesh tier from 0 (full) to the impostor level, assigned per instance by projected size. */
   lod: number;
   /** Render-only terrain height at (x,y); added to world Z so soldiers sit on
    *  the surface and sort by it. Sim positions are unaffected. */

@@ -4,32 +4,31 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: integrate and GPU-verify Claude's four-mesh implementation from
-`codex/battle-four-mesh-lods` in `/Users/david/dev/game-battle-lod-prototypes`
-(active job log: `throwaway/four-mesh-implementation.log`). Root owns all browser,
-motion and timing gates; do not run timing during the worker's CPU bakes/tests.
-The behavior-preserving [shared tier owner](assets/07-tier-owner-control/README.md)
-is integrated at86d8752a and its68 sampled camera frames match exactly. Main still
-uses the original three meshes until the candidate asset commit is integrated.
-The candidate retains
-original near, new4k intermediate, original middle and original far, followed by
-impostors, at proposed32/18/9/4 boundaries. The [complete-roster control](assets/07-projected-detail/roster-chain/README.md)
-improves tactical/horizon cost but rejects the three-mesh arrangement's larger
-wide/shadow workload. All twenty intermediate appearances passed bounded still
-review; transition and live gates remain open. Root scratch prototypes are at
-`throwaway/roster-4k-chain/`; production assets/policy remain unchanged.
-Moving-camera before-images are ready in `throwaway/roster-boundary-reference/`;
-rerun `throwaway/roster-boundary-motion.mjs` to a separate candidate directory
-using `LOD_CAPTURE_NAME` after integration. It samples four64-person formations
-through40→14→40 projected pixels with pan/yaw reversals and canonical melee phase.
-Original fixed-build soldier assets are [frozen and hash-verified](assets/02-paired-controls-98fc8a45/frozen-soldiers.json),
-including nineteen additional historical links; never mutate that snapshot.
-The [skin influence experiment](assets/06b-skin-influences/README.md) was reverted:
-numerical and sampled pixels passed, but cost controls established no gain.
-The [current Menu round](assets/02-paired-controls-98fc8a45/live-round-0/README.md)
-is functional across all four backends but unrankable. Refresh balanced comparisons
-after adopted changes. No backend has won; live throughput, moving-camera quality
-and net-shadow savings remain open.
+Current pickup: finish the four-mesh candidate's browser regressions and hardware
+acceptance. Main integrates the original near / new intermediate / original mid /
+original far chain at32/18/9/4 standing-height pixels, followed by impostors.
+[Current correctness evidence](assets/07-four-mesh-control/README.md) preserves
+all twenty original asset identities and68 paired camera/pose samples. Sampled
+visual review found no new one-sided loss; a shared06→07 appearance shift remains
+open. These samples do not establish real-time smoothness.
+
+Claude's final fixture corrections are applied, and independent Codex review
+found no actionable four-tier regression. Root's33 focused tests pass. Seven
+older lifecycle/timing mocks were repaired by Claude and now pass; their original
+failure and strengthened assertions are recorded with independent review.
+Canonical far-view checks remain red (image baselines and dead-contact material
+response); the preceding three-tier control matches all seven grounding PNGs exactly
+and reproduces its material failure. Other far-suite differences remain unclassified. Never repin a failing gate merely because the new assets are expected.
+
+Root owns serialized browser/GPU jobs. No hardware timing during builds/tests.
+The unchanged30k hardware gate now passes all18 checks on the candidate.
+Next: refreshed balanced live backend comparison,
+backend decision, remaining camera/grass/simulation work, default shadows and final
+net savings. No backend has won. Original fixed-build assets are
+[frozen and hash-verified](assets/02-paired-controls-98fc8a45/frozen-soldiers.json);
+never mutate that snapshot. Superseded generated catalog directories may be pruned
+only after proving current catalogs do not reference them. The
+[skin influence experiment](assets/06b-skin-influences/README.md) remains reverted.
 
 [Current fixed builds](assets/02-paired-controls-98fc8a45/README.md) include
 billboard deduplication and retained crowd packing; all eight emitted WASM files
@@ -43,7 +42,7 @@ halves measured duplicate preparation; [crowd packing](assets/06b-crowd-packing/
 preserves payload bytes while removing warmed payload backing allocations;
 [native admission batching](assets/02-native-admission-batch/README.md) shortens
 observed preparation waits. The unchanged [standing hardware gate](assets/04-grass-camera-gate/README.md)
-passes all 18 checks. These component controls do not establish live FPS or
+passes all18 checks again on the four-mesh candidate. These component controls do not establish live FPS or
 visual acceptance. Earlier [live controls](assets/02-current-live/README.md) and
 the [9374dbc9 raw disabled run](assets/02-paired-controls-9374dbc9/README.md) remain
 unrankable under their recorded host policy; retain those verdicts.

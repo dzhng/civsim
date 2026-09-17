@@ -1,0 +1,193 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-performance-spec/web
+
+ ❯ tests/nativeSceneLifecycle.test.ts (3 tests | 3 failed) 5ms
+   × failed staged terrain replacement retains the previously prepared scene 4ms
+   × a dependent failure after terrain commit cannot present mixed generations 1ms
+   × disposal during an awaited UI upload prevents late readout allocation 0ms
+ ❯ tests/photorealWorld.test.ts (4 tests | 4 failed) 4010ms
+   × an older successful readback cannot restore timing after a propagated resolution failure 1004ms
+   × the production frame boundary drains both query pools while publishing render time only 1001ms
+   × propagated render timestamp failure stops query allocation and invalidates stale timing 1002ms
+   × propagated compute timestamp failure stops query allocation and invalidates stale timing 1003ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/nativeSceneLifecycle.test.ts > failed staged terrain replacement retains the previously prepared scene
+TypeError: crowd.reproject is not a function
+ ❯ Object.prepare ../apps/battle-perf-lab/src/raw/battleScene.ts:286:21
+    284|           standards.setView(camera.view, input.time);
+    285|           readouts.setCamera(camera.viewProjection, camera.world);
+    286|           if (crowd.reproject(crowdViews(camera), camera.impostor)) {
+       |                     ^
+    287|             const encoder = device.createCommandEncoder({ label: "batt…
+    288|             nativeGpuScope(device, "pose", () => crowd.precompute(enco…
+ ❯ ready tests/nativeSceneLifecycle.test.ts:148:15
+ ❯ tests/nativeSceneLifecycle.test.ts:152:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/nativeSceneLifecycle.test.ts > a dependent failure after terrain commit cannot present mixed generations
+TypeError: crowd.reproject is not a function
+ ❯ Object.prepare ../apps/battle-perf-lab/src/raw/battleScene.ts:286:21
+    284|           standards.setView(camera.view, input.time);
+    285|           readouts.setCamera(camera.viewProjection, camera.world);
+    286|           if (crowd.reproject(crowdViews(camera), camera.impostor)) {
+       |                     ^
+    287|             const encoder = device.createCommandEncoder({ label: "batt…
+    288|             nativeGpuScope(device, "pose", () => crowd.precompute(enco…
+ ❯ ready tests/nativeSceneLifecycle.test.ts:148:15
+ ❯ tests/nativeSceneLifecycle.test.ts:161:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/nativeSceneLifecycle.test.ts > disposal during an awaited UI upload prevents late readout allocation
+TypeError: crowd.reproject is not a function
+ ❯ Object.prepare ../apps/battle-perf-lab/src/raw/battleScene.ts:286:21
+    284|           standards.setView(camera.view, input.time);
+    285|           readouts.setCamera(camera.viewProjection, camera.world);
+    286|           if (crowd.reproject(crowdViews(camera), camera.impostor)) {
+       |                     ^
+    287|             const encoder = device.createCommandEncoder({ label: "batt…
+    288|             nativeGpuScope(device, "pose", () => crowd.precompute(enco…
+ ❯ ready tests/nativeSceneLifecycle.test.ts:148:15
+ ❯ tests/nativeSceneLifecycle.test.ts:172:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/photorealWorld.test.ts > an older successful readback cannot restore timing after a propagated resolution failure
+AssertionError: expected null to be 3 // Object.is equality
+
+- Expected:
+3
+
++ Received:
+null
+
+ ❯ tests/photorealWorld.test.ts:47:58
+     45|   const camera = new THREE.PerspectiveCamera();
+     46|   world.render(camera);
+     47|   await vi.waitFor(() => expect(world.stats().gpuTimeMs).toBe(3));
+       |                                                          ^
+     48|   let release!: () => void;
+     49|   const earlier = new Promise<void>((resolve) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/photorealWorld.test.ts > the production frame boundary drains both query pools while publishing render time only
+AssertionError: expected null to be 3 // Object.is equality
+
+- Expected:
+3
+
++ Received:
+null
+
+ ❯ tests/photorealWorld.test.ts:74:58
+     72|   gpu.pending.compute = 2; // A palette dispatch precedes the visible …
+     73|   world.render(new THREE.PerspectiveCamera());
+     74|   await vi.waitFor(() => expect(world.stats().gpuTimeMs).toBe(3));
+       |                                                          ^
+     75|   expect(gpu.pending).toEqual({ render: 0, compute: 0 });
+     76|   expect(world.stats()).toMatchObject({ drawCalls: 1, triangles: 2, gp…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/photorealWorld.test.ts > propagated render timestamp failure stops query allocation and invalidates stale timing
+ FAIL  tests/photorealWorld.test.ts > propagated compute timestamp failure stops query allocation and invalidates stale timing
+AssertionError: expected null to be 3 // Object.is equality
+
+- Expected:
+3
+
++ Received:
+null
+
+ ❯ tests/photorealWorld.test.ts:85:60
+     83|     const camera = new THREE.PerspectiveCamera();
+     84|     world.render(camera);
+     85|     await vi.waitFor(() => expect(world.stats().gpuTimeMs).toBe(3));
+       |                                                            ^
+     86|     gpu.fail = type;
+     87|     gpu.pending.compute = 2;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 4 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Cannot read properties of undefined (reading 'render')
+ ❯ GpuTelemetry.resolve ../packages/photoreal-renderer/src/gpuTelemetry.ts:280:31
+    278|       );
+    279|     for (const kind of ["render", "compute"] as const) {
+    280|       const results = backend.timestampQueryPool[kind]?.timestamps;
+       |                               ^
+    281|       if (results) for (const uid of results.keys()) if (!needed.has(u…
+    282|     }
+ ❯ failed ../packages/photoreal-renderer/src/world.ts:174:25
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+
+This error originated in "tests/photorealWorld.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "an older successful readback cannot restore timing after a propagated resolution failure". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Cannot read properties of undefined (reading 'render')
+ ❯ GpuTelemetry.resolve ../packages/photoreal-renderer/src/gpuTelemetry.ts:280:31
+    278|       );
+    279|     for (const kind of ["render", "compute"] as const) {
+    280|       const results = backend.timestampQueryPool[kind]?.timestamps;
+       |                               ^
+    281|       if (results) for (const uid of results.keys()) if (!needed.has(u…
+    282|     }
+ ❯ failed ../packages/photoreal-renderer/src/world.ts:174:25
+
+This error originated in "tests/photorealWorld.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "the production frame boundary drains both query pools while publishing render time only". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Cannot read properties of undefined (reading 'render')
+ ❯ GpuTelemetry.resolve ../packages/photoreal-renderer/src/gpuTelemetry.ts:280:31
+    278|       );
+    279|     for (const kind of ["render", "compute"] as const) {
+    280|       const results = backend.timestampQueryPool[kind]?.timestamps;
+       |                               ^
+    281|       if (results) for (const uid of results.keys()) if (!needed.has(u…
+    282|     }
+ ❯ failed ../packages/photoreal-renderer/src/world.ts:174:25
+
+This error originated in "tests/photorealWorld.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "propagated render timestamp failure stops query allocation and invalidates stale timing". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Cannot read properties of undefined (reading 'render')
+ ❯ GpuTelemetry.resolve ../packages/photoreal-renderer/src/gpuTelemetry.ts:280:31
+    278|       );
+    279|     for (const kind of ["render", "compute"] as const) {
+    280|       const results = backend.timestampQueryPool[kind]?.timestamps;
+       |                               ^
+    281|       if (results) for (const uid of results.keys()) if (!needed.has(u…
+    282|     }
+ ❯ failed ../packages/photoreal-renderer/src/world.ts:174:25
+
+This error originated in "tests/photorealWorld.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "propagated compute timestamp failure stops query allocation and invalidates stale timing". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  2 failed (2)
+      Tests  7 failed (7)
+     Errors  4 errors
+   Start at  08:18:28
+   Duration  4.31s (transform 119ms, setup 98ms, import 164ms, tests 4.02s, environment 151ms)
+

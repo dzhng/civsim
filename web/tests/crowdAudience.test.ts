@@ -153,7 +153,7 @@ test("failed uploads prevent stale draws and preserve preceding successful LOD h
   owner.dispose();
 });
 
-test("camera-only refresh retains selected L3 groups and never advances mesh/LOD history", async () => {
+test("camera-only refresh retains selected impostor groups and never advances mesh/LOD history", async () => {
   const owner = await create();
   owner.upload([soldier], [view(0.1), view(34 / 1.8, true)], camera);
   const before = owner.stats(),

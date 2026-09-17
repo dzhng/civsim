@@ -2,8 +2,8 @@ import type { CrowdInstance } from "./instanceData";
 import { projectedSpanPixels, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
 import { APPEARANCE_MESH_TIERS, type MeshTiers } from "../../soldier-assets/src/appearanceBundle";
 
-/** Levels below `IMPOSTOR_LEVEL` index an appearance's mesh tiers. */
-export type LodLevel = 0 | 1 | 2 | 3 | 4;
+/** 0 through the tier count: levels below `IMPOSTOR_LEVEL` index an appearance's mesh tiers. */
+export type LodLevel = Partial<MeshTiers<unknown>>["length"];
 export const IMPOSTOR_LEVEL: LodLevel = APPEARANCE_MESH_TIERS.length;
 /** All mesh tiers cast; impostors do not. Planner and draw producers share this boundary. */
 export const COARSEST_SHADOW_LOD = (IMPOSTOR_LEVEL - 1) as LodLevel;

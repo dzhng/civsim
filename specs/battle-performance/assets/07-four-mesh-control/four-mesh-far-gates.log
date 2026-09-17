@@ -1,0 +1,117 @@
+(node:57628) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-performance-spec/packages/game-renderer/src/battle/unitInfoLayout.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-performance-spec/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS  battle-model-far-bundles: front-near: full appearance submission  ({"ids":[0,14,6],"count":3})
+PASS  battle-model-far-bundles: front-near: expected representation  ({"skinned":3,"impostors":0})
+PASS  battle-model-far-bundles: front-near: independent shadow audience stays mesh-only  ({"l0":0,"l1":0,"l2":3,"l3":0,"l4":0})
+PASS  battle-model-far-bundles: front-near: pike remains on the mesh's right-hand side  ({"polePixels":177,"centroidX":669.3220338983051})
+FAIL  battle-model-far-bundles: snapshot battle/far-bundles/front-near  (29361 px differ (2.8673%) — see shots/diff/battle/far-bundles/front-near.png)
+PASS  battle-model-far-bundles: front-near: frozen pixels
+PASS  battle-model-far-bundles: front-far-diagnostic: full appearance submission  ({"ids":[0,14,6],"count":3})
+PASS  battle-model-far-bundles: front-far-diagnostic: expected representation  ({"skinned":0,"impostors":3})
+PASS  battle-model-far-bundles: front-far-diagnostic: independent shadow audience stays mesh-only  ({"l0":0,"l1":0,"l2":0,"l3":3,"l4":0})
+FAIL  battle-model-far-bundles: snapshot battle/far-bundles/front-far-production  (3 px differ (0.0003%) — see shots/diff/battle/far-bundles/front-far-production.png)
+PASS  battle-model-far-bundles: front-far-diagnostic: production far pixels frozen
+PASS  battle-model-far-bundles: front-far-diagnostic: pike remains on the mesh's right-hand side  ({"polePixels":177,"centroidX":669.3220338983051})
+FAIL  battle-model-far-bundles: snapshot battle/far-bundles/front-far-diagnostic  (37407 px differ (3.6530%) — see shots/diff/battle/far-bundles/front-far-diagnostic.png)
+PASS  battle-model-far-bundles: front-far-diagnostic: frozen pixels
+PASS  battle-model-far-bundles: side-near: full appearance submission  ({"ids":[0,14,6],"count":3})
+PASS  battle-model-far-bundles: side-near: expected representation  ({"skinned":3,"impostors":0})
+PASS  battle-model-far-bundles: side-near: independent shadow audience stays mesh-only  ({"l0":0,"l1":0,"l2":2,"l3":1,"l4":0})
+FAIL  battle-model-far-bundles: snapshot battle/far-bundles/side-near  (53139 px differ (5.1894%) — see shots/diff/battle/far-bundles/side-near.png)
+PASS  battle-model-far-bundles: side-near: frozen pixels
+PASS  battle-model-far-bundles: side-far-diagnostic: full appearance submission  ({"ids":[0,14,6],"count":3})
+PASS  battle-model-far-bundles: side-far-diagnostic: expected representation  ({"skinned":0,"impostors":3})
+PASS  battle-model-far-bundles: side-far-diagnostic: independent shadow audience stays mesh-only  ({"l0":0,"l1":0,"l2":0,"l3":3,"l4":0})
+FAIL  battle-model-far-bundles: snapshot battle/far-bundles/side-far-production  (5 px differ (0.0005%) — see shots/diff/battle/far-bundles/side-far-production.png)
+PASS  battle-model-far-bundles: side-far-diagnostic: production far pixels frozen
+FAIL  battle-model-far-bundles: snapshot battle/far-bundles/side-far-diagnostic  (62452 px differ (6.0988%) — see shots/diff/battle/far-bundles/side-far-diagnostic.png)
+PASS  battle-model-far-bundles: side-far-diagnostic: frozen pixels
+PASS  battle-model-far-bundles: roster-production-far: full appearance submission  ({"ids":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],"count":320})
+PASS  battle-model-far-bundles: roster-production-far: catalog covers every current appearance  ([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19])
+PASS  battle-model-far-bundles: roster-production-far: expected representation  ({"skinned":0,"impostors":320})
+PASS  battle-model-far-bundles: roster-production-far: independent shadow audience stays mesh-only  ({"l0":0,"l1":0,"l2":0,"l3":320,"l4":0})
+FAIL  battle-model-far-bundles: snapshot battle/far-bundles/roster-production-far  (225 px differ (0.0220%) — see shots/diff/battle/far-bundles/roster-production-far.png)
+PASS  battle-model-far-bundles: roster-production-far: frozen pixels
+PASS  battle-model-far-grounding: near: requested representation  ({"camera":{"x":0,"y":0,"zoom":80,"zoomT":1,"camera3d":{"target":[0.045835405588150024,0.07664388790726662,1.1900000274181366],"distance":2000,"pitch":0.3737921748345104,"yaw":-1.373400766945016,"fovY":0.004999989583372396,"aspect":1.6,"near":0.17721157314762573,"far":4000}},"lod":{"skinned":1,"impostors":0},"shadow":{"l0":0,"l1":0,"l2":0,"l3":1,"l4":0},"allocatedBytes":11796456})
+PASS  battle-model-far-grounding: near: shadow audience remains independent of the main representation  ({"l0":0,"l1":0,"l2":0,"l3":1,"l4":0})
+PASS  battle-model-far-grounding: near: atlas allocation unchanged  (11796456)
+FAIL  battle-model-far-grounding: snapshot battle/far-grounding/near  (10273 px differ (1.0032%) — see shots/diff/battle/far-grounding/near.png)
+PASS  battle-model-far-grounding: near: frozen pixels
+PASS  battle-model-far-grounding: near-unshadowed: requested representation  ({"camera":{"x":0,"y":0,"zoom":80,"zoomT":1,"camera3d":{"target":[0.045835405588150024,0.07664388790726662,1.1900000274181366],"distance":2000,"pitch":0.3737921748345104,"yaw":-1.373400766945016,"fovY":0.004999989583372396,"aspect":1.6,"near":0.17721157314762573,"far":4000}},"lod":{"skinned":1,"impostors":0},"shadow":{"l0":0,"l1":0,"l2":0,"l3":1,"l4":0},"allocatedBytes":11796456})
+PASS  battle-model-far-grounding: near-unshadowed: shadow audience remains independent of the main representation  ({"l0":0,"l1":0,"l2":0,"l3":1,"l4":0})
+PASS  battle-model-far-grounding: near-unshadowed: atlas allocation unchanged  (11796456)
+FAIL  battle-model-far-grounding: snapshot battle/far-grounding/near-unshadowed  (10114 px differ (0.9877%) — see shots/diff/battle/far-grounding/near-unshadowed.png)
+PASS  battle-model-far-grounding: near-unshadowed: frozen pixels
+PASS  battle-model-far-grounding: near-authored-ao: requested representation  ({"camera":{"x":0,"y":0,"zoom":80,"zoomT":1,"camera3d":{"target":[0.045835405588150024,0.07664388790726662,1.1900000274181366],"distance":2000,"pitch":0.3737921748345104,"yaw":-1.373400766945016,"fovY":0.004999989583372396,"aspect":1.6,"near":0.17721157314762573,"far":4000}},"lod":{"skinned":1,"impostors":0},"shadow":{"l0":0,"l1":0,"l2":0,"l3":1,"l4":0},"allocatedBytes":11796456})
+PASS  battle-model-far-grounding: near-authored-ao: shadow audience remains independent of the main representation  ({"l0":0,"l1":0,"l2":0,"l3":1,"l4":0})
+PASS  battle-model-far-grounding: near-authored-ao: atlas allocation unchanged  (11796456)
+FAIL  battle-model-far-grounding: snapshot battle/far-grounding/near-authored-ao  (10126 px differ (0.9889%) — see shots/diff/battle/far-grounding/near-authored-ao.png)
+PASS  battle-model-far-grounding: near-authored-ao: frozen pixels
+PASS  battle-model-far-grounding: far: requested representation  ({"camera":{"x":0,"y":0,"zoom":80,"zoomT":1,"camera3d":{"target":[0.045835405588150024,0.07664388790726662,1.1900000274181366],"distance":2000,"pitch":0.3737921748345104,"yaw":-1.373400766945016,"fovY":0.004999989583372396,"aspect":1.6,"near":0.17721157314762573,"far":4000}},"lod":{"skinned":0,"impostors":1},"shadow":{"l0":0,"l1":0,"l2":0,"l3":1,"l4":0},"selectedTile":5,"allocatedBytes":11796456})
+PASS  battle-model-far-grounding: far: shadow audience remains independent of the main representation  ({"l0":0,"l1":0,"l2":0,"l3":1,"l4":0})
+PASS  battle-model-far-grounding: snapshot battle/far-grounding/far-production  (0 px differ (0.0000%))
+PASS  battle-model-far-grounding: far: production far pixels frozen
+PASS  battle-model-far-grounding: far: atlas allocation unchanged  (11796456)
+FAIL  battle-model-far-grounding: snapshot battle/far-grounding/far  (16573 px differ (1.6185%) — see shots/diff/battle/far-grounding/far.png)
+PASS  battle-model-far-grounding: far: frozen pixels
+PASS  battle-model-far-grounding: far-half-properties: requested representation  ({"camera":{"x":0,"y":0,"zoom":80,"zoomT":1,"camera3d":{"target":[0.045835405588150024,0.07664388790726662,1.1900000274181366],"distance":2000,"pitch":0.3737921748345104,"yaw":-1.373400766945016,"fovY":0.004999989583372396,"aspect":1.6,"near":0.17721157314762573,"far":4000}},"lod":{"skinned":0,"impostors":1},"shadow":{"l0":0,"l1":0,"l2":0,"l3":1,"l4":0},"selectedTile":5,"allocatedBytes":11796456})
+PASS  battle-model-far-grounding: far-half-properties: shadow audience remains independent of the main representation  ({"l0":0,"l1":0,"l2":0,"l3":1,"l4":0})
+FAIL  battle-model-far-grounding: snapshot battle/far-grounding/far-half-properties  (16410 px differ (1.6025%) — see shots/diff/battle/far-grounding/far-half-properties.png)
+PASS  battle-model-far-grounding: far-half-properties: frozen pixels
+PASS  battle-model-far-grounding: far-dead: requested representation  ({"camera":{"x":0,"y":0,"zoom":80,"zoomT":1,"camera3d":{"target":[0.045835405588150024,0.07664388790726662,1.1900000274181366],"distance":2000,"pitch":0.3737921748345104,"yaw":-1.373400766945016,"fovY":0.004999989583372396,"aspect":1.6,"near":0.17721157314762573,"far":4000}},"lod":{"skinned":0,"impostors":1},"shadow":{"l0":0,"l1":0,"l2":0,"l3":1,"l4":0},"selectedTile":5,"allocatedBytes":11796456})
+PASS  battle-model-far-grounding: far-dead: shadow audience remains independent of the main representation  ({"l0":0,"l1":0,"l2":0,"l3":1,"l4":0})
+PASS  battle-model-far-grounding: far-dead: atlas allocation unchanged  (11796456)
+FAIL  battle-model-far-grounding: snapshot battle/far-grounding/far-dead  (17757 px differ (1.7341%) — see shots/diff/battle/far-grounding/far-dead.png)
+PASS  battle-model-far-grounding: far-dead: frozen pixels
+PASS  battle-model-far-grounding: far-nearest-properties: requested representation  ({"camera":{"x":0,"y":0,"zoom":80,"zoomT":1,"camera3d":{"target":[0.045835405588150024,0.07664388790726662,1.1900000274181366],"distance":2000,"pitch":0.3737921748345104,"yaw":-1.373400766945016,"fovY":0.004999989583372396,"aspect":1.6,"near":0.17721157314762573,"far":4000}},"lod":{"skinned":0,"impostors":1},"shadow":{"l0":0,"l1":0,"l2":0,"l3":1,"l4":0},"selectedTile":5,"allocatedBytes":11796456})
+PASS  battle-model-far-grounding: far-nearest-properties: shadow audience remains independent of the main representation  ({"l0":0,"l1":0,"l2":0,"l3":1,"l4":0})
+PASS  battle-model-far-grounding: far-nearest-properties: atlas allocation unchanged  (11796456)
+FAIL  battle-model-far-grounding: snapshot battle/far-grounding/far-nearest-properties  (16414 px differ (1.6029%) — see shots/diff/battle/far-grounding/far-nearest-properties.png)
+PASS  battle-model-far-grounding: far-nearest-properties: frozen pixels
+PASS  battle-model-far-grounding: living interior material response matches  ({"count":4209,"mean":0,"max":0,"p99":0})
+FAIL  battle-model-far-grounding: dead instances disable contact grounding  ({"count":4239,"mean":33.733427695211134,"max":34,"p99":34})
+PASS  battle-model-far-grounding: normal and ORM precision do not cause stronger highlights  ({"count":4209,"mean":0,"max":0,"p99":0})
+PASS  battle-model-far-grounding: living contact factor actually affects lower body  ({"count":4209,"mean":33.59396531242575,"max":37,"p99":37})
+PASS  battle-model-far-properties: current catalog has twenty complete property atlases  ({"startupMs":1347,"resources":[{"allocatedBytes":11796456,"bakeMs":14.914999961853027,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":6.314999997615814,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":6.225000023841858,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":5.365000009536743,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.814999997615814,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.560000002384186,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.929999947547913,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.794999957084656,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":5.205000042915344,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.815000057220459,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.439999997615814,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.7200000286102295,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.514999985694885,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.350000023841858,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.269999980926514,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.280000030994415,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.459999978542328,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.504999995231628,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":4.539999961853027,"drawCalls":2},{"allocatedBytes":11796456,"bakeMs":1.6800000071525574,"drawCalls":2}]})
+PASS  battle-model-far-properties: allocation includes three mip chains and depth  ({"residentBytes":235929120,"replacementPeakBytes":471858240})
+PASS  battle-model-far-properties: full catalog replacement releases previous GPU textures  ({"result":{"ok":true,"error":null},"reloadMs":3894.550000011921,"beforeTextures":101,"replacementPeakTextures":182,"afterTextures":101})
+PASS  battle-model-far-properties: matte-near: requested representation  ({"replacementMs":1996.5799999833107,"lod":{"skinned":1,"impostors":0}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/matte-near  (17660 px differ (1.7246%) — see shots/diff/battle/far-properties/matte-near.png)
+PASS  battle-model-far-properties: matte-near: frozen pixels
+PASS  battle-model-far-properties: matte-near: ordinary blue and seed do not become faction tint
+PASS  battle-model-far-properties: matte-far: requested representation  ({"replacementMs":677.7749999761581,"lod":{"skinned":0,"impostors":1}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/matte-far  (22334 px differ (2.1811%) — see shots/diff/battle/far-properties/matte-far.png)
+PASS  battle-model-far-properties: matte-far: frozen pixels
+PASS  battle-model-far-properties: matte-far: ordinary blue and seed do not become faction tint
+PASS  battle-model-far-properties: smooth-near: requested representation  ({"replacementMs":695.4700000286102,"lod":{"skinned":1,"impostors":0}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/smooth-near  (17676 px differ (1.7262%) — see shots/diff/battle/far-properties/smooth-near.png)
+PASS  battle-model-far-properties: smooth-near: frozen pixels
+PASS  battle-model-far-properties: smooth-far: requested representation  ({"replacementMs":846.2600000500679,"lod":{"skinned":0,"impostors":1}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/smooth-far  (23612 px differ (2.3059%) — see shots/diff/battle/far-properties/smooth-far.png)
+PASS  battle-model-far-properties: smooth-far: frozen pixels
+PASS  battle-model-far-properties: metal-near: requested representation  ({"replacementMs":830.9849999547005,"lod":{"skinned":1,"impostors":0}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/metal-near  (17645 px differ (1.7231%) — see shots/diff/battle/far-properties/metal-near.png)
+PASS  battle-model-far-properties: metal-near: frozen pixels
+PASS  battle-model-far-properties: metal-far: requested representation  ({"replacementMs":690.1750000119209,"lod":{"skinned":0,"impostors":1}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/metal-far  (23087 px differ (2.2546%) — see shots/diff/battle/far-properties/metal-far.png)
+PASS  battle-model-far-properties: metal-far: frozen pixels
+PASS  battle-model-far-properties: mask-blue-far: requested representation  ({"replacementMs":700.910000026226,"lod":{"skinned":0,"impostors":1}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/mask-blue-far  (22024 px differ (2.1508%) — see shots/diff/battle/far-properties/mask-blue-far.png)
+PASS  battle-model-far-properties: mask-blue-far: frozen pixels
+PASS  battle-model-far-properties: mask-red-far: requested representation  ({"replacementMs":705.6549999713898,"lod":{"skinned":0,"impostors":1}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/mask-red-far  (20148 px differ (1.9676%) — see shots/diff/battle/far-properties/mask-red-far.png)
+PASS  battle-model-far-properties: mask-red-far: frozen pixels
+PASS  battle-model-far-properties: flat-normal-far: requested representation  ({"replacementMs":681.2950000166893,"lod":{"skinned":0,"impostors":1}})
+FAIL  battle-model-far-properties: snapshot battle/far-properties/flat-normal-far  (24288 px differ (2.3719%) — see shots/diff/battle/far-properties/flat-normal-far.png)
+PASS  battle-model-far-properties: flat-normal-far: frozen pixels
+PASS  battle-model-far-properties: near: same blue color responds to smooth  (6246)
+PASS  battle-model-far-properties: near: same blue color responds to metal  (7440)
+PASS  battle-model-far-properties: far: same blue color responds to smooth  (6246)
+PASS  battle-model-far-properties: far: same blue color responds to metal  (7440)
+PASS  battle-model-far-properties: far: explicit mask changes faction  (7440)
+PASS  battle-model-far-properties: far: authored per-pixel normals affect lighting  (6736)
+PASS  runner: no page errors
+
+24 FAILURE(S)

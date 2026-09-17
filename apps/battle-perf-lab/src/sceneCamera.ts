@@ -6,7 +6,7 @@ import { PHOTOREAL_FAR_FALLBACK } from "../../../packages/photoreal-renderer/src
 import type { BattleCameraSnapshot } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
 
-/** Publish one physical projection to scene, visibility, readouts and L3 billboards.
+/** Publish one physical projection to scene, visibility, readouts and impostor billboards.
  * Source focus XY is an aerial observer on z=0, independent of elevated look target. */
 export function battleSceneCamera(
   input: BattleCameraSnapshot,

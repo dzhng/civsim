@@ -66,7 +66,7 @@ export async function route(ctx: LabContext) {
     probeLevels,
   );
   const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
-  const tiersReached = new Set(probeLevels).size;
+  const tiersReached = new Set(probeLevels.filter((level) => level < tiers.length)).size;
 
   // Hysteresis: within the deadband around the L0/L1 boundary, an instance
   // keeps its previous tier instead of flipping every frame.

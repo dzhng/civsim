@@ -116,7 +116,7 @@ export async function run(ctx) {
             for (let i = 0; i < mesh.normals.length; i += 3) mesh.normals.set([0, 0, 1], i);
           const bundle = {
             ...source,
-            tiers: [mesh, mesh, mesh],
+            tiers: source.tiers.map(() => mesh),
             farMesh: mesh,
             surface: {
               textures: {},

@@ -24,15 +24,13 @@ const variants = [
   [7, "horse-archer"],
 ];
 for (const [id, name] of variants) {
-  // The unreduced export is near; the intermediate reduction exists only with the runtime tiers.
-  const paths = {
-    near: `${name}.glb`,
-    intermediate: `${name}/runtime/intermediate.glb`,
-    mid: `${name}/mid.glb`,
-    far: `${name}/far.glb`,
-  };
+  // The unreduced export is near; coarser tiers are the one runtime reduction chain.
   const tiers = await Promise.all(
-    APPEARANCE_MESH_TIERS.map((tier) => readFile(`${values.directory}/${paths[tier]}`)),
+    APPEARANCE_MESH_TIERS.map((tier) =>
+      readFile(
+        `${values.directory}/${tier === "near" ? `${name}.glb` : `${name}/runtime/${tier}.glb`}`,
+      ),
+    ),
   );
   const bundle = bakeAppearance({
     name,

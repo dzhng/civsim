@@ -4,7 +4,11 @@ import { createHash } from "node:crypto";
 import { test } from "vitest";
 import * as THREE from "three/webgpu";
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
-import { assignLodForProjection, DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod";
+import {
+  assignLodForProjection,
+  DEFAULT_LOD_POLICY,
+  type LodPolicy,
+} from "@packages/crowd-runtime/src/lod";
 import {
   planCrowdLods,
   createCrowdLodBuffers,
@@ -75,7 +79,7 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
       manifest: { bounds: { center: [0.13, -0.21, 0.9] as [number, number, number], radius: 1.3 } },
     },
   };
-  const policy = { l0Pixels: 18, l1Pixels: 9, l2Pixels: 4, minScreenPixels: 2.25 };
+  const policy = { meshPixels: [18, 9, 4] as LodPolicy["meshPixels"], minScreenPixels: 2.25 };
   const rows: unknown[] = [];
   let mainHistory: number[] = [];
   let shadowHistory: number[] = [];

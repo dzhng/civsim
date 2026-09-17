@@ -9,6 +9,11 @@ import {
   planCrowdLods,
   type CrowdProjectionView,
 } from "../../../packages/crowd-runtime/src/visibility";
+import {
+  emptyLodCounts,
+  IMPOSTOR_LEVEL,
+  LOD_COUNT_KEYS,
+} from "../../../packages/crowd-runtime/src/lod";
 
 /** CPU publication policy shared by each resource owner. A failed upload cannot
  * advance either LOD history, and no partially uploaded audience may draw. */
@@ -55,8 +60,8 @@ export function createCrowdAudienceHistory(
     plan: ReturnType<typeof planCrowdLods>;
     groups: Map<number, CrowdInstance[]>;
   };
-  let visibleTierHistogram = { l0: 0, l1: 0, l2: 0, l3: 0 };
-  let shadowTierHistogram = { l0: 0, l1: 0, l2: 0, l3: 0 };
+  let visibleTierHistogram = emptyLodCounts();
+  let shadowTierHistogram = emptyLodCounts();
   let pending: Publication | undefined;
   let selected = new Map<number, CrowdInstance[]>(ids.map((id) => [id, []]));
   const check = (needFrame = false) => {
@@ -90,7 +95,7 @@ export function createCrowdAudienceHistory(
       const groups = new Map(ids.map((id) => [id, [] as CrowdInstance[]]));
       for (let i = 0; i < instances.length; i++) {
         const instance = instances[i];
-        if (plan.visibility[i] & 1 && plan.levels[i] === 3)
+        if (plan.visibility[i] & 1 && plan.levels[i] === IMPOSTOR_LEVEL)
           groups.get(instance.classId)!.push(instance);
       }
       pending = { count: instances.length, instances: snapshot.instances, plan, groups };
@@ -104,10 +109,9 @@ export function createCrowdAudienceHistory(
       selected = publication.groups;
       mainVisible = publication.plan.viewVisible;
       shadowOnly = publication.plan.shadowOnly;
-      visibleTierHistogram = { l0: 0, l1: 0, l2: 0, l3: 0 };
+      visibleTierHistogram = emptyLodCounts();
       for (let i = 0; i < previousCount; i++)
-        if (previous.visibility[i] & 1)
-          visibleTierHistogram[`l${previous.levels[i]}` as keyof typeof visibleTierHistogram]++;
+        if (previous.visibility[i] & 1) visibleTierHistogram[LOD_COUNT_KEYS[previous.levels[i]]]++;
       shadowTierHistogram = { ...publication.plan.shadowCounts };
       [viewState, nextViews] = [nextViews, viewState];
       rememberBillboardView(view);

@@ -169,7 +169,7 @@ for (const value of [-0.1, 1.1, NaN, Infinity]) {
     Number.isFinite(value) ? /_FACTION_MASK values must be between zero and one/ : /nonfinite data/,
   );
 }
-assert.throws(() => bakeAppearance({ ...defaults, tiers: [human] }), /three explicit GLB/);
+assert.throws(() => bakeAppearance({ ...defaults, tiers: [human] }), /explicit GLB byte arrays/);
 assert.throws(
   () => bakeAppearance({ ...defaults, tiers: [new Uint8Array(8), human, human] }),
   /bad magic/,

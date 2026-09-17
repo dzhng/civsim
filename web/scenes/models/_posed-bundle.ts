@@ -32,7 +32,7 @@ export function bundleAtPose(
     joints: new Uint16Array(mesh.joints.length),
     weights: Float32Array.from(mesh.weights, (_, index) => Number(index % 4 === 0)),
   });
-  cpu.tiers = [pose(cpu.tiers[0]), pose(cpu.tiers[1]), pose(cpu.tiers[2])];
+  cpu.tiers = cpu.tiers.map((mesh) => pose(mesh)) as AppearanceBundle["tiers"];
   cpu.farMesh = pose(cpu.farMesh);
   cpu.rig = {
     bones: [

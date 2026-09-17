@@ -100,7 +100,7 @@ export async function run(ctx) {
             mesh.colors.fill(1);
             mesh.materialIds.fill(0);
             mesh.factionMasks.fill(0);
-            bundle.tiers = [mesh, mesh, mesh];
+            bundle.tiers = bundle.tiers.map(() => mesh);
             bundle.farMesh = mesh;
             if (mode === "checker") {
               // Placeholder UVs are constant. Give this diagnostic an explicit

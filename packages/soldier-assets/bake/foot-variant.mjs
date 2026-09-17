@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { APPEARANCE_DESCRIPTORS } from "../src/appearance.ts";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 import { heavyMotionBake } from "./heavy-motion-contract.mjs";
 
@@ -22,7 +23,7 @@ const source = await readFile(resolve(values.source));
 const bundle = bakeAppearance({
   name: descriptor.name,
   mounted: false,
-  tiers: [source, source, source],
+  tiers: APPEARANCE_MESH_TIERS.map(() => source),
   ...heavyMotionBake,
   clipMetadata: {
     ...heavyMotionBake.clipMetadata,

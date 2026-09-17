@@ -20,6 +20,7 @@ import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { buildCrowdInstances, type CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import { assertGameplayAppearances } from "../../../crowd-runtime/src/animationState";
+import { IMPOSTOR_LEVEL, LOD_COUNT_KEYS } from "../../../crowd-runtime/src/lod";
 import type { SoldierPlayback } from "../../../crowd-runtime/src/actionTimeline";
 import {
   battleEnvironmentStats,
@@ -612,9 +613,11 @@ export class PhotorealBattleWorld {
     const world = this.world.stats();
     const crowdStats = this.crowd.stats();
     const visibleTierHistogram = crowdStats.visibleTierHistogram;
-    const markerCount = visibleTierHistogram.l3;
-    const skinnedCount =
-      visibleTierHistogram.l0 + visibleTierHistogram.l1 + visibleTierHistogram.l2;
+    const markerCount = visibleTierHistogram[LOD_COUNT_KEYS[IMPOSTOR_LEVEL]];
+    const skinnedCount = LOD_COUNT_KEYS.slice(0, IMPOSTOR_LEVEL).reduce(
+      (sum, key) => sum + visibleTierHistogram[key],
+      0,
+    );
     const sea = this.sea.stats();
     return {
       renderer: "gpu" as const,

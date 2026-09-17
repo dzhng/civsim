@@ -1,5 +1,6 @@
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
+import { APPEARANCE_MESH_TIERS } from "../../../packages/soldier-assets/src/appearanceBundle.ts";
 
 const names = [
   "near",
@@ -88,7 +89,7 @@ export async function run(ctx) {
         mesh.colors.fill(1);
         mesh.materialIds.fill(0);
         mesh.factionMasks.fill(0);
-        bundle.tiers = [mesh, mesh, mesh];
+        bundle.tiers = bundle.tiers.map(() => mesh);
         bundle.farMesh = mesh;
         bundle.surface.materials = [
           {
@@ -186,7 +187,8 @@ export async function run(ctx) {
       );
       ctx.check(
         `${name}: shadow audience remains independent of the main representation`,
-        state.shadow.l3 === 0 && state.shadow.l0 + state.shadow.l1 + state.shadow.l2 === 1,
+        state.shadow[`l${APPEARANCE_MESH_TIERS.length}`] === 0 &&
+          APPEARANCE_MESH_TIERS.reduce((sum, _, lod) => sum + state.shadow[`l${lod}`], 0) === 1,
         JSON.stringify(state.shadow),
       );
       if (name.startsWith("far")) {

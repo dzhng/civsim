@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { APPEARANCE_MESH_TIERS } from "../../../packages/soldier-assets/src/appearanceBundle.ts";
 
 export const meta = {
   name: "battle-model-budget",
@@ -52,10 +53,10 @@ export async function run(ctx) {
   if (
     Object.hasOwn(detail, "subdivisions") &&
     (!Array.isArray(detail.subdivisions) ||
-      detail.subdivisions.length !== 3 ||
+      detail.subdivisions.length !== APPEARANCE_MESH_TIERS.length ||
       detail.subdivisions.some((n) => !Number.isSafeInteger(n) || n < 0))
   )
-    throw new Error("Subdivisions must have three nonnegative integers");
+    throw new Error("Subdivisions need one nonnegative integer per mesh tier");
   const stops = (process.env.BUDGET_STOPS ?? "close,mid,vista").split(",");
   if (!stops.length || stops.some((s) => !["close", "mid", "vista"].includes(s)))
     throw new Error("Unknown budget view");

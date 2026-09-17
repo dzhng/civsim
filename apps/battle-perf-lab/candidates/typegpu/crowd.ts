@@ -231,9 +231,8 @@ export async function createTypegpuCrowd(
         }),
         depth = root.createRenderPipeline({ ...state, vertex: casterVertex });
       await Promise.all([beauty.initAsync(), depth.initAsync()]);
-      for (let lod = 0; lod < 3; lod++) {
-        const mesh = asset.tiers[lod],
-          vertices = own(
+      for (const [lod, mesh] of asset.tiers.entries()) {
+        const vertices = own(
             root
               .createBuffer(vertexLayout.schemaForCount(mesh.positions.length / 3))
               .$usage("vertex"),

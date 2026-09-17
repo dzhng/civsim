@@ -1,6 +1,7 @@
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 import { APPEARANCE_DESCRIPTORS } from "../../../packages/soldier-assets/src/appearance.ts";
+import { APPEARANCE_MESH_TIERS } from "../../../packages/soldier-assets/src/appearanceBundle.ts";
 
 export const meta = {
   name: "battle-model-far-bundles",
@@ -105,7 +106,8 @@ export async function run(ctx) {
       const shadow = result.stats.crowd.shadowTierHistogram;
       ctx.check(
         `${name}: independent shadow audience stays mesh-only`,
-        shadow.l3 === 0 && shadow.l0 + shadow.l1 + shadow.l2 > 0,
+        shadow[`l${APPEARANCE_MESH_TIERS.length}`] === 0 &&
+          APPEARANCE_MESH_TIERS.reduce((sum, _, lod) => sum + shadow[`l${lod}`], 0) > 0,
         JSON.stringify(shadow),
       );
       if (diagnostic) {

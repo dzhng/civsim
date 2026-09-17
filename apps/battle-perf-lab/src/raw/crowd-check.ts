@@ -139,11 +139,7 @@ async function run() {
       assets[id] = await loadAppearanceBundle(new URL(catalog.appearances[id], catalogUrl).href);
     if (deindexed)
       for (const bundle of Object.values(assets))
-        bundle.tiers = [
-          deindex(bundle.tiers[0]),
-          deindex(bundle.tiers[1]),
-          deindex(bundle.tiers[2]),
-        ];
+        bundle.tiers = bundle.tiers.map((mesh) => deindex(mesh)) as AppearanceBundle["tiers"];
     if (isolatedTriangle !== null) {
       const start = Number(isolatedTriangle);
       if (!Number.isInteger(start) || start < 0 || start % 3)

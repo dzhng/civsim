@@ -112,7 +112,7 @@ test("an incomplete appearance fails instead of silently using placeholder dista
   );
   try {
     await expect(loadAppearanceBundle("https://assets.test/heavy/bundle.json")).rejects.toThrow(
-      /three mesh tiers/,
+      /requires mesh tiers/,
     );
   } finally {
     vi.unstubAllGlobals();

@@ -108,9 +108,8 @@ export async function createVgpuCrowd(
       const id = Number(idText),
         rig = groups.findIndex((g) => id in g),
         material = await prepare(asset.surface);
-      for (let lod = 0; lod < 3; lod++) {
-        const mesh = asset.tiers[lod],
-          vertexData = packSoldierVertices(mesh).slice(),
+      for (const [lod, mesh] of asset.tiers.entries()) {
+        const vertexData = packSoldierVertices(mesh).slice(),
           indexData = Uint32Array.from(mesh.indices);
         const vertices = gpu.device.createBuffer({
           size: vertexData.byteLength,

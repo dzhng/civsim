@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 
 const {
@@ -20,7 +21,7 @@ for (const [id, name, mounted, loopClips] of [
     presentation: null,
     name: `${name}-diagnostic`,
     mounted,
-    tiers: [bytes, bytes, bytes],
+    tiers: APPEARANCE_MESH_TIERS.map(() => bytes),
     loopClips,
   });
   for (const [path, content] of Object.entries(bundle)) files[`${name}/${path}`] = content;

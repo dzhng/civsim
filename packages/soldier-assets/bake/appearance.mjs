@@ -6,7 +6,7 @@ import { gltfToEngineBasis } from "./engine-basis.mjs";
 import { bakeLocalAnimation, encodeLocalAnimation } from "../src/localAnimation.ts";
 import { deriveAnimatedBounds } from "./animated-bounds.mjs";
 import { appearanceMaterials } from "./materials.mjs";
-import { encodeSoldierMesh } from "../src/appearanceBundle.ts";
+import { APPEARANCE_MESH_TIERS, encodeSoldierMesh } from "../src/appearanceBundle.ts";
 import { assertAppearancePresentation } from "../src/presentation.ts";
 import { assertPresentationMotion } from "./presentation.mjs";
 
@@ -107,10 +107,12 @@ export function bakeAppearance({
   if (typeof mounted !== "boolean") throw new Error("mounted must be boolean");
   if (
     !Array.isArray(tiers) ||
-    tiers.length !== 3 ||
+    tiers.length !== APPEARANCE_MESH_TIERS.length ||
     tiers.some((tier) => !(tier instanceof Uint8Array))
   ) {
-    throw new Error("appearance requires three explicit GLB byte arrays: near, mid and far");
+    throw new Error(
+      `appearance requires explicit GLB byte arrays ${APPEARANCE_MESH_TIERS.join(", ")}`,
+    );
   }
   if (
     !Array.isArray(loopClips) ||
@@ -206,9 +208,7 @@ export async function writeAppearance(files, directory, { check = false } = {}) 
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").href) {
   const { values } = parseArgs({
     options: {
-      near: { type: "string" },
-      mid: { type: "string" },
-      far: { type: "string" },
+      ...Object.fromEntries(APPEARANCE_MESH_TIERS.map((tier) => [tier, { type: "string" }])),
       out: { type: "string" },
       name: { type: "string" },
       mounted: { type: "boolean", default: false },
@@ -216,10 +216,10 @@ if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").hre
       check: { type: "boolean", default: false },
     },
   });
-  for (const argument of ["near", "mid", "far", "out", "name", "loop"]) {
+  for (const argument of [...APPEARANCE_MESH_TIERS, "out", "name", "loop"]) {
     if (values[argument] == null)
       throw new Error(
-        `missing --${argument}; provide three tiers, an output directory and explicit --loop names (empty for no loops)`,
+        `missing --${argument}; provide every mesh tier, an output directory and explicit --loop names (empty for no loops)`,
       );
   }
   if (!values.out.trim()) throw new Error("--out must name the candidate output directory");
@@ -227,7 +227,7 @@ if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").hre
     presentation: null,
     name: values.name,
     mounted: values.mounted,
-    tiers: await Promise.all([values.near, values.mid, values.far].map((path) => readFile(path))),
+    tiers: await Promise.all(APPEARANCE_MESH_TIERS.map((tier) => readFile(values[tier]))),
     loopClips: values.loop ? values.loop.split(",") : [],
   });
   await writeAppearance(files, values.out, { check: values.check });

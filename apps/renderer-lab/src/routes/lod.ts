@@ -41,10 +41,7 @@ export async function route(ctx: LabContext) {
   ctx.status.innerHTML = reportTable({
     route: "lod",
     zoom,
-    L0: counts.l0,
-    L1: counts.l1,
-    L2: counts.l2,
-    L3: counts.l3,
+    ...counts,
   });
   publish("lod", true, { counts, zoom });
 }

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 
 const {
@@ -14,7 +15,7 @@ const bundle = bakeAppearance({
   presentation: null,
   name: "six-material-swatches",
   mounted: false,
-  tiers: [bytes, bytes, bytes],
+  tiers: APPEARANCE_MESH_TIERS.map(() => bytes),
   loopClips: [],
 });
 const files = { "catalog.json": { appearances: { 42: "swatches/appearance.json" } } };

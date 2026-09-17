@@ -80,7 +80,7 @@ const routes = [
     (s) =>
       s?.ok &&
       s.route === "lod" &&
-      s.stats.counts.l1 + s.stats.counts.l2 + s.stats.counts.l3 + s.stats.counts.l0 === 1800,
+      Object.values(s.stats.counts).reduce((sum, count) => sum + count, 0) === 1800,
   ],
   [
     "battle",

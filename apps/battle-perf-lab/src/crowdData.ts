@@ -4,6 +4,7 @@ import {
   corpsePresentationStrength,
   type CrowdInstance,
 } from "../../../packages/crowd-runtime/src/instanceData";
+import { COARSEST_SHADOW_LOD, IMPOSTOR_LEVEL } from "../../../packages/crowd-runtime/src/lod";
 export type CrowdAudience = "main" | "shadow";
 export interface CrowdAudiencePlan {
   levels: ArrayLike<number>;
@@ -71,8 +72,8 @@ export class CrowdFramePacker {
         const id = Number(key);
         this.owners.set(id, owner);
         this.buckets.set(id, {
-          main: Array.from({ length: 3 }, () => new CrowdBucket()),
-          shadow: Array.from({ length: 3 }, () => new CrowdBucket()),
+          main: Array.from({ length: IMPOSTOR_LEVEL }, () => new CrowdBucket()),
+          shadow: Array.from({ length: IMPOSTOR_LEVEL }, () => new CrowdBucket()),
         });
         this.result.packed.set(id, { main: [], shadow: [] });
       }
@@ -101,23 +102,23 @@ export class CrowdFramePacker {
       const m = plan.levels[i],
         s = plan.shadowLevels[i];
       if (
-        (main && (m < 0 || m > 3 || !Number.isInteger(m))) ||
-        (shadow && (s < 0 || s > 2 || !Number.isInteger(s)))
+        (main && (m < 0 || m > IMPOSTOR_LEVEL || !Number.isInteger(m))) ||
+        (shadow && (s < 0 || s > COARSEST_SHADOW_LOD || !Number.isInteger(s)))
       )
         throw new Error("Invalid crowd tier");
-      if (main && m === 3) result.impostorsPending++;
-      if ((!main || m === 3) && !shadow) continue;
+      if (main && m === IMPOSTOR_LEVEL) result.impostorsPending++;
+      if ((!main || m === IMPOSTOR_LEVEL) && !shadow) continue;
       const indices = result.rigIndices[owner],
         slot = indices.length;
       indices.push(i);
       const b = this.buckets.get(inst.classId)!;
-      if (main && m !== 3) b.main[m].append(inst, slot);
+      if (main && m !== IMPOSTOR_LEVEL) b.main[m].append(inst, slot);
       if (shadow) b.shadow[s].append(inst, slot);
     }
     for (const [id, b] of this.buckets) {
       const packed = result.packed.get(id)!;
       for (const audience of ["main", "shadow"] as const)
-        for (let lod = 0; lod < 3; lod++) {
+        for (let lod = 0; lod < IMPOSTOR_LEVEL; lod++) {
           const bucket = b[audience][lod];
           packed[audience][lod] = bucket.data.subarray(0, bucket.length);
         }

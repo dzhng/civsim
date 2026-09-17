@@ -3,8 +3,9 @@ import {
   levelForProjection,
   DEFAULT_LOD_POLICY,
   instanceScreenSize,
+  emptyLodCounts,
+  LOD_COUNT_KEYS,
   type LodLevel,
-  type LodCounts,
 } from "./lod";
 import { projectionDepth, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
 import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
@@ -68,8 +69,8 @@ export function planCrowdLods(
     out && out.levels.length >= instances.length ? out : createCrowdLodBuffers(instances.length);
   const { levels, shadowLevels, screenSizes, shadowScreenSizes, visibility } = buffers;
   visibility.fill(0, 0, instances.length);
-  const shadowCounts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
-  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+  const shadowCounts = emptyLodCounts();
+  const counts = emptyLodCounts();
   let viewVisible = 0,
     shadowOnly = 0;
   for (let index = 0; index < instances.length; index++) {
@@ -104,7 +105,7 @@ export function planCrowdLods(
     );
     shadowLevels[index] = shadowLevel;
     shadowScreenSizes[index] = Math.max(policy.minScreenPixels, shadowPixels);
-    if (visibility[index] & 2) shadowCounts[`l${shadowLevel}` as keyof LodCounts]++;
+    if (visibility[index] & 2) shadowCounts[LOD_COUNT_KEYS[shadowLevel]]++;
     const level = levelForProjection(
       viewPixels,
       false,
@@ -113,7 +114,7 @@ export function planCrowdLods(
     );
     levels[index] = level;
     screenSizes[index] = Math.max(policy.minScreenPixels, viewPixels);
-    counts[`l${level}` as keyof LodCounts]++;
+    counts[LOD_COUNT_KEYS[level]]++;
   }
   return {
     ...buffers,

@@ -127,7 +127,7 @@ export async function run(ctx) {
           if (control.decodedZero) mesh.uvs.fill(0.5);
           if (control.mirrored)
             for (let i = 3; i < mesh.tangents.length; i += 4) mesh.tangents[i] *= -1;
-          bundle.tiers = [mesh, mesh, mesh];
+          bundle.tiers = bundle.tiers.map(() => mesh);
           bundle.farMesh = mesh;
           bundle.manifest.far.phase = 0.5;
           bundle.surface = {

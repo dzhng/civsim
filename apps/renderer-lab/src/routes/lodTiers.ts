@@ -1,5 +1,9 @@
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
-import { assignCrowdLodLevels, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
+import {
+  assignCrowdLodLevels,
+  DEFAULT_LOD_POLICY,
+  lodWithHysteresis,
+} from "@packages/crowd-runtime/src/lod";
 import { projectionFootprint, viewMatrix, projMatrix } from "@packages/renderer-core/src/camera3d";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { crowdInstance } from "../labFixtures";
@@ -24,18 +28,20 @@ export async function route(ctx: LabContext) {
   });
   const pipeline = await SkinnedCrowdPipeline.create(shell, appearances);
 
-  // Three soldiers side by side, explicitly L0/L1/L2, so detail reduction is
-  // directly reviewable.
-  const lineup = [0, 1, 2].map((lod) => ({
+  // One soldier per mesh tier, side by side, so detail reduction is directly
+  // reviewable.
+  const tiers = appearances[0].tiers;
+  const lineup = tiers.map((_, lod) => ({
     ...crowdInstance(
-      (lod - 1) * 2.6,
+      (lod - (tiers.length - 1) / 2) * 2.6,
       0,
       0,
       appearances[0].manifest.presentation!.actions.atEase!.clip,
     ),
     lod,
   }));
-  const triCounts = appearances[0].tiers.map((mesh) => mesh.indices.length / 3);
+  const triCounts = tiers.map((mesh) => mesh.indices.length / 3);
+  const reduces = triCounts.every((count, lod) => lod === 0 || count < triCounts[lod - 1]);
 
   // The distance algorithm: a line of instances receding from the camera focus
   // must coarsen monotonically (near = L0, far = coarser).
@@ -62,16 +68,17 @@ export async function route(ctx: LabContext) {
   const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
   const tiersReached = new Set(probeLevels).size;
 
-  // Hysteresis: within the deadband around the L0/L1 boundary (size 18), an
-  // instance keeps its previous tier instead of flipping every frame.
-  const heldL0 = lodWithHysteresis(0, 17.5);
-  const heldL1 = lodWithHysteresis(1, 18.5);
+  // Hysteresis: within the deadband around the L0/L1 boundary, an instance
+  // keeps its previous tier instead of flipping every frame.
+  const l0Boundary = DEFAULT_LOD_POLICY.meshPixels[0];
+  const heldL0 = lodWithHysteresis(0, l0Boundary - 0.5);
+  const heldL1 = lodWithHysteresis(1, l0Boundary + 0.5);
 
   animateSkinned(shell, pipeline, () => lineup, { phaseSpeed: 0.5, size: 1.4 });
   ctx.status.innerHTML = reportTable({
     route: "lod-tiers",
-    "L0 / L1 / L2 triangles": triCounts.join(" / "),
-    "tiers reduce geometry": triCounts[0] > triCounts[1] && triCounts[1] > triCounts[2],
+    "tier triangles": triCounts.join(" / "),
+    "tiers reduce geometry": reduces,
     "distance bins coarsen": monotonic,
     "probe levels": probeLevels.join(""),
     "hysteresis holds at boundary": heldL0 === 0 && heldL1 === 1,
@@ -79,7 +86,7 @@ export async function route(ctx: LabContext) {
   publish("lod-tiers", true, {
     route: "lod-tiers",
     triCounts,
-    reduces: triCounts[0] > triCounts[1] && triCounts[1] > triCounts[2],
+    reduces,
     probeLevels,
     monotonic,
     tiersReached,

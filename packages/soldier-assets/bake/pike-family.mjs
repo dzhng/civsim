@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { APPEARANCE_DESCRIPTORS } from "../src/appearance.ts";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 import { heavyMotionBake } from "./heavy-motion-contract.mjs";
 import { pikeMotionBake, pikeFamilyPresentation } from "./pike-motion-contract.mjs";
@@ -21,9 +22,10 @@ for (const id of ids) {
   // Rest selects a different standing action on the same physical pike kit.
   const sourceName = id === 16 ? "phalanx" : id === 17 ? "medium-phalanx" : descriptor.name;
   const sourceRoot = new URL(`../assets/source/${sourceName}/`, import.meta.url);
+  // The unreduced saved export is this candidate's near tier.
   const tiers = await Promise.all(
-    [`${sourceName}.glb`, "lods/mid.glb", "lods/far.glb"].map((path) =>
-      readFile(new URL(path, sourceRoot)),
+    APPEARANCE_MESH_TIERS.map((tier) =>
+      readFile(new URL(tier === "near" ? `${sourceName}.glb` : `lods/${tier}.glb`, sourceRoot)),
     ),
   );
   const bundle = bakeAppearance({

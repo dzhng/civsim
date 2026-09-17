@@ -47,6 +47,7 @@ import { createRawCrowdAudience } from "../src/raw/crowdAudience";
 import { createTypegpuCrowdAudience } from "../candidates/typegpu/crowdAudience";
 import { createVgpuCrowdAudience } from "../src/vgpu/crowdAudience";
 import type { CrowdProjectionView } from "../../../packages/crowd-runtime/src/visibility";
+import { IMPOSTOR_LEVEL } from "../../../packages/crowd-runtime/src/lod";
 const view = (pixels: number, shadow = false): CrowdProjectionView => ({
   frustum: { planes: [] },
   shadow,
@@ -99,8 +100,8 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     expect(state.layers[1].update).toHaveBeenLastCalledWith([], camera);
     expect(state.layers[2].update.mock.lastCall![0]).toHaveLength(1);
     const plan = state.mesh.upload.mock.lastCall![1];
-    expect(Array.from(plan.levels).slice(0, 2)).toEqual([3, 3]);
-    expect(plan.shadowLevels[0]).toBeLessThan(3);
+    expect(Array.from(plan.levels).slice(0, 2)).toEqual([IMPOSTOR_LEVEL, IMPOSTOR_LEVEL]);
+    expect(plan.shadowLevels[0]).toBeLessThan(IMPOSTOR_LEVEL);
     owner.draw({} as never, "shadow", {} as never);
     expect(state.layers.every((x) => x.draw.mock.calls.length === 0)).toBe(true);
     const mainPass = {},
@@ -142,7 +143,7 @@ for (const backend of ["typegpu", "vgpu"] as const) {
   });
   test(`${backend}: camera-only refresh preserves mesh and shadow history`, async () => {
     const owner = await create(backend);
-    await owner.upload([soldier], [view(0.1), view(20 / 1.8, true)], camera);
+    await owner.upload([soldier], [view(0.1), view(34 / 1.8, true)], camera);
     const before = owner.stats(),
       uploads = state.mesh.upload.mock.calls.length;
     const nextCamera = { ...camera, eye: [200, 0, 30] as const };
@@ -152,23 +153,23 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     expect(state.mesh.precompute).not.toHaveBeenCalled();
     expect(owner.stats()).toEqual(before);
     expect(state.layers[0].update.mock.calls.at(-2)).toEqual([[soldier], nextCamera]);
-    await owner.upload([soldier], [view(0.1), view(17 / 1.8, true)], camera);
+    await owner.upload([soldier], [view(0.1), view(31 / 1.8, true)], camera);
     expect(state.mesh.upload.mock.lastCall![1].shadowLevels[0]).toBe(0);
     owner.dispose();
   });
   test(`${backend}: failed upload cannot draw or advance history; growth and empty frames retain correct hysteresis`, async () => {
     const owner = await create(backend);
-    await owner.upload([soldier], [view(20 / 1.8)], camera);
+    await owner.upload([soldier], [view(34 / 1.8)], camera);
     state.mesh.upload.mockRejectedValueOnce(Error("upload failed"));
     await expect(owner.upload([soldier], [view(10 / 1.8)], camera)).rejects.toThrow(
       "upload failed",
     );
     expect(() => owner.draw({} as never)).toThrow("not ready");
-    await owner.upload([soldier, soldier], [view(17 / 1.8)], camera);
+    await owner.upload([soldier, soldier], [view(31 / 1.8)], camera);
     expect(Array.from(state.mesh.upload.mock.lastCall![1].levels).slice(0, 2)).toEqual([0, 1]);
     await owner.upload([], [], camera);
     expect(state.layers.every((x) => x.update.mock.lastCall![0].length === 0)).toBe(true);
-    await owner.upload([soldier], [view(17 / 1.8)], camera);
+    await owner.upload([soldier], [view(31 / 1.8)], camera);
     expect(state.mesh.upload.mock.lastCall![1].levels[0]).toBe(1);
     owner.dispose();
   });

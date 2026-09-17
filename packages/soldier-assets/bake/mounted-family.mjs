@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 import {
   mountedLoopClips,
@@ -23,10 +24,15 @@ const variants = [
   [7, "horse-archer"],
 ];
 for (const [id, name] of variants) {
+  // The unreduced export is near; the intermediate reduction exists only with the runtime tiers.
+  const paths = {
+    near: `${name}.glb`,
+    intermediate: `${name}/runtime/intermediate.glb`,
+    mid: `${name}/mid.glb`,
+    far: `${name}/far.glb`,
+  };
   const tiers = await Promise.all(
-    [`${name}.glb`, `${name}/mid.glb`, `${name}/far.glb`].map((path) =>
-      readFile(`${values.directory}/${path}`),
-    ),
+    APPEARANCE_MESH_TIERS.map((tier) => readFile(`${values.directory}/${paths[tier]}`)),
   );
   const bundle = bakeAppearance({
     name,

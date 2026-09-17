@@ -3,16 +3,21 @@ import { readFile } from "node:fs/promises";
 import { bakeGltf, parseGlb } from "./gltf.mjs";
 import { assertMappedTangentFrames } from "../src/skin.ts";
 import { appearanceMaterials } from "./materials.mjs";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 
 const paths = process.argv.slice(2);
-assert.equal(paths.length, 3, "Pass the original, mid and coarse GLB paths");
+assert.equal(
+  paths.length,
+  APPEARANCE_MESH_TIERS.length,
+  `Pass the ${APPEARANCE_MESH_TIERS.join(", ")} GLB paths`,
+);
 const bytes = await Promise.all(paths.map((path) => readFile(path)));
 const sources = bytes.map((data) => bakeGltf(data));
 const triangles = sources.map((source) =>
   source.primitives.reduce((sum, mesh) => sum + mesh.indices.length / 3, 0),
 );
 assert.ok(
-  triangles[0] > triangles[1] && triangles[1] > triangles[2],
+  triangles.every((count, tier) => tier === 0 || count < triangles[tier - 1]),
   `Actual mesh tiers must decrease: ${triangles}`,
 );
 // Reuse the production material owner: omitted distant fittings may remove a

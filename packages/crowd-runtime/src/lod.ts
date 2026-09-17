@@ -3,7 +3,7 @@ import { projectedSpanPixels, type ProjectionFootprint } from "../../renderer-co
 import { APPEARANCE_MESH_TIERS, type MeshTiers } from "../../soldier-assets/src/appearanceBundle";
 
 /** Levels below `IMPOSTOR_LEVEL` index an appearance's mesh tiers. */
-export type LodLevel = 0 | 1 | 2 | 3;
+export type LodLevel = 0 | 1 | 2 | 3 | 4;
 export const IMPOSTOR_LEVEL: LodLevel = APPEARANCE_MESH_TIERS.length;
 /** All mesh tiers cast; impostors do not. Planner and draw producers share this boundary. */
 export const COARSEST_SHADOW_LOD = (IMPOSTOR_LEVEL - 1) as LodLevel;
@@ -32,7 +32,7 @@ export function emptyLodCounts(): LodCounts {
 }
 
 export const DEFAULT_LOD_POLICY: LodPolicy = {
-  meshPixels: [18, 9, 4],
+  meshPixels: [32, 18, 9, 4],
   minScreenPixels: 2.25,
 };
 

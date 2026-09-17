@@ -181,11 +181,12 @@ function assertSameMotion(a: AppearanceBundle, b: AppearanceBundle) {
 
 test("subdivision adds coplanar surface detail without altering the seed or other tiers", () => {
   const before = structuredClone(source);
-  const fixture = syntheticBudgetFixture(source, { subdivisions: [1, 0, 0] });
+  const fixture = syntheticBudgetFixture(source, { subdivisions: [1, 0, 0, 0] });
   assert.equal(fixture.tiers[0].indices.length, source.tiers[0].indices.length * 4);
   assert.ok(fixture.tiers[0].positions.length > source.tiers[0].positions.length);
   assert.deepEqual(fixture.tiers[1], source.tiers[1]);
   assert.deepEqual(fixture.tiers[2], source.tiers[2]);
+  assert.deepEqual(fixture.tiers[3], source.tiers[3]);
   assert.deepEqual(fixture.farMesh, source.farMesh);
   assert.deepEqual(source, before);
   for (const phase of [0, 0.37, 1]) {
@@ -324,7 +325,7 @@ test("authored-key densification preserves STEP boundaries and fractional LINEAR
 test("combined fixture mutations leave the source untouched and reject unmeasurable inputs", () => {
   const before = structuredClone(source);
   const fixture = syntheticBudgetFixture(source, {
-    subdivisions: [1, 1, 1],
+    subdivisions: [1, 1, 1, 1],
     jointCopies: 4,
     influences: 4,
     keySubdivisions: 2,
@@ -342,14 +343,14 @@ test("combined fixture mutations leave the source untouched and reject unmeasura
     /referenced seed vertices/,
   );
   assert.throws(
-    () => syntheticBudgetFixture(source, { subdivisions: [-1, 0, 0] }),
+    () => syntheticBudgetFixture(source, { subdivisions: [-1, 0, 0, 0] }),
     /nonnegative integers/,
   );
   assert.throws(() => syntheticBudgetFixture(source, { keySubdivisions: 0 }), /positive integers/);
 });
 
 test("dense indexed geometry keeps every triangle index addressable beyond uint16", () => {
-  const mesh = syntheticBudgetFixture(source, { subdivisions: [5, 0, 0] }).tiers[0];
+  const mesh = syntheticBudgetFixture(source, { subdivisions: [5, 0, 0, 0] }).tiers[0];
   assert.ok(mesh.positions.length / 3 > 65536);
   assert.ok(mesh.indices instanceof Uint32Array);
   assert.equal(mesh.indices.length, source.tiers[0].indices.length * 4 ** 5);

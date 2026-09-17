@@ -33,8 +33,8 @@ try {
     assert.notDeepEqual(pose("melee"), pose("melee", 0.38), `${name} has real effort`);
     assert.notDeepEqual(pose("death"), pose("death", 1), `${name} has real fall`);
     assert.equal(actions.release, null, `${name} has no invented projectile release`);
-    assert.ok(bundle.tiers[1].indices.length < bundle.tiers[0].indices.length);
-    assert.ok(bundle.tiers[2].indices.length < bundle.tiers[1].indices.length);
+    for (let tier = 1; tier < bundle.tiers.length; tier++)
+      assert.ok(bundle.tiers[tier].indices.length < bundle.tiers[tier - 1].indices.length);
     if (id === 18 || id === 19) {
       assert.equal(actions.pikeReady, null, `${name} cannot lower a discarded pike`);
     } else {

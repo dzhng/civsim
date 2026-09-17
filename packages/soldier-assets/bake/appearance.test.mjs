@@ -28,7 +28,7 @@ const human = await readFile(new URL("human.glb", sourceRoot));
 const defaults = {
   presentation: null,
   name: "diagnostic",
-  tiers: [human, human, human],
+  tiers: [human, human, human, human],
   loopClips: [],
 };
 const marked = bakeAppearance(defaults);
@@ -38,14 +38,14 @@ assert.equal(
   "manual inspection keeps its first authored clip",
 );
 // The real reduced export has the exact same authored rig/actions; avoid
-// spending this policy tracer on three copies of the high-detail bound bake.
+// spending this policy tracer on copies of the high-detail bound bake.
 const heavyBytes = await readFile(
   new URL("../assets/source/heavy-kit/lods/far.glb", import.meta.url),
 );
 const admittedHeavy = bakeAppearance({
   name: "heavy-kit",
   mounted: false,
-  tiers: [heavyBytes, heavyBytes, heavyBytes],
+  tiers: [heavyBytes, heavyBytes, heavyBytes, heavyBytes],
   ...heavyMotionBake,
   presentation: heavyPresentation,
 });
@@ -100,7 +100,10 @@ const unmarked = editGlb(human, (json) => {
   for (const mesh of json.meshes)
     for (const primitive of mesh.primitives) delete primitive.attributes._FACTION_MASK;
 });
-const unmarkedBundle = bakeAppearance({ ...defaults, tiers: [unmarked, unmarked, unmarked] });
+const unmarkedBundle = bakeAppearance({
+  ...defaults,
+  tiers: [unmarked, unmarked, unmarked, unmarked],
+});
 assert.ok(
   unmarkedBundle["tier-0.mesh.json"].factionMasks.every((value) => value === 0),
   "absence means no faction concept, not color inference",
@@ -126,7 +129,7 @@ const nullMask = editGlb(human, (json) => {
     null;
 });
 assert.throws(
-  () => bakeAppearance({ ...defaults, tiers: [nullMask, human, human] }),
+  () => bakeAppearance({ ...defaults, tiers: [nullMask, human, human, human] }),
   /missing _FACTION_MASK/,
 );
 for (const [edit, error] of [
@@ -156,7 +159,10 @@ for (const [edit, error] of [
   ],
 ]) {
   const invalid = editGlb(human, (json) => edit(maskAccessor(json)));
-  assert.throws(() => bakeAppearance({ ...defaults, tiers: [invalid, human, human] }), error);
+  assert.throws(
+    () => bakeAppearance({ ...defaults, tiers: [invalid, human, human, human] }),
+    error,
+  );
 }
 for (const value of [-0.1, 1.1, NaN, Infinity]) {
   const invalid = editGlb(human, (json, bin) => {
@@ -165,13 +171,13 @@ for (const value of [-0.1, 1.1, NaN, Infinity]) {
     bin.writeFloatLE(value, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0));
   });
   assert.throws(
-    () => bakeAppearance({ ...defaults, tiers: [invalid, human, human] }),
+    () => bakeAppearance({ ...defaults, tiers: [invalid, human, human, human] }),
     Number.isFinite(value) ? /_FACTION_MASK values must be between zero and one/ : /nonfinite data/,
   );
 }
 assert.throws(() => bakeAppearance({ ...defaults, tiers: [human] }), /explicit GLB byte arrays/);
 assert.throws(
-  () => bakeAppearance({ ...defaults, tiers: [new Uint8Array(8), human, human] }),
+  () => bakeAppearance({ ...defaults, tiers: [new Uint8Array(8), human, human, human] }),
   /bad magic/,
 );
 assert.throws(() => bakeAppearance({ ...defaults, loopClips: ["unknown"] }), /loop clip unknown/);
@@ -186,6 +192,7 @@ assert.throws(
           json.nodes[json.skins[0].joints[0]].translation[0] += 0.2;
         }),
         human,
+        human,
       ],
     }),
   /bind or parent differs/,
@@ -195,7 +202,7 @@ const oppositeQuaternions = editGlb(human, (json) => {
     if (node.rotation) node.rotation = node.rotation.map((value) => -value);
 });
 assert.doesNotThrow(
-  () => bakeAppearance({ ...defaults, tiers: [human, oppositeQuaternions, human] }),
+  () => bakeAppearance({ ...defaults, tiers: [human, oppositeQuaternions, human, human] }),
   "q and -q encode the same bind rotation",
 );
 
@@ -228,7 +235,7 @@ const reordered = editGlb(human, (json, bin) => {
     }
   }
 });
-const remapped = bakeAppearance({ ...defaults, tiers: [human, reordered, human] });
+const remapped = bakeAppearance({ ...defaults, tiers: [human, reordered, human, human] });
 for (const field of Object.keys(remapped["tier-0.mesh.json"])) {
   if (field !== "materialIds")
     assert.deepEqual(
@@ -273,7 +280,7 @@ try {
       presentation: null,
       name: `${name}-diagnostic`,
       mounted: name === "mounted",
-      tiers: [bytes, bytes, bytes],
+      tiers: [bytes, bytes, bytes, bytes],
       loopClips: name === "mounted" ? ["gait"] : [],
     };
     currentFiles = bakeAppearance(options);
@@ -411,7 +418,7 @@ const large = editGlb(human, (json) => {
   const count = json.accessors[primitive.attributes.POSITION].count;
   json.meshes[0].primitives = Array.from({ length: Math.ceil(65537 / count) }, () => primitive);
 });
-const largeFiles = bakeAppearance({ ...defaults, tiers: [large, large, large] });
+const largeFiles = bakeAppearance({ ...defaults, tiers: [large, large, large, large] });
 const largeMesh = decodeSoldierMesh(largeFiles["tier-0.mesh.json"]);
 assert.equal(largeFiles["tier-0.mesh.json"].indexFormat, "uint32");
 assert.ok(largeMesh.indices.some((index) => index > 65535));
@@ -424,6 +431,8 @@ try {
   const args = [
     cli,
     "--near",
+    input,
+    "--intermediate",
     input,
     "--mid",
     input,
@@ -465,7 +474,7 @@ try {
     { encoding: "utf8" },
   );
   assert.notEqual(invalid.status, 0);
-  assert.ok(invalid.stderr.includes("missing --mid"));
+  assert.ok(invalid.stderr.includes("missing --intermediate"));
   assert.equal(
     JSON.parse(await readFile(join(directory, "appearance.json"), "utf8")).name,
     "cli-diagnostic",

@@ -37,6 +37,7 @@ import {
 } from "../../../../packages/soldier-assets/src/localAnimation";
 import { localPoseToJointMatrices } from "../../../../packages/soldier-assets/src/localPose";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
+import { IMPOSTOR_LEVEL } from "../../../../packages/crowd-runtime/src/lod";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import { eyePosition, type Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
@@ -219,7 +220,7 @@ async function run() {
             phase: far.phase,
             seed: i,
             mounted: classId === 6,
-            lod: 3,
+            lod: IMPOSTOR_LEVEL,
             elevation: i === 5 ? 0.7 : 0,
           }));
           const params: Camera3DParams = {

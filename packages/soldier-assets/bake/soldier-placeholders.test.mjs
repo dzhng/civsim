@@ -52,14 +52,17 @@ try {
       ),
     );
     assert.deepEqual(encodeLocalAnimation(bundle.animation), generated.out);
-    for (let tier = 0; tier < 3; tier++) {
+    for (let tier = 0; tier < bundle.tiers.length; tier++) {
       assert.equal(
         JSON.stringify(encodeSoldierMesh(bundle.tiers[tier])),
         JSON.stringify(encodeSoldierMesh(source[id][tier])),
       );
     }
+    // Bare heads lose nothing between intermediate and mid; every other step reduces.
+    assert.equal(bundle.tiers.length, 4);
     assert.ok(bundle.tiers[0].indices.length > bundle.tiers[1].indices.length);
-    assert.ok(bundle.tiers[1].indices.length > bundle.tiers[2].indices.length);
+    assert.ok(bundle.tiers[1].indices.length >= bundle.tiers[2].indices.length);
+    assert.ok(bundle.tiers[2].indices.length > bundle.tiers[3].indices.length);
     assert.equal(
       JSON.stringify(encodeSoldierMesh(bundle.farMesh)),
       JSON.stringify(encodeSoldierMesh(source[id][0])),

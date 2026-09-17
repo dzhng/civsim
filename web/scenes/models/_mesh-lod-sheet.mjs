@@ -1,5 +1,10 @@
 import { PNG } from "pngjs";
 import { snapshotSelected } from "../../snapshot.mjs";
+import { APPEARANCE_MESH_TIERS } from "../../../packages/soldier-assets/src/appearanceBundle.ts";
+
+// Perspective admission distances inside each coarser tier's default projected
+// interval at the 800px workbench; the near tier keeps the close inspection camera.
+const ADMISSION_DISTANCES = [null, 66, 120, 260];
 
 export const meshLodSnapshots = (folder) =>
   ["mesh-lod-context", "mesh-lod-diagnostic"].map((name) => `shared/soldiers/${folder}/${name}`);
@@ -9,7 +14,8 @@ export async function captureMeshLods(ctx, page, { folder, classId, ready, attac
   const names = meshLodSnapshots(folder);
   if (!names.some((name) => snapshotSelected(name))) return;
   const crop = { x: 320, y: 96, width: 640, height: 640 };
-  const sheets = [new PNG({ width: 1920, height: 1920 }), new PNG({ width: 1920, height: 1920 })];
+  const tiers = APPEARANCE_MESH_TIERS.length;
+  const sheets = [0, 1].map(() => new PNG({ width: 640 * tiers, height: 1920 }));
   const poses = [
     [ready, 0, true],
     [attack, 0.4, true],
@@ -17,10 +23,10 @@ export async function captureMeshLods(ctx, page, { folder, classId, ready, attac
   ];
   const nearDarkPixels = [];
   for (let row = 0; row < poses.length; row++) {
-    for (let tier = 0; tier < 3; tier++) {
+    for (let tier = 0; tier < tiers; tier++) {
       const [clip, phase, alive] = poses[row];
       const result = await page.evaluate(
-        async ({ classId, clip, phase, alive, zoom, tier }) => {
+        async ({ classId, clip, phase, alive, zoom, tier, distance }) => {
           const h = window.__battleModels;
           h.set({
             classId,
@@ -41,8 +47,7 @@ export async function captureMeshLods(ctx, page, { folder, classId, ready, attac
           const inspection = structuredClone(world.stats().camera);
           const admission = structuredClone(inspection);
           // Actual perspective distance, not the chart's screen-scale hint.
-          if (tier > 0)
-            Object.assign(admission.camera3d, { distance: tier === 1 ? 120 : 260, fovY: 0.85 });
+          if (distance !== null) Object.assign(admission.camera3d, { distance, fovY: 0.85 });
           world.drawInstances(
             [
               {
@@ -69,7 +74,7 @@ export async function captureMeshLods(ctx, page, { folder, classId, ready, attac
           await world.settlePresentedFrame();
           return { inspection, stats: world.stats() };
         },
-        { classId, clip, phase, alive, zoom, tier },
+        { classId, clip, phase, alive, zoom, tier, distance: ADMISSION_DISTANCES[tier] },
       );
       ctx.check(
         `${folder}/${clip}/tier${tier}: actual main tier admitted`,

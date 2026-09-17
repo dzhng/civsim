@@ -28,6 +28,7 @@ vi.mock("../../apps/battle-perf-lab/src/raw/impostor", () => ({
 }));
 import { createRawCrowdAudience } from "../../apps/battle-perf-lab/src/raw/crowdAudience";
 import type { CrowdProjectionView } from "../../packages/crowd-runtime/src/visibility";
+import { IMPOSTOR_LEVEL } from "../../packages/crowd-runtime/src/lod";
 const view = (pixels: number, shadow = false): CrowdProjectionView => ({
   frustum: { planes: [] },
   shadow,
@@ -67,8 +68,8 @@ test("far main soldiers remain actual impostors while their shadow stays a mesh"
   owner.upload([soldier], [view(0.1), view(10, true)], camera);
   expect(layers.at(-1)!.update).toHaveBeenLastCalledWith([soldier], camera);
   const plan = mesh.upload.mock.lastCall![1];
-  expect(plan.levels[0]).toBe(3);
-  expect(plan.shadowLevels[0]).toBeLessThan(3);
+  expect(plan.levels[0]).toBe(IMPOSTOR_LEVEL);
+  expect(plan.shadowLevels[0]).toBeLessThan(IMPOSTOR_LEVEL);
   owner.draw({} as never, {} as never, "shadow");
   expect(layers.at(-1)!.draw).not.toHaveBeenCalled();
   owner.draw({} as never, {} as never);
@@ -77,12 +78,12 @@ test("far main soldiers remain actual impostors while their shadow stays a mesh"
 });
 test("history survives buffer growth but removed soldiers do not inherit stale history", async () => {
   const owner = await create();
-  owner.upload([soldier], [view(20 / 1.8)], camera);
-  owner.upload([soldier, soldier], [view(17 / 1.8)], camera);
+  owner.upload([soldier], [view(34 / 1.8)], camera);
+  owner.upload([soldier, soldier], [view(31 / 1.8)], camera);
   expect(Array.from(mesh.upload.mock.lastCall![1].levels).slice(0, 2)).toEqual([0, 1]);
-  owner.upload([], [view(17 / 1.8)], camera);
+  owner.upload([], [view(31 / 1.8)], camera);
   expect(layers.at(-1)!.update).toHaveBeenLastCalledWith([], camera);
-  owner.upload([soldier], [view(17 / 1.8)], camera);
+  owner.upload([soldier], [view(31 / 1.8)], camera);
   expect(mesh.upload.mock.lastCall![1].levels[0]).toBe(1);
   owner.dispose();
 });
@@ -141,20 +142,20 @@ test("failed later atlas construction disposes earlier resources and mesh", asyn
 });
 test("failed uploads prevent stale draws and preserve preceding successful LOD history", async () => {
   const owner = await create();
-  owner.upload([soldier], [view(20 / 1.8)], camera);
+  owner.upload([soldier], [view(34 / 1.8)], camera);
   mesh.upload.mockImplementationOnce(() => {
     throw Error("upload failed");
   });
   expect(() => owner.upload([soldier], [view(10 / 1.8)], camera)).toThrow("upload failed");
   expect(() => owner.draw({} as never, {} as never)).toThrow("not ready");
-  owner.upload([soldier], [view(17 / 1.8)], camera);
+  owner.upload([soldier], [view(31 / 1.8)], camera);
   expect(mesh.upload.mock.lastCall![1].levels[0]).toBe(0);
   owner.dispose();
 });
 
 test("camera-only refresh retains selected L3 groups and never advances mesh/LOD history", async () => {
   const owner = await create();
-  owner.upload([soldier], [view(0.1), view(20 / 1.8, true)], camera);
+  owner.upload([soldier], [view(0.1), view(34 / 1.8, true)], camera);
   const before = owner.stats(),
     uploads = mesh.upload.mock.calls.length;
   const nextCamera = { ...camera, eye: [200, 0, 30] as const };
@@ -163,7 +164,7 @@ test("camera-only refresh retains selected L3 groups and never advances mesh/LOD
   expect(mesh.upload.mock.calls.length).toBe(uploads);
   expect(owner.stats()).toEqual(before);
   expect(layers.at(-1)!.update.mock.calls.at(-2)).toEqual([[soldier], nextCamera]);
-  owner.upload([soldier], [view(0.1), view(17 / 1.8, true)], camera);
+  owner.upload([soldier], [view(0.1), view(31 / 1.8, true)], camera);
   expect(mesh.upload.mock.lastCall![1].shadowLevels[0]).toBe(0);
   owner.dispose();
 });
@@ -182,8 +183,8 @@ test("published histograms count actual main and shadow audiences without counti
       camera,
     );
     expect(owner.stats()).toMatchObject({
-      visibleTierHistogram: { l0: 0, l1: 0, l2: 0, l3: 1 },
-      shadowTierHistogram: { l0: 1, l1: 0, l2: 0, l3: 0 },
+      visibleTierHistogram: { l0: 0, l1: 0, l2: 0, l3: 0, l4: 1 },
+      shadowTierHistogram: { l0: 0, l1: 1, l2: 0, l3: 0, l4: 0 },
     });
   } finally {
     owner.dispose();

@@ -2,6 +2,7 @@
 import { expect, test, vi } from "vitest";
 import { PerspectiveCamera } from "three/webgpu";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
+import { emptyLodCounts } from "@packages/crowd-runtime/src/lod";
 import {
   PhotorealBattleWorld,
   type BattleCameraSnapshot,
@@ -38,7 +39,7 @@ function fixture() {
     },
     terrainSurface: { heightSampler: () => sampler },
     environment: { environment: { id: "test" } },
-    crowd: { upload() {}, stats: () => ({ visibleTierHistogram: { l0: 0, l1: 0, l2: 0, l3: 0 } }) },
+    crowd: { upload() {}, stats: () => ({ visibleTierHistogram: emptyLodCounts() }) },
     shadowRig: { update() {}, identity: stats },
     sea: layer,
     post: layer,

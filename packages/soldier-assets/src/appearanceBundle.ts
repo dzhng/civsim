@@ -14,7 +14,7 @@ export type SoldierMeshAsset = { [K in keyof SoldierMeshData]: number[] } & {
 };
 
 /** Mesh tiers, finest first. The crowd draws its impostor after the last. */
-export const APPEARANCE_MESH_TIERS = ["near", "mid", "far"] as const;
+export const APPEARANCE_MESH_TIERS = ["near", "intermediate", "mid", "far"] as const;
 
 type Replace<Tuple extends readonly unknown[], T> = { -readonly [K in keyof Tuple]: T };
 /** One entry per mesh tier, in `APPEARANCE_MESH_TIERS` order. */

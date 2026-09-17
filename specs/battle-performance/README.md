@@ -4,15 +4,20 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: collect the serialized full live Menu trials of fixed build
-0ea8406d. The active driver is `throwaway/four-mesh-live-round.py`, log
-`throwaway/four-mesh-live-round.log`; results accumulate under
-`throwaway/matched-current-0ea8406d/trials/`. Order is vgpu, TypeGPU, raw, Three.
-All eight enabled/disabled builds completed with identical WASM (inventory beside
-the builds). Do not restart a trial on an observation timeout: poll its existing
-process. Root holds the GPU; no builds/tests while these trials run. Afterward,
-inspect functional and quiet-host verdicts, preserve results and decide the next
-balanced comparison. No backend ranking or final live acceptance is established.
+Current pickup: diagnose the remaining dense main-pass and native asynchronous
+presentation cost. [The four-mesh production round](assets/02-paired-controls-0ea8406d/README.md)
+is complete: all four full Menu runs pass functional checks; all quiet-host
+verdicts fail and no final cadence/throughput target passes. No backend is selected.
+All eight builds pin runtime0ea8406d with identical WASM; preserve their artifacts
+under `throwaway/matched-current-0ea8406d`. Do not rank the differing live states.
+Root's next GPU probe is scratch `throwaway/contact-crowd-culling-cost.mjs`:
+ABABA main-material sidedness with actual used-pipeline observation, unchanged
+geometry/shadows and no production setting change. Inspect its controls and images;
+open surfaces may disappear, so this is attribution only. Native reported await
+elapsed time also needs actual validation-boundary/main-thread attribution before
+changing error handling. The kernel audit at `throwaway/kernel-next-audit.log`
+suggests an exact local bucket-membership prefilter, not yet implemented or timed.
+No CPU builds/tests during GPU timing. Root owns serialized GPU jobs.
 Main integrates the original near / new intermediate / original mid /
 original far chain at32/18/9/4 standing-height pixels, followed by impostors.
 [Current correctness evidence](assets/07-four-mesh-control/README.md) preserves

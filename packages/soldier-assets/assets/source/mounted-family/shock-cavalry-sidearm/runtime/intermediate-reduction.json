@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/shock-cavalry-sidearm.blend",
+  "sourceSha256": "d4871b10bd0f37edb0a218a2110edccd956652f40de898e8d5df5cb1b25a92b2",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 132728,
+      "triangles": 3922,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "3de228e04ddc4927beda3bc02d960570af98a5155d5342cc284f6f18bb67c2d3"
+    }
+  ]
+}

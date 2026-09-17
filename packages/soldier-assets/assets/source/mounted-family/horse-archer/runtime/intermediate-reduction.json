@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/horse-archer.blend",
+  "sourceSha256": "249406fcbbc351a0367ea6c29012a6c0e17bf537e1705ea85e7783fd3eca2602",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 102880,
+      "triangles": 3946,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "f24aceb77e4769c8c6af1637030935206e924d37cb7743c2c58448b4c5869822"
+    }
+  ]
+}

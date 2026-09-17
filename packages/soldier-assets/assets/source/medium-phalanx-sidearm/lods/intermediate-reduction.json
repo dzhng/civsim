@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/medium-phalanx-sidearm/medium-phalanx-sidearm.blend",
+  "sourceSha256": "724ba4bdf00b5b6e83e0a14620d291e5c51773965343fe678528abb6e40ccbb0",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 154826,
+      "triangles": 4006,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "d351589b9c4e8381ebf6fdb4231a1a9a8f3d6680aea498422a28b8b9df66673a"
+    }
+  ]
+}

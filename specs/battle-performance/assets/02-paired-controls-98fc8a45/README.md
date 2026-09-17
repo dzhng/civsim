@@ -15,3 +15,11 @@ first-traversal work, matched graphics/content, run order and host observations.
 [The first full live round](live-round-0/README.md) passes functional checks in all
 four backends. Every quiet-host verdict remains false; no winner is established.
 The main drawing pass is the next attribution target.
+
+Before the four-mesh candidate cutover, all soldier files used by these builds
+were frozen into a copy-on-write snapshot. [The byte inventory](frozen-soldiers.json)
+proves all733 files match the original public tree; served soldier symlinks now
+point to that snapshot. Emitted code and WASM are untouched. Other historical
+links in this task's throwaway that referenced the same public tree were also
+redirected to the identical bytes, as recorded in the inventory. New production
+catalogs must not mutate this frozen snapshot.

@@ -4,8 +4,16 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: finish the four-mesh candidate's browser regressions and hardware
-acceptance. Main integrates the original near / new intermediate / original mid /
+Current pickup: collect the serialized full live Menu trials of fixed build
+0ea8406d. The active driver is `throwaway/four-mesh-live-round.py`, log
+`throwaway/four-mesh-live-round.log`; results accumulate under
+`throwaway/matched-current-0ea8406d/trials/`. Order is vgpu, TypeGPU, raw, Three.
+All eight enabled/disabled builds completed with identical WASM (inventory beside
+the builds). Do not restart a trial on an observation timeout: poll its existing
+process. Root holds the GPU; no builds/tests while these trials run. Afterward,
+inspect functional and quiet-host verdicts, preserve results and decide the next
+balanced comparison. No backend ranking or final live acceptance is established.
+Main integrates the original near / new intermediate / original mid /
 original far chain at32/18/9/4 standing-height pixels, followed by impostors.
 [Current correctness evidence](assets/07-four-mesh-control/README.md) preserves
 all twenty original asset identities and68 paired camera/pose samples. Sampled

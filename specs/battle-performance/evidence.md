@@ -78,7 +78,13 @@ The [typed observation-source rerun](assets/03a-publication/canonical-observatio
 
 - [Retained native crowd packing](assets/06b-crowd-packing/README.md): exact CPU payload comparison, backing allocation counts and three hardware camera smoke controls; no live-FPS claim.
 
-- [Current fixed builds at 98fc8a45](assets/02-paired-controls-98fc8a45/README.md): eight clean-source builds with identical emitted WASM, including billboard caching and retained packing; runtime ranking remains pending.
+- [Historical fixed builds at 98fc8a45](assets/02-paired-controls-98fc8a45/README.md): eight clean-source builds with identical emitted WASM, including billboard caching and retained packing; runtime ranking remains pending.
 
 - [Grass main-pass attribution](assets/05-grass-main-attribution/README.md): paired fixed-state feature controls; several milliseconds in static views, not the contact-window workload.
 - [Projected authored detail](assets/07-projected-detail/README.md): mesh costs and uncalibrated historical LOD boundaries; visual calibration is next, with no policy change yet.
+
+- [Four-tier crowd controls](assets/07-four-mesh-control/README.md) preserve original asset identities and sampled readability; the unchanged hardware floor passes. Real-time motion and the documented shared appearance change remain open.
+- [Latest full live round](assets/02-paired-controls-0ea8406d/README.md): all four Menu runs complete; none establishes the target or a fair backend ranking because simulation progress differs. These builds precede the bucket optimization.
+- [Exact bucket membership](assets/03a-bucket-membership/README.md): both candidate runs beat both controls in two tick windows; exact hashes and309 worker/direct ticks match. Later combat still misses30Hz.
+- [Crowd backface culling](assets/07-crowd-culling/README.md): actual pipeline use verified, no repeatable gain; production unchanged.
+- [Native await attribution](assets/02-native-await-profile/README.md): complete scope/CPU trace shows CPU work inside reported await time; no causal basis for removing validation waits.

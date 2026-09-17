@@ -4,78 +4,44 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: diagnose the remaining dense main-pass and native asynchronous
-presentation cost. [The four-mesh production round](assets/02-paired-controls-0ea8406d/README.md)
-is complete: all four full Menu runs pass functional checks; all quiet-host
-verdicts fail and no final cadence/throughput target passes. No backend is selected.
-All eight builds pin runtime0ea8406d with identical WASM; preserve their artifacts
-under `throwaway/matched-current-0ea8406d`. Do not rank the differing live states.
-Root's next GPU probe is scratch `throwaway/contact-crowd-culling-cost.mjs`:
-ABABA main-material sidedness with actual used-pipeline observation, unchanged
-geometry/shadows and no production setting change. Inspect its controls and images;
-open surfaces may disappear, so this is attribution only. Native reported await
-elapsed time also needs actual validation-boundary/main-thread attribution before
-changing error handling. The kernel audit at `throwaway/kernel-next-audit.log`
-suggests an exact local bucket-membership prefilter, not yet implemented or timed.
-No CPU builds/tests during GPU timing. Root owns serialized GPU jobs.
-Main integrates the original near / new intermediate / original mid /
-original far chain at32/18/9/4 standing-height pixels, followed by impostors.
-[Current correctness evidence](assets/07-four-mesh-control/README.md) preserves
-all twenty original asset identities and68 paired camera/pose samples. Sampled
-visual review found no new one-sided loss; a shared06→07 appearance shift remains
-open. These samples do not establish real-time smoothness.
+Current pickup: implement and verify a lab-only held-state camera tour for the
+backend decision, following [the conditional comparison protocol](renderer-comparison.md).
+The live Menu benchmark remains unchanged. Its latest four-backend round completed
+functionally but did not meet performance targets, and different simulation progress
+prevents ranking those runs. Do not repeat that experiment as a renderer decision.
 
-Claude's final fixture corrections are applied, and independent Codex review
-found no actionable four-tier regression. Root's33 focused tests pass. Seven
-older lifecycle/timing mocks were repaired by Claude and now pass; their original
-failure and strengthened assertions are recorded with independent review.
-Canonical far-view checks remain red (image baselines and dead-contact material
-response); the preceding three-tier control matches all seven grounding PNGs exactly
-and reproduces its material failure. Other far-suite differences remain unclassified. Never repin a failing gate merely because the new assets are expected.
+The [exact bucket-membership optimization](assets/03a-bucket-membership/README.md)
+is integrated at5f418b5f. Current production WASM is e9f4f080…; all309 canonical
+worker/direct ticks match. Later combat still exceeds the30Hz budget. In parallel
+with the renderer-control implementation, refresh later-combat stage attribution
+before selecting another exact-semantics kernel optimization.
 
-Root owns serialized browser/GPU jobs. No hardware timing during builds/tests.
-The unchanged30k hardware gate now passes all18 checks on the candidate.
-[Stationary contact controls](assets/07-four-mesh-control/cost/README.md) reduce dense
-main-pass work while preserving distant/shadow geometry; wide timing remains a
-concern despite identical work. Next: refreshed fixed production builds and
-balanced live backend comparison,
-backend decision, remaining camera/grass/simulation work, default shadows and final
-net savings. No backend has won. Original fixed-build assets are
-[frozen and hash-verified](assets/02-paired-controls-98fc8a45/frozen-soldiers.json);
-never mutate that snapshot. Superseded generated catalog directories may be pruned
-only after proving current catalogs do not reference them. The
-[skin influence experiment](assets/06b-skin-influences/README.md) remains reverted.
+Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)
+has no repeatable measured benefit and is not adopted; [native await profiling](assets/02-native-await-profile/README.md)
+shows substantial CPU work inside the asynchronous interval, so it does not justify
+removing validation boundaries. Current four-tier LOD is a working default, with
+[geometry and sampled visual controls](assets/07-four-mesh-control/README.md), not
+final motion/quality acceptance. The unchanged30k hardware floor passes all18 checks.
+Canonical far-view diagnostics remain red; the prior three-tier control reproduces
+the seven grounding images and material failure. Other far differences remain open.
 
-[Current fixed builds](assets/02-paired-controls-98fc8a45/README.md) include
-billboard deduplication and retained crowd packing; all eight emitted WASM files
-match. Builds and commands are retained under
-`throwaway/matched-current-98fc8a45/{enabled,disabled}`. Compare instrumentation
-modes within each backend; disabled modes remove different observers across
-Three/native. Older build directories are historical and must stay unchanged.
+[Latest fixed live builds](assets/02-paired-controls-0ea8406d/README.md) retain the
+older2657fca8… WASM; never silently rebuild them in place. Preserve both these and
+[the frozen historical assets](assets/02-paired-controls-98fc8a45/frozen-soldiers.json).
+The [evidence ledger](evidence.md) owns detailed results and limitations.
 
-Recent component evidence: [billboard caching](assets/06b-billboard-refresh/README.md)
-halves measured duplicate preparation; [crowd packing](assets/06b-crowd-packing/README.md)
-preserves payload bytes while removing warmed payload backing allocations;
-[native admission batching](assets/02-native-admission-batch/README.md) shortens
-observed preparation waits. The unchanged [standing hardware gate](assets/04-grass-camera-gate/README.md)
-passes all18 checks again on the four-mesh candidate. These component controls do not establish live FPS or
-visual acceptance. Earlier [live controls](assets/02-current-live/README.md) and
-the [9374dbc9 raw disabled run](assets/02-paired-controls-9374dbc9/README.md) remain
-unrankable under their recorded host policy; retain those verdicts.
+Priority: conditional renderer comparison and remaining simulation throughput;
+then backend decision, unresolved camera/grass/LOD quality, shadow stability and
+final live net savings. View-fitted shadows already exist across all candidates;
+readability, moving-camera stability and the original-versus-final net-cost proof
+remain open. No backend has won. No failed baseline or threshold is repinned.
 
-The [evidence ledger](evidence.md) owns prior measurements and limitations.
-Prioritize complete renderer attribution, then remaining simulation/crowd work,
-then default shadow readability/stability and final acceptance. Quiet-host
-classification is conservative: whole-machine load includes the benchmark and
-shared WindowServer work has unknown attribution. Do not relabel failed quiet
-checks as passes; any counterbalanced conditional comparison needs a declared
-method and cannot replace absolute product acceptance.
-
-Claude Opus implementation agents are available again. Serialize GPU
-jobs and stop our builds/tests during measurements. Preserve gameplay, graphics
-quality, default gates and the hard-cutover/no-compatibility decision. The
-retained recorded archive is a correctness control, not a timing oracle. GPU
-pass sums overlap and cannot be treated as elapsed GPU frame time.
+Claude Opus owns isolated implementation passes; root integrates/reviews and owns
+serialized GPU work. No builds, tests or CPU timing during GPU timing. Failed
+quiet-host verdicts stay failed; conditional comparisons cannot replace final
+product acceptance. Preserve gameplay, assets, physical framebuffer and the
+hard-cutover/no-compatibility decision. Recorded replay is correctness evidence,
+not a timing oracle; overlapping GPU pass sums are not elapsed frame time.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 
@@ -105,7 +71,7 @@ Follow the slice graph below and the [complete-scene pickup](composition.md). Pa
 - The actual Menu benchmark completes its five-minute action-following tour and exports a timing chart. Quiet baseline evidence shows severe live CPU and camera stalls; no final speedup is claimed.
 - Production grass-buffer binding and readout-atlas corrections restore missing work. Final timing must refresh the source baseline after those fixes.
 - Native full-scene controls render all20 appearances and actual L3 soldiers. The recorded replay matches all433 input/publication histories and six sampled GPU command/record gates. Independent still-image review finds no obvious one-sided scene loss; strict pixel diagnostics remain red.
-- All three native complete-scene controls now match source audiences and clean up tracked resources. Fresh library image reviews find settled visual ties; strict pixel differences remain documented. The first TypeGPU timeout overlapped a configuration edit and is an invalidated control. Shared recorded replay and functional Menu runs are complete; corrected fixed-build paired timing remains next.
+- All three native complete-scene controls now match source audiences and clean up tracked resources. Fresh library image reviews find settled visual ties; strict pixel differences remain documented. The first TypeGPU timeout overlapped a configuration edit and is an invalidated control. Shared recorded replay and functional Menu runs are complete; live timing is recorded but remains unrankable across differing simulation states.
 - Simulation publication has bounded transport and actual action-adapter consumer proofs only. Sustained browser throughput and the final net-shadow performance equation remain open.
 - No existing default threshold or baseline failure has been repinned. [Choices](choices.md) records decisions beyond the plan.
 

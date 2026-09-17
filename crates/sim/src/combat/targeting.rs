@@ -297,5 +297,11 @@ mod tests {
         let (order, ids) = admitted(&offers);
         assert_eq!(order, expected);
         assert_eq!(ids, expected);
+
+        // Fill every slot with distinct ids that all collide in the prefilter.
+        let full: Vec<usize> = (0..81).map(|i| i * 1024 + 17).collect();
+        let (order, ids) = admitted(&full);
+        assert_eq!(order, full);
+        assert_eq!(ids, full);
     }
 }

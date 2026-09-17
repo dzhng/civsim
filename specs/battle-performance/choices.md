@@ -439,3 +439,37 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   versions, while the snapshot retains immediately runnable controls.
 - **Verdict:** Sound, high confidence. All126 current catalog references resolve
   to existing four-tier manifests and none resolves into the removed directories.
+
+### Speed bucket membership without caching mutable combat state
+
+- **When:** Exact targeting membership pass.
+- **Choice:** During one soldier's target search, a small local bit table quickly
+  identifies buckets not visited yet. A bit already set never means “skip” by
+  itself: the original exact list decides. For example, buckets17 and1041 share
+  a bit but both are visited, in their original order; a second17 is skipped.
+- **Gap:** The plan permits faster unchanged simulation but does not prescribe
+  how to eliminate repeated membership scans. Caching target results across
+  soldiers would inherit mutable fighting/alive state and ordering obligations.
+- **Reach:** The helper owns only one search's scratch membership. It adds no
+  persistent cache, invalidation protocol, gameplay option or public API, and
+  preserves every downstream comparison and write.
+- **Verdict:** Sound, high confidence. Collision fallback preserves exact order
+  while the filter avoids unnecessary linear searches; its lifetime excludes
+  cross-tick and cross-soldier staleness.
+
+### Separate renderer selection from live simulation throughput
+
+- **When:** Comparison maintenance checkpoint after the four-mesh live round.
+- **Choice:** For choosing a rendering engine, hold the same battle moment while
+  the camera, character poses and environment keep moving. For example, a slow
+  renderer cannot look cheaper merely because its battle advanced less and fewer
+  soldiers reached a costly fight. The normal Menu benchmark still simulates the
+  whole contact window and remains the final product test.
+- **Gap:** The original plan did not prescribe how to compare engines when their
+  live runs reach different combat states and host isolation cannot be certified.
+- **Reach:** Lab reports identify their held state and cannot count as live
+  acceptance. The declared finite comparison ends in a conditional winner or an
+  explicit performance tie, followed by the maintenance/quality decision.
+- **Verdict:** Sound, medium confidence. It removes a demonstrated workload
+  confound while retaining the harder live requirement; it cannot prove absolute
+  performance or perfectly identical per-frame work.

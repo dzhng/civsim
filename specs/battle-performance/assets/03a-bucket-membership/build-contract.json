@@ -1,0 +1,17 @@
+{
+  "baseline": "90c320f6",
+  "command": [
+    "wasm-pack",
+    "build",
+    "crates/game-wasm",
+    "--target",
+    "web",
+    "--release"
+  ],
+  "env": {
+    "CARGO_TARGET_DIR": "/Users/david/dev/game-battle-performance-spec/target",
+    "CARGO_PROFILE_RELEASE_LTO": "fat",
+    "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "1",
+    "RUSTFLAGS": "-C target-feature=+simd128"
+  }
+}

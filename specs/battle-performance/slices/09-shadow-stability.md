@@ -6,7 +6,7 @@ Do accepted shadows stay attached through pan, zoom, cascade transitions and off
 
 ## API seam
 
-Shadow rig temporal fit/update policy owns previous fit, texel snapping and invalidation. Consume the same camera/light/terrain state used by beauty rendering. Keep 08 shadow resolution/contact target and scene look frozen. Fit stabilization may use snapped light-space bounds and hysteresis; caching is allowed only with correct invalidation for moving casters, sun/environment, terrain and viewport. Never freeze moving unit shadows merely to pass timing. A static terrain/caster cache and dynamic pass may be tested separately if timestamp evidence justifies the extra ownership.
+Shadow rig temporal fit/update policy owns previous fit, texel snapping and invalidation. Consume the same camera/light/terrain state used by beauty rendering. Keep 08 shadow resolution/contact target and scene look frozen. The shared `SingleShadowPolicy` already uses world-anchored texel snapping, extent-rung hysteresis and quantized depth. Verify these through the motion cases below before adding another stabilization mechanism; caching is allowed only with correct invalidation for moving casters, sun/environment, terrain and viewport. Never freeze moving unit shadows merely to pass timing. A static terrain/caster cache and dynamic pass may be tested separately if timestamp evidence justifies the extra ownership.
 
 ## Artifact and verification
 

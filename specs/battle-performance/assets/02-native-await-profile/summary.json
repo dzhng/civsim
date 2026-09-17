@@ -1,0 +1,785 @@
+{
+  "status": "completed",
+  "prepared": {
+    "hash": "9928381812590497427",
+    "tick": 9000,
+    "units": 40,
+    "orders": 20,
+    "clock": {
+      "alpha": 0.7777500003576279,
+      "paused": true,
+      "frozen": false
+    }
+  },
+  "settled": {
+    "intended": {
+      "phase": "tactical",
+      "center": [
+        75,
+        -120
+      ],
+      "distance": 200,
+      "yaw": -1.57,
+      "pitch": 0.65
+    },
+    "achieved": {
+      "target": [
+        75,
+        -120
+      ],
+      "distance": 200.00000054171505,
+      "yaw": -1.57,
+      "pitch": 0.65
+    },
+    "hash": "9928381812590497427",
+    "tick": 9000,
+    "clock": {
+      "alpha": 0,
+      "paused": true,
+      "frozen": false
+    }
+  },
+  "drain": {
+    "outsideTiming": true,
+    "waitedMs": 0.23000001907348633,
+    "deadlineMs": 5000,
+    "pendingAtDeadline": {
+      "popped": 0,
+      "open": 0
+    },
+    "complete": true
+  },
+  "derived": {
+    "caution": "Diagnostic only, perturbed by instrumentation and profiling; not a benchmark. Quantities below overlap and must not be added or read as a breakdown of renderAwaitMs.",
+    "captureWindow": {
+      "startMs": 76502.844999969,
+      "endMs": 96518.89999997616,
+      "durationMs": 20016.055000007153
+    },
+    "instrumentation": {
+      "installed": true,
+      "installError": null,
+      "installedAt": 10.665000021457672,
+      "capturing": false,
+      "tag": 0,
+      "count": 14742,
+      "dropped": 0,
+      "submitCount": 2457,
+      "submitsSeen": 2457,
+      "submitDropped": 0,
+      "pushSeq": 20493,
+      "popCalls": 20493,
+      "openDepth": 0,
+      "unmatchedPops": 0,
+      "stackOverflows": 0,
+      "syncPopThrows": 0,
+      "faultCount": 0,
+      "errorMessageCount": 0,
+      "tags": [
+        "tactical-0"
+      ]
+    },
+    "frames": {
+      "count": 819,
+      "frameIdGaps": 0,
+      "renderAwaitMs": {
+        "count": 819,
+        "min": 6.9049999713897705,
+        "p50": 13.870000004768372,
+        "p90": 17.680000007152557,
+        "p95": 20.030000030994415,
+        "p99": 20.785000026226044,
+        "max": 22.10999995470047,
+        "sum": 10179.574999392033
+      },
+      "renderWallMs": {
+        "count": 819,
+        "min": 7.9700000286102295,
+        "p50": 15.165000021457672,
+        "p90": 18.87999999523163,
+        "p95": 21.2399999499321,
+        "p99": 22.035000026226044,
+        "max": 23.289999961853027,
+        "sum": 11192.73999851942
+      },
+      "renderCpuMs": {
+        "count": 819,
+        "min": 7.105000019073486,
+        "p50": 8.254999995231628,
+        "p90": 8.590000092983246,
+        "p95": 8.71999990940094,
+        "p99": 10.210000097751617,
+        "max": 11.125000059604645,
+        "sum": 6782.63999915123
+      },
+      "loopCpuMs": {
+        "count": 819,
+        "min": 7.160000026226044,
+        "p50": 8.330000042915344,
+        "p90": 8.665000021457672,
+        "p95": 8.790000081062317,
+        "p99": 10.305000126361847,
+        "max": 11.195000052452087,
+        "sum": 6842.085000395775
+      },
+      "intervalMs": {
+        "count": 819,
+        "min": 16.65999999998894,
+        "p50": 16.669999999998254,
+        "p90": 33.3350000000064,
+        "p95": 33.3350000000064,
+        "p99": 33.3350000000064,
+        "max": 33.34000000001106,
+        "sum": 20015.869999999995
+      },
+      "rendererFrameCpuMs": {
+        "count": 819,
+        "min": 6.004999995231628,
+        "p50": 7.0299999713897705,
+        "p90": 7.35999995470047,
+        "p95": 7.504999995231628,
+        "p99": 8.004999995231628,
+        "max": 8.980000019073486,
+        "sum": 5770.6200004816055
+      }
+    },
+    "scopes": {
+      "note": "Spans are wall-clock observations. A pending pop means the page has not yet received the scope result; whether the main thread was idle, running native work or running JS during it is answered only by cpuProfile.withinPendingPop.",
+      "records": 14742,
+      "byStatus": {
+        "resolved-null": 14742
+      },
+      "byFilter": {
+        "out-of-memory": 4914,
+        "internal": 4914,
+        "validation": 4914
+      },
+      "pushedBeforeSample": 0,
+      "popToResolveMs": {
+        "count": 14742,
+        "min": 0.125,
+        "p50": 0.3400000333786011,
+        "p90": 7.014999985694885,
+        "p95": 7.719999969005585,
+        "p99": 12.209999978542328,
+        "max": 15.014999985694885,
+        "sum": 33826.485001027584
+      },
+      "pushToPopMs": {
+        "count": 14742,
+        "min": 0,
+        "p50": 0.06000000238418579,
+        "p90": 6.245000004768372,
+        "p95": 6.439999997615814,
+        "p99": 6.759999990463257,
+        "max": 8.180000007152557,
+        "sum": 16277.599998950958
+      },
+      "pendingPopUnionMs": 9633.009999632835,
+      "openScopeUnionMs": 9766.724999010563,
+      "unresolvedExtendedToWindowEnd": 0,
+      "submits": {
+        "count": 2457,
+        "atOpenScopeDepthZero": 819,
+        "insideOpenScope": 1638,
+        "threw": 0,
+        "callMs": {
+          "count": 2457,
+          "min": 0,
+          "p50": 0.004999995231628418,
+          "p90": 0.009999990463256836,
+          "p95": 0.014999985694885254,
+          "p99": 0.01500004529953003,
+          "max": 0.02499997615814209,
+          "sum": 13.249999344348907
+        },
+        "intervalMs": {
+          "count": 2456,
+          "min": 0.004999995231628418,
+          "p50": 0.5,
+          "p90": 32.79000002145767,
+          "p95": 33.1599999666214,
+          "p99": 33.814999997615814,
+          "max": 35.125,
+          "sum": 19982.275000035763
+        },
+        "inference": "openScopeDepth>0 is expected for the scene submit inside Native submit() admission; depth 0 is expected for the telemetry timing-resolve submit. Inferred from source, not tagged."
+      }
+    },
+    "cpuProfile": {
+      "available": true,
+      "samplingIntervalUs": 1000,
+      "profilerStartUs": 476361159917,
+      "profilerEndUs": 476383606659,
+      "samples": 15169,
+      "negativeDeltas": 0,
+      "anchors": [
+        {
+          "name": "nativeAwaitProfileAnchorBefore",
+          "start": 74448.56499999762,
+          "end": 74498.57499998808,
+          "samples": 70,
+          "firstProfilerMs": 476361296.22,
+          "lastProfilerMs": 476361345.776,
+          "busySpanMs": 50.00999999046326,
+          "sampledSpanMs": 49.555999994277954,
+          "offsetMs": -476286847.42800003
+        },
+        {
+          "name": "nativeAwaitProfileAnchorAfter",
+          "start": 96700.62999999523,
+          "end": 96750.63499999046,
+          "samples": 72,
+          "firstProfilerMs": 476383548.046,
+          "lastProfilerMs": 476383597.836,
+          "busySpanMs": 50.00499999523163,
+          "sampledSpanMs": 49.79000002145767,
+          "offsetMs": -476286847.3085
+        }
+      ],
+      "mapped": true,
+      "offsetMs": -476286847.36825,
+      "anchorOffsetDisagreementMs": 0.1195000410079956,
+      "mappingNote": "performance.now = profilerMicroseconds/1000 + offsetMs, fit from sampled busy-loop anchors outside the sample. Expect about one sampling interval of error plus any disagreement; sub-millisecond scope windows cannot be resolved by 1ms samples.",
+      "categories": {
+        "(idle)": {
+          "samples": 8387,
+          "ms": 12466.295999999895
+        },
+        "(attributed frame: JS or native API)": {
+          "samples": 4692,
+          "ms": 6896.70600000003
+        },
+        "(program)": {
+          "samples": 274,
+          "ms": 408.38099999999963
+        },
+        "(garbage collector)": {
+          "samples": 162,
+          "ms": 245.531
+        }
+      },
+      "withinPendingPop": {
+        "(attributed frame: JS or native API)": {
+          "samples": 3617,
+          "ms": 5327.4740000000165
+        },
+        "(program)": {
+          "samples": 226,
+          "ms": 337.03799999999944
+        },
+        "(idle)": {
+          "samples": 2556,
+          "ms": 3805.4350000000004
+        },
+        "(garbage collector)": {
+          "samples": 105,
+          "ms": 158.90499999999994
+        }
+      },
+      "outsidePendingPop": {
+        "(idle)": {
+          "samples": 5831,
+          "ms": 8660.861000000006
+        },
+        "(attributed frame: JS or native API)": {
+          "samples": 1075,
+          "ms": 1569.2319999999982
+        },
+        "(garbage collector)": {
+          "samples": 57,
+          "ms": 86.62600000000002
+        },
+        "(program)": {
+          "samples": 48,
+          "ms": 71.34300000000003
+        }
+      },
+      "topSelf": [
+        {
+          "frame": "(idle)",
+          "ms": 12466.295999999895
+        },
+        {
+          "frame": "begin http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:306:946",
+          "ms": 1685.9209999999998
+        },
+        {
+          "frame": "qe http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:5481",
+          "ms": 1005.085999999999
+        },
+        {
+          "frame": "prepare http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:81:205",
+          "ms": 815.9409999999988
+        },
+        {
+          "frame": "writeBuffer",
+          "ms": 516.5129999999992
+        },
+        {
+          "frame": "pack http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:306:3038",
+          "ms": 489.8099999999999
+        },
+        {
+          "frame": "(program)",
+          "ms": 408.38099999999963
+        },
+        {
+          "frame": "fn http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:61844",
+          "ms": 363.3109999999998
+        },
+        {
+          "frame": "Ct http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:19226",
+          "ms": 327.7149999999998
+        },
+        {
+          "frame": "(garbage collector)",
+          "ms": 245.531
+        },
+        {
+          "frame": "present http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:46812",
+          "ms": 187.44600000000003
+        },
+        {
+          "frame": "Be http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:4635",
+          "ms": 185.57000000000005
+        },
+        {
+          "frame": "attackArcs http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:47649",
+          "ms": 107.507
+        },
+        {
+          "frame": "Nt http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:25817",
+          "ms": 95.45200000000004
+        },
+        {
+          "frame": "Xe http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:6813",
+          "ms": 81.32399999999998
+        },
+        {
+          "frame": "commit http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:306:1492",
+          "ms": 52.628
+        },
+        {
+          "frame": "a http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:21106",
+          "ms": 48.454
+        },
+        {
+          "frame": "sample http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:63233",
+          "ms": 43.488
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:63584",
+          "ms": 39.841000000000015
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:399:130",
+          "ms": 38.419000000000004
+        },
+        {
+          "frame": "upload http://127.0.0.1:5296/assets/rawPosePalette-CS5hmik8.js:9:414",
+          "ms": 30.665
+        },
+        {
+          "frame": "popErrorScope",
+          "ms": 26.991
+        },
+        {
+          "frame": "mn http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:62081",
+          "ms": 26.241000000000007
+        },
+        {
+          "frame": "f http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:84:14376",
+          "ms": 24.839000000000002
+        },
+        {
+          "frame": "upload http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:84:9857",
+          "ms": 23.688999999999997
+        },
+        {
+          "frame": "heightAt http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:35469",
+          "ms": 22.405
+        },
+        {
+          "frame": "o http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:21485",
+          "ms": 20.665
+        },
+        {
+          "frame": "submit",
+          "ms": 20.659
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:31580",
+          "ms": 20.613
+        },
+        {
+          "frame": "prepare http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:45071",
+          "ms": 20.333
+        },
+        {
+          "frame": "gn http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:62310",
+          "ms": 19.52
+        },
+        {
+          "frame": "aa http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:56144",
+          "ms": 18.790000000000003
+        },
+        {
+          "frame": "Wn http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:30511",
+          "ms": 15.072000000000001
+        },
+        {
+          "frame": "beginRenderPass",
+          "ms": 13.522
+        },
+        {
+          "frame": "$ http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:71",
+          "ms": 13.153999999999998
+        },
+        {
+          "frame": "requestAnimationFrame",
+          "ms": 12.129999999999999
+        },
+        {
+          "frame": "t.beginRenderPass http://127.0.0.1:5296/assets/gpuAdmission-CSiEZ7jD.js:1:1026",
+          "ms": 12.09
+        },
+        {
+          "frame": "oa http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:58495",
+          "ms": 12.061
+        },
+        {
+          "frame": "setBindGroup",
+          "ms": 11.788
+        },
+        {
+          "frame": "Je http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:6354",
+          "ms": 10.602
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/gpuAdmission-CSiEZ7jD.js:1:3165",
+          "ms": 10.563999999999998
+        },
+        {
+          "frame": "endSubmission http://127.0.0.1:5296/assets/gpuAdmission-CSiEZ7jD.js:1:2304",
+          "ms": 9.051
+        },
+        {
+          "frame": "cn http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:399:14",
+          "ms": 9.031
+        },
+        {
+          "frame": "now",
+          "ms": 8.755999999999998
+        },
+        {
+          "frame": "getCurrentTexture",
+          "ms": 8.68
+        },
+        {
+          "frame": "settle",
+          "ms": 7.599
+        },
+        {
+          "frame": "pn http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:62018",
+          "ms": 7.529
+        },
+        {
+          "frame": "setPipeline",
+          "ms": 7.522
+        },
+        {
+          "frame": "setVertexBuffer",
+          "ms": 7.499
+        },
+        {
+          "frame": "L http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:16650",
+          "ms": 7.489
+        },
+        {
+          "frame": "la http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:89136",
+          "ms": 7.475999999999999
+        },
+        {
+          "frame": "$e http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:15164",
+          "ms": 6.071999999999999
+        },
+        {
+          "frame": "setIndexBuffer",
+          "ms": 6.071
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:67426",
+          "ms": 6.052
+        },
+        {
+          "frame": "gr http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:46864",
+          "ms": 6.003
+        },
+        {
+          "frame": "build http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:42673",
+          "ms": 5.8919999999999995
+        },
+        {
+          "frame": "write http://127.0.0.1:5296/assets/rawPosePalette-CS5hmik8.js:1:1579",
+          "ms": 5.733
+        },
+        {
+          "frame": "e.createCommandEncoder http://127.0.0.1:5296/assets/gpuAdmission-CSiEZ7jD.js:1:858",
+          "ms": 5.699999999999999
+        },
+        {
+          "frame": "update http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:76676",
+          "ms": 4.608
+        },
+        {
+          "frame": "$i http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:87556",
+          "ms": 4.5649999999999995
+        }
+      ],
+      "topInclusive": [
+        {
+          "frame": "(idle)",
+          "ms": 12466.295999999895
+        },
+        {
+          "frame": "c http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:30653",
+          "ms": 5707.517000000018
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:30621",
+          "ms": 5616.972000000021
+        },
+        {
+          "frame": "u http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:30753",
+          "ms": 5259.881000000014
+        },
+        {
+          "frame": "run http://127.0.0.1:5296/assets/gpuAdmission-CSiEZ7jD.js:1:7348",
+          "ms": 5256.874000000014
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:30775",
+          "ms": 5220.815000000013
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:32027",
+          "ms": 5098.042000000011
+        },
+        {
+          "frame": "uploadCrowd http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:87:25613",
+          "ms": 5096.527000000011
+        },
+        {
+          "frame": "f http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:84:14376",
+          "ms": 5034.505000000012
+        },
+        {
+          "frame": "begin http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:306:946",
+          "ms": 2875.069000000004
+        },
+        {
+          "frame": "upload http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:84:9857",
+          "ms": 1915.325000000003
+        },
+        {
+          "frame": "upload http://127.0.0.1:5296/assets/rawPosePalette-CS5hmik8.js:9:414",
+          "ms": 1202.857
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:84:9925",
+          "ms": 1202.857
+        },
+        {
+          "frame": "qe http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:5481",
+          "ms": 1183.3619999999987
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:68703",
+          "ms": 995.9689999999989
+        },
+        {
+          "frame": "frame http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:2:2256",
+          "ms": 995.9689999999989
+        },
+        {
+          "frame": "i http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:2:2569",
+          "ms": 995.9689999999989
+        },
+        {
+          "frame": "Ce http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:65634",
+          "ms": 994.457999999999
+        },
+        {
+          "frame": "prepare http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:45071",
+          "ms": 918.566999999999
+        },
+        {
+          "frame": "prepare http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:81:205",
+          "ms": 910.3449999999982
+        },
+        {
+          "frame": "writeBuffer",
+          "ms": 516.5129999999992
+        },
+        {
+          "frame": "sample http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:63233",
+          "ms": 496.9039999999998
+        },
+        {
+          "frame": "pack http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:306:3038",
+          "ms": 489.8099999999999
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:63584",
+          "ms": 456.44199999999984
+        },
+        {
+          "frame": "gn http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:62310",
+          "ms": 416.60099999999966
+        },
+        {
+          "frame": "(program)",
+          "ms": 408.38099999999963
+        },
+        {
+          "frame": "mn http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:62081",
+          "ms": 397.08099999999973
+        },
+        {
+          "frame": "fn http://127.0.0.1:5296/assets/views-BMPvJwT5.js:9:61844",
+          "ms": 363.3109999999998
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:31580",
+          "ms": 348.3279999999998
+        },
+        {
+          "frame": "Ct http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:19226",
+          "ms": 327.7149999999998
+        },
+        {
+          "frame": "write http://127.0.0.1:5296/assets/rawPosePalette-CS5hmik8.js:1:1579",
+          "ms": 245.62499999999991
+        },
+        {
+          "frame": "(garbage collector)",
+          "ms": 245.531
+        },
+        {
+          "frame": "present http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:46812",
+          "ms": 187.44600000000003
+        },
+        {
+          "frame": "Be http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:4635",
+          "ms": 185.57000000000005
+        },
+        {
+          "frame": "update http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:84:13646",
+          "ms": 165.14
+        },
+        {
+          "frame": "cn http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:399:14",
+          "ms": 139.37599999999995
+        },
+        {
+          "frame": "d http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:30802",
+          "ms": 135.64500000000007
+        },
+        {
+          "frame": "attackArcs http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:47649",
+          "ms": 134.89700000000002
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:30851",
+          "ms": 131.12900000000005
+        },
+        {
+          "frame": "submit http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:34219",
+          "ms": 129.63900000000007
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:399:130",
+          "ms": 119.743
+        },
+        {
+          "frame": "submitPresentation http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:18666",
+          "ms": 102.427
+        },
+        {
+          "frame": "a http://127.0.0.1:5296/assets/gpuAdmission-CSiEZ7jD.js:1:94",
+          "ms": 96.52000000000002
+        },
+        {
+          "frame": "Nt http://127.0.0.1:5296/assets/posePaletteWgsl-BkVgXH4I.js:1:25817",
+          "ms": 95.45200000000004
+        },
+        {
+          "frame": "heightAt http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:35469",
+          "ms": 90.018
+        },
+        {
+          "frame": "encode http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:87:27259",
+          "ms": 83.18900000000001
+        },
+        {
+          "frame": "Xe http://127.0.0.1:5296/assets/cameraBridge-BB-SdVos.js:1:6813",
+          "ms": 81.32399999999998
+        },
+        {
+          "frame": "build http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:42673",
+          "ms": 80.33200000000001
+        },
+        {
+          "frame": "commit http://127.0.0.1:5296/assets/sceneCamera-6nXHLSqW.js:306:1492",
+          "ms": 52.628
+        },
+        {
+          "frame": "gu http://127.0.0.1:5296/assets/views-BMPvJwT5.js:8:110982",
+          "ms": 51.25600000000001
+        },
+        {
+          "frame": "ld http://127.0.0.1:5296/assets/views-BMPvJwT5.js:8:123055",
+          "ms": 51.25600000000001
+        },
+        {
+          "frame": "id http://127.0.0.1:5296/assets/views-BMPvJwT5.js:8:121292",
+          "ms": 51.25600000000001
+        },
+        {
+          "frame": "od http://127.0.0.1:5296/assets/views-BMPvJwT5.js:8:121705",
+          "ms": 51.25600000000001
+        },
+        {
+          "frame": "(anonymous) http://127.0.0.1:5296/assets/views-BMPvJwT5.js:8:123117",
+          "ms": 51.25600000000001
+        },
+        {
+          "frame": "prepare http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:87:26357",
+          "ms": 50.726
+        },
+        {
+          "frame": "o http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:21485",
+          "ms": 49.93
+        },
+        {
+          "frame": "a http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:21106",
+          "ms": 48.454
+        },
+        {
+          "frame": "surfaceHeightAt http://127.0.0.1:5296/assets/index-5VsQ9dJq.js:218:21790",
+          "ms": 48.424
+        },
+        {
+          "frame": "upload http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:87:23127",
+          "ms": 48.12699999999999
+        },
+        {
+          "frame": "uploadTriangles http://127.0.0.1:5296/assets/battleScene-DUd0bv0Z.js:87:26098",
+          "ms": 48.12699999999999
+        }
+      ]
+    }
+  },
+  "failures": []
+}

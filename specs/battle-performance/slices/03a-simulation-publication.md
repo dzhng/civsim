@@ -51,3 +51,9 @@ Menu preparation/cancellation/export. Full moving-camera frame cadence,
 publication age, command-to-visible latency and sustained simulation throughput
 remain acceptance gates. A responsive camera over an increasingly stale battle
 still fails this slice.
+
+The [exact bucket-membership prefilter](../assets/03a-bucket-membership/README.md)
+now removes repeated exact scans when a local bit table proves a bucket new.
+Canonical direct/worker equality survives integration; serial release controls
+support lower early/later tick cost without changed mechanics. Later ticks still
+miss30Hz, so this does not close simulation throughput or live input-latency gates.

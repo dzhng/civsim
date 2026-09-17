@@ -405,3 +405,21 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   the measured distant-work increase while preserving the promising tactical
   reduction. Production adoption remains subject to transition, memory, camera
   and live-performance gates; a fourth level is not itself proof of a win.
+
+
+### Share mesh order while keeping screen-size policy with rendering
+
+- **When:** Shared tier owner preparation.
+- **Choice:** A bundle's ordered mesh names determine how many real mesh levels
+  loaders, bakers and renderers expect. Rendering keeps a matching list of screen
+  sizes that determines when each mesh is used. Adding one mesh therefore cannot
+  leave a renderer silently treating it as an impostor or omitting it.
+- **Gap:** The plan required shared ownership but did not specify how the asset
+  count and render thresholds stay aligned. Separate hardcoded counts were easy
+  to leave behind during the four-mesh change.
+- **Reach:** The existing appearance-bundle module owns mesh order; crowd runtime
+  owns its per-tier threshold array, count keys and shadow/impostor boundary.
+  The internal policy's separately named thresholds become one typed tuple.
+  Saved gameplay data and camera projection do not change.
+- **Verdict:** Sound, high confidence. This keeps the asset-format fact distinct
+  from the render-quality decision while making their shared arity explicit.

@@ -8,6 +8,9 @@ Current pickup: integrate and GPU-verify Claude's four-mesh implementation from
 `codex/battle-four-mesh-lods` in `/Users/david/dev/game-battle-lod-prototypes`
 (active job log: `throwaway/four-mesh-implementation.log`). Root owns all browser,
 motion and timing gates; do not run timing during the worker's CPU bakes/tests.
+The behavior-preserving [shared tier owner](assets/07-tier-owner-control/README.md)
+is integrated at86d8752a and its68 sampled camera frames match exactly. Main still
+uses the original three meshes until the candidate asset commit is integrated.
 The candidate retains
 original near, new4k intermediate, original middle and original far, followed by
 impostors, at proposed32/18/9/4 boundaries. The [complete-roster control](assets/07-projected-detail/roster-chain/README.md)

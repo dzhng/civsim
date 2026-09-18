@@ -1,0 +1,12 @@
+[
+  {
+    "shared": true,
+    "computeValue": 0.25,
+    "validationError": "Bind group layout [BindGroupLayout \"draw.group0.bgl\"] of pipeline layout [PipelineLayout (unlabeled)] does not match layout [BindGroupLayout \"compute.group0.bgl\"] of bind group [BindGroup \"compute.group0\"] set at group index 0.\n - While encoding [RenderPassEncoder (unlabeled)].Draw(3, 1, 0, 0).\n - While finishing [CommandEncoder (unlabeled)].\n"
+  },
+  {
+    "shared": false,
+    "computeValue": 0.25,
+    "validationError": null
+  }
+]

@@ -14,7 +14,7 @@ interface SoldierShadowStats {
   cameraContract: 'shared-world-camera-wgsl';
 }
 
-const SHADOW_WGSL = `
+export const SHADOW_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut { @builtin(position) pos: vec4f, @location(0) local: vec2f };
 @vertex

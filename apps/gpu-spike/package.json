@@ -1,0 +1,34 @@
+{
+  "name": "gpu-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5197 --strictPort",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run check:types && npm run verify:raw && npm run verify:three && npm run verify:known-issue",
+    "check:types": "node check-types.mjs",
+    "verify:three": "node verify-three.mjs",
+    "verify:raw": "node verify.mjs",
+    "verify:known-issue": "node verify-repro.mjs",
+    "benchmark": "node benchmark.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 5279 --strictPort"
+  },
+  "dependencies": {
+    "@typegpu/three": "0.12.1",
+    "three": "0.185.1",
+    "typegpu": "0.12.5",
+    "vgpu": "0.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1",
+    "@types/three": "0.185.0",
+    "@vgpu/wgsl": "0.4.1",
+    "@webgpu/types": "0.1.69",
+    "playwright": "1.60.0",
+    "pngjs": "7.0.0",
+    "typescript": "6.0.3",
+    "unplugin-typegpu": "0.12.3",
+    "vite": "8.0.16"
+  }
+}

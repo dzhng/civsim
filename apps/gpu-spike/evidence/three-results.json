@@ -1,0 +1,131 @@
+{
+  "capturedAt": "2026-09-10T02:54:37.508Z",
+  "cases": [
+    {
+      "backend": "raw",
+      "compute": null,
+      "stats": {
+        "drawCalls": 3,
+        "triangles": 2353,
+        "gpuTimeMs": 0.138792,
+        "timeSeconds": 0,
+        "device": "apple / metal-3"
+      },
+      "movement": {
+        "maxChannelDelta": 95,
+        "meanChannelDelta": 3.1866487952178466,
+        "mismatchRatioAbove2": 0.052789794786467
+      },
+      "failures": [],
+      "errors": []
+    },
+    {
+      "backend": "typegpu",
+      "compute": {
+        "samples": 512,
+        "maxAbsoluteError": 3.475988799989116e-7,
+        "tolerance": 0.00001,
+        "cpu": {
+          "samples": 512,
+          "maxAbsoluteError": 1.0981619891214933e-8,
+          "tolerance": 0.00001
+        }
+      },
+      "stats": {
+        "drawCalls": 3,
+        "triangles": 2353,
+        "gpuTimeMs": 0.14825,
+        "timeSeconds": 0,
+        "device": "apple / metal-3"
+      },
+      "movement": {
+        "maxChannelDelta": 95,
+        "meanChannelDelta": 3.1866487952178466,
+        "mismatchRatioAbove2": 0.052789794786467
+      },
+      "failures": [],
+      "errors": []
+    },
+    {
+      "backend": "vgpu",
+      "compute": {
+        "samples": 512,
+        "maxAbsoluteError": 3.475988799989116e-7,
+        "tolerance": 0.00001
+      },
+      "stats": {
+        "drawCalls": 3,
+        "triangles": 2353,
+        "gpuTimeMs": 0.147417,
+        "timeSeconds": 0,
+        "device": "apple / metal-3"
+      },
+      "movement": {
+        "maxChannelDelta": 95,
+        "meanChannelDelta": 3.1866487952178466,
+        "mismatchRatioAbove2": 0.052789794786467
+      },
+      "failures": [],
+      "errors": []
+    }
+  ],
+  "comparisons": [
+    {
+      "backend": "typegpu",
+      "time": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "backend": "typegpu",
+      "time": 1.5,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "backend": "typegpu",
+      "time": 4.25,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "backend": "typegpu",
+      "time": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "backend": "vgpu",
+      "time": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "backend": "vgpu",
+      "time": 1.5,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "backend": "vgpu",
+      "time": 4.25,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    },
+    {
+      "backend": "vgpu",
+      "time": 0,
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "mismatchRatioAbove2": 0
+    }
+  ],
+  "passed": true
+}

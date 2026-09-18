@@ -1,3 +1,4 @@
+import { rawSkinningSource, RENDERER_LIBRARY_ID } from "@renderer-library/skin";
 import {
   corpsePresentationStrength,
   type CrowdInstance,
@@ -25,6 +26,7 @@ import { WORLD_CAMERA_WGSL } from "./cameraWgsl";
 import { cameraOnlyPipeline } from "./pipelineContracts";
 
 interface SkinnedCrowdStats {
+  skinningLibrary: string;
   submissionReady: boolean;
   instances: number;
   drawCalls: number;
@@ -111,10 +113,13 @@ function roundLighting(value: number): number {
   return Number(value.toFixed(4));
 }
 
+const SKINNING_SOURCE = rawSkinningSource();
+
 const SKINNED_WGSL = (lighting: SkinnedLightingEnvironment) => `
 ${WORLD_CAMERA_WGSL}
 ${skinnedLightingWgsl(lighting)}
-@group(1) @binding(0) var<storage, read> palette: array<mat4x4f>;
+@group(1) @binding(0) var<storage, read> palette: array<${SKINNING_SOURCE.paletteElementType}>;
+${SKINNING_SOURCE.functions}
 
 // Explicit slots: linear base RGBA, then roughness/metallic/occlusion.
 struct Material { factionMaskStrength: f32, pad0: f32, pad1: f32, pad2: f32 };
@@ -160,10 +165,7 @@ fn vs(
   @location(11) tangent: vec4f,
 ) -> VsOut {
   let paletteBase = u32(inst1.y) * u32(inst1.z);
-  let joint = palette[paletteBase + u32(joints.x)] * weights.x
-    + palette[paletteBase + u32(joints.y)] * weights.y
-    + palette[paletteBase + u32(joints.z)] * weights.z
-    + palette[paletteBase + u32(joints.w)] * weights.w;
+  let joint = ${SKINNING_SOURCE.expression};
   let local = joint * vec4f(position, 1.0);
   let n = normalize((joint * vec4f(normal, 0.0)).xyz);
   let t = finiteNormal((joint * vec4f(tangent.xyz, 0.0)).xyz, vec3f(0));
@@ -635,6 +637,7 @@ export class SkinnedCrowdPipeline {
     for (const palette of this.palettes)
       for (const clip of palette.animation.clips) clips.add(clip.name);
     return {
+      skinningLibrary: RENDERER_LIBRARY_ID,
       submissionReady: this.submissionReady,
       instances: this.submissionReady ? instances : 0,
       drawCalls: this.submissionReady

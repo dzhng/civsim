@@ -672,6 +672,7 @@ export class CampaignRenderer {
       },
       ...this.passes?.selection.stats(),
       standardStats: this.passes?.standards.stats() ?? null,
+      soldierCrowd: this.passes?.soldierCrowd.stats() ?? null,
       scenery: this.passes?.scenery.stats().scenery ?? 0,
       sceneryQuads: this.passes?.scenery.stats().scenery ?? 0,
       sceneryStats: this.passes?.scenery.stats() ?? null,

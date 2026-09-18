@@ -1,0 +1,268 @@
+{
+  "capturedAt": "2026-09-10T02:54:49.469Z",
+  "workload": "30000 instanced shadow quads + simple occluder/ground fixture; raw shell, one sample",
+  "runs": [
+    {
+      "round": 0,
+      "backend": "raw",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.07499992847442627,
+          "p95": 0.10000002384185791,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.245742,
+          "p95": 0.269783,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.10000002384185791,
+          "p95": 0.12000000476837158,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.247454,
+          "p95": 0.356161,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 0,
+      "backend": "typegpu",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.12999999523162842,
+          "p95": 0.1549999713897705,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.261205,
+          "p95": 0.302283,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.12000000476837158,
+          "p95": 0.14499998092651367,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.261162,
+          "p95": 0.267496,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 0,
+      "backend": "vgpu",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.10500001907348633,
+          "p95": 0.12999999523162842,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.246121,
+          "p95": 1.165732,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.14499998092651367,
+          "p95": 0.16999995708465576,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.247788,
+          "p95": 1.153149,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 1,
+      "backend": "typegpu",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.1099998950958252,
+          "p95": 0.13499999046325684,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.260826,
+          "p95": 0.266079,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.125,
+          "p95": 0.1549999713897705,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.245413,
+          "p95": 0.266288,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 1,
+      "backend": "vgpu",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.12000000476837158,
+          "p95": 0.13999998569488525,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.260954,
+          "p95": 0.265704,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.13999998569488525,
+          "p95": 0.15999996662139893,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.261038,
+          "p95": 0.265746,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 1,
+      "backend": "raw",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.0849999189376831,
+          "p95": 0.11500000953674316,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.260497,
+          "p95": 0.265904,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.10500001907348633,
+          "p95": 0.12000000476837158,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.261204,
+          "p95": 0.265454,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 2,
+      "backend": "vgpu",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.2900000810623169,
+          "p95": 0.46000003814697266,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.270287,
+          "p95": 0.28033,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.4599999189376831,
+          "p95": 0.6050000190734863,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.269787,
+          "p95": 0.280537,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 2,
+      "backend": "raw",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.26999998092651367,
+          "p95": 0.375,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.270996,
+          "p95": 0.278788,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.29499995708465576,
+          "p95": 0.36500000953674316,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.271453,
+          "p95": 0.285579,
+          "samples": 90
+        }
+      }
+    },
+    {
+      "round": 2,
+      "backend": "typegpu",
+      "device": "apple / metal-3",
+      "steady": {
+        "cpuSubmitMs": {
+          "median": 0.17499995231628418,
+          "p95": 0.36500000953674316,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.243951,
+          "p95": 0.324911,
+          "samples": 90
+        }
+      },
+      "changingCount": {
+        "cpuSubmitMs": {
+          "median": 0.27500009536743164,
+          "p95": 0.36500000953674316,
+          "samples": 90
+        },
+        "gpuFrameMs": {
+          "median": 0.172748,
+          "p95": 0.207538,
+          "samples": 90
+        }
+      }
+    }
+  ],
+  "passed": true
+}

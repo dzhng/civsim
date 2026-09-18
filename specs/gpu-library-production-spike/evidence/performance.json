@@ -1,0 +1,1075 @@
+{
+  "native": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:24:22.266Z",
+    "adapter": "apple / metal-3",
+    "failures": [],
+    "checks": [
+      {
+        "name": "sim is paused for the renderer measurement (rAF frames stay live draws)",
+        "ok": true,
+        "detail": {
+          "tickBefore": 11,
+          "tickAfter": 11
+        }
+      },
+      {
+        "name": "gate holds >= 30000 soldiers on the production battle renderer",
+        "ok": true,
+        "detail": {
+          "spawned": {
+            "before": 15560,
+            "added": 15000
+          },
+          "mid": 30560,
+          "vista": 30560
+        }
+      },
+      {
+        "name": "gate holds the dense foliage fill on the static whole-map blade field",
+        "ok": true,
+        "detail": {
+          "table": [
+            {
+              "stop": "mid",
+              "scenery": 585,
+              "grassRecords": 992334,
+              "grassTriangles": 0,
+              "activeBudget": 1000000,
+              "areaScale": 1
+            },
+            {
+              "stop": "vista",
+              "scenery": 585,
+              "grassRecords": 1663751,
+              "grassTriangles": 7424416,
+              "activeBudget": 2000000,
+              "areaScale": 1
+            }
+          ]
+        }
+      },
+      {
+        "name": "static grass is sampled uniformly to the record cap (no stratified/area budget)",
+        "ok": true,
+        "detail": [
+          {
+            "stop": "mid",
+            "accepted": 992334,
+            "capacity": 1000000,
+            "stratified": false
+          },
+          {
+            "stop": "vista",
+            "accepted": 671417,
+            "capacity": 1000000,
+            "stratified": false
+          }
+        ]
+      },
+      {
+        "name": "close zoom fill keeps the close-gate-density grass budget active",
+        "ok": true,
+        "detail": [
+          {
+            "zoom": 24,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.56,
+            "rafP95Ms": 27.43
+          },
+          {
+            "zoom": 28,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.72,
+            "rafP95Ms": 23.02
+          }
+        ]
+      },
+      {
+        "name": "frames show the crowd and terrain at both stops (load is on screen)",
+        "ok": true,
+        "detail": {
+          "mid": {
+            "crowd": 153378,
+            "terrain": 1018243,
+            "total": 1024000
+          },
+          "vista": {
+            "crowd": 402473,
+            "terrain": 902705,
+            "total": 1024000
+          }
+        }
+      },
+      {
+        "name": "hardware run measured a real (non-software) adapter with live GPU timestamps",
+        "ok": true,
+        "detail": {
+          "device": "apple / metal-3",
+          "gpuSamples": [
+            150,
+            150
+          ]
+        }
+      },
+      {
+        "name": "median GPU frame time within the 33 ms budget at both zoom stops",
+        "ok": true,
+        "detail": [
+          {
+            "stop": "mid",
+            "zoom": 3,
+            "soldiers": 30560,
+            "scenery": 585,
+            "grassRecords": 992334,
+            "grassTriangles": 0,
+            "grassTierRecords": {
+              "near": 0,
+              "mid": 0,
+              "far": 0
+            },
+            "grassTierDroppedByThinning": {
+              "near": 0,
+              "mid": 0,
+              "far": 0
+            },
+            "grassThinnedRecords": 0,
+            "grassSampleAccepted": 992334,
+            "grassSampleCapacity": 1000000,
+            "grassSampleLodCounts": [
+              32,
+              525,
+              991777
+            ],
+            "grassSampleBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "grassSampleDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "grassSampleStratifiedBudget": false,
+            "grassActiveRecordBudget": 1000000,
+            "grassAreaBudgetScale": 1,
+            "grassVistaRecordBudget": 160000,
+            "gpuMedianMs": 13.33,
+            "gpuP95Ms": 15.2,
+            "gpuSamples": 150,
+            "rafMedianMs": 18.01,
+            "rafP95Ms": 19.83,
+            "device": "apple / metal-3"
+          },
+          {
+            "stop": "vista",
+            "zoom": 9.5,
+            "soldiers": 30560,
+            "scenery": 585,
+            "grassRecords": 1663751,
+            "grassTriangles": 7424416,
+            "grassTierRecords": {
+              "near": 4886,
+              "mid": 36543,
+              "far": 789107
+            },
+            "grassTierDroppedByThinning": {
+              "near": 0,
+              "mid": 0,
+              "far": 563191
+            },
+            "grassThinnedRecords": 563191,
+            "grassSampleAccepted": 671417,
+            "grassSampleCapacity": 1000000,
+            "grassSampleLodCounts": [
+              217,
+              3278,
+              667922
+            ],
+            "grassSampleBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "grassSampleDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "grassSampleStratifiedBudget": false,
+            "grassActiveRecordBudget": 2000000,
+            "grassAreaBudgetScale": 1,
+            "grassVistaRecordBudget": 160000,
+            "gpuMedianMs": 20.27,
+            "gpuP95Ms": 24.53,
+            "gpuSamples": 150,
+            "rafMedianMs": 15.82,
+            "rafP95Ms": 28.18,
+            "device": "apple / metal-3"
+          }
+        ]
+      },
+      {
+        "name": "continuous 200m camera pan keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "distanceM": 200,
+          "durationMs": 3000,
+          "rafMedianMs": 18.34,
+          "rafP95Ms": 20.73,
+          "gpuMedianMs": 13.31,
+          "gpuP95Ms": 15.33,
+          "gpuSamples": 180,
+          "rebuildsBefore": 1,
+          "rebuildsAfter": 1,
+          "lastSampleMs": 627.88,
+          "recordCount": 992334,
+          "pending": false
+        }
+      },
+      {
+        "name": "continuous zoom sweep keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "durationMs": 3000,
+          "rafMedianMs": 17.76,
+          "rafP95Ms": 21.77
+        }
+      },
+      {
+        "name": "wheel burst keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "events": 30,
+          "durationMs": 1000,
+          "sent": 30,
+          "startZoom": 3,
+          "finalZoom": 6.48,
+          "settledZoom": 6.48,
+          "minZoom": 0.4,
+          "maxZoom": 60,
+          "rafMedianMs": 18.02,
+          "rafP95Ms": 20,
+          "rebuildsBefore": 2,
+          "rebuildsAfter": 2,
+          "pending": false,
+          "lastSampleMs": 549.365,
+          "lastSlices": 28,
+          "lastMaxSliceMs": 7.455
+        }
+      },
+      {
+        "name": "close zoom 24/28 grass-on fill keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": [
+          {
+            "zoom": 24,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.56,
+            "rafP95Ms": 27.43
+          },
+          {
+            "zoom": 28,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.72,
+            "rafP95Ms": 23.02
+          }
+        ]
+      },
+      {
+        "name": "wheel burst final zoom stays between min and max clamps",
+        "ok": true,
+        "detail": {
+          "events": 30,
+          "durationMs": 1000,
+          "sent": 30,
+          "startZoom": 3,
+          "finalZoom": 6.48,
+          "settledZoom": 6.48,
+          "minZoom": 0.4,
+          "maxZoom": 60,
+          "rafMedianMs": 18.02,
+          "rafP95Ms": 20,
+          "rebuildsBefore": 2,
+          "rebuildsAfter": 2,
+          "pending": false,
+          "lastSampleMs": 549.365,
+          "lastSlices": 28,
+          "lastMaxSliceMs": 7.455
+        }
+      },
+      {
+        "name": "continuous rendering emits no non-audio-policy browser warnings",
+        "ok": true,
+        "detail": {
+          "warnings": [],
+          "audioPolicyWarnings": 11
+        }
+      },
+      {
+        "name": "no page errors",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "static": [
+      {
+        "stop": "mid",
+        "zoom": 3,
+        "soldiers": 30560,
+        "scenery": 585,
+        "gpuMedianMs": 13.33,
+        "gpuP95Ms": 15.2,
+        "gpuSamples": 150,
+        "rafMedianMs": 18.01
+      },
+      {
+        "stop": "vista",
+        "zoom": 9.5,
+        "soldiers": 30560,
+        "scenery": 585,
+        "gpuMedianMs": 20.27,
+        "gpuP95Ms": 24.53,
+        "gpuSamples": 150,
+        "rafMedianMs": 15.82
+      }
+    ]
+  },
+  "typegpu": {
+    "status": "pass",
+    "generatedAt": "2026-09-10T03:25:08.399Z",
+    "adapter": "apple / metal-3",
+    "failures": [],
+    "checks": [
+      {
+        "name": "sim is paused for the renderer measurement (rAF frames stay live draws)",
+        "ok": true,
+        "detail": {
+          "tickBefore": 14,
+          "tickAfter": 14
+        }
+      },
+      {
+        "name": "gate holds >= 30000 soldiers on the production battle renderer",
+        "ok": true,
+        "detail": {
+          "spawned": {
+            "before": 15560,
+            "added": 15000
+          },
+          "mid": 30560,
+          "vista": 30560
+        }
+      },
+      {
+        "name": "gate holds the dense foliage fill on the static whole-map blade field",
+        "ok": true,
+        "detail": {
+          "table": [
+            {
+              "stop": "mid",
+              "scenery": 585,
+              "grassRecords": 992334,
+              "grassTriangles": 0,
+              "activeBudget": 1000000,
+              "areaScale": 1
+            },
+            {
+              "stop": "vista",
+              "scenery": 585,
+              "grassRecords": 1663751,
+              "grassTriangles": 7424416,
+              "activeBudget": 2000000,
+              "areaScale": 1
+            }
+          ]
+        }
+      },
+      {
+        "name": "static grass is sampled uniformly to the record cap (no stratified/area budget)",
+        "ok": true,
+        "detail": [
+          {
+            "stop": "mid",
+            "accepted": 992334,
+            "capacity": 1000000,
+            "stratified": false
+          },
+          {
+            "stop": "vista",
+            "accepted": 671417,
+            "capacity": 1000000,
+            "stratified": false
+          }
+        ]
+      },
+      {
+        "name": "close zoom fill keeps the close-gate-density grass budget active",
+        "ok": true,
+        "detail": [
+          {
+            "zoom": 24,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 22.64,
+            "rafP95Ms": 28.08
+          },
+          {
+            "zoom": 28,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 24.37,
+            "rafP95Ms": 30.39
+          }
+        ]
+      },
+      {
+        "name": "frames show the crowd and terrain at both stops (load is on screen)",
+        "ok": true,
+        "detail": {
+          "mid": {
+            "crowd": 153310,
+            "terrain": 1018244,
+            "total": 1024000
+          },
+          "vista": {
+            "crowd": 402562,
+            "terrain": 902741,
+            "total": 1024000
+          }
+        }
+      },
+      {
+        "name": "hardware run measured a real (non-software) adapter with live GPU timestamps",
+        "ok": true,
+        "detail": {
+          "device": "apple / metal-3",
+          "gpuSamples": [
+            150,
+            150
+          ]
+        }
+      },
+      {
+        "name": "median GPU frame time within the 33 ms budget at both zoom stops",
+        "ok": true,
+        "detail": [
+          {
+            "stop": "mid",
+            "zoom": 3,
+            "soldiers": 30560,
+            "scenery": 585,
+            "grassRecords": 992334,
+            "grassTriangles": 0,
+            "grassTierRecords": {
+              "near": 0,
+              "mid": 0,
+              "far": 0
+            },
+            "grassTierDroppedByThinning": {
+              "near": 0,
+              "mid": 0,
+              "far": 0
+            },
+            "grassThinnedRecords": 0,
+            "grassSampleAccepted": 992334,
+            "grassSampleCapacity": 1000000,
+            "grassSampleLodCounts": [
+              32,
+              525,
+              991777
+            ],
+            "grassSampleBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "grassSampleDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "grassSampleStratifiedBudget": false,
+            "grassActiveRecordBudget": 1000000,
+            "grassAreaBudgetScale": 1,
+            "grassVistaRecordBudget": 160000,
+            "gpuMedianMs": 12.58,
+            "gpuP95Ms": 17.11,
+            "gpuSamples": 150,
+            "rafMedianMs": 20.01,
+            "rafP95Ms": 24.11,
+            "device": "apple / metal-3"
+          },
+          {
+            "stop": "vista",
+            "zoom": 9.5,
+            "soldiers": 30560,
+            "scenery": 585,
+            "grassRecords": 1663751,
+            "grassTriangles": 7424416,
+            "grassTierRecords": {
+              "near": 4886,
+              "mid": 36543,
+              "far": 789107
+            },
+            "grassTierDroppedByThinning": {
+              "near": 0,
+              "mid": 0,
+              "far": 563191
+            },
+            "grassThinnedRecords": 563191,
+            "grassSampleAccepted": 671417,
+            "grassSampleCapacity": 1000000,
+            "grassSampleLodCounts": [
+              217,
+              3278,
+              667922
+            ],
+            "grassSampleBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "grassSampleDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "grassSampleStratifiedBudget": false,
+            "grassActiveRecordBudget": 2000000,
+            "grassAreaBudgetScale": 1,
+            "grassVistaRecordBudget": 160000,
+            "gpuMedianMs": 20.67,
+            "gpuP95Ms": 23.32,
+            "gpuSamples": 150,
+            "rafMedianMs": 17.07,
+            "rafP95Ms": 21.49,
+            "device": "apple / metal-3"
+          }
+        ]
+      },
+      {
+        "name": "continuous 200m camera pan keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "distanceM": 200,
+          "durationMs": 3000,
+          "rafMedianMs": 21.39,
+          "rafP95Ms": 25.79,
+          "gpuMedianMs": 11.78,
+          "gpuP95Ms": 14.9,
+          "gpuSamples": 180,
+          "rebuildsBefore": 1,
+          "rebuildsAfter": 1,
+          "lastSampleMs": 794.74,
+          "recordCount": 992334,
+          "pending": false
+        }
+      },
+      {
+        "name": "continuous zoom sweep keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "durationMs": 3000,
+          "rafMedianMs": 20.97,
+          "rafP95Ms": 25.11
+        }
+      },
+      {
+        "name": "wheel burst keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "events": 30,
+          "durationMs": 1000,
+          "sent": 30,
+          "startZoom": 3,
+          "finalZoom": 6.48,
+          "settledZoom": 6.48,
+          "minZoom": 0.4,
+          "maxZoom": 60,
+          "rafMedianMs": 22.34,
+          "rafP95Ms": 28.68,
+          "rebuildsBefore": 1,
+          "rebuildsAfter": 1,
+          "pending": false,
+          "lastSampleMs": 794.74,
+          "lastSlices": 28,
+          "lastMaxSliceMs": 8.765
+        }
+      },
+      {
+        "name": "close zoom 24/28 grass-on fill keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": [
+          {
+            "zoom": 24,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 22.64,
+            "rafP95Ms": 28.08
+          },
+          {
+            "zoom": 28,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 24.37,
+            "rafP95Ms": 30.39
+          }
+        ]
+      },
+      {
+        "name": "wheel burst final zoom stays between min and max clamps",
+        "ok": true,
+        "detail": {
+          "events": 30,
+          "durationMs": 1000,
+          "sent": 30,
+          "startZoom": 3,
+          "finalZoom": 6.48,
+          "settledZoom": 6.48,
+          "minZoom": 0.4,
+          "maxZoom": 60,
+          "rafMedianMs": 22.34,
+          "rafP95Ms": 28.68,
+          "rebuildsBefore": 1,
+          "rebuildsAfter": 1,
+          "pending": false,
+          "lastSampleMs": 794.74,
+          "lastSlices": 28,
+          "lastMaxSliceMs": 8.765
+        }
+      },
+      {
+        "name": "continuous rendering emits no non-audio-policy browser warnings",
+        "ok": true,
+        "detail": {
+          "warnings": [],
+          "audioPolicyWarnings": 11
+        }
+      },
+      {
+        "name": "no page errors",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "static": [
+      {
+        "stop": "mid",
+        "zoom": 3,
+        "soldiers": 30560,
+        "scenery": 585,
+        "gpuMedianMs": 12.58,
+        "gpuP95Ms": 17.11,
+        "gpuSamples": 150,
+        "rafMedianMs": 20.01
+      },
+      {
+        "stop": "vista",
+        "zoom": 9.5,
+        "soldiers": 30560,
+        "scenery": 585,
+        "gpuMedianMs": 20.67,
+        "gpuP95Ms": 23.32,
+        "gpuSamples": 150,
+        "rafMedianMs": 17.07
+      }
+    ]
+  },
+  "vgpu": {
+    "status": "fail",
+    "generatedAt": "2026-09-10T03:25:55.508Z",
+    "adapter": "apple / metal-3",
+    "failures": [
+      "battle-perf-30k: close zoom 24/28 grass-on fill keeps rAF p95 within the 33 ms budget"
+    ],
+    "checks": [
+      {
+        "name": "sim is paused for the renderer measurement (rAF frames stay live draws)",
+        "ok": true,
+        "detail": {
+          "tickBefore": 8,
+          "tickAfter": 8
+        }
+      },
+      {
+        "name": "gate holds >= 30000 soldiers on the production battle renderer",
+        "ok": true,
+        "detail": {
+          "spawned": {
+            "before": 15560,
+            "added": 15000
+          },
+          "mid": 30560,
+          "vista": 30560
+        }
+      },
+      {
+        "name": "gate holds the dense foliage fill on the static whole-map blade field",
+        "ok": true,
+        "detail": {
+          "table": [
+            {
+              "stop": "mid",
+              "scenery": 585,
+              "grassRecords": 992334,
+              "grassTriangles": 0,
+              "activeBudget": 1000000,
+              "areaScale": 1
+            },
+            {
+              "stop": "vista",
+              "scenery": 585,
+              "grassRecords": 1663751,
+              "grassTriangles": 7424416,
+              "activeBudget": 2000000,
+              "areaScale": 1
+            }
+          ]
+        }
+      },
+      {
+        "name": "static grass is sampled uniformly to the record cap (no stratified/area budget)",
+        "ok": true,
+        "detail": [
+          {
+            "stop": "mid",
+            "accepted": 992334,
+            "capacity": 1000000,
+            "stratified": false
+          },
+          {
+            "stop": "vista",
+            "accepted": 671417,
+            "capacity": 1000000,
+            "stratified": false
+          }
+        ]
+      },
+      {
+        "name": "close zoom fill keeps the close-gate-density grass budget active",
+        "ok": true,
+        "detail": [
+          {
+            "zoom": 24,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.8,
+            "rafP95Ms": 50.15
+          },
+          {
+            "zoom": 28,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.36,
+            "rafP95Ms": 47.45
+          }
+        ]
+      },
+      {
+        "name": "frames show the crowd and terrain at both stops (load is on screen)",
+        "ok": true,
+        "detail": {
+          "mid": {
+            "crowd": 153390,
+            "terrain": 1018245,
+            "total": 1024000
+          },
+          "vista": {
+            "crowd": 402503,
+            "terrain": 902717,
+            "total": 1024000
+          }
+        }
+      },
+      {
+        "name": "hardware run measured a real (non-software) adapter with live GPU timestamps",
+        "ok": true,
+        "detail": {
+          "device": "apple / metal-3",
+          "gpuSamples": [
+            150,
+            150
+          ]
+        }
+      },
+      {
+        "name": "median GPU frame time within the 33 ms budget at both zoom stops",
+        "ok": true,
+        "detail": [
+          {
+            "stop": "mid",
+            "zoom": 3,
+            "soldiers": 30560,
+            "scenery": 585,
+            "grassRecords": 992334,
+            "grassTriangles": 0,
+            "grassTierRecords": {
+              "near": 0,
+              "mid": 0,
+              "far": 0
+            },
+            "grassTierDroppedByThinning": {
+              "near": 0,
+              "mid": 0,
+              "far": 0
+            },
+            "grassThinnedRecords": 0,
+            "grassSampleAccepted": 992334,
+            "grassSampleCapacity": 1000000,
+            "grassSampleLodCounts": [
+              32,
+              525,
+              991777
+            ],
+            "grassSampleBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "grassSampleDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "grassSampleStratifiedBudget": false,
+            "grassActiveRecordBudget": 1000000,
+            "grassAreaBudgetScale": 1,
+            "grassVistaRecordBudget": 160000,
+            "gpuMedianMs": 13.07,
+            "gpuP95Ms": 15.82,
+            "gpuSamples": 150,
+            "rafMedianMs": 18.02,
+            "rafP95Ms": 20.19,
+            "device": "apple / metal-3"
+          },
+          {
+            "stop": "vista",
+            "zoom": 9.5,
+            "soldiers": 30560,
+            "scenery": 585,
+            "grassRecords": 1663751,
+            "grassTriangles": 7424416,
+            "grassTierRecords": {
+              "near": 4886,
+              "mid": 36543,
+              "far": 789107
+            },
+            "grassTierDroppedByThinning": {
+              "near": 0,
+              "mid": 0,
+              "far": 563191
+            },
+            "grassThinnedRecords": 563191,
+            "grassSampleAccepted": 671417,
+            "grassSampleCapacity": 1000000,
+            "grassSampleLodCounts": [
+              217,
+              3278,
+              667922
+            ],
+            "grassSampleBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "grassSampleDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "grassSampleStratifiedBudget": false,
+            "grassActiveRecordBudget": 2000000,
+            "grassAreaBudgetScale": 1,
+            "grassVistaRecordBudget": 160000,
+            "gpuMedianMs": 29.17,
+            "gpuP95Ms": 34.33,
+            "gpuSamples": 150,
+            "rafMedianMs": 17.21,
+            "rafP95Ms": 47.99,
+            "device": "apple / metal-3"
+          }
+        ]
+      },
+      {
+        "name": "continuous 200m camera pan keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "distanceM": 200,
+          "durationMs": 3000,
+          "rafMedianMs": 18.19,
+          "rafP95Ms": 20.46,
+          "gpuMedianMs": 17.87,
+          "gpuP95Ms": 20.78,
+          "gpuSamples": 180,
+          "rebuildsBefore": 1,
+          "rebuildsAfter": 1,
+          "lastSampleMs": 596.505,
+          "recordCount": 992334,
+          "pending": false
+        }
+      },
+      {
+        "name": "continuous zoom sweep keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "durationMs": 3000,
+          "rafMedianMs": 19.82,
+          "rafP95Ms": 28.98
+        }
+      },
+      {
+        "name": "wheel burst keeps rAF p95 within the 33 ms budget",
+        "ok": true,
+        "detail": {
+          "events": 30,
+          "durationMs": 1000,
+          "sent": 30,
+          "startZoom": 3,
+          "finalZoom": 6.48,
+          "settledZoom": 6.48,
+          "minZoom": 0.4,
+          "maxZoom": 60,
+          "rafMedianMs": 17.68,
+          "rafP95Ms": 20.21,
+          "rebuildsBefore": 1,
+          "rebuildsAfter": 1,
+          "pending": false,
+          "lastSampleMs": 596.505,
+          "lastSlices": 26,
+          "lastMaxSliceMs": 7.93
+        }
+      },
+      {
+        "name": "close zoom 24/28 grass-on fill keeps rAF p95 within the 33 ms budget",
+        "ok": false,
+        "detail": [
+          {
+            "zoom": 24,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.8,
+            "rafP95Ms": 50.15
+          },
+          {
+            "zoom": 28,
+            "settledZoom": 8,
+            "grassEnabled": true,
+            "recordCount": 1663751,
+            "activeBudget": 2000000,
+            "areaScale": 1,
+            "pending": false,
+            "rafMedianMs": 16.36,
+            "rafP95Ms": 47.45
+          }
+        ]
+      },
+      {
+        "name": "wheel burst final zoom stays between min and max clamps",
+        "ok": true,
+        "detail": {
+          "events": 30,
+          "durationMs": 1000,
+          "sent": 30,
+          "startZoom": 3,
+          "finalZoom": 6.48,
+          "settledZoom": 6.48,
+          "minZoom": 0.4,
+          "maxZoom": 60,
+          "rafMedianMs": 17.68,
+          "rafP95Ms": 20.21,
+          "rebuildsBefore": 1,
+          "rebuildsAfter": 1,
+          "pending": false,
+          "lastSampleMs": 596.505,
+          "lastSlices": 26,
+          "lastMaxSliceMs": 7.93
+        }
+      },
+      {
+        "name": "continuous rendering emits no non-audio-policy browser warnings",
+        "ok": true,
+        "detail": {
+          "warnings": [],
+          "audioPolicyWarnings": 11
+        }
+      },
+      {
+        "name": "no page errors",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "static": [
+      {
+        "stop": "mid",
+        "zoom": 3,
+        "soldiers": 30560,
+        "scenery": 585,
+        "gpuMedianMs": 13.07,
+        "gpuP95Ms": 15.82,
+        "gpuSamples": 150,
+        "rafMedianMs": 18.02
+      },
+      {
+        "stop": "vista",
+        "zoom": 9.5,
+        "soldiers": 30560,
+        "scenery": 585,
+        "gpuMedianMs": 29.17,
+        "gpuP95Ms": 34.33,
+        "gpuSamples": 150,
+        "rafMedianMs": 17.21
+      }
+    ]
+  }
+}

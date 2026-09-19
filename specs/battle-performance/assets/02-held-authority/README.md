@@ -64,3 +64,7 @@ updates frame metrics after an asynchronous presentation settles. Terminal
 benchmark recording is guarded separately and remains unchanged. Cancellation
 does not retract GPU commands already submitted. These are eight short controls,
 not the full five-minute tour or final quality/performance acceptance.
+
+[GPU pose-input controls](pose-inputs/README.md) pass across all four renderers;
+changing phase inputs and active pose dispatches rule out a frozen-input shortcut
+within the sampled workload. Exact output/motion acceptance remains separate.

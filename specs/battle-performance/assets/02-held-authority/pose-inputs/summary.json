@@ -1,0 +1,34 @@
+[
+  {
+    "backend": "9000-raw",
+    "poseDispatches": 5256,
+    "buffers": 12,
+    "changingBuffers": 12,
+    "stateHash": "9928381812590497427",
+    "errors": []
+  },
+  {
+    "backend": "9000-three",
+    "poseDispatches": 4653,
+    "buffers": 10,
+    "changingBuffers": 10,
+    "stateHash": "9928381812590497427",
+    "errors": []
+  },
+  {
+    "backend": "9000-typegpu",
+    "poseDispatches": 4554,
+    "buffers": 12,
+    "changingBuffers": 12,
+    "stateHash": "9928381812590497427",
+    "errors": []
+  },
+  {
+    "backend": "9000-vgpu",
+    "poseDispatches": 3906,
+    "buffers": 12,
+    "changingBuffers": 12,
+    "stateHash": "9928381812590497427",
+    "errors": []
+  }
+]

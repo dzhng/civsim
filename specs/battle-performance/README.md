@@ -4,23 +4,23 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-19.
-Current pickup: finish the GPU pose-input control, then run the declared
-[counterbalanced renderer comparison](renderer-comparison.md). The live Menu
-benchmark still runs real simulation; older unequal-progress live runs cannot rank
-backends. No renderer is selected and no final cadence target passes.
+Current pickup: inspect the first declared [counterbalanced renderer round](renderer-comparison.md).
+Round0 is RUNNING in exec session45081 via `throwaway/held-fixed/run-round.py 0`;
+log `throwaway/held-fixed/round-0.log`, trials in `throwaway/held-fixed/round-0`.
+Order is Three/raw/TypeGPU/vgpu at9000 then12000. No CPU builds/tests/timings or
+other GPU jobs until the round ends. It uses fresh browser processes with no pose
+observer. Preserve failed quiet-host verdicts. Remaining declared rounds are1/2;
+do not choose a backend from the first order or replace final live acceptance.
 
 [All16 fixed held builds](assets/02-held-builds/README.md) pin8643cf05 and identical
-e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pass;
-[the evidence](assets/02-held-authority/README.md) records approximate scene parity,
-shared readability issues, the native first-sample race and one admitted post-cancel
-frame. Their timings are excluded. The pose-control GPU matrix is RUNNING in exec
-session14314 via `throwaway/held-fixed/pose-matrix.py`; results go to
-`throwaway/held-tour-review/pose-matrix-fixed` and `throwaway/held-fixed/pose-outcomes.json`.
-It observes pose dispatch/control phase changes without changing production code.
-The initial observer failed to parse; that run was stopped and a syntax-checked
-observer now fails before preparation if installation is missing. Three passes
-with10 changing GPU control buffers; native checks are still running.
-Check its actual liveness before acting. No other GPU job while it runs.
+e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pass,
+with [limitations recorded](assets/02-held-authority/README.md). The
+[GPU pose-input check](assets/02-held-authority/pose-inputs/README.md) also passes
+all four backends: phase inputs change while actual pose dispatches run and the
+canonical state stays fixed. This is sampled input evidence, not every output pixel
+or natural motion. Approximate composition review finds no obvious one-sided scene
+loss but keeps shared overlay/noise/grounding issues open. The pose observer's first
+syntax failure was fixed; corrected session14314 is terminal and its timing is excluded.
 
 The [deferred-bearing optimization](assets/03a-deferred-bearing/README.md) is
 integrated at33eb9205 after clean review and ABBA: both candidates beat both controls
@@ -29,9 +29,7 @@ targeting/golden and all309 worker/direct ticks pass. Production WASM fd2fef9d�
 matches the measured candidate exactly. Later combat still takes45.8–45.9ms/tick;
 steady30Hz remains unmet. CPU timing27982 and canonical88182 are terminal.
 The fixed held builds intentionally retain the earlier WASM; their held hashes
-match and they must remain immutable. Scratch `throwaway/held-fixed/run-round.py`
-implements the declared orders but has NOT been launched. Finish the pose control,
-then start round0 with all CPU builds/tests/timings stopped.
+match and they must remain immutable. The declared renderer round above is the current pickup.
 
 Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)
 has no repeatable measured benefit and is not adopted; [native await profiling](assets/02-native-await-profile/README.md)

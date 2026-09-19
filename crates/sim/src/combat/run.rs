@@ -1,12 +1,17 @@
 use super::damage::apply_staged_damage;
 use super::resolution::{apply_impale, resolve_swing, Attack, SwingNeighborhood};
-use super::targeting::{find_target, TargetSearch, Targeting};
+use super::targeting::{find_target, pack_bodies, TargetBody, TargetSearch, Targeting};
 use super::*;
 
 #[derive(Default)]
 pub(crate) struct Scratch {
     gang_rank: Vec<u16>,
     near_enemy: Vec<bool>,
+    /// This pass's packed body-scan table (see `pack_bodies`). Kept here only
+    /// so the allocation is reused tick to tick — it is rebuilt at the top of
+    /// every `run_combat` and means nothing between passes. ~28 bytes per
+    /// collision body (a rider has two), so ~0.5 MB at 20k bodies.
+    bodies: Vec<TargetBody>,
 }
 
 /// One combat pass; call every tick. Soldier i acts when i % 3 == phase.
@@ -20,6 +25,7 @@ pub(crate) fn run_combat(sim: &mut Sim) {
     let Scratch {
         gang_rank,
         near_enemy,
+        bodies,
     } = &mut scratch;
     let tun = sim.tun;
     let phase = (sim.tick_count % 3) as usize;
@@ -76,6 +82,23 @@ pub(crate) fn run_combat(sim: &mut Sim) {
                 && (v.center() - u.center()).len() < eu + v.bound_radius() + 40.0
         })
     }));
+
+    // The target scan's per-body inputs, packed once here in grid order and
+    // dead at the end of this pass: the bodies, the grid and `alive` are all
+    // final for the pass (separation built them and applied its impact kills;
+    // combat's own deaths land in `apply_staged_damage` below), so one
+    // sequential table can stand in for the scattered reads the scan would
+    // otherwise make per visited body. Empty while NO unit is near an enemy —
+    // then every soldier takes the `!near_enemy[ui]` branch below, nobody
+    // searches, and a quiet battlefield pays nothing for a table it would not
+    // read (an empty table also makes a search that slips through the gate
+    // panic on its bucket slice rather than read a stale pass).
+    if near_enemy.iter().any(|&near| near) {
+        pack_bodies(sim, bodies);
+    } else {
+        bodies.clear();
+    }
+    let bodies = &bodies[..];
 
     for i in (phase..n).step_by(3) {
         if sim.alive[i] == 0 || sim.stun[i] > 0.0 {
@@ -150,6 +173,7 @@ pub(crate) fn run_combat(sim: &mut Sim) {
 
         let Some(targeting) = find_target(
             sim,
+            bodies,
             TargetSearch {
                 i,
                 ui,

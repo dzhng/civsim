@@ -64,7 +64,12 @@ vi.mock("../terrainScene", () => ({
 }));
 vi.mock("../crowdAudience", () => ({
   createTypegpuCrowdAudience: async () =>
-    layer({ upload: state.crowdUpload, precompute: state.pose, refreshCamera: vi.fn() }),
+    layer({
+      upload: state.crowdUpload,
+      precompute: state.pose,
+      reproject: vi.fn(async () => false),
+      refreshCamera: vi.fn(),
+    }),
 }));
 vi.mock("../grassField", () => ({
   createTypegpuGrassField: async () =>
@@ -190,7 +195,7 @@ test("disposal during an awaited UI upload prevents late readout allocation", as
   expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
 });
 
-test("every update submits pose once; camera preparation and repeat presentation submit none", async () => {
+test("every update submits pose once; unchanged camera demand and repeat presentation submit none", async () => {
   const scene = await ready();
   await scene.uploadCrowd([], camera, 1);
   expect(state.pose).toHaveBeenCalledTimes(2);

@@ -2,86 +2,68 @@
 
 ## Next Agent Prompt
 
-You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **implementation active; renderer measurements complete; production
-backend not yet selected**, updated2026-09-20.
+Work in `/Users/david/dev/game-battle-performance-spec`, branch
+`codex/battle-performance-spec`, based on c924e5ce. Updated2026-09-20.
+**Raw WebGPU is selected; implementation and final acceptance remain active.**
+Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: finish the running coherent interior-checkpoint browser controls,
-then make the backend decision. All24 declared held
-tours and8 confirmations completed:32 functional passes,32 failed quiet-host
-verdicts. The [comparison evidence](assets/02-held-rounds/README.md) establishes
-a conditional raw/TypeGPU performance tie under the declared rule. No additional
-broad timing round is planned. Use maintenance/quality after correctness; held
-runs are not live acceptance.
+Current pickup: finish the prepared combined CPU ABBA, then implement
+[M1a independent contracts](slices/m1a-independent-battle-contracts.md). The immutable
+builds under `throwaway/kernel-input-pair/` are ready: control b42782f4… and candidate
+15f88802…. Inspect `runs/`, `run.log` and existing processes before launching
+`run.py`; it refuses existing reports. The candidate remains isolated at
+`game-battle-target-live-inputs`,98e4d2e6+c8580623. Root library/golden/wheel tests,
+mutation checks and independent review pass. Both Bs must beat both As at both
+windows with all five hashes unchanged; no individual speedup attribution. After
+adoption, prove canonical worker/direct parity and integrated WASM byte identity.
+No owned builds, tests or GPU jobs overlap CPU timing.
 
-The [checkpoint observer](assets/02-held-authority/checkpoint-observer/README.md)
-is integrated, including root's missing-Menu-frame regression fix. It samples
-completed frames at the next animation-frame registration and snapshots by value.
-All68 trial tests and scoped TypeScript pass. The eight-case non-timed matrix is
-running under `throwaway/held-fixed/run-checkpoints.py`; inspect its process/log
-and `checkpoints/outcomes.json` before resuming, never restart blindly. All four tick9000
-backends have completed and their sampled cameras match their Menu
-records. Main visibility/tiers agree; raw/TypeGPU retain88 extra l0 shadow casters
-at15/60seconds. [Projection progress](assets/07-projection-progress/README.md)
-records confirmed orthographic/hysteresis policy problems and the still-unproven
-exact discrepancy cause. These controls are not timing evidence.
+All24 held timing tours and8 confirmations are complete: raw/TypeGPU tie under
+the declared rule,32 functional passes and32 failed quiet-host verdicts. All eight
+[coherent checkpoint tours](assets/02-held-authority/checkpoints/README.md) also
+finished. Raw/TypeGPU match every sampled count/histogram; other backends retain
+the documented88-caster shadow-tier and two-body visible-tier differences. No
+broad timing rerun is planned. These observations are not live acceptance.
 
-The [whole-map shadow control](assets/08-whole-map-control/README.md) is integrated.
-Root source/raw full Menu builds,11 control tests and independent review pass.
-Diagnostics read the installed CPU policy on demand; they do not prove GPU work.
-Outside-volume receiver equivalence and final A/B/C hardware proof remain open.
+[Projection/LOD progress](assets/07-projection-progress/README.md) is integrated
+(bee130b4/bb6e8685): finite orthographic footprints and progress through crossed
+hysteresis boundaries, with46 root tests, full TypeScript and independent review.
+Corrected captured-scale fixtures produce five failures against the old policy.
+The [crowd-near correction](assets/09-shadow-audience-identity/README.md)4d1f1423
+is also integrated, with67 focused
+tests, full TypeScript and independent review. It can admit a small extra caster
+strip; visual/motion/cost gates and exact88 attribution remain open.
 
-[Packed targeting](assets/03a-packed-target-bodies/README.md) is integrated as
-bdafeda2. Both candidates beat both controls at both CPU windows and preserved all
-five hashes. Root verified309 canonical worker/direct ticks and an integrated
-build byte-identical to the measured candidate. Its late47.35–48.09ms/tick still
-misses30Hz; this modest Node result is not a browser FPS claim.
+The [whole-map control](assets/08-whole-map-control/README.md) builds in source/raw.
+It observes installed CPU fits, not GPU pixels. Original outside-volume receiver
+equivalence and final A/B/C proof remain open. Preserve fixed builds and linked
+assets: held8643cf05/e9f4f080…, historical98fc8a45 and live0ea8406d controls.
+Production WASM currently remains b42782f4… from the integrated packed-target pass.
 
-Both integrated helper worktrees were removed after verified scratch archives in
-`throwaway/worktree-cleanup-2026-09-20/integrated-controls/`; branch refs remain.
-Packed-target worker scratch is archived; its retained branch preserves the code.
-Root owns all serialized hardware windows; no build/test/GPU work overlaps CPU
-timing, and no build/test/CPU timing overlaps GPU timing.
+After M1, promote the verified raw world and complete High/CSM, production atlas
+publication/reload, block-debug and disposal obligations before cutover. Keep
+campaign's frame separate and shared camera/terrain/environment/pose owners intact.
+Then finish measured camera/grass/LOD work, stable readable default shadows and
+final live net savings. Later simulation still misses30Hz; worker publication is
+not a throughput fix. No batching/thread pool or mechanics change is adopted.
 
-Projection/LOD progress is integrated as bee130b4/bb6e8685, with46 root tests,
-full TypeScript and independent review passing; corrected fixtures reproduce
-five failures against the old policy. Browser/motion/cost gates remain open.
-The two CPU passes are combined only in `game-battle-target-live-inputs`
-(98e4d2e6+c8580623), with independent review and library/golden/impact tests green.
-`throwaway/kernel-input-pair/` contains the unstarted build/ABBA scripts and
-predeclared rule. Wait for the GPU correctness matrix to finish before building
-and timing. No individual speedup attribution or batching/thread pool is adopted.
+Claude Opus owns isolated implementation; root reviews/integrates and serializes
+hardware work. Finished helper worktrees have verified scratch archives and retained
+branches under `throwaway/worktree-cleanup-2026-09-20/`. Only active candidates and
+required historical controls need their worktrees; do not remove unrelated projects.
 
-Priority after that decision: unchanged simulation throughput, then unresolved
-camera/grass/LOD quality, stable readable default shadows, and final live net
-savings. [Deferred friend bearings](assets/03a-deferred-bearing/README.md) and
-[exact bucket membership](assets/03a-bucket-membership/README.md) are integrated
-with canonical hashes preserved, but current later combat still misses30Hz. Worker publication does not solve that throughput deficit.
-
-Current four-tier LOD passes the unchanged30k hardware floor and has sampled
-geometry/visual controls; continuous camera quality remains open. View-fitted
-shadows exist across all candidates, but final readability, stability and the
-original-whole-map versus final net-cost proof remain open. No baseline or
-threshold was repinned. Detailed controls and inherited reds live in
-[evidence.md](evidence.md), not this handoff.
-
-Claude Opus owns isolated implementation passes; root integrates/reviews. Serialize
-GPU timing with no overlapping builds, tests or CPU timing. Preserve all fixed
-builds and their linked assets: held8643cf05/e9f4f080…, historical98fc8a45 and
-live0ea8406d controls. Production WASM b42782f4… matches the integrated packed-target candidate. Finished implementation worktrees were cleaned up with scratch
-archives and branch refs retained (three more on2026-09-20, recorded in
-`throwaway/worktree-cleanup-2026-09-20/manifest.json`); do not remove unrelated project worktrees.
-
-The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
-
-Follow the slice graph below and the [complete-scene pickup](composition.md). Parallelize backend implementation in separate worktrees; serialize hardware timing on the same host. Do not implement the rest of a renderer migration from an unmeasured guess. Slice 03 selects one backend and must materialize any conditional migration using the [migration contract](migration.md) before dependent work. If live simulation blocks the target, report the boundary and leave the live gate failed; this spec does not authorize sim mechanics changes. Update this section, checklist and evidence links before ending each implementation pass.
+The proposed target remains60fps at normal device scale; it was recommended, not
+explicitly confirmed. Do not lower it or the standing30k/33ms floor by silence.
+The supplied image shows7,780 player men, not verified total render population.
+Preserve gameplay, assets, physical framebuffer, visibility, audio and default
+quality. No old-engine compatibility path or saved-battle migration is authorized.
 
 - [x] [01 — production motion evidence](slices/01-motion-evidence.md)
 - [x] [01a — menu-launched simulated benchmark](slices/01a-benchmark-run.md)
 - [x] [01b — action-following camera tour](slices/01b-benchmark-camera.md)
 - [x] [01c — FPS results and spike chart](slices/01c-benchmark-results.md)
-- [ ] [02 — matched backend comparison](slices/02-backend-comparison.md), including all three alternative backends
-- [ ] [03 — choose one backend and resolve the remaining graph](slices/03-backend-decision.md)
+- [x] [02 — matched backend comparison](slices/02-backend-comparison.md), including all three alternative backends
+- [x] [03 — choose one backend and resolve the remaining graph](slices/03-backend-decision.md)
 - [ ] [03a — simulation publication and camera scheduling](slices/03a-simulation-publication.md)
 - [ ] [03b — shared immutable surface images](slices/03b-shared-surface-images.md)
 - [ ] [04 — bounded grass residency](slices/04-grass-residency.md)

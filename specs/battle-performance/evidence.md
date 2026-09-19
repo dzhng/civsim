@@ -1,6 +1,7 @@
 # Evidence ledger
 
-- [Held renderer rounds](assets/02-held-rounds/README.md): three orders complete24 full five-minute controls at two canonical states; raw/TypeGPU proceed to the required confirmation. Functional checks pass, host checks fail; repeatability, interior scene-count checkpoints and final live acceptance remain open.
+- [Held renderer rounds](assets/02-held-rounds/README.md): all24 tours and8 confirmations complete; raw/TypeGPU conditional tie, all quiet-host checks failed. [Eight coherent checkpoint tours](assets/02-held-authority/checkpoints/README.md) complete with explicit representation differences. [Raw is selected](backend-decision.md) by maintenance/quality; final live acceptance remains open.
+- [Projection progress](assets/07-projection-progress/README.md): shared orthographic and large-jump LOD corrections, old-policy red proof and integrated checks; browser motion/cost still open.
 
 - [Main-geometry attribution](assets/07-projected-detail/main-geometry-cost/README.md): repeated same-crowd buffer substitutions reduce observed GPU interval cost with matched audiences/grass/shadows. Known visual defects prohibit shipping the substitution; calibrated representations are next. The preceding [single-class test](assets/07-projected-detail/phalanx-cost/README.md) remains inconclusive.
 

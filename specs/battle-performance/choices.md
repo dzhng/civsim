@@ -574,3 +574,34 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   shadow mesh floor stay with their existing owners.
 - **Verdict:** Sound, high confidence on the bounded policy. Browser transition
   quality and measured cost remain separate acceptance obligations.
+
+### Select raw after the bounded renderer tie
+
+- **When:** Completed comparison and cutover graph,2026-09-20.
+- **Choice:** Continue battle implementation on raw WebGPU, reusing shared runtime
+  contracts and promoting the existing complete world. TypeGPU's extra transform
+  and unstable encoders have no demonstrated winning margin under the declared
+  tie rule. Retain no production engine selector or saved-data migration.
+- **Gap:** Engine replacement was authorized, but which maintained architecture
+  to keep was delegated to the comparison and quality/maintenance review.
+- **Reach:** The new package owns one battle world; the frontend owns presentation
+  and lifetime. High shadows, atlas publication/reload and debug/lifecycle features
+  must be completed before cutover. Campaign retains its distinct frame contract;
+  shared primitives remain shared. Tooling dependencies need a real consumer audit.
+- **Verdict:** Sound, medium confidence. Conditional noisy measurements choose a
+  direction, not a release claim; live performance and shadow quality remain gates.
+
+### Derive caster admission from the installed shadow map
+
+- **When:** Conservative crowd-near correction,4d1f1423.
+- **Choice:** Derive the crowd's near plane from the map's depth quantization and
+  fixed sun/caster ceilings. Round conservatively so retaining a raster map cannot
+  retain independently stale audience bounds. Keep one revision owner.
+- **Gap:** The plan required stable fits but did not specify ownership of a tighter
+  crowd-only near plane when the same raster map serves several camera samples.
+- **Reach:** This admits less than two extra depth quanta beyond the exact crowd
+  ceiling in the mathematical model. Additional casters may cost GPU work; the
+  whole-map fallback keeps its original near plane. No separate per-frame audience
+  cache/revision or shadow-resolution change is added.
+- **Verdict:** Sound, high confidence on conservative geometry; actual extra work
+  and moving shadow quality remain hardware obligations.

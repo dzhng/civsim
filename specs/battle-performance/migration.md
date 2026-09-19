@@ -1,6 +1,31 @@
-# Conditional replacement: resolve before coding
+# Selected raw replacement: concrete pass graph
 
-This contract applies only if 03 selects a different battle backend. It is deliberately a conditional graph, not permission to bury a whole engine port inside a single “integrate” slice. No engine has yet won. Slice 03 must write the selected backend's concrete files/types and playable routes for the following contracts, marking unnecessary passes with evidence. Implementers inherit one chosen architecture, not an unresolved menu of engines.
+[Raw WebGPU is selected](backend-decision.md). The existing complete candidate is
+promoted into final ownership; these passes verify inherited implementations and
+close concrete gaps rather than rebuilding every layer. No production engine
+selector, saved-data migration or compatibility owner is introduced.
+
+```text
+M1a independent contracts → M1b promote raw world
+  ├→ M2 terrain/scenery → M3b water (also M3a)
+  ├→ M3a atmosphere → M8 post/output
+  ├→ M4 crowd assets/reload → M6 default + High shadows (also M2)
+  ├→ M5 grass (also M2, joins04/05)
+  └→ M7 effects/debug (also M2)
+M2–M8 → M9 production cutover →10 final live/quality/net-cost acceptance
+03a unchanged simulation throughput joins10 independently.
+```
+
+Start with [M1a](slices/m1a-independent-battle-contracts.md), then
+[M1b](slices/m1b-promote-raw-world.md). Concrete obligations:
+[M2](slices/m2-terrain-scenery.md), [M3a](slices/m3a-atmosphere.md),
+[M3b](slices/m3b-water.md), [M4](slices/m4-crowd-assets.md),
+[M5](slices/m5-grass.md), [M6](slices/m6-high-shadows.md),
+[M7](slices/m7-effects-debug.md), [M8](slices/m8-post-output.md),
+[M9](slices/m9-production-cutover.md).
+
+The table below retains the original verification contracts. Its rows are now
+owned by the linked passes, not an unresolved choice of engines.
 
 | Port slice | One owner/seam | Frozen inputs and review surface | Exit |
 | --- | --- | --- | --- |
@@ -14,8 +39,8 @@ This contract applies only if 03 selects a different battle backend. It is delib
 | M8 post/output | accepted scene color→canvas | fixed lighting/color/output size | post/tone mapping/AA parity and timing; UI stays existing DOM |
 | M9 battle cutover | production BattleRenderer→chosen world | full menu benchmark and battle entry/exit | delete old battle owner/selector, no second production backend |
 
-Each row is a template for a real slice file, not an already implemented module. A row with multiple independent visual variables must be split as indicated before implementation. M1 precedes all GPU ports; M2 precedes grounding; crowd/grass/shadow consumers meet at the selected frame graph. Final production switch happens only after complete parity, and then 10 judges the combined optimization. Use fixture routes while ports are incomplete; do not ship a half-rendered production battle. Keep them runnable without booting unrelated gameplay systems.
+The linked files materialize these rows; atmosphere and water are separate. M1b precedes promotion-dependent changes; M2 precedes grounding; crowd/grass/shadow consumers meet at the selected frame graph. Final production switch happens only after complete parity, and then 10 judges the combined optimization. Use fixture routes while ports are incomplete; do not ship a half-rendered production battle. Keep them runnable without booting unrelated gameplay systems.
 
 For every materialized slice specify selected-backend native resource schemas, update frequency, memory owner, read/write phase, deterministic fixture, perf counters, crop and regression tests. Compare screenshots and run unprimed screenshot-critique last; review is non-blocking as in README. No generic renderer facade wrapping both engines. A temporary lab adapter is removed at M9/10. If Three utilities remain for assets or campaign, document the real remaining use instead of making a false zero-Three claim.
 
-If all backends fail the target, retain that finding, investigate the dominant measured workload and reslice it. An incomplete candidate, an unknown hardware cost or fewer implemented features cannot win by declaration. Large implementation effort is allowed; the decision is grounded in performance, fidelity and maintained ownership.
+All candidates still miss final live acceptance; retain that finding, investigate the dominant measured workload and reslice it. An incomplete candidate, an unknown hardware cost or fewer implemented features cannot win by declaration. Large implementation effort is allowed; the decision is grounded in performance, fidelity and maintained ownership.

@@ -615,3 +615,15 @@ and stats extension fields stay intact. Source object-count memory semantics
 remain unchanged and native still reports null. Types do not repair the known
 native debug animation gap; M4/M9 owns truthful admitted root/clip/phase output.
 Root reviewed the complete diff and independent review found no regression.
+
+## High cascade contract before implementation
+
+Accepted after source audit: one depth array with only the active mode's layers,
+distinct per-cascade caster-camera buffers, and a208-byte receiver block sharing
+the already-bound camera/environment inputs. Current WebGPU split/fade and scaled
+bias are the reference; WebGL divergence alone is no defect verdict. Preserve the
+small max/min extent-margin distinction pending evidence, but correct source
+cold/moving caster-admission lag and retain native's valid reverse-depth bound.
+These intentional differences need explicit coverage/motion tests, not a claim of
+source pixel equality. [Audit and dispositions](assets/m6-cascade-contract/README.md)
+record the alternatives; implementation and hardware acceptance remain open.

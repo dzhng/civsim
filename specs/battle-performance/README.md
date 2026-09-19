@@ -7,15 +7,14 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: [M1b raw-world promotion](slices/m1b-promote-raw-world.md), running
-with Claude Opus in `game-battle-promote-raw-world` at baseline b89ea1ab. Parent
-logs: `throwaway/m1b-worker/`. Fixed pre-move builds and the completed full-scene
-correctness reference are in `throwaway/m1b-verification/`; read its reference
-notes before scheduling post-move hardware checks. No timing job is active.
-[M1a independent contracts](assets/m1a-contracts/README.md) is integrated at
-f4ecbb1f: root TypeScript and59 focused tests pass, independent review found no
-regression. Move the existing raw world to its final package without rewriting
-frame behavior. Source product cutover still waits for M9.
+Current pickup: [High cascades](slices/m6a-cascade-contract.md), running with
+Claude Opus in `game-battle-high-cascades` at baseline beea655e. Parent logs:
+`throwaway/high-shadow-worker/`. The [raw-world promotion](assets/m1b-promotion/README.md)
+is integrated at89b2850b with replay-verifier cleanup atbeea655e. TypeScript,
+focused tests and lifecycle pass; seven of eight raw scene captures are exact.
+Initial-frame variability and inherited frame image failures remain documented.
+All24 frame comparisons reproduce byte-for-byte before and after promotion.
+The source30k/shared snapCheck/raw-pose gates remain queued; no timing job is active.
 
 An independent Claude Opus [native target-preparation spike](slices/03a-native-target-preparation.md)
 runs in `game-battle-native-target-preparation`, based on unadopted c8580623.

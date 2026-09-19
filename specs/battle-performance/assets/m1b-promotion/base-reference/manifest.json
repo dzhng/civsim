@@ -1,0 +1,30 @@
+[
+  {
+    "file": "frame-base-reference-comparison.json.gz",
+    "sha256": "2b5e7b1123b19a2c6c37db25f4a9a7a79691b31313e4455b7349bb33fbb8b236"
+  },
+  {
+    "file": "run-frame-base-reference.mjs.gz",
+    "sha256": "4201d44a117e1a3fdd565b56df2e56b663045d3c6e214244590a7022ae7adab0"
+  },
+  {
+    "file": "frame-base-reference-controls.log.gz",
+    "sha256": "022b396eaf598cb77af9fc97c3d9f00919273b50b092b97431a3bea59703eeec"
+  },
+  {
+    "file": "outcomes.json.gz",
+    "sha256": "21e0f94fd9aa83da822ba5260e5c7bcaf06398ef56095d9e9c5aaaeb764b6403"
+  },
+  {
+    "file": "frame-4.json.gz",
+    "sha256": "6acecf5ffd803d0ec7089d84803fe0ed956efce6559cef1cd43f59407b60be48"
+  },
+  {
+    "file": "frame-preview.log.gz",
+    "sha256": "91cabfee80d17ff61a12130ab0cc4b81b6851f477384bef972d04261d71dcd72"
+  },
+  {
+    "file": "frame-1.json.gz",
+    "sha256": "45269e0a19e3e7229745b2c17f43cecb80c8c67d241f512a3066c3632c483700"
+  }
+]

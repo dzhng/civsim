@@ -30,8 +30,8 @@ Frame lifecycle passes at1x/4x sampling, including failed resize, retained outpu
 post toggling, stable camera bindings and zero retained resources. The optional
 shadow/scenery frame comparison fails its strict image threshold in both builds:
 all12 source and raw RGBA outputs and comparison metrics are exactly unchanged.
-Generic no-shadow/no-scenery frame controls also fail; their unchanged-reference
-comparison is being completed. No threshold, assertion or baseline is relaxed.
+Generic no-shadow/no-scenery frame controls also fail; all12 source/raw RGBA
+outputs and comparison metrics also match the unchanged reference exactly. No threshold, assertion or baseline is relaxed.
 
 M1b's source30k regression floor and shared snapCheck/pose gates remain open.
 The native facade cannot yet satisfy that scene's source-shaped diagnostic reads;

@@ -19,8 +19,13 @@ before selecting another exact-semantics kernel optimization.
 deferred friend-bearing calculation as the next candidate; Claude is implementing
 it in `game-battle-deferred-friend-bearing`. Held renderer source is integrated
 at aa6b1fa5 with root lifecycle/hash corrections. [Source browser control](assets/02-held-authority/README.md)
-passes fixed state, moving camera and cancellation; all-backend pose/environment
-parity and the full comparison remain next. No timing verdict yet.
+passes fixed state, moving camera and cancellation. [All16 fixed builds](assets/02-held-builds/README.md)
+are ready at8643cf05; serial short browser controls are running via
+`throwaway/held-fixed/smoke-matrix.py` (exec session78128), with outcomes in
+`throwaway/held-fixed/smoke-outcomes.json`. This is correctness-only and may overlap
+Claude CPU tests; never rank its timing. Opus friend-bearing implementation is
+exec session53274, PID67070. Verify handles before assuming either remains active.
+All-backend pose/environment parity and the full comparison remain next.
 
 Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)
 has no repeatable measured benefit and is not adopted; [native await profiling](assets/02-native-await-profile/README.md)

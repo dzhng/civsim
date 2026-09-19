@@ -17,12 +17,14 @@ runs are not live acceptance.
 The [checkpoint observer](assets/02-held-authority/checkpoint-observer/README.md)
 is integrated, including root's missing-Menu-frame regression fix. It samples
 completed frames at the next animation-frame registration and snapshots by value.
-All68 trial tests and scoped TypeScript pass. Actual frozen terminal records show
-five tier keys across all eight builds; older three-tier artifacts were not those
-builds. Run the six50ms-window checkpoints against the immutable held builds, one
-backend at a time, through `runCheckpointObserver.ts`; compare each held tick's
-four archives. These are non-timed correctness controls, approximate camera poses,
-not exact geometry parity or an excuse to re-rank performance.
+All68 trial tests and scoped TypeScript pass. The eight-case non-timed matrix is
+running under `throwaway/held-fixed/run-checkpoints.py`; inspect its process/log
+and `checkpoints/outcomes.json` before resuming, never restart blindly. Tick9000
+Three/raw/TypeGPU have completed and their sampled cameras match their Menu
+records. Main visibility/tiers agree; natives retain88 extra l0 shadow casters
+at15/60seconds. [Projection progress](assets/07-projection-progress/README.md)
+records confirmed orthographic/hysteresis policy problems and the still-unproven
+exact discrepancy cause. These controls are not timing evidence.
 
 The [whole-map shadow control](assets/08-whole-map-control/README.md) is integrated.
 Root source/raw full Menu builds,11 control tests and independent review pass.
@@ -40,6 +42,14 @@ Both integrated helper worktrees were removed after verified scratch archives in
 Packed-target worker scratch is archived; its retained branch preserves the code.
 Root owns all serialized hardware windows; no build/test/GPU work overlaps CPU
 timing, and no build/test/CPU timing overlaps GPU timing.
+
+Isolated Claude candidates currently address shared projection/LOD progress,
+per-unit direction reuse in separation, and write-only fight_near removal plus
+retained-friend live-flag reads. None is integrated or measured. Their worktrees
+are `game-battle-lod-projection-progress`, `game-battle-unit-facing-reuse`, and
+`game-battle-target-live-inputs`. Root reviews/tests them; CPU candidates may be
+measured together as one combined candidate against current production, with no
+individual speedup attribution. No batching/thread pool is adopted.
 
 Priority after that decision: unchanged simulation throughput, then unresolved
 camera/grass/LOD quality, stable readable default shadows, and final live net

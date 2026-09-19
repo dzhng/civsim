@@ -7,7 +7,11 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: [M1b raw-world promotion](slices/m1b-promote-raw-world.md).
+Current pickup: [M1b raw-world promotion](slices/m1b-promote-raw-world.md), running
+with Claude Opus in `game-battle-promote-raw-world` at baseline b89ea1ab. Parent
+logs: `throwaway/m1b-worker/`. Fixed pre-move builds and the completed full-scene
+correctness reference are in `throwaway/m1b-verification/`; read its reference
+notes before scheduling post-move hardware checks. No timing job is active.
 [M1a independent contracts](assets/m1a-contracts/README.md) is integrated at
 f4ecbb1f: root TypeScript and59 focused tests pass, independent review found no
 regression. Move the existing raw world to its final package without rewriting
@@ -46,8 +50,10 @@ equivalence and final A/B/C proof remain open. Preserve fixed builds and linked
 assets: held8643cf05/e9f4f080…, historical98fc8a45 and live0ea8406d controls.
 Production WASM currently remains b42782f4… from the integrated packed-target pass.
 
-After M1, promote the verified raw world and complete High/CSM, production atlas
-publication/reload, block-debug and disposal obligations before cutover. Keep
+Complete M1b, then High/CSM, production atlas
+publication/reload, block-debug and disposal obligations before cutover.
+[M6a](slices/m6a-cascade-contract.md) now specifies cascade data and frame ownership;
+its independent source-contract review logs are in `throwaway/high-shadow-contract-review/`. Keep
 campaign's frame separate and shared camera/terrain/environment/pose owners intact.
 Then finish measured camera/grass/LOD work, stable readable default shadows and
 final live net savings. Later simulation still misses30Hz; worker publication is

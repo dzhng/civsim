@@ -562,6 +562,15 @@ test("only the sampled frames' report rows are archived", () => {
   expect(Object.keys(rows!)).toEqual(["42"]);
 });
 
+test("a missing Menu frame cannot pass camera verification", () => {
+  const archive = archiveOf("three", threeStats, { reportFrames: {} });
+  const report = compareCheckpointArchives([archive]);
+  expect(report.ok).toBe(false);
+  expect(report.issues).toContain(
+    "three-checkpoints @15000ms: sampled frame 42 is absent from the Menu report",
+  );
+});
+
 test("a page that could not be read is a failure with its reason, not an observation", () => {
   const collected = { error: "Target page, context or browser has been closed" };
   expect(asObservation(collected)).toBeNull();

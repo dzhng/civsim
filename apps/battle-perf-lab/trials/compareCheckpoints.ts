@@ -246,6 +246,10 @@ export function compareCheckpointArchives(archives: CheckpointArchive[]): Checkp
         issues.push(`${archive.runId} @${checkpointMs}ms: ${(error as Error).message}`);
       }
       const reported = archive.reportFrames?.[String(sample.frameId)] ?? null;
+      if (!reported)
+        issues.push(
+          `${archive.runId} @${checkpointMs}ms: sampled frame ${sample.frameId} is absent from the Menu report`,
+        );
       let consumed: ReturnType<typeof consumedCamera> | null = null;
       try {
         consumed = read ? consumedCamera(read.camera) : null;

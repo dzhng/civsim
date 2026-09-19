@@ -6,10 +6,10 @@ import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instance
 import { cameraUniformData } from "../../../packages/renderer-core/src/cameraUniform";
 import { viewMatrix, type Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
 import { GPU_DEPTH_FORMAT } from "../../../packages/renderer-core/src/depthContract";
-import type { ImpostorView } from "./impostorData";
-import type { WorldSurfaceDiagnostic } from "./shaders/environment";
-import { createRawEnvironment, rawEnvironmentWgsl } from "./raw/environment";
-import { createRawImpostors } from "./raw/impostor";
+import type { ImpostorView } from "../../../packages/battle-renderer/src/impostorData";
+import type { WorldSurfaceDiagnostic } from "../../../packages/battle-renderer/src/shaders/environment";
+import { createRawEnvironment, rawEnvironmentWgsl } from "../../../packages/battle-renderer/src/world/environment";
+import { createRawImpostors } from "../../../packages/battle-renderer/src/world/impostor";
 import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
 import { createTypegpuImpostors } from "../candidates/typegpu/impostor";
 import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";

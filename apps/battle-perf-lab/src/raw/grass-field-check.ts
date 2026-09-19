@@ -24,8 +24,8 @@ import {
 } from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
 import { createGrassBackendControl } from "../grassBackendControl";
-import { grassGeometries } from "../grassData";
-import { liveGrassRecords } from "../grassField";
+import { grassGeometries } from "../../../../packages/battle-renderer/src/grassData";
+import { liveGrassRecords } from "../../../../packages/battle-renderer/src/grassField";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 const W = 480,
   H = 320;

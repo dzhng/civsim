@@ -17,8 +17,10 @@ const layers = vi.hoisted(
     }[],
 );
 const failures = vi.hoisted(() => ({ at: -1 }));
-vi.mock("../../apps/battle-perf-lab/src/raw/crowd", () => ({ createRawCrowd: async () => mesh }));
-vi.mock("../../apps/battle-perf-lab/src/raw/impostor", () => ({
+vi.mock("../../packages/battle-renderer/src/world/crowd", () => ({
+  createRawCrowd: async () => mesh,
+}));
+vi.mock("../../packages/battle-renderer/src/world/impostor", () => ({
   createRawImpostors: async () => {
     if (layers.length === failures.at) throw Error("atlas upload failed");
     const layer = { update: vi.fn(), draw: vi.fn(), stats: () => ({}), dispose: vi.fn() };
@@ -26,7 +28,7 @@ vi.mock("../../apps/battle-perf-lab/src/raw/impostor", () => ({
     return layer;
   },
 }));
-import { createRawCrowdAudience } from "../../apps/battle-perf-lab/src/raw/crowdAudience";
+import { createRawCrowdAudience } from "../../packages/battle-renderer/src/world/crowdAudience";
 import type { CrowdProjectionView } from "../../packages/crowd-runtime/src/visibility";
 import { IMPOSTOR_LEVEL } from "../../packages/crowd-runtime/src/lod";
 const view = (pixels: number, shadow = false): CrowdProjectionView => ({

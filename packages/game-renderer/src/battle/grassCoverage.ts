@@ -12,7 +12,7 @@
  *
  * The same formula is evaluated in three more places, and all four must agree:
  * the TSL route pass in `bladeFieldLayer.ts`, the WGSL route pass in
- * `apps/battle-perf-lab/src/shaders/grass.ts`, and the layer's CPU tier mirror.
+ * `packages/battle-renderer/src/shaders/grass.ts`, and the layer's CPU tier mirror.
  */
 export interface GrassRouteMask {
   center: readonly [number, number];

@@ -12,7 +12,7 @@ import {
   triangleStaging,
   ringStaging,
   type OverlayUpload,
-} from "../../apps/battle-perf-lab/src/overlayStaging";
+} from "../../packages/battle-renderer/src/overlayStaging";
 import type { BattleLinePlacement } from "@packages/game-renderer/src/battle/overlayData";
 
 function compare(scene: Scene, staged: OverlayUpload, names: string[]) {

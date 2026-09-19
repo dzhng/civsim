@@ -1,4 +1,4 @@
-import { beginGpuAdmission } from "../gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { destroyVgpuTarget } from "./targetLifetime";
 import {
   draw,
@@ -22,7 +22,7 @@ import {
   bloomCompositeWgsl,
   postFinalWgsl,
   postDirectWgsl,
-} from "../shared/postShader";
+} from "../../../../packages/battle-renderer/src/shaders/post";
 
 /** Five-level HDR bloom plus grade/AgX/output. Device/input/output are borrowed;
  * the vgpu wrapper owns intermediates. Encoding never submits or waits. */

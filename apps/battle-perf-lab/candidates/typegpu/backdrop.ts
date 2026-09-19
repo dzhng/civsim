@@ -2,14 +2,14 @@ import { tgpu, d, std, type TgpuRenderPass } from "typegpu";
 import { Camera, typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 import { terrainHash, terrainNoise, terrainRidge, terrainLinear } from "./terrainFunctions";
-import { terrainMaterialFunctions } from "../../src/shaders/terrainMaterial";
+import { terrainMaterialFunctions } from "../../../../packages/battle-renderer/src/shaders/terrainMaterial";
 import {
   backdropSurfaceWgsl,
   quadGroundHeightWgsl,
   type BackdropKind,
-} from "../../src/shaders/backdrop";
-import { BACKDROP_INDICES, backdropVertices, type BackdropRect } from "../../src/backdropData";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+} from "../../../../packages/battle-renderer/src/shaders/backdrop";
+import { BACKDROP_INDICES, backdropVertices, type BackdropRect } from "../../../../packages/battle-renderer/src/backdropData";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 const vertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
 const Surface = d.struct({ albedo: d.vec3f, normal: d.vec3f });
 const turfCanopy = tgpu.fn([d.f32, d.f32, d.f32], d.vec3f)(terrainMaterialFunctions({}).turfCanopy);

@@ -6,7 +6,7 @@ import {
 import { SCENERY_PROP_MODELS } from "../../../../packages/game-renderer/src/models/shared/sceneryPropRegistry";
 import { buildLeafAtlas } from "../../../../packages/game-renderer/src/models/shared/leafAtlas";
 import type { CampaignSceneryInstance } from "../../../../packages/game-renderer/src/campaign/sceneryPass";
-import { sceneryShader } from "../shaders/scenery";
+import { sceneryShader } from "../../../../packages/battle-renderer/src/shaders/scenery";
 import { createVgpuImageTexture } from "./imageTexture";
 import type { VgpuEnvironment } from "./environment";
 /** Caller lends camera/environment; each bucket owns immutable geometry and replaceable instance buffers. */

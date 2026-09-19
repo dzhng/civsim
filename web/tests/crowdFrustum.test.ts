@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, test } from 'vitest';
 import { Frustum, Matrix4, WebGPUCoordinateSystem, Vector3 } from 'three';
-import { reverseZFrustumPlanes } from '../../apps/battle-perf-lab/src/crowdFrustum';
+import { reverseZFrustumPlanes } from '../../packages/battle-renderer/src/crowdFrustum';
 test('finite reverse-Z perspective and orthographic planes match Three including boundary signs', () => {
   for (const matrix of [
     new Matrix4().makePerspective(-1, 1, 1, -1, 1, 100, WebGPUCoordinateSystem, true),

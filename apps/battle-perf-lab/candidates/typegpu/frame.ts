@@ -1,10 +1,10 @@
-import { nativeGpuScope } from "../../src/nativeGpuTelemetry";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { nativeGpuScope } from "../../../../packages/battle-renderer/src/gpuScope";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { tgpu, type TgpuRenderPass, type TgpuBindGroup, type TgpuCommandEncoder } from "typegpu";
 import { Camera, typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 import { createTypegpuPost } from "./post";
-import { frameCamera, type FrameCameraSnapshot } from "../../src/frameCamera";
+import { frameCamera, type FrameCameraSnapshot } from "../../../../packages/battle-renderer/src/frameCamera";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
 /** Stable camera bindings; replacement owns only attachments and their post chain. */
 export class TypegpuBattleFrame {

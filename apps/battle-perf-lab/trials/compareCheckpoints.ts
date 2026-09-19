@@ -48,7 +48,7 @@ type Path = readonly string[];
  * `raw`/`typegpu`/`vgpu` are lab live builds: `NativeBattleRenderer.stats()`
  * (`apps/battle-perf-lab/src/live/NativeBattleRenderer.ts:693`) nests the lab scene
  * under `native`, and each backend's `crowdAudience.ts` spreads
- * `createCrowdAudienceHistory().stats()` (`apps/battle-perf-lab/src/crowdAudienceHistory.ts:137`).
+ * `createCrowdAudienceHistory().stats()` (`packages/battle-renderer/src/crowdAudienceHistory.ts:137`).
  *
  * The two produce the same five numbers from the same planner
  * (`packages/crowd-runtime/src/visibility.ts`), under different names:

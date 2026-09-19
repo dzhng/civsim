@@ -1,5 +1,5 @@
 import type { BladeFieldProfile } from "../../../packages/game-renderer/src/battle/battleGrassResidency";
-import { createGrassField, type GrassLayerRuntime } from "./grassField";
+import { createGrassField, type GrassLayerRuntime } from "../../../packages/battle-renderer/src/grassField";
 import {
   tgpu,
   type TgpuCommandEncoder,
@@ -8,8 +8,8 @@ import {
 } from "typegpu";
 import { frame, initFromDevice, target, type FramePass } from "vgpu";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
-import { createRawEnvironment } from "./raw/environment";
-import { createRawGrass } from "./raw/grass";
+import { createRawEnvironment } from "../../../packages/battle-renderer/src/world/environment";
+import { createRawGrass } from "../../../packages/battle-renderer/src/world/grass";
 import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
 import { createTypegpuGrass } from "../candidates/typegpu/grass";
 import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
@@ -18,7 +18,7 @@ import { createVgpuGrass } from "./vgpu/grass";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";
 import { nativeTarget } from "./controlTarget";
 import { readU32Buffer } from "./numericalReadback";
-import type { GrassGeometry } from "./grassData";
+import type { GrassGeometry } from "../../../packages/battle-renderer/src/grassData";
 /** Numerical-control factory only. Each backend owns its compute/draw encoding and resource lifetime. */
 export async function createGrassBackendControl(
   kind: "raw" | "typegpu" | "vgpu",

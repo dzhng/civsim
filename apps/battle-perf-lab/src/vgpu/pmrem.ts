@@ -10,8 +10,8 @@ import {
   type Draw,
   type Target,
 } from "vgpu";
-import { cubeUvWGSL, ggxConvolutionWGSL, pmremPlanes } from "../shaders/pmrem";
-import { equirectUvWgsl } from "../shaders/physicalSky";
+import { cubeUvWGSL, ggxConvolutionWGSL, pmremPlanes } from "../../../../packages/battle-renderer/src/shaders/pmrem";
+import { equirectUvWgsl } from "../../../../packages/battle-renderer/src/shaders/physicalSky";
 
 /** Borrowed device/source; vgpu owns atlas, ping-pong, geometry and per-draw uniforms.
  * Same nine-level, 512-sample filter→copy chain as the pinned Three reference. */

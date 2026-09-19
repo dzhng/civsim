@@ -18,10 +18,10 @@ import {
   ringStaging,
   type OverlayKind,
   type OverlayUpload,
-} from "../../src/overlayStaging";
-import { overlayFunctions } from "../../src/shaders/overlay";
-import { linearAlbedoWgsl } from "../../src/shaders/soldierFaction";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+} from "../../../../packages/battle-renderer/src/overlayStaging";
+import { overlayFunctions } from "../../../../packages/battle-renderer/src/shaders/overlay";
+import { linearAlbedoWgsl } from "../../../../packages/battle-renderer/src/shaders/soldierFaction";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { typegpuCameraLayout } from "./camera";
 const position = tgpu.vertexLayout(d.disarrayOf(d.vec3f)),
   rgb = tgpu.vertexLayout(d.disarrayOf(d.vec3f)),

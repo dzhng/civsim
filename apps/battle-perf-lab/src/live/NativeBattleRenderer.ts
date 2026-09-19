@@ -56,8 +56,8 @@ import { createSceneLifecycle } from "../sceneLifecycle";
 import { createTerrainPicking } from "../terrainPicking";
 import { NativeGpuTelemetry, type NativeTimingQueryMode } from "../nativeGpuTelemetry";
 import { trackNativeGpuAllocations } from "../nativeGpuAllocations";
-import { beginGpuAdmission, GpuAdmissionBatch } from "../gpuAdmission";
-import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
+import { beginGpuAdmission, GpuAdmissionBatch } from "../../../../packages/battle-renderer/src/gpuAdmission";
+import type { BattleSceneOptions, BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
 
 declare const __BATTLE_NATIVE_BACKEND__: SceneBackend;
 declare const __BATTLE_NATIVE_ATLAS_CATALOG__: string;

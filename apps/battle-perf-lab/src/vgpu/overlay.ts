@@ -10,9 +10,9 @@ import {
   ringStaging,
   type OverlayKind,
   type OverlayUpload,
-} from "../overlayStaging";
-import { overlayShader } from "../shaders/overlay";
-import { beginGpuAdmission } from "../gpuAdmission";
+} from "../../../../packages/battle-renderer/src/overlayStaging";
+import { overlayShader } from "../../../../packages/battle-renderer/src/shaders/overlay";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 async function createVgpuOverlayDraw(
   gpu: Gpu,
   camera: ReturnType<Gpu["device"]["createBuffer"]>,

@@ -1,7 +1,10 @@
-# Native comparison components
+# Raw world checks
 
-This verifies native compute-to-render storage visibility and pipeline-specific
-bindings with a shared uniform buffer and with distinct uniform values. Readback
+The world these check now lives in [its own package](../../../../packages/battle-renderer/README.md);
+what remains here are its checks, preflight pages and lab-side control backends.
+
+The preflight check verifies native compute-to-render storage visibility and
+pipeline-specific bindings with a shared uniform buffer and with distinct uniform values. Readback
 checks both computed values and one rendered pixel. The function borrows its
 caller’s device and destroys only its own buffers/textures; the page owns device
 creation and disposal.
@@ -12,7 +15,7 @@ from the repository root. `RAW_PREFLIGHT_URL` selects the served `preflight.html
 Build output stays in ignored scratch; the verifier saves its explicit API verdict
 under the spec’s evidence folder.
 
-The native post component consumes the same renderer-independent policy as the
+The post pass consumes the same renderer-independent policy as the
 production chain and encodes five-level HDR bloom, grade, AgX and one sRGB transfer.
 Its [numerical control](../../candidates/raw-post/README.md) exercises actual Three
 output, including bloom toggles and disposal. The caller supplies the scene image,

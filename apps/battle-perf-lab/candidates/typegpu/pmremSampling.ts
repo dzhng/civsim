@@ -1,5 +1,5 @@
 import { tgpu, d } from "typegpu";
-import { cubeUvFunctions as cube } from "../../src/shaders/pmrem";
+import { cubeUvFunctions as cube } from "../../../../packages/battle-renderer/src/shaders/pmrem";
 export const cubeFace = tgpu.fn([d.vec3f], d.f32)(cube.cubeFace);
 export const cubeUv = tgpu.fn([d.vec3f, d.f32], d.vec2f)(cube.cubeUv);
 export const cubeDirection = tgpu.fn([d.vec2f, d.f32], d.vec3f)(cube.cubeDirection);

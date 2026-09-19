@@ -2,6 +2,11 @@ import {
   summarizeGpuTimestampRanges,
   type GpuTimestampRange,
 } from "../../../packages/renderer-core/src/gpuTimestampRanges";
+import {
+  clearGpuScopeObserver,
+  hasGpuScopeObserver,
+  setGpuScopeObserver,
+} from "../../../packages/battle-renderer/src/gpuScope";
 export type NativeGpuBackend = "raw" | "typegpu" | "vgpu";
 export type NativeGpuSource = "battle-draw" | "render-only";
 /** Lab-only compile-time control over this observer's incremental query work. */
@@ -69,13 +74,6 @@ export interface NativeGpuEvent extends NativeSubmissionIdentity {
 const MAX_PASSES = 64;
 const MAX_SLOTS = 8;
 const MAX_EVENTS = 128;
-const observers = new WeakMap<GPUDevice, NativeGpuTelemetry>();
-
-/** Scope names describe owned work; runtime libraries still encode every pass. */
-export function nativeGpuScope<T>(device: GPUDevice, label: string, work: () => T): T {
-  const observer = observers.get(device);
-  return observer ? observer.withScope(label, work) : work();
-}
 
 /** Lab measurement of standard WebGPU calls, installed before library construction.
  * Resolve/copy work uses a separate submission and is never included in pass time
@@ -109,7 +107,8 @@ export class NativeGpuTelemetry {
       timingQueries?: NativeTimingQueryMode;
     } = {},
   ) {
-    if (observers.has(device)) throw Error("GPU device already has a native telemetry owner");
+    if (hasGpuScopeObserver(device))
+      throw Error("GPU device already has a native telemetry owner");
     const deviceTimestamps = device.features.has("timestamp-query");
     this.timingQueries = options.timingQueries ?? "enabled";
     this.supported = this.timingQueries === "enabled" && deviceTimestamps;
@@ -175,7 +174,7 @@ export class NativeGpuTelemetry {
           }
         }
     };
-    observers.set(device, this);
+    setGpuScopeObserver(device, this);
   }
 
   get measuring() {
@@ -326,7 +325,7 @@ export class NativeGpuTelemetry {
     if (this.closed) return;
     this.closed = true;
     this.active = null;
-    observers.delete(this.device);
+    clearGpuScopeObserver(this.device);
     this.device.createCommandEncoder = this.createEncoder;
     this.device.queue.submit = this.submitQueue;
     for (const slot of this.slots) {

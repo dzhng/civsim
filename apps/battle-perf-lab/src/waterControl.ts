@@ -10,7 +10,7 @@ import {
   createOceanPlaneMesh,
   createLakePlaneMesh,
 } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
-import type { BattleWaterInput } from "./waterData";
+import type { BattleWaterInput } from "../../../packages/battle-renderer/src/waterData";
 import { createBattleFrameUniforms } from "../../../packages/photoreal-renderer/src/battle/battleTsl";
 import { CIVSIM_ENVIRONMENTS } from "../../../packages/game-renderer/src/environment/environment";
 import type { Camera3DParams } from "../../../packages/renderer-core/src/camera3d";

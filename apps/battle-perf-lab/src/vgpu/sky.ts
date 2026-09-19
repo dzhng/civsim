@@ -21,7 +21,7 @@ import {
   equirectUvWgsl,
   skyRadianceWgsl,
   skyDiscWgsl,
-} from "../shaders/physicalSky";
+} from "../../../../packages/battle-renderer/src/shaders/physicalSky";
 
 const fullscreen = `
 struct Vertex { @builtin(position) position: vec4f, @location(0) uv: vec2f };

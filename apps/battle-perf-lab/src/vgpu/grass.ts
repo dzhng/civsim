@@ -8,15 +8,15 @@ import {
   type FramePass,
   type StorageBuffer,
 } from "vgpu";
-import { beginGpuAdmission } from "../gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import {
   grassUniformData,
   GRASS_UNIFORM_BYTES,
   type GrassFrame,
   type GrassGeometry,
-} from "../grassData";
+} from "../../../../packages/battle-renderer/src/grassData";
 import type { GrassRecordEdit } from "../../../../packages/game-renderer/src/battle/grassFocusTiles";
-import { grassRoutingShader, grassDrawShader } from "../shaders/grassPasses";
+import { grassRoutingShader, grassDrawShader } from "../../../../packages/battle-renderer/src/shaders/grassPasses";
 import { destroyVgpuStorage, writeVgpuStorageAt } from "./storageLifetime";
 import type { VgpuEnvironment } from "./environment";
 // Keep ordinary borrowed ArrayBuffer views zero-copy; vgpu excludes SharedArrayBuffer uploads.

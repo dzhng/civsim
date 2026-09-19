@@ -10,9 +10,9 @@ import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appe
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
 import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/src/environment/postParameters";
 import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
-import type { CrowdAudiencePlan } from "./crowdData";
+import type { CrowdAudiencePlan } from "../../../packages/battle-renderer/src/crowdData";
 import type { PhotorealBattleGroundMesh } from "../../../packages/game-renderer/src/battle/groundPass";
-import type { FrameCameraSnapshot } from "./frameCamera";
+import type { FrameCameraSnapshot } from "../../../packages/battle-renderer/src/frameCamera";
 import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
 import { createTypegpuCrowd } from "../candidates/typegpu/crowd";
 import { createTypegpuTerrain } from "../candidates/typegpu/terrain";

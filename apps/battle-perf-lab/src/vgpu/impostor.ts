@@ -4,8 +4,8 @@ import {
 } from "../../../../packages/soldier-assets/src/impostorAtlas";
 import { draw, geometry, texture, sampler, type Gpu, type FramePass } from "vgpu";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
-import { packImpostors, type ImpostorView } from "../impostorData";
-import { impostorShader } from "../shaders/impostor";
+import { packImpostors, type ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
+import { impostorShader } from "../../../../packages/battle-renderer/src/shaders/impostor";
 import type { VgpuEnvironment } from "./environment";
 
 /** A vgpu Draw encoded into its caller's FramePass. All atlas/geometry resources are owned here. */

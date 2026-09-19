@@ -4,7 +4,7 @@ import type {
   ImageTextureOptions,
   RgbaTextureData,
 } from "../../../../packages/renderer-core/src/imageTexture";
-import { beginGpuAdmission } from "../gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { mipTarget } from "./mipTarget";
 /** vgpu owns texture, mip pipelines and Frame submission. Public queue only uploads external pixels. */
 export async function createVgpuImageTexture(

@@ -16,13 +16,13 @@ import {
   CrowdFramePacker,
   type CrowdAudiencePlan,
   type CrowdAudience,
-} from "../crowdData";
+} from "../../../../packages/battle-renderer/src/crowdData";
 import { crowdImage, crowdSampler, crowdTextureChannels } from "../crowdMaterial";
-import { soldierShader } from "../shaders/soldier";
+import { soldierShader } from "../../../../packages/battle-renderer/src/shaders/soldier";
 import { createVgpuPosePalette } from "./posePalette";
 import { createVgpuImageTexture } from "./imageTexture";
 import type { VgpuEnvironment } from "./environment";
-import { beginGpuAdmission } from "../gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 /** vgpu geometry/pipelines/resources; borrowed context, camera and environment. */
 export async function createVgpuCrowd(
   gpu: Gpu,

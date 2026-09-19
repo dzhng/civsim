@@ -1,4 +1,4 @@
-import { BLOOM_KERNEL_RADII } from "../../src/shared/postShader";
+import { BLOOM_KERNEL_RADII } from "../../../../packages/battle-renderer/src/shaders/post";
 import type { NativeGpuEvent } from "../../src/nativeGpuTelemetry";
 
 export function postPassNames(bloom: boolean) {

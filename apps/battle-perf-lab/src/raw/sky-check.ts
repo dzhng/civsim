@@ -1,4 +1,4 @@
-import { createRawSky } from "./sky";
+import { createRawSky } from "../../../../packages/battle-renderer/src/world/sky";
 import { runSkyNumericalCheck, SKY_CHECK_SIZE } from "../skyNumericalCheck";
 
 const report = await runSkyNumericalCheck(async (device, params) => {

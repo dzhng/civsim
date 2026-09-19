@@ -4,10 +4,10 @@ import {
   QUAD_INDEX,
   type BattleReadoutInstance,
 } from "../../../../packages/game-renderer/src/battle/readoutData";
-import { readoutVertexBodyWgsl, readoutFragmentBodyWgsl } from "../../src/shaders/readout";
-import { readoutCamera } from "../../src/readoutCamera";
+import { readoutVertexBodyWgsl, readoutFragmentBodyWgsl } from "../../../../packages/battle-renderer/src/shaders/readout";
+import { readoutCamera } from "../../../../packages/battle-renderer/src/readoutCamera";
 import { prepareReadouts } from "../../src/readoutPreparation";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 const Camera = d.struct({
   vp: d.mat4x4f,
   right: d.vec4f,

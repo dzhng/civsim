@@ -6,9 +6,9 @@ import {
 import { tgpu, d, std, type TgpuBindGroup, type TgpuRenderCommands } from "typegpu";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import { GPU_DEPTH_FORMAT } from "../../../../packages/renderer-core/src/depthContract";
-import { packImpostors, type ImpostorView } from "../../src/impostorData";
-import { impostorVertexWgsl, impostorSurfaceWgsl } from "../../src/shaders/impostor";
-import { linearAlbedoWgsl, factionAccentWgsl } from "../../src/shaders/soldierFaction";
+import { packImpostors, type ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
+import { impostorVertexWgsl, impostorSurfaceWgsl } from "../../../../packages/battle-renderer/src/shaders/impostor";
+import { linearAlbedoWgsl, factionAccentWgsl } from "../../../../packages/battle-renderer/src/shaders/soldierFaction";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 

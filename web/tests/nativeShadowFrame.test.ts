@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
 import * as THREE from "three/webgpu";
-import { NativeShadowFrame } from "../../apps/battle-perf-lab/src/shadowData";
+import { NativeShadowFrame } from "../../packages/battle-renderer/src/shadowData";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "@packages/game-renderer/src/environment/physicalEnvironment";
 import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";

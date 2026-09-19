@@ -8,7 +8,7 @@ import {
 } from "../candidates/typegpu/shadow";
 import { createVgpuSunShadow } from "./vgpu/shadow";
 import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "./shaders/shadow";
+import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../packages/battle-renderer/src/shaders/shadow";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";
 const vertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
 const vertexWgsl = `struct Camera {vp:mat4x4f}; @group(0) @binding(0) var<uniform> camera:Camera;

@@ -26,7 +26,7 @@ import {
 } from "../../../packages/game-renderer/src/environment/postParameters";
 import { resolveDeviceCaps } from "../../../packages/renderer-core/src/capabilities";
 import { hashPackedRecords } from "../../../packages/game-renderer/src/battle/bladeFieldRecordHash";
-import { liveGrassRecords } from "./grassField";
+import { liveGrassRecords } from "../../../packages/battle-renderer/src/grassField";
 
 /** Native replay shares the exact packet/resource decoder with the Three control.
  * One awaited packet at a time; no simulation or source recapture occurs here. */

@@ -6,7 +6,7 @@ import * as THREE from "three/webgpu";
 import { PhotorealReadoutLayer } from "../../../../packages/photoreal-renderer/src/battle/readoutLayer";
 import type { BattleReadoutInstance } from "../../../../packages/game-renderer/src/battle/readoutData";
 import { applyCamera3d } from "../../../../packages/photoreal-renderer/src/cameraBridge";
-import { createRawReadout } from "./readout";
+import { createRawReadout } from "../../../../packages/battle-renderer/src/world/readout";
 import { nativeTarget } from "../controlTarget";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";

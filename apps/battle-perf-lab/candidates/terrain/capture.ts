@@ -1,5 +1,5 @@
 import { DataUtils } from "three/webgpu";
-import { RawBattlePost } from "../../src/raw/post";
+import { RawBattlePost } from "../../../../packages/battle-renderer/src/world/post";
 import {
   gradeStrengthForPreset,
   GRADE_SATURATION_BOOST,

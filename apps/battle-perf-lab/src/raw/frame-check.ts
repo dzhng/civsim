@@ -1,7 +1,7 @@
-import { createRawScenery } from "./scenery";
+import { createRawScenery } from "../../../../packages/battle-renderer/src/world/scenery";
 import { PhotorealScenery } from "../../../../packages/photoreal-renderer/src/battle/foliageLayer";
 import { BATTLE_SCENERY_KINDS } from "../../../../packages/game-renderer/src/battle/sceneryData";
-import { RawSunShadow } from "./shadow";
+import { RawSunShadow } from "../../../../packages/battle-renderer/src/world/shadow";
 import { configureSunShadows } from "../../../../packages/photoreal-renderer/src/battle/shadowRig";
 import { createFrameControlBackend } from "../frameControlBackend";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
@@ -29,11 +29,11 @@ import {
   type Camera3DParams,
 } from "../../../../packages/renderer-core/src/camera3d";
 import { resolveDeviceCaps } from "../../../../packages/renderer-core/src/capabilities";
-import { createRawEnvironment, rawEnvironmentWgsl } from "./environment";
-import type { WorldSurfaceDiagnostic } from "../shaders/environment";
-import { createRawCrowd } from "./crowd";
-import { RawBattleTerrain } from "./terrain";
-import { RawBattleFrame } from "./frame";
+import { createRawEnvironment, rawEnvironmentWgsl } from "../../../../packages/battle-renderer/src/world/environment";
+import type { WorldSurfaceDiagnostic } from "../../../../packages/battle-renderer/src/shaders/environment";
+import { createRawCrowd } from "../../../../packages/battle-renderer/src/world/crowd";
+import { RawBattleTerrain } from "../../../../packages/battle-renderer/src/world/terrain";
+import { RawBattleFrame } from "../../../../packages/battle-renderer/src/world/frame";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";
 

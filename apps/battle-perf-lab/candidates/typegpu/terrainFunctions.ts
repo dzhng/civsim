@@ -1,9 +1,9 @@
 import { tgpu, d } from "typegpu";
-import { terrainNoiseFunctions as noise } from "../../src/shaders/terrainNoise";
+import { terrainNoiseFunctions as noise } from "../../../../packages/battle-renderer/src/shaders/terrainNoise";
 import {
   terrainMaterialFunctions,
   type TerrainMaterialOptions,
-} from "../../src/shaders/terrainMaterial";
+} from "../../../../packages/battle-renderer/src/shaders/terrainMaterial";
 export const terrainHash = tgpu.fn([d.vec2f], d.f32)(noise.terrainHash);
 export const terrainNoise = tgpu.fn([d.vec2f], d.f32)(noise.terrainNoise).$uses({ terrainHash });
 const terrainFbm = tgpu.fn([d.vec2f], d.f32)(noise.terrainFbm).$uses({ terrainNoise });

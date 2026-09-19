@@ -1,4 +1,4 @@
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { tgpu, d } from "typegpu";
 import type { ImportedRig } from "../../../../packages/soldier-assets/src/rig";
 import type { LocalAnimation } from "../../../../packages/soldier-assets/src/localAnimation";

@@ -2,9 +2,9 @@ import { nativeTarget } from "../../src/controlTarget";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
-import type { TerrainMaterialOptions } from "../../src/shaders/terrainMaterial";
-import { createRawEnvironment } from "../../src/raw/environment";
-import { RawBattleTerrain } from "../../src/raw/terrain";
+import type { TerrainMaterialOptions } from "../../../../packages/battle-renderer/src/shaders/terrainMaterial";
+import { createRawEnvironment } from "../../../../packages/battle-renderer/src/world/environment";
+import { RawBattleTerrain } from "../../../../packages/battle-renderer/src/world/terrain";
 import { createTypegpuEnvironment } from "../typegpu/environment";
 import { createTypegpuTerrain } from "../typegpu/terrain";
 

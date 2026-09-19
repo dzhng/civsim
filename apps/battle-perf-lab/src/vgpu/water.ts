@@ -1,7 +1,7 @@
 import { draw, geometry, type Gpu, type FramePass } from "vgpu";
-import { prepareWaterSurfaces, type BattleWaterInput } from "../waterData";
-import { waterShader } from "../shaders/water";
-import { beginGpuAdmission } from "../gpuAdmission";
+import { prepareWaterSurfaces, type BattleWaterInput } from "../../../../packages/battle-renderer/src/waterData";
+import { waterShader } from "../../../../packages/battle-renderer/src/shaders/water";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import type { VgpuEnvironment } from "./environment";
 /** vgpu owns immutable Geometry, state Buffer and Draw compilation. Geometry
  * replacement constructs a new owner; camera, environment and frame are borrowed. */

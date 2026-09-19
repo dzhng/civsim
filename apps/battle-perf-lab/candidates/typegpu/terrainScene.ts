@@ -2,8 +2,8 @@ import {
   prepareBattleTerrain,
   terrainPickingMeshes,
   battleGroundInputs,
-} from "../../src/terrainScenePreparation";
-import type { BattleTerrainInput } from "../../src/sceneTypes";
+} from "../../../../packages/battle-renderer/src/terrainScenePreparation";
+import type { BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
 import {
   battleTerrainHeightAt,
   expandedBattleTerrainRect,

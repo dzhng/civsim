@@ -1,5 +1,5 @@
-import { createRawBattleScene } from "./battleScene";
-import type { BattleSceneOptions } from "../sceneTypes";
+import { createRawBattleScene } from "../../../../packages/battle-renderer/src/battleScene";
+import type { BattleSceneOptions } from "../../../../packages/battle-renderer/src/sceneTypes";
 import { PhotorealBattleWorld } from "../../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { loadAppearanceCatalog } from "../../../../packages/soldier-assets/src/appearanceBundle";
 import {

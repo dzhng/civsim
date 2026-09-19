@@ -1,8 +1,8 @@
 import { tgpu, d, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
-import { prepareWaterSurfaces, type BattleWaterInput } from "../../src/waterData";
-import { waterShaderBodies } from "../../src/shaders/water";
+import { prepareWaterSurfaces, type BattleWaterInput } from "../../../../packages/battle-renderer/src/waterData";
+import { waterShaderBodies } from "../../../../packages/battle-renderer/src/shaders/water";
 import { terrainWaterNoise, terrainLinear } from "./terrainFunctions";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 const WaterState = d.struct({ baseZ: d.f32, shoreX: d.f32, pad: d.vec2f });

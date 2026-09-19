@@ -96,7 +96,7 @@ vi.mock("../overlay", () => ({
   createTypegpuTriangleLayer: async () => layer(),
 }));
 import { createTypegpuBattleScene } from "../battleScene";
-import type { BattleSceneOptions } from "../../../src/sceneTypes";
+import type { BattleSceneOptions } from "../../../../../packages/battle-renderer/src/sceneTypes";
 import type { TgpuCommandEncoder } from "typegpu";
 import { CIVSIM_ENVIRONMENTS } from "../../../../../packages/game-renderer/src/environment/environment";
 import { productionBladeFieldProfile } from "../../../../../packages/game-renderer/src/battle/battleGrassResidency";

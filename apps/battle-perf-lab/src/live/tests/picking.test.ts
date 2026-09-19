@@ -11,7 +11,7 @@ import {
   initialBladeFieldTransition,
   productionBladeFieldProfile,
 } from "../../../../../packages/game-renderer/src/battle/battleGrassResidency";
-import { prepareBattleTerrain, terrainPickingMeshes } from "../../terrainScenePreparation";
+import { prepareBattleTerrain, terrainPickingMeshes } from "../../../../../packages/battle-renderer/src/terrainScenePreparation";
 import { createTerrainPicking } from "../../terrainPicking";
 import type { WorldRay } from "../../../../../packages/renderer-core/src/camera3d";
 

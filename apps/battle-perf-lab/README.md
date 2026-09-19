@@ -98,7 +98,7 @@ failed gates, not performance results.
 
 For resolved grass replay, the lab config substitutes the shared residency import
 only inside Three's grass adapter for capture. The native replay config applies
-the same provider inside the lab's shared grass field. Live capture delegates every owner method and
+the same provider inside the world's grass field. Live capture delegates every owner method and
 records its snapshot after each actual `prepareRender`. Record arrays are copied
 only when base/ring revisions change; other routing and transition state is kept
 per boundary. Replay consumes this stream through the same Three upload consumer,

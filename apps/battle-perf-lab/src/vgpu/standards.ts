@@ -6,8 +6,8 @@ import {
   battleStandardCapacity,
   type BattleStandardInstance,
 } from "../../../../packages/game-renderer/src/models/shared/battleStandardData";
-import { beginGpuAdmission } from "../gpuAdmission";
-import { standardsShader } from "../shaders/standards";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
+import { standardsShader } from "../../../../packages/battle-renderer/src/shaders/standards";
 import type { VgpuEnvironment } from "./environment";
 export async function createVgpuStandards(
   gpu: Gpu,

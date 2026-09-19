@@ -7,7 +7,7 @@ import {
   SKY_LUT_HEIGHT,
 } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import { decodeFloat16, readHdrTexture, compareHdr } from "../numericalReadback";
-import { createRawPmrem } from "./pmrem";
+import { createRawPmrem } from "../../../../packages/battle-renderer/src/world/pmrem";
 import { createVgpuPmrem } from "../vgpu/pmrem";
 import { createTypegpuPmrem } from "../../candidates/typegpu/pmrem";
 const backend = new URLSearchParams(location.search).get("backend") ?? "raw";
@@ -18,8 +18,8 @@ const createPmrem =
     : backend === "typegpu"
       ? createTypegpuPmrem
       : createRawPmrem;
-import { cubeUvWGSL } from "../shaders/pmrem";
-import { fullscreenWGSL } from "../shared/postShader";
+import { cubeUvWGSL } from "../../../../packages/battle-renderer/src/shaders/pmrem";
+import { fullscreenWGSL } from "../../../../packages/battle-renderer/src/shaders/post";
 
 // Pinned Three 0.185.1 public PMREM output for the canonical 384x192 input.
 // Keep the atlas rectangles independent of the candidate's generation helpers.

@@ -6,8 +6,8 @@ import {
   battleStandardCapacity,
   type BattleStandardInstance,
 } from "../../../../packages/game-renderer/src/models/shared/battleStandardData";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
-import { standardFunctions } from "../../src/shaders/standards";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
+import { standardFunctions } from "../../../../packages/battle-renderer/src/shaders/standards";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 const Vertex = d.struct({ world: d.vec3f, normal: d.vec3f }),

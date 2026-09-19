@@ -41,9 +41,9 @@ vi.mock("../candidates/typegpu/impostor", () => ({
 vi.mock("../src/vgpu/impostor", () => ({
   createVgpuImpostors: atlasFactory,
 }));
-vi.mock("../src/raw/crowd", () => ({ createRawCrowd: async () => state.mesh }));
-vi.mock("../src/raw/impostor", () => ({ createRawImpostors: atlasFactory }));
-import { createRawCrowdAudience } from "../src/raw/crowdAudience";
+vi.mock("../../../packages/battle-renderer/src/world/crowd", () => ({ createRawCrowd: async () => state.mesh }));
+vi.mock("../../../packages/battle-renderer/src/world/impostor", () => ({ createRawImpostors: atlasFactory }));
+import { createRawCrowdAudience } from "../../../packages/battle-renderer/src/world/crowdAudience";
 import { createTypegpuCrowdAudience } from "../candidates/typegpu/crowdAudience";
 import { createVgpuCrowdAudience } from "../src/vgpu/crowdAudience";
 import type { CrowdProjectionView } from "../../../packages/crowd-runtime/src/visibility";

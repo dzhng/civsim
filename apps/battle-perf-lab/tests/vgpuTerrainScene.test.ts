@@ -16,7 +16,7 @@ const layer = vi.hoisted(() => () => {
   state.owners.push(value);
   return value;
 });
-vi.mock("../src/terrainScenePreparation", () => ({
+vi.mock("../../../packages/battle-renderer/src/terrainScenePreparation", () => ({
   prepareBattleTerrain: (input: object) => ({
     grid: input,
     cover: {},

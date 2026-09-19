@@ -3,8 +3,8 @@ import {
   soldierUnitDirectionWgsl,
   soldierVertexBodyWgsl,
   soldierSurfacePreludeWgsl,
-} from "../../src/shaders/soldier";
-import { linearAlbedoWgsl, factionAccentWgsl } from "../../src/shaders/soldierFaction";
+} from "../../../../packages/battle-renderer/src/shaders/soldier";
+import { linearAlbedoWgsl, factionAccentWgsl } from "../../../../packages/battle-renderer/src/shaders/soldierFaction";
 import { typegpuCameraLayout } from "./camera";
 import { environmentLayout, type TypegpuEnvironment } from "./environment";
 import { typegpuPaletteLayout } from "./posePalette";

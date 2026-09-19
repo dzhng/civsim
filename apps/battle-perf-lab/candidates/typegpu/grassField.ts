@@ -1,7 +1,7 @@
-import { grassGeometries } from "../../src/grassData";
+import { grassGeometries } from "../../../../packages/battle-renderer/src/grassData";
 import type { TgpuCommandEncoder, TgpuRenderCommands, TgpuBindGroup } from "typegpu";
 import type { BladeFieldProfile } from "../../../../packages/game-renderer/src/battle/battleGrassResidency";
-import { createGrassField } from "../../src/grassField";
+import { createGrassField } from "../../../../packages/battle-renderer/src/grassField";
 import { createTypegpuGrass } from "./grass";
 import type { TypegpuEnvironment } from "./environment";
 export async function createTypegpuGrassField(

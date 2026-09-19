@@ -1,4 +1,4 @@
-import type { BattleWaterInput } from "./waterData";
+import type { BattleWaterInput } from "../../../packages/battle-renderer/src/waterData";
 /** Control-only resource accounting across immutable-owner replacement and a
  * synchronous allocation failure. The borrowed device must remain renderable. */
 export async function checkWaterLifetime(

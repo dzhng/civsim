@@ -68,7 +68,7 @@ claim a library speedup from a different shader-authoring syntax.
 
 [sky.ts](sky.ts) is the first partial backend pass. It owns the linear HDR LUT
 and background pipelines through TypeGPU. The renderer-independent
-[WGSL bodies](../../src/shaders/physicalSky.ts) preserve the production atmosphere
+[WGSL bodies](../../../../packages/battle-renderer/src/shaders/physicalSky.ts) preserve the production atmosphere
 math and use the canonical physical parameter module. Equirectangular storage
 uses Three's paired y-latitude conversion while scattering remains z-up; rotating
 only one side would silently rotate the authored environment.
@@ -97,7 +97,7 @@ half-float step at the measured radiance range and rejects all nonfinite values.
 ## Post pass
 
 [post.ts](post.ts) owns the bloom pyramid, grade uniform, bind groups and pipelines
-through TypeGPU. Native candidates share pure [post shader functions](../../src/shared/postShader.ts),
+through TypeGPU. Native candidates share pure [post shader functions](../../../../packages/battle-renderer/src/shaders/post.ts),
 while each retains its own resource and encoding lifecycle. The fixture supplies
 validated grade state and opaque linear HDR; the final pass applies AgX and the
 sRGB transfer once, so its output target must not apply another sRGB conversion.

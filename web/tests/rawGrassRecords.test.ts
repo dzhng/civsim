@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { test, expect, vi } from "vitest";
-import { createRawGrass } from "../../apps/battle-perf-lab/src/raw/grass";
+import { createRawGrass } from "../../packages/battle-renderer/src/world/grass";
 
 test("native grass keeps pipelines stable across grow, shrink, empty and failed record admission", async () => {
   vi.stubGlobal("GPUBufferUsage", {

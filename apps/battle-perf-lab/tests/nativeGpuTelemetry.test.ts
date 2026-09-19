@@ -1,5 +1,6 @@
 /// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
-import { NativeGpuTelemetry, nativeGpuScope } from "../src/nativeGpuTelemetry";
+import { NativeGpuTelemetry } from "../src/nativeGpuTelemetry";
+import { nativeGpuScope } from "../../../packages/battle-renderer/src/gpuScope";
 
 function deviceFixture(supported = true, timestampValues?: bigint[]) {
   vi.stubGlobal("GPUBufferUsage", { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 });

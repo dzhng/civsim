@@ -13,11 +13,11 @@ import {
   QUAD_INDEX,
   type BattleReadoutInstance,
 } from "../../../../packages/game-renderer/src/battle/readoutData";
-import { readoutWgsl } from "../shaders/readout";
-import { readoutCamera } from "../readoutCamera";
+import { readoutWgsl } from "../../../../packages/battle-renderer/src/shaders/readout";
+import { readoutCamera } from "../../../../packages/battle-renderer/src/readoutCamera";
 import { prepareReadouts } from "../readoutPreparation";
 import { destroyVgpuTarget } from "./targetLifetime";
-import { beginGpuAdmission } from "../gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 /** Public vgpu allocations/draw encoding; native queue only transfers authored canvas pixels. */
 export async function createVgpuReadout(device: GPUDevice, samples: 1 | 4) {
   const gpu = await initFromDevice(device),

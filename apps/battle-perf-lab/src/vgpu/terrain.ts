@@ -12,8 +12,8 @@ import {
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
-import type { TerrainMaterialOptions } from "../shaders/terrainMaterial";
-import { terrainShaders } from "../shaders/terrain";
+import type { TerrainMaterialOptions } from "../../../../packages/battle-renderer/src/shaders/terrainMaterial";
+import { terrainShaders } from "../../../../packages/battle-renderer/src/shaders/terrain";
 import type { VgpuEnvironment } from "./environment";
 
 /** One horizon vertex: position, then normal, then colour. Both horizon passes read this stride. */

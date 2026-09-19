@@ -1,5 +1,5 @@
 import { tgpu, d } from "typegpu";
-import { grassFunctions } from "../../src/shaders/grass";
+import { grassFunctions } from "../../../../packages/battle-renderer/src/shaders/grass";
 export const GrassRecord = d.struct({ d0: d.vec4f, d1: d.vec4f, d2: d.vec4f, d3: d.vec4f });
 export const GrassParams = d.struct({
   anchor: d.vec2f,

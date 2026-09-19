@@ -1,8 +1,8 @@
 import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { tgpu, d, type TgpuRenderPass } from "typegpu";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../src/shaders/shadow";
+import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../../packages/battle-renderer/src/shaders/shadow";
 import { Camera, typegpuCameraLayout } from "./camera";
-import { NativeShadowFrame } from "../../src/shadowData";
+import { NativeShadowFrame } from "../../../../packages/battle-renderer/src/shadowData";
 import { SINGLE_MAP_SIZE } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 export const SunSampling = d.struct({ vp: d.mat4x4f, settings: d.vec4f });

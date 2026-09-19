@@ -1,5 +1,5 @@
 import { referenceAtlasTextures } from "../../../../packages/soldier-assets/bake/impostors/reference";
-import type { WorldSurfaceDiagnostic } from "../shaders/environment";
+import type { WorldSurfaceDiagnostic } from "../../../../packages/battle-renderer/src/shaders/environment";
 import { captureMipChain } from "../../../../packages/soldier-assets/bake/impostors/capture";
 import {
   loadImpostorAtlas,
@@ -42,7 +42,7 @@ import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/envi
 import { eyePosition, type Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
 import { createImpostorControlBackend, type ImpostorBackend } from "../impostorControlBackend";
-import type { ImpostorView } from "../impostorData";
+import type { ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 
 const W = 640,

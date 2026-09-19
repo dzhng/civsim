@@ -5,7 +5,7 @@ import { equirectUV, normalize, texture, uv, vec3, vec4, smoothstep } from "thre
 import { SkyModel } from "../../../packages/photoreal-renderer/src/atmosphere/skyModel";
 import { CIVSIM_ENVIRONMENTS } from "../../../packages/game-renderer/src/environment/environment";
 import * as sky from "../../../packages/game-renderer/src/environment/skyParameters";
-import type { SkyRays } from "./shaders/physicalSky";
+import type { SkyRays } from "../../../packages/battle-renderer/src/shaders/physicalSky";
 export const SKY_CHECK_SIZE = [64, 32] as const;
 export interface SkyCheckCandidate {
   lut: GPUTexture;

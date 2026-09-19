@@ -10,7 +10,7 @@ const handles = vi.hoisted(
       draw: ReturnType<typeof vi.fn>;
     }[],
 );
-vi.mock("../../apps/battle-perf-lab/src/raw/grass", () => ({
+vi.mock("../../packages/battle-renderer/src/world/grass", () => ({
   createRawGrass: vi.fn(async () => {
     const value = {
       updateRecords: vi.fn(async () => {}),
@@ -28,7 +28,7 @@ vi.mock("../../apps/battle-perf-lab/src/raw/grass", () => ({
     return value;
   }),
 }));
-import { createRawGrassField } from "../../apps/battle-perf-lab/src/raw/grassField";
+import { createRawGrassField } from "../../packages/battle-renderer/src/world/grassField";
 import { productionBladeFieldProfile } from "@packages/game-renderer/src/battle/battleGrassResidency";
 import { flatHeightField } from "@packages/game-renderer/src/terrain/heightField";
 import type { Camera3DParams } from "@packages/renderer-core/src/camera3d";

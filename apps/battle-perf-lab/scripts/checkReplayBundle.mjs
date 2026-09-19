@@ -26,7 +26,7 @@ const reachable = (entry, seen = new Set()) => {
 const entries = ['control.mjs', 'scene.mjs', 'typegpuScene.mjs', 'vgpuScene.mjs', 'publications.mjs', 'spool.mjs'];
 for (const entry of entries)
   assert.ok(reachable(entry).has(provider), `${entry} must reach the shared provider chunk`);
-const sceneModule = [...reachable('scene.mjs')].find(name => code[name].includes('apps/battle-perf-lab/src/grassField.ts'));
+const sceneModule = [...reachable('scene.mjs')].find(name => code[name].includes('packages/battle-renderer/src/grassField.ts'));
 assert.ok(sceneModule, 'actual native field is present in scene graph');
 const imports = entry => {
   const line = code[entry].split('\n').find(line => line.includes(`"./${provider}"`));
@@ -41,7 +41,7 @@ const imports = entry => {
   );
 };
 const sceneConstructor = code[sceneModule].match(
-  /#region apps\/battle-perf-lab\/src\/grassField\.ts[\s\S]*?\bnew\s+(\w+)\(/,
+  /#region packages\/battle-renderer\/src\/grassField\.ts[\s\S]*?\bnew\s+(\w+)\(/,
 )?.[1];
 const publicConstructor = code['publications.mjs'].match(/(\w+) as BattleGrassResidency/)?.[1];
 assert.ok(

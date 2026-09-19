@@ -1,10 +1,10 @@
 import type { Gpu, FramePass } from "vgpu";
-import type { BattleTerrainInput } from "../sceneTypes";
+import type { BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
 import {
   prepareBattleTerrain,
   terrainPickingMeshes,
   battleGroundInputs,
-} from "../terrainScenePreparation";
+} from "../../../../packages/battle-renderer/src/terrainScenePreparation";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import {
   battleTerrainHeightAt,

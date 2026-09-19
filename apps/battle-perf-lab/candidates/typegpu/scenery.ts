@@ -1,4 +1,4 @@
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { tgpu, d, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
 import {
   BATTLE_SCENERY_KINDS,
@@ -7,7 +7,7 @@ import {
 import { SCENERY_PROP_MODELS } from "../../../../packages/game-renderer/src/models/shared/sceneryPropRegistry";
 import { buildLeafAtlas } from "../../../../packages/game-renderer/src/models/shared/leafAtlas";
 import type { CampaignSceneryInstance } from "../../../../packages/game-renderer/src/campaign/sceneryPass";
-import { sceneryVertexBodyWgsl, sceneryLeafBodyWgsl } from "../../src/shaders/scenery";
+import { sceneryVertexBodyWgsl, sceneryLeafBodyWgsl } from "../../../../packages/battle-renderer/src/shaders/scenery";
 import { createTypegpuImageTexture } from "./imageTexture";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";

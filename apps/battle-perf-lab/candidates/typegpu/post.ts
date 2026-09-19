@@ -1,4 +1,4 @@
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { tgpu, d, std, common, type TgpuFn, type TgpuBindGroup } from "typegpu";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
 import { GRADE_LUMA } from "../../../../packages/game-renderer/src/environment/postParameters";
@@ -12,7 +12,7 @@ import {
   outputSrgbWgsl,
   postFinalWgsl,
   postDirectWgsl,
-} from "../../src/shared/postShader";
+} from "../../../../packages/battle-renderer/src/shaders/post";
 
 const Grade = d.struct({
   strength: d.f32,

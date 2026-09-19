@@ -2,20 +2,20 @@ import { tgpu, d, std } from "typegpu";
 import { initFromDevice, draw, geometry, target } from "vgpu";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
 import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/src/environment/postParameters";
-import type { FrameCameraSnapshot } from "./frameCamera";
+import type { FrameCameraSnapshot } from "../../../packages/battle-renderer/src/frameCamera";
 import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
 import { makeVertexBuffer } from "../../../packages/renderer-core/src/gpuBuffers";
-import { createRawLineLayer, createRawTriangleLayer, createRawRingLayer } from "./raw/overlay";
+import { createRawLineLayer, createRawTriangleLayer, createRawRingLayer } from "../../../packages/battle-renderer/src/world/overlay";
 import {
   createTypegpuLineLayer,
   createTypegpuTriangleLayer,
   createTypegpuRingLayer,
 } from "../candidates/typegpu/overlay";
 import { createVgpuLineLayer, createVgpuTriangleLayer, createVgpuRingLayer } from "./vgpu/overlay";
-import { RawBattleFrame } from "./raw/frame";
+import { RawBattleFrame } from "../../../packages/battle-renderer/src/world/frame";
 import { TypegpuBattleFrame } from "../candidates/typegpu/frame";
 import { VgpuBattleFrame } from "./vgpu/frame";
-import { createRawEnvironment } from "./raw/environment";
+import { createRawEnvironment } from "../../../packages/battle-renderer/src/world/environment";
 import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
 import { createVgpuEnvironment } from "./vgpu/environment";
 import { typegpuCameraLayout } from "../candidates/typegpu/camera";

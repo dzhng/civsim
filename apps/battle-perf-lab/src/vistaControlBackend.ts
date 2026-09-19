@@ -3,7 +3,7 @@ import { initFromDevice, target } from "vgpu";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
 import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/src/environment/postParameters";
 import type { buildBattleTerrainData } from "../../../packages/game-renderer/src/battle/terrainSceneData";
-import type { FrameCameraSnapshot } from "./frameCamera";
+import type { FrameCameraSnapshot } from "../../../packages/battle-renderer/src/frameCamera";
 import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
 import { createTypegpuTerrain } from "../candidates/typegpu/terrain";
 import { TypegpuBattleFrame } from "../candidates/typegpu/frame";

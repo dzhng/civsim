@@ -1,7 +1,7 @@
 import {cubeDirection,cubeSample} from "./pmremSampling";
 import { tgpu, d } from "typegpu";
-import { ggxFunctions as ggx, pmremPlanes } from "../../src/shaders/pmrem";
-import { equirectUvWgsl } from "../../src/shaders/physicalSky";
+import { ggxFunctions as ggx, pmremPlanes } from "../../../../packages/battle-renderer/src/shaders/pmrem";
+import { equirectUvWgsl } from "../../../../packages/battle-renderer/src/shaders/physicalSky";
 
 const Vertex = d.unstruct({ position: d.vec3f, uv: d.vec2f, face: d.f32 });
 const vertices = tgpu.vertexLayout(d.disarrayOf(Vertex));

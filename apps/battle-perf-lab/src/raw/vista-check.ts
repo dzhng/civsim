@@ -13,9 +13,9 @@ import { createBattleFrameUniforms } from "../../../../packages/photoreal-render
 import { buildBattleTerrainData } from "../../../../packages/game-renderer/src/battle/terrainSceneData";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
-import { RawBattleFrame } from "./frame";
-import { RawBattleTerrain } from "./terrain";
-import { createRawEnvironment } from "./environment";
+import { RawBattleFrame } from "../../../../packages/battle-renderer/src/world/frame";
+import { RawBattleTerrain } from "../../../../packages/battle-renderer/src/world/terrain";
+import { createRawEnvironment } from "../../../../packages/battle-renderer/src/world/environment";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";
 import { trackTextureLifetime } from "../textureLifetimeCheck";

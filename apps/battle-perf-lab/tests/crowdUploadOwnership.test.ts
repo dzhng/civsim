@@ -1,7 +1,7 @@
 /// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
 const state = vi.hoisted(() => ({ upload: vi.fn(), dispose: vi.fn() }));
 // Isolate palette ownership from GPU geometry; the actual mesh upload and packer run.
-vi.mock("../src/crowdData", async (original) => ({
+vi.mock("../../../packages/battle-renderer/src/crowdData", async (original) => ({
   ...(await original<object>()),
   crowdRigGroups: () => [{ 0: { rig: {}, animation: {} }, 1: { rig: {}, animation: {} } }],
 }));

@@ -1,6 +1,6 @@
-import { nativeGpuScope } from "../nativeGpuTelemetry";
+import { nativeGpuScope } from "../../../../packages/battle-renderer/src/gpuScope";
 import type { Gpu, Target } from "vgpu";
-import type { BattleSceneOptions, BattleTerrainInput } from "../sceneTypes";
+import type { BattleSceneOptions, BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import { createVgpuEnvironment } from "./environment";
 import { VgpuBattleFrame } from "./frame";
@@ -11,8 +11,8 @@ import { createVgpuGrassField } from "./grassField";
 import { createVgpuStandards } from "./standards";
 import { createVgpuReadout } from "./readout";
 import { createVgpuLineLayer, createVgpuRingLayer, createVgpuTriangleLayer } from "./overlay";
-import { battleSceneCamera } from "../sceneCamera";
-import { reverseZFrustumPlanes } from "../crowdFrustum";
+import { battleSceneCamera } from "../../../../packages/battle-renderer/src/sceneCamera";
+import { reverseZFrustumPlanes } from "../../../../packages/battle-renderer/src/crowdFrustum";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import type { CrowdProjectionView } from "../../../../packages/crowd-runtime/src/visibility";
 import {

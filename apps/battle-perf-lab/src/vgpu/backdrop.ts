@@ -1,8 +1,8 @@
 import { draw, geometry, target, frame, type Gpu, type FramePass } from "vgpu";
 import type { VgpuEnvironment } from "./environment";
-import { backdropShader, type BackdropKind } from "../shaders/backdrop";
-import { BACKDROP_INDICES, backdropVertices, type BackdropRect } from "../backdropData";
-import { beginGpuAdmission } from "../gpuAdmission";
+import { backdropShader, type BackdropKind } from "../../../../packages/battle-renderer/src/shaders/backdrop";
+import { BACKDROP_INDICES, backdropVertices, type BackdropRect } from "../../../../packages/battle-renderer/src/backdropData";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { destroyVgpuTarget } from "./targetLifetime";
 /** Public library buffers/pipelines/draws; caller owns context, camera, and environment. */
 export async function createVgpuBackdrop(

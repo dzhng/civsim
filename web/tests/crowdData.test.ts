@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { CrowdFramePacker, crowdRigGroups } from "../../apps/battle-perf-lab/src/crowdData";
+import { CrowdFramePacker, crowdRigGroups } from "../../packages/battle-renderer/src/crowdData";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 import { COARSEST_SHADOW_LOD, IMPOSTOR_LEVEL } from "@packages/crowd-runtime/src/lod";
 import { mat4Identity } from "@packages/soldier-assets/src/localPose";

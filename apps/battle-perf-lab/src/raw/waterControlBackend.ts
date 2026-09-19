@@ -1,12 +1,12 @@
-import { createRawEnvironment } from "./environment";
-import { RawBattleFrame } from "./frame";
-import { RawBattleWater } from "./water";
-import { RawBattleTerrain } from "./terrain";
+import { createRawEnvironment } from "../../../../packages/battle-renderer/src/world/environment";
+import { RawBattleFrame } from "../../../../packages/battle-renderer/src/world/frame";
+import { RawBattleWater } from "../../../../packages/battle-renderer/src/world/water";
+import { RawBattleTerrain } from "../../../../packages/battle-renderer/src/world/terrain";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
-import type { FrameCameraSnapshot } from "../frameCamera";
-import type { BattleWaterInput } from "../waterData";
+import type { FrameCameraSnapshot } from "../../../../packages/battle-renderer/src/frameCamera";
+import type { BattleWaterInput } from "../../../../packages/battle-renderer/src/waterData";
 /** Raw control driver for the shared source fixture, not a fallback for other runtimes. */
 export async function createRawWaterControlBackend(
   device: GPUDevice,

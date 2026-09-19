@@ -13,7 +13,7 @@ import {
   CrowdFramePacker,
   type CrowdAudiencePlan,
   type CrowdAudience,
-} from "../../src/crowdData";
+} from "../../../../packages/battle-renderer/src/crowdData";
 import { crowdImage, crowdSampler, crowdTextureChannels } from "../../src/crowdMaterial";
 import { createTypegpuPosePalette } from "./posePalette";
 import { createTypegpuImageTexture } from "./imageTexture";
@@ -25,7 +25,7 @@ import {
   SoldierVertex,
 } from "./crowdShader";
 import type { TypegpuEnvironment } from "./environment";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 const Vertex = d.unstruct({
   position: d.vec3f,
   normal: d.vec3f,

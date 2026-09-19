@@ -9,9 +9,9 @@ import {
   SKY_LUT_HEIGHT,
   type Rgb,
 } from "../../../../packages/game-renderer/src/environment/skyParameters";
-import { aerialWgsl } from "../../src/shaders/aerial";
-import { equirectUvWgsl } from "../../src/shaders/physicalSky";
-import { fullscreenWGSL } from "../../src/shared/postShader";
+import { aerialWgsl } from "../../../../packages/battle-renderer/src/shaders/aerial";
+import { equirectUvWgsl } from "../../../../packages/battle-renderer/src/shaders/physicalSky";
+import { fullscreenWGSL } from "../../../../packages/battle-renderer/src/shaders/post";
 import { readHdrTexture, unpackRgba16fRows } from "../../src/numericalReadback";
 
 const WIDTH = 33,

@@ -5,7 +5,7 @@ import type { CivsimEnvironment } from "../../../packages/game-renderer/src/envi
 import { cameraUniformData } from "../../../packages/renderer-core/src/cameraUniform";
 import { viewMatrix, type Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
 import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
-import type { CrowdAudiencePlan } from "./crowdData";
+import type { CrowdAudiencePlan } from "../../../packages/battle-renderer/src/crowdData";
 import { createTypegpuCrowd } from "../candidates/typegpu/crowd";
 import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
 import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";

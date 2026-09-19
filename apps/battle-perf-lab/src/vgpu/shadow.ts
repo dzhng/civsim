@@ -1,6 +1,6 @@
 import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { target, sampler, type Gpu, type Frame, type FramePass } from "vgpu";
-import { NativeShadowFrame } from "../shadowData";
+import { NativeShadowFrame } from "../../../../packages/battle-renderer/src/shadowData";
 import { SINGLE_MAP_SIZE } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import { destroyVgpuTarget } from "./targetLifetime";

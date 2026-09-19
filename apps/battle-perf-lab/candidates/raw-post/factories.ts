@@ -1,6 +1,6 @@
 import { destroyVgpuTarget } from "../../src/vgpu/targetLifetime";
 import { frame, target } from "vgpu";
-import { RawBattlePost } from "../../src/raw/post";
+import { RawBattlePost } from "../../../../packages/battle-renderer/src/world/post";
 import { createTypegpuPost } from "../typegpu/post";
 import { createVgpuPost } from "../../src/vgpu/post";
 import type { PostFactory } from "./control";

@@ -1,7 +1,7 @@
 // @vitest-environment node
 /// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
 import { startSceneFrames } from "../../../web/src/shared/sceneFrames";
-import { createCrowdAudienceHistory } from "../src/crowdAudienceHistory";
+import { createCrowdAudienceHistory } from "../../../packages/battle-renderer/src/crowdAudienceHistory";
 import type { CrowdProjectionView } from "../../../packages/crowd-runtime/src/visibility";
 import {
   checkpointObserverConfig,

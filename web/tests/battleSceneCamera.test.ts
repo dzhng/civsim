@@ -3,7 +3,7 @@ import { test, expect } from "vitest";
 import { PerspectiveCamera, WebGPUCoordinateSystem, Matrix4 } from "three/webgpu";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
-import { battleSceneCamera } from "../../apps/battle-perf-lab/src/sceneCamera";
+import { battleSceneCamera } from "../../packages/battle-renderer/src/sceneCamera";
 
 test("complete scene camera follows the source projection and billboard basis through a camera tour", () => {
   for (const pitch of [0.15, 0.6, 1.4])

@@ -3,7 +3,7 @@ import {
   type CrowdInstance,
 } from '../../../packages/crowd-runtime/src/instanceData';
 import type { AppearanceBundle } from '../../../packages/soldier-assets/src/appearanceBundle';
-import type { createRawBattleScene } from './raw/battleScene';
+import type { createRawBattleScene } from '../../../packages/battle-renderer/src/battleScene';
 import type { BattleReplayAssets, BattleReplayFrame, BattleReplaySettings } from './fixture';
 import {
   queueGrassPublications,

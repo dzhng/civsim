@@ -22,7 +22,7 @@ vi.mock("../terrain", () => ({
 vi.mock("../water", () => ({ createTypegpuWater: async () => layer() }));
 vi.mock("../scenery", () => ({ createTypegpuScenery: async () => layer() }));
 vi.mock("../backdrop", () => ({ createTypegpuBackdrop: async () => layer() }));
-vi.mock("../../../src/terrainScenePreparation", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/terrainScenePreparation", () => ({
   prepareBattleTerrain: (input: { grid: object; cover: string }) => ({
     ...input,
     grid: { ...input.grid },
@@ -39,7 +39,7 @@ vi.mock("../../../src/terrainScenePreparation", () => ({
   }),
 }));
 import { createTypegpuBattleTerrainScene } from "../terrainScene";
-import type { BattleTerrainInput } from "../../../src/sceneTypes";
+import type { BattleTerrainInput } from "../../../../../packages/battle-renderer/src/sceneTypes";
 import type { TypegpuEnvironment } from "../environment";
 import type { TgpuBindGroup, TgpuRenderPass } from "typegpu";
 const input = {

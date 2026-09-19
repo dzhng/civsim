@@ -22,11 +22,11 @@ import { expandedBattleTerrainRect } from "../../../../packages/game-renderer/sr
 import { terrainBackdropStyleForZoom } from "../../../../packages/game-renderer/src/battle/terrainBackdropPolicy";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
-import { RawBattleFrame } from "./frame";
-import { createRawEnvironment } from "./environment";
-import { RawSunShadow } from "./shadow";
-import { createRawBattleTerrainScene } from "./terrainScene";
-import type { BattleTerrainInput } from "../sceneTypes";
+import { RawBattleFrame } from "../../../../packages/battle-renderer/src/world/frame";
+import { createRawEnvironment } from "../../../../packages/battle-renderer/src/world/environment";
+import { RawSunShadow } from "../../../../packages/battle-renderer/src/world/shadow";
+import { createRawBattleTerrainScene } from "../../../../packages/battle-renderer/src/world/terrainScene";
+import type { BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";
 import { trackTextureLifetime } from "../textureLifetimeCheck";

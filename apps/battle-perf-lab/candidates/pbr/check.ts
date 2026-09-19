@@ -4,10 +4,10 @@ import { uniform, uv, vec4 } from "three/tsl";
 import { SkyModel } from "../../../../packages/photoreal-renderer/src/atmosphere/skyModel";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../../packages/game-renderer/src/environment/physicalEnvironment";
-import { standardPbrWgsl } from "../../src/shaders/standardPbr";
-import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../../src/shaders/dfgLut";
-import { cubeUvWGSL } from "../../src/shaders/pmrem";
-import { fullscreenWGSL } from "../../src/shared/postShader";
+import { standardPbrWgsl } from "../../../../packages/battle-renderer/src/shaders/standardPbr";
+import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../../../../packages/battle-renderer/src/shaders/dfgLut";
+import { cubeUvWGSL } from "../../../../packages/battle-renderer/src/shaders/pmrem";
+import { fullscreenWGSL } from "../../../../packages/battle-renderer/src/shaders/post";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../../src/numericalReadback";
 
 type V3 = [number, number, number];

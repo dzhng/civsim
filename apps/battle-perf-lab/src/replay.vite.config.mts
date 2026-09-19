@@ -1,11 +1,13 @@
 import { fileURLToPath } from 'node:url';
 import base from './raw/crowd.vite.config.mts';
 
-const field = fileURLToPath(new URL('./grassField.ts', import.meta.url));
+const field = fileURLToPath(new URL('../../../packages/battle-renderer/src/grassField.ts', import.meta.url));
 const provider = fileURLToPath(new URL('./CaptureGrassResidency.ts', import.meta.url));
-const residency = '../../../packages/game-renderer/src/battle/battleGrassResidency';
+// Matched by module name rather than one spelled-out relative depth, so moving
+// either side cannot silently drop the substitution and replay the wrong owner.
+const residency = 'battle/battleGrassResidency';
 
-/** Only the native lab field consumes resolved publications; the provider's
+/** Only the world's grass field consumes resolved publications; the provider's
  * own production import and all ordinary battle imports remain untouched. */
 export function nativeReplayResidencyPlugin() {
   return {
@@ -13,7 +15,7 @@ export function nativeReplayResidencyPlugin() {
     enforce: 'pre' as const,
     resolveId(source: string, importer?: string) {
       return importer?.split('?')[0] === field &&
-        (source === residency || source === `${residency}.ts`)
+        (source.endsWith(`/${residency}`) || source.endsWith(`/${residency}.ts`))
         ? provider
         : null;
     },
@@ -34,7 +36,7 @@ export default {
       entry: {
         spool: fileURLToPath(new URL('./nativeSpoolReplay.ts', import.meta.url)),
         control: fileURLToPath(new URL('./replayControl.ts', import.meta.url)),
-        scene: fileURLToPath(new URL('./raw/battleScene.ts', import.meta.url)),
+        scene: fileURLToPath(new URL('../../../packages/battle-renderer/src/battleScene.ts', import.meta.url)),
         typegpuScene: fileURLToPath(new URL('../candidates/typegpu/battleScene.ts', import.meta.url)),
         vgpuScene: fileURLToPath(new URL('./vgpu/battleScene.ts', import.meta.url)),
         publications: provider,

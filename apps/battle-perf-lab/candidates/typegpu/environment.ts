@@ -7,11 +7,11 @@ import { skyModelParams } from "../../../../packages/game-renderer/src/environme
 import { createTypegpuSky } from "./sky";
 import { createTypegpuPmrem } from "./pmrem";
 import { samplePmrem } from "./pmremSampling";
-import { standardPbrWgsl } from "../../src/shaders/standardPbr";
-import { aerialWgsl } from "../../src/shaders/aerial";
-import { equirectUvWgsl } from "../../src/shaders/physicalSky";
-import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../../src/shaders/dfgLut";
-import { environmentFunctions, type WorldSurfaceDiagnostic } from "../../src/shaders/environment";
+import { standardPbrWgsl } from "../../../../packages/battle-renderer/src/shaders/standardPbr";
+import { aerialWgsl } from "../../../../packages/battle-renderer/src/shaders/aerial";
+import { equirectUvWgsl } from "../../../../packages/battle-renderer/src/shaders/physicalSky";
+import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../../../../packages/battle-renderer/src/shaders/dfgLut";
+import { environmentFunctions, type WorldSurfaceDiagnostic } from "../../../../packages/battle-renderer/src/shaders/environment";
 
 const Environment = d.struct({
   worldToView: d.mat4x4f,

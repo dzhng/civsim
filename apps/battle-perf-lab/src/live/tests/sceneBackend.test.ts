@@ -13,7 +13,7 @@ vi.mock("../../vgpu/battleScene", () => ({
   createVgpuBattleScene: async () => ({ render: backend.render, dispose: backend.sceneDispose }),
 }));
 import { createSceneBackend } from "../../sceneBackend";
-import type { BattleSceneOptions } from "../../sceneTypes";
+import type { BattleSceneOptions } from "../../../../../packages/battle-renderer/src/sceneTypes";
 test("vgpu submission remains synchronous before validation, and every owner is released even if surface cleanup fails", async () => {
   let validate!: () => void;
   const validation = new Promise<void>((resolve) => {

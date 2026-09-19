@@ -7,8 +7,8 @@ import {
   type TgpuBindGroup,
 } from "typegpu";
 import { readU32Buffer } from "../../src/numericalReadback";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
-import { grassUniformData, type GrassFrame, type GrassGeometry } from "../../src/grassData";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
+import { grassUniformData, type GrassFrame, type GrassGeometry } from "../../../../packages/battle-renderer/src/grassData";
 import type { GrassRecordEdit } from "../../../../packages/game-renderer/src/battle/grassFocusTiles";
 import {
   GrassRecord,

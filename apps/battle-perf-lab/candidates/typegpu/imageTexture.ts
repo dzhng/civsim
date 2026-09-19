@@ -5,7 +5,7 @@ import type {
   ImageTextureOptions,
   RgbaTextureData,
 } from "../../../../packages/renderer-core/src/imageTexture";
-import { beginGpuAdmission } from "../../src/gpuAdmission";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 const input = tgpu.bindGroupLayout({ source: { texture: d.texture2d() } });
 const corners = tgpu.const(d.arrayOf(d.vec2f, 3), [
   d.vec2f(-1, -1),

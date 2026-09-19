@@ -1,5 +1,5 @@
-import { RawSunShadow } from "./shadow";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../shaders/shadow";
+import { RawSunShadow } from "../../../../packages/battle-renderer/src/world/shadow";
+import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../../packages/battle-renderer/src/shaders/shadow";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 export function createRawShadowControl(
   device: GPUDevice,

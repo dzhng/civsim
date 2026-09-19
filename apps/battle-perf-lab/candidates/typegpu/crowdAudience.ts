@@ -3,8 +3,8 @@ import type { AppearanceBundle } from "../../../../packages/soldier-assets/src/a
 import type { ImpostorAtlasData } from "../../../../packages/soldier-assets/src/impostorAtlas";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import type { CrowdProjectionView } from "../../../../packages/crowd-runtime/src/visibility";
-import type { ImpostorView } from "../../src/impostorData";
-import { createCrowdAudienceHistory } from "../../src/crowdAudienceHistory";
+import type { ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
+import { createCrowdAudienceHistory } from "../../../../packages/battle-renderer/src/crowdAudienceHistory";
 import type { TypegpuEnvironment } from "./environment";
 import { createTypegpuCrowd } from "./crowd";
 import { createTypegpuImpostors } from "./impostor";

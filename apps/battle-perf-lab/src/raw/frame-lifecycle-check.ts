@@ -1,10 +1,10 @@
-import { RawBattleFrame } from "./frame";
-import { createRawEnvironment } from "./environment";
+import { RawBattleFrame } from "../../../../packages/battle-renderer/src/world/frame";
+import { createRawEnvironment } from "../../../../packages/battle-renderer/src/world/environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import { trackBufferLifetime } from "../bufferLifetimeCheck";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
 import { compareHdr, readHdrTexture } from "../numericalReadback";
-import type { FrameCameraSnapshot } from "../frameCamera";
+import type { FrameCameraSnapshot } from "../../../../packages/battle-renderer/src/frameCamera";
 
 async function run() {
   const adapter = await navigator.gpu.requestAdapter();

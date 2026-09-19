@@ -1,10 +1,10 @@
 import { tgpu } from "typegpu";
 import { initFromDevice, frame, target } from "vgpu";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
-import { createRawEnvironment } from "./raw/environment";
+import { createRawEnvironment } from "../../../packages/battle-renderer/src/world/environment";
 import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
 import { createVgpuEnvironment } from "./vgpu/environment";
-import { createRawStandards } from "./raw/standards";
+import { createRawStandards } from "../../../packages/battle-renderer/src/world/standards";
 import { createTypegpuStandards } from "../candidates/typegpu/standards";
 import { createVgpuStandards } from "./vgpu/standards";
 import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";

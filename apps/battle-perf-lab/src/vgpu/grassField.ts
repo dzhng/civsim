@@ -1,7 +1,7 @@
-import { grassGeometries } from "../grassData";
+import { grassGeometries } from "../../../../packages/battle-renderer/src/grassData";
 import type { Gpu, FramePass } from "vgpu";
 import type { BladeFieldProfile } from "../../../../packages/game-renderer/src/battle/battleGrassResidency";
-import { createGrassField } from "../grassField";
+import { createGrassField } from "../../../../packages/battle-renderer/src/grassField";
 import { createVgpuGrass } from "./grass";
 import type { VgpuEnvironment } from "./environment";
 export async function createVgpuGrassField(

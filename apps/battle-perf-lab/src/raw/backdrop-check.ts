@@ -9,7 +9,7 @@ import { BattleBackgroundQuads } from "../../../../packages/photoreal-renderer/s
 import { createBattleFrameUniforms } from "../../../../packages/photoreal-renderer/src/battle/battleTsl";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
-import type { BackdropKind } from "../shaders/backdrop";
+import type { BackdropKind } from "../../../../packages/battle-renderer/src/shaders/backdrop";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 import { encodeRgba8Base64 } from "../imageTransport";
 import { trackTextureLifetime } from "../textureLifetimeCheck";

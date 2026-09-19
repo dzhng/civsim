@@ -1,6 +1,6 @@
 import { createSceneBackend, type SceneBackend } from "./sceneBackend";
 import { readU32Buffer } from "./numericalReadback";
-import type { BattleSceneOptions } from "./sceneTypes";
+import type { BattleSceneOptions } from "../../../packages/battle-renderer/src/sceneTypes";
 export type ReplayBackend = SceneBackend;
 export async function createReplayBackend(
   backend: ReplayBackend,

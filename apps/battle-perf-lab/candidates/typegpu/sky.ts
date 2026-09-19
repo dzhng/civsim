@@ -10,7 +10,7 @@ import {
   equirectUvWgsl,
   skyRadianceWgsl,
   skyDiscWgsl,
-} from "../../src/shaders/physicalSky";
+} from "../../../../packages/battle-renderer/src/shaders/physicalSky";
 
 const Rays = d.struct({ origin: d.vec3f, dx: d.vec3f, dy: d.vec3f });
 

@@ -1,11 +1,11 @@
-import { beginGpuAdmission } from "../../src/gpuAdmission";
-import { vistaOpacityWgsl } from "../../src/shaders/terrain";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
+import { vistaOpacityWgsl } from "../../../../packages/battle-renderer/src/shaders/terrain";
 import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d, std, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../../packages/game-renderer/src/battle/horizonPass";
-import type { TerrainMaterialOptions } from "../../src/shaders/terrainMaterial";
+import type { TerrainMaterialOptions } from "../../../../packages/battle-renderer/src/shaders/terrainMaterial";
 import { createTerrainSurface, terrainLinear } from "./terrainFunctions";
 import { type TypegpuEnvironment } from "./environment";
 

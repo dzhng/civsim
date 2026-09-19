@@ -1,12 +1,12 @@
 # Opaque standard-material numerical control
 
-The shared [lighting function](../../src/shaders/standardPbr.ts) follows the pinned
+The shared [lighting function](../../../../packages/battle-renderer/src/shaders/standardPbr.ts) follows the pinned
 Three 0.185.1 `MeshStandardNodeMaterial` and `PhysicalLightingModel`: Lambert
 reflection, GGX/Smith-correlated visibility, Schlick Fresnel, direct multiscattering,
 and separate dielectric/metallic IBL multiscattering. The exact
-[DFG texture bytes](../../src/shaders/dfgLut.ts) come from Three's `DFGLUT.js`;
+[DFG texture bytes](../../../../packages/battle-renderer/src/shaders/dfgLut.ts) come from Three's `DFGLUT.js`;
 substituting the older analytic DFG approximation changes this renderer's model.
-The adapted algorithms and data retain the [Three MIT license](../../src/shared/LICENSE.three).
+The adapted algorithms and data retain the [Three MIT license](../../../../packages/battle-renderer/src/shaders/LICENSE.three).
 
 The material function consumes linear base/emissive color, roughness, metalness,
 AO, unit world normal/view/light directions, directional radiance, shadow

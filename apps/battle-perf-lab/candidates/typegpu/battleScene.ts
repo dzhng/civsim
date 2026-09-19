@@ -1,13 +1,13 @@
-import { nativeGpuScope } from "../../src/nativeGpuTelemetry";
+import { nativeGpuScope } from "../../../../packages/battle-renderer/src/gpuScope";
 import type { TgpuCommandEncoder } from "typegpu";
 import { createSceneLifecycle } from "../../src/sceneLifecycle";
-import type { BattleSceneOptions } from "../../src/sceneTypes";
+import type { BattleSceneOptions } from "../../../../packages/battle-renderer/src/sceneTypes";
 import { createTypegpuEnvironment } from "./environment";
 import { TypegpuBattleFrame } from "./frame";
 import { createTypegpuSunShadow } from "./shadow";
 import { createTypegpuCrowdAudience } from "./crowdAudience";
 import { createTypegpuBattleTerrainScene } from "./terrainScene";
-import type { BattleTerrainInput } from "../../src/sceneTypes";
+import type { BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
 import { createTypegpuGrassField } from "./grassField";
 import { createTypegpuStandards } from "./standards";
 import { createTypegpuReadout } from "./readout";
@@ -16,8 +16,8 @@ import {
   createTypegpuRingLayer,
   createTypegpuTriangleLayer,
 } from "./overlay";
-import { battleSceneCamera } from "../../src/sceneCamera";
-import { reverseZFrustumPlanes } from "../../src/crowdFrustum";
+import { battleSceneCamera } from "../../../../packages/battle-renderer/src/sceneCamera";
+import { reverseZFrustumPlanes } from "../../../../packages/battle-renderer/src/crowdFrustum";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import type { CrowdProjectionView } from "../../../../packages/crowd-runtime/src/visibility";
 import {

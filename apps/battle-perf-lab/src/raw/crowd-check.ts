@@ -1,7 +1,7 @@
 import { createCrowdControlBackend } from "../crowdControlBackend";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
 import { sampleRigLocalPose } from "../../../../packages/soldier-assets/src/localPose";
-import type { WorldSurfaceDiagnostic } from "../shaders/environment";
+import type { WorldSurfaceDiagnostic } from "../../../../packages/battle-renderer/src/shaders/environment";
 import type { SoldierMeshData } from "../../../../packages/soldier-assets/src/mesh";
 import * as THREE from "three/webgpu";
 import {
@@ -43,13 +43,13 @@ import {
 } from "../../../../packages/crowd-runtime/src/visibility";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import { encodeRgba8Base64 } from "../imageTransport";
-import { createRawEnvironment, rawEnvironmentWgsl } from "./environment";
+import { createRawEnvironment, rawEnvironmentWgsl } from "../../../../packages/battle-renderer/src/world/environment";
 import {
   crowdQuadDiagnostic,
   crowdDerivativeDiagnostic,
   type SoldierDiagnostic,
-} from "../shaders/soldier";
-import { createRawCrowd } from "./crowd";
+} from "../../../../packages/battle-renderer/src/shaders/soldier";
+import { createRawCrowd } from "../../../../packages/battle-renderer/src/world/crowd";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 
 const backend = new URL(location.href).searchParams.get("backend") ?? "raw";

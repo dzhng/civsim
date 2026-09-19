@@ -1,4 +1,4 @@
-import type { BattleSceneOptions } from "./sceneTypes";
+import type { BattleSceneOptions } from "../../../packages/battle-renderer/src/sceneTypes";
 import { resolveDeviceCaps } from "../../../packages/renderer-core/src/capabilities";
 
 export type SceneBackend = "raw" | "typegpu" | "vgpu";
@@ -13,7 +13,7 @@ export async function createSceneBackend(
   options: BattleSceneOptions,
 ) {
   if (backend === "raw") {
-    const { createRawBattleScene } = await import("./raw/battleScene");
+    const { createRawBattleScene } = await import("../../../packages/battle-renderer/src/battleScene");
     const scene = await createRawBattleScene(
       device,
       resolveDeviceCaps({

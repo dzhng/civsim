@@ -1,4 +1,4 @@
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../shaders/shadow";
+import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../../packages/battle-renderer/src/shaders/shadow";
 import type { createVgpuSunShadow } from "./shadow";
 import { texture, sampler, type Gpu } from "vgpu";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
@@ -6,12 +6,12 @@ import { photorealEnvironment } from "../../../../packages/game-renderer/src/env
 import { skyModelParams } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import { createVgpuSky } from "./sky";
 import { createVgpuPmrem } from "./pmrem";
-import { cubeUvWGSL } from "../shaders/pmrem";
-import { standardPbrWgsl } from "../shaders/standardPbr";
-import { aerialWgsl } from "../shaders/aerial";
-import { equirectUvWgsl } from "../shaders/physicalSky";
-import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../shaders/dfgLut";
-import { environmentFunctions, type WorldSurfaceDiagnostic } from "../shaders/environment";
+import { cubeUvWGSL } from "../../../../packages/battle-renderer/src/shaders/pmrem";
+import { standardPbrWgsl } from "../../../../packages/battle-renderer/src/shaders/standardPbr";
+import { aerialWgsl } from "../../../../packages/battle-renderer/src/shaders/aerial";
+import { equirectUvWgsl } from "../../../../packages/battle-renderer/src/shaders/physicalSky";
+import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../../../../packages/battle-renderer/src/shaders/dfgLut";
+import { environmentFunctions, type WorldSurfaceDiagnostic } from "../../../../packages/battle-renderer/src/shaders/environment";
 
 /** The frame owner lends its vgpu context. Every prepared resource/pipeline is vgpu-owned. */
 export async function createVgpuEnvironment(

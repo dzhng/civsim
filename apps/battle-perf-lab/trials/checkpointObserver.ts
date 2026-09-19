@@ -5,7 +5,7 @@
  * camera it consumed, but no scene counts. `__game.stats()` carries the counts but
  * no frame identity. Reading the two on a timer correlates them wrongly, because a
  * frame's counts are published *during* preparation while `frameMetrics` is only
- * published at the *end* of it: `apps/battle-perf-lab/src/raw/battleScene.ts:308`
+ * published at the *end* of it: `packages/battle-renderer/src/battleScene.ts:308`
  * assigns `lastCamera` and `apps/battle-perf-lab/src/live/NativeBattleRenderer.ts`
  * uploads the crowd several `await`s before `web/src/battle/battleLoop.ts:273`
  * advances `frameId`. A poll landing inside a presentation therefore reports the

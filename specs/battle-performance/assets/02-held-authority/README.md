@@ -39,3 +39,15 @@ Existing unit-test expectations and performance thresholds were not repinned;
 constructor arguments gained explicit live authority and a supplied hash.
 New tests cover held state changes, clock progression, finite loop-only poses,
 retained positions and terminal authority holding. No gameplay stat changed.
+
+## Four-backend initial-contact checks
+
+All four fixed8643cf05 builds at tick9000 preserve the canonical hash through
+camera motion, new submitted frames and cancellation, with no page errors. Raw
+reports live in matrix/. Native initial status can precede the first recording,
+so their first camera field was absent. The explicit camera-evidence audit instead
+uses the existing second and cancellation samples: both have different recorded
+cameras and frame IDs, followed by an identical post-cancel frame. Later probes
+wait for a nonempty recording before their first sample. No report is rewritten.
+These short correctness runs may overlap CPU builds/tests and are not timing
+evidence, all-roster pose verification or full-tour acceptance.

@@ -21,8 +21,7 @@ there is no menu setting, and ordinary builds keep their original import.
   naming the held tick and the initial and final state hashes. The live scorecard
   rejects any report carrying a scope, and a trial record names its `measurement`.
   The completion scene applies held checks in place of "simulation remained live" and
-  still requires a pinned contact-state hash; only tick 9000 is pinned today, so a
-  12000 run fails that check until its hash is pinned from canonical evidence.
+  still requires a pinned contact-state hash; both contact ticks are pinned from independent canonical execution.
 - Camera tour, crowd poses and environment time all read the run's elapsed clock. The
   source renderer uses the packet's time only under this clock; live builds keep its
   per-hook wall-clock sampling.
@@ -56,4 +55,4 @@ Serve and run them exactly like live fixed builds, through the
 No simulation CPU is exercised during the window, so results describe rendering and
 presentation only. CPU tests cover the run, report, crowd presentation, source clock,
 build substitution and scorecard rejection. Whether the whole loop holds in a
-browser, the rendered motion and the tick 12000 contact hash remain unverified.
+browser, the rendered motion remain unverified.

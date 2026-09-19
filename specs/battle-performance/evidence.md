@@ -88,3 +88,5 @@ The [typed observation-source rerun](assets/03a-publication/canonical-observatio
 - [Exact bucket membership](assets/03a-bucket-membership/README.md): both candidate runs beat both controls in two tick windows; exact hashes and309 worker/direct ticks match. Later combat still misses30Hz.
 - [Crowd backface culling](assets/07-crowd-culling/README.md): actual pipeline use verified, no repeatable gain; production unchanged.
 - [Native await attribution](assets/02-native-await-profile/README.md): complete scope/CPU trace shows CPU work inside reported await time; no causal basis for removing validation waits.
+
+- [Post-bucket targeting attribution](assets/03a-targeting-attribution/README.md): all pinned hashes and counter conservation checks pass; discarded friend bearings motivate the next exact-semantics candidate. Per-body diagnostic timing is not performance evidence.

@@ -2,7 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 
 // Contact states pinned by independent canonical evidence. A held lab build at an
 // unpinned tick cannot pass until its state is pinned the same way.
-const CONTACT_STATE_HASHES = { 9000: "9928381812590497427" };
+const CONTACT_STATE_HASHES = {
+  9000: "9928381812590497427",
+  12000: "17530755159512483058",
+};
 
 export const meta = {
   name: "battle-benchmark-complete",

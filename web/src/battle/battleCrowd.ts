@@ -294,7 +294,8 @@ export class BattleCrowd {
 }
 
 function longestOneShotSeconds(catalog: Record<number, AppearanceBundle>): number {
-  return Math.max(
+  const duration = Math.max(
+    0,
     ...Object.values(catalog).flatMap(({ manifest, animation }) =>
       Object.values(manifest.presentation?.actions ?? {}).flatMap((action) =>
         animation.clips
@@ -303,4 +304,6 @@ function longestOneShotSeconds(catalog: Record<number, AppearanceBundle>): numbe
       ),
     ),
   );
+  // Loop-only catalogs need no wrap; their clips already cycle independently.
+  return duration > 0 ? duration : Infinity;
 }

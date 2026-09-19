@@ -62,7 +62,7 @@ const appearance = {
 const STRIDE = Math.max(...Object.values(UNIT_INFO)) + 1;
 
 /** The completed-tick records at the wasm boundary; everything above it is real. */
-function fixture() {
+function fixture(bundle = appearance) {
   vi.stubGlobal("location", { search: "" });
   const soldiers = 2;
   const state = {
@@ -105,7 +105,7 @@ function fixture() {
     positions: () => state.positions,
     unitInfo: () => unitInfo,
     stride: STRIDE,
-    renderer: { soldierAssets: { 0: appearance }, heightAt: () => 0, pxPerWorldAt: () => 80 },
+    renderer: { soldierAssets: { 0: bundle }, heightAt: () => 0, pxPerWorldAt: () => 80 },
     camera: { zoom: 2, yaw: 0 },
   } as unknown as BattleWorld;
   const crowd = new BattleCrowd(world, new BattleUnitPresentation(world));
@@ -163,4 +163,23 @@ test("held presentation replays one-shot actions instead of freezing them at the
   const replayed = crowd.prepareHeld(2 + 0.5, 0, [])!;
   expect(boneX(replayed.playback[0])).toBeCloseTo(2 + 0.5 / 1.5, 9);
   expect(replayed.positions[0]).toBe(0.5);
+});
+
+test("loop-only catalogs keep finite progressing poses without a replay boundary", () => {
+  const bundle = {
+    ...appearance,
+    animation: {
+      ...appearance.animation,
+      clips: appearance.animation.clips.map((clip) => ({ ...clip, loop: true })),
+    },
+  };
+  const { crowd, complete } = fixture(bundle);
+  complete(100);
+  const first = crowd.prepareHeld(0.25, 1 / 60, [])!;
+  const before = first.playback.map(boneX);
+  const later = crowd.prepareHeld(0.75, 1 / 60, [])!;
+  const after = later.playback.map(boneX);
+  expect(after.every(Number.isFinite)).toBe(true);
+  expect(after).not.toEqual(before);
+  expect(Array.from(later.positions)).toEqual([0, 0, 0, 0]);
 });

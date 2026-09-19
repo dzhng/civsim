@@ -3,8 +3,8 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **implementation in progress; no backend selected**, updated 2026-09-17.
-Current pickup: implement and verify a lab-only held-state camera tour for the
+Status: **implementation in progress; no backend selected**, updated 2026-09-19.
+Current pickup: verify the integrated lab-only held-state camera tour for the
 backend decision, following [the conditional comparison protocol](renderer-comparison.md).
 The live Menu benchmark remains unchanged. Its latest four-backend round completed
 functionally but did not meet performance targets, and different simulation progress
@@ -15,6 +15,12 @@ is integrated at5f418b5f. Current production WASM is e9f4f080…; all309 canonic
 worker/direct ticks match. Later combat still exceeds the30Hz budget. In parallel
 with the renderer-control implementation, refresh later-combat stage attribution
 before selecting another exact-semantics kernel optimization.
+[Fresh stage and visit counts](assets/03a-targeting-attribution/README.md) now select
+deferred friend-bearing calculation as the next candidate; Claude is implementing
+it in `game-battle-deferred-friend-bearing`. Held renderer source is integrated
+at aa6b1fa5 with root lifecycle/hash corrections. [Source browser control](assets/02-held-authority/README.md)
+passes fixed state, moving camera and cancellation; all-backend pose/environment
+parity and the full comparison remain next. No timing verdict yet.
 
 Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)
 has no repeatable measured benefit and is not adopted; [native await profiling](assets/02-native-await-profile/README.md)

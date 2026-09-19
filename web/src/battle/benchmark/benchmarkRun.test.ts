@@ -191,3 +191,20 @@ describe("held renderer-only benchmark", () => {
     expect(run.heldScope()?.finalStateHash).toBe("contact");
   });
 });
+
+for (const terminal of ["complete", "cancelled", "failed"] as const) {
+  it(`holds authority as soon as a live run is ${terminal}`, () => {
+    const run = new BenchmarkRun({ ...BATTLE_BENCHMARK_SCENARIO, durationMs: 100 }, 0, {
+      kind: "live",
+    });
+    const holds: boolean[] = [];
+    run.subscribe(() => holds.push(run.holdsAuthority));
+    run.frame(0, run.scenario.startTick, -1, "a");
+    expect(run.holdsAuthority).toBe(false);
+    if (terminal === "complete") run.frame(101, run.scenario.startTick + 3, -1, "b");
+    else if (terminal === "cancelled") run.cancel(101, run.scenario.startTick + 3);
+    else run.fail("interrupted", 101, run.scenario.startTick + 3);
+    expect(run.status().phase).toBe(terminal);
+    expect(holds.at(-1)).toBe(true);
+  });
+}

@@ -159,6 +159,8 @@ function buildBattleScene(
     ? new BenchmarkRun(cfg.benchmark, performance.now(), BENCHMARK_AUTHORITY)
     : null;
   const heldBenchmark = BENCHMARK_AUTHORITY.kind === "held" ? benchmark : null;
+  if (benchmark)
+    cleanups.push(benchmark.subscribe(() => time.setHolding(benchmark.holdsAuthority)));
   const recording = benchmark ? new BenchmarkRecording(benchmark.scenario.durationMs) : null;
   let benchmarkIdentity: BenchmarkIdentity | null = null;
   let terminalBenchmarkReport: ReturnType<typeof createBenchmarkReport> | null = null;
@@ -334,7 +336,6 @@ function buildBattleScene(
         benchmark.frame(now, sim.tick(), sim.victor(), sim.stateHash());
       if (benchmark.status().phase === "running") {
         recording!.start(now, renderer.gpuEventsSince(0)?.nextSequence ?? 0);
-        time.setHolding(benchmark.holdsAuthority);
       }
     }
     if (benchmark?.status().phase === "running")

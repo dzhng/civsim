@@ -71,7 +71,7 @@ export class BenchmarkRun {
   }
   /** The authority holds its contact tick until timing starts; a held run never releases it. */
   get holdsAuthority() {
-    return this.held !== null || this.runningAt === null;
+    return this.held !== null || !this.active || this.runningAt === null;
   }
   get active() {
     return this.state.phase === "preparing" || this.state.phase === "running";

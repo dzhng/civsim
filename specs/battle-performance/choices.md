@@ -473,3 +473,21 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Verdict:** Sound, medium confidence. It removes a demonstrated workload
   confound while retaining the harder live requirement; it cannot prove absolute
   performance or perfectly identical per-frame work.
+
+### Replay held poses without inventing simulation events
+
+- **When:** Held renderer comparison implementation.
+- **Choice:** The lab holds each soldier's actual contact position and action
+  history, then repeatedly samples a bounded interval of that history while the
+  camera moves. A single attack would otherwise finish and stay still forever.
+  The replay period uses the catalog's longest one-shot clip; looping-only catalogs
+  need no wrap. Poses jump at the shared replay boundary, so this is an artificial
+  rendering workload, not evidence of natural battle animation or smoothness.
+- **Gap:** A fixed battle state has no future attacks to animate. The plan required
+  continuing pose work but did not choose between synthetic events and repeating
+  the observed history.
+- **Reach:** All backends share this clock and replay policy. Ordinary Menu play
+  retains the simulation timeline. Final motion acceptance must use live battles.
+- **Verdict:** Sound, medium confidence. Reusing actual observations avoids a
+  second event simulator; repeated pose work remains representative only of the
+  declared held input, so the limitation stays explicit in every comparison.

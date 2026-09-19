@@ -148,6 +148,46 @@ report, the export when it was this run's. The archived export is only accepted
 when the scene wrote it during this trial, so a previous run's bytes can never be
 filed as this one's evidence.
 
+## The checkpoint observer is a separate, unrankable runner
+
+`runCheckpointObserver.ts` answers a different question from a trial: at the same
+few moments of a held run, is every backend drawing the same scene? It reuses this
+runner's provenance sweep and the same unchanged scene, and owns no clock, no host
+evidence and no verdict about speed. Wrapping the page's frame scheduling is itself
+an intervention, so its archive says `rankable: false` and its output may never
+enter a timing comparison.
+
+The one thing it adds is a coherent place to read from. Scene counts are published
+when a frame's preparation _starts_; `frameMetrics` only when it _ends_. Polling
+therefore pairs one frame's identity with the next frame's counts. The observer
+instead samples at `requestAnimationFrame` registration, and only when the completed
+frame id has advanced — an instant the source guarantees falls after one frame
+published everything and before the next begins preparing. `checkpointObserver.ts`
+carries the argument with its source citations; it is the file to read before
+trusting a sample. Values are taken by value there, so nothing drifts under a
+retained reference.
+
+`compareCheckpoints.ts` reads the archives offline. The source and lab builds spell
+the same planner's numbers differently and hang them in different places, so the
+field map is written out with the trace behind each pair, an absent field is an
+error rather than a zero, and anything that exists on one shape only is reported
+beside the comparison instead of inside it. Checkpoint windows are approximate by
+construction — a completed frame lands _near_ a declared second, never on it — and
+a checkpoint with no frame in its window fails the run and records how near the
+nearest one got.
+
+```sh
+node apps/battle-perf-lab/trials/runCheckpointObserver.ts \
+  --backend raw --url http://127.0.0.1:5261/ \
+  --build-manifest <held-builds>/manifest.json \
+  --render-config <declaration>.json \
+  --out <checkpoints>/raw-12000
+node apps/battle-perf-lab/trials/compareCheckpoints.ts <checkpoints>/*/checkpoints.json
+```
+
+One backend at a time, like a trial, and never interleaved with one: it drives the
+same five-minute window through the same browser.
+
 ## Verification
 
 `trials/*.test.ts` run under the lab's Vitest configuration and cover the seams
@@ -157,8 +197,11 @@ artifacts, a manifest missing a required field, read-budget and malformed-size
 refusals, the exit-code and
 scenario-evidence rules, declaration-versus-recording disagreement, host coverage
 and shared-process attribution, refusal to overwrite, the functional/ranking
-split, and the storage key pinned against the real settings owner. The browser
-seam is injected, so none of them start Chrome.
+split, and the storage key pinned against the real settings owner. The checkpoint
+observer's own tests drive the real `startSceneFrames` pump — asynchronous frames,
+nested registrations during preparation, a competing animation loop, a stopped pump
+— and read the real crowd audience owner's stats rather than a hand-written shape.
+The browser seam is injected, so none of them start Chrome.
 
 Actual browser validation is the orchestrator's, on the machine holding the GPU:
 serve one fixed build at a time with the preview command its build README records,

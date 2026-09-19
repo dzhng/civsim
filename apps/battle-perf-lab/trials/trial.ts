@@ -256,7 +256,7 @@ async function withPeriodicObservations<T>(
   }
 }
 
-async function archive(
+export async function archive(
   outDir: string,
   name: string,
   bytes: Uint8Array,
@@ -265,7 +265,7 @@ async function archive(
   return { name, bytes: bytes.byteLength, sha256: sha256Bytes(bytes) };
 }
 
-const encode = (value: unknown): Uint8Array =>
+export const encode = (value: unknown): Uint8Array =>
   new TextEncoder().encode(`${JSON.stringify(value, null, 2)}\n`);
 
 /**

@@ -108,7 +108,7 @@ async function* boundedBody(body: ReadableStream<Uint8Array>, maxBytes: number) 
   }
 }
 
-const fetchResource = async (url: string, limits: FetchLimits): Promise<FetchedResponse> => {
+export const fetchResource = async (url: string, limits: FetchLimits): Promise<FetchedResponse> => {
   const response = await fetch(url, { signal: AbortSignal.timeout(limits.timeoutMs) });
   return {
     status: response.status,
@@ -117,13 +117,24 @@ const fetchResource = async (url: string, limits: FetchLimits): Promise<FetchedR
   };
 };
 
+/** An extra page seam. Absent for a timing trial, which must stay as it was. */
+export interface BenchmarkPageHooks {
+  /** Evaluated in the fresh context before any app module runs. */
+  initScript?: { fn: (argument: never) => void; argument: unknown };
+  /** Read back from the page once the scene has finished. */
+  collect?: (page: any) => Promise<unknown>;
+}
+
 /**
  * Drives the unchanged `battle-benchmark-complete` scene through the shared
  * `runSelected` runner. The wrapper adds only an isolated-context init script,
  * one startup observation and one terminal observation: no extra per-frame
  * scan, no screenshot, no second recording of the Menu's own measurements.
  */
-async function runBenchmark(request: BenchmarkRequest): Promise<BenchmarkOutcome> {
+export async function runBenchmark(
+  request: BenchmarkRequest,
+  hooks: BenchmarkPageHooks = {},
+): Promise<BenchmarkOutcome & { collected: unknown }> {
   // The scene runner reads its target and report path when its module first
   // loads, so the environment must be complete before the import below. One
   // trial per process follows from that.
@@ -144,6 +155,7 @@ async function runBenchmark(request: BenchmarkRequest): Promise<BenchmarkOutcome
 
   let startupStats: unknown = null;
   let terminalStats: unknown = null;
+  let collected: unknown = null;
   let browserVersion: string | null = null;
   let sceneError: string | null = null;
   const observe = () => {
@@ -162,33 +174,44 @@ async function runBenchmark(request: BenchmarkRequest): Promise<BenchmarkOutcome
       let page: any = null;
       let startup: Promise<unknown> = Promise.resolve({ error: "the scene never opened a page" });
       browserVersion = typeof ctx.browser?.version === "function" ? ctx.browser.version() : null;
-      await scene.run({
-        ...ctx,
-        newPage: async (options: unknown) => {
-          page = await ctx.newPage(options);
-          // Evaluated in the fresh context before any app module runs, so the
-          // real settings owner reads an unmuted value at first construction.
-          await page.addInitScript(
-            ([key, value]: [string, string]) => {
-              try {
-                window.localStorage.setItem(key, value);
-              } catch {}
-            },
-            [GRAPHICS_SETTINGS_STORAGE_KEY, JSON.stringify(TRIAL_GRAPHICS_OVERRIDE)],
-          );
-          startup = (async () => {
-            await page.waitForURL("**/benchmark", { timeout: 120000 });
-            await page.waitForFunction(
-              () => (window as unknown as { __ready: boolean }).__ready === true,
-              undefined,
-              { timeout: 120000 },
+      try {
+        await scene.run({
+          ...ctx,
+          newPage: async (options: unknown) => {
+            page = await ctx.newPage(options);
+            // Evaluated in the fresh context before any app module runs, so the
+            // real settings owner reads an unmuted value at first construction.
+            await page.addInitScript(
+              ([key, value]: [string, string]) => {
+                try {
+                  window.localStorage.setItem(key, value);
+                } catch {}
+              },
+              [GRAPHICS_SETTINGS_STORAGE_KEY, JSON.stringify(TRIAL_GRAPHICS_OVERRIDE)],
             );
-            return page.evaluate(observe);
-          })();
-          void startup.catch(() => {});
-          return page;
-        },
-      });
+            if (hooks.initScript)
+              await page.addInitScript(hooks.initScript.fn, hooks.initScript.argument);
+            startup = (async () => {
+              await page.waitForURL("**/benchmark", { timeout: 120000 });
+              await page.waitForFunction(
+                () => (window as unknown as { __ready: boolean }).__ready === true,
+                undefined,
+                { timeout: 120000 },
+              );
+              return page.evaluate(observe);
+            })();
+            void startup.catch(() => {});
+            return page;
+          },
+        });
+      } finally {
+        // The page is still open here and `runSelected` closes it next, so a scene
+        // that threw still surrenders whatever the hook had collected.
+        if (page && hooks.collect)
+          collected = await hooks
+            .collect(page)
+            .catch((error: unknown) => ({ error: String(error) }));
+      }
       startupStats = await startup.catch((error: unknown) => ({ error: String(error) }));
       terminalStats = page
         ? await page.evaluate(observe).catch((error: unknown) => ({ error: String(error) }))
@@ -226,6 +249,7 @@ async function runBenchmark(request: BenchmarkRequest): Promise<BenchmarkOutcome
     terminalStats,
     browserVersion,
     error: sceneError,
+    collected,
   };
 }
 

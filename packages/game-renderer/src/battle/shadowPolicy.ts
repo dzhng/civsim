@@ -794,22 +794,17 @@ export function viewShadowFit(input: ShadowViewFitInput): ShadowViewFit {
   const farPlane = Math.floor(ldMin / SHADOW_DEPTH_QUANTUM) * SHADOW_DEPTH_QUANTUM;
   const near = SHADOW_FIT_NEAR;
   const far = near + Math.max(SHADOW_DEPTH_QUANTUM, nearPlane - farPlane);
-  // The crowd starts where the map does, dropped by what separates the two
-  // ceilings' lifts. Taken exactly, that drop also carries the remainder
-  // `nearPlane` rounded away — a quantity no installed field records, so two
-  // framings can rasterise the same map and still disagree on it, and a
-  // retained map would keep an audience its own fit never computed. Quantising
-  // the drop DOWN to the map's own depth step discards that remainder: the
-  // plane becomes the sun's and the two ceilings' alone, and sits at most two
-  // quanta further UP-SUN than the exact one — so it admits every crowd caster
-  // the exact plane did, plus a thin band above them. The clamp holds it inside
-  // the map's own depth range; it is inert while a cliff stands above a body.
-  const crowdDrop =
+  // The exact crowd near distance is near + (global lift - crowd lift) plus
+  // the map's camera-dependent depth-rounding remainder in [0, quantum).
+  // Round the constant difference down instead: the audience then depends on
+  // the installed map and sun, with less than two extra depth quanta admitted.
+  // It is conservative and needs no independent per-frame audience revision.
+  const crowdNearOffset =
     Math.floor(
       (casterLift(SHADOW_CASTER_CEILING) - casterLift(SHADOW_CROWD_CASTER_CEILING)) /
         SHADOW_DEPTH_QUANTUM,
     ) * SHADOW_DEPTH_QUANTUM;
-  const crowdNear = Math.min(far, Math.max(near, near + crowdDrop));
+  const crowdNear = Math.min(far, Math.max(near, near + crowdNearOffset));
   const eyeDepth = nearPlane + near;
   const position: Vec3 = [
     basis.right[0] * cx + basis.upAxis[0] * cy + basis.depth[0] * eyeDepth,

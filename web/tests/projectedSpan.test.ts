@@ -10,6 +10,7 @@ import {
   eyePosition,
   type Camera3DParams,
 } from "@packages/renderer-core/src/camera3d";
+import { orthographicReverseZ } from "@packages/renderer-core/src/mat4";
 
 const camera: Camera3DParams = {
   target: [0, 0, 2.368040807505029],
@@ -66,5 +67,28 @@ test("overhead projection remains finite while near intersections and behind-cam
   assert.equal(projectedSpanPixels(p, ...eye, 1.8), 0);
   // Two metres down the view ray: a four-metre reference span crosses near.
   assert.equal(projectedSpanPixels(p, eye[0], eye[1], eye[2] - 2, 4), Infinity);
+  assert.equal(projectedSpanPixels(p, eye[0], eye[1], eye[2] + 10, 1.8), 0);
+});
+
+test("an orthographic near crossing keeps its depth-independent footprint", () => {
+  // The production shadow path: a fitted orthographic crowd projection over the
+  // held whole-map extent (shadowData.ts), not a perspective rig.
+  const extent = 465.6613,
+    near = 1;
+  const shadow: Camera3DParams = { ...camera, distance: 300, pitch: Math.PI / 2, near };
+  const p = projectionFootprint(
+    viewMatrix(shadow),
+    orthographicReverseZ(-extent, extent, extent, -extent, near, 1000),
+    1024,
+    near,
+  );
+  assert.equal(p.perspective, false);
+  const eye = eyePosition(shadow);
+  // An orthographic span projects the same at every depth, so the footprint a
+  // body straddling near demands is the one it shows anywhere else.
+  const far = projectedSpanPixels(p, eye[0], eye[1], eye[2] - 200, 1.8);
+  assert.ok(Math.abs(far - 1.8 * p.pixelsPerViewUnit) < 1e-12 && far > 0);
+  assert.equal(projectedSpanPixels(p, eye[0], eye[1], eye[2] - near, 1.8), far);
+  // Wholly past near still makes no contribution: that span is clipped away.
   assert.equal(projectedSpanPixels(p, eye[0], eye[1], eye[2] + 10, 1.8), 0);
 });

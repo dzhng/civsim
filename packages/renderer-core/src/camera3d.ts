@@ -112,8 +112,20 @@ export function projectionDepth(
   return -(m[2] * x + m[6] * y + m[10] * z + m[14]);
 }
 
-/** Camera-facing span, stable at overhead views. Near-plane crossings demand
- * full detail; wholly near/behind spans make no view contribution. */
+/** Only a perspective footprint grows without bound as a span approaches the
+ * eye, so only a perspective near crossing demands full detail. An orthographic
+ * span covers the same pixels at every depth, near crossing or not. Both LOD
+ * audiences ask this of the projection rather than deciding it themselves. */
+export function nearCrossingDemandsFullDetail(
+  projection: ProjectionFootprint,
+  depth: number,
+  halfExtent: number,
+): boolean {
+  return projection.perspective && depth - halfExtent <= projection.near;
+}
+
+/** Camera-facing span, stable at overhead views. Wholly near/behind spans make
+ * no view contribution. */
 export function projectedSpanPixels(
   projection: ProjectionFootprint,
   x: number,
@@ -123,7 +135,7 @@ export function projectedSpanPixels(
 ): number {
   const depth = projectionDepth(projection, x, y, z);
   if (depth + span / 2 <= projection.near) return 0;
-  if (depth - span / 2 <= projection.near) return Infinity;
+  if (nearCrossingDemandsFullDetail(projection, depth, span / 2)) return Infinity;
   return (span * projection.pixelsPerViewUnit) / (projection.perspective ? depth : 1);
 }
 

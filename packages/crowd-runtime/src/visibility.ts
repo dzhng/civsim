@@ -7,7 +7,11 @@ import {
   LOD_COUNT_KEYS,
   type LodLevel,
 } from "./lod";
-import { projectionDepth, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
+import {
+  nearCrossingDemandsFullDetail,
+  projectionDepth,
+  type ProjectionFootprint,
+} from "../../renderer-core/src/camera3d";
 import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
 
 /** Normalized inward-facing plane equations; Three Frustum planes satisfy this
@@ -88,10 +92,9 @@ export function planCrowdLods(
       if (!intersectsSphere(view.frustum.planes, x, y, z, radius)) continue;
       visibility[index] |= view.shadow ? 2 : 1;
       const depth = projectionDepth(view.projection, x, y, z);
-      const pixels =
-        depth - radius <= view.projection.near
-          ? Infinity
-          : instanceScreenSize(inst, view.projection);
+      const pixels = nearCrossingDemandsFullDetail(view.projection, depth, radius)
+        ? Infinity
+        : instanceScreenSize(inst, view.projection);
       if (view.shadow) shadowPixels = Math.max(policy.minScreenPixels, shadowPixels, pixels);
       else viewPixels = Math.max(viewPixels, pixels);
     }

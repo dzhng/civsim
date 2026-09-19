@@ -406,6 +406,22 @@ test("near-plane bounds keep full detail and corpse shading never moves authored
   assert.equal(admission.screenSizes[0], admission.screenSizes[1]);
 });
 
+test("a shadow caster crossing the orthographic near plane keeps its measured tier", () => {
+  // Same crossing as the perspective case above, under the held whole-map
+  // shadow extent. The caster straddles near: its bounds sphere reaches depth
+  // 1.8 while the near plane sits at 1.
+  const view = shadowView(465.6613);
+  const straddling = { ...body(0, 0), mounted: true, elevation: 298.2 };
+  const plan = planCrowdLods([straddling], [view], assets);
+  assert.equal(plan.visibility[0], 2, "a near crossing is still inside the shadow frustum");
+  // An orthographic footprint does not diverge at near, so this caster demands
+  // the few pixels it actually covers rather than the finest mesh.
+  const pixels = 2.61 * view.projection.pixelsPerViewUnit;
+  assert.ok(Math.abs(plan.shadowScreenSizes[0] - pixels) < 1e-12);
+  assert.equal(plan.shadowLevels[0], COARSEST_SHADOW_LOD);
+  assert.deepEqual(plan.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 1, l4: 0 });
+});
+
 test("projected LOD reuses both audience buffers and clears only the active visibility prefix", () => {
   const instances = [10, 60, 150, 300, 1000].map((y) => body(0, y));
   const out = createCrowdLodBuffers(8);

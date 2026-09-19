@@ -6,34 +6,45 @@ You are implementing this plan in `/Users/david/dev/game-battle-performance-spec
 Status: **implementation active; renderer measurements complete; production
 backend not yet selected**, updated2026-09-20.
 
-Current pickup: close coherent interior scene-count correctness, then record the
-backend decision and materialize its migration graph. All24 declared held tours
-and8 confirmation tours completed:32 functional passes,32 failed quiet-host
-verdicts. The [comparison evidence](assets/02-held-rounds/README.md) and
-[confirmation](assets/02-held-rounds/confirmation/README.md) establish a conditional
-raw/TypeGPU performance tie under the declared rule. Do not start another broad
-timing campaign. Use maintenance/quality to decide, retaining host uncertainty.
-These held runs are not live acceptance.
+Current pickup: run the prepared packed-targeting release ABBA, then the coherent
+interior-checkpoint browser controls and backend decision. All24 declared held
+tours and8 confirmations completed:32 functional passes,32 failed quiet-host
+verdicts. The [comparison evidence](assets/02-held-rounds/README.md) establishes
+a conditional raw/TypeGPU performance tie under the declared rule. No additional
+broad timing round is planned. Use maintenance/quality after correctness; held
+runs are not live acceptance.
 
-Claude Opus is implementing the separate non-timed checkpoint observer in
-`/Users/david/dev/game-battle-checkpoint-observer`, branch
-`codex/battle-checkpoint-observer`, revision session79624. The first draft was
-interrupted after root found false native-counter claims and excessive callback
-heuristics; notes are `throwaway/checkpoint-root-review/notes.txt`. Root must verify a coherent
-completed-frame boundary: polling mutable stats during async preparation can mix
-frames. Fixed timing builds remain immutable; approximate camera samples cannot
-prove exact geometry parity. Root owns hardware verification. A separate
-read-only kernel consultation (session34279, terminal) led to a packed targeting
-candidate in `/Users/david/dev/game-battle-packed-target-bodies`, session64480.
-Root corrected its assumptions: combat can move live positions, and team IDs are
-u32. Only stable body-grid data may be packed; fighting and live positions remain
-live. Review and exact-hash release ABBA precede adoption. A third isolated Opus
-pass prepares the lab whole-map shadow control in
-`/Users/david/dev/game-battle-whole-map-control`, revision session85813. Its first
-commit c3f4e35e passes focused tests and independent review, but root requested
-read-time CPU-policy telemetry instead of per-frame counters falsely described
-as rasterization. Review notes and original result live in that worker’s
-`throwaway/whole-map-worker/`. Both passes are candidates, not integrated changes. All hardware timing remains idle until root schedules it.
+The [checkpoint observer](assets/02-held-authority/checkpoint-observer/README.md)
+is integrated, including root's missing-Menu-frame regression fix. It samples
+completed frames at the next animation-frame registration and snapshots by value.
+All68 trial tests and scoped TypeScript pass. Actual frozen terminal records show
+five tier keys across all eight builds; older three-tier artifacts were not those
+builds. Run the six50ms-window checkpoints against the immutable held builds, one
+backend at a time, through `runCheckpointObserver.ts`; compare each held tick's
+four archives. These are non-timed correctness controls, approximate camera poses,
+not exact geometry parity or an excuse to re-rank performance.
+
+The [whole-map shadow control](assets/08-whole-map-control/README.md) is integrated.
+Root source/raw full Menu builds,11 control tests and independent review pass.
+Diagnostics read the installed CPU policy on demand; they do not prove GPU work.
+Outside-volume receiver equivalence and final A/B/C hardware proof remain open.
+
+Packed targeting candidate1bc2c7a5 remains isolated in
+`/Users/david/dev/game-battle-packed-target-bodies`. Focused/broad sim tests and
+independent review pass without repins. It packs only stable body-grid data;
+live positions/fighting stay live and team IDs retain all32 bits. Immutable
+release builds are ready under `throwaway/packed-target-pair/`: control fd2fef9d…
+matches production byte-for-byte; candidate b42782f4…. Run `run.py` there only
+once (it refuses existing output), inspect `runs/` and any existing process before
+launching. No hardware timings have been claimed for it. Adopt only after all five
+hashes match and both candidates beat both controls at both combat windows, then
+verify worker/direct parity and an integrated build matching the candidate.
+
+Both integrated helper worktrees were removed after verified scratch archives in
+`throwaway/worktree-cleanup-2026-09-20/integrated-controls/`; branch refs remain.
+The packed-targeting worktree is still needed until its candidate is resolved.
+Root owns all serialized hardware windows; no build/test/GPU work overlaps CPU
+timing, and no build/test/CPU timing overlaps GPU timing.
 
 Priority after that decision: unchanged simulation throughput, then unresolved
 camera/grass/LOD quality, stable readable default shadows, and final live net

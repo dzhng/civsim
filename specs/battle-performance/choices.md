@@ -508,3 +508,36 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   guarantee because earlier combat can move soldiers.
 - **Verdict:** Sound, high confidence. It removes measured discarded work without
   a mutable-state cache or changing selected identities, order or float inputs.
+
+### Observe checkpoint counts between completed frames
+
+- **When:** Coherent checkpoint observer implementation,08eccc27/bc562430.
+- **Choice:** The lab watches the game's request to schedule its next animation
+  frame. When that request first sees a new completed-frame ID, the previous
+  presentation has finished and the next has not started preparing. Copy its
+  camera and scene counts then. A timer could instead catch half-prepared counts
+  beside the previous frame's camera, producing misleading comparison evidence.
+- **Gap:** The plan required common checkpoints but the frozen reports contained
+  no interior scene counts and did not prescribe a coherent observation hook.
+- **Reach:** This depends on the existing single-frame pump's settlement contract,
+  pinned by tests using that real pump. The observer leaves timed builds unchanged;
+  its own runs are explicitly unusable as timing evidence.
+- **Verdict:** Sound, high confidence. It uses an existing ownership boundary and
+  keeps approximate camera matching distinct from exact work/quality parity.
+
+### Build the old shadow fit without a product mode
+
+- **When:** Whole-map measurement control,1f5c6e1d/e5a49527.
+- **Choice:** A lab build redirects the shared shadow policy to its existing
+  whole-map fallback. A constructor-time weak reference lets diagnostics read the
+  installed CPU fit when requested. It adds no per-frame diagnostic work or
+  user-facing setting. Copying a second shadow algorithm would risk divergence;
+  logging every camera update would add unmatched measurement overhead.
+- **Gap:** The net-shadow experiment needed optimized rendering with the original
+  shadow coverage, a combination that no production revision already supplied.
+- **Reach:** Source anchors reject drift; the experiment owns this temporary build
+  option. The diagnostic is the latest registered CPU policy, not proof of GPU
+  draws or that a disposed object has already been collected. Original receiver
+  behavior outside the old shadow volume still needs visual verification.
+- **Verdict:** Sound, high confidence. One existing fit owner supplies both variants,
+  while the diagnostic's limits and remaining hardware obligations stay explicit.

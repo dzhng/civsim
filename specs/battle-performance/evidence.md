@@ -104,3 +104,19 @@ reverse raw/TypeGPU ordering, with phase and low-FPS tradeoffs. Apply the declar
 performance tie and maintenance/quality decision rule; no new broad timing round.
 This is conditional selection evidence only. Common coherent interior scene counts,
 final live throughput, camera/shadow quality and net shadow savings remain open.
+
+## Coherent checkpoint and original-shadow controls —2026-09-20
+
+The [checkpoint observer](assets/02-held-authority/checkpoint-observer/README.md)
+now uses the completed-frame scheduling boundary and copies stats immediately.
+Independent review plus68 trial tests pass; root's red/green test prevents a
+missing matching Menu frame from bypassing camera verification. Field extraction
+works on the actual eight frozen terminal records. Interior browser counts remain
+uncollected; the older four-key records cited in a worker report were not the
+frozen8643cf05 builds, whose histograms have five keys.
+
+The [whole-map control](assets/08-whole-map-control/README.md) preserves the
+existing fallback through a lab-only transform. Read-time diagnostics expose only
+the installed CPU policy. Eleven control tests, independent review, typechecking
+and full source/raw Menu builds pass. GPU validation, outside-volume visual parity
+and the A/B/C net-cost measurement remain open.

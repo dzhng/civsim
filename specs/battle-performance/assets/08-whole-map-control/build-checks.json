@@ -1,0 +1,255 @@
+{
+  "scope": "Full Menu build check only; not fixed timing artifacts or GPU verification",
+  "commit": "e5a49527cde81c02982c9226a1d7ec71740d71e1",
+  "wasmSha256": "fd2fef9df9b05b33c7ee8fa8df8b7fc9c68b323576dd4332be4a1835af3d9674",
+  "inheritedBattleEnvironment": {},
+  "builds": [
+    {
+      "backend": "source",
+      "outDir": "/Users/david/dev/game-battle-performance-spec/throwaway/whole-map-root-review/source",
+      "config": "apps/battle-perf-lab/src/source/vite.config.mts",
+      "environment": {
+        "BATTLE_SHADOW_FIT": "whole-map"
+      },
+      "artifacts": [
+        {
+          "path": "assets/ai-worker-BpilnipM.js",
+          "bytes": 16118,
+          "sha256": "91a37728f7f75bba1e44a6647db4a87fd420700b576cf2a6158ef542f2c58f3d"
+        },
+        {
+          "path": "assets/battleSimWorker-qWNR-QHs.js",
+          "bytes": 29053,
+          "sha256": "be359b2551342f90b15b1a010b67a6b6f4956af346d428d069e80af91fe1e509"
+        },
+        {
+          "path": "assets/game_wasm-CNn7ZWK-.js",
+          "bytes": 16278,
+          "sha256": "4b1c957396a18d481d866861e9a793edc16f817c4313eeec358e021234eb4b8d"
+        },
+        {
+          "path": "assets/game_wasm-D2Zw-ut6.js",
+          "bytes": 179,
+          "sha256": "9ac5dc9b466b04797a931ded3f1da1220e8d93be0c95901503a1e9c6ee6333d5"
+        },
+        {
+          "path": "assets/game_wasm_bg-D6GAYszC.wasm",
+          "bytes": 1086622,
+          "sha256": "fd2fef9df9b05b33c7ee8fa8df8b7fc9c68b323576dd4332be4a1835af3d9674"
+        },
+        {
+          "path": "assets/human-w4nskSxz.glb",
+          "bytes": 52728,
+          "sha256": "3c58cb89b03d1b13c6c770a32d0dd044e4f8c847c5437549843e76e6f6ea003d"
+        },
+        {
+          "path": "assets/human.landmarks-BnKL1m5c.json",
+          "bytes": 57491,
+          "sha256": "48def30d4b721c7da028277b8dcbc052d579a68a2f1b20fa10b49ff6107caefb"
+        },
+        {
+          "path": "assets/index-B1ohnt2y.js",
+          "bytes": 204705,
+          "sha256": "cbbcea5b4939ff86a10c8c85516dbff4bafacb3aea148e77f27dc787d7efcb50"
+        },
+        {
+          "path": "assets/index-qY65BwGB.css",
+          "bytes": 10431,
+          "sha256": "08a366deb91563782743f2881fdaf395a70daf017835c19b3e91549bf33cefe1"
+        },
+        {
+          "path": "assets/mounted-DFvJolqR.glb",
+          "bytes": 49216,
+          "sha256": "e4d86e39248cc9c857c9223f84a8c680415aaa862666ea63bfe6a43128872143"
+        },
+        {
+          "path": "assets/mounted.landmarks-C4CyA-0j.json",
+          "bytes": 97959,
+          "sha256": "3d6a0873ae85e69339dc447b96f420e61c4a92511f3033409660700ce70b5e2e"
+        },
+        {
+          "path": "assets/router-Cw-au4Px.js",
+          "bytes": 169808,
+          "sha256": "0612f76227b19fc1744e6cb09f6fed39f292f430b13129d1f80ad09e624570e1"
+        },
+        {
+          "path": "assets/views-DLjJWCZr.css",
+          "bytes": 6147,
+          "sha256": "3579cdd9cd72a3b30aefc3bc1615efc680f04e260d4ab6072ad130f68f69df3c"
+        },
+        {
+          "path": "assets/views-DLo-ReS2.js",
+          "bytes": 1646342,
+          "sha256": "e26f79cc382c021b363db53da97701769323c8f1c7d2c4bcd1334023168b1792"
+        },
+        {
+          "path": "index.html",
+          "bytes": 33822,
+          "sha256": "8eeb5dcfd24aba18b30197b8c84c3e1647d8e9128e40b39bd88d6347a246569a"
+        }
+      ]
+    },
+    {
+      "backend": "raw",
+      "outDir": "/Users/david/dev/game-battle-performance-spec/throwaway/whole-map-root-review/raw",
+      "config": "apps/battle-perf-lab/src/live/vite.config.mts",
+      "environment": {
+        "BATTLE_SHADOW_FIT": "whole-map",
+        "BATTLE_NATIVE_BACKEND": "raw",
+        "BATTLE_NATIVE_ATLAS_CATALOG": "/benchmark-atlas/catalog.json"
+      },
+      "artifacts": [
+        {
+          "path": "assets/ai-worker-BpilnipM.js",
+          "bytes": 16118,
+          "sha256": "91a37728f7f75bba1e44a6647db4a87fd420700b576cf2a6158ef542f2c58f3d"
+        },
+        {
+          "path": "assets/battleScene-C0d53uW6.js",
+          "bytes": 59811,
+          "sha256": "2b672a780cf6f87e87998d02e58652b1c988b1403d53a2b49b465682c95d46d4"
+        },
+        {
+          "path": "assets/battleScene-C3LX0fB9.js",
+          "bytes": 53307,
+          "sha256": "e8cb5fba11b959e11e358c7a7f970f870939998a15a0bc26ef6b2052822a3e52"
+        },
+        {
+          "path": "assets/battleScene-GCD5rjAz.js",
+          "bytes": 390667,
+          "sha256": "0018560d9727b8af68d072ba1e8eea2798275ec56c27d87d92a4065877f8fd9a"
+        },
+        {
+          "path": "assets/battleSimWorker-qWNR-QHs.js",
+          "bytes": 29053,
+          "sha256": "be359b2551342f90b15b1a010b67a6b6f4956af346d428d069e80af91fe1e509"
+        },
+        {
+          "path": "assets/cameraBridge-D7wfJSqh.js",
+          "bytes": 32053,
+          "sha256": "0fc575ae54e54fa30d0c0aac264ac55fcbc97bd3a3e17b39dd03b09b928444d8"
+        },
+        {
+          "path": "assets/chunk-QTnfLwEv.js",
+          "bytes": 694,
+          "sha256": "5db5ba82eef00d1dee7e86e663098c9427d01183a88d357437daff295aec3e75"
+        },
+        {
+          "path": "assets/depthContract-CJqOZnoO.js",
+          "bytes": 120,
+          "sha256": "fac67d70f17d1a3e1fdcd5dd4b3b53c9a1fc646f456c478316ac4d676871619b"
+        },
+        {
+          "path": "assets/dist-BEoBhBj4.js",
+          "bytes": 168028,
+          "sha256": "902b7055d90043887bd941addd3f994b569300ba0ad9d756ea70c401002d05d9"
+        },
+        {
+          "path": "assets/dist-CmQM45Fe.js",
+          "bytes": 87,
+          "sha256": "9806a1e73a7ea83dad28453080e996377761dffcb053ae6752bd46771ae4384c"
+        },
+        {
+          "path": "assets/game_wasm-CNn7ZWK-.js",
+          "bytes": 16278,
+          "sha256": "4b1c957396a18d481d866861e9a793edc16f817c4313eeec358e021234eb4b8d"
+        },
+        {
+          "path": "assets/game_wasm-D2Zw-ut6.js",
+          "bytes": 179,
+          "sha256": "9ac5dc9b466b04797a931ded3f1da1220e8d93be0c95901503a1e9c6ee6333d5"
+        },
+        {
+          "path": "assets/game_wasm_bg-D6GAYszC.wasm",
+          "bytes": 1086622,
+          "sha256": "fd2fef9df9b05b33c7ee8fa8df8b7fc9c68b323576dd4332be4a1835af3d9674"
+        },
+        {
+          "path": "assets/gpuAdmission-CYYpTRo0.js",
+          "bytes": 7625,
+          "sha256": "498e3be1ac8bb9a79f00edcd4b932de8ede6602b7524d38852e021de88a363b7"
+        },
+        {
+          "path": "assets/grassPasses-3YOocXpd.js",
+          "bytes": 2459,
+          "sha256": "e2c04988ef7839761d4a22ae997100d26465d11bfa3c97dc2162cde924fda6a3"
+        },
+        {
+          "path": "assets/human-w4nskSxz.glb",
+          "bytes": 52728,
+          "sha256": "3c58cb89b03d1b13c6c770a32d0dd044e4f8c847c5437549843e76e6f6ea003d"
+        },
+        {
+          "path": "assets/human.landmarks-BnKL1m5c.json",
+          "bytes": 57491,
+          "sha256": "48def30d4b721c7da028277b8dcbc052d579a68a2f1b20fa10b49ff6107caefb"
+        },
+        {
+          "path": "assets/index-qY65BwGB.css",
+          "bytes": 10431,
+          "sha256": "08a366deb91563782743f2881fdaf395a70daf017835c19b3e91549bf33cefe1"
+        },
+        {
+          "path": "assets/index-wCpaukKB.js",
+          "bytes": 218016,
+          "sha256": "3ff42a48cd01a9c3df4e8063801238d23911bde67800fa221ae617317ae8030b"
+        },
+        {
+          "path": "assets/mounted-DFvJolqR.glb",
+          "bytes": 49216,
+          "sha256": "e4d86e39248cc9c857c9223f84a8c680415aaa862666ea63bfe6a43128872143"
+        },
+        {
+          "path": "assets/mounted.landmarks-C4CyA-0j.json",
+          "bytes": 97959,
+          "sha256": "3d6a0873ae85e69339dc447b96f420e61c4a92511f3033409660700ce70b5e2e"
+        },
+        {
+          "path": "assets/posePaletteWgsl-Bxi5xNgQ.js",
+          "bytes": 125942,
+          "sha256": "6319c7125d469c3ccc04420642482e2c801f28554f7c80defe88cb9aac889ea8"
+        },
+        {
+          "path": "assets/rawPosePalette-Dm-FRhNi.js",
+          "bytes": 11265,
+          "sha256": "72290f2bdeb54a92d448b984a1516e58a68f8baf8d97d1e9e325f51ce76cd2f7"
+        },
+        {
+          "path": "assets/readoutPreparation-B8q1vq7M.js",
+          "bytes": 3414,
+          "sha256": "edccfa1f6e96852dba5fc92bec2c2c9a17a77d33d635f529af9752ca489fffe7"
+        },
+        {
+          "path": "assets/router-D6EyCu1-.js",
+          "bytes": 1199643,
+          "sha256": "9515751471bbdb75ffb29614d3b9f8ab2d8cb328c16b446c880913955bbb1f1c"
+        },
+        {
+          "path": "assets/sceneCamera-DvSmJg5a.js",
+          "bytes": 75665,
+          "sha256": "b08182cf2bf0a3abaaf3ae9984fa5527e8593de9c4a9c1f2eb781ad43751d9bf"
+        },
+        {
+          "path": "assets/sceneLifecycle-D9iqOP8u.js",
+          "bytes": 505,
+          "sha256": "0e2a3c9943043d8513cf3fd9f9aff75e53bc290755a009c2e2bee6b9788adc44"
+        },
+        {
+          "path": "assets/views-DLjJWCZr.css",
+          "bytes": 6147,
+          "sha256": "3579cdd9cd72a3b30aefc3bc1615efc680f04e260d4ab6072ad130f68f69df3c"
+        },
+        {
+          "path": "assets/views-hn0NlYWz.js",
+          "bytes": 451580,
+          "sha256": "d0265fbe87170fccaeada8d384f55f77254a42b933fd82130976510d37809075"
+        },
+        {
+          "path": "index.html",
+          "bytes": 34321,
+          "sha256": "3ac3b5b86c5698e0902132454c93f163a00aa499226fb5fd10361b879048af42"
+        }
+      ]
+    }
+  ]
+}

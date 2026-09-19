@@ -17,7 +17,9 @@ These held runs are not live acceptance.
 
 Claude Opus is implementing the separate non-timed checkpoint observer in
 `/Users/david/dev/game-battle-checkpoint-observer`, branch
-`codex/battle-checkpoint-observer`, session34638. Root must verify a coherent
+`codex/battle-checkpoint-observer`, revision session79624. The first draft was
+interrupted after root found false native-counter claims and excessive callback
+heuristics; notes are `throwaway/checkpoint-root-review/notes.txt`. Root must verify a coherent
 completed-frame boundary: polling mutable stats during async preparation can mix
 frames. Fixed timing builds remain immutable; approximate camera samples cannot
 prove exact geometry parity. Root owns hardware verification. A separate

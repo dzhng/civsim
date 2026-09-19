@@ -5,11 +5,12 @@
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-19.
 Current pickup: continue the [counterbalanced renderer comparison](renderer-comparison.md).
-[Round0 is complete](assets/02-held-rounds/README.md): all eight full controls pass
-functional checks, all quiet-host verdicts remain failed. Raw/TypeGPU have better
-overall cadence in this order; no repeatability or backend-selection claim follows.
-Exec session45081 is terminal. Remaining declared rounds are1/2, followed by the
-specified leading-pair confirmation and disabled-instrumentation control.
+[Rounds0/1 are complete](assets/02-held-rounds/README.md): all sixteen full controls
+pass functional checks, all quiet-host verdicts remain failed. Raw's overall
+cadence is close across orders; TypeGPU has a substantial early-state spread.
+No backend is selected. Sessions45081/88896 are terminal. Next is declared round2,
+followed by the specified leading-pair confirmation and disabled-instrumentation
+control. Do not skip remaining comparisons based on the current ordering.
 Use `throwaway/held-fixed/run-round.py <round>` with the same immutable builds.
 Before launching, inspect active driver processes and `throwaway/held-fixed/round-<round>.log`;
 continue an existing live run rather than restarting it. No CPU builds/tests/timings

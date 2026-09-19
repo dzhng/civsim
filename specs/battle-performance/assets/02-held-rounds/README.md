@@ -8,8 +8,7 @@ renderer is selected, and none of these held runs satisfies live acceptance.
 
 Round0 completed all eight actual five-minute Menu tours, in Three/raw/TypeGPU/vgpu
 order at each held state. Every functional check passed. Every quiet-host verdict
-failed and remains failed. The other declared orders and leading-pair confirmation
-are still required.
+failed and remains failed.
 
 | Held tick | Backend | Average FPS | 1% low FPS | p95 frame ms |
 | --- | --- | ---: | ---: | ---: |
@@ -25,7 +24,33 @@ are still required.
 Raw and TypeGPU show better overall cadence than Three in this order. Their order
 relative to each other changes between states. vgpu has lower cadence despite
 several similar GPU interval measurements; this does not identify a cause. The
-recorded host noise and missing counterbalancing prevent a repeatability claim.
+recorded host noise and single order prevent a repeatability claim from this round.
+
+## Reversed order
+
+Round1 completed all eight tours in vgpu/TypeGPU/raw/Three order. All identities,
+held hashes and graphics settings match round0 exactly. Functional checks pass;
+every quiet-host classification remains failed. The third declared order and
+leading-pair confirmation are still required.
+
+| Held tick | Backend | Average FPS | 1% low FPS | p95 frame ms |
+| --- | --- | ---: | ---: | ---: |
+| 9000 | Three | 32.55 | 11.98 | 66.67 |
+| 9000 | raw | 38.34 | 28.76 | 33.34 |
+| 9000 | TypeGPU | 31.85 | 19.73 | 49.99 |
+| 9000 | vgpu | 21.25 | 14.33 | 50.00 |
+| 12000 | Three | 27.24 | 8.33 | 83.33 |
+| 12000 | raw | 32.26 | 17.91 | 49.99 |
+| 12000 | TypeGPU | 30.55 | 18.28 | 50.00 |
+| 12000 | vgpu | 18.66 | 9.23 | 66.67 |
+
+Raw's overall averages and p95 cadence are close across the two orders at both
+states. TypeGPU's early-state average moves from37.45 to31.85FPS; its later-state
+average is close across orders. This spread prevents treating the first round's
+near tie as stable. Several lows worsen across repeats. No cause is inferred from
+the order or host observations, and no backend is selected from these two rounds.
+
+## Shared conditions
 
 All runs preserve 15,560 soldiers, 1440×900 CSS, 2880×1800 framebuffer, DPR2,
 standard grass and far grass, bloom, unmuted audio and default single shadows.
@@ -37,7 +62,8 @@ of the subsequently integrated simulation optimization.
 
 ## Reading the evidence
 
-[Round0 summary](round-0/comparison-summary.json) retains the original cadence
+[Round0](round-0/comparison-summary.json) and
+[round1](round-1/comparison-summary.json) summaries retain the original cadence
 statistics, phase summaries, identities and complete host verdicts. GPU statistics
 join each recorded frame to its submission id and use the complete, zero-missing-
 query **interval union**, not the sum of overlapping passes. Median and nearest-
@@ -47,7 +73,8 @@ not explain frame pacing by themselves.
 
 Each run directory retains the compressed raw Menu recording, trial verdict,
 host observations and scenario checks, plus its manifest and exact trial log.
-[The archive index](round-0/archive-index.json) records uncompressed hashes and
+[Round0](round-0/archive-index.json) and [round1](round-1/archive-index.json)
+archive indexes record uncompressed hashes and
 original scratch paths; every compressed file was round-trip verified. Original
 `run.json` files remain in scratch; their report and manifest are preserved here
 without committing a second copy of the full recording.

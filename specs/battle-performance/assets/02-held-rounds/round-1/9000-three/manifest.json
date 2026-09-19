@@ -1,0 +1,29 @@
+{
+  "runId": "held-9000-three-round-1",
+  "backend": "three",
+  "commit": "8643cf05657dd3566a302fb4e1a48e3c26ea785c",
+  "dirtyDiffSha256": null,
+  "buildSha256": "62772e4f230046f7ad0af821259be9887931e80e59c52caecb1ff3a522e5604b",
+  "configSha256": "f1eef55f4bea6e588a37dbb698786ef83afc625db2139f69f8bf63eac2ad6c6e",
+  "dependenciesSha256": "af700c83d6f3b5d5db5cfaa2338fe17bd7d0f439d0d9dad2f40091877a07c16d",
+  "assetsSha256": "ef5fdfa38db77fb0016207cc5431e59d082f62ecca3f579cac99fbec367d8c2f",
+  "wasmSha256": "e9f4f080ef07501f43c9c8460205b0b36d38db20b328999ae50020fffe6e3030",
+  "startedAt": "2026-09-19T11:47:44.365Z",
+  "order": 3,
+  "hardware": {
+    "machine": "Mac17,9 / Apple M5 Pro",
+    "os": "ProductName: macOS; ProductVersion: 26.6.2; BuildVersion: 25G83",
+    "browser": "153.0.8010.48",
+    "adapter": "apple / metal-3",
+    "power": "Now drawing from 'AC Power'",
+    "display": "Display Type: Built-in Liquid Retina XDR Display; Resolution: 3024 x 1964 Retina; Main Display: Yes; Resolution: 5120 x 2880 (5K/UHD+ - Ultra High Definition Plus); UI Looks like: 2560 x 1440 @ 60.00Hz"
+  },
+  "quietHost": {
+    "verified": false,
+    "evidence": null
+  },
+  "validation": {
+    "passed": true,
+    "evidence": "./scenario-report.json"
+  }
+}

@@ -1,6 +1,6 @@
 # Evidence ledger
 
-- [Held renderer rounds](assets/02-held-rounds/README.md): first order completes eight full five-minute controls at two canonical states. Functional checks pass, host checks fail; repeatability, interior scene-count checkpoints and final live acceptance remain open.
+- [Held renderer rounds](assets/02-held-rounds/README.md): first and reversed orders complete sixteen full five-minute controls at two canonical states. Functional checks pass, host checks fail; repeatability, interior scene-count checkpoints and final live acceptance remain open.
 
 - [Main-geometry attribution](assets/07-projected-detail/main-geometry-cost/README.md): repeated same-crowd buffer substitutions reduce observed GPU interval cost with matched audiences/grass/shadows. Known visual defects prohibit shipping the substitution; calibrated representations are next. The preceding [single-class test](assets/07-projected-detail/phalanx-cost/README.md) remains inconclusive.
 

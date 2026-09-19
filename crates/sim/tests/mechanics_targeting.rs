@@ -9,7 +9,7 @@
 //! MOUNTED behavior.
 
 use sim::{Sim, Tunables, UnitClassId, Vec2};
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 /// First soldier index of a unit (a 1-man unit IS that soldier).
 fn first(sim: &Sim, unit: usize) -> usize {
@@ -86,4 +86,37 @@ fn a_foot_soldier_still_targets_the_nearest_body() {
         t, ahead_s as i32,
         "a foot soldier targets the nearest body (s{ahead_s} at 3.0), not the farther flank foe (s{flank_s} at 3.8)"
     );
+}
+
+/// A search that finds NO foe reads NOTHING off the comrades it scanned. Two
+/// dense blocks 30m apart are inside the coarse unit gate (the scan runs), and
+/// every man has comrades a metre away (the scan records them), but no enemy is
+/// within engage range — so each search returns before a single friend is
+/// consumed, and the derived state those friends feed (awareness, the frontage
+/// flag) stays untouched. This is what lets the search discard that set whole.
+#[test]
+fn a_search_with_no_target_reads_nothing_off_its_comrades() {
+    let mut tun = Tunables::default();
+    tun.micro_rough = 0.0;
+    tun.morale_enabled = false;
+    let mut sim = Sim::new(tun, 11);
+
+    let spacing = Vec2::new(0.9, 1.1);
+    sim.spawn_unit(Vec2::new(-15.0, 0.0), 0.0, 40, 10, spacing, 0, 0.7);
+    sim.spawn_unit(Vec2::new(15.0, 0.0), PI, 40, 10, spacing, 1, 0.7);
+
+    // Targeting visits a third of the soldiers per tick; three ticks is one
+    // full pass, and nobody has closed the 25m gap in that time.
+    for _ in 0..3 {
+        sim.tick();
+    }
+
+    for i in 0..sim.alive.len() {
+        assert_eq!(sim.target[i], -1, "s{i} has no foe in engage range");
+        assert_eq!(
+            sim.awareness[i], 1.0,
+            "s{i} awareness moved off its default: a targetless search consumed its comrades"
+        );
+        assert_eq!(sim.front_clear[i], 1, "s{i} frontage flag moved");
+    }
 }

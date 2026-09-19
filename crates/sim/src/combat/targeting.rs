@@ -99,9 +99,10 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
     // (victim, surface distance, bearing)
     let mut candidates: [(u32, f32, f32); 12] = [(0, 0.0, 0.0); 12];
     let mut cand_len = 0usize;
-    // Friendly soldiers nearby: raw bearing + distance (offsets are
-    // computed against facing or target bearing as needed).
-    let mut friends: [Option<NearbyFriend>; MAX_NEARBY_FRIENDS] = [None; MAX_NEARBY_FRIENDS];
+    // Friendly soldiers nearby: raw offset + distance. The angles they are
+    // read at (against facing, or the target bearing) resolve below, once the
+    // search is known to have a target at all.
+    let mut scanned: [Option<ScannedFriend>; MAX_NEARBY_FRIENDS] = [None; MAX_NEARBY_FRIENDS];
     let mut friends_len = 0usize;
     let mut least_preferred_friend = None;
     let mut fight_near = 0u32;
@@ -128,8 +129,10 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                 if d_surf > search {
                     continue;
                 }
-                // The bearing is an atan2 per body in range; only a recorded
-                // friend, a rider's wheel cost, or a strike candidate reads it.
+                // The bearing is an atan2 per body in range; only a rider's
+                // wheel cost or a strike candidate reads it here. A recorded
+                // friend keeps its offset and resolves an angle only if this
+                // search returns a target (see `ScannedFriend::resolve`).
                 let bearing = || to.y.atan2(to.x);
                 let uj = sim.soldier_unit[j] as usize;
                 if sim.units[uj].team == my_team {
@@ -143,12 +146,12 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                             (j - sim.units[uj].start) as u32,
                         );
                         record_friend(
-                            &mut friends,
+                            &mut scanned,
                             &mut friends_len,
                             &mut least_preferred_friend,
-                            NearbyFriend {
+                            ScannedFriend {
                                 owner: j as u32,
-                                bearing: bearing(),
+                                offset: to,
                                 distance: d_surf.max(0.05),
                                 fighting: sim.fighting[j] == 1,
                                 priority,
@@ -222,6 +225,11 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
     } else {
         nearest
     };
+    // Past the no-target return, the kept friends are certain to be read:
+    // resolve each one's bearing once, for the three checks below and the
+    // swing obstruction downstream.
+    let friends: [Option<NearbyFriend>; MAX_NEARBY_FRIENDS] =
+        std::array::from_fn(|k| scanned[k].map(ScannedFriend::resolve));
     // Empty frontage toward the target: the measured anti-blender
     // leash. Blocked = a comrade's body within 1.5m inside +-40deg
     // of the target bearing.

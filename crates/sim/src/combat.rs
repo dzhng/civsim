@@ -120,13 +120,43 @@ const MOVING_EVADE_CAP: f32 = 0.5; // a full gallop dodges at most half the blow
 const MAX_NEARBY_FRIENDS: usize = 24;
 type ScanPriority = (i32, i32, u32); // local forward cell, local lateral cell, local soldier
 
+/// One friendly body as the SCAN holds it, while it can still be dropped:
+/// identity, geometry, and the scan priority that decides who survives the cap.
+/// It keeps the raw offset instead of an angle — selection never asks for a
+/// bearing, and most searches throw the whole set away unread.
 #[derive(Clone, Copy, Debug, PartialEq)]
-struct NearbyFriend {
+struct ScannedFriend {
     owner: u32,
-    bearing: f32,
+    /// The friend body's offset from the scanning soldier, exactly as measured
+    /// during the scan (`body_pos - p`) — the sole input to its bearing.
+    offset: Vec2,
     distance: f32,
     fighting: bool,
     priority: ScanPriority,
+}
+
+/// One RETAINED friend as every consumer reads it — obstruction, blocked
+/// frontage, cover. The selection bookkeeping is spent by now and gone; the
+/// bearing is resolved once, here, and shared by all three.
+#[derive(Clone, Copy)]
+struct NearbyFriend {
+    bearing: f32,
+    distance: f32,
+    fighting: bool,
+}
+
+impl ScannedFriend {
+    /// The angle, from the offset the scan captured — never a re-read of
+    /// positions (they move later in the tick), and never more than once per
+    /// retained friend. Same expression, same inputs, same bits as computing it
+    /// the moment the body was seen.
+    fn resolve(self) -> NearbyFriend {
+        NearbyFriend {
+            bearing: self.offset.y.atan2(self.offset.x),
+            distance: self.distance,
+            fighting: self.fighting,
+        }
+    }
 }
 
 /// Record one nearby friendly soldier, independent of body/grid scan order.
@@ -135,10 +165,10 @@ struct NearbyFriend {
 /// sanity cap fills, local-frame scan priority chooses the sample; fixed world
 /// cell traversal must never decide who obstructs a swing.
 fn record_friend(
-    friends: &mut [Option<NearbyFriend>; MAX_NEARBY_FRIENDS],
+    friends: &mut [Option<ScannedFriend>; MAX_NEARBY_FRIENDS],
     friends_len: &mut usize,
     least_preferred: &mut Option<usize>,
-    friend: NearbyFriend,
+    friend: ScannedFriend,
     multiple_bodies: bool,
 ) {
     // A foot soldier has one body, and the caller visits each bucket once.
@@ -414,9 +444,9 @@ impl Sim {
 
 #[cfg(test)]
 mod tests {
-    use super::{record_friend, NearbyFriend, MAX_NEARBY_FRIENDS};
+    use super::{record_friend, ScannedFriend, Vec2, MAX_NEARBY_FRIENDS};
 
-    fn normalized(order: impl IntoIterator<Item = NearbyFriend>) -> Vec<NearbyFriend> {
+    fn normalized(order: impl IntoIterator<Item = ScannedFriend>) -> Vec<ScannedFriend> {
         let mut friends = [None; MAX_NEARBY_FRIENDS];
         let mut friends_len = 0usize;
         let mut least_preferred = None;
@@ -436,11 +466,11 @@ mod tests {
 
     #[test]
     fn nearer_mounted_body_refreshes_the_full_sample_cutoff() {
-        let friend = |owner, priority, distance| NearbyFriend {
+        let friend = |owner, priority, distance| ScannedFriend {
             owner,
             priority: (priority, 0, owner),
             distance,
-            bearing: 0.0,
+            offset: Vec2::new(1.0, 0.0),
             fighting: true,
         };
         for (owner, priority, incoming, replaced_slot) in [(0, 100, 90, 0), (23, -1, 21, 22)] {
@@ -489,11 +519,11 @@ mod tests {
         let mut friends = [None; MAX_NEARBY_FRIENDS];
         let mut len = 0;
         let mut cutoff = None;
-        let friend = |owner, priority| NearbyFriend {
+        let friend = |owner, priority| ScannedFriend {
             owner,
             priority,
             distance: 1.0,
-            bearing: 0.0,
+            offset: Vec2::new(1.0, 0.0),
             fighting: true,
         };
         for owner in 0..24 {
@@ -528,23 +558,23 @@ mod tests {
     #[test]
     fn nearby_friend_measure_is_body_scan_order_independent() {
         let bodies = [
-            NearbyFriend {
+            ScannedFriend {
                 owner: 7,
-                bearing: 0.3,
+                offset: Vec2::new(1.15, 0.35),
                 distance: 1.2,
                 fighting: true,
                 priority: (0, 2, 7),
             },
-            NearbyFriend {
+            ScannedFriend {
                 owner: 2,
-                bearing: -0.1,
+                offset: Vec2::new(0.8, -0.08),
                 distance: 0.8,
                 fighting: false,
                 priority: (0, 1, 2),
             },
-            NearbyFriend {
+            ScannedFriend {
                 owner: 7,
-                bearing: 0.2,
+                offset: Vec2::new(0.59, 0.12),
                 distance: 0.6,
                 fighting: true,
                 priority: (0, 2, 7),
@@ -553,9 +583,9 @@ mod tests {
         assert_eq!(normalized(bodies), normalized(bodies.into_iter().rev()));
         assert_eq!(
             normalized(bodies)[1],
-            NearbyFriend {
+            ScannedFriend {
                 owner: 7,
-                bearing: 0.2,
+                offset: Vec2::new(0.59, 0.12),
                 distance: 0.6,
                 fighting: true,
                 priority: (0, 2, 7)
@@ -563,9 +593,9 @@ mod tests {
         );
 
         let crowded: Vec<_> = (0..40)
-            .map(|i| NearbyFriend {
+            .map(|i| ScannedFriend {
                 owner: i,
-                bearing: 0.0,
+                offset: Vec2::new(1.0, 0.0),
                 distance: 1.0,
                 fighting: true,
                 priority: (i as i32 / 8, i as i32 % 8, i),
@@ -575,6 +605,112 @@ mod tests {
             normalized(crowded.clone()),
             normalized(crowded.into_iter().rev())
         );
+    }
+
+    /// Run the retention rules over `offers`, then check every friend they kept
+    /// against the EAGER reference: the bearing the scan used to attach the
+    /// moment each body was seen, before any of them could be dropped. Deferring
+    /// the angle may not move a single bit of it.
+    fn matches_eager_reference(offers: &[ScannedFriend], multiple_bodies: bool) {
+        let eager: Vec<f32> = offers
+            .iter()
+            .map(|o| o.offset.y.atan2(o.offset.x))
+            .collect();
+        let mut scanned = [None; MAX_NEARBY_FRIENDS];
+        let mut friends_len = 0usize;
+        let mut least_preferred = None;
+        for &friend in offers {
+            record_friend(
+                &mut scanned,
+                &mut friends_len,
+                &mut least_preferred,
+                friend,
+                multiple_bodies,
+            );
+        }
+        assert_ne!(friends_len, 0, "the offers must leave something to resolve");
+        for kept in scanned[..friends_len].iter().flatten() {
+            let k = offers
+                .iter()
+                .position(|o| o == kept)
+                .expect("a retained friend is one of the bodies offered");
+            let resolved = kept.resolve();
+            assert_eq!(
+                resolved.bearing.to_bits(),
+                eager[k].to_bits(),
+                "friend {} (offset {:?}) resolved {} but the eager scan read {}",
+                kept.owner,
+                kept.offset,
+                resolved.bearing,
+                eager[k]
+            );
+            assert_eq!(resolved.distance, kept.distance);
+            assert_eq!(resolved.fighting, kept.fighting);
+        }
+    }
+
+    #[test]
+    fn deferred_bearings_are_the_eager_scan_bearings() {
+        let friend = |owner: u32, (x, y): (f32, f32), distance, priority| ScannedFriend {
+            owner,
+            offset: Vec2::new(x, y),
+            distance,
+            fighting: owner.is_multiple_of(2),
+            priority,
+        };
+
+        // Nontrivial angles: all four quadrants, both sides of ±π, and a
+        // near-vertical offset atan2 has to resolve off a tiny x.
+        let angled: Vec<_> = [
+            (1.3, 0.7),
+            (-0.9, 2.1),
+            (-2.4, -0.05),
+            (-2.4, 0.05),
+            (0.004, -1.7),
+            (3.0, -2.6),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(k, o)| {
+            friend(
+                k as u32,
+                o,
+                0.4 + k as f32 * 0.3,
+                (k as i32 / 2, k as i32 % 2, k as u32),
+            )
+        })
+        .collect();
+        matches_eager_reference(&angled, false);
+
+        // Crowded past the cap: priority picks the 24 survivors, and each one
+        // still resolves the angle of the body IT was recorded from.
+        let crowded: Vec<_> = (0..40u32)
+            .map(|i| {
+                let a = i as f32 * 0.83;
+                friend(
+                    i,
+                    (2.0 * a.cos() - 0.3, 2.0 * (1.7 * a).sin()),
+                    1.0 + (i % 5) as f32 * 0.2,
+                    (i as i32 / 8, i as i32 % 8, i),
+                )
+            })
+            .collect();
+        matches_eager_reference(&crowded, false);
+
+        // One mounted soldier offered as two bodies: the NEARER body's own
+        // offset is what survives, so its angle is the one that resolves.
+        let far = friend(7, (1.15, 0.35), 1.2, (0, 2, 7));
+        let near = friend(7, (0.59, -0.92), 0.6, (0, 2, 7));
+        let bodies = [far, friend(2, (0.8, -0.08), 0.8, (0, 1, 2)), near];
+        matches_eager_reference(&bodies, true);
+        matches_eager_reference(&[near, far], true);
+
+        // Equal priority AND equal distance: the cap keeps the first 24 offered
+        // (a tie is not an improvement), each with its own angle.
+        let tied: Vec<_> = (0..25u32)
+            .map(|i| friend(i, (1.0 - i as f32 * 0.07, 0.4), 1.0, (0, 0, 0)))
+            .collect();
+        matches_eager_reference(&tied, false);
     }
 }
 

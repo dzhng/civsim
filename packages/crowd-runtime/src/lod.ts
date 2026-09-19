@@ -67,13 +67,15 @@ export function lodWithHysteresis(
 ): LodLevel {
   const raw = assignLodForScreenSize(screenSize, policy);
   if (raw === prevLevel) return prevLevel;
-  // Measure against the new level's edge on the side it is entered from, so a
-  // multi-level jump commits only once that level itself is cleared.
-  const boundary = policy.meshPixels[raw < prevLevel ? raw : raw - 1];
-  if (raw < prevLevel) {
-    return screenSize >= boundary + margin ? raw : prevLevel;
-  }
-  return screenSize <= boundary - margin ? raw : prevLevel;
+  // Walk one boundary at a time toward the raw level, committing each edge the
+  // size has genuinely cleared and stopping at the first still inside its
+  // deadband. Testing only the destination's own edge let a large jump stall on
+  // a tier the body had left several boundaries behind.
+  let level: number = prevLevel;
+  if (raw < prevLevel)
+    while (level > raw && screenSize >= policy.meshPixels[level - 1] + margin) level--;
+  else while (level < raw && screenSize <= policy.meshPixels[level] - margin) level++;
+  return level as LodLevel;
 }
 
 /** Each audience uses the same thresholds, but only shadow demand has a mesh floor. */

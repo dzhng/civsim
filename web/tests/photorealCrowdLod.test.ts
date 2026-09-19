@@ -70,11 +70,11 @@ function mainView() {
   });
   return projectionView(camera, 800);
 }
-function shadowView(extent = 1000, y = 0) {
+function shadowView(extent = 1000, y = 0, mapSize = 1024) {
   const camera = new THREE.OrthographicCamera(-extent, extent, extent, -extent, 1, 1000);
   camera.position.set(0, y, 300);
   camera.lookAt(0, y, 0);
-  return projectionView(camera, 1024, true);
+  return projectionView(camera, mapSize, true);
 }
 
 /** Exactness pin, not an art-quality or performance gate. Fixed inputs include
@@ -269,13 +269,15 @@ test("every boundary, including the impostor return, holds inside its deadband",
   assert.equal(lodWithHysteresis(IMPOSTOR_LEVEL, 6.5, chain), IMPOSTOR_LEVEL - 1);
 });
 
-test("multi-level jumps commit only past the destination's own boundary", () => {
-  // Zooming in from the impostor: the size must clear the near edge, not just any edge.
-  assert.equal(lodWithHysteresis(4, 41, chain), 4);
+test("multi-level jumps commit every boundary cleared and stop at the first deadband", () => {
+  // Zooming in from the impostor: 41px has cleared the 5, 10 and 20 edges
+  // outright, so only tier 0's own edge (40 + 1.5) is still in question.
+  assert.equal(lodWithHysteresis(4, 41, chain), 1);
   assert.equal(lodWithHysteresis(4, 41.5, chain), 0);
   assert.equal(lodWithHysteresis(4, 21.5, chain), 1);
-  // Zooming out from near: the previous tier holds until the destination is cleared.
-  assert.equal(lodWithHysteresis(0, 4, chain), 0);
+  // Zooming out from near, mirrored: 4px is past every mesh edge except the
+  // impostor's own (5 - 1.5), so the coarsest mesh holds — not the finest.
+  assert.equal(lodWithHysteresis(0, 4, chain), 3);
   assert.equal(lodWithHysteresis(0, 3.5, chain), 4);
   assert.equal(lodWithHysteresis(0, 8.5, chain), 3);
   // A rapid reversal returns without visiting the tiers crossed on the way out.
@@ -284,6 +286,38 @@ test("multi-level jumps commit only past the destination's own boundary", () => 
     [],
   );
   assert.deepEqual(history, [1, 4, 0, 2, 4]);
+});
+
+test("a large jump advances through every boundary it actually cleared", () => {
+  // Default policy boundaries: 32 / 18 / 9 / 4.
+  // Zooming out past three boundaries at once: 8px is far below tier 2's entry
+  // edge, so holding the finest mesh there is not hysteresis, it is a stall.
+  assert.equal(lodWithHysteresis(0, 8), 2);
+  // Zooming in the same way. 33px clears tier 1 outright but sits inside tier
+  // 0's deadband, so progress stops exactly where the deadband begins.
+  assert.equal(lodWithHysteresis(3, 33), 1);
+  assert.equal(lodWithHysteresis(4, 19), 2);
+  // Adjacent boundaries still hold: a size inside a single deadband never moves.
+  assert.equal(lodWithHysteresis(1, 17.9), 1);
+  assert.equal(lodWithHysteresis(2, 18.6), 2);
+  assert.equal(lodWithHysteresis(0, 31), 0);
+});
+
+test("a held shadow tier follows the real fitted extents rather than stalling", () => {
+  // The two held source-shadow extents, at the production 2048 shadow map.
+  for (const [extent, pixels] of [
+    [465.6613, 3.95824],
+    [582.0766, 3.16659],
+  ]) {
+    const views = [shadowView(extent, 0, 2048)];
+    const fresh = planCrowdLods([body(0, 0)], views, assets, [], undefined, []);
+    const retained = planCrowdLods([body(0, 0)], views, assets, [], undefined, [0]);
+    assert.ok(Math.abs(fresh.shadowScreenSizes[0] - pixels) < 1e-5, `${extent}`);
+    assert.equal(fresh.shadowLevels[0], COARSEST_SHADOW_LOD, `fresh ${extent}`);
+    // A body projecting under four pixels draws the same mesh whether or not a
+    // stale level 0 preceded it; only the deadband may hold a tier, not history.
+    assert.equal(retained.shadowLevels[0], COARSEST_SHADOW_LOD, `retained ${extent}`);
+  }
 });
 
 test("the production mesh selected for a shadow-only body really casts shadows", () => {

@@ -2,10 +2,16 @@ import { fileURLToPath } from "node:url";
 import base from "../../../../web/vite.config";
 import { sourceTimestampTapPlugin } from "./timestampTap";
 import { heldBenchmarkPlugins } from "../held/heldBenchmarkPlugin";
+import { wholeMapShadowControlPlugins } from "../shadow-control/wholeMapShadowControl";
 export default {
   ...base,
   root: fileURLToPath(new URL("../../../../web", import.meta.url)),
-  plugins: [...(base.plugins ?? []), sourceTimestampTapPlugin(), ...heldBenchmarkPlugins()],
+  plugins: [
+    ...(base.plugins ?? []),
+    sourceTimestampTapPlugin(),
+    ...heldBenchmarkPlugins(),
+    ...wholeMapShadowControlPlugins(),
+  ],
   optimizeDeps: { ...base.optimizeDeps, exclude: ["three", "three/webgpu", "three/tsl"] },
   build: {
     ...base.build,

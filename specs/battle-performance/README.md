@@ -23,8 +23,13 @@ passes fixed state, moving camera and cancellation. [All16 fixed builds](assets/
 are ready at8643cf05; serial short browser controls are running via
 `throwaway/held-fixed/smoke-matrix.py` (exec session78128), with outcomes in
 `throwaway/held-fixed/smoke-outcomes.json`. This is correctness-only and may overlap
-Claude CPU tests; never rank its timing. Opus friend-bearing implementation is
-exec session53274, PID67070. Verify handles before assuming either remains active.
+Claude CPU tests; never rank its timing. Opus friend-bearing candidate is committed at fbf891de in
+`game-battle-deferred-friend-bearing`; its implementation and independent review
+are terminal and found no actionable defect. Control WASM exactly matches e9f4f080…;
+candidate is fd2fef9d…. ABBA CPU timing is queued in exec session12263 behind the
+GPU matrix PID73109, using `throwaway/friend-bearing-pair/run.py`. Do not run CPU
+builds/tests/timings or new GPU jobs once that queue starts. Inspect its run log
+and exact process handles; neither candidate adoption nor speedup is established.
 All-backend pose/environment parity and the full comparison remain next.
 
 Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)

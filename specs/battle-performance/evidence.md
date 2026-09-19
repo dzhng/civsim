@@ -120,3 +120,5 @@ existing fallback through a lab-only transform. Read-time diagnostics expose onl
 the installed CPU policy. Eleven control tests, independent review, typechecking
 and full source/raw Menu builds pass. GPU validation, outside-volume visual parity
 and the A/B/C net-cost measurement remain open.
+
+- [Packed target-body inputs](assets/03a-packed-target-bodies/README.md): integrated release ABBA, unchanged hashes and worker/direct parity; modest Node gain, late simulation throughput still red.

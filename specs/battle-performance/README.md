@@ -6,8 +6,8 @@ You are implementing this plan in `/Users/david/dev/game-battle-performance-spec
 Status: **implementation active; renderer measurements complete; production
 backend not yet selected**, updated2026-09-20.
 
-Current pickup: run the prepared packed-targeting release ABBA, then the coherent
-interior-checkpoint browser controls and backend decision. All24 declared held
+Current pickup: finish the running coherent interior-checkpoint browser controls,
+then make the backend decision. All24 declared held
 tours and8 confirmations completed:32 functional passes,32 failed quiet-host
 verdicts. The [comparison evidence](assets/02-held-rounds/README.md) establishes
 a conditional raw/TypeGPU performance tie under the declared rule. No additional
@@ -29,20 +29,15 @@ Root source/raw full Menu builds,11 control tests and independent review pass.
 Diagnostics read the installed CPU policy on demand; they do not prove GPU work.
 Outside-volume receiver equivalence and final A/B/C hardware proof remain open.
 
-Packed targeting candidate1bc2c7a5 remains isolated in
-`/Users/david/dev/game-battle-packed-target-bodies`. Focused/broad sim tests and
-independent review pass without repins. It packs only stable body-grid data;
-live positions/fighting stay live and team IDs retain all32 bits. Immutable
-release builds are ready under `throwaway/packed-target-pair/`: control fd2fef9d…
-matches production byte-for-byte; candidate b42782f4…. Run `run.py` there only
-once (it refuses existing output), inspect `runs/` and any existing process before
-launching. No hardware timings have been claimed for it. Adopt only after all five
-hashes match and both candidates beat both controls at both combat windows, then
-verify worker/direct parity and an integrated build matching the candidate.
+[Packed targeting](assets/03a-packed-target-bodies/README.md) is integrated as
+bdafeda2. Both candidates beat both controls at both CPU windows and preserved all
+five hashes. Root verified309 canonical worker/direct ticks and an integrated
+build byte-identical to the measured candidate. Its late47.35–48.09ms/tick still
+misses30Hz; this modest Node result is not a browser FPS claim.
 
 Both integrated helper worktrees were removed after verified scratch archives in
 `throwaway/worktree-cleanup-2026-09-20/integrated-controls/`; branch refs remain.
-The packed-targeting worktree is still needed until its candidate is resolved.
+Packed-target worker scratch is archived; its retained branch preserves the code.
 Root owns all serialized hardware windows; no build/test/GPU work overlaps CPU
 timing, and no build/test/CPU timing overlaps GPU timing.
 
@@ -50,8 +45,7 @@ Priority after that decision: unchanged simulation throughput, then unresolved
 camera/grass/LOD quality, stable readable default shadows, and final live net
 savings. [Deferred friend bearings](assets/03a-deferred-bearing/README.md) and
 [exact bucket membership](assets/03a-bucket-membership/README.md) are integrated
-with canonical hashes preserved, but later combat still takes45.8–45.9ms/tick,
-missing30Hz. Worker publication does not solve that throughput deficit.
+with canonical hashes preserved, but current later combat still misses30Hz. Worker publication does not solve that throughput deficit.
 
 Current four-tier LOD passes the unchanged30k hardware floor and has sampled
 geometry/visual controls; continuous camera quality remains open. View-fitted
@@ -63,8 +57,7 @@ threshold was repinned. Detailed controls and inherited reds live in
 Claude Opus owns isolated implementation passes; root integrates/reviews. Serialize
 GPU timing with no overlapping builds, tests or CPU timing. Preserve all fixed
 builds and their linked assets: held8643cf05/e9f4f080…, historical98fc8a45 and
-live0ea8406d controls. Production WASM fd2fef9d… matches the integrated deferred-
-bearing candidate. Finished implementation worktrees were cleaned up with scratch
+live0ea8406d controls. Production WASM b42782f4… matches the integrated packed-target candidate. Finished implementation worktrees were cleaned up with scratch
 archives and branch refs retained (three more on2026-09-20, recorded in
 `throwaway/worktree-cleanup-2026-09-20/manifest.json`); do not remove unrelated project worktrees.
 

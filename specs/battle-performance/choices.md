@@ -541,3 +541,19 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   behavior outside the old shadow volume still needs visual verification.
 - **Verdict:** Sound, high confidence. One existing fit owner supplies both variants,
   while the diagnostic's limits and remaining hardware obligations stay explicit.
+
+### Pack only stable target-body inputs
+
+- **When:** Packed-target integration,bdafeda2.
+- **Choice:** Copy the compact body fields repeatedly read by targeting once per
+  combat pass, preserving the body's exact grid order. Reuse the allocation and
+  avoid the copy when no unit is near an enemy. Keep mutable fighting state and
+  attacker position as live reads.
+- **Gap:** The plan requires unchanged simulation behavior but does not prescribe
+  the memory layout of repeated neighbor searches.
+- **Reach:** About28 bytes per body and a linear preparation pass trade for fewer
+  scattered reads. This storage must be rebuilt after body/grid preparation and
+  cannot grow into a cache of state that earlier combat can modify.
+- **Verdict:** Sound, high confidence on semantics; modest measured benefit. The
+  lifetime boundary, ordering, full team IDs and original float inputs remain
+  explicit rather than relying on stale snapshots of all combat state.

@@ -1,9 +1,6 @@
-import type { BattleRendererApi } from "../battleRendererApi";
+import type { BattleGpuEvent, BattleGpuEventBatch } from "../battleRendererApi";
 import type { BattleLoopFrameMetrics } from "../battleDebugApi";
 import type { BenchmarkCameraSample } from "./benchmarkCamera";
-
-type GpuEventBatch = NonNullable<ReturnType<BattleRendererApi["gpuEventsSince"]>>;
-type GpuEvent = GpuEventBatch["events"][number];
 
 type CameraRecord = Omit<BenchmarkCameraSample, "phase">;
 export interface BenchmarkFrame extends BattleLoopFrameMetrics {
@@ -23,7 +20,7 @@ export class BenchmarkRecording {
   private readonly capacity: number;
   private gpuCursor = 0;
   private readonly gpuSubmissions = new Set<number>();
-  private readonly gpuResults = new Map<number, GpuEvent>();
+  private readonly gpuResults = new Map<number, BattleGpuEvent>();
   private gpuCursorGaps = 0;
   private lostGpuEvents = 0;
 
@@ -68,7 +65,7 @@ export class BenchmarkRecording {
     return this.gpuCursor;
   }
 
-  collectGpu(batch: GpuEventBatch | null): void {
+  collectGpu(batch: BattleGpuEventBatch | null): void {
     if (!batch || batch.nextSequence <= this.gpuCursor) return;
     if (batch.cursorGap) {
       this.gpuCursorGaps++;

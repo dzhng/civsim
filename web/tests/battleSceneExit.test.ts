@@ -9,7 +9,7 @@ vi.mock("../src/battle/sim/battleSimClient", () => ({
 }));
 import { BattleScene, type BattleConfig } from "../src/battle/scene";
 import { completeBattlePresentation } from "../src/battle/presentationCompletion";
-import type { BattlePresentationReceipt } from "../src/battle/renderer";
+import type { BattlePresentationReceipt } from "../src/battle/battleRendererApi";
 afterEach(() => {
   vi.unstubAllGlobals();
   state.enter.mockReset();

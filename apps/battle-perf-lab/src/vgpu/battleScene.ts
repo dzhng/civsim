@@ -29,7 +29,7 @@ import type { BattleReadoutInstance } from "../../../../packages/game-renderer/s
 import type {
   BattleCameraSnapshot,
   BattleTacticalLineFrame,
-} from "../../../../packages/photoreal-renderer/src/battle/battleWorld";
+} from "../../../../packages/battle-renderer/src/types";
 
 /** Borrowed vgpu context/output. Scene resources and ordering belong here; public
  * compute dispatches submit at their recorded command boundaries, never via raw draws. */

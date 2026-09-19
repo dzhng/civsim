@@ -33,10 +33,8 @@
 //   ?gradeSat=N|gradeContrast=N|gradeSplit=N|gradeLift=N
 //                 optional post-grade uniform overrides for look-grade sweeps
 import * as THREE from "three/webgpu";
-import {
-  PhotorealBattleWorld,
-  type BattleTacticalLineFrame,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
+import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleTacticalLineFrame } from "@packages/battle-renderer/src/types";
 import { postGradeUniformsFromParams } from "@packages/game-renderer/src/environment/postParameters";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
 import { BATTLE_RELIEF_EXAGGERATION } from "@packages/game-renderer/src/battle/terrainFeatures";

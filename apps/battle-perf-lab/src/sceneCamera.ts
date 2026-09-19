@@ -3,7 +3,7 @@ import type { ImpostorView } from "./impostorData";
 import { invert } from "../../../packages/renderer-core/src/mat4";
 import { projMatrix, projectionFootprint } from "../../../packages/renderer-core/src/camera3d";
 import { PHOTOREAL_FAR_FALLBACK } from "../../../packages/photoreal-renderer/src/cameraBridge";
-import type { BattleCameraSnapshot } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleCameraSnapshot } from "../../../packages/battle-renderer/src/types";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
 
 /** Publish one physical projection to scene, visibility, readouts and impostor billboards.

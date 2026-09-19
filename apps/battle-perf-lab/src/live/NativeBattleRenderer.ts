@@ -1,14 +1,12 @@
 import type {
+  BattlePresentationReceipt,
   BattleRendererApi,
+  BattleRendererDisposeHook,
   BattleRendererFrameMetrics,
+  BattleRendererOptions,
   BattleRendererStats,
   BattleSubmissionIdentity,
 } from "../../../../web/src/battle/battleRendererApi";
-import type {
-  BattleRendererOptions,
-  BattleRendererDisposeHook,
-  BattlePresentationReceipt,
-} from "../../../../web/src/battle/renderer";
 import type { BattlePresentation } from "../../../../web/src/battle/battlePresentation";
 import {
   cameraSnapshot,

@@ -10,7 +10,7 @@ import { pushDestRings, pushPie, SOLDIER_RING_RADIUS } from "../shared/overlays"
 import type { BattleFreeze } from "./battleFreeze";
 import type { Input } from "./input";
 import { groupMoveDests, type FormationLine, type UnitSnap } from "./orders";
-import type { BattleTacticalLineFrame } from "./renderer";
+import type { BattleTacticalLineFrame } from "@packages/battle-renderer/src/types";
 import type { BattleWorld } from "./battleWorld";
 import type { PresentedSoldiers } from "./battleCrowd";
 

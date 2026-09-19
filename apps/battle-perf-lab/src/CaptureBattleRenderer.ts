@@ -11,10 +11,8 @@ import {
   observePresentations,
   type PresentationEvent,
 } from "./captureWorldRegistry";
-import {
-  BattleRenderer as ProductionBattleRenderer,
-  type BattleRendererOptions,
-} from "../../../web/src/battle/renderer";
+import { BattleRenderer as ProductionBattleRenderer } from "../../../web/src/battle/renderer";
+import type { BattleRendererOptions } from "../../../web/src/battle/battleRendererApi";
 import {
   resolveGraphicsSettings,
   getGraphicsSettings,

@@ -6,19 +6,23 @@ import {
   cameraSnapshot,
   frozenFrameKey,
 } from "./battlePresentationPolicy";
-import type { BattleRendererApi, BattleRendererFrameMetrics } from "./battleRendererApi";
+import type {
+  BattlePresentationReceipt,
+  BattleRendererApi,
+  BattleRendererDisposeHook,
+  BattleRendererFrameMetrics,
+  BattleRendererMemoryInfo,
+  BattleRendererOptions,
+} from "./battleRendererApi";
 import type { WorldRay } from "@packages/renderer-core/src/camera3d";
 // Production policy above the photoreal world: frozen frames, debug mode, and CPU timing.
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
 import type { BattlePresentation, BattleRenderCamera } from "./battlePresentation";
 import { roundMs } from "@packages/renderer-core/src/math";
-import {
-  PhotorealBattleWorld,
-  type BattleCameraSnapshot,
-  type BattleTerrainOptions,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
-import type { BattlePostGradeUniforms } from "@packages/game-renderer/src/environment/postParameters";
+import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleTacticalLineFrame } from "@packages/battle-renderer/src/types";
+import type { BattleTerrainOptions } from "@packages/game-renderer/src/battle/terrainOptions";
 import { postGradeUniformsFromParams } from "@packages/game-renderer/src/environment/postParameters";
 import {
   getGraphicsSettings,
@@ -30,26 +34,7 @@ import {
 import type { BattleReadoutInstance } from "@packages/game-renderer/src/battle/readoutData";
 import type { BattleStandardInstance } from "@packages/game-renderer/src/models/shared/battleStandardData";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
-import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
-
-export interface BattleRendererOptions {
-  environment?: BattleEnvironmentId | string | null;
-  shadows?: string | null;
-  post?: string | null;
-  postGrade?: Partial<BattlePostGradeUniforms> | null;
-  graphics?: GraphicsSettings;
-}
-
-export interface BattleRendererDisposeHook {
-  dispose(): void;
-}
-
-export interface BattleRendererMemoryInfo {
-  geometries: number;
-  textures: number;
-  programs: number | null;
-}
 
 export class BattleRenderer implements BattleRendererApi {
   readonly ready: Promise<void>;
@@ -451,21 +436,4 @@ export class BattleRenderer implements BattleRendererApi {
     }
     this.resize();
   }
-}
-
-export interface BattleTacticalLineFrame {
-  /** Ground cue lines, (x, y, r, g, b, a) per vertex. */
-  groundCues: Float32Array;
-  /** Per-soldier selection rings, (x, y, radius, r, g, b, a) per instance. */
-  rings: Float32Array;
-  effects: Float32Array;
-}
-
-export interface BattlePresentationReceipt {
-  submitted: boolean;
-  renderedFrameId: number;
-  gpuSubmission: ReturnType<BattleRenderer["frameMetrics"]>["gpuSubmission"];
-  submittedAtMs: number;
-  /** Active synchronous CPU work reported by the renderer, excluding await suspension. */
-  cpuMs: number;
 }

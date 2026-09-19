@@ -8,7 +8,7 @@ import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
 import { planCrowdLods } from "@packages/crowd-runtime/src/visibility";
 import { IMPOSTOR_LEVEL } from "@packages/crowd-runtime/src/lod";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import type { BattleCameraSnapshot } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleCameraSnapshot } from "@packages/battle-renderer/src/types";
 
 test("far inspection admits real projected impostors without changing the magnified reference", () => {
   const near: BattleCameraSnapshot = {

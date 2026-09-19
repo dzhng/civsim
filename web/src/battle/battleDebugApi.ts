@@ -10,7 +10,7 @@ import {
   type BattleVistaGrid,
 } from "@packages/game-renderer/src/battle/vistaSurface";
 import type { Camera } from "../shared/camera";
-import type { BattleRendererApi } from "./battleRendererApi";
+import type { BattleRendererApi, BattleRendererFrameMetrics } from "./battleRendererApi";
 import type { BattleAmbientAudio } from "./battleAudio";
 import type { BattleSimClient, BattleSimTelemetry } from "./sim/battleSimClient";
 
@@ -32,7 +32,7 @@ export interface BattleLoopFrameMetrics {
   renderAwaitMs: number;
   renderWallMs: number;
   loopCpuMs: number;
-  renderer: ReturnType<BattleRendererApi["frameMetrics"]>;
+  renderer: BattleRendererFrameMetrics;
 }
 
 interface DebugOwners {

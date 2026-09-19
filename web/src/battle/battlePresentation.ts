@@ -1,7 +1,7 @@
 import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
 import type { BattleStandardInstance } from "@packages/game-renderer/src/models/shared/battleStandardData";
 import type { BattleReadoutInstance } from "@packages/game-renderer/src/battle/readoutData";
-import type { BattleTacticalLineFrame } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleTacticalLineFrame } from "@packages/battle-renderer/src/types";
 import type { Camera } from "../shared/camera";
 
 /** The renderer only needs this immutable view of a live Camera. */

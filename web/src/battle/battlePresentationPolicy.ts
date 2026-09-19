@@ -1,8 +1,6 @@
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
-import type {
-  BattleTerrainOptions,
-  BattleCameraSnapshot,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleTerrainOptions } from "@packages/game-renderer/src/battle/terrainOptions";
+import type { BattleCameraSnapshot } from "@packages/battle-renderer/src/types";
 import type { BattleStandardInstance } from "@packages/game-renderer/src/models/shared/battleStandardData";
 import type { BattleReadoutInstance } from "@packages/game-renderer/src/battle/readoutData";
 import type { BattleRenderCamera } from "./battlePresentation";

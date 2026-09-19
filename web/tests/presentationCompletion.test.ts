@@ -4,7 +4,7 @@ import {
   completeBattlePresentation,
   reportBattlePresentationFailure,
 } from "../src/battle/presentationCompletion";
-import type { BattlePresentationReceipt } from "../src/battle/renderer";
+import type { BattlePresentationReceipt } from "../src/battle/battleRendererApi";
 const receipt = (cpuMs: number): BattlePresentationReceipt => ({
   submitted: true,
   renderedFrameId: 1,

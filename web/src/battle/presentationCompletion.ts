@@ -1,4 +1,4 @@
-import type { BattlePresentationReceipt } from "./renderer";
+import type { BattlePresentationReceipt } from "./battleRendererApi";
 export interface PresentationTiming {
   renderCpuMs: number;
   /** Wall time while the loop awaited a renderer promise; may include library continuations. */

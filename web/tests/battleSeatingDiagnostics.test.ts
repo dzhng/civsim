@@ -3,10 +3,8 @@ import { expect, test, vi } from "vitest";
 import { PerspectiveCamera } from "three/webgpu";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 import { emptyLodCounts } from "@packages/crowd-runtime/src/lod";
-import {
-  PhotorealBattleWorld,
-  type BattleCameraSnapshot,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
+import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleCameraSnapshot } from "@packages/battle-renderer/src/types";
 
 const camera: BattleCameraSnapshot = {
   x: 0,

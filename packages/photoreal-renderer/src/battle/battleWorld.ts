@@ -2,7 +2,6 @@ import {
   resolveBattleTerrainOptions,
   type BattleTerrainOptions,
 } from "../../../game-renderer/src/battle/terrainOptions";
-export type { BattleTerrainOptions } from "../../../game-renderer/src/battle/terrainOptions";
 import { expandedBattleTerrainRect } from "../../../game-renderer/src/battle/terrainSurfacePolicy";
 import { terrainBackdropStyleForZoom } from "../../../game-renderer/src/battle/terrainBackdropPolicy";
 import {
@@ -38,7 +37,10 @@ import {
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../game-renderer/src/terrain/heightField";
-import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
+import type {
+  BattleCameraSnapshot,
+  BattleTacticalLineFrame,
+} from "../../../battle-renderer/src/types";
 import {
   loadAppearanceCatalog,
   type AppearanceBundle,
@@ -72,20 +74,6 @@ import { BattlePostChain } from "../post/postChain";
 import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
 
 export type { BattleLakeSurfaceSpec } from "./seaLayer";
-
-export interface BattleCameraSnapshot {
-  x: number;
-  y: number;
-  zoom: number;
-  zoomT: number;
-  camera3d: Camera3DParams;
-}
-
-export interface BattleTacticalLineFrame {
-  groundCues: Float32Array;
-  effects: Float32Array;
-  rings: Float32Array;
-}
 
 export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;

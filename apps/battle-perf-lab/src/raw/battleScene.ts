@@ -28,7 +28,7 @@ import type { BattleReadoutInstance } from "../../../../packages/game-renderer/s
 import type {
   BattleCameraSnapshot,
   BattleTacticalLineFrame,
-} from "../../../../packages/photoreal-renderer/src/battle/battleWorld";
+} from "../../../../packages/battle-renderer/src/types";
 
 /** Complete native scene submission. The caller owns simulation/presentation data,
  * device and canvas; this owner owns every scene resource and final pass ordering. */

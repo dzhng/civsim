@@ -15,6 +15,14 @@ Paths under `src/` and `candidates/` above are within `apps/battle-perf-lab`. Sh
 
 The shared native benchmark facade explicitly rejects CSM, block-debug rendering and soldier asset reload. A replacement must implement the required production behavior or retire a behavior through an explicit, evidenced policy decision. Its API is currently derived from the source renderer and must become independently owned at cutover. Resource accounting must remain honest: logical allocation counters and Three object counts are different measurements, not interchangeable values for a retained API.
 
+The cascade option is user-visible: `web/src/ui/graphics/GraphicsSettingsModal.tsx`
+labels `csm` as **High**, and the settings owner accepts it. Stale comments calling
+it only a QA override do not retire that behavior. A replacement must support the
+existing High selection before production cutover. Asset reload also has actual
+battle/default-renderer and disposal-scene consumers, and block rendering is used
+by selection verification. These are concrete migration obligations, not evidence
+that the default full-scene comparison omitted ordinary default drawing.
+
 The raw scene has inline lifecycle state while TypeGPU/vgpu use the shared asynchronous lifecycle owner. Review this against their synchronous/asynchronous contracts during migration; different spelling alone does not prove a correctness defect or justify a wrapper. Existing lifecycle tests remain required.
 
 The stale vgpu preflight identity has been corrected: package identity contains version information only, and each control states the limited work it actually checks. Neither an old missing-pass list nor a passing component control is current full-scene eligibility.

@@ -21,8 +21,14 @@ Claude Opus is implementing the separate non-timed checkpoint observer in
 completed-frame boundary: polling mutable stats during async preparation can mix
 frames. Fixed timing builds remain immutable; approximate camera samples cannot
 prove exact geometry parity. Root owns hardware verification. A separate
-read-only kernel consultation is session34279, recorded in
-`throwaway/next-kernel-consult/`; it has no implementation authorization itself.
+read-only kernel consultation (session34279, terminal) led to a packed targeting
+candidate in `/Users/david/dev/game-battle-packed-target-bodies`, session64480.
+Root corrected its assumptions: combat can move live positions, and team IDs are
+u32. Only stable body-grid data may be packed; fighting and live positions remain
+live. Review and exact-hash release ABBA precede adoption. A third isolated Opus
+pass prepares the lab whole-map shadow control in
+`/Users/david/dev/game-battle-whole-map-control`, session48016. Both are candidates,
+not integrated changes. All hardware timing remains idle until root schedules it.
 
 Priority after that decision: unchanged simulation throughput, then unresolved
 camera/grass/LOD quality, stable readable default shadows, and final live net
@@ -43,7 +49,8 @@ GPU timing with no overlapping builds, tests or CPU timing. Preserve all fixed
 builds and their linked assets: held8643cf05/e9f4f080…, historical98fc8a45 and
 live0ea8406d controls. Production WASM fd2fef9d… matches the integrated deferred-
 bearing candidate. Finished implementation worktrees were cleaned up with scratch
-archives and branch refs retained; do not remove unrelated project worktrees.
+archives and branch refs retained (three more on2026-09-20, recorded in
+`throwaway/worktree-cleanup-2026-09-20/manifest.json`); do not remove unrelated project worktrees.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 

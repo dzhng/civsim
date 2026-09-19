@@ -605,3 +605,13 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
   cache/revision or shadow-resolution change is added.
 - **Verdict:** Sound, high confidence on conservative geometry; actual extra work
   and moving shadow quality remain hardware obligations.
+
+## M1a independent contract ownership
+
+Accepted: explicit frontend signatures replace old-class Pick/ReturnType edges;
+neutral camera/tactical data belong to battle-renderer, with direct consumer
+imports. Native optional pass detail remains named, all event statuses/fields
+and stats extension fields stay intact. Source object-count memory semantics
+remain unchanged and native still reports null. Types do not repair the known
+native debug animation gap; M4/M9 owns truthful admitted root/clip/phase output.
+Root reviewed the complete diff and independent review found no regression.

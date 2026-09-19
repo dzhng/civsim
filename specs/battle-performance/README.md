@@ -7,12 +7,16 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: [M1a independent contracts](slices/m1a-independent-battle-contracts.md)
-is running with Claude Opus in `game-battle-independent-contracts`, based on
-f5de4da8. Parent logs live under `throwaway/m1a-worker/`; inspect its process and
-result before any resume. It is types/import ownership only, with the planned
-`packages/battle-renderer/src/types.ts` owner and unchanged runtime behavior.
-Root reviews/integrates after the worker is terminal.
+Current pickup: [M1b raw-world promotion](slices/m1b-promote-raw-world.md).
+[M1a independent contracts](assets/m1a-contracts/README.md) is integrated at
+f4ecbb1f: root TypeScript and59 focused tests pass, independent review found no
+regression. Move the existing raw world to its final package without rewriting
+frame behavior. Source product cutover still waits for M9.
+
+An independent Claude Opus [native target-preparation spike](slices/03a-native-target-preparation.md)
+runs in `game-battle-native-target-preparation`, based on unadopted c8580623.
+Parent logs are `throwaway/native-target-worker/`. No timing starts until its
+correctness review is complete. This is not production or browser threading.
 
 The [combined CPU ABBA](assets/03a-kernel-input-pair/README.md) finished with all
 hashes intact but failed its adoption rule: early ranges overlap, though both

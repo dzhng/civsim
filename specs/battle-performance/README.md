@@ -14,9 +14,12 @@ e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pas
 [the evidence](assets/02-held-authority/README.md) records approximate scene parity,
 shared readability issues, the native first-sample race and one admitted post-cancel
 frame. Their timings are excluded. The pose-control GPU matrix is RUNNING in exec
-session28888 via `throwaway/held-fixed/pose-matrix.py`; results go to
-`throwaway/held-tour-review/pose-matrix` and `throwaway/held-fixed/pose-outcomes.json`.
+session14314 via `throwaway/held-fixed/pose-matrix.py`; results go to
+`throwaway/held-tour-review/pose-matrix-fixed` and `throwaway/held-fixed/pose-outcomes.json`.
 It observes pose dispatch/control phase changes without changing production code.
+The initial observer failed to parse; that run was stopped and a syntax-checked
+observer now fails before preparation if installation is missing. Three passes
+with10 changing GPU control buffers; native checks are still running.
 Check its actual liveness before acting. No other GPU job while it runs.
 
 The [deferred-bearing optimization](assets/03a-deferred-bearing/README.md) is

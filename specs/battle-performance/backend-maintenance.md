@@ -4,7 +4,7 @@ Code inspection complements the measured comparison; it cannot select a renderer
 
 | Candidate | Maintained obligations visible in current code |
 | --- | --- |
-| Three | TSL scene/material ownership plus private storage retirement and renderer/backend access. `packages/photoreal-renderer/src/posePalette.ts` handles pinned internal allocation behavior; the lab's source timestamp tap separately pins an exact bundled dependency hash. |
+| Three | TSL scene/material ownership plus private storage retirement and renderer/backend access. `packages/photoreal-renderer/src/battle/posePalette.ts` handles pinned internal allocation behavior; the lab's source timestamp tap separately pins an exact bundled dependency hash. |
 | Raw WebGPU | Explicit resources, pipeline layouts and command encoding. Reuses existing renderer-core runtime utilities, including the pose palette, without adding a shader-authoring dependency. This reduces external API exposure but does not prove better GPU work or maintenance overall. |
 | TypeGPU | Typed resource/layout ownership plus shared WGSL bodies and TGSL kernels. `candidates/typegpu/frame.ts` uses `root["~unstable"].createCommandEncoder()`, so the frame path depends on an explicitly unstable library surface. The build also requires the TypeGPU transform. |
 | vgpu | Reflected resource bindings and library draw/compute orchestration. `src/vgpu/targetLifetime.ts` and `storageLifetime.ts` validate runtime destruction methods absent from the published types. Native-device access remains explicit for uploads, capability checks and resource interoperability; it is not by itself evidence of a hidden rendering fallback. |

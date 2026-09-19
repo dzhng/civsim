@@ -4,13 +4,17 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-19.
-Current pickup: inspect the first declared [counterbalanced renderer round](renderer-comparison.md).
-Round0 is RUNNING in exec session45081 via `throwaway/held-fixed/run-round.py 0`;
-log `throwaway/held-fixed/round-0.log`, trials in `throwaway/held-fixed/round-0`.
-Order is Three/raw/TypeGPU/vgpu at9000 then12000. No CPU builds/tests/timings or
-other GPU jobs until the round ends. It uses fresh browser processes with no pose
-observer. Preserve failed quiet-host verdicts. Remaining declared rounds are1/2;
-do not choose a backend from the first order or replace final live acceptance.
+Current pickup: continue the [counterbalanced renderer comparison](renderer-comparison.md).
+[Round0 is complete](assets/02-held-rounds/README.md): all eight full controls pass
+functional checks, all quiet-host verdicts remain failed. Raw/TypeGPU have better
+overall cadence in this order; no repeatability or backend-selection claim follows.
+Exec session45081 is terminal. Remaining declared rounds are1/2, followed by the
+specified leading-pair confirmation and disabled-instrumentation control.
+Use `throwaway/held-fixed/run-round.py <round>` with the same immutable builds.
+Before launching, inspect active driver processes and `throwaway/held-fixed/round-<round>.log`;
+continue an existing live run rather than restarting it. No CPU builds/tests/timings
+or other GPU jobs while a round is active. Preserve failed host verdicts. Common
+interior-checkpoint scene-count evidence is still missing from the timing reports.
 
 [All16 fixed held builds](assets/02-held-builds/README.md) pin8643cf05 and identical
 e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pass,

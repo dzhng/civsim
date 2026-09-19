@@ -1,5 +1,7 @@
 # Evidence ledger
 
+- [Held renderer rounds](assets/02-held-rounds/README.md): first order completes eight full five-minute controls at two canonical states. Functional checks pass, host checks fail; repeatability, interior scene-count checkpoints and final live acceptance remain open.
+
 - [Main-geometry attribution](assets/07-projected-detail/main-geometry-cost/README.md): repeated same-crowd buffer substitutions reduce observed GPU interval cost with matched audiences/grass/shadows. Known visual defects prohibit shipping the substitution; calibrated representations are next. The preceding [single-class test](assets/07-projected-detail/phalanx-cost/README.md) remains inconclusive.
 
 - [Canonical phalanx reversal](assets/07-projected-detail/canonical-reversal/README.md) and [contact opportunity](assets/07-projected-detail/contact-opportunity/README.md): sampled pose silhouettes remain readable with a small armor-tonality change; exact contact hash and consumed cameras pass. Production assets/policy remain unchanged; cost attribution is next.

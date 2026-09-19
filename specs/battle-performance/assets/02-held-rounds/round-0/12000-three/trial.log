@@ -1,0 +1,24 @@
+PASS  battle-benchmark-complete: entire live window completed
+PASS  battle-benchmark-complete: timing starts at the canonical tick
+PASS  battle-benchmark-complete: canonical contact state
+PASS  battle-benchmark-complete: report declares a renderer-only held simulation
+PASS  battle-benchmark-complete: simulation stayed exactly at the held state
+PASS  battle-benchmark-complete: all camera phases recorded
+PASS  battle-benchmark-complete: camera reached near wide and horizon views
+PASS  battle-benchmark-complete: every recorded callback submitted a new primary frame
+PASS  battle-benchmark-complete: recorded interval total agrees with run clock
+PASS  battle-benchmark-complete: result actions remain inside the initial viewport
+PASS  battle-benchmark-complete: export retains the full raw recording
+PASS  runner: no page errors
+
+ALL CHECKS PASSED
+scenarioReport=throwaway/held-fixed/round-0/12000-three/scenario-report.json
+held-12000-three-round-0: complete (renderer-only); functional=true quiet-rankable=false; archived in /Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/round-0/12000-three
+  pre observation at 2026-09-19T10:52:17.445Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 30.5% cannot be split between this trial and anything else
+  periodic observation at 2026-09-19T10:53:17.476Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 32.5% cannot be split between this trial and anything else
+  periodic observation at 2026-09-19T10:54:17.509Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 31.8% cannot be split between this trial and anything else
+  7 further unattributable observation(s)
+  pre observation at 2026-09-19T10:52:17.445Z was not quiet (busiest other process 93.6%, load 2.84619140625)
+  periodic observation at 2026-09-19T10:54:17.509Z was not quiet (busiest other process 100%, load 4.77685546875)
+  periodic observation at 2026-09-19T10:55:17.542Z was not quiet (busiest other process 52.5%, load 3.81494140625)
+  3 further busy observation(s)

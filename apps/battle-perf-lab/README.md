@@ -9,9 +9,9 @@ that same benchmark and archives its provenance and host evidence, and the
 and experiment manifests without choosing a renderer. A
 [held-authority build](src/held/README.md) runs the same benchmark as a renderer-only
 comparison at a fixed simulation state, and the
-[whole-map shadow control](src/shadow-control/README.md) runs it at the original
-shadow coverage, which is the only way to price the shadows the current default
-added.
+[whole-map shadow control](src/shadow-control/README.md) builds it at the original
+whole-map shadow coverage, which is what the shadow arm of the protocol prices
+against today's fitted default.
 
 The capture lab build runs the actual menu, battle loop and crowd presentation. Its
 importer-scoped Vite substitutions wrap the original renderer and real world

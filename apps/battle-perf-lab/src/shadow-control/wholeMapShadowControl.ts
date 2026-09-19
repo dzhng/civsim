@@ -7,12 +7,14 @@ import { fileURLToPath } from "node:url";
  * rendering at the ORIGINAL shadow quality and coverage — against build C's
  * fitted shadows.
  *
- * The substitution is one anchored replacement in the shared policy rather than
+ * The substitution is two anchored replacements in the shared policy rather than
  * a copy of the fit, a production flag, or a second shadow owner: map size,
  * depth/normal bias, PCF softness, sun pose, near/far and caster views all stay
  * exactly what the shared policy computes. Only the CHOICE between the
- * camera-driven fit and the policy's own whole-map fallback changes, and it
- * changes toward the fallback the policy already keeps for unposed rigs.
+ * camera-driven fit and the policy's own whole-map fallback changes — toward the
+ * fallback the policy already keeps for unposed rigs — plus one weak
+ * registration of the policy, so the lab report can be READ off the running
+ * owner instead of fed by it.
  *
  * Every anchor below must match exactly once. A shared policy that has drifted
  * fails the build instead of silently measuring something else.
@@ -35,11 +37,28 @@ const VIEW_FIT_ANCHOR = `  private viewFit(camera: Camera3DParams): ShadowViewFi
 /** Its replacement. With the camera discarded, update() joins setWorldRect()
  *  and construction on the policy's own whole-map map: that is what holds the
  *  fit still under camera motion while a new terrain rect or a new sun still
- *  moves it. */
+ *  moves it. Nothing else runs here, so a controlled build pays no observer
+ *  cost an uncontrolled one does not. */
 const VIEW_FIT_CONTROL = `  private viewFit(_camera: Camera3DParams): ShadowViewFit {
     // battle-perf-lab whole-map shadow control: the camera is deliberately
     // discarded so every refit reproduces the original whole-map policy.
-    return recordWholeMapShadowFit(this.wholeMapFit());
+    return this.wholeMapFit();
+  }`;
+
+/** Where the policy becomes observable. */
+const CONSTRUCTOR_ANCHOR = `  constructor(unitSunDirection: readonly [number, number, number]) {
+    this.sunAxis = [...unitSunDirection];
+    this.applied = this.wholeMapFit();
+  }`;
+
+/** Its replacement: one weak registration of the policy the build actually
+ *  runs, so the lab report reads that policy's public fit and refits when
+ *  someone asks, instead of the control keeping a parallel record of them. */
+const CONSTRUCTOR_CONTROL = `  constructor(unitSunDirection: readonly [number, number, number]) {
+    this.sunAxis = [...unitSunDirection];
+    this.applied = this.wholeMapFit();
+    // battle-perf-lab whole-map shadow control: weak, read-time evidence.
+    registerWholeMapShadowPolicy(this);
   }`;
 
 /** The whole-map fallback this control redirects INTO. */
@@ -87,17 +106,20 @@ const BASELINE_ANCHORS: ReadonlyArray<readonly [string, string]> = [
   ["whole-map fallback", WHOLE_MAP_FALLBACK],
 ];
 
-/** Replaces the shared policy's camera-driven fit with its whole-map fallback.
- *  Throws rather than approximating when any anchor has drifted. */
+/** Replaces the shared policy's camera-driven fit with its whole-map fallback,
+ *  and makes the resulting policy observable. Throws rather than approximating
+ *  when any anchor has drifted. */
 export function holdWholeMapShadowFit(code: string, reportImport: string): string {
   for (const [what, anchor] of BASELINE_ANCHORS) anchorOnce(code, anchor, what);
-  const at = anchorOnce(code, VIEW_FIT_ANCHOR, "camera-driven fit");
-  return (
-    `import { recordWholeMapShadowFit } from ${JSON.stringify(reportImport)};\n` +
-    code.slice(0, at) +
-    VIEW_FIT_CONTROL +
-    code.slice(at + VIEW_FIT_ANCHOR.length)
-  );
+  const sites = [
+    { anchor: CONSTRUCTOR_ANCHOR, control: CONSTRUCTOR_CONTROL, what: "policy constructor" },
+    { anchor: VIEW_FIT_ANCHOR, control: VIEW_FIT_CONTROL, what: "camera-driven fit" },
+  ].map((site) => ({ ...site, at: anchorOnce(code, site.anchor, site.what) }));
+  let held = code;
+  // Last site first, so an earlier replacement cannot move a later anchor.
+  for (const site of sites.sort((a, b) => b.at - a.at))
+    held = held.slice(0, site.at) + site.control + held.slice(site.at + site.anchor.length);
+  return `import { registerWholeMapShadowPolicy } from ${JSON.stringify(reportImport)};\n` + held;
 }
 
 function anchorOnce(code: string, anchor: string, what: string): number {

@@ -1,108 +1,115 @@
-/** Evidence for the lab's whole-map shadow control (measurement build B).
+/** Read-time evidence for the lab's whole-map shadow control (measurement B).
  *
- * The control is a build-time substitution inside the SHARED shadow policy, so
- * neither the Three rig's identity block nor the native scene stats can name
- * it. This module is what the substituted owner reports through, and only a
- * build carrying the substitution ever imports it:
+ * The substituted policy registers itself here once, at construction; the rest
+ * is read on demand, so a camera update costs nothing extra and a reader gets
+ * the installed policy's own state rather than a record kept alongside it.
  *
- *   - `control` is COMPILED PROVENANCE. It names the fit the build asked for.
- *   - the counters and `latest` bounds beside it are RUNTIME EVIDENCE. They
- *     say what the fit actually produced, so a reader never has to take the
- *     requested name for the delivered map.
- *
- * The report is published on `globalThis` because the page-side capture and
- * trial harnesses are owned elsewhere; reading a global is how they reach this
- * without the control editing them.
+ * `control` is COMPILED PROVENANCE: it reaches a bundle only because the
+ * substitution was compiled in, so it names the REQUESTED fit. `fit` and
+ * `refits` are the CPU policy's chosen fit and its own rebuild count. Nothing
+ * here observes shadow-map rasterisation, upload or draw submission — that
+ * evidence exists only in a hardware run.
  */
+import type {
+  ShadowViewFit,
+  SingleShadowPolicy,
+} from "@packages/game-renderer/src/battle/shadowPolicy";
 
 export const SHADOW_FIT_CONTROL_GLOBAL = "__battleShadowFitControl";
 export const SHADOW_FIT_CONTROL_FLAG = "BATTLE_SHADOW_FIT";
 
-/** The subset of a fit that decides which texels get rasterised. */
-export interface ShadowFitControlMap {
-  extent: number;
-  worldUnitsPerTexel: number;
-  normalBias: number;
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-  near: number;
-  far: number;
-  coverage: number;
-  position: readonly [number, number, number];
-  target: readonly [number, number, number];
-}
+/** The part of the owner's own fit that decides which ground one map covers. */
+export type ShadowFitControlMap = Pick<
+  ShadowViewFit,
+  | "left"
+  | "right"
+  | "top"
+  | "bottom"
+  | "near"
+  | "far"
+  | "extent"
+  | "worldUnitsPerTexel"
+  | "normalBias"
+  | "coverage"
+  | "position"
+  | "target"
+>;
+
+/** All this module reads. Derived from the owner so it cannot drift from it. */
+type ObservedPolicy = Pick<SingleShadowPolicy, "fit" | "refits">;
 
 export interface ShadowFitControlReport {
   /** Compiled provenance: the fit this build requested. */
   control: "whole-map-original";
   flag: typeof SHADOW_FIT_CONTROL_FLAG;
-  /** The anchored site the control replaced, so a reader can check the claim. */
+  /** The anchored sites the control replaced, so a reader can check the claim. */
   owner: string;
   scope: string;
-  /** Camera-driven fits the substituted owner produced since load. Terrain and
-   *  sun updates that never posed a camera are not counted here; they reach the
-   *  same whole-map fit through the policy's own fallback. */
-  fits: number;
-  /** How many DIFFERENT maps those fits rasterised. The control's whole claim
-   *  is that camera motion never raises this past one. */
-  distinctMaps: number;
-  latest: ShadowFitControlMap | null;
+  /** False before a policy is built, and once a torn-down one is collected. */
+  observed: boolean;
+  /** The owner's OWN refit count: different maps it has installed since it was
+   *  constructed. Held still by camera motion is this control's whole claim. */
+  refits: number | null;
+  fit: ShadowFitControlMap | null;
 }
+
+const OWNER =
+  "packages/game-renderer/src/battle/shadowPolicy.ts SingleShadowPolicy: #viewFit returns " +
+  "wholeMapFit(), and the constructor registers the policy here";
 
 const SCOPE =
   "lab-only build-time control: the shared policy's camera-driven fit is replaced by its own " +
   "whole-map fallback, so map size, biases, PCF softness, sun pose, depths and caster views " +
-  "stay the shared policy's. Scene content, DPR and every other renderer path are untouched";
+  "stay the shared policy's. Scene content, DPR and every other renderer path are untouched. " +
+  "Evidence here is the CPU policy's chosen fit only: it observes no rasterisation, upload or " +
+  "submission";
 
-const report: ShadowFitControlReport = {
-  control: "whole-map-original",
-  flag: SHADOW_FIT_CONTROL_FLAG,
-  owner: "packages/game-renderer/src/battle/shadowPolicy.ts SingleShadowPolicy#viewFit",
-  scope: SCOPE,
-  fits: 0,
-  distinctMaps: 0,
-  latest: null,
-};
+/** Held weakly and latest-only: a torn-down world's policy stays collectable,
+ *  and a collected one reports unobserved rather than as the live map. Each
+ *  build has one live shadow owner (the Three rig, or the native shadow frame),
+ *  so "most recently constructed" and "current" are the same policy there. */
+let registered: WeakRef<ObservedPolicy> | null = null;
 
-let signature = "";
-
-/** Called by the substituted owner with the fit it is about to hand back. */
-export function recordWholeMapShadowFit<Fit extends ShadowFitControlMap>(fit: Fit): Fit {
-  report.fits++;
-  const next = `${fit.extent}|${fit.near}|${fit.far}|${fit.position.join(",")}`;
-  if (next !== signature) {
-    signature = next;
-    report.distinctMaps++;
-  }
-  report.latest = {
-    extent: fit.extent,
-    worldUnitsPerTexel: fit.worldUnitsPerTexel,
-    normalBias: fit.normalBias,
-    left: fit.left,
-    right: fit.right,
-    top: fit.top,
-    bottom: fit.bottom,
-    near: fit.near,
-    far: fit.far,
-    coverage: fit.coverage,
-    position: [...fit.position],
-    target: [...fit.target],
-  };
-  return fit;
+/** Called once per policy, by the substituted constructor. */
+export function registerWholeMapShadowPolicy(policy: ObservedPolicy): void {
+  registered = new WeakRef(policy);
 }
 
+/** A fresh snapshot per call: later policy updates never reach a returned
+ *  report, and a reader that edits one never reaches the policy. */
 export function shadowFitControlReport(): ShadowFitControlReport {
-  return { ...report, latest: report.latest && { ...report.latest } };
+  const policy = registered?.deref();
+  const fit = policy?.fit;
+  return {
+    control: "whole-map-original",
+    flag: SHADOW_FIT_CONTROL_FLAG,
+    owner: OWNER,
+    scope: SCOPE,
+    observed: policy !== undefined,
+    refits: policy?.refits ?? null,
+    fit: fit
+      ? {
+          left: fit.left,
+          right: fit.right,
+          top: fit.top,
+          bottom: fit.bottom,
+          near: fit.near,
+          far: fit.far,
+          extent: fit.extent,
+          worldUnitsPerTexel: fit.worldUnitsPerTexel,
+          normalBias: fit.normalBias,
+          coverage: fit.coverage,
+          position: [...fit.position],
+          target: [...fit.target],
+        }
+      : null,
+  };
 }
 
-/** Test seam: a fresh module per case is not available under one transformed graph. */
-export function resetShadowFitControlReport(): void {
-  report.fits = 0;
-  report.distinctMaps = 0;
-  report.latest = null;
-  signature = "";
-}
-
-(globalThis as Record<string, unknown>)[SHADOW_FIT_CONTROL_GLOBAL] = report;
+// Page-side capture and trial harnesses are owned elsewhere; a global getter is
+// how they reach this without the control editing them, and it keeps the read
+// lazy so nothing here runs on a frame that nobody is reading.
+Object.defineProperty(globalThis, SHADOW_FIT_CONTROL_GLOBAL, {
+  configurable: true,
+  get: shadowFitControlReport,
+});

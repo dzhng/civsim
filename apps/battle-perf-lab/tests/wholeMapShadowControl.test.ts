@@ -99,6 +99,11 @@ test("a shared policy that no longer means the original fails the build", () => 
       "      mapSize: SINGLE_MAP_SIZE, // fit",
       /camera-driven fit/,
     ],
+    [
+      "    this.sunAxis = [...unitSunDirection];",
+      "    this.sunAxis = [...unitSunDirection]; // latch",
+      /policy constructor/,
+    ],
   ];
   for (const [from, to, message] of cases)
     assert.throws(
@@ -113,7 +118,10 @@ test("the substituted site must exist exactly once, or the build fails", () => {
   // land twice or half-way on one policy.
   const controlled = holdWholeMapShadowFit(POLICY, "/lab/report.ts");
   assert.notEqual(controlled, POLICY);
-  assert.throws(() => holdWholeMapShadowFit(controlled, "/lab/report.ts"), /camera-driven fit/);
+  assert.throws(
+    () => holdWholeMapShadowFit(controlled, "/lab/report.ts"),
+    /no longer the anchored original/,
+  );
 
   // Two candidate sites: refuse rather than pick one and measure half a build.
   const at = POLICY.indexOf("  private viewFit(camera: Camera3DParams): ShadowViewFit {");
@@ -123,7 +131,10 @@ test("the substituted site must exist exactly once, or the build fails", () => {
   assert.throws(() => holdWholeMapShadowFit(twice, "/lab/report.ts"), /camera-driven fit/);
 });
 
-/** One real Vite build of `entry`, carrying the control. Returns the bundle. */
+/** One real Vite build of a synthetic `entry` that imports the policy, carrying
+ *  the control. Enough to prove the transform survives a real build pipeline and
+ *  that `buildEnd` fails closed; it is NOT a lab bundle, and nothing here
+ *  compares a default build's output to anything. */
 async function controlledBuild(entrySource: string): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "whole-map-shadow-control-"));
   try {
@@ -142,13 +153,13 @@ async function controlledBuild(entrySource: string): Promise<string> {
   }
 }
 
-test("a controlled production build carries the substitution, or fails", async () => {
+test("a real Vite build carries the substitution, or fails", async () => {
   const code = await controlledBuild(
     `import { SingleShadowPolicy } from ${JSON.stringify(POLICY_PATH)};\n` +
       "export const policy = new SingleShadowPolicy([0, 0.5, 0.86]);\n",
   );
   assert.ok(
-    code.includes("recordWholeMapShadowFit"),
+    code.includes("registerWholeMapShadowPolicy"),
     "the controlled bundle shipped without the whole-map substitution",
   );
   // A policy that has moved out from under the anchor must not ship a fitted

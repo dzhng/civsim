@@ -5,17 +5,21 @@
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-19.
 Current pickup: continue the [counterbalanced renderer comparison](renderer-comparison.md).
-[Rounds0/1 are complete](assets/02-held-rounds/README.md): all sixteen full controls
-pass functional checks, all quiet-host verdicts remain failed. Raw's overall
-cadence is close across orders; TypeGPU has a substantial early-state spread.
-No backend is selected. Sessions45081/88896 are terminal. Next is declared round2,
-followed by the specified leading-pair confirmation and disabled-instrumentation
-control. Do not skip remaining comparisons based on the current ordering.
-Use `throwaway/held-fixed/run-round.py <round>` with the same immutable builds.
-Before launching, inspect active driver processes and `throwaway/held-fixed/round-<round>.log`;
-continue an existing live run rather than restarting it. No CPU builds/tests/timings
-or other GPU jobs while a round is active. Preserve failed host verdicts. Common
-interior-checkpoint scene-count evidence is still missing from the timing reports.
+[All three orders are complete](assets/02-held-rounds/README.md): all24 full controls
+pass functional checks, all quiet-host verdicts remain failed. Raw/TypeGPU are the
+leading confirmation pair; early-state ranges overlap, so no backend is selected.
+Sessions45081/88896/26355 are terminal. Next run
+`throwaway/held-fixed/run-confirmation.py`: TypeGPU then raw at both states, first
+enabled then disabled instrumentation, using the same immutable builds. It writes
+`throwaway/held-fixed/confirmation.log` and `throwaway/held-fixed/confirmation/`.
+Check active driver processes and existing output before launching; continue a
+live run instead of restarting it. No CPU builds/tests/timings or other GPU jobs
+while timing is active. Preserve failed host verdicts and use the declared tie
+rule after confirmation; do not add broad rounds to escape uncertainty.
+Common interior-checkpoint scene-count evidence remains missing. A bounded
+read-only Claude consultation is in session6305; prompt/result are in
+`throwaway/held-checkpoint-consult/`. Inspect its recommendation against source
+before implementing a separate correctness control; it may not change timed builds.
 
 [All16 fixed held builds](assets/02-held-builds/README.md) pin8643cf05 and identical
 e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pass,

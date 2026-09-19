@@ -1,0 +1,2128 @@
+{
+  "scope": "Provisional held-renderer comparison; not live acceptance or a backend decision",
+  "gpuMethod": "Complete zero-missing-query submission union, joined to each recorded frame; p95 nearest rank",
+  "rows": [
+    {
+      "backend": "three",
+      "tick": 9000,
+      "order": 1,
+      "source": "throwaway/held-fixed/round-2/9000-three",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple / metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "9928381812590497427",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 9000,
+        "initialStateHash": "9928381812590497427",
+        "finalStateHash": "9928381812590497427"
+      },
+      "cadence": {
+        "validCount": 9428,
+        "invalidCount": 0,
+        "durationMs": 300021.3300000014,
+        "averageFps": 31.424432389523623,
+        "low1PercentFps": 11.70451640326288,
+        "low01PercentFps": 10.00025000625039,
+        "minFps": 10,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 16.670000000012806,
+        "p95FrameMs": 66.66500000000815,
+        "p99FrameMs": 83.3300000000163,
+        "maxFrameMs": 100,
+        "spikes": {
+          "over25Ms": 4452,
+          "over33_33Ms": 3983,
+          "over50Ms": 1504
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "pre observation at 2026-09-19T12:35:02.203Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 25.5% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:37:02.267Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 35.7% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:39:02.337Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 25.4% cannot be split between this trial and anything else",
+          "2 further unattributable observation(s)",
+          "periodic observation at 2026-09-19T12:36:02.235Z was not quiet (busiest other process 10.6%, load 4.0498046875)",
+          "periodic observation at 2026-09-19T12:38:02.301Z was not quiet (busiest other process 27.9%, load 3.15771484375)",
+          "periodic observation at 2026-09-19T12:39:02.337Z was not quiet (busiest other process 100.3%, load 3.43115234375)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 972,
+            "invalidCount": 0,
+            "durationMs": 29982.134999999995,
+            "averageFps": 32.419305696542295,
+            "low1PercentFps": 14.999250037497863,
+            "low01PercentFps": 14.999250037495244,
+            "minFps": 14.999250037495244,
+            "maxFps": 60.02400960388138,
+            "p50FrameMs": 16.669999999998254,
+            "p95FrameMs": 66.66500000000815,
+            "p99FrameMs": 66.66999999999825,
+            "maxFrameMs": 66.6700000000128,
+            "spikes": {
+              "over25Ms": 444,
+              "over33_33Ms": 421,
+              "over50Ms": 153
+            }
+          },
+          "recordedFrames": 972,
+          "gpuUnion": {
+            "count": 972,
+            "medianMs": 31.9986785,
+            "p95Ms": 32.950871
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 1968,
+            "invalidCount": 0,
+            "durationMs": 60014.265000000014,
+            "averageFps": 32.79220365358135,
+            "low1PercentFps": 14.633628810687817,
+            "low01PercentFps": 12.000840058802105,
+            "minFps": 12.00048001919842,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 16.669999999998254,
+            "p95FrameMs": 66.66500000000815,
+            "p99FrameMs": 66.6699999999837,
+            "maxFrameMs": 83.3300000000163,
+            "spikes": {
+              "over25Ms": 868,
+              "over33_33Ms": 786,
+              "over50Ms": 285
+            }
+          },
+          "recordedFrames": 1968,
+          "gpuUnion": {
+            "count": 1968,
+            "medianMs": 30.037395,
+            "p95Ms": 34.419474
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 2015,
+            "invalidCount": 0,
+            "durationMs": 59980.935,
+            "averageFps": 33.5940078293211,
+            "low1PercentFps": 12.000274291983075,
+            "low01PercentFps": 11.999760004796887,
+            "minFps": 11.999760004796887,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 16.669999999983702,
+            "p95FrameMs": 66.66500000000815,
+            "p99FrameMs": 83.3299999999872,
+            "maxFrameMs": 83.33500000002095,
+            "spikes": {
+              "over25Ms": 834,
+              "over33_33Ms": 717,
+              "over50Ms": 235
+            }
+          },
+          "recordedFrames": 2015,
+          "gpuUnion": {
+            "count": 2015,
+            "medianMs": 29.263762,
+            "p95Ms": 38.939154
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 1780,
+            "invalidCount": 0,
+            "durationMs": 59980.935,
+            "averageFps": 29.676096246248914,
+            "low1PercentFps": 10.588422148625964,
+            "low01PercentFps": 10,
+            "minFps": 10,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 66.6699999999837,
+            "p99FrameMs": 83.33499999999185,
+            "maxFrameMs": 100,
+            "spikes": {
+              "over25Ms": 922,
+              "over33_33Ms": 797,
+              "over50Ms": 339
+            }
+          },
+          "recordedFrames": 1780,
+          "gpuUnion": {
+            "count": 1780,
+            "medianMs": 33.181951,
+            "p95Ms": 45.602348
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 1834,
+            "invalidCount": 0,
+            "durationMs": 59997.59499999997,
+            "averageFps": 30.567891929668196,
+            "low1PercentFps": 11.999987368434631,
+            "low01PercentFps": 11.999760004796887,
+            "minFps": 11.999760004796887,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 16.67000000004191,
+            "p95FrameMs": 66.6699999999837,
+            "p99FrameMs": 83.3300000000163,
+            "maxFrameMs": 83.33500000002095,
+            "spikes": {
+              "over25Ms": 891,
+              "over33_33Ms": 815,
+              "over50Ms": 291
+            }
+          },
+          "recordedFrames": 1834,
+          "gpuUnion": {
+            "count": 1834,
+            "medianMs": 33.966961,
+            "p95Ms": 40.424299
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 859,
+            "invalidCount": 0,
+            "durationMs": 30065.465000000026,
+            "averageFps": 28.570986678569557,
+            "low1PercentFps": 12.00016000213258,
+            "low01PercentFps": 11.999760004796887,
+            "minFps": 11.999760004796887,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 66.6699999999837,
+            "p99FrameMs": 83.3300000000163,
+            "maxFrameMs": 83.33500000002095,
+            "spikes": {
+              "over25Ms": 493,
+              "over33_33Ms": 447,
+              "over50Ms": 201
+            }
+          },
+          "recordedFrames": 859,
+          "gpuUnion": {
+            "count": 852,
+            "medianMs": 35.386230999999995,
+            "p95Ms": 36.394319
+          },
+          "framesWithoutCompleteGpuUnion": 7
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 9429,
+        "pendingOrMissingCount": 7,
+        "unresolvedSubmissionIds": [
+          9445,
+          9446,
+          9447,
+          9448,
+          9449,
+          9450,
+          9451
+        ],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    },
+    {
+      "backend": "raw",
+      "tick": 9000,
+      "order": 0,
+      "source": "throwaway/held-fixed/round-2/9000-raw",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "9928381812590497427",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 9000,
+        "initialStateHash": "9928381812590497427",
+        "finalStateHash": "9928381812590497427"
+      },
+      "cadence": {
+        "validCount": 10600,
+        "invalidCount": 0,
+        "durationMs": 300004.67000000377,
+        "averageFps": 35.332783319672544,
+        "low1PercentFps": 19.813028561602327,
+        "low01PercentFps": 18.3328750114594,
+        "minFps": 10.000500025001715,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.330000000001746,
+        "p95FrameMs": 33.335000000020955,
+        "p99FrameMs": 50,
+        "maxFrameMs": 99.99499999999534,
+        "spikes": {
+          "over25Ms": 7193,
+          "over33_33Ms": 5626,
+          "over50Ms": 5
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "periodic observation at 2026-09-19T12:30:49.471Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 29.6% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:31:49.487Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 28% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:32:49.524Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 27.3% cannot be split between this trial and anything else",
+          "1 further unattributable observation(s)",
+          "periodic observation at 2026-09-19T12:33:49.563Z was not quiet (busiest other process 94.4%, load 3.70166015625)",
+          "periodic observation at 2026-09-19T12:34:49.601Z was not quiet (busiest other process 60.4%, load 3.3447265625)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 1129,
+            "invalidCount": 0,
+            "durationMs": 29982.134999999995,
+            "averageFps": 37.65575733682742,
+            "low1PercentFps": 28.79838729030756,
+            "low01PercentFps": 23.99808015358872,
+            "minFps": 20,
+            "maxFps": 60.02400960388138,
+            "p50FrameMs": 33.330000000001746,
+            "p95FrameMs": 33.3350000000064,
+            "p99FrameMs": 33.3350000000064,
+            "maxFrameMs": 50,
+            "spikes": {
+              "over25Ms": 669,
+              "over33_33Ms": 616,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 1129,
+          "gpuUnion": {
+            "count": 1129,
+            "medianMs": 26.328434,
+            "p95Ms": 27.169459
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 2294,
+            "invalidCount": 0,
+            "durationMs": 60014.26999999999,
+            "averageFps": 38.22424233436482,
+            "low1PercentFps": 29.99458793304429,
+            "low01PercentFps": 29.994001199745735,
+            "minFps": 29.994001199737006,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 33.3350000000064,
+            "p99FrameMs": 33.335000000020955,
+            "maxFrameMs": 33.34000000002561,
+            "spikes": {
+              "over25Ms": 1307,
+              "over33_33Ms": 1046,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 2294,
+          "gpuUnion": {
+            "count": 2294,
+            "medianMs": 24.786956,
+            "p95Ms": 27.979364
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 2297,
+            "invalidCount": 0,
+            "durationMs": 59997.595,
+            "averageFps": 38.28486791845573,
+            "low1PercentFps": 26.53667541607313,
+            "low01PercentFps": 20,
+            "minFps": 20,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 33.335000000020955,
+            "maxFrameMs": 50,
+            "spikes": {
+              "over25Ms": 1297,
+              "over33_33Ms": 866,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 2297,
+          "gpuUnion": {
+            "count": 2297,
+            "medianMs": 24.730664,
+            "p95Ms": 31.206274
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 2009,
+            "invalidCount": 0,
+            "durationMs": 59997.60500000001,
+            "averageFps": 33.48466992974136,
+            "low1PercentFps": 19.09090909090909,
+            "low01PercentFps": 15,
+            "minFps": 10.000500025001715,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 50,
+            "maxFrameMs": 99.99499999999534,
+            "spikes": {
+              "over25Ms": 1550,
+              "over33_33Ms": 1112,
+              "over50Ms": 2
+            }
+          },
+          "recordedFrames": 2009,
+          "gpuUnion": {
+            "count": 2009,
+            "medianMs": 28.464316,
+            "p95Ms": 35.778413
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 1872,
+            "invalidCount": 0,
+            "durationMs": 59997.59499999997,
+            "averageFps": 31.20125065013024,
+            "low1PercentFps": 19.99968421551332,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 49.99500000005355,
+            "p99FrameMs": 50,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1568,
+              "over33_33Ms": 1333,
+              "over50Ms": 3
+            }
+          },
+          "recordedFrames": 1872,
+          "gpuUnion": {
+            "count": 1872,
+            "medianMs": 30.8093625,
+            "p95Ms": 40.669089
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 999,
+            "invalidCount": 0,
+            "durationMs": 30015.47000000003,
+            "averageFps": 33.282837150309454,
+            "low1PercentFps": 29.998500074977393,
+            "low01PercentFps": 29.998500074977393,
+            "minFps": 29.998500074977393,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 33.335000000020955,
+            "maxFrameMs": 33.335000000020955,
+            "spikes": {
+              "over25Ms": 802,
+              "over33_33Ms": 653,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 999,
+          "gpuUnion": {
+            "count": 998,
+            "medianMs": 29.2768455,
+            "p95Ms": 30.635658
+          },
+          "framesWithoutCompleteGpuUnion": 1
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 10601,
+        "pendingOrMissingCount": 1,
+        "unresolvedSubmissionIds": [
+          31882
+        ],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    },
+    {
+      "backend": "typegpu",
+      "tick": 9000,
+      "order": 3,
+      "source": "throwaway/held-fixed/round-2/9000-typegpu",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "9928381812590497427",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 9000,
+        "initialStateHash": "9928381812590497427",
+        "finalStateHash": "9928381812590497427"
+      },
+      "cadence": {
+        "validCount": 10585,
+        "invalidCount": 0,
+        "durationMs": 300021.3350000041,
+        "averageFps": 35.2808242787129,
+        "low1PercentFps": 23.12622994453954,
+        "low01PercentFps": 19.99963637024959,
+        "minFps": 19.99800019997814,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.330000000001746,
+        "p95FrameMs": 33.335000000020955,
+        "p99FrameMs": 33.33999999999651,
+        "maxFrameMs": 50.00500000000466,
+        "spikes": {
+          "over25Ms": 7354,
+          "over33_33Ms": 5697,
+          "over50Ms": 2
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "periodic observation at 2026-09-19T12:49:30.419Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 27.9% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:50:30.456Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 27.7% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:51:30.491Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 25.7% cannot be split between this trial and anything else",
+          "2 further unattributable observation(s)",
+          "pre observation at 2026-09-19T12:47:30.339Z was not quiet (busiest other process 83.2%, load 2.73046875)",
+          "periodic observation at 2026-09-19T12:50:30.456Z was not quiet (busiest other process 90.7%, load 3.12939453125)",
+          "periodic observation at 2026-09-19T12:51:30.491Z was not quiet (busiest other process 50.3%, load 3.8623046875)",
+          "1 further busy observation(s)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 1095,
+            "invalidCount": 0,
+            "durationMs": 29998.800000000003,
+            "averageFps": 36.50146005840233,
+            "low1PercentFps": 28.692533420279315,
+            "low01PercentFps": 23.999520009597965,
+            "minFps": 20.002000200021865,
+            "maxFps": 60.02400960388138,
+            "p50FrameMs": 33.330000000001746,
+            "p95FrameMs": 33.3350000000064,
+            "p99FrameMs": 33.3350000000064,
+            "maxFrameMs": 49.99499999999534,
+            "spikes": {
+              "over25Ms": 704,
+              "over33_33Ms": 641,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 1095,
+          "gpuUnion": {
+            "count": 1095,
+            "medianMs": 26.563385,
+            "p95Ms": 27.639411
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 2238,
+            "invalidCount": 0,
+            "durationMs": 59997.595,
+            "averageFps": 37.30149516826466,
+            "low1PercentFps": 29.99556587286532,
+            "low01PercentFps": 29.99400119975446,
+            "minFps": 29.994001199750098,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 33.3350000000064,
+            "p99FrameMs": 33.335000000020955,
+            "maxFrameMs": 33.34000000001106,
+            "spikes": {
+              "over25Ms": 1362,
+              "over33_33Ms": 1091,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 2238,
+          "gpuUnion": {
+            "count": 2238,
+            "medianMs": 24.893995,
+            "p95Ms": 28.307651
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 2273,
+            "invalidCount": 0,
+            "durationMs": 59997.60499999998,
+            "averageFps": 37.88484557008569,
+            "low1PercentFps": 28.160908985159,
+            "low01PercentFps": 20.000666688890252,
+            "minFps": 20,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 33.335000000020955,
+            "maxFrameMs": 50,
+            "spikes": {
+              "over25Ms": 1324,
+              "over33_33Ms": 898,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 2273,
+          "gpuUnion": {
+            "count": 2273,
+            "medianMs": 24.59325,
+            "p95Ms": 31.010903
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 2013,
+            "invalidCount": 0,
+            "durationMs": 59997.600000000006,
+            "averageFps": 33.55134205368214,
+            "low1PercentFps": 19.999809525624496,
+            "low01PercentFps": 19.998666755556147,
+            "minFps": 19.99800019997814,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 50,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1557,
+              "over33_33Ms": 1093,
+              "over50Ms": 2
+            }
+          },
+          "recordedFrames": 2013,
+          "gpuUnion": {
+            "count": 2013,
+            "medianMs": 27.694619,
+            "p95Ms": 34.265685
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 2004,
+            "invalidCount": 0,
+            "durationMs": 59980.935,
+            "averageFps": 33.410616223304956,
+            "low1PercentFps": 20.000380959636573,
+            "low01PercentFps": 20,
+            "minFps": 20,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 49.99499999999534,
+            "maxFrameMs": 50,
+            "spikes": {
+              "over25Ms": 1568,
+              "over33_33Ms": 1295,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 2004,
+          "gpuUnion": {
+            "count": 2004,
+            "medianMs": 29.099786,
+            "p95Ms": 33.553488
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 962,
+            "invalidCount": 0,
+            "durationMs": 30048.79999999999,
+            "averageFps": 32.014589600915855,
+            "low1PercentFps": 27.269132705232405,
+            "low01PercentFps": 20,
+            "minFps": 20,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 33.339999999967404,
+            "maxFrameMs": 50,
+            "spikes": {
+              "over25Ms": 839,
+              "over33_33Ms": 679,
+              "over50Ms": 0
+            }
+          },
+          "recordedFrames": 962,
+          "gpuUnion": {
+            "count": 961,
+            "medianMs": 29.644382,
+            "p95Ms": 31.53606
+          },
+          "framesWithoutCompleteGpuUnion": 1
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 10586,
+        "pendingOrMissingCount": 1,
+        "unresolvedSubmissionIds": [
+          31837
+        ],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    },
+    {
+      "backend": "vgpu",
+      "tick": 9000,
+      "order": 2,
+      "source": "throwaway/held-fixed/round-2/9000-vgpu",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "9928381812590497427",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 9000,
+        "initialStateHash": "9928381812590497427",
+        "finalStateHash": "9928381812590497427"
+      },
+      "cadence": {
+        "validCount": 6431,
+        "invalidCount": 0,
+        "durationMs": 300004.6649999981,
+        "averageFps": 21.436333331683493,
+        "low1PercentFps": 18.930430667296076,
+        "low01PercentFps": 13.124958984502658,
+        "minFps": 8.571918395334482,
+        "maxFps": 30.007501875510798,
+        "p50FrameMs": 49.995000000009895,
+        "p95FrameMs": 50,
+        "p99FrameMs": 50.00500000000466,
+        "maxFrameMs": 116.6600000000326,
+        "spikes": {
+          "over25Ms": 6431,
+          "over33_33Ms": 6098,
+          "over50Ms": 173
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "periodic observation at 2026-09-19T12:42:16.873Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 25.9% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:43:16.906Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 29.3% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:44:16.947Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 28.2% cannot be split between this trial and anything else",
+          "3 further unattributable observation(s)",
+          "periodic observation at 2026-09-19T12:43:16.906Z was not quiet (busiest other process 28.7%, load 3.2119140625)",
+          "post observation at 2026-09-19T12:47:27.985Z was not quiet (busiest other process 27.9%, load 2.73046875)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 603,
+            "invalidCount": 0,
+            "durationMs": 29998.79999999999,
+            "averageFps": 20.100804032161296,
+            "low1PercentFps": 19.99800019997814,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 30.00300030004153,
+            "p50FrameMs": 50,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 603,
+              "over33_33Ms": 602,
+              "over50Ms": 18
+            }
+          },
+          "recordedFrames": 603,
+          "gpuUnion": {
+            "count": 603,
+            "medianMs": 26.578011,
+            "p95Ms": 27.528914
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 1233,
+            "invalidCount": 0,
+            "durationMs": 59964.265,
+            "averageFps": 20.56224653132995,
+            "low1PercentFps": 19.99800019997814,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 30.007501875471487,
+            "p50FrameMs": 50,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1233,
+              "over33_33Ms": 1216,
+              "over50Ms": 32
+            }
+          },
+          "recordedFrames": 1233,
+          "gpuUnion": {
+            "count": 1233,
+            "medianMs": 25.558988,
+            "p95Ms": 28.847058
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 1417,
+            "invalidCount": 0,
+            "durationMs": 59997.600000000006,
+            "averageFps": 23.61761137112151,
+            "low1PercentFps": 17.306627284474196,
+            "low01PercentFps": 10.00025000625039,
+            "minFps": 10,
+            "maxFps": 30.007501875484593,
+            "p50FrameMs": 49.99499999999534,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 100,
+            "spikes": {
+              "over25Ms": 1417,
+              "over33_33Ms": 1203,
+              "over50Ms": 33
+            }
+          },
+          "recordedFrames": 1417,
+          "gpuUnion": {
+            "count": 1417,
+            "medianMs": 24.279129,
+            "p95Ms": 31.310773
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 1204,
+            "invalidCount": 0,
+            "durationMs": 60030.93500000003,
+            "averageFps": 20.056325959274155,
+            "low1PercentFps": 19.99800019997814,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 30.00300030001533,
+            "p50FrameMs": 50,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1204,
+              "over33_33Ms": 1204,
+              "over50Ms": 40
+            }
+          },
+          "recordedFrames": 1204,
+          "gpuUnion": {
+            "count": 1204,
+            "medianMs": 27.322665,
+            "p95Ms": 32.823164
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 1373,
+            "invalidCount": 0,
+            "durationMs": 59997.59999999998,
+            "averageFps": 22.884248703281475,
+            "low1PercentFps": 18.259480256934754,
+            "low01PercentFps": 12.00012000119733,
+            "minFps": 8.571918395334482,
+            "maxFps": 30.007501875510798,
+            "p50FrameMs": 49.99499999999534,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 116.6600000000326,
+            "spikes": {
+              "over25Ms": 1373,
+              "over33_33Ms": 1273,
+              "over50Ms": 28
+            }
+          },
+          "recordedFrames": 1373,
+          "gpuUnion": {
+            "count": 1373,
+            "medianMs": 25.776106,
+            "p95Ms": 30.117539
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 601,
+            "invalidCount": 0,
+            "durationMs": 30015.465000000026,
+            "averageFps": 20.023011470920057,
+            "low1PercentFps": 19.99800019997814,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 30.00300030006773,
+            "p50FrameMs": 50,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 601,
+              "over33_33Ms": 600,
+              "over50Ms": 22
+            }
+          },
+          "recordedFrames": 601,
+          "gpuUnion": {
+            "count": 601,
+            "medianMs": 25.652444,
+            "p95Ms": 26.363474
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 6432,
+        "pendingOrMissingCount": 0,
+        "unresolvedSubmissionIds": [],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    },
+    {
+      "backend": "three",
+      "tick": 12000,
+      "order": 1,
+      "source": "throwaway/held-fixed/round-2/12000-three",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple / metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "17530755159512483058",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 12000,
+        "initialStateHash": "17530755159512483058",
+        "finalStateHash": "17530755159512483058"
+      },
+      "cadence": {
+        "validCount": 8526,
+        "invalidCount": 0,
+        "durationMs": 300054.66499999893,
+        "averageFps": 28.414822345788327,
+        "low1PercentFps": 8.529232954179248,
+        "low01PercentFps": 8.182004136456088,
+        "minFps": 7.499906251170682,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.32999999995809,
+        "p95FrameMs": 83.32999999995809,
+        "p99FrameMs": 116.65999999997439,
+        "maxFrameMs": 133.33500000002095,
+        "spikes": {
+          "over25Ms": 4485,
+          "over33_33Ms": 4053,
+          "over50Ms": 1698
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "pre observation at 2026-09-19T13:01:50.883Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 35.5% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T13:02:50.916Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 31.4% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T13:03:50.877Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 31.2% cannot be split between this trial and anything else",
+          "7 further unattributable observation(s)",
+          "pre observation at 2026-09-19T13:01:50.883Z was not quiet (busiest other process 96.4%, load 4.0751953125)",
+          "periodic observation at 2026-09-19T13:02:50.916Z was not quiet (busiest other process 10%, load 4.62255859375)",
+          "periodic observation at 2026-09-19T13:05:50.949Z was not quiet (busiest other process 17.9%, load 4.51806640625)",
+          "1 further busy observation(s)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 934,
+            "invalidCount": 0,
+            "durationMs": 29982.13500000001,
+            "averageFps": 31.151884280422315,
+            "low1PercentFps": 14.9992500374959,
+            "low01PercentFps": 14.999250037495244,
+            "minFps": 14.999250037495244,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 16.670000000012806,
+            "p95FrameMs": 66.66500000000815,
+            "p99FrameMs": 66.6699999999837,
+            "maxFrameMs": 66.6700000000128,
+            "spikes": {
+              "over25Ms": 452,
+              "over33_33Ms": 376,
+              "over50Ms": 188
+            }
+          },
+          "recordedFrames": 934,
+          "gpuUnion": {
+            "count": 934,
+            "medianMs": 32.242425,
+            "p95Ms": 33.640903
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 1735,
+            "invalidCount": 0,
+            "durationMs": 59997.600000000006,
+            "averageFps": 28.91782337960185,
+            "low1PercentFps": 11.13410096773815,
+            "low01PercentFps": 10,
+            "minFps": 10,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 83.3299999999872,
+            "p99FrameMs": 83.33499999999185,
+            "maxFrameMs": 100,
+            "spikes": {
+              "over25Ms": 902,
+              "over33_33Ms": 774,
+              "over50Ms": 374
+            }
+          },
+          "recordedFrames": 1735,
+          "gpuUnion": {
+            "count": 1735,
+            "medianMs": 32.131385,
+            "p95Ms": 43.802082
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 1615,
+            "invalidCount": 0,
+            "durationMs": 59980.92999999999,
+            "averageFps": 26.925224400488624,
+            "low1PercentFps": 8.429884436202824,
+            "low01PercentFps": 7.500187504688338,
+            "minFps": 7.499906251170682,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 99.99499999999534,
+            "p99FrameMs": 116.66499999997905,
+            "maxFrameMs": 133.33500000002095,
+            "spikes": {
+              "over25Ms": 861,
+              "over33_33Ms": 808,
+              "over50Ms": 305
+            }
+          },
+          "recordedFrames": 1615,
+          "gpuUnion": {
+            "count": 1615,
+            "medianMs": 34.978633,
+            "p95Ms": 59.064515
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 1756,
+            "invalidCount": 0,
+            "durationMs": 60014.27000000002,
+            "averageFps": 29.259707732844195,
+            "low1PercentFps": 12.00020000333311,
+            "low01PercentFps": 11.999760004796887,
+            "minFps": 11.999760004796887,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.32999999995809,
+            "p95FrameMs": 83.32499999995343,
+            "p99FrameMs": 83.3300000000163,
+            "maxFrameMs": 83.33500000002095,
+            "spikes": {
+              "over25Ms": 928,
+              "over33_33Ms": 853,
+              "over50Ms": 342
+            }
+          },
+          "recordedFrames": 1756,
+          "gpuUnion": {
+            "count": 1756,
+            "medianMs": 34.554807,
+            "p95Ms": 41.116704
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 1652,
+            "invalidCount": 0,
+            "durationMs": 59997.59999999998,
+            "averageFps": 27.534434710721772,
+            "low1PercentFps": 8.50014875260232,
+            "low01PercentFps": 8.000320012798948,
+            "minFps": 7.500468779298052,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.32999999995809,
+            "p95FrameMs": 83.33500000002095,
+            "p99FrameMs": 116.66499999997905,
+            "maxFrameMs": 133.32500000001164,
+            "spikes": {
+              "over25Ms": 851,
+              "over33_33Ms": 802,
+              "over50Ms": 297
+            }
+          },
+          "recordedFrames": 1652,
+          "gpuUnion": {
+            "count": 1652,
+            "medianMs": 35.0068835,
+            "p95Ms": 56.762716
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 834,
+            "invalidCount": 0,
+            "durationMs": 30082.130000000005,
+            "averageFps": 27.72410065377684,
+            "low1PercentFps": 11.999760004796887,
+            "low01PercentFps": 11.999760004796887,
+            "minFps": 11.999760004796887,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 83.32999999995809,
+            "p99FrameMs": 83.33500000002095,
+            "maxFrameMs": 83.33500000002095,
+            "spikes": {
+              "over25Ms": 491,
+              "over33_33Ms": 440,
+              "over50Ms": 192
+            }
+          },
+          "recordedFrames": 834,
+          "gpuUnion": {
+            "count": 830,
+            "medianMs": 35.722121,
+            "p95Ms": 40.072471
+          },
+          "framesWithoutCompleteGpuUnion": 4
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 8527,
+        "pendingOrMissingCount": 4,
+        "unresolvedSubmissionIds": [
+          8547,
+          8548,
+          8549,
+          8550
+        ],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    },
+    {
+      "backend": "raw",
+      "tick": 12000,
+      "order": 0,
+      "source": "throwaway/held-fixed/round-2/12000-raw",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "17530755159512483058",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 12000,
+        "initialStateHash": "17530755159512483058",
+        "finalStateHash": "17530755159512483058"
+      },
+      "cadence": {
+        "validCount": 9545,
+        "invalidCount": 0,
+        "durationMs": 300021.33499999996,
+        "averageFps": 31.814404132292797,
+        "low1PercentFps": 19.793365511297857,
+        "low01PercentFps": 18.181157048834933,
+        "minFps": 15.000375009373402,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.3300000000163,
+        "p95FrameMs": 50,
+        "p99FrameMs": 50,
+        "maxFrameMs": 66.66500000000815,
+        "spikes": {
+          "over25Ms": 7544,
+          "over33_33Ms": 6003,
+          "over50Ms": 28
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "periodic observation at 2026-09-19T12:57:45.879Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 25.3% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T12:58:45.915Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 28.8% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T13:00:45.994Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 39.6% cannot be split between this trial and anything else",
+          "2 further unattributable observation(s)",
+          "periodic observation at 2026-09-19T12:55:45.812Z was not quiet (busiest other process 95.2%, load 3.51708984375)",
+          "periodic observation at 2026-09-19T12:56:45.846Z was not quiet (busiest other process 16.5%, load 4.58154296875)",
+          "periodic observation at 2026-09-19T12:58:45.915Z was not quiet (busiest other process 55.9%, load 2.7607421875)",
+          "3 further busy observation(s)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 1073,
+            "invalidCount": 0,
+            "durationMs": 29998.804999999993,
+            "averageFps": 35.76809142897526,
+            "low1PercentFps": 25.382174790882083,
+            "low01PercentFps": 15.000937558599377,
+            "minFps": 15.000375009373402,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 33.335000000020955,
+            "maxFrameMs": 66.66500000000815,
+            "spikes": {
+              "over25Ms": 723,
+              "over33_33Ms": 486,
+              "over50Ms": 2
+            }
+          },
+          "recordedFrames": 1073,
+          "gpuUnion": {
+            "count": 1073,
+            "medianMs": 27.062044,
+            "p95Ms": 27.965281
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 2032,
+            "invalidCount": 0,
+            "durationMs": 59997.59999999998,
+            "averageFps": 33.868021387522184,
+            "low1PercentFps": 19.999904762358184,
+            "low01PercentFps": 19.999333355554192,
+            "minFps": 19.99800019997814,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 50,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1531,
+              "over33_33Ms": 1071,
+              "over50Ms": 1
+            }
+          },
+          "recordedFrames": 2032,
+          "gpuUnion": {
+            "count": 2032,
+            "medianMs": 27.155876999999997,
+            "p95Ms": 35.082756
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 1856,
+            "invalidCount": 0,
+            "durationMs": 59980.93000000005,
+            "averageFps": 30.943168103595568,
+            "low1PercentFps": 19.998842172295436,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1394,
+              "over33_33Ms": 1202,
+              "over50Ms": 11
+            }
+          },
+          "recordedFrames": 1856,
+          "gpuUnion": {
+            "count": 1856,
+            "medianMs": 30.0305835,
+            "p95Ms": 46.878284
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 1863,
+            "invalidCount": 0,
+            "durationMs": 59997.59999999998,
+            "averageFps": 31.051242049682,
+            "low1PercentFps": 19.99968421551332,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 49.99499999999534,
+            "p99FrameMs": 50,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1615,
+              "over33_33Ms": 1343,
+              "over50Ms": 3
+            }
+          },
+          "recordedFrames": 1863,
+          "gpuUnion": {
+            "count": 1863,
+            "medianMs": 31.879348,
+            "p95Ms": 36.32407
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 1831,
+            "invalidCount": 0,
+            "durationMs": 59997.59999999998,
+            "averageFps": 30.517887382161966,
+            "low1PercentFps": 19.65449467259726,
+            "low01PercentFps": 17.143102044318,
+            "minFps": 15.001500150020766,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50,
+            "maxFrameMs": 66.65999999997439,
+            "spikes": {
+              "over25Ms": 1413,
+              "over33_33Ms": 1194,
+              "over50Ms": 9
+            }
+          },
+          "recordedFrames": 1831,
+          "gpuUnion": {
+            "count": 1831,
+            "medianMs": 31.490727,
+            "p95Ms": 46.305251
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 890,
+            "invalidCount": 0,
+            "durationMs": 30048.800000000047,
+            "averageFps": 29.618487260722514,
+            "low1PercentFps": 19.999555565431464,
+            "low01PercentFps": 19.99800019997814,
+            "minFps": 19.99800019997814,
+            "maxFps": 60.024009603724096,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 49.99499999999534,
+            "p99FrameMs": 50,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 868,
+              "over33_33Ms": 707,
+              "over50Ms": 2
+            }
+          },
+          "recordedFrames": 890,
+          "gpuUnion": {
+            "count": 889,
+            "medianMs": 33.372491,
+            "p95Ms": 34.695847
+          },
+          "framesWithoutCompleteGpuUnion": 1
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 9546,
+        "pendingOrMissingCount": 1,
+        "unresolvedSubmissionIds": [
+          28717
+        ],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    },
+    {
+      "backend": "typegpu",
+      "tick": 12000,
+      "order": 3,
+      "source": "throwaway/held-fixed/round-2/12000-typegpu",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "17530755159512483058",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 12000,
+        "initialStateHash": "17530755159512483058",
+        "finalStateHash": "17530755159512483058"
+      },
+      "cadence": {
+        "validCount": 8861,
+        "invalidCount": 0,
+        "durationMs": 300004.66500000004,
+        "averageFps": 29.536207378641926,
+        "low1PercentFps": 14.792481430447912,
+        "low01PercentFps": 13.17060321362613,
+        "minFps": 10.000500024998805,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.3300000000163,
+        "p95FrameMs": 50,
+        "p99FrameMs": 66.66499999997905,
+        "maxFrameMs": 99.99500000002445,
+        "spikes": {
+          "over25Ms": 7557,
+          "over33_33Ms": 6101,
+          "over50Ms": 207
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "pre observation at 2026-09-19T13:17:59.913Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 32.7% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T13:18:59.945Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 27.2% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T13:19:59.920Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 34% cannot be split between this trial and anything else",
+          "7 further unattributable observation(s)",
+          "pre observation at 2026-09-19T13:17:59.913Z was not quiet (busiest other process 95.6%, load 3.10400390625)",
+          "periodic observation at 2026-09-19T13:18:59.945Z was not quiet (busiest other process 29.9%, load 7.154296875)",
+          "periodic observation at 2026-09-19T13:19:59.920Z was not quiet (busiest other process 24.4%, load 8.26318359375)",
+          "6 further busy observation(s)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 1050,
+            "invalidCount": 0,
+            "durationMs": 29998.79999999999,
+            "averageFps": 35.001400056002254,
+            "low1PercentFps": 23.56999753585913,
+            "low01PercentFps": 12.000480019200516,
+            "minFps": 10.000500024998805,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.329999999987194,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 33.335000000020955,
+            "maxFrameMs": 99.99500000002445,
+            "spikes": {
+              "over25Ms": 744,
+              "over33_33Ms": 495,
+              "over50Ms": 2
+            }
+          },
+          "recordedFrames": 1050,
+          "gpuUnion": {
+            "count": 1050,
+            "medianMs": 26.859924,
+            "p95Ms": 27.830576
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 1978,
+            "invalidCount": 0,
+            "durationMs": 59980.93500000003,
+            "averageFps": 32.97714515453951,
+            "low1PercentFps": 19.999800002000377,
+            "low01PercentFps": 19.99800019998396,
+            "minFps": 19.99800019997814,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 33.335000000020955,
+            "p99FrameMs": 50,
+            "maxFrameMs": 50.00500000000466,
+            "spikes": {
+              "over25Ms": 1570,
+              "over33_33Ms": 1089,
+              "over50Ms": 2
+            }
+          },
+          "recordedFrames": 1978,
+          "gpuUnion": {
+            "count": 1978,
+            "medianMs": 27.2568965,
+            "p95Ms": 34.992466
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 1823,
+            "invalidCount": 0,
+            "durationMs": 59997.59999999998,
+            "averageFps": 30.384548715281955,
+            "low1PercentFps": 16.521595464386298,
+            "low01PercentFps": 14.999812502334816,
+            "minFps": 14.999250037488697,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 66.67000000004191,
+            "spikes": {
+              "over25Ms": 1381,
+              "over33_33Ms": 1191,
+              "over50Ms": 25
+            }
+          },
+          "recordedFrames": 1823,
+          "gpuUnion": {
+            "count": 1823,
+            "medianMs": 29.293177,
+            "p95Ms": 46.145254
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 1704,
+            "invalidCount": 0,
+            "durationMs": 59997.59999999998,
+            "averageFps": 28.401136045441827,
+            "low1PercentFps": 16.615359053294334,
+            "low01PercentFps": 15.000375009373402,
+            "minFps": 15.000375009366852,
+            "maxFps": 60.02400960393381,
+            "p50FrameMs": 33.3300000000163,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50.00500000000466,
+            "maxFrameMs": 66.66500000003725,
+            "spikes": {
+              "over25Ms": 1571,
+              "over33_33Ms": 1330,
+              "over50Ms": 24
+            }
+          },
+          "recordedFrames": 1704,
+          "gpuUnion": {
+            "count": 1704,
+            "medianMs": 30.550283,
+            "p95Ms": 40.270552
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 1475,
+            "invalidCount": 0,
+            "durationMs": 60014.265000000014,
+            "averageFps": 24.57749003507749,
+            "low1PercentFps": 14.285374157758623,
+            "low01PercentFps": 12.000120001201521,
+            "minFps": 11.999760004805267,
+            "maxFps": 60.024009603724096,
+            "p50FrameMs": 33.335000000020955,
+            "p95FrameMs": 66.66499999997905,
+            "p99FrameMs": 66.66500000003725,
+            "maxFrameMs": 83.33499999996275,
+            "spikes": {
+              "over25Ms": 1463,
+              "over33_33Ms": 1284,
+              "over50Ms": 149
+            }
+          },
+          "recordedFrames": 1475,
+          "gpuUnion": {
+            "count": 1475,
+            "medianMs": 32.878749,
+            "p95Ms": 54.064215
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 831,
+            "invalidCount": 0,
+            "durationMs": 30015.465000000026,
+            "averageFps": 27.68572800721226,
+            "low1PercentFps": 19.284956662419336,
+            "low01PercentFps": 15.00037500937995,
+            "minFps": 15.00037500937995,
+            "maxFps": 60.00600060013546,
+            "p50FrameMs": 33.33499999996275,
+            "p95FrameMs": 50,
+            "p99FrameMs": 50,
+            "maxFrameMs": 66.66499999997905,
+            "spikes": {
+              "over25Ms": 828,
+              "over33_33Ms": 712,
+              "over50Ms": 5
+            }
+          },
+          "recordedFrames": 831,
+          "gpuUnion": {
+            "count": 830,
+            "medianMs": 33.194556500000004,
+            "p95Ms": 40.801877
+          },
+          "framesWithoutCompleteGpuUnion": 1
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 8862,
+        "pendingOrMissingCount": 1,
+        "unresolvedSubmissionIds": [
+          26665
+        ],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    },
+    {
+      "backend": "vgpu",
+      "tick": 12000,
+      "order": 2,
+      "source": "throwaway/held-fixed/round-2/12000-vgpu",
+      "identity": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "adapter": "apple metal-3",
+        "viewport": [
+          1440,
+          900
+        ],
+        "framebuffer": [
+          2880,
+          1800
+        ],
+        "dpr": 2,
+        "initialStateHash": "17530755159512483058",
+        "soldiers": 15560,
+        "graphics": {
+          "shadows": "single",
+          "grassQuality": "standard",
+          "grass": true,
+          "farGrass": true,
+          "bloom": true,
+          "audio": {
+            "masterVolume": 0.55,
+            "muted": false,
+            "birds": true,
+            "water": true
+          }
+        }
+      },
+      "scope": {
+        "measurement": "renderer-only",
+        "simulation": "held",
+        "tick": 12000,
+        "initialStateHash": "17530755159512483058",
+        "finalStateHash": "17530755159512483058"
+      },
+      "cadence": {
+        "validCount": 5967,
+        "invalidCount": 0,
+        "durationMs": 300004.6700000004,
+        "averageFps": 19.889690383819666,
+        "low1PercentFps": 11.53872781679434,
+        "low01PercentFps": 9.231053263176767,
+        "minFps": 7.500187504686701,
+        "maxFps": 30.007501875510798,
+        "p50FrameMs": 50,
+        "p95FrameMs": 66.66500000000815,
+        "p99FrameMs": 83.3300000000163,
+        "maxFrameMs": 133.3300000000163,
+        "spikes": {
+          "over25Ms": 5967,
+          "over33_33Ms": 5829,
+          "over50Ms": 888
+        }
+      },
+      "functional": {
+        "eligible": true,
+        "issues": []
+      },
+      "ranking": {
+        "eligible": false,
+        "issues": [
+          "pre observation at 2026-09-19T13:09:55.416Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 30.4% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T13:10:55.447Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 32.4% cannot be split between this trial and anything else",
+          "periodic observation at 2026-09-19T13:11:55.480Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 30.9% cannot be split between this trial and anything else",
+          "7 further unattributable observation(s)",
+          "pre observation at 2026-09-19T13:09:55.416Z was not quiet (busiest other process 107.8%, load 2.82421875)",
+          "periodic observation at 2026-09-19T13:11:55.480Z was not quiet (busiest other process 26.4%, load 2.75048828125)",
+          "periodic observation at 2026-09-19T13:17:55.713Z was not quiet (busiest other process 96.1%, load 3.10400390625)",
+          "1 further busy observation(s)"
+        ]
+      },
+      "phases": [
+        {
+          "name": "tactical",
+          "cadence": {
+            "validCount": 597,
+            "invalidCount": 0,
+            "durationMs": 29998.804999999993,
+            "averageFps": 19.900792714909816,
+            "low1PercentFps": 15.000187502343953,
+            "low01PercentFps": 14.999250037495244,
+            "minFps": 14.999250037495244,
+            "maxFps": 30.00300030004153,
+            "p50FrameMs": 50,
+            "p95FrameMs": 50.00500000000466,
+            "p99FrameMs": 66.66499999997905,
+            "maxFrameMs": 66.6700000000128,
+            "spikes": {
+              "over25Ms": 597,
+              "over33_33Ms": 596,
+              "over50Ms": 38
+            }
+          },
+          "recordedFrames": 597,
+          "gpuUnion": {
+            "count": 597,
+            "medianMs": 26.245683,
+            "p95Ms": 27.178793
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "pan",
+          "cadence": {
+            "validCount": 1189,
+            "invalidCount": 0,
+            "durationMs": 59980.93000000002,
+            "averageFps": 19.82296706636592,
+            "low1PercentFps": 14.117813150742137,
+            "low01PercentFps": 10.909289259805485,
+            "minFps": 8.571918395338757,
+            "maxFps": 20.00400080016376,
+            "p50FrameMs": 50,
+            "p95FrameMs": 50.00500000000466,
+            "p99FrameMs": 66.66500000000815,
+            "maxFrameMs": 116.65999999997439,
+            "spikes": {
+              "over25Ms": 1189,
+              "over33_33Ms": 1189,
+              "over50Ms": 71
+            }
+          },
+          "recordedFrames": 1189,
+          "gpuUnion": {
+            "count": 1189,
+            "medianMs": 26.686633,
+            "p95Ms": 34.354685
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "zoom",
+          "cadence": {
+            "validCount": 1277,
+            "invalidCount": 0,
+            "durationMs": 60014.264999999956,
+            "averageFps": 21.278274423589142,
+            "low1PercentFps": 14.181379848258228,
+            "low01PercentFps": 10.90958679939928,
+            "minFps": 10.000500025001715,
+            "maxFps": 30.007501875510798,
+            "p50FrameMs": 49.99499999999534,
+            "p95FrameMs": 66.66499999997905,
+            "p99FrameMs": 66.6699999999837,
+            "maxFrameMs": 99.99499999999534,
+            "spikes": {
+              "over25Ms": 1277,
+              "over33_33Ms": 1199,
+              "over50Ms": 200
+            }
+          },
+          "recordedFrames": 1277,
+          "gpuUnion": {
+            "count": 1277,
+            "medianMs": 26.946507,
+            "p95Ms": 42.529103
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "horizon",
+          "cadence": {
+            "validCount": 1316,
+            "invalidCount": 0,
+            "durationMs": 59964.27000000002,
+            "averageFps": 21.946402415972038,
+            "low1PercentFps": 15.000294648645783,
+            "low01PercentFps": 14.999812502341364,
+            "minFps": 14.999250037501792,
+            "maxFps": 30.007501875510798,
+            "p50FrameMs": 49.99499999999534,
+            "p95FrameMs": 50,
+            "p99FrameMs": 66.66499999997905,
+            "maxFrameMs": 66.6699999999837,
+            "spikes": {
+              "over25Ms": 1316,
+              "over33_33Ms": 1257,
+              "over50Ms": 43
+            }
+          },
+          "recordedFrames": 1316,
+          "gpuUnion": {
+            "count": 1316,
+            "medianMs": 26.2295575,
+            "p95Ms": 29.745129
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "combined",
+          "cadence": {
+            "validCount": 1044,
+            "invalidCount": 0,
+            "durationMs": 60014.265000000014,
+            "averageFps": 17.395864133302304,
+            "low1PercentFps": 10.31266113532889,
+            "low01PercentFps": 8.57155102215686,
+            "minFps": 7.500187504686701,
+            "maxFps": 20.00400080016376,
+            "p50FrameMs": 50,
+            "p95FrameMs": 83.3300000000163,
+            "p99FrameMs": 83.33500000002095,
+            "maxFrameMs": 133.3300000000163,
+            "spikes": {
+              "over25Ms": 1044,
+              "over33_33Ms": 1044,
+              "over50Ms": 363
+            }
+          },
+          "recordedFrames": 1044,
+          "gpuUnion": {
+            "count": 1044,
+            "medianMs": 34.576909,
+            "p95Ms": 54.733915
+          },
+          "framesWithoutCompleteGpuUnion": 0
+        },
+        {
+          "name": "return",
+          "cadence": {
+            "validCount": 544,
+            "invalidCount": 0,
+            "durationMs": 30032.13500000001,
+            "averageFps": 18.113930294999,
+            "low1PercentFps": 12.00024000480032,
+            "low01PercentFps": 11.999760004805267,
+            "minFps": 11.999760004805267,
+            "maxFps": 20.00400080016376,
+            "p50FrameMs": 50,
+            "p95FrameMs": 66.66500000003725,
+            "p99FrameMs": 83.3300000000163,
+            "maxFrameMs": 83.33499999996275,
+            "spikes": {
+              "over25Ms": 544,
+              "over33_33Ms": 544,
+              "over50Ms": 173
+            }
+          },
+          "recordedFrames": 544,
+          "gpuUnion": {
+            "count": 543,
+            "medianMs": 34.950382,
+            "p95Ms": 38.457829
+          },
+          "framesWithoutCompleteGpuUnion": 1
+        }
+      ],
+      "gpuAccounting": {
+        "coverage": "Exact submission-matched render and compute pass queries",
+        "exclusions": "Uploads, copies, queue wait, presentation and outside-submission work are not measured",
+        "terminalPolicy": "Snapshot at run end; unresolved queries are not awaited",
+        "trackedSubmissions": 5968,
+        "pendingOrMissingCount": 1,
+        "unresolvedSubmissionIds": [
+          95626
+        ],
+        "cursorGapCount": 0,
+        "lostEventCount": 0
+      }
+    }
+  ]
+}

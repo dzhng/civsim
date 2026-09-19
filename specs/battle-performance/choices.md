@@ -557,3 +557,20 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Verdict:** Sound, high confidence on semantics; modest measured benefit. The
   lifetime boundary, ordering, full team IDs and original float inputs remain
   explicit rather than relying on stale snapshots of all combat state.
+
+### Let LOD history hold only at an adjacent boundary
+
+- **When:** Projection progress correction,bee130b4/bb6e8685.
+- **Choice:** After a large zoom change, walk the existing LOD boundaries and stop
+  at the first uncleared deadband. A distant old tier cannot hold merely because
+  the final destination is near one boundary. Keep the existing thresholds and
+  margin; the representation progresses without adding another temporal cache.
+- **Gap:** The plan required stable transitions but did not prescribe behavior
+  when one camera update crosses multiple tiers. The former rule could keep an
+  impostor at41 pixels or a finest mesh at4 pixels in the test's threshold chain.
+- **Reach:** This changes main and shadow LOD histories for large jumps. A shared
+  projection helper also limits near-plane full-detail protection to perspective;
+  orthographic shadows retain their finite footprint. Caster visibility and the
+  shadow mesh floor stay with their existing owners.
+- **Verdict:** Sound, high confidence on the bounded policy. Browser transition
+  quality and measured cost remain separate acceptance obligations.

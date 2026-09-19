@@ -72,13 +72,13 @@ test("overhead projection remains finite while near intersections and behind-cam
 
 test("an orthographic near crossing keeps its depth-independent footprint", () => {
   // The production shadow path: a fitted orthographic crowd projection over the
-  // held whole-map extent (shadowData.ts), not a perspective rig.
+  // held fitted full width (shadowData.ts), not a perspective rig.
   const extent = 465.6613,
     near = 1;
   const shadow: Camera3DParams = { ...camera, distance: 300, pitch: Math.PI / 2, near };
   const p = projectionFootprint(
     viewMatrix(shadow),
-    orthographicReverseZ(-extent, extent, extent, -extent, near, 1000),
+    orthographicReverseZ(-extent / 2, extent / 2, extent / 2, -extent / 2, near, 1000),
     1024,
     near,
   );

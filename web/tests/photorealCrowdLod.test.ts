@@ -70,11 +70,11 @@ function mainView() {
   });
   return projectionView(camera, 800);
 }
-function shadowView(extent = 1000, y = 0, mapSize = 1024) {
+function shadowView(extent = 1000, y = 0) {
   const camera = new THREE.OrthographicCamera(-extent, extent, extent, -extent, 1, 1000);
   camera.position.set(0, y, 300);
   camera.lookAt(0, y, 0);
-  return projectionView(camera, mapSize, true);
+  return projectionView(camera, 1024, true);
 }
 
 /** Exactness pin, not an art-quality or performance gate. Fixed inputs include
@@ -304,12 +304,12 @@ test("a large jump advances through every boundary it actually cleared", () => {
 });
 
 test("a held shadow tier follows the real fitted extents rather than stalling", () => {
-  // The two held source-shadow extents, at the production 2048 shadow map.
+  // The two held source-shadow full widths, at the default 1024 shadow map.
   for (const [extent, pixels] of [
     [465.6613, 3.95824],
     [582.0766, 3.16659],
   ]) {
-    const views = [shadowView(extent, 0, 2048)];
+    const views = [shadowView(extent / 2)];
     const fresh = planCrowdLods([body(0, 0)], views, assets, [], undefined, []);
     const retained = planCrowdLods([body(0, 0)], views, assets, [], undefined, [0]);
     assert.ok(Math.abs(fresh.shadowScreenSizes[0] - pixels) < 1e-5, `${extent}`);
@@ -441,10 +441,10 @@ test("near-plane bounds keep full detail and corpse shading never moves authored
 });
 
 test("a shadow caster crossing the orthographic near plane keeps its measured tier", () => {
-  // Same crossing as the perspective case above, under the held whole-map
-  // shadow extent. The caster straddles near: its bounds sphere reaches depth
+  // Same crossing as the perspective case above, under the held fitted
+  // shadow width. The caster straddles near: its bounds sphere reaches depth
   // 1.8 while the near plane sits at 1.
-  const view = shadowView(465.6613);
+  const view = shadowView(465.6613 / 2);
   const straddling = { ...body(0, 0), mounted: true, elevation: 298.2 };
   const plan = planCrowdLods([straddling], [view], assets);
   assert.equal(plan.visibility[0], 2, "a near crossing is still inside the shadow frustum");

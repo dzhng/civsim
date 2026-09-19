@@ -43,13 +43,14 @@ Packed-target worker scratch is archived; its retained branch preserves the code
 Root owns all serialized hardware windows; no build/test/GPU work overlaps CPU
 timing, and no build/test/CPU timing overlaps GPU timing.
 
-Isolated Claude candidates currently address shared projection/LOD progress,
-per-unit direction reuse in separation, and write-only fight_near removal plus
-retained-friend live-flag reads. None is integrated or measured. Their worktrees
-are `game-battle-lod-projection-progress`, `game-battle-unit-facing-reuse`, and
-`game-battle-target-live-inputs`. Root reviews/tests them; CPU candidates may be
-measured together as one combined candidate against current production, with no
-individual speedup attribution. No batching/thread pool is adopted.
+Projection/LOD progress is integrated as bee130b4/bb6e8685, with46 root tests,
+full TypeScript and independent review passing; corrected fixtures reproduce
+five failures against the old policy. Browser/motion/cost gates remain open.
+The two CPU passes are combined only in `game-battle-target-live-inputs`
+(98e4d2e6+c8580623), with independent review and library/golden/impact tests green.
+`throwaway/kernel-input-pair/` contains the unstarted build/ABBA scripts and
+predeclared rule. Wait for the GPU correctness matrix to finish before building
+and timing. No individual speedup attribution or batching/thread pool is adopted.
 
 Priority after that decision: unchanged simulation throughput, then unresolved
 camera/grass/LOD quality, stable readable default shadows, and final live net

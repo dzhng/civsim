@@ -20,16 +20,16 @@ deferred friend-bearing calculation as the next candidate; Claude is implementin
 it in `game-battle-deferred-friend-bearing`. Held renderer source is integrated
 at aa6b1fa5 with root lifecycle/hash corrections. [Source browser control](assets/02-held-authority/README.md)
 passes fixed state, moving camera and cancellation. [All16 fixed builds](assets/02-held-builds/README.md)
-are ready at8643cf05; serial short browser controls are running via
-`throwaway/held-fixed/smoke-matrix.py` (exec session78128), with outcomes in
-`throwaway/held-fixed/smoke-outcomes.json`. This is correctness-only and may overlap
-Claude CPU tests; never rank its timing. Opus friend-bearing candidate is committed at fbf891de in
-`game-battle-deferred-friend-bearing`; its implementation and independent review
-are terminal and found no actionable defect. Control WASM exactly matches e9f4f080…;
-candidate is fd2fef9d…. ABBA CPU timing is queued in exec session27982 behind the
-GPU matrix PID73109, using `throwaway/friend-bearing-pair/run.py`. Do not run CPU
-builds/tests/timings or new GPU jobs once that queue starts. Inspect its run log
-and exact process handles; neither candidate adoption nor speedup is established.
+are ready at8643cf05. All eight short state/camera/report/cancel browser controls
+are complete; [their evidence](assets/02-held-authority/README.md) preserves the
+native first-sample race and one admitted post-cancel frame without weakening the
+contract. Their timings are excluded because CPU implementation/builds overlapped.
+Opus friend-bearing candidate is fbf891de in `game-battle-deferred-friend-bearing`;
+review is clean, tests pass, and the baseline binary matches production e9f4f080….
+Candidate is fd2fef9d…. Isolated ABBA CPU timing is now RUNNING in exec session27982
+via `throwaway/friend-bearing-pair/run.py`; inspect its run log and handle before
+assuming liveness. No CPU builds/tests/timings or GPU jobs until it finishes.
+GPU matrix session78128 is terminal. No candidate adoption or speedup yet.
 All-backend pose/environment parity and the full comparison remain next.
 
 Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)

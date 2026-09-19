@@ -1,0 +1,34 @@
+[
+  {
+    "backend": "12000-raw",
+    "valid": true,
+    "postCancelCompletedFrames": 0,
+    "hash": "17530755159512483058",
+    "newFrames": 539,
+    "scope": "state/camera/report/cancel correctness only"
+  },
+  {
+    "backend": "12000-three",
+    "valid": true,
+    "postCancelCompletedFrames": 0,
+    "hash": "17530755159512483058",
+    "newFrames": 456,
+    "scope": "state/camera/report/cancel correctness only"
+  },
+  {
+    "backend": "12000-typegpu",
+    "valid": true,
+    "postCancelCompletedFrames": 1,
+    "hash": "17530755159512483058",
+    "newFrames": 447,
+    "scope": "state/camera/report/cancel correctness only"
+  },
+  {
+    "backend": "12000-vgpu",
+    "valid": true,
+    "postCancelCompletedFrames": 0,
+    "hash": "17530755159512483058",
+    "newFrames": 377,
+    "scope": "state/camera/report/cancel correctness only"
+  }
+]

@@ -55,3 +55,12 @@ evidence, all-roster pose verification or full-tour acceptance.
 [Approximate composition review](composition/README.md) finds no obvious one-sided
 scene loss and records shared readability issues; it does not establish motion or
 exact pixel parity.
+
+All four later-state controls also pass with the pinned tick12000 hash,
+recorded camera motion and no page errors. TypeGPU completes one previously
+admitted frame after cancellation; the other recorded controls complete zero.
+The loop checks active state before admitting a frame, while its completion path
+updates frame metrics after an asynchronous presentation settles. Terminal
+benchmark recording is guarded separately and remains unchanged. Cancellation
+does not retract GPU commands already submitted. These are eight short controls,
+not the full five-minute tour or final quality/performance acceptance.

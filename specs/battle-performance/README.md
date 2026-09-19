@@ -29,8 +29,11 @@ Root corrected its assumptions: combat can move live positions, and team IDs are
 u32. Only stable body-grid data may be packed; fighting and live positions remain
 live. Review and exact-hash release ABBA precede adoption. A third isolated Opus
 pass prepares the lab whole-map shadow control in
-`/Users/david/dev/game-battle-whole-map-control`, session48016. Both are candidates,
-not integrated changes. All hardware timing remains idle until root schedules it.
+`/Users/david/dev/game-battle-whole-map-control`, revision session85813. Its first
+commit c3f4e35e passes focused tests and independent review, but root requested
+read-time CPU-policy telemetry instead of per-frame counters falsely described
+as rasterization. Review notes and original result live in that worker’s
+`throwaway/whole-map-worker/`. Both passes are candidates, not integrated changes. All hardware timing remains idle until root schedules it.
 
 Priority after that decision: unchanged simulation throughput, then unresolved
 camera/grass/LOD quality, stable readable default shadows, and final live net

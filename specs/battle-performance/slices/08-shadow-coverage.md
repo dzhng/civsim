@@ -29,3 +29,8 @@ Measure A/B/C shadow-cost components and leave a viable margin for 09. Human pre
 Keep existing camera, crowd LOD, animation/pose, grass sampling, depth, default-renderer and lifecycle checks green; run the narrow affected checks plus the standing hardware `battle-perf-30k` gate for renderer changes. Preserve its thresholds. Record pre-existing reds separately; do not re-bless unrelated failures. Simulation semantics and campaign consumers must remain unchanged.
 
 For every visual artifact, inspect the actual candidate; use [compare-screenshots](../../../.agents/skills/compare-screenshots/SKILL.md) against the matched baseline/reference, then run an unprimed [screenshot-critique](../../../.agents/skills/screenshot-critique/SKILL.md) as the **last visual acceptance check**. Use screenshot-regression/snapCheck for captures. Motion claims need a frame sequence/video as well as stills. Store evidence under this spec. Open review shots via preview-shots, allow about five minutes while doing other work, then record an evidence-based decision if no reply arrives and close the shots. Human feedback is non-blocking; failed acceptance is not.
+
+The [held contact captures](../assets/02-held-authority/composition/README.md)
+show shared bright contact-mark bands obscuring dense soldiers. Judge grounding
+in those ranks as well as isolated units; preserving a noisy overlay is not proof
+of readable shadows, and hiding it for timing would change the workload.

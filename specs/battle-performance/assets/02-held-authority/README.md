@@ -51,3 +51,7 @@ cameras and frame IDs, followed by an identical post-cancel frame. Later probes
 wait for a nonempty recording before their first sample. No report is rewritten.
 These short correctness runs may overlap CPU builds/tests and are not timing
 evidence, all-roster pose verification or full-tour acceptance.
+
+[Approximate composition review](composition/README.md) finds no obvious one-sided
+scene loss and records shared readability issues; it does not establish motion or
+exact pixel parity.

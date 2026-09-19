@@ -491,3 +491,20 @@ A caller audit found the legacy battle marker layer only received empty arrays; 
 - **Verdict:** Sound, medium confidence. Reusing actual observations avoids a
   second event simulator; repeated pose work remains representative only of the
   declared held input, so the limitation stays explicit in every comparison.
+
+### Resolve friend angles after selection, from captured geometry
+
+- **When:** Deferred-bearing optimization,33eb9205.
+- **Choice:** While a soldier searches for an enemy, nearby comrades may be
+  discarded because the list is full or no enemy is found. Keep each comrade's
+  original relative position during that selection, then calculate the angle
+  only for the comrades the combat checks will read. The selected record drops
+  identity/priority fields that those checks no longer need.
+- **Gap:** The plan authorizes unchanged simulation optimization but does not
+  prescribe how to avoid angle work that selection discards.
+- **Reach:** Two private records express selection and consumption. The conversion
+  must remain after the no-target return and before frontage/cover checks, including
+  the disengaged path. Re-reading positions later would violate the captured-input
+  guarantee because earlier combat can move soldiers.
+- **Verdict:** Sound, high confidence. It removes measured discarded work without
+  a mutable-state cache or changing selected identities, order or float inputs.

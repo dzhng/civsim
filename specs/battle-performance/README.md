@@ -4,33 +4,31 @@
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
 Status: **implementation in progress; no backend selected**, updated 2026-09-19.
-Current pickup: verify the integrated lab-only held-state camera tour for the
-backend decision, following [the conditional comparison protocol](renderer-comparison.md).
-The live Menu benchmark remains unchanged. Its latest four-backend round completed
-functionally but did not meet performance targets, and different simulation progress
-prevents ranking those runs. Do not repeat that experiment as a renderer decision.
+Current pickup: finish the GPU pose-input control, then run the declared
+[counterbalanced renderer comparison](renderer-comparison.md). The live Menu
+benchmark still runs real simulation; older unequal-progress live runs cannot rank
+backends. No renderer is selected and no final cadence target passes.
 
-The [exact bucket-membership optimization](assets/03a-bucket-membership/README.md)
-is integrated at5f418b5f. Current production WASM is e9f4f080…; all309 canonical
-worker/direct ticks match. Later combat still exceeds the30Hz budget. In parallel
-with the renderer-control implementation, refresh later-combat stage attribution
-before selecting another exact-semantics kernel optimization.
-[Fresh stage and visit counts](assets/03a-targeting-attribution/README.md) now select
-deferred friend-bearing calculation as the next candidate; Claude is implementing
-it in `game-battle-deferred-friend-bearing`. Held renderer source is integrated
-at aa6b1fa5 with root lifecycle/hash corrections. [Source browser control](assets/02-held-authority/README.md)
-passes fixed state, moving camera and cancellation. [All16 fixed builds](assets/02-held-builds/README.md)
-are ready at8643cf05. All eight short state/camera/report/cancel browser controls
-are complete; [their evidence](assets/02-held-authority/README.md) preserves the
-native first-sample race and one admitted post-cancel frame without weakening the
-contract. Their timings are excluded because CPU implementation/builds overlapped.
-Opus friend-bearing candidate is fbf891de in `game-battle-deferred-friend-bearing`;
-review is clean, tests pass, and the baseline binary matches production e9f4f080….
-Candidate is fd2fef9d…. Isolated ABBA CPU timing is now RUNNING in exec session27982
-via `throwaway/friend-bearing-pair/run.py`; inspect its run log and handle before
-assuming liveness. No CPU builds/tests/timings or GPU jobs until it finishes.
-GPU matrix session78128 is terminal. No candidate adoption or speedup yet.
-All-backend pose/environment parity and the full comparison remain next.
+[All16 fixed held builds](assets/02-held-builds/README.md) pin8643cf05 and identical
+e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pass;
+[the evidence](assets/02-held-authority/README.md) records approximate scene parity,
+shared readability issues, the native first-sample race and one admitted post-cancel
+frame. Their timings are excluded. The pose-control GPU matrix is RUNNING in exec
+session28888 via `throwaway/held-fixed/pose-matrix.py`; results go to
+`throwaway/held-tour-review/pose-matrix` and `throwaway/held-fixed/pose-outcomes.json`.
+It observes pose dispatch/control phase changes without changing production code.
+Check its actual liveness before acting. No other GPU job while it runs.
+
+The [deferred-bearing optimization](assets/03a-deferred-bearing/README.md) is
+integrated at33eb9205 after clean review and ABBA: both candidates beat both controls
+in early and late combat with all five hashes preserved. Root17 library tests,
+targeting/golden and all309 worker/direct ticks pass. Production WASM fd2fef9d…
+matches the measured candidate exactly. Later combat still takes45.8–45.9ms/tick;
+steady30Hz remains unmet. CPU timing27982 and canonical88182 are terminal.
+The fixed held builds intentionally retain the earlier WASM; their held hashes
+match and they must remain immutable. Scratch `throwaway/held-fixed/run-round.py`
+implements the declared orders but has NOT been launched. Finish the pose control,
+then start round0 with all CPU builds/tests/timings stopped.
 
 Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)
 has no repeatable measured benefit and is not adopted; [native await profiling](assets/02-native-await-profile/README.md)

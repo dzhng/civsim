@@ -90,3 +90,5 @@ The [typed observation-source rerun](assets/03a-publication/canonical-observatio
 - [Native await attribution](assets/02-native-await-profile/README.md): complete scope/CPU trace shows CPU work inside reported await time; no causal basis for removing validation waits.
 
 - [Post-bucket targeting attribution](assets/03a-targeting-attribution/README.md): all pinned hashes and counter conservation checks pass; discarded friend bearings motivate the next exact-semantics candidate. Per-body diagnostic timing is not performance evidence.
+
+- [Deferred friend bearings](assets/03a-deferred-bearing/README.md): repeated uninstrumented reductions in both combat windows, exact pinned hashes and measured/integrated binary identity. Later combat remains above the30Hz budget; no browser-FPS claim.

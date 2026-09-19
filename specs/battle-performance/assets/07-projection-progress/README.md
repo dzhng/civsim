@@ -1,9 +1,9 @@
 # Projection and LOD progress — diagnosed, correction pending
 
 The coherent tick9000 checkpoint comparison has equal soldier counts, main/shadow
-visibility counts and visible-tier histograms for Three/raw/TypeGPU at all six
-checkpoints. Shadow tiers differ at15/60seconds: each native candidate retains88
-more l0 casters than Three, replacing88 l3 casters; the other checkpoints match.
+visibility counts and visible-tier histograms for all four backends at all six
+checkpoints. Shadow tiers differ at15/60seconds: raw and TypeGPU retain88 more
+l0 casters than Three and vgpu, replacing88 l3 casters; the other checkpoints match.
 These are approximate camera poses, not exact work parity. The original reports
 retain the mismatch. The eight-case matrix is still running; no final verdict.
 

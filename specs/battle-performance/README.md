@@ -19,9 +19,9 @@ is integrated, including root's missing-Menu-frame regression fix. It samples
 completed frames at the next animation-frame registration and snapshots by value.
 All68 trial tests and scoped TypeScript pass. The eight-case non-timed matrix is
 running under `throwaway/held-fixed/run-checkpoints.py`; inspect its process/log
-and `checkpoints/outcomes.json` before resuming, never restart blindly. Tick9000
-Three/raw/TypeGPU have completed and their sampled cameras match their Menu
-records. Main visibility/tiers agree; natives retain88 extra l0 shadow casters
+and `checkpoints/outcomes.json` before resuming, never restart blindly. All four tick9000
+backends have completed and their sampled cameras match their Menu
+records. Main visibility/tiers agree; raw/TypeGPU retain88 extra l0 shadow casters
 at15/60seconds. [Projection progress](assets/07-projection-progress/README.md)
 records confirmed orthographic/hysteresis policy problems and the still-unproven
 exact discrepancy cause. These controls are not timing evidence.

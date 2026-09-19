@@ -1,0 +1,44 @@
+[
+  {
+    "mode": "enabled",
+    "tick": 9000,
+    "backend": "raw",
+    "exitCode": 0
+  },
+  {
+    "mode": "enabled",
+    "tick": 12000,
+    "backend": "typegpu",
+    "exitCode": 0
+  },
+  {
+    "mode": "enabled",
+    "tick": 12000,
+    "backend": "raw",
+    "exitCode": 0
+  },
+  {
+    "mode": "disabled",
+    "tick": 9000,
+    "backend": "typegpu",
+    "exitCode": 0
+  },
+  {
+    "mode": "disabled",
+    "tick": 9000,
+    "backend": "raw",
+    "exitCode": 0
+  },
+  {
+    "mode": "disabled",
+    "tick": 12000,
+    "backend": "typegpu",
+    "exitCode": 0
+  },
+  {
+    "mode": "disabled",
+    "tick": 12000,
+    "backend": "raw",
+    "exitCode": 0
+  }
+]

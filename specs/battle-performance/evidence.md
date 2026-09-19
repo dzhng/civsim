@@ -94,3 +94,13 @@ The [typed observation-source rerun](assets/03a-publication/canonical-observatio
 - [Post-bucket targeting attribution](assets/03a-targeting-attribution/README.md): all pinned hashes and counter conservation checks pass; discarded friend bearings motivate the next exact-semantics candidate. Per-body diagnostic timing is not performance evidence.
 
 - [Deferred friend bearings](assets/03a-deferred-bearing/README.md): repeated uninstrumented reductions in both combat windows, exact pinned hashes and measured/integrated binary identity. Later combat remains above the30Hz budget; no browser-FPS claim.
+
+## Completed leading-pair confirmation —2026-09-20
+
+The [eight confirmation trials](assets/02-held-rounds/confirmation/README.md)
+complete the bounded held comparison after24 declared runs. All32 functional
+verdicts pass; all32 quiet-host verdicts fail. Query-disabled later-state averages
+reverse raw/TypeGPU ordering, with phase and low-FPS tradeoffs. Apply the declared
+performance tie and maintenance/quality decision rule; no new broad timing round.
+This is conditional selection evidence only. Common coherent interior scene counts,
+final live throughput, camera/shadow quality and net shadow savings remain open.

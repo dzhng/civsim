@@ -31,28 +31,23 @@ The [phase ranges](three-order-ranges.json) preserve the per-phase spread used i
 the decision, including GPU interval-union medians. Similar GPU intervals do not
 explain vgpu's lower cadence or identify a cause.
 
-The required confirmation reverses their last relative order: TypeGPU then raw
-at9000 and12000, first with instrumentation enabled and then disabled. Use the
-same immutable builds and full tours. No extra broad timing rounds are planned;
-if confirmation does not establish material separation, follow the declared tie
-and maintenance/quality decision rule. Common interior scene-count evidence
-remains a separate correctness requirement.
+## Completed confirmation
 
-## Confirmation pause
+All eight leading-pair confirmations are now [archived](confirmation/README.md).
+All functional checks pass and all host verdicts remain failed. Raw and TypeGPU
+trade averages, lows and phase cadence; query-disabled later-state averages
+reverse their ordering. The declared bounded rule therefore records a
+**performance tie**, with maintenance and quality to decide the continued
+implementation after coherent interior scene-count correctness is established.
+No more broad timing rounds are planned. This does not establish equal engine
+performance or satisfy final live acceptance.
 
-The user requested a pause at a trial boundary. The first confirmation,
-enabled9000 TypeGPU, completed with functional checks passing and host checks
-failing under substantial competing activity. Its [pause record](confirmation/pause.json)
-contains metrics and the seven remaining trials; its [archive index](confirmation/enabled-9000-typegpu/archive-index.json)
-identifies the raw evidence. The batch and preview server were stopped at that boundary. No second
-confirmation trial started before the pause. The user resumed on2026-09-20;
-[all checked build/shared-asset hashes match](confirmation/resume-verification-2026-09-20.json).
-The continuation preserves that first trial and the overnight gap in host context. This partial confirmation cannot decide the pair.
-
-The forthcoming disabled controls specifically remove GPU timestamp queries and
-readbacks. CPU/submission observation remains, as defined by
-[the measurement contract](../../measurement.md); do not call them fully
-uninstrumented runs.
+The user-requested pause occurred after the first confirmation. Its original
+[pause record](confirmation/pause.json) is historical, not current pending work.
+Seven remaining trials completed after resume; build/shared-asset hashes matched
+before they began. The overnight gap and substantial competing activity during
+the first trial remain uncertainty. Query-disabled controls remove timestamps
+and readbacks only; they retain CPU/submission observation.
 
 ## Shared conditions
 

@@ -3,88 +3,47 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **implementation resumed at the user's request; no backend selected**,
-updated2026-09-20. The goal remains the complete performance/shadow spec.
+Status: **implementation active; renderer measurements complete; production
+backend not yet selected**, updated2026-09-20.
 
-Resume point: [all three orders](assets/02-held-rounds/README.md) are archived,
-with24 functional passes and24 failed host-isolation verdicts. The first
-confirmation trial, enabled9000 TypeGPU, also completed and passed; its host
-checks failed under substantial competing activity. The
-[pause record](assets/02-held-rounds/confirmation/pause.json) owns its exact result
-and the seven remaining trials. Next is enabled9000 raw. Complete the declared
-TypeGPU/raw confirmation at both states, then the query-disabled controls.
-The `disabled` mode removes GPU timestamp queries/readbacks, retaining CPU and
-submission observation; it is an incremental overhead control, not a fully
-uninstrumented game.
+Current pickup: close coherent interior scene-count correctness, then record the
+backend decision and materialize its migration graph. All24 declared held tours
+and8 confirmation tours completed:32 functional passes,32 failed quiet-host
+verdicts. The [comparison evidence](assets/02-held-rounds/README.md) and
+[confirmation](assets/02-held-rounds/confirmation/README.md) establish a conditional
+raw/TypeGPU performance tie under the declared rule. Do not start another broad
+timing campaign. Use maintenance/quality to decide, retaining host uncertainty.
+These held runs are not live acceptance.
 
-Resume verification found no owned trial/preview process and all1,134 checked
-build/shared-asset files match their original byte sizes and SHA256 digests; the
-[verification record](assets/02-held-rounds/confirmation/resume-verification-2026-09-20.json)
-preserves the manifest identities. Session99331 ended143 at the requested pause;
-its completed child's report remains authoritative. Sessions45081/88896/26355 are
-terminal. The elapsed overnight gap is part of the comparison's host uncertainty.
+Claude Opus is implementing the separate non-timed checkpoint observer in
+`/Users/david/dev/game-battle-checkpoint-observer`, branch
+`codex/battle-checkpoint-observer`, session34638. Root must verify a coherent
+completed-frame boundary: polling mutable stats during async preparation can mix
+frames. Fixed timing builds remain immutable; approximate camera samples cannot
+prove exact geometry parity. Root owns hardware verification. A separate
+read-only kernel consultation is session34279, recorded in
+`throwaway/next-kernel-consult/`; it has no implementation authorization itself.
 
-Continue with `throwaway/held-fixed/resume-confirmation.py`, logging to
-`throwaway/held-fixed/confirmation-resume.log`. It preserves the completed trial,
-runs only the seven entries in the pause record, refuses existing pending output,
-and records new outcomes separately. Before launching, inspect the active process
-and log; continue an existing live run rather than restart it. Preserve failed
-host verdicts and the declared tie rule. No CPU builds/tests/timings or other GPU
-jobs may overlap hardware timing.
+Priority after that decision: unchanged simulation throughput, then unresolved
+camera/grass/LOD quality, stable readable default shadows, and final live net
+savings. [Deferred friend bearings](assets/03a-deferred-bearing/README.md) and
+[exact bucket membership](assets/03a-bucket-membership/README.md) are integrated
+with canonical hashes preserved, but later combat still takes45.8–45.9ms/tick,
+missing30Hz. Worker publication does not solve that throughput deficit.
 
-Common interior scene-count evidence remains missing. Read-only Claude session6305
-is terminal; its recommendation is in `throwaway/held-checkpoint-consult/result.txt`.
-Root verified the stats surfaces and the inability to render after benchmark
-completion. Validate its proposed sampling/camera correlation before implementing
-a separate correctness control; approximate poses cannot prove exact count parity,
-and the control may not change timed builds. No backend winner or final live
-acceptance follows from the held results.
+Current four-tier LOD passes the unchanged30k hardware floor and has sampled
+geometry/visual controls; continuous camera quality remains open. View-fitted
+shadows exist across all candidates, but final readability, stability and the
+original-whole-map versus final net-cost proof remain open. No baseline or
+threshold was repinned. Detailed controls and inherited reds live in
+[evidence.md](evidence.md), not this handoff.
 
-[All16 fixed held builds](assets/02-held-builds/README.md) pin8643cf05 and identical
-e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pass,
-with [limitations recorded](assets/02-held-authority/README.md). The
-[GPU pose-input check](assets/02-held-authority/pose-inputs/README.md) also passes
-all four backends: phase inputs change while actual pose dispatches run and the
-canonical state stays fixed. This is sampled input evidence, not every output pixel
-or natural motion. Approximate composition review finds no obvious one-sided scene
-loss but keeps shared overlay/noise/grounding issues open. The pose observer's first
-syntax failure was fixed; corrected session14314 is terminal and its timing is excluded.
-
-The [deferred-bearing optimization](assets/03a-deferred-bearing/README.md) is
-integrated at33eb9205 after clean review and ABBA: both candidates beat both controls
-in early and late combat with all five hashes preserved. Root17 library tests,
-targeting/golden and all309 worker/direct ticks pass. Production WASM fd2fef9d…
-matches the measured candidate exactly. Later combat still takes45.8–45.9ms/tick;
-steady30Hz remains unmet. CPU timing27982 and canonical88182 are terminal.
-The fixed held builds intentionally retain the earlier WASM; their held hashes
-match and they must remain immutable. The declared renderer round above is the current pickup.
-
-Recent attribution closes two avenues: [main-pass backface culling](assets/07-crowd-culling/README.md)
-has no repeatable measured benefit and is not adopted; [native await profiling](assets/02-native-await-profile/README.md)
-shows substantial CPU work inside the asynchronous interval, so it does not justify
-removing validation boundaries. Current four-tier LOD is a working default, with
-[geometry and sampled visual controls](assets/07-four-mesh-control/README.md), not
-final motion/quality acceptance. The unchanged30k hardware floor passes all18 checks.
-Canonical far-view diagnostics remain red; the prior three-tier control reproduces
-the seven grounding images and material failure. Other far differences remain open.
-
-[Latest fixed live builds](assets/02-paired-controls-0ea8406d/README.md) retain the
-older2657fca8… WASM; never silently rebuild them in place. Preserve both these and
-[the frozen historical assets](assets/02-paired-controls-98fc8a45/frozen-soldiers.json).
-The [evidence ledger](evidence.md) owns detailed results and limitations.
-
-Priority: conditional renderer comparison and remaining simulation throughput;
-then backend decision, unresolved camera/grass/LOD quality, shadow stability and
-final live net savings. View-fitted shadows already exist across all candidates;
-readability, moving-camera stability and the original-versus-final net-cost proof
-remain open. No backend has won. No failed baseline or threshold is repinned.
-
-Claude Opus owns isolated implementation passes; root integrates/reviews and owns
-serialized GPU work. No builds, tests or CPU timing during GPU timing. Failed
-quiet-host verdicts stay failed; conditional comparisons cannot replace final
-product acceptance. Preserve gameplay, assets, physical framebuffer and the
-hard-cutover/no-compatibility decision. Recorded replay is correctness evidence,
-not a timing oracle; overlapping GPU pass sums are not elapsed frame time.
+Claude Opus owns isolated implementation passes; root integrates/reviews. Serialize
+GPU timing with no overlapping builds, tests or CPU timing. Preserve all fixed
+builds and their linked assets: held8643cf05/e9f4f080…, historical98fc8a45 and
+live0ea8406d controls. Production WASM fd2fef9d… matches the integrated deferred-
+bearing candidate. Finished implementation worktrees were cleaned up with scratch
+archives and branch refs retained; do not remove unrelated project worktrees.
 
 The proposed target is steady 60 fps on David's current Mac at normal window size and device scale. This was recommended in the interview, not explicitly confirmed; record any reply and propagate it before freezing the benchmark. Do not interpret absent exact camera/seed metadata as a blocker: reproduce the attached composition with current assets, record the approximation, and also benchmark the actual default generated battle. Exact GPU, physical framebuffer, refresh cadence and total battle population must be acquired in 01. The screenshot shows **7,780 player men**, not a verified total render count.
 

@@ -17,6 +17,7 @@ import {
   SHADOW_RECEIVER_MARGIN,
   SINGLE_MAP_SIZE,
   ShadowFitStabilizer,
+  SingleShadowPolicy,
   shadowCoverageRadius,
   shadowExtentForRung,
   shadowExtentRung,
@@ -44,6 +45,17 @@ const TACTICAL: Camera3DParams = {
   target: [0, 0, 0],
   distance: 10,
   pitch: 0.3,
+  yaw: -Math.PI / 2,
+  fovY: 0.85,
+  aspect: 1.6,
+  near: 1,
+};
+// A mid framing the zoom rig passes through, used to replay motion small
+// enough that most frames land back on the map the last frame installed.
+const ORBIT: Camera3DParams = {
+  target: [0, 0, 0],
+  distance: 160,
+  pitch: 0.5,
   yaw: -Math.PI / 2,
   fovY: 0.85,
   aspect: 1.6,
@@ -423,12 +435,127 @@ test("the rig's culling views keep an offscreen caster that shadows the visible 
   rig.dispose();
 });
 
+test("a map the policy holds keeps the audience plane that map asks for", () => {
+  // The crowd's near plane belongs to the INSTALLED map: when the policy decides
+  // this frame rasterises the map it already holds, the audience it hands the
+  // crowd has to be the one that map computes. A plane derived from anything the
+  // installed map does not record drifts away from it while the map is held —
+  // and the drift is signed, so the held audience can stop SHORT of a caster the
+  // map would have shadowed.
+  const policy = new SingleShadowPolicy(SUN);
+  // The fit the policy computes each frame, rebuilt alongside it with its own
+  // equivalent extent history so the two see the same sequence of framings.
+  const alongside = new ShadowFitStabilizer();
+  policy.setWorldRect(RECT, ELEVATION);
+  let retained = 0;
+  for (let step = 0; step < 256; step++) {
+    const camera = {
+      ...ORBIT,
+      target: [step * 0.001, step * 0.001, 0] as [number, number, number],
+    };
+    const before = policy.refits;
+    policy.update(camera);
+    const fresh = fitFor(camera, SUN, alongside);
+    // A refit installed a new map; only a HELD map can disagree with itself.
+    if (policy.refits !== before) continue;
+    retained++;
+    assert.equal(
+      policy.fit.crowdNear,
+      fresh.crowdNear,
+      `step ${step}: the held map's crowd audience starts at ${policy.fit.crowdNear}, its own fit says ${fresh.crowdNear}`,
+    );
+  }
+  assert.ok(retained > 100, `expected most millimetre steps to hold the map, held ${retained}/256`);
+});
+
+test("the crowd audience clears a mounted caster's reach under every sun, by little", () => {
+  for (const env of Object.values(CIVSIM_ENVIRONMENTS)) {
+    const sun = photorealEnvironment(env).sunDirection;
+    for (const camera of [
+      TACTICAL,
+      ORBIT,
+      STRATEGIC,
+      { ...ORBIT, pitch: 0.02 },
+      { ...ORBIT, distance: 900 },
+    ]) {
+      const fit = fitFor(camera, sun);
+      const where = `${env.id} d${camera.distance} p${camera.pitch}`;
+      assert.ok(
+        Number.isFinite(fit.crowdNear) && fit.crowdNear >= fit.near && fit.crowdNear < fit.far,
+        `${where}: audience near ${fit.crowdNear} is not a plane inside ${fit.near}..${fit.far}`,
+      );
+      const headroom = audienceHeadroom(fit, sun);
+      assert.ok(
+        headroom >= -1e-9,
+        `${where}: the audience stops ${-headroom} units below a mounted caster's reach`,
+      );
+      // The slack is what quantising the plane costs. A second mounted man's
+      // worth is the line between "a shade more than it must" and "a cliff".
+      assert.ok(
+        headroom < 2 * SHADOW_CROWD_CASTER_CEILING,
+        `${where}: the audience reaches ${headroom} units past a mounted caster`,
+      );
+    }
+  }
+});
+
+test("the audience follows a real sun change and a new field, and holds when the pose does", () => {
+  const policy = new SingleShadowPolicy(SUN);
+  policy.setWorldRect(RECT, ELEVATION);
+  policy.update(ORBIT);
+  const settled = policy.refits;
+  const plane = policy.fit.crowdNear;
+  assert.ok(audienceHeadroom(policy.fit, SUN) >= -1e-9, "the fitted audience clipped a caster");
+
+  policy.update(ORBIT);
+  assert.equal(policy.refits, settled, "an unchanged pose re-fitted the map");
+  assert.equal(policy.fit.crowdNear, plane, "an unchanged pose moved the audience");
+
+  const dusk = photorealEnvironment(CIVSIM_ENVIRONMENTS.dusk).sunDirection;
+  policy.update(ORBIT, dusk);
+  assert.ok(policy.refits > settled, "a real sun change did not re-fit");
+  assert.notEqual(policy.fit.crowdNear, plane, "a much lower sun left the audience where it was");
+  const lowered = audienceHeadroom(policy.fit, dusk);
+  assert.ok(
+    lowered >= -1e-9 && lowered < 2 * SHADOW_CROWD_CASTER_CEILING,
+    `a lower sun left the audience ${lowered} units off a mounted caster's reach`,
+  );
+
+  policy.setWorldRect([-400, -300, 800, 600], [-10, 100], dusk);
+  const replaced = audienceHeadroom(policy.fit, dusk);
+  assert.ok(
+    replaced >= -1e-9 && replaced < 2 * SHADOW_CROWD_CASTER_CEILING,
+    `a replaced field left the audience ${replaced} units off a mounted caster's reach`,
+  );
+});
+
 function cross(a: readonly number[], b: readonly number[]): [number, number, number] {
   return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 function unit(v: readonly number[]): [number, number, number] {
   const length = Math.hypot(v[0], v[1], v[2]) || 1;
   return [v[0] / length, v[1] / length, v[2] / length];
+}
+
+/** How far ABOVE a mounted caster's reach the fit's crowd audience actually
+ *  starts, in world height. Zero is the exact plane the crowd ceiling asks for:
+ *  positive admits that much more than it must, negative crops a caster whose
+ *  shadow the map draws. Measured from the fit's own promised regions and pose,
+ *  so it says nothing about how the plane was arrived at. */
+function audienceHeadroom(fit: ShadowViewFit, sun: readonly [number, number, number]): number {
+  const basis = shadowLightBasis(sun);
+  const lightDepth = (p: readonly number[]) =>
+    p[0] * basis.depth[0] + p[1] * basis.depth[1] + p[2] * basis.depth[2];
+  let ceiling = -Infinity;
+  for (const box of fit.regions)
+    for (const x of [box.x0, box.x1])
+      for (const y of [box.y0, box.y1])
+        for (const z of [box.z0, box.z1]) ceiling = Math.max(ceiling, lightDepth([x, y, z]));
+  // A caster h above the receiver it shades stands h/sin(elevation) further up
+  // the sun ray at the same light-plane XY, so that is the depth it needs.
+  const wanted = ceiling + SHADOW_CROWD_CASTER_CEILING / basis.depth[2];
+  const plane = lightDepth(fit.position) - fit.crowdNear;
+  return (plane - wanted) * basis.depth[2];
 }
 
 test("shallow views retain ground between the old sampled frustum rays", () => {

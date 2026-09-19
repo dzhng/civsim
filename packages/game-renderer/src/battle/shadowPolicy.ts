@@ -251,7 +251,9 @@ export interface ShadowViewFit {
   normalBias: number;
   /** Near distance for the CROWD's share of this map. The map itself reaches
    *  back to the cliff ceiling; bodies do not cast that far, and the crowd is
-   *  the one audience that pays per body for the difference. */
+   *  the one audience that pays per body for the difference. Settled by the sun
+   *  and the two ceilings, so a map held across frames keeps an audience that
+   *  map still agrees with. */
   crowdNear: number;
   /** What this camera asked one map to reach past its orbit target. Evidence. */
   coverage: number;
@@ -777,7 +779,6 @@ export function viewShadowFit(input: ShadowViewFitInput): ShadowViewFit {
   // degrees, and the clamp keeps a pathological one merely wasteful.
   const casterLift = (ceiling: number) => ceiling / Math.max(0.05, basis.depth[2]);
   const ldCasterMax = ldMax + casterLift(SHADOW_CASTER_CEILING);
-  const ldCrowdMax = ldMax + casterLift(SHADOW_CROWD_CASTER_CEILING);
 
   const required = Math.max(lxMax - lxMin, lyMax - lyMin);
   const extent = input.stabilizer
@@ -793,6 +794,22 @@ export function viewShadowFit(input: ShadowViewFitInput): ShadowViewFit {
   const farPlane = Math.floor(ldMin / SHADOW_DEPTH_QUANTUM) * SHADOW_DEPTH_QUANTUM;
   const near = SHADOW_FIT_NEAR;
   const far = near + Math.max(SHADOW_DEPTH_QUANTUM, nearPlane - farPlane);
+  // The crowd starts where the map does, dropped by what separates the two
+  // ceilings' lifts. Taken exactly, that drop also carries the remainder
+  // `nearPlane` rounded away — a quantity no installed field records, so two
+  // framings can rasterise the same map and still disagree on it, and a
+  // retained map would keep an audience its own fit never computed. Quantising
+  // the drop DOWN to the map's own depth step discards that remainder: the
+  // plane becomes the sun's and the two ceilings' alone, and sits at most two
+  // quanta further UP-SUN than the exact one — so it admits every crowd caster
+  // the exact plane did, plus a thin band above them. The clamp holds it inside
+  // the map's own depth range; it is inert while a cliff stands above a body.
+  const crowdDrop =
+    Math.floor(
+      (casterLift(SHADOW_CASTER_CEILING) - casterLift(SHADOW_CROWD_CASTER_CEILING)) /
+        SHADOW_DEPTH_QUANTUM,
+    ) * SHADOW_DEPTH_QUANTUM;
+  const crowdNear = Math.min(far, Math.max(near, near + crowdDrop));
   const eyeDepth = nearPlane + near;
   const position: Vec3 = [
     basis.right[0] * cx + basis.upAxis[0] * cy + basis.depth[0] * eyeDepth,
@@ -820,7 +837,7 @@ export function viewShadowFit(input: ShadowViewFitInput): ShadowViewFit {
     extent,
     worldUnitsPerTexel,
     normalBias: shadowNormalBiasFor(worldUnitsPerTexel),
-    crowdNear: Math.min(far, Math.max(near, eyeDepth - ldCrowdMax)),
+    crowdNear,
     coverage,
     regions,
   };

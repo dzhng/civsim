@@ -627,3 +627,18 @@ cold/moving caster-admission lag and retain native's valid reverse-depth bound.
 These intentional differences need explicit coverage/motion tests, not a claim of
 source pixel equality. [Audit and dispositions](assets/m6-cascade-contract/README.md)
 record the alternatives; implementation and hardware acceptance remain open.
+
+## Raw world promotion and evidence
+
+Accepted: move the existing world and shared preparation/shaders rather than copy
+or rewrite it. Keep scope naming in the world with its per-device registry, and
+measurement implementation in the lab. Preserve source/campaign dependencies with
+real consumers; two pure photoreal helpers remain for the later owner audit.
+Root verifies identical non-import statements in58 moved modules. The replay
+provider verifier now ignores built-in array construction but still rejects a
+wrong imported provider, proven by mutation. No compatibility renderer is added.
+
+The source-shaped30k reader cannot measure raw honestly yet. M9 owns its diagnostic
+migration with every numerical/content floor unchanged. Pixel and frame-control
+reds remain named in [promotion evidence](assets/m1b-promotion/README.md); source
+or component correctness is never labelled final raw speed or shadow acceptance.

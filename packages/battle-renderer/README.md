@@ -1,38 +1,19 @@
 # battle-renderer
 
-The selected raw WebGPU battle world, and the renderer-neutral contracts its caller
-speaks to it through. There is one world here, not a choice of engines: the frontend
-names what a frame contains, and this package turns that into GPU work.
+The raw WebGPU battle world consumes renderer-neutral presentation data. Its
+caller owns the device, canvas, error boundary and authoritative simulation
+inputs. The world owns its allocated scene resources and pass ordering; the
+caller owns final canvas acquisition and submission.
 
-## The ownership line
+GPU layers live under `src/world`; shared preparation and frame contracts live
+beside the world entry, and WGSL lives under `src/shaders`. Terrain, environment,
+camera math, grass residency and soldier assets retain their domain owners.
+Consumers import those owners directly, without forwarding modules.
 
-The caller owns the device, the canvas and its context, the GPU-error boundary, the
-authoritative presentation and every simulation input. The world owns what it
-allocates — HDR colour/depth/camera/post attachments, scene layers, pipelines,
-staged replacements and their disposal — and it owns final pass ordering. Nothing
-here reaches back for the caller's lifetime decisions, and nothing here presents.
+Resource replacement follows admission and lifetime rules: a failed staged
+replacement cannot publish mixed generations, and disposal must account for
+pending work. Resizing does not imply rebuilding unrelated resources or pipelines.
 
-Types describe what a battle frame contains. Terrain, water, environment, camera
-math, grass residency and assets keep their existing owners in their own domain
-packages; consumers import those types directly. There are no re-export bridges or
-duplicate frame declarations, in either direction.
-
-## The layers
-
-`world/` holds the GPU resource and pass owners: each one borrows the device and a
-camera layout, owns its own resources, and is recreated rather than mutated when its
-inputs or framebuffer change. The modules beside this file are renderer-independent
-preparation — topology, instance packing, camera publication, record publication,
-admission barriers — which is why the lab's typed candidates consume them unchanged.
-`shaders/` is WGSL source text on the same footing, and carries the pinned Three
-attribution for the algorithms adapted from it.
-
-The world names the GPU work it owns through one scope hook. Whether anyone is
-measuring those names belongs to whoever installs an observer, not to the world.
-
-## What is deliberately not here
-
-Comparison backends and their selector, measurement observers, numerical readback,
-source timestamp taps and the frontend facade are the laboratory's, and stay there
-until cutover. Production battle rendering is still constructed by its existing
-owner; this package being complete is not the same as it being switched on.
+The world names its GPU work through a per-device scope hook. Installing a timing
+observer belongs to the caller; the world does not depend on lab measurement
+code. Adapted shader algorithms retain their pinned Three attribution.

@@ -9,3 +9,12 @@ Run actual Menu benchmark plus normal battle/campaign entry, settings including 
 Use the shared snapCheck path for visual evidence; inspect actual frames, compare
 matched crops and run unprimed screenshot-critique before accepting visual change.
 Preserve current thresholds and carry inherited failures explicitly.
+
+The existing30k scene reads source-specific expectedSoldiers, camera, terrain/grass
+and performance.gpuTimeMs fields. The native facade currently exposes different
+native counters and explicitly null GPU time; it cannot pass that unchanged scene
+as a raw gate. At cutover migrate those reads to truthful final diagnostics and
+joined complete submission timing, preserving all population, scenery, grass,
+physical-scale and33ms assertions. Do not fabricate source fields or sum overlapping
+passes to make the scene green. M1b's unchanged source floor is a regression guard,
+not raw performance acceptance.

@@ -40,17 +40,20 @@ const imports = entry => {
       }),
   );
 };
-const sceneConstructor = code[sceneModule].match(
-  /#region packages\/battle-renderer\/src\/grassField\.ts[\s\S]*?\bnew\s+(\w+)\(/,
+const fieldRegion = code[sceneModule].match(
+  /#region packages\/battle-renderer\/src\/grassField\.ts([\s\S]*?)\/\/#endregion/,
 )?.[1];
 const publicConstructor = code['publications.mjs'].match(/(\w+) as BattleGrassResidency/)?.[1];
-assert.ok(
-  sceneConstructor && publicConstructor,
-  'native field and public provider constructors are emitted',
-);
-assert.equal(
-  imports(sceneModule)[sceneConstructor],
-  imports('publications.mjs')[publicConstructor],
+assert.ok(fieldRegion && publicConstructor, 'native field and public provider are emitted');
+// Typed-array helpers may be emitted before the field constructor. Compare only
+// imported constructors in this module's region, not its first `new` expression.
+const fieldImports = imports(sceneModule);
+const fieldConstructors = [...fieldRegion.matchAll(/\bnew\s+(\w+)\(/g)]
+  .map((match) => fieldImports[match[1]])
+  .filter((name) => name !== undefined);
+assert.deepEqual(
+  fieldConstructors,
+  [imports('publications.mjs')[publicConstructor]],
   'native field constructs the public replay provider, not a separate sampler',
 );
 

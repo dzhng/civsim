@@ -21,3 +21,8 @@ disposal controls and logical-resource accounting. Run the existing raw frame an
 lifecycle controls, complete-scene/pose checks, affected TypeScript/unit checks,
 and the unchanged30k floor. Use existing captures through snapCheck; any changed
 pixels need comparison and fresh-eyes review before equivalence is claimed.
+
+The unchanged30k scene currently verifies the still-source production constructor.
+Its source-shaped diagnostics do not support the native lab facade yet. Keep
+that source regression guard, and preserve the same numerical/workload floor when
+M9 migrates its diagnostic reads. Do not label a source pass as a raw timing pass.

@@ -1,0 +1,99 @@
+{
+  "adopted": false,
+  "rule": "Both Bs must beat both As at both windows with hashes unchanged",
+  "windows": {
+    "earlyMs": false,
+    "laterMs": true
+  },
+  "rows": [
+    {
+      "index": 0,
+      "arm": "control",
+      "earlyMs": 25.127747431818214,
+      "laterMs": 50.00981352597374,
+      "hostBeforeEarly": {
+        "utc": "2026-09-19T22:53:01.814Z",
+        "loadAverage": [
+          4.94384765625,
+          6.9638671875,
+          13.22607421875
+        ]
+      },
+      "hostAfterEarly": {
+        "utc": "2026-09-19T22:54:20.034Z",
+        "loadAverage": [
+          7.4130859375,
+          7.2490234375,
+          12.767578125
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "arm": "candidate",
+      "earlyMs": 24.536362555194785,
+      "laterMs": 45.7342364772724,
+      "hostBeforeEarly": {
+        "utc": "2026-09-19T22:56:28.371Z",
+        "loadAverage": [
+          8.04541015625,
+          7.22509765625,
+          11.95068359375
+        ]
+      },
+      "hostAfterEarly": {
+        "utc": "2026-09-19T22:57:42.663Z",
+        "loadAverage": [
+          6.85009765625,
+          7.03662109375,
+          11.47900390625
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "arm": "candidate",
+      "earlyMs": 24.121509064935083,
+      "laterMs": 46.388962698051884,
+      "hostBeforeEarly": {
+        "utc": "2026-09-19T22:59:47.122Z",
+        "loadAverage": [
+          5.13818359375,
+          6.3330078125,
+          10.6142578125
+        ]
+      },
+      "hostAfterEarly": {
+        "utc": "2026-09-19T23:01:00.963Z",
+        "loadAverage": [
+          4.79931640625,
+          5.935546875,
+          10.09814453125
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "arm": "control",
+      "earlyMs": 24.27006534090909,
+      "laterMs": 47.21084456818185,
+      "hostBeforeEarly": {
+        "utc": "2026-09-19T23:03:04.412Z",
+        "loadAverage": [
+          7.27685546875,
+          6.51611328125,
+          9.75048828125
+        ]
+      },
+      "hostAfterEarly": {
+        "utc": "2026-09-19T23:04:19.909Z",
+        "loadAverage": [
+          7.6162109375,
+          6.95654296875,
+          9.65380859375
+        ]
+      }
+    }
+  ],
+  "scope": "Node diagnostic; early ranges overlap; no individual attribution or browser speedup"
+}

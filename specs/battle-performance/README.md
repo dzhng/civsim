@@ -7,16 +7,18 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: finish the prepared combined CPU ABBA, then implement
-[M1a independent contracts](slices/m1a-independent-battle-contracts.md). The immutable
-builds under `throwaway/kernel-input-pair/` are ready: control b42782f4… and candidate
-15f88802…. Inspect `runs/`, `run.log` and existing processes before launching
-`run.py`; it refuses existing reports. The candidate remains isolated at
-`game-battle-target-live-inputs`,98e4d2e6+c8580623. Root library/golden/wheel tests,
-mutation checks and independent review pass. Both Bs must beat both As at both
-windows with all five hashes unchanged; no individual speedup attribution. After
-adoption, prove canonical worker/direct parity and integrated WASM byte identity.
-No owned builds, tests or GPU jobs overlap CPU timing.
+Current pickup: [M1a independent contracts](slices/m1a-independent-battle-contracts.md)
+is running with Claude Opus in `game-battle-independent-contracts`, based on
+f5de4da8. Parent logs live under `throwaway/m1a-worker/`; inspect its process and
+result before any resume. It is types/import ownership only, with the planned
+`packages/battle-renderer/src/types.ts` owner and unchanged runtime behavior.
+Root reviews/integrates after the worker is terminal.
+
+The [combined CPU ABBA](assets/03a-kernel-input-pair/README.md) finished with all
+hashes intact but failed its adoption rule: early ranges overlap, though both
+later candidate runs beat both controls. The two passes remain unintegrated;
+production WASM stays b42782f4…. Do not repeat the same experiment to seek a win.
+No owned build/test/GPU job overlapped CPU timing. There is no running timing job.
 
 All24 held timing tours and8 confirmations are complete: raw/TypeGPU tie under
 the declared rule,32 functional passes and32 failed quiet-host verdicts. All eight

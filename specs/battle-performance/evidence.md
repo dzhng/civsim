@@ -123,3 +123,5 @@ and full source/raw Menu builds pass. GPU validation, outside-volume visual pari
 and the A/B/C net-cost measurement remain open.
 
 - [Packed target-body inputs](assets/03a-packed-target-bodies/README.md): integrated release ABBA, unchanged hashes and worker/direct parity; modest Node gain, late simulation throughput still red.
+
+- [Combined kernel inputs](assets/03a-kernel-input-pair/README.md): hashes and correctness pass, later improvement but early overlap; adoption rule not met, Rust candidate remains isolated.

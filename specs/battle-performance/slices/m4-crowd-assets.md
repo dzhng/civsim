@@ -9,3 +9,10 @@ Prove all20 appearances, authored pose/equipment/materials, mounted and dead sta
 Use the shared snapCheck path for visual evidence; inspect actual frames, compare
 matched crops and run unprimed screenshot-critique before accepting visual change.
 Preserve current thresholds and carry inherited failures explicitly.
+
+
+The current native facade returns only appearanceId/playback from
+`debugSoldierAnim`; existing animation/default-renderer/delayed-root scenes also
+consume submitted root, clip, phase and duration. Preserve truthful admitted-state
+diagnostics through the selected crowd owner; do not read a tentative frontend
+packet or weaken those verification scenes. This is separate from M1a signatures.

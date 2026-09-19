@@ -3,8 +3,8 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **paused at the user's request; implementation incomplete; no backend selected**,
-updated2026-09-19. Do not restart work until the user resumes it.
+Status: **implementation resumed at the user's request; no backend selected**,
+updated2026-09-20. The goal remains the complete performance/shadow spec.
 
 Resume point: [all three orders](assets/02-held-rounds/README.md) are archived,
 with24 functional passes and24 failed host-isolation verdicts. The first
@@ -17,15 +17,20 @@ The `disabled` mode removes GPU timestamp queries/readbacks, retaining CPU and
 submission observation; it is an incremental overhead control, not a fully
 uninstrumented game.
 
-All owned trial/preview processes are stopped. Session99331 ended143 because the
-batch parent was terminated at the requested pause; the completed child's own
-report is authoritative. Sessions45081/88896/26355 are also terminal. Do not
-rerun the completed confirmation trial or overwrite its files. The scratch
-`run-confirmation.py` currently refuses an existing output directory; on resume,
-adapt its continuation to skip only the completed trial and run the seven exact
-remaining entries in `throwaway/held-fixed/confirmation/pause.json` using the
-same immutable builds. Preserve failed host verdicts and the declared tie rule.
-No CPU builds/tests/timings or other GPU jobs may overlap hardware timing.
+Resume verification found no owned trial/preview process and all1,134 checked
+build/shared-asset files match their original byte sizes and SHA256 digests; the
+[verification record](assets/02-held-rounds/confirmation/resume-verification-2026-09-20.json)
+preserves the manifest identities. Session99331 ended143 at the requested pause;
+its completed child's report remains authoritative. Sessions45081/88896/26355 are
+terminal. The elapsed overnight gap is part of the comparison's host uncertainty.
+
+Continue with `throwaway/held-fixed/resume-confirmation.py`, logging to
+`throwaway/held-fixed/confirmation-resume.log`. It preserves the completed trial,
+runs only the seven entries in the pause record, refuses existing pending output,
+and records new outcomes separately. Before launching, inspect the active process
+and log; continue an existing live run rather than restart it. Preserve failed
+host verdicts and the declared tie rule. No CPU builds/tests/timings or other GPU
+jobs may overlap hardware timing.
 
 Common interior scene-count evidence remains missing. Read-only Claude session6305
 is terminal; its recommendation is in `throwaway/held-checkpoint-consult/result.txt`.

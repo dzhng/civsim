@@ -44,8 +44,10 @@ The user requested a pause at a trial boundary. The first confirmation,
 enabled9000 TypeGPU, completed with functional checks passing and host checks
 failing under substantial competing activity. Its [pause record](confirmation/pause.json)
 contains metrics and the seven remaining trials; its [archive index](confirmation/enabled-9000-typegpu/archive-index.json)
-identifies the raw evidence. The batch and preview server are stopped. No second
-confirmation trial started. This partial confirmation cannot decide the pair.
+identifies the raw evidence. The batch and preview server were stopped at that boundary. No second
+confirmation trial started before the pause. The user resumed on2026-09-20;
+[all checked build/shared-asset hashes match](confirmation/resume-verification-2026-09-20.json).
+The continuation preserves that first trial and the overnight gap in host context. This partial confirmation cannot decide the pair.
 
 The forthcoming disabled controls specifically remove GPU timestamp queries and
 readbacks. CPU/submission observation remains, as defined by

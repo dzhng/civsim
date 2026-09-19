@@ -38,6 +38,20 @@ if confirmation does not establish material separation, follow the declared tie
 and maintenance/quality decision rule. Common interior scene-count evidence
 remains a separate correctness requirement.
 
+## Confirmation pause
+
+The user requested a pause at a trial boundary. The first confirmation,
+enabled9000 TypeGPU, completed with functional checks passing and host checks
+failing under substantial competing activity. Its [pause record](confirmation/pause.json)
+contains metrics and the seven remaining trials; its [archive index](confirmation/enabled-9000-typegpu/archive-index.json)
+identifies the raw evidence. The batch and preview server are stopped. No second
+confirmation trial started. This partial confirmation cannot decide the pair.
+
+The forthcoming disabled controls specifically remove GPU timestamp queries and
+readbacks. CPU/submission observation remains, as defined by
+[the measurement contract](../../measurement.md); do not call them fully
+uninstrumented runs.
+
 ## Shared conditions
 
 All runs preserve 15,560 soldiers, 1440×900 CSS, 2880×1800 framebuffer, DPR2,

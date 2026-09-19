@@ -3,23 +3,37 @@
 ## Next Agent Prompt
 
 You are implementing this plan in `/Users/david/dev/game-battle-performance-spec`, branch `codex/battle-performance-spec`, based on `c924e5ce9cac0a8abd5cd93de0d17df892facb3f`.
-Status: **implementation in progress; no backend selected**, updated 2026-09-19.
-Current pickup: continue the [counterbalanced renderer comparison](renderer-comparison.md).
-[All three orders are complete](assets/02-held-rounds/README.md): all24 full controls
-pass functional checks, all quiet-host verdicts remain failed. Raw/TypeGPU are the
-leading confirmation pair; early-state ranges overlap, so no backend is selected.
-Sessions45081/88896/26355 are terminal. Next run
-`throwaway/held-fixed/run-confirmation.py`: TypeGPU then raw at both states, first
-enabled then disabled instrumentation, using the same immutable builds. It writes
-`throwaway/held-fixed/confirmation.log` and `throwaway/held-fixed/confirmation/`.
-Check active driver processes and existing output before launching; continue a
-live run instead of restarting it. No CPU builds/tests/timings or other GPU jobs
-while timing is active. Preserve failed host verdicts and use the declared tie
-rule after confirmation; do not add broad rounds to escape uncertainty.
-Common interior-checkpoint scene-count evidence remains missing. A bounded
-read-only Claude consultation is in session6305; prompt/result are in
-`throwaway/held-checkpoint-consult/`. Inspect its recommendation against source
-before implementing a separate correctness control; it may not change timed builds.
+Status: **paused at the user's request; implementation incomplete; no backend selected**,
+updated2026-09-19. Do not restart work until the user resumes it.
+
+Resume point: [all three orders](assets/02-held-rounds/README.md) are archived,
+with24 functional passes and24 failed host-isolation verdicts. The first
+confirmation trial, enabled9000 TypeGPU, also completed and passed; its host
+checks failed under substantial competing activity. The
+[pause record](assets/02-held-rounds/confirmation/pause.json) owns its exact result
+and the seven remaining trials. Next is enabled9000 raw. Complete the declared
+TypeGPU/raw confirmation at both states, then the query-disabled controls.
+The `disabled` mode removes GPU timestamp queries/readbacks, retaining CPU and
+submission observation; it is an incremental overhead control, not a fully
+uninstrumented game.
+
+All owned trial/preview processes are stopped. Session99331 ended143 because the
+batch parent was terminated at the requested pause; the completed child's own
+report is authoritative. Sessions45081/88896/26355 are also terminal. Do not
+rerun the completed confirmation trial or overwrite its files. The scratch
+`run-confirmation.py` currently refuses an existing output directory; on resume,
+adapt its continuation to skip only the completed trial and run the seven exact
+remaining entries in `throwaway/held-fixed/confirmation/pause.json` using the
+same immutable builds. Preserve failed host verdicts and the declared tie rule.
+No CPU builds/tests/timings or other GPU jobs may overlap hardware timing.
+
+Common interior scene-count evidence remains missing. Read-only Claude session6305
+is terminal; its recommendation is in `throwaway/held-checkpoint-consult/result.txt`.
+Root verified the stats surfaces and the inability to render after benchmark
+completion. Validate its proposed sampling/camera correlation before implementing
+a separate correctness control; approximate poses cannot prove exact count parity,
+and the control may not change timed builds. No backend winner or final live
+acceptance follows from the held results.
 
 [All16 fixed held builds](assets/02-held-builds/README.md) pin8643cf05 and identical
 e9f4f080… WASM/assets. All eight short state/camera/report/cancel controls pass,

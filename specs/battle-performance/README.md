@@ -28,10 +28,10 @@ reload/failure/disposal and fresh visual critique are recorded in
 fixture coverage remains open. Fixed builds, raw runs, analysis script and planned
 late-phase CPU profile build are in `throwaway/typegpu-image-sharing/`.
 
-Camera candidate in `game-battle-camera-pose-reuse` is c4e555c1 +25034412 +457caafa.
+Camera candidate in `game-battle-camera-pose-reuse` is c4e555c1 +25034412 +457caafa +d51f1c4a.
 The last commit scopes actual post-await pose commands, preserves the first error
 while draining validation, and keeps failed pose work owed. Root121 TypeGPU tests,
-web TypeScript and independent scoped review pass; three new regressions were
+web/candidate/test TypeScript and independent scoped review pass; three new regressions were
 observed red before their fixes. No hardware/performance acceptance yet. Ordinary
 advancing live poses still rebuild; paused/repeated-state savings cannot be called
 live gains. Claude's final run failed authentication after leaving a partial edit;

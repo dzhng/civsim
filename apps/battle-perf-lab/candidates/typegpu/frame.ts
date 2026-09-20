@@ -1,5 +1,9 @@
 import { nativeGpuScope } from "../../../../packages/battle-renderer/src/gpuScope";
 import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
+import {
+  BATTLE_DEPTH_ATTACHMENT,
+  battleDepthReversed,
+} from "../../../../packages/battle-renderer/src/worldDepth";
 import { tgpu, type TgpuRenderPass, type TgpuBindGroup, type TgpuCommandEncoder } from "typegpu";
 import { Camera, typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
@@ -164,9 +168,9 @@ export class TypegpuBattleFrame {
         ],
         depthStencilAttachment: {
           view: r.depth,
-          depthClearValue: 0,
-          depthLoadOp: "clear",
-          depthStoreOp: "store",
+          depthClearValue: BATTLE_DEPTH_ATTACHMENT.clearValue,
+          depthLoadOp: BATTLE_DEPTH_ATTACHMENT.loadOp,
+          depthStoreOp: BATTLE_DEPTH_ATTACHMENT.storeOp,
         },
       });
       try {
@@ -176,6 +180,31 @@ export class TypegpuBattleFrame {
       }
     });
     nativeGpuScope(this.device, "post", () => r.post.encode(raw, output, bloom, post));
+  }
+  /** The depth buffer this frame has actually installed, read back off the
+   *  typed texture's own `props` — the size, format and sample count TypeGPU
+   *  holds for the resource — paired with the shared attachment policy its
+   *  pass clears and the convention derived from that policy. `installed`
+   *  follows the texture's own destroyed flag, so a disposed frame reports the
+   *  released buffer rather than a remembered one. */
+  depthStats() {
+    const { props, destroyed } = this.resources.depth;
+    const [width, height] = props.size;
+    const samples = props.sampleCount ?? 1;
+    return {
+      owner: "typegpu-battle-frame" as const,
+      installed: !destroyed,
+      format: props.format,
+      samples,
+      width,
+      height,
+      clearValue: BATTLE_DEPTH_ATTACHMENT.clearValue,
+      loadOp: BATTLE_DEPTH_ATTACHMENT.loadOp,
+      storeOp: BATTLE_DEPTH_ATTACHMENT.storeOp,
+      reversed: battleDepthReversed(),
+      // The shared format is depth32float: 4 bytes per pixel per MSAA sample.
+      requestedBytes: destroyed ? 0 : width * height * 4 * samples,
+    };
   }
   render(
     output: GPUTextureView,
@@ -235,7 +264,11 @@ async function frameResources(
           );
     const depth = own(
       root
-        .createTexture({ size: [width, height], format: "depth32float", sampleCount: samples })
+        .createTexture({
+          size: [width, height],
+          format: BATTLE_DEPTH_ATTACHMENT.format,
+          sampleCount: samples,
+        })
         .$usage("render"),
     );
     root.unwrap(hdr);

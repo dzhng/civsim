@@ -938,3 +938,14 @@ the old battle world without deleting this still-used shared geometry policy.
   **Reach:** Debug rectangles can hide bodies, as the original did; ordinary mode
   gains no extra allocation. **Verdict:** Sound for preserving this diagnostic
   surface without changing normal gameplay visuals. **Confidence:** High.
+
+## Presented-frame draw diagnostics — b31b730b
+
+- **Choice:** Keep the measured draw account in the same record as the frame's
+  camera and seating identity, after validation. Later readiness renders cannot
+  replace it. Unknown or left-behind drawing returns null and its reason, while a
+  truly empty frame returns zero. **Gap:** The latest queue submission can belong
+  to a different presentation operation. **Reach:** Counts describe offered
+  commands for the retained frame, not GPU execution or current allocation.
+  **Verdict:** Sound; it uses the existing frame and observation owners without a
+  new schema mirror or per-frame readback. **Confidence:** High.

@@ -1,0 +1,53 @@
+[
+  {
+    "mode": "single",
+    "enabled": [
+      56,
+      59,
+      51
+    ],
+    "disabled": [
+      56,
+      59,
+      51
+    ],
+    "enabledTiming": "available",
+    "disabledTiming": "disabled-by-lab-control",
+    "enabledSlots": 2,
+    "disabledSlots": 0
+  },
+  {
+    "mode": "csm",
+    "enabled": [
+      76,
+      75,
+      69
+    ],
+    "disabled": [
+      76,
+      75,
+      69
+    ],
+    "enabledTiming": "available",
+    "disabledTiming": "disabled-by-lab-control",
+    "enabledSlots": 2,
+    "disabledSlots": 0
+  },
+  {
+    "mode": "off",
+    "enabled": [
+      40,
+      43,
+      37
+    ],
+    "disabled": [
+      40,
+      43,
+      37
+    ],
+    "enabledTiming": "available",
+    "disabledTiming": "disabled-by-lab-control",
+    "enabledSlots": 2,
+    "disabledSlots": 0
+  }
+]

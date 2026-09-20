@@ -8,9 +8,7 @@ without query/readback work. This is not proof of successful GPU execution.
 
 Root's integrated37 telemetry tests and independent review pass. CPU doubles
 cover direct/indirect draws, bundles, failed/repeated submissions, window boundaries
-and bounded retention. Browser validation is still required. The next pass joins
-this observation to the exact validated presented frame; drawCalls remains null
-until that consumer is wired. No hardware or overhead claim is made here.
-
-After both integrations, root118 TypeGPU tests,57 facade tests and the complete web
-TypeScript check pass. Presented-frame hardware wiring remains the next pass.
+and bounded retention. [The presented-frame pass](presented-frame/README.md) now
+wires the actual observation to the successfully presented frame and supplies
+independent TypeGPU hardware tallies in both timestamp modes. No overhead/FPS
+claim is made; final performance still measures instrumentation cost.

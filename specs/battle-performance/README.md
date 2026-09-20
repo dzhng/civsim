@@ -8,13 +8,13 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: join the [submitted draw observation](assets/native-draw-observation/README.md)
-to validated presented frames, then migrate browser consumer/cutover checks.
-Opus is implementing that narrow facade/API pass in the reused worktree
-`/Users/david/dev/game-battle-native-draw-observation`, branch
-`codex/battle-presented-draw-count`, basebbb9fde4, handle96681. Prompt and output
-are `throwaway/presented-draw-{prompt,result}.txt`. Check the live handle or actual
-final result before restarting. Root owns GPU validation after review.
+Current pickup: verify the camera-work and grass-transition candidates, then
+complete selected-renderer browser contract/cutover checks.
+[Presented-frame draw counts](assets/native-draw-observation/presented-frame/README.md)
+are integratedb31b730b. Root61 facade tests/web TypeScript and independent review
+pass. Actual TypeGPU command tallies match all18 single/High/off × zoom × query-mode
+checks; no query slots are allocated in disabled mode. The worker and review are
+terminal; preserve evidence and clean its finished worktree before reusing it.
 
 Independent CPU-work candidate: Opus is active in
 `/Users/david/dev/game-battle-camera-pose-reuse`, branch
@@ -24,6 +24,13 @@ from exact view membership; it must not alter LOD policy or skip newly visible
 poses. Unlike rejected929020f4, this targets downstream derivation/pose dispatch,
 not source-column pooling. No speedup is established; root must measure actual
 work removal, union churn and matched camera performance before adoption.
+
+Grass zoom-transition candidate: Opus is active in
+`/Users/david/dev/game-battle-grass-zoom-transition`, branch
+`codex/battle-grass-zoom-transition`, basefeabc4d4, handle54964. Its prompt/results
+are under `throwaway/`. The existing complete transition profile jumps at physical
+camera heights15/30/45m. This pass smooths those joins without changing steady
+profiles, source records or residency work. Actual coverage/motion proof is owed.
 
 Current evidence:
 
@@ -40,7 +47,7 @@ Current evidence:
   policy; ordinary mode allocates no extra layer.
 - [Draw observation](assets/native-draw-observation/README.md), integratedbbb9fde4:
   root37 tests and independent review pass. Observation counts offered commands,
-  not successful frames; the active consumer pass must preserve that distinction.
+  not successful frames; the integrated consumer now retains that distinction.
 - [Content](assets/typegpu-content-state/README.md),
   [scene reload](assets/typegpu-scene-state/README.md),
   [typed colours/frame depth](assets/typegpu-first-passes/README.md),
@@ -63,7 +70,7 @@ preserving scratch and a verified bundle in
 `throwaway/older-branch-cleanup-20260920-194943/`. Earlier cleanup archives remain.
 The completed block-debug worktree/branch were also removed after a verified
 bundle and scratch archive at `throwaway/typegpu-block-debug-completed-cleanup/`.
-The reused draw worktree is active. Preserve historical controls and unrelated worktrees.
+The draw worker is finished; the two optimization worktrees below are active. Preserve historical controls and unrelated worktrees.
 Pending raw GPU-impostor1c816fc5 and water-comparisonc702e002 branches remain
 unadopted references. [The evidence ledger](evidence.md) retains older results;
 [choices](choices.md) records decisions.

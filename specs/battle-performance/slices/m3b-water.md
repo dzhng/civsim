@@ -20,3 +20,13 @@ roughness/normal diagnostics are not production fixes. Matching the source
 projector and position invariance jointly passes all six diagnostic beauty cases;
 either alone fails. Decide the durable comparison contract without replacing the
 original end-to-end evidence or adopting scratch shader interception.
+
+Next bounded implementation: add a lab-only aligned component comparison using
+the existing source material and a per-reference canonical projector. Keep the
+original default gate and aggregate failures intact; expose aligned results
+separately. Scope any typed builder extension to the owned reference renderer
+and marked material, with cache isolation and generated-WGSL verification. Verify
+actual displaced geometry, multiple-camera isolation, a shading mutation that
+fails, lake behavior and disposal. No production camera/global uniform/factory
+option or native shader change belongs in this pass. See the independent-review
+disposition in the localization evidence before implementing.

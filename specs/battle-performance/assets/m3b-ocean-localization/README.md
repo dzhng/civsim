@@ -82,7 +82,34 @@ are not beauty failures.
 
 This supports projection/interpolation as the cause of the localized discrepancy
 in these cases. It does not prove all composed-scene residuals have that cause.
-A fresh read-only review is evaluating a durable, explicit comparison contract.
+A fresh read-only review supports a declared aligned component comparison; its
+implementation proposal is narrowed below.
 Do not ship global shader string interception or silently replace the original
 end-to-end comparison with the passing diagnostic. Ordinary ocean appearance,
 original source residual, full-scene quality and final performance remain open.
+
+## Independent review disposition
+
+Accept the matched-input component experiment and preserve native invariance.
+The review confirms the pinned Three builder has no first-class invariance option.
+A per-material, per-owned-renderer builder hook can be evaluated in the lab, with
+generated-shader checks and independent source material construction. No global
+GPU API interception, library upgrade or native projection change is justified.
+
+Reject the proposed module-global camera uniform: separate worlds/cameras must
+not overwrite each other's projection. The lab can own its reference uniform and
+fill it from the existing canonical camera function. Reject adding an experiment
+option to production water factories when the returned material can be configured
+by the lab. Reject changing the aggregate passed flag to ignore the original
+failures: aligned and original outcomes must remain separately named, and default
+coverage must not get easier.
+
+The reviewer calls this categorically not a port defect; that conclusion is too
+broad. The experiment explains these localized cases, not every shader operation
+or composed scene. Likewise animated fragment output can change while vertex
+displacement is broken: a motion-image difference alone does not prove the swell
+geometry survived a custom vertex node. Require a displacement-sensitive witness,
+not only a count of shader sin terms. A deliberate raw shading perturbation must
+also fail the aligned comparison. Preserve original library-derived camera tests,
+identity-transform constraints, per-camera uniform isolation, lake coverage and
+resource disposal. No M3b visual exit is claimed by this read-only decision.

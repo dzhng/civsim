@@ -14,8 +14,9 @@ and serialized hardware measurement against the adopted snapshot control.
 In parallel, [ocean localization](assets/m3b-ocean-localization/README.md) now
 isolates projection/invariance: jointly matching them passes all six diagnostic
 beauty comparisons. The original reference remains red; no oracle or production
-change is adopted. Claude reviews the durable comparison decision read-only in
-`throwaway/ocean-projection-disposition/`. Preserve the original end-to-end evidence.
+change is adopted. The independent review is complete: the next water pass is a
+lab-only aligned comparison with per-reference projection ownership; preserve the
+original default gate and end-to-end evidence. See the M3b review disposition.
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state

@@ -5,6 +5,8 @@ const state = vi.hoisted(() => ({
   queue: null as any,
   hold: null as null | (() => Promise<void>),
   calls: [] as any[],
+  encoded: [] as any[],
+  timestamps: [] as bigint[][],
   fetched: [] as string[],
   catalogFailure: null as unknown,
   disposed: vi.fn(),
@@ -80,6 +82,8 @@ const packet = (): BattlePresentation => ({
 });
 beforeEach(() => {
   state.calls = [];
+  state.encoded = [];
+  state.timestamps = [];
   state.fetched = [];
   state.catalogFailure = null;
   state.hold = null;
@@ -93,6 +97,9 @@ function fixture(
     atlasOverride?: string;
     backend?: "raw" | "typegpu" | "vgpu";
     search?: string;
+    /** Render passes the scene encodes per prepared frame, so the observer has
+     *  real measured work to publish. */
+    encodePasses?: string[];
   } = {},
 ) {
   vi.stubGlobal("__BATTLE_NATIVE_BACKEND__", build.backend ?? "raw");
@@ -115,6 +122,15 @@ function fixture(
   const queue = { submit: vi.fn(), onSubmittedWorkDone: vi.fn(async () => {}) };
   state.queue = queue;
   const features = new Set(build.timestampQuery ? ["timestamp-query"] : []);
+  // Timestamp pairs the next mapped readback reports, in query order.
+  // An unqueued readback maps zeros, which the observer rejects as an invalid
+  // query result rather than reporting a fabricated duration.
+  const mapped = (_offset = 0, size = 0) => {
+    const values = state.timestamps.shift() ?? [];
+    const bytes = new ArrayBuffer(Math.max(size, values.length * 8));
+    new BigUint64Array(bytes).set(values);
+    return bytes;
+  };
   const device = {
     queue,
     limits: {},
@@ -124,7 +140,19 @@ function fixture(
     pushErrorScope() {},
     popErrorScope: async (): Promise<GPUError | null> => null,
     createQuerySet: vi.fn(() => ({ destroy: vi.fn() })),
-    createBuffer: vi.fn(() => ({ destroy: vi.fn() })),
+    createBuffer: vi.fn(() => ({
+      destroy: vi.fn(),
+      mapAsync: async () => {},
+      getMappedRange: mapped,
+      unmap: vi.fn(),
+    })),
+    createCommandEncoder: vi.fn(() => ({
+      beginRenderPass: (_descriptor?: unknown) => ({ end() {} }),
+      beginComputePass: (_descriptor?: unknown) => ({ end() {} }),
+      resolveQuerySet: vi.fn(),
+      copyBufferToBuffer: vi.fn(),
+      finish: () => ({}),
+    })),
   };
   const requested: GPUDeviceDescriptor[] = [];
   vi.stubGlobal("navigator", {
@@ -169,7 +197,13 @@ function fixture(
       uploadTriangles: call("triangles"),
       uploadDebugBlocks: call("blocks"),
       uploadTacticalLines: call("lines"),
-      prepare: call("prepare"),
+      prepare: (...args: unknown[]) => {
+        call("prepare")(...args);
+        if (!build.encodePasses) return;
+        const encoder = device.createCommandEncoder();
+        for (const label of build.encodePasses) encoder.beginRenderPass({ label }).end();
+        state.encoded.push(encoder.finish());
+      },
       settleGrass: call("settle"),
       replaceCrowdAssets: async (published: unknown, admit?: () => void | Promise<void>) => {
         call("replaceCrowd")(published);
@@ -181,7 +215,7 @@ function fixture(
     },
     submitPresentation: () => {
       call("submit")();
-      queue.submit([]);
+      queue.submit(state.encoded.splice(0));
       return state.hold?.();
     },
     resizeOutput: call("outputSize"),
@@ -404,7 +438,14 @@ test("the disabled lab timing control removes query work while the same device a
     // Allocation observation stays installed and records no resolve/readback buffers.
     allocations: { buffers: { createdCount: 0 }, currentBytes: 0 },
   });
-  expect(off.renderer.stats().performance.gpuTimeMs).toBeNull();
+  // No event stream exists to correlate, which is reported as unavailable rather
+  // than as a zero-cost frame.
+  expect(off.renderer.stats().performance).toMatchObject({ gpuTimeMs: null, gpuTimeMetric: null });
+  expect(off.renderer.stats().gpuCorrelation).toMatchObject({
+    availability: "unavailable",
+    correlatedFrames: 0,
+    pendingReceipts: 0,
+  });
   off.renderer.dispose();
   vi.stubGlobal("GPUBufferUsage", { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 });
   const on = fixture({ timestampQuery: true });
@@ -702,4 +743,98 @@ test("a discarded comparison backend still refuses the debug-block view", () => 
   expect(() => fixture({ backend: "vgpu", search: "?debug=blocks" })).toThrow(
     "does not implement the source debug-block view",
   );
+});
+
+test("the facade reports the presented frame's own completed submission span", async () => {
+  vi.stubGlobal("GPUBufferUsage", { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 });
+  vi.stubGlobal("GPUMapMode", { READ: 1 });
+  const f = fixture({ timestampQuery: true, encodePasses: ["shadow", "main"] });
+  await f.renderer.ready;
+  // Two measured passes with an idle gap between them: 0-1ms and 3-4ms.
+  state.timestamps = [[0n, 1_000_000n, 3_000_000n, 4_000_000n]];
+  const receipt = await f.renderer.present(packet());
+  await progress(f.callbacks);
+  // Correlation reads the observer's existing events; presentation still waits
+  // for no queue completion.
+  expect(f.device.queue.onSubmittedWorkDone).not.toHaveBeenCalled();
+  const performance = f.renderer.stats().performance;
+  expect(performance).toMatchObject({
+    // The span covers the gap; the union (2ms) and the pass sum are not the frame cost.
+    gpuTimeMs: 4,
+    gpuTimeMetric: "correlated-complete-submission-span",
+    gpuFrame: {
+      renderedFrameId: receipt.renderedFrameId,
+      submissionId: receipt.gpuSubmission!.submissionId,
+      observedGpuSpanMs: 4,
+      observedGpuUnionMs: 2,
+    },
+  });
+  expect(f.renderer.stats().gpuCorrelation).toMatchObject({
+    availability: "correlating",
+    correlatedFrames: 1,
+    pendingReceipts: 0,
+    pendingCompletions: 0,
+    cursorGaps: 0,
+  });
+
+  // A repeated frozen frame submits nothing: it keeps the drawn frame's own
+  // sample instead of claiming a new identity for the retained image.
+  const frozen = { ...packet(), fixedTime: 12 };
+  state.timestamps = [[0n, 2_000_000n, 0n, 2_000_000n]];
+  const drawn = await f.renderer.present(frozen);
+  await progress(f.callbacks);
+  await expect(f.renderer.present(frozen)).resolves.toMatchObject({ submitted: false });
+  await progress(f.callbacks);
+  expect(f.renderer.stats().performance).toMatchObject({
+    gpuTimeMs: 2,
+    gpuFrame: {
+      renderedFrameId: drawn.renderedFrameId,
+      submissionId: drawn.gpuSubmission!.submissionId,
+    },
+  });
+  expect(f.renderer.stats().gpuCorrelation).toMatchObject({ correlatedFrames: 2 });
+
+  f.renderer.dispose();
+  expect(f.renderer.stats().performance).toMatchObject({
+    gpuTimeMs: null,
+    gpuTimeMetric: null,
+    gpuFrame: null,
+  });
+});
+
+test("a startup frame's readiness identity correlates no frame, and the next frame does", async () => {
+  vi.stubGlobal("GPUBufferUsage", { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 });
+  vi.stubGlobal("GPUMapMode", { READ: 1 });
+  const f = fixture({ timestampQuery: true, encodePasses: ["main"] });
+  await f.renderer.ready;
+  state.timestamps = [
+    [0n, 1_000_000n],
+    [0n, 2_000_000n],
+    [0n, 3_000_000n],
+  ];
+  let readiness!: Promise<void>;
+  const startup = await (async () => {
+    const pending = f.renderer.present(packet(), undefined, () => {
+      readiness = f.renderer.settlePresentedFrame();
+    });
+    await progress(f.callbacks);
+    return pending;
+  })();
+  await readiness;
+  await progress(f.callbacks);
+  // The startup frame's final queue identity is its readiness render, so that
+  // frame has no correlatable battle draw and reports nothing rather than
+  // borrowing readiness work.
+  expect(startup.gpuSubmission).toMatchObject({ source: "render-only" });
+  expect(f.renderer.stats().performance).toMatchObject({ gpuTimeMs: null, gpuTimeMetric: null });
+
+  state.timestamps = [[0n, 5_000_000n]];
+  const next = await f.renderer.present(packet());
+  await progress(f.callbacks);
+  expect(next.gpuSubmission).toMatchObject({ source: "battle-draw" });
+  expect(f.renderer.stats().performance).toMatchObject({
+    gpuTimeMs: 5,
+    gpuFrame: { renderedFrameId: next.renderedFrameId },
+  });
+  f.renderer.dispose();
 });

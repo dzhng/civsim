@@ -34,6 +34,19 @@ This is a functional checkpoint, not a ranked renderer result. CPU values cover
 synchronous API entry and instance packing; asynchronous continuations are not
 CPU-profiled. GPU pass timings use the shared native observer when timestamp-query
 is supported; missing results stay explicit.
+
+The reported GPU time is one presented frame's own submission: that frame's receipt
+joined to the observer event measuring the same submission, reported as the observed
+span the shared [range aggregator](../../../../packages/renderer-core/src/gpuTimestampRanges.ts)
+defines, with its union beside it. Overlapping passes are never summed into a frame
+total, and the source runtime's render-pass-only value is a different measurement,
+not an equivalent one. Readbacks land after presentation, so the published sample is
+an already-completed frame carrying its own frame and submission identity — never
+relabelled as the frame in flight. Incomplete, dropped, readiness-only and unqueried
+submissions report no GPU time rather than a zero; retention evictions, cursor gaps
+and an unavailable query mode are reported beside the sample. The join adds no
+queries, submissions, readbacks or waits of its own.
+
 Submission identities count actual queue submissions, without a fictitious Three
 frame number. Routine preparation closes each validation scope before awaiting its
 operation, allowing validation to overlap subsequent preparation. Every presentation

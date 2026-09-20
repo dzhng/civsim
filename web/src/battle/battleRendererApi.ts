@@ -57,6 +57,27 @@ export interface BattleRendererFrameMetrics {
   frameCpuMs: number;
 }
 
+/** Names which measurement `performance.gpuTimeMs` actually is, so no consumer
+ * has to assume two backends report the same thing.
+ * `correlated-complete-submission-span` is one presented frame's own submission,
+ * first measured GPU beginning to last measured end, including compute and the
+ * gaps between passes. `source-render-pass-timestamp-sum` is the source three.js
+ * runtime's asynchronous render-pass-only total, which belongs to no identified
+ * frame and excludes compute. */
+export type BattleGpuTimeMetric =
+  | "correlated-complete-submission-span"
+  | "source-render-pass-timestamp-sum";
+
+/** One presented frame joined to its own completed GPU submission. Span keeps
+ * inter-pass gaps; union counts overlapping passes once. The identity is the
+ * frame that completed, which is normally older than the frame in flight. */
+export interface BattleCorrelatedGpuFrame {
+  renderedFrameId: number;
+  submissionId: number;
+  observedGpuSpanMs: number;
+  observedGpuUnionMs: number;
+}
+
 export interface BattleRendererStats {
   renderer: "gpu";
   device?: string;
@@ -65,7 +86,11 @@ export interface BattleRendererStats {
     uploadMs: number;
     drawMs: number;
     frameCpuMs: number;
+    /** Null when no measurement is available; never zero as a stand-in. */
     gpuTimeMs: number | null;
+    gpuTimeMetric: BattleGpuTimeMetric | null;
+    /** Present only where the backend correlates GPU work with presentation. */
+    gpuFrame?: BattleCorrelatedGpuFrame | null;
   };
   [key: string]: unknown;
 }

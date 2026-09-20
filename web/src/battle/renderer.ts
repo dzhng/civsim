@@ -344,12 +344,17 @@ export class BattleRenderer implements BattleRendererApi {
 
   stats() {
     const worldStats = this.world?.stats();
+    // The source runtime's value is its asynchronous render-pass-only total: it
+    // belongs to no identified frame and is not a submission span. Name it for
+    // what it is rather than letting a consumer read it as a frame total.
+    const gpuTimeMs = worldStats?.performance.gpuTimeMs ?? null;
     const performance = {
       buildMs: roundMs(this.framePerf.buildMs),
       uploadMs: roundMs(this.framePerf.uploadMs),
       drawMs: roundMs(this.framePerf.drawMs),
       frameCpuMs: roundMs(this.framePerf.frameCpuMs),
-      gpuTimeMs: worldStats?.performance.gpuTimeMs ?? null,
+      gpuTimeMs,
+      gpuTimeMetric: gpuTimeMs === null ? null : ("source-render-pass-timestamp-sum" as const),
     };
     return {
       ...worldStats,

@@ -8,6 +8,7 @@ import type {
   BattleSubmissionIdentity,
 } from "../../../../web/src/battle/battleRendererApi";
 import type { BattlePresentation } from "../../../../web/src/battle/battlePresentation";
+import { BattleGpuFrameTiming } from "../../../../web/src/battle/gpuFrameTiming";
 import {
   cameraSnapshot,
   cloneTerrainGrid,
@@ -124,6 +125,10 @@ export class BattleRenderer implements BattleRendererApi {
   private format!: GPUTextureFormat;
   private deviceLabel = "unavailable";
   private telemetry: NativeGpuTelemetry | null = null;
+  /** Joins presented frames to their own measured submission. It reads the
+   *  observer's existing event stream through its own cursor, so the benchmark's
+   *  raw event collection keeps its own. */
+  private readonly frameTiming = new BattleGpuFrameTiming((after) => this.gpuEventsSince(after));
   private allocations: ReturnType<typeof trackNativeGpuAllocations> | null = null;
   private readinessSubmissions = 0;
   private latestSubmission: BattleSubmissionIdentity | null = null;
@@ -476,13 +481,15 @@ export class BattleRenderer implements BattleRendererApi {
               drawMs: 0,
               frameCpuMs: cpuMs,
             };
-            return {
+            // The retained image carries the previous submission's identity, which
+            // the timing join must not read as a newly presented frame.
+            return this.presented({
               submitted: false,
               renderedFrameId: this.renderedFrameId,
               gpuSubmission: this.latestSubmission,
               submittedAtMs: performance.now(),
               cpuMs,
-            };
+            });
           }
           const view = { camera: cameraSnapshot(packet.camera), time: packet.timeSeconds };
           const owner = this.owner!;
@@ -586,13 +593,13 @@ export class BattleRenderer implements BattleRendererApi {
             drawMs,
             frameCpuMs: cpuMs,
           };
-          return {
+          return this.presented({
             submitted: true,
             renderedFrameId: this.renderedFrameId,
             gpuSubmission: this.latestSubmission,
             submittedAtMs: performance.now(),
             cpuMs,
-          };
+          });
         } catch (error) {
           failed = true;
           throw error;
@@ -618,6 +625,12 @@ export class BattleRenderer implements BattleRendererApi {
       },
     );
     return task;
+  }
+  /** Every receipt the caller receives reaches the timing join first, so a frame's
+   *  GPU cost is only ever reported under the identity that frame actually presented. */
+  private presented(receipt: BattlePresentationReceipt): BattlePresentationReceipt {
+    this.frameTiming.presented(receipt);
+    return receipt;
   }
   private async admitted<T>(work: () => T | Promise<T>): Promise<T> {
     const admission = beginGpuAdmission(this.device);
@@ -768,6 +781,7 @@ export class BattleRenderer implements BattleRendererApi {
   }
   stats(): BattleRendererStats {
     const native = this.owner?.scene.stats() ?? null;
+    const gpuFrame = this.frameTiming.correlatedFrame();
     return {
       ready: this.soldierAssets !== null && native?.crowd.ready === true,
       soldiers: native?.crowd.instances ?? 0,
@@ -779,7 +793,13 @@ export class BattleRenderer implements BattleRendererApi {
         uploadMs: this.metrics.uploadMs,
         drawMs: this.metrics.drawMs,
         frameCpuMs: this.metrics.frameCpuMs,
-        gpuTimeMs: null,
+        // The last presented frame whose own submission completed: its observed
+        // span, gaps and compute included. Not a sum of overlapping passes, and
+        // not the frame currently in flight — `gpuFrame` identifies which frame
+        // it is. Null while nothing has completed.
+        gpuTimeMs: gpuFrame?.observedGpuSpanMs ?? null,
+        gpuTimeMetric: gpuFrame ? "correlated-complete-submission-span" : null,
+        gpuFrame,
       },
       native,
       submission: {
@@ -788,6 +808,7 @@ export class BattleRenderer implements BattleRendererApi {
         latest: this.latestSubmission,
       },
       gpuTiming: this.telemetry?.stats() ?? { supported: false },
+      gpuCorrelation: this.frameTiming.status(),
       labBuild: {
         backend: this.backend,
         timingQueryFlag: "BATTLE_NATIVE_TIMING_QUERIES",
@@ -810,6 +831,7 @@ export class BattleRenderer implements BattleRendererApi {
   }
   dispose() {
     this.terrainAvailable();
+    this.frameTiming.dispose();
     this.lifecycle.dispose();
     this.audio?.dispose();
     this.audio = null;

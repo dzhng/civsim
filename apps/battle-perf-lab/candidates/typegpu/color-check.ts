@@ -144,14 +144,15 @@ async function readBack(
     size: bytes,
     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
   });
-  const encoder = device.createCommandEncoder();
-  encoder.copyBufferToBuffer(source, 0, staging, 0, bytes);
-  device.queue.submit([encoder.finish()]);
-  await staging.mapAsync(GPUMapMode.READ);
-  const copy = staging.getMappedRange().slice(0);
-  staging.unmap();
-  staging.destroy();
-  return new Float32Array(copy);
+  try {
+    const encoder = device.createCommandEncoder();
+    encoder.copyBufferToBuffer(source, 0, staging, 0, bytes);
+    device.queue.submit([encoder.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    return new Float32Array(staging.getMappedRange().slice(0));
+  } finally {
+    staging.destroy();
+  }
 }
 
 async function runColorNumericalCheck(device: GPUDevice) {
@@ -251,6 +252,7 @@ async function runColorNumericalCheck(device: GPUDevice) {
       });
     });
 
+    const nonfinite = [...typed, ...raw].filter((value) => !Number.isFinite(value)).length;
     const produced = typed.some((value) => value !== 0);
     const validationError = await closeScope();
     return {
@@ -259,12 +261,13 @@ async function runColorNumericalCheck(device: GPUDevice) {
       factionCases: factionCases.length,
       comparedWords: COUNT * 2 * 3,
       mismatches,
+      nonfinite,
       referenceDeviations,
       maxReferenceDeviation,
       produced,
       validationError: validationError?.message ?? null,
       passed:
-        mismatches.length === 0 && referenceDeviations.length === 0 && produced && !validationError,
+        nonfinite === 0 && mismatches.length === 0 && referenceDeviations.length === 0 && produced && !validationError,
     };
   } finally {
     await closeScope();

@@ -7,13 +7,15 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: profile the remaining wide-view CPU preparation cost after the
-[measured snapshot improvement](assets/07-snapshot-copy/README.md), adopted
-atcc29b10a. Both changed source/raw builds now pass all19 unchanged30k checks;
-raw mid GPU samples are75, leaving little headroom. The declared ABBA screen
-shows CPU medians down24% wide/16% moving and better rendered cadence, but wide
-still misses60FPS. Preserve that distinction from final live acceptance.
-Both narrow implementation worktrees are cleaned up; branches/evidence retained.
+Current pickup: [impostor packing candidate](slices/07-impostor-packing-candidate.md).
+A pinned tick30 profile after the adopted snapshot improvement identifies packed
+billboard records as the leading named leaf cost; Claude will remove temporary
+per-soldier record arrays while preserving packed bytes. Measure against the
+adopted snapshot build under the declared screen before integrating.
+[Snapshot evidence](assets/07-snapshot-copy/README.md): CPU medians down24% wide/16%
+moving and improved rendered cadence; wide still misses60FPS. Both changed
+source/raw builds pass all19 unchanged30k checks (raw mid75 samples, little
+headroom). The completed seating/snapshot worktrees were removed.
 [M9c seating inspection](assets/m9c-seating/README.md) passes real-game checks;
 its browser consumers and drawn-feet proof remain open. The30k worker was cleaned
 up. [Diagnostics](assets/m9b-diagnostics/README.md)

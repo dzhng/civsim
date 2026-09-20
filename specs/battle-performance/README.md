@@ -18,7 +18,11 @@ An independent Opus CPU pass in `/Users/david/dev/game-battle-typegpu-impostor-s
 refresh, with no scene/facade edits. It must preserve exact tile choices and existing
 visual gates; root supplies GPU and timing evidence after review. Both prompts and
 outputs live in their worktrees' `throwaway/`. Check handles or actual final reports
-before restarting. No timing job is active.
+before restarting. A third Opus CPU pass owns only an independent High cascade
+sampling fixture in `/Users/david/dev/game-battle-typegpu-shadow-overlap`
+(base3eddc364, handle98252), with distinct depth layers and explicit overlap/fade
+oracles plus corruption checks. It must exercise the actual typed receiver shader;
+root runs GPU checks after review. No timing job is active.
 
 Current evidence:
 

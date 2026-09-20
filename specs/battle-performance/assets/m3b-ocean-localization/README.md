@@ -128,3 +128,12 @@ beauty lighting. A deliberate vertex-flattening mutation must fail it. This is
 separate from the raw shading perturbation that must fail aligned beauty. No
 passing draft color-mask test closes displacement fidelity. Original image gates
 and production rendering remain unchanged.
+
+The committed candidate267949e8 incorporated this rejection before its first
+implementation report: the beauty-mask helper is gone. It now renders an unlit
+interpolated static-source-XY probe with the source vertex displacement, no
+tone mapping or post. A prepared flattening mutation replaces displaced local
+position with the original geometry position at clip output; GPU verification
+must show the aligned probe stops moving while the source probe still moves.
+Root independently ran the13 CPU tests successfully. Code review and GPU
+verification remain pending; the candidate is not integrated.

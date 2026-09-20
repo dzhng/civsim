@@ -8,14 +8,13 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: integrate TypeGPU scene reload and admitted-state diagnostics.
-Claude Opus is implementing this CPU pass in
-`/Users/david/dev/game-battle-typegpu-scene-state`, basef440191a, scoped to the
-TypeGPU scene/terrain and real live facade plus consumer tests. Prompt and runner
-outputs live in that worktree's `throwaway/`. Initial2da55ab2 passes root CPU
-and Menu seating/reload/fault/disposal checks, but review found pose loss when
-reloading before first prepare; the accepted fix is active (handle72627), prompt
-`throwaway/scene-review-fix.txt`. Do not integrate until corrected and verified.
+Current pickup: selected TypeGPU identity and component diagnostics after the
+[scene integration](assets/typegpu-scene-state/README.md), then consumer/cutover
+verification. Scene worker and both independent reviews are terminal. Initial
+reload-before-prepare failure is corrected and GPU verified at9c496b47; main
+integration ends3fc961ba. Combined candidate64/64 and live57/57 pass. The finished
+scene worktree remains pending scratch cleanup; no timing job is active.
+
 An independent Opus CPU pass in `/Users/david/dev/game-battle-typegpu-impostor-state`
 (basea90d3f82, handle80073) owns typed compact impostor state and audience camera
 refresh, with no scene/facade edits. It must preserve exact tile choices and existing
@@ -29,9 +28,8 @@ root runs GPU checks after review. No timing job is active.
 
 Current evidence:
 
-- [Scene baseline](assets/typegpu-scene-state/README.md): actual TypeGPU Menu
-  rejects model reload and exposes no seating/pose/depth diagnostics before the
-  active integration;15,560 soldiers render and teardown releases tracked bytes.
+- [Scene integration](assets/typegpu-scene-state/README.md): actual GPU early
+  reload and Menu seating/spawn/reload/disposal checks pass after the accepted fix.
 
 - [Typed colours and frame depth](assets/typegpu-first-passes/README.md): typed
   colour bodies, nonfinite-safe numerical comparison, real frame allocation and

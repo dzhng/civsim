@@ -869,3 +869,26 @@ the old battle world without deleting this still-used shared geometry policy.
   contract while resource ownership remains with each audience.
 - **Verdict:** Sound; this shares existing behavior without exposing publication
   controls or adding work to each frame. **Confidence:** High.
+
+## TypeGPU scene state ownership — 3fc961ba
+
+- **Choice:** Track the latest camera used to upload or reproject the crowd separately
+  from the last completed preparation. If assets reload before the first draw,
+  their replacement still receives the admitted crowd through its upload camera;
+  diagnostics never claim that upload prepared a frame. Reusing only the prepared
+  camera loses the pose in that ordering.
+- **Gap:** The conversion did not specify the upload-before-first-prepare sequence.
+- **Reach:** Reload can preserve any admitted pose, including an empty army, with
+  bounded camera state and no second full-army copy.
+- **Verdict:** Sound; it preserves state through a valid public sequence and keeps
+  preparation diagnostics honest. **Confidence:** High.
+
+- **Choice:** Resource replacement remains implemented by each scene's actual GPU
+  owner while admitted-state readers stay shared. TypeGPU owns its encoder and
+  deferred lifecycle cleanup; raw uses a different mechanism and remains a lab
+  comparison input. A generic callback-heavy replacement framework would make
+  these lifetimes harder to inspect and would survive only until raw retirement.
+- **Gap:** The plan requires capability parity, not a shared generic lifecycle.
+- **Reach:** Final cutover must retire the raw implementation rather than keeping
+  two production replacements. **Verdict:** Sound for the conversion stage;
+  no permanent dual renderer is authorized. **Confidence:** Medium.

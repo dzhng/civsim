@@ -8,21 +8,21 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
 Current pickup: review and measure the [single-owner crowd candidate](slices/07-crowd-ownership.md).
-Crowd candidate7547db35 plus correction929020f4 is ready for hardware review in
-`/Users/david/dev/game-battle-crowd-ownership`. Independent review has no findings;
-root's71 focused tests pass. The extra library snapshots and timing clamp are
-removed, with real synchronous-borrow tests. Candidate build and matching scene
-controls are in `throwaway/crowd-ownership-hardware/`. Four-camera submit/reproject
-checks are running (`run-scenes.mjs`, `scenes.log`), then run serialized ABBA
-against the fixed adopted snapshot control. Candidate is not yet integrated.
+[Crowd ownership candidate](assets/07-crowd-ownership/README.md)929020f4 failed
+its ABBA screen and is not adopted: wide CPU improves5.02% (below10%); moving
+CPU worsens3.87% and cadence falls. Correctness tests/review pass, but one of16
+matched scene images differs at250 pixels by one code; retain that unresolved
+residual. Archive and remove its finished worktree, preserving the branch and
+evidence. Do not rerun unchanged. Resume the larger06b/07 live-state/packing
+work from measured costs, without optimizing only a paused fixture.
 
 [Aligned water evidence](assets/m3b-aligned-water/README.md): candidate267949e8 plus
 fog fix98692752 in `/Users/david/dev/game-battle-water-comparison`. Root's13 CPU
 tests pass; independent review's fog finding is fixed. Ocean1x and lake1x/4x
 aligned checks pass; ocean4x remains red. Flattening and shading mutations fail
 as intended without GPU errors. Original source residuals and default gates are
-preserved. No M3b exit or performance gain is claimed. Diagnose ocean4x after the
-crowd performance screen; keep owned CPU/GPU work out of timing windows.
+preserved. No M3b exit or performance gain is claimed. Next diagnose the ocean4x residual while rescoping the larger crowd work.
+Keep owned CPU/GPU work out of timing windows.
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state

@@ -31,7 +31,9 @@ owned CPU/GPU jobs. This supplemental paused workload is not final live acceptan
 
 The [ownership review](../assets/07-crowd-ownership/README.md) motivates this pass.
 Removed profile labels or estimated savings do not establish a speedup. Candidate
-implementation is active; adoption requires the measurements above.
+929020f4 was rejected by the measurements above:5.02% wide CPU improvement,
+3.87% moving CPU regression and lower moving cadence. No production change is
+adopted. Retain evidence; do not rerun this unchanged candidate.
 
 Review correction: async scene methods do not by themselves defer construction.
 Both library lifecycle callbacks and history.begin execute before their first

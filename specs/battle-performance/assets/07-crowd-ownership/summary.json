@@ -1,0 +1,123 @@
+{
+  "summary": [
+    {
+      "arm": "A1",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 461,
+          "fps": 38.379598371240256,
+          "renderCpuMs": 15.544999999925494,
+          "uploadMs": 12.68500000052154,
+          "buildMs": 0.650000000372529,
+          "frameCpuMs": 13.56000000052154,
+          "intervalMs": 33.32999999999993
+        },
+        {
+          "moving": true,
+          "frames": 707,
+          "fps": 58.842427137767395,
+          "renderCpuMs": 12.45999999716878,
+          "uploadMs": 10.245000001043081,
+          "buildMs": 0.5950000006705523,
+          "frameCpuMs": 10.994999999180436,
+          "intervalMs": 16.665000000000873
+        }
+      ]
+    },
+    {
+      "arm": "B1",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 491,
+          "fps": 40.86988767440137,
+          "renderCpuMs": 14.100000003352761,
+          "uploadMs": 10.190000001341105,
+          "buildMs": 1.5249999985098839,
+          "frameCpuMs": 11.885000001639128,
+          "intervalMs": 16.67000000000189
+        },
+        {
+          "moving": true,
+          "frames": 676,
+          "fps": 56.255677059128736,
+          "renderCpuMs": 13.050000002607703,
+          "uploadMs": 9.830000001937151,
+          "buildMs": 1.4525000005960464,
+          "frameCpuMs": 11.45000000204891,
+          "intervalMs": 16.665000000000873
+        }
+      ]
+    },
+    {
+      "arm": "B2",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 463,
+          "fps": 38.54302375432121,
+          "renderCpuMs": 15.37500000372529,
+          "uploadMs": 10.865000003948808,
+          "buildMs": 2.0399999991059303,
+          "frameCpuMs": 13.025000002235174,
+          "intervalMs": 33.32999999999993
+        },
+        {
+          "moving": true,
+          "frames": 633,
+          "fps": 52.687038988409505,
+          "renderCpuMs": 13.48000000230968,
+          "uploadMs": 9.959999999031425,
+          "buildMs": 1.8900000005960464,
+          "frameCpuMs": 11.900000000372529,
+          "intervalMs": 16.665000000000873
+        }
+      ]
+    },
+    {
+      "arm": "A2",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 457,
+          "fps": 38.04007859396096,
+          "renderCpuMs": 15.72999999858439,
+          "uploadMs": 12.744999999180436,
+          "buildMs": 0.6099999994039536,
+          "frameCpuMs": 13.539999997243285,
+          "intervalMs": 33.32999999999993
+        },
+        {
+          "moving": true,
+          "frames": 679,
+          "fps": 56.50326350035295,
+          "renderCpuMs": 13.045000003650784,
+          "uploadMs": 10.570000000298023,
+          "buildMs": 0.5899999998509884,
+          "frameCpuMs": 11.31499999947846,
+          "intervalMs": 16.665000000000873
+        }
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "moving": false,
+      "controlPooledCpuMedian": 15.627500000409782,
+      "candidatePooledCpuMedian": 14.84250000026077,
+      "improvementPercent": 5.02319628941563,
+      "bothCandidatesBeatBothControls": true,
+      "cadenceAllPairsNonregressing": true
+    },
+    {
+      "moving": true,
+      "controlPooledCpuMedian": 12.669999999925494,
+      "candidatePooledCpuMedian": 13.160000003874302,
+      "improvementPercent": -3.867403346106465,
+      "bothCandidatesBeatBothControls": false,
+      "cadenceAllPairsNonregressing": false
+    }
+  ],
+  "adopt": false
+}

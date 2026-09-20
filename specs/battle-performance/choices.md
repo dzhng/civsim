@@ -830,3 +830,4 @@ the old battle world without deleting this still-used shared geometry policy.
   records still need adoption. This removes duplicate ownership while preserving
   the isolation that prevents later simulation changes from altering an admitted
   frame. Adoption remains conditional on measured CPU and camera cadence gains.
+  The condition failed for929020f4; this candidate is not adopted.

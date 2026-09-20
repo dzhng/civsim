@@ -62,6 +62,11 @@ invariance are explicit diagnostic changes, not an adopted oracle correction.
 | Invariance only | .00341796875 / .00439453125 | .00439453125 / .001953125 |
 | Combined projector and invariance | .000732421875 / .000732421875 | .0009765625 / .0009765625 |
 
+[RGBA8 identity comparison](projection-pixel-identity.json) confirms the raw
+images are byte-identical between the original and joint experiment in every
+case. Reference changes affect102–204 channel bytes per image, at most one code
+value. This checks stored display bytes, not full HDR identity.
+
 Horizon repeats match their first cases. Both changes together pass all six cases;
 either alone fails. Removing native invariance alone also fails and worsens the
 horizon. All runs have empty browser error/warning lists and zero tracked water

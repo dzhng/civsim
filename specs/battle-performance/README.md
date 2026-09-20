@@ -12,8 +12,13 @@ Current pickup: integrate TypeGPU scene reload and admitted-state diagnostics.
 Claude Opus is implementing this CPU pass in
 `/Users/david/dev/game-battle-typegpu-scene-state`, basef440191a, scoped to the
 TypeGPU scene/terrain and real live facade plus consumer tests. Prompt and runner
-outputs live in that worktree's `throwaway/`. Check its live handle or actual final
-report before restarting. Root owns GPU correctness checks; no timing job is active.
+outputs live in that worktree's `throwaway/` (handle19901).
+An independent Opus CPU pass in `/Users/david/dev/game-battle-typegpu-impostor-state`
+(basea90d3f82, handle80073) owns typed compact impostor state and audience camera
+refresh, with no scene/facade edits. It must preserve exact tile choices and existing
+visual gates; root supplies GPU and timing evidence after review. Both prompts and
+outputs live in their worktrees' `throwaway/`. Check handles or actual final reports
+before restarting. No timing job is active.
 
 Current evidence:
 
@@ -45,8 +50,9 @@ compile yet) and `codex/battle-water-comparison` atc702e002 (diagnostics, no fix
 Their worktrees are removed and scratch archived.82 older unoccupied battle branch
 refs were deleted after a verified bundle and name/hash manifest at
 `throwaway/branch-cleanup-20260920-182212/`; active, pending and unrelated refs
-were preserved. Finished TypeGPU High/crowd worktrees can be removed after their
-remaining scratch is archived. Preserve historical control worktrees.
+were preserved. Finished TypeGPU High/crowd worktrees and branches were also removed after preserving
+scratch and a verified bundle at `throwaway/typegpu-completed-cleanup-2/`.
+Preserve historical control worktrees.
 
 [The evidence ledger](evidence.md) retains older measurements and component gates;
 [choices](choices.md) records decisions. Keep historical reds distinct from current

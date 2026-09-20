@@ -52,8 +52,9 @@ No timing job is active.
 The finished impostor worktree and8 older renderer branches were removed after
 preserving scratch and a verified bundle in
 `throwaway/older-branch-cleanup-20260920-194943/`. Earlier cleanup archives remain.
-Keep the block-debug worktree until its evidence/cleanup is completed; the draw
-worktree is active. Preserve historical controls and unrelated worktrees.
+The completed block-debug worktree/branch were also removed after a verified
+bundle and scratch archive at `throwaway/typegpu-block-debug-completed-cleanup/`.
+The reused draw worktree is active. Preserve historical controls and unrelated worktrees.
 Pending raw GPU-impostor1c816fc5 and water-comparisonc702e002 branches remain
 unadopted references. [The evidence ledger](evidence.md) retains older results;
 [choices](choices.md) records decisions.

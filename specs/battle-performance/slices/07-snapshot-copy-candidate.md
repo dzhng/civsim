@@ -18,3 +18,6 @@ improvement; actual presentation cadence must improve or its remaining constrain
 must be identified. Add a camera-motion segment, preserve identical content and
 pose/LOD output, inspect matched images. The original74/75floor failure remains
 open until a changed build passes it. No unchanged-code rerun replaces that result.
+
+Adopted after the declared screen; see [measured evidence](../assets/07-snapshot-copy/README.md).
+The original30k gate and final live benchmark remain separate obligations.

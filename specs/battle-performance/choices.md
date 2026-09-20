@@ -811,3 +811,12 @@ the old battle world without deleting this still-used shared geometry policy.
   The plan required disposal coverage but did not choose the return convention.
   Preserve the existing lifecycle error contract; an alive but not yet inspectable
   scene returns an unavailable observation instead.
+
+
+## Closed snapshot fields
+
+- **Sound, medium confidence — copy the closed instance contract directly.**
+  Explicit writes remove a measured generic property-copy cost without changing
+  stored values. New optional fields require a deliberate copy and behavior test;
+  accepting that maintenance obligation avoids a second field registry or runtime
+  compatibility path. Required fields are checked by the retained-slot literal.

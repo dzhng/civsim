@@ -1,0 +1,104 @@
+{
+  "passed": true,
+  "errors": [],
+  "pageErrors": [],
+  "warnings": [],
+  "cases": [
+    {
+      "label": "0-oblique",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.00048828125
+    },
+    {
+      "label": "0-overhead",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.00006103515625
+    },
+    {
+      "label": "0-overlap",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.0009765625
+    },
+    {
+      "label": "0-floor",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0
+    },
+    {
+      "label": "3-oblique",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.00048828125
+    },
+    {
+      "label": "3-overhead",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.000244140625
+    },
+    {
+      "label": "3-overlap",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.00390625
+    },
+    {
+      "label": "3-floor",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0
+    },
+    {
+      "label": "6-oblique",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.0001220703125
+    },
+    {
+      "label": "6-overhead",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.0001220703125
+    },
+    {
+      "label": "6-overlap",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.0009765625
+    },
+    {
+      "label": "6-floor",
+      "passed": true,
+      "packingEqual": true,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCovered": 0.0000152587890625
+    }
+  ]
+}

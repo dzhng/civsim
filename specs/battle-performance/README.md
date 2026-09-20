@@ -19,12 +19,14 @@ active in `/Users/david/dev/game-battle-typegpu-content-state`, basea6112e4a,
 handle21089; its `throwaway/content-state-prompt.txt` scopes actual owner reports
 and facade integration, excluding impostor/shadow-check work. No timing job is active.
 
-An independent Opus CPU pass in `/Users/david/dev/game-battle-typegpu-impostor-state`
-(basea90d3f82, handle80073) owns typed compact impostor state and audience camera
-refresh, with no scene/facade edits. It must preserve exact tile choices and existing
-visual gates; root supplies GPU and timing evidence after review. Both prompts and
-outputs live in their worktrees' `throwaway/`. Check handles or actual final reports
-before restarting. [High receiver overlap/fade](assets/typegpu-shadow-overlap/README.md)
+[The impostor candidate](assets/typegpu-impostor-state/README.md) atfc446726 has
+GPU arithmetic and12 source-image checks, but remains unadopted. Exact bisector
+tile choices differ, and root found its legacy packingEqual return was a CPU
+oracle rather than actual derived GPU data. Opus is correcting the control to read
+installed state/view buffers in `/Users/david/dev/game-battle-typegpu-impostor-state`
+(handle90032; `throwaway/actual-record-control-prompt.txt`). Preserve image gates
+and expose exact disagreements. The first worker/review are terminal. Check the
+new handle or actual final report before restarting. [High receiver overlap/fade](assets/typegpu-shadow-overlap/README.md)
 is integrated and GPU verified, including valid numerical mutation failures and
 validation/nonfinite rejection. Main candidate77/77 passes. Its worker/review are
 terminal; the finished worktree remains pending scratch cleanup. No timing job is active.

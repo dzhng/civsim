@@ -34,3 +34,11 @@ checks do not constitute a fresh visual readability review or a motion verdict.
 Next focused obligations: real screen-to-ground/seating proof for M2, atmosphere
 initialization/update ownership for M3a, ocean discrepancy diagnosis for M3b, and
 inherited full-scene differences for M8. Keep other crowd/grass/effect gates open.
+
+The selected raw sky and PMREM controls also pass their unchanged numerical
+thresholds across all four presets (including three sky background directions
+per preset). Inputs/output are finite, all borrowed-device checks pass, and
+browser errors/warnings are empty. These are promoted-module correctness checks;
+small permitted half-float differences remain, so they are not called exact.
+They close the standalone atmosphere numerical gap; initialization-versus-update
+ownership and composed horizon readability still need their own evidence.

@@ -9,3 +9,7 @@ Reuse sky/backdrop/environment controls at fixed camera, time, weather and frame
 Use the shared snapCheck path for visual evidence; inspect actual frames, compare
 matched crops and run unprimed screenshot-critique before accepting visual change.
 Preserve current thresholds and carry inherited failures explicitly.
+
+Promoted raw sky/PMREM numerical controls pass all four presets under unchanged
+thresholds: [evidence](../assets/migration-component-review/README.md). This does
+not alone close composed horizon or initialization/update ownership checks.

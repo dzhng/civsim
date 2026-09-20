@@ -8,8 +8,15 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: attribute main-world/fullscreen GPU cost with matched-state
-controls, then refresh full live/default-shadow performance with these CPU savings.
+Current pickup: distinguish crowd geometry from shading cost, then test existing
+lower mesh LODs against actual readable soldiers/weapon silhouettes. The
+[GPU layer controls](assets/gpu-layer-attribution/README.md) completed96 blocks.
+At physical200m, removing crowd draws changes main GPU time13.7→6.3ms; grass
+about2ms, backdrop nearly nothing, bloom small. Full mesh demand is about16million
+triangles for roughly4,000 visible mesh soldiers, mostlyL1. Initial dial-based
+controls were859/3200m, not tactical; always set and verify physical camera pose.
+These missing-content controls only attribute cost, never qualify as optimizations.
+
 [The combined blend/channel replay](assets/06a-transition-trace/README.md)
 is complete:32 actual late-window updates over15,560 soldiers, exact full state
 and1,493,760 playback comparisons plus48,192 old-evaluator pose comparisons.
@@ -19,7 +26,11 @@ are recorded. Capture42463 and replay38489 are terminal.
 [Direct frozen snapshot copy](assets/06a-frozen-copy/README.md) adds another
 21.37% bounded update gain against the preceding implementation, with
 exact trace equivalence,84 focused tests, TypeScript and scoped independent
-review. Replay21485 is terminal; no owned timing job is live.
+review. Replay21485 is terminal.
+GPU attribution sessions51884 and80283 are terminal. Fixed builds, runners,
+raw96-block reports and30 diagnostic screenshots remain under
+`throwaway/gpu-layer-attribution/`. No owned timing job is live; temporary build
+checkouts were removed after building.
 
 [The late CPU profiles](assets/06a-pose-blend/README.md) remain diagnostic:
 publication33.61→30.31s and blend7.35→2.60s across50seconds, with unmatched

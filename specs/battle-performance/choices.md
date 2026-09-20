@@ -706,3 +706,10 @@ the old battle world without deleting this still-used shared geometry policy.
   matched hardware images and independent critique show no clear grounding gain.
   A failed visual objective is sufficient to reject this isolated candidate;
   no GPU cost conclusion is inferred from stopping before timing.
+
+## Outside-volume sampling disposition
+
+- **Retained decision:** preserve the existing shader after the isolated early-return
+  candidate fails its predeclared repeated cost screen. Pixel equivalence alone
+  does not establish a worthwhile performance change. Keep the experiment on its
+  branch; do not adopt based on the first favorable run.

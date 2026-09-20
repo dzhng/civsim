@@ -7,16 +7,18 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: verify the isolated shadow-sampling candidate, then resolve
-readable default shadows and the remaining [cutover obligations](migration.md).
-Claude Opus is implementing an early return outside the fitted shadow volume in
-`game-battle-shadow-sampling`, based on71f2d9d5. It must preserve images and prove
-measured GPU savings before adoption. Parent logs: `throwaway/shadow-sampling-worker/`.
-Root owns hardware verification; serialize timing against owned build/test/GPU work.
+Current pickup: inspect diagnostic shadow visibility and direct/indirect lighting
+at the tactical framing, then resolve readable default shadows and the remaining
+[cutover obligations](migration.md). Scratch captures/builds are in
+`throwaway/shadow-light-diagnosis/`; these change diagnostic output only, not
+production lighting. Root owns hardware verification and serializes timing against
+owned build/test/GPU work.
 
-The [grass-receiver experiment](assets/08-grass-receiver/README.md) is rejected:
-correct rendering but no discernible grounding improvement in the independent
-comparison. Its cost was not measured after that visual failure.
+Both narrow candidates remain outside production:
+[grass reception](assets/08-grass-receiver/README.md) had no discernible grounding
+gain; [outside-volume sampling](assets/08-shadow-sampling/README.md) preserved
+images but failed its predeclared ABBA screen at both camera poses. No repeat of
+these experiments is planned. No Claude implementation or timing job remains active.
 
 Completed component evidence, not final acceptance:
 

@@ -39,3 +39,14 @@ that attempt is excluded, with its note retained in the runner archive. The
 accepted run started after the build completed. Initial pre-fog reports remain
 in main throwaway/ocean-aligned-hardware/pre-fog-fix for diagnostic history; they
 are not the displacement-fidelity evidence above.
+
+## Multisample localization
+
+Reporting-only instrumentation preserves every stored image and maxAbs from the
+original4x candidate report. The [localized summary](msaa-localized-summary.json)
+places the aligned failures in the grazing horizon cases: time0 peaks at
+x502/y161 (red .529296875 versus .56396484375); time3.25 at x670/y160
+(green .65185546875 versus .6259765625). Repeats agree. Both aligned overview
+cases pass at .000732421875. This narrows the failing condition but does not yet
+identify whether coverage, interpolation or shading causes it. Claude reads the
+4x pipeline contracts; no further shader change is adopted.

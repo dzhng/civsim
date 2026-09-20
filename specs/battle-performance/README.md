@@ -22,6 +22,10 @@ aligned checks pass; ocean4x remains red. Flattening and shading mutations fail
 as intended without GPU errors. Original source residuals and default gates are
 preserved. No M3b exit or performance gain is claimed. Next diagnose the ocean4x residual while rescoping the larger crowd work.
 Keep owned CPU/GPU work out of timing windows.
+Claude read-only reviews are active: water4x in the water candidate worktree
+(`throwaway/msaa-review-*`), and the next GPU crowd-packing seam in main
+`throwaway/crowd-gpu-packing-review/`. Root localized aligned4x failures to the
+grazing horizon pixels; overview cases pass. Review that evidence before a fix.
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state

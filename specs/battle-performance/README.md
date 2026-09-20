@@ -7,11 +7,19 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: hardware verification of integrated High shadows, after the native
-CPU timing lane finishes. High worker c1e78391 is integrated as b89a806a; independent
-review passed31 focused tests and TypeScript, but merged tests and GPU controls
-remain. Parent logs: `throwaway/high-shadow-worker/` and `throwaway/high-shadow-review/`.
+Current pickup: finish High visual/coverage verification and M7 block-debug, then
+complete the remaining production cutover gates. High worker c1e78391 is integrated as b89a806a; independent
+review passed31 focused tests. Root merged39 shadow/scene tests,28 live tests and
+TypeScript pass. Single-shadow and lifecycle hardware controls pass; full-frame and
+terrain strict failures reproduce byte-for-byte pre/post. Raw Menu single/High/off
+boot, camera changes, resize and disposal pass with zero retained resources.
+Fresh visual critique still finds weak grounding: readable shadows remain open. Parent logs: `throwaway/high-shadow-worker/` and `throwaway/high-shadow-review/`.
 M4 admission/lifetime fixes survived the merge.
+
+Claude Opus M7 block-debug is active in `game-battle-block-debug`, baseline51819eef;
+parent logs `throwaway/block-debug-worker/`. Worker is CPU-only; root serializes
+GPU verification. Both completed High and M4 worktrees have been removed; refs/logs
+remain.
 
 [M4 reload corrections and public assets](assets/m4-publication/README.md) are
 committed at ca9b13ac after worker integration ddba56f0. Hardware reload, failed
@@ -30,9 +38,11 @@ The independent [native target-preparation candidate](assets/03a-native-target-p
 is complete at54dae8ea on unadopted c8580623; it remains outside production.
 Four immutable native release binaries and the predeclared serial/one-thread/
 four-thread ABBA runner are ready in `throwaway/native-target-build/`.
-The predeclared runner is active (`throwaway/native-target-build/run.log`). All
-owned build/test/GPU jobs are stopped during it. Do not overlap them or repeat
-this experiment to seek a win. No production adoption follows an isolated result.
+[The predeclared native pair](assets/03a-native-target-preparation/timing/README.md)
+finished: serial regresses; four-thread candidate averages about15.3% faster.
+This early-contact fixture has minimum8 fighting and no casualties; it is not
+the intense canonical Menu workload or a browser result. No candidate is adopted
+and no timing job is active. Do not repeat this experiment to seek a win.
 
 The [combined CPU ABBA](assets/03a-kernel-input-pair/README.md) finished with all
 hashes intact but failed its adoption rule: early ranges overlap, though both

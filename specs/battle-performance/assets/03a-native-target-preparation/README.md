@@ -33,3 +33,6 @@ The geometric cap/tie tests retain existing behavior. The single-batch different
 also exercises impales, mounted bodies, same-pass fighting, disengagement, deaths,
 RNG and fields omitted by state_hash. Batch-boundary coverage is additional, not a
 replacement. No golden or mechanics expectation is repinned.
+
+[The fixed native timing pair](timing/README.md) is complete. Four-thread feasibility
+passes, serial regresses; no production or browser adoption.

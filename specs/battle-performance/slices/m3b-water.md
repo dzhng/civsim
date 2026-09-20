@@ -13,3 +13,8 @@ Preserve current thresholds and carry inherited failures explicitly.
 [Focused current controls](../assets/migration-component-review/README.md): lake
 passes; ocean remains numerically red at1x. The retained complete-scene fixture
 has no water and cannot close this obligation.
+
+The [ocean localization evidence](../assets/m3b-ocean-localization/README.md)
+records the still-red beauty control and bounded diagnostic variants. Passing
+roughness/normal diagnostics are not production fixes. Next inspect captured
+native/source WGSL for the persistent horizon discrepancy.

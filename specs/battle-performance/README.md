@@ -7,9 +7,11 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: Claude Opus is diagnosing the remaining ocean residual read-only
-(logs `throwaway/ocean-residual-review/`); verify its finding before a targeted
-M3b fix/check. The [impostor packing candidate](assets/07-impostor-packing/README.md)
+Current pickup: [ocean localization](assets/m3b-ocean-localization/README.md).
+Reporting-only, roughness, normal and projector experiments are recorded; no fix
+or threshold change is adopted. Claude Opus compares captured native/Three WGSL
+read-only (logs `throwaway/ocean-shader-review/`); verify its finding before a
+targeted M3b fix. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state
 match; large timing variation prevents a reliable gain claim. Do not rerun
 unchanged code merely to seek a pass. Re-scope the next CPU step from the retained

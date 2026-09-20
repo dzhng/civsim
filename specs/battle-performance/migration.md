@@ -1,9 +1,13 @@
-# Selected raw replacement: concrete pass graph
+# Selected TypeGPU replacement: conversion and exit graph
 
-[Raw WebGPU is selected](backend-decision.md). The existing complete candidate is
-promoted into final ownership; these passes verify inherited implementations and
-close concrete gaps rather than rebuilding every layer. No production engine
-selector, saved-data migration or compatibility owner is introduced.
+[TypeGPU is selected](backend-decision.md) after user feedback on the performance
+tie. The graph below records the promoted raw capability work and its required
+exits; it is historical implementation evidence, not proof that the TypeGPU path
+already owns those capabilities. First map and convert the resource/shader owners
+using the existing TypeGPU candidate and latest raw improvements. Keep one device
+and frame owner, typed schemas/bindings and explicit shader-body type-safety
+boundaries. The concrete conversion passes are being scoped before implementation.
+No production selector, saved-data migration or compatibility owner is introduced.
 
 ```text
 M1a independent contracts → M1b promote raw world

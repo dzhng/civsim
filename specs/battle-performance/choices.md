@@ -843,3 +843,14 @@ the old battle world without deleting this still-used shared geometry policy.
   calculations belonged. This choice is provisional until image, movement and
   live performance checks pass; it does not authorize changing atlas views to
   hide numerical differences or adopting the candidate without measurements.
+
+## TypeGPU selection revision
+
+- **Sound, high confidence — prefer type safety under the measured tie.**
+  The user challenged choosing raw when TypeGPU performed similarly. TypeGPU now
+  owns the intended cutover: schemas and bindings catch mistakes before drawing,
+  and typed shader bodies extend that protection beyond interfaces. Earlier raw
+  work remains reusable, but its sunk cost does not outweigh this preference.
+  Existing WGSL strings are not automatically type-checked by a typed wrapper;
+  migration must disclose that boundary and preserve runtime validation. This
+  supersedes the earlier dependency-count tie-break, not the performance gates.

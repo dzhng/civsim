@@ -1,14 +1,18 @@
-# Select raw WebGPU for the battle cutover
+# Select TypeGPU for the battle cutover
 
-Raw WebGPU is the selected implementation direction. It uses the existing
-renderer-core GPU runtime and shared game policies, with no new shader-authoring
-library. The decision follows the declared raw/TypeGPU performance tie and favors
-the smaller external API/build dependency surface. It is not a claim that the
-current raw candidate meets live60fps, simulation30Hz, or the net-shadow contract.
+TypeGPU is the selected direction following the user's preference for type safety
+under the measured raw/TypeGPU tie. The earlier choice of raw overweighted the
+absence of a dependency. Typed data layouts, bindings and shader interfaces are
+maintained contracts too: catching mismatches before runtime is a meaningful
+advantage when no reliable speed advantage justifies giving it up.
 
-The compared versions were Three0.185.1, TypeGPU0.12.5 and vgpu0.5.0; the held
-browser reports record Chrome153 and the Apple Metal adapter at1440×900CSS/DPR2.
-The physical framebuffer is2880×1800. Preserve that workload and quality.
+This revises the architecture decision, not the measurements. Production still
+uses Three. The promoted raw implementation and its verified capability changes
+are reuse inputs; the older TypeGPU candidate does not yet include all of them.
+No final performance, visual or cutover acceptance is claimed.
+
+The compared versions were Three0.185.1, TypeGPU0.12.5 and vgpu0.5.0. Preserve the
+same workload, framebuffer, assets and quality when verifying the selected path.
 
 ## Evidence and its limits
 
@@ -34,48 +38,36 @@ scene loss in independent still review. Strict pixel differences and shared nois
 contact overlays remain documented. Held authority, sampled images and component
 floors cannot establish continuous motion or the final live workload.
 
-## Why raw under the tie
+## Type safety must be real
 
-- Raw directly owns resources/encoding and reuses the existing raw pose palette.
-  This is reuse of one proven component, not proof the whole candidate is ready.
-- TypeGPU adds its transform and uses explicitly unstable command encoders in
-  frame, terrain, image upload and PMREM paths. Its typed authoring is useful,
-  but the completed experiment did not establish a performance win paying that
-  additional maintained surface.
-- vgpu adds runtime resource-destruction methods absent from its published types
-  and did not match the leading candidates' cadence in the recorded orders.
-- Three remains a valuable reference and offline-authoring dependency. Its battle
-  path has private allocation/renderer access and worse held-frame tails here.
-  Keeping it because it is incumbent would not follow the completed evidence.
+Use TypeGPU schemas and typed bindings as the single data contract, and typed
+shader authoring where it checks shader bodies. A WGSL string embedded in a typed
+function shell checks its interface, not every expression in its body. Retained
+WGSL requires an explicit reason and its existing compiler/numerical coverage;
+wrapping raw code and calling the result fully type-safe does not fulfill this
+selection. Type safety does not prove GPU resource lifetime, rendering quality or
+performance; those keep their independent checks.
 
-Do not merge battle's HDR frame and campaign's canvas frame merely because both
-own attachments. They serve different world/pass contracts. Keep one frame owner
-per world and shared camera, reverse-Z, pose and environment contracts. Verify the
-actual emitted runtime graph before moving or deleting any Three dependency.
+The installed candidate uses unstable command-encoding APIs. Audit those concrete
+uses against the installed library before committing to the final frame owner.
+Prefer supported interoperation when it preserves the intended type guarantees;
+keep any necessary unstable dependency narrow and explicit. Do not upgrade the
+library incidentally or change GPU work to make a benchmark easier.
 
-## Final owners and next playable checkpoint
+## Ownership and implementation
 
-`packages/battle-renderer/src/` will own the existing selected raw world, GPU
-resources and shaders, moved rather than duplicated. `web/src/battle/renderer.ts`
-will own the frontend presentation/lifetime boundary. Its API must be explicit,
-independent of the old class. Shared asset, camera, terrain, environment and grass
-policies remain in their current domain packages. There is no production backend
-selector, old-engine fallback or saved-battle migration.
+One selected battle renderer belongs in `packages/battle-renderer`; shared camera,
+terrain, environment, asset and animation policies keep their domain owners.
+Convert in verified passes using the existing TypeGPU implementation and the
+latest promoted capability fixes. Do not revert to an older candidate wholesale
+and silently lose High shadows, reload, diagnostics or camera corrections.
+The [migration graph](migration.md) owns the conversion and exit requirements.
 
-The concrete graph is in [migration.md](migration.md). Start with the independent
-contracts pass, then promote the existing complete world. The first playable
-checkpoint remains the real Menu benchmark through the selected lab route using
-those final owners; production stays complete until cutover. This is not a new
-port of terrain, water, crowd or post that already exists and has controls.
+Keep the real Menu benchmark playable through the lab until cutover. Then remove
+the old battle owner and temporary backend selection. No production compatibility
+renderer, saved-data migration or campaign engine migration is authorized. Campaign
+and offline tooling may retain their actual Three dependencies.
 
-Before cutover, preserve user-visible High shadows (two2048 cascades), production
-atlas publication and atomic asset reload, block-debug selection verification,
-error/disposal behavior and honest resource accounting. The native facade
-currently rejects three of these and returns no source-style memory count.
-Those are real work items, not features to drop silently.
-
-After selection, further work targets measured remaining costs and camera quality.
-The simulation still misses its later-state throughput budget; its independently
-reviewed combined candidate is being measured separately. Default shadow
-readability, moving-shadow quality, the original/optimized-equivalent/final A/B/C
-budget, live input latency and the unchanged30k floor all remain required.
+The conditional tie is sufficient to prefer TypeGPU, but not to declare the game
+fast. Live camera responsiveness, simulation throughput, readable default and
+moving shadows, the unchanged30k floor and net-shadow savings remain required.

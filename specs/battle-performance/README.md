@@ -4,29 +4,26 @@
 
 Work in `/Users/david/dev/game-battle-performance-spec`, branch
 `codex/battle-performance-spec`, based on c924e5ce. Updated2026-09-20.
-**Raw WebGPU is selected; implementation and final acceptance remain active.**
+**TypeGPU is selected following user feedback on type safety; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: review the [GPU impostor derivation candidate](slices/07-gpu-impostor-derivation.md)
-in `/Users/david/dev/game-battle-gpu-impostor`. Claude is implementing the CPU/GPU
-state-and-view split; root owns hardware correctness and measured adoption.
-[Consultation and disposition](assets/07-gpu-impostor-derivation/README.md)
-record why this must help advancing simulation, not merely paused cameras.
+Current pickup: map the latest promoted renderer capabilities into one TypeGPU
+implementation before the next production edit. Read [the revised decision](backend-decision.md).
+The existing raw work is reusable evidence and algorithms; the older TypeGPU
+candidate lacks subsequent fixes and must not replace it wholesale. Claude's
+read-only conversion scoping is in `throwaway/typegpu-reselection/`.
 
-In parallel, Claude is diagnosing ocean4x in
-`/Users/david/dev/game-battle-water-comparison` (base c702e002). That worker owns
-the GPU correctness lane; the impostor worker is CPU-only until coordinated.
-[Aligned water evidence](assets/m3b-aligned-water/README.md) retains the passing
-1x/lake checks and red ocean4x horizon cases. Later scratch diagnostics confirm
-both source beauty and the corrected displacement probe use four samples.
-Matched direct coordinate output still differs at grazing views; centroid
-interpolation worsens the residual. These diagnoses are not a water fix or M3b
-exit. Archive their reports before accepting a candidate.
+GPU impostor candidate1c816fc5 is committed in
+`/Users/david/dev/game-battle-gpu-impostor` but unadopted; its WGSL has not yet
+passed hardware checks. Transfer the state/view optimization only after verifying
+it in the selected architecture. Water worker atc702e002 returned diagnostics, no
+fix. Its claims of proven equality/no port defect overreach finite diagnostic
+measurements; ocean4x remains red. Earlier cutover consultation also cites an
+obsolete74-sample failure: latest changed source/raw gates both passed19 checks.
+Preserve historical reds without presenting them as current observations.
 
-The [crowd ownership candidate](assets/07-crowd-ownership/README.md) failed its
-ABBA screen and is not adopted. Its finished worktree is removed; branch, builds,
-and evidence remain. Do not rerun unchanged. Keep owned CPU/GPU jobs out of
-performance timing windows.
+All three earlier Claude handles are terminal/missing with final reports saved.
+No timing job is active. Keep owned CPU/GPU work out of future timing windows.
 
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
@@ -53,7 +50,7 @@ all six DPR1/2 zoom probes eliminate the first-frame banner correction. The
 [golden light balance](assets/08-light-balance/README.md) and
 [narrower default filter](assets/08-shadow-filter/README.md) improve grounding;
 High/off are preserved. The latest source30k and per-preset shadow run passes34
-checks without changing33ms/content thresholds. Full raw/live60fps, receiver and
+checks without changing33ms/content thresholds. Full selected-renderer/live60fps, receiver and
 moving-shadow/net-cost acceptance remain open. No timing job is running.
 
 Both narrow candidates remain outside production:
@@ -78,8 +75,8 @@ Completed component evidence, not final acceptance:
 - [Native CPU pair](assets/03a-native-target-preparation/timing/README.md): serial
   regresses and four-thread improves on an early-contact fixture. Not adopted;
   it is not the canonical intense browser workload. Production WASM stays b42782f4….
-- [Held backend comparison](backend-decision.md): raw selected under the declared
-  conditional tie. All32 tours are functional but fail quiet-host criteria;
+- [Held backend comparison](backend-decision.md): raw and TypeGPU conditionally
+  tied; TypeGPU now selected for type safety. All32 tours are functional but fail quiet-host criteria;
   no broad repeat is planned and these are not live performance acceptance.
 
 Keep shared camera/terrain/environment/pose owners and campaign's separate frame.

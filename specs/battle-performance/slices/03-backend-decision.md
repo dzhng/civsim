@@ -6,7 +6,7 @@ Which architecture meets the product contract with the best demonstrated net per
 
 ## Decision seam
 
-Write `backend-decision.md` with selected backend/version, parity evidence, per-workload paired results, retained risks, rejected alternatives and exact production owners. Require material improvement beyond measured noise, no unresolved validation/parity failure and a feasible route to the final shadow budget. A tie is decided by simpler maintained contracts and fewer unstable/private APIs, not sunk cost. A candidate may remain under investigation if all miss; do not silently lower the target.
+Write `backend-decision.md` with selected backend/version, parity evidence, per-workload paired results, retained risks, rejected alternatives and exact production owners. Require material improvement beyond measured noise, no unresolved validation/parity failure and a feasible route to the final shadow budget. Following user feedback, a performance tie favors TypeGPU for typed data, bindings and shader contracts. Still audit unstable/private APIs explicitly; sunk cost does not decide the choice. A candidate may remain under investigation if all miss; do not silently lower the target.
 
 For a Three win, 04–09 operate on current owners. For a replacement win, apply [migration.md](../migration.md), materialize its per-pass files and dependency graph before implementing, and pin the selected backend's winning structure. Do not ask for another engine-switch permission: the user already authorized it. No production multi-backend flag. The lab selector remains isolated until cleanup.
 

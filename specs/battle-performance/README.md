@@ -9,7 +9,8 @@ Read [the decision](backend-decision.md) and [the concrete cutover graph](migrat
 
 Current pickup: [impostor packing candidate](slices/07-impostor-packing-candidate.md).
 A pinned tick30 profile after the adopted snapshot improvement identifies packed
-billboard records as the leading named leaf cost; Claude will remove temporary
+billboard records as the leading named leaf cost; Claude Opus in `game-battle-impostor-packing` (base3a14a9c6, logs
+`throwaway/impostor-packing-worker/`) is removing temporary
 per-soldier record arrays while preserving packed bytes. Measure against the
 adopted snapshot build under the declared screen before integrating.
 [Snapshot evidence](assets/07-snapshot-copy/README.md): CPU medians down24% wide/16%
@@ -51,8 +52,8 @@ Completed component evidence, not final acceptance:
 - [M7 block debugging](assets/m7-block-debug/README.md): shared geometry, optional
   allocation and actual selection checks pass. Other effects/cues remain open.
 - [Source30k floor](assets/m1b-promotion/source-floor/README.md): all18 checks pass,
-  preserving33ms and content assertions. This tests the source renderer; raw
-  diagnostics and timing still need truthful migration at M9.
+  preserving33ms and content assertions. This is historical source evidence; current raw/source30k checks now both pass
+  after timing and diagnostics consumer migration.
 - [Native CPU pair](assets/03a-native-target-preparation/timing/README.md): serial
   regresses and four-thread improves on an early-contact fixture. Not adopted;
   it is not the canonical intense browser workload. Production WASM stays b42782f4….

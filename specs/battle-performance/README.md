@@ -8,8 +8,13 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: distinguish crowd geometry from shading cost, then test existing
-lower mesh LODs against actual readable soldiers/weapon silhouettes. The
+Current pickup: test main L1→existing L2 with full shading against readable
+soldiers/weapon silhouettes, leaving L0 and shadow buckets unchanged.
+[Cheap-shading diagnostics](assets/gpu-crowd-shading/README.md) completed12 blocks:
+main13.9→8.8ms at200m with identical15.85M triangle count. Shading/normal/varying
+work is substantial; do not assume a purely geometric or purely texture bottleneck.
+The LOD audit finds all20 L2 meshes around25% of L1 triangles while retaining
+L1 material IDs. That does not prove silhouette quality; no LOD change is adopted. The
 [GPU layer controls](assets/gpu-layer-attribution/README.md) completed96 blocks.
 At physical200m, removing crowd draws changes main GPU time13.7→6.3ms; grass
 about2ms, backdrop nearly nothing, bloom small. Full mesh demand is about16million
@@ -27,7 +32,7 @@ are recorded. Capture42463 and replay38489 are terminal.
 21.37% bounded update gain against the preceding implementation, with
 exact trace equivalence,84 focused tests, TypeScript and scoped independent
 review. Replay21485 is terminal.
-GPU attribution sessions51884 and80283 are terminal. Fixed builds, runners,
+GPU attribution sessions51884,80283 and cheap-shading10519 are terminal. Fixed builds, runners,
 raw96-block reports and30 diagnostic screenshots remain under
 `throwaway/gpu-layer-attribution/`. No owned timing job is live; temporary build
 checkouts were removed after building.

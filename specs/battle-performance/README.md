@@ -7,25 +7,27 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: review and measure the [single-owner crowd candidate](slices/07-crowd-ownership.md).
-[Crowd ownership candidate](assets/07-crowd-ownership/README.md)929020f4 failed
-its ABBA screen and is not adopted: wide CPU improves5.02% (below10%); moving
-CPU worsens3.87% and cadence falls. Correctness tests/review pass, but one of16
-matched scene images differs at250 pixels by one code; retain that unresolved
-residual. Its finished worktree is removed; the branch, builds and evidence remain. Do not rerun unchanged. Resume the larger06b/07 live-state/packing
-work from measured costs, without optimizing only a paused fixture.
+Current pickup: review the [GPU impostor derivation candidate](slices/07-gpu-impostor-derivation.md)
+in `/Users/david/dev/game-battle-gpu-impostor`. Claude is implementing the CPU/GPU
+state-and-view split; root owns hardware correctness and measured adoption.
+[Consultation and disposition](assets/07-gpu-impostor-derivation/README.md)
+record why this must help advancing simulation, not merely paused cameras.
 
-[Aligned water evidence](assets/m3b-aligned-water/README.md): candidate267949e8 plus
-fog fix98692752 in `/Users/david/dev/game-battle-water-comparison`. Root's13 CPU
-tests pass; independent review's fog finding is fixed. Ocean1x and lake1x/4x
-aligned checks pass; ocean4x remains red. Flattening and shading mutations fail
-as intended without GPU errors. Original source residuals and default gates are
-preserved. No M3b exit or performance gain is claimed. Next diagnose the ocean4x residual while rescoping the larger crowd work.
-Keep owned CPU/GPU work out of timing windows.
-Claude read-only reviews are active: water4x in the water candidate worktree
-(`throwaway/msaa-review-*`), and the next GPU crowd-packing seam in main
-`throwaway/crowd-gpu-packing-review/`. Root localized aligned4x failures to the
-grazing horizon pixels; overview cases pass. Review that evidence before a fix.
+In parallel, Claude is diagnosing ocean4x in
+`/Users/david/dev/game-battle-water-comparison` (base c702e002). That worker owns
+the GPU correctness lane; the impostor worker is CPU-only until coordinated.
+[Aligned water evidence](assets/m3b-aligned-water/README.md) retains the passing
+1x/lake checks and red ocean4x horizon cases. Later scratch diagnostics confirm
+both source beauty and the corrected displacement probe use four samples.
+Matched direct coordinate output still differs at grazing views; centroid
+interpolation worsens the residual. These diagnoses are not a water fix or M3b
+exit. Archive their reports before accepting a candidate.
+
+The [crowd ownership candidate](assets/07-crowd-ownership/README.md) failed its
+ABBA screen and is not adopted. Its finished worktree is removed; branch, builds,
+and evidence remain. Do not rerun unchanged. Keep owned CPU/GPU jobs out of
+performance timing windows.
+
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state

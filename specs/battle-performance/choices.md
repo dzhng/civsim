@@ -831,3 +831,15 @@ the old battle world without deleting this still-used shared geometry policy.
   the isolation that prevents later simulation changes from altering an admitted
   frame. Adoption remains conditional on measured CPU and camera cadence gains.
   The condition failed for929020f4; this candidate is not adopted.
+
+## GPU impostor derivation plan
+
+- **Sound, medium confidence — derive billboard camera data in the existing vertex shader.**
+  When the camera turns across thousands of distant soldiers, the CPU currently
+  recomputes which baked view each soldier displays and how large it should be.
+  The candidate sends changing soldier state and lets the GPU calculate those
+  values while drawing. This avoids an extra compute pass and keeps camera-only
+  updates independent of army size. The earlier plan did not choose where these
+  calculations belonged. This choice is provisional until image, movement and
+  live performance checks pass; it does not authorize changing atlas views to
+  hide numerical differences or adopting the candidate without measurements.

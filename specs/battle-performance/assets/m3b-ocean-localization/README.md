@@ -113,3 +113,18 @@ not only a count of shader sin terms. A deliberate raw shading perturbation must
 also fail the aligned comparison. Preserve original library-derived camera tests,
 identity-transform constraints, per-camera uniform isolation, lake coverage and
 resource disposal. No M3b visual exit is claimed by this read-only decision.
+
+## Draft coverage witness rejected
+
+The first aligned-reference draft classifies water coverage by thresholding beauty
+RGB against the same image without water. That is not a geometry-only measurement:
+lighting changes can cross the threshold at a fixed surface. The retained
+[counterexample](coverage-counterexample.json) executes the actual draft helper
+with one fixed pixel changing only its red channel, .003 to .005, and receives
+reported moved coverage1. It records the source hash; the script is retained.
+
+Replace this witness with direct geometry/coverage/depth evidence independent of
+beauty lighting. A deliberate vertex-flattening mutation must fail it. This is
+separate from the raw shading perturbation that must fail aligned beauty. No
+passing draft color-mask test closes displacement fidelity. Original image gates
+and production rendering remain unchanged.

@@ -22,7 +22,9 @@ lab-only aligned comparison with per-reference projection ownership; preserve th
 original default gate and end-to-end evidence. Claude implements that bounded
 pass in `/Users/david/dev/game-battle-water-comparison` from91cc41a5, with logs in
 its `throwaway/implementation-*`. Both workers are CPU-only; root queues hardware
-after they finish. See the M3b review disposition.
+after they finish. Root rejected the draft color-derived coverage witness and
+retained a counterexample; require a geometry-sensitive witness with a flattening
+mutation before accepting the water candidate. See the M3b review disposition.
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state

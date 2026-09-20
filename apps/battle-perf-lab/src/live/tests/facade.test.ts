@@ -91,12 +91,17 @@ function fixture(
     timingQueries?: "enabled" | "disabled";
     timestampQuery?: boolean;
     atlasOverride?: string;
+    backend?: "raw" | "typegpu" | "vgpu";
+    search?: string;
   } = {},
 ) {
-  vi.stubGlobal("__BATTLE_NATIVE_BACKEND__", "raw");
+  vi.stubGlobal("__BATTLE_NATIVE_BACKEND__", build.backend ?? "raw");
   vi.stubGlobal("__BATTLE_NATIVE_ATLAS_CATALOG__", build.atlasOverride ?? "");
   vi.stubGlobal("__BATTLE_NATIVE_TIMING_QUERIES__", build.timingQueries ?? "enabled");
-  vi.stubGlobal("location", { search: "", href: "http://localhost/benchmark" });
+  vi.stubGlobal("location", {
+    search: build.search ?? "",
+    href: "http://localhost/benchmark",
+  });
   vi.stubGlobal("window", { devicePixelRatio: 2, addEventListener() {}, removeEventListener() {} });
   vi.stubGlobal("fetch", async (url: URL | string) => {
     state.fetched.push(String(url));
@@ -162,6 +167,7 @@ function fixture(
         queue.submit([]);
       },
       uploadTriangles: call("triangles"),
+      uploadDebugBlocks: call("blocks"),
       uploadTacticalLines: call("lines"),
       prepare: call("prepare"),
       settleGrass: call("settle"),
@@ -652,4 +658,48 @@ test("soldier animation diagnostics report the crowd owner's admitted pose", asy
   expect(f.renderer.debugSoldierAnim(1)).toBeNull();
   f.renderer.dispose();
   expect(f.renderer.debugSoldierAnim(0)).toBeNull();
+});
+
+const blockPacket = (): BattlePresentation => {
+  const p = packet();
+  // Two units of one soldier each, the second already dead.
+  return {
+    ...p,
+    crowd: {
+      ...p.crowd!,
+      positions: new Float32Array([0, 0, 40, 40]),
+      alive: new Float32Array([1, 0]),
+      count: 2,
+    },
+  };
+};
+test("the debug-block view prepares the published association into its own layer", async () => {
+  const f = fixture({ search: "?debug=blocks" });
+  await f.renderer.ready;
+  f.renderer.setStatic(new Uint32Array([0, 1]), [1, 0], [0, 0]);
+  await f.renderer.present(blockPacket());
+  const blocks = state.calls.filter((c) => c[0] === "blocks");
+  expect(blocks).toHaveLength(1);
+  // One rectangle: the live team-one body, padded, in red. The dead one adds none.
+  const verts = blocks[0][1] as Float32Array;
+  expect(verts).toHaveLength(36);
+  expect([...verts.subarray(0, 6)].map((v) => Math.round(v * 1e4) / 1e4)).toEqual([
+    -2.4, -2.4, 0.88, 0.2, 0.16, 0.88,
+  ]);
+  // Attack arcs keep their own uploads; neither layer carries the other's vertices.
+  expect(state.calls.filter((c) => c[0] === "triangles").map((c) => c[1])).not.toContain(verts);
+  f.renderer.dispose();
+});
+test("an ordinary frame uploads no debug blocks at all", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  f.renderer.setStatic(new Uint32Array([0]), [1], [0]);
+  await f.renderer.present(blockPacket());
+  expect(state.calls.filter((c) => c[0] === "blocks")).toHaveLength(0);
+  f.renderer.dispose();
+});
+test("a discarded comparison backend still refuses the debug-block view", () => {
+  expect(() => fixture({ backend: "vgpu", search: "?debug=blocks" })).toThrow(
+    "does not implement the source debug-block view",
+  );
 });

@@ -17,6 +17,8 @@ const state = vi.hoisted(() => ({
   setTerrain: vi.fn(),
   standardsUpload: vi.fn(),
   readoutUpload: vi.fn(),
+  triangleLayers: [] as { id: number; upload: ReturnType<typeof vi.fn> }[],
+  encoded: [] as number[],
 }));
 function layer<T extends object>(extra: T = {} as T) {
   const value = {
@@ -113,7 +115,12 @@ vi.mock("../../packages/battle-renderer/src/world/readout", () => ({
 vi.mock("../../packages/battle-renderer/src/world/overlay", () => ({
   createRawLineLayer: async () => layer(),
   createRawRingLayer: async () => layer(),
-  createRawTriangleLayer: async () => layer(),
+  createRawTriangleLayer: async () => {
+    const id = state.triangleLayers.length;
+    const value = layer({ id, encode: vi.fn(() => state.encoded.push(id)) });
+    state.triangleLayers.push(value);
+    return value;
+  },
 }));
 import { createRawBattleScene } from "../../packages/battle-renderer/src/battleScene";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
@@ -183,6 +190,8 @@ beforeEach(() => {
   state.setTerrain.mockReset();
   state.standardsUpload.mockReset();
   state.readoutUpload.mockReset();
+  state.triangleLayers.length = 0;
+  state.encoded.length = 0;
 });
 async function ready() {
   const scene = await createRawBattleScene(device, caps, options);
@@ -223,6 +232,25 @@ test("disposal during an awaited UI upload prevents late readout allocation", as
   resume();
   await expect(pending).rejects.toThrow("disposed");
   expect(state.readoutUpload).not.toHaveBeenCalled();
+  expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
+});
+
+test("attack arcs and the block-debug view own separate layers, blocks encoded first", async () => {
+  const scene = await ready();
+  const blockVerts = new Float32Array([1, 2, 1, 0, 0, 1]);
+  scene.uploadDebugBlocks(blockVerts);
+  // Every later frame reuploads its arcs, including the empty frames between them.
+  scene.uploadTriangles(new Float32Array([3, 4, 0, 1, 0, 1]));
+  scene.uploadTriangles(new Float32Array());
+  const blocks = state.triangleLayers.find((l) => l.upload.mock.calls[0]?.[0] === blockVerts)!;
+  const arcs = state.triangleLayers.find((l) => l !== blocks)!;
+  expect(state.triangleLayers).toHaveLength(2);
+  expect(blocks.upload.mock.calls).toEqual([[blockVerts]]);
+  expect(arcs.upload).toHaveBeenCalledTimes(2);
+  await scene.prepare({ camera, time: 0 });
+  scene.encode({} as GPUCommandEncoder, {} as GPUTextureView);
+  expect(state.encoded).toEqual([blocks.id, arcs.id]);
+  scene.dispose();
   expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
 });
 

@@ -46,9 +46,9 @@ remain part of the measured control. Readback helpers are counted globally but
 never replace final render IDs.
 
 The benchmark's default single shadows, canvas scale, post/grade, grass settings,
-and frozen behavior are retained. CSM, debug-block rendering and development asset
-reload are explicitly unsupported in this checkpoint. No source renderer is
-constructed as a fallback.
+and frozen behavior are retained. High cascades, staged crowd reload and the
+debug-block view belong to the selected raw world; the discarded comparison
+candidates refuse all three. No source renderer is constructed as a fallback.
 
 CPU verification: native live tests, source crowd/action/presentation/scheduler/
 benchmark tests, typechecks and a production lab build. Independent code review

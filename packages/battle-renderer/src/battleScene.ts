@@ -131,6 +131,11 @@ export async function createRawBattleScene(
         false,
       ),
     );
+    // Two triangle layers, as the source has: the block-debug view persists across
+    // frames whose attack arcs are empty, so it cannot share the arc layer's buffers.
+    const debugBlocks = own(
+      await createRawTriangleLayer(device, frame.cameraLayout, options.samples),
+    );
     const triangles = own(
       await createRawTriangleLayer(device, frame.cameraLayout, options.samples),
     );
@@ -317,6 +322,12 @@ export async function createRawBattleScene(
         triangles.upload(vertices);
         prepared = false;
       },
+      uploadDebugBlocks(vertices: Float32Array) {
+        check();
+        if (busy) throw Error("Battle scene preparation already in flight");
+        debugBlocks.upload(vertices);
+        prepared = false;
+      },
       uploadTacticalLines(lines: BattleTacticalLineFrame) {
         check();
         if (busy) throw Error("Battle scene preparation already in flight");
@@ -397,6 +408,8 @@ export async function createRawBattleScene(
             ground.encode(pass, camera);
             rings.encode(pass, camera);
             effects.encode(pass, camera);
+            // Source order: formation blocks under the attack arcs, both above the cues.
+            debugBlocks.encode(pass, camera);
             triangles.encode(pass, camera);
           },
           bloom,

@@ -24,6 +24,7 @@ import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/ba
 import type { BattleTacticalLineFrame } from "@packages/battle-renderer/src/types";
 import type { BattleTerrainOptions } from "@packages/game-renderer/src/battle/terrainOptions";
 import { postGradeUniformsFromParams } from "@packages/game-renderer/src/environment/postParameters";
+import { battleDebugBlockTriangles } from "@packages/game-renderer/src/battle/debugBlockData";
 import {
   getGraphicsSettings,
   graphicsQueryOverrides,
@@ -45,8 +46,14 @@ export class BattleRenderer implements BattleRendererApi {
   preserveFrozenEffects = false;
 
   private world: PhotorealBattleWorld | null = null;
-  private pendingStatic: { soldierUnit: Uint32Array; teams: number[]; classes: number[] } | null =
-    null;
+  /** The published soldier/unit/team association, retained so the debug-block view
+   * prepares its own geometry instead of reading it back out of the world. */
+  private staticData = {
+    soldierUnit: new Uint32Array(),
+    teams: [] as number[],
+    classes: [] as number[],
+  };
+  private staticPending = false;
   private pendingTerrain: { grid: BattleTerrainGrid; options: BattleTerrainOptions } | null = null;
   private triangleVerts = new Float32Array();
   private frozenFrameKey: string | null = null;
@@ -145,15 +152,13 @@ export class BattleRenderer implements BattleRendererApi {
     this.frozenFrameKey = null;
     this.readoutFrameKey = "";
     this.triangleVerts = new Float32Array();
-    if (this.world) {
-      this.world.setStatic(soldierUnit, teams, classes);
-    } else {
-      this.pendingStatic = {
-        soldierUnit: new Uint32Array(soldierUnit),
-        teams: [...teams],
-        classes: [...classes],
-      };
-    }
+    this.staticData = {
+      soldierUnit: new Uint32Array(soldierUnit),
+      teams: [...teams],
+      classes: [...classes],
+    };
+    if (this.world) this.world.setStatic(soldierUnit, teams, classes);
+    else this.staticPending = true;
   }
 
   setTerrain(grid: BattleTerrainGrid, options: BattleTerrainOptions = {}) {
@@ -238,7 +243,15 @@ export class BattleRenderer implements BattleRendererApi {
     this.world.draw(positions, facings, playback, alive, count, cameraState, frameDt);
     const buildEnd = performance.now();
     if (this.blockMode) {
-      this.world.uploadDebugBlocks(this.world.debugBlockTriangles(positions, alive, count));
+      this.world.uploadDebugBlocks(
+        battleDebugBlockTriangles({
+          positions,
+          alive,
+          count,
+          soldierUnit: this.staticData.soldierUnit,
+          unitTeam: this.staticData.teams,
+        }),
+      );
     }
     const uploadEnd = performance.now();
     this.framePerf = {
@@ -422,13 +435,9 @@ export class BattleRenderer implements BattleRendererApi {
         showFatalErrorSurface(canvas, fatalSurfaceFor("device-lost", info.message));
       }
     });
-    if (this.pendingStatic) {
-      world.setStatic(
-        this.pendingStatic.soldierUnit,
-        this.pendingStatic.teams,
-        this.pendingStatic.classes,
-      );
-      this.pendingStatic = null;
+    if (this.staticPending) {
+      world.setStatic(this.staticData.soldierUnit, this.staticData.teams, this.staticData.classes);
+      this.staticPending = false;
     }
     if (this.pendingTerrain) {
       world.setTerrain(this.pendingTerrain.grid, this.pendingTerrain.options);

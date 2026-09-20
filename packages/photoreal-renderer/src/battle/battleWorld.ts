@@ -469,47 +469,6 @@ export class PhotorealBattleWorld {
     this.debugBlocks.upload(verts);
   }
 
-  debugBlockTriangles(positions: Float32Array, alive: Float32Array, count: number): Float32Array {
-    const bounds = new Map<
-      number,
-      { x0: number; y0: number; x1: number; y1: number; team: number }
-    >();
-    for (let i = 0; i < count; i++) {
-      if ((alive[i] ?? 0) <= 0.5) continue;
-      const unit = this.soldierUnit[i] ?? 0;
-      const x = positions[i * 2];
-      const y = positions[i * 2 + 1];
-      const prev = bounds.get(unit);
-      if (prev) {
-        prev.x0 = Math.min(prev.x0, x);
-        prev.y0 = Math.min(prev.y0, y);
-        prev.x1 = Math.max(prev.x1, x);
-        prev.y1 = Math.max(prev.y1, y);
-      } else {
-        bounds.set(unit, {
-          x0: x,
-          y0: y,
-          x1: x,
-          y1: y,
-          team: this.unitTeam[unit] ?? 0,
-        });
-      }
-    }
-    const verts: number[] = [];
-    for (const bound of bounds.values()) {
-      const pad = 2.4;
-      const x0 = bound.x0 - pad;
-      const y0 = bound.y0 - pad;
-      const x1 = bound.x1 + pad;
-      const y1 = bound.y1 + pad;
-      const color: [number, number, number, number] =
-        bound.team === 1 ? [0.88, 0.2, 0.16, 0.88] : [0.18, 0.44, 1.0, 0.88];
-      pushTriangle(verts, x0, y0, x1, y0, x1, y1, color);
-      pushTriangle(verts, x0, y0, x1, y1, x0, y1, color);
-    }
-    return new Float32Array(verts);
-  }
-
   drawTacticalLines(lines: BattleTacticalLineFrame, camera: BattleCameraSnapshot): void {
     this.setCamera(camera);
     this.groundCues.upload(lines.groundCues);
@@ -699,17 +658,4 @@ export class PhotorealBattleWorld {
     this.readoutLayer.dispose();
     this.world.dispose();
   }
-}
-
-function pushTriangle(
-  verts: number[],
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
-  cx: number,
-  cy: number,
-  color: [number, number, number, number],
-): void {
-  verts.push(ax, ay, ...color, bx, by, ...color, cx, cy, ...color);
 }

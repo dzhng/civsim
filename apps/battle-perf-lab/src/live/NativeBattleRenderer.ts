@@ -43,6 +43,7 @@ import {
   postGradeUniformsFromParams,
 } from "../../../../packages/game-renderer/src/environment/postParameters";
 import { resolveSunShadowMode } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
+import { battleDebugBlockTriangles } from "../../../../packages/game-renderer/src/battle/debugBlockData";
 import { productionBladeFieldProfile } from "../../../../packages/game-renderer/src/battle/battleGrassResidency";
 import {
   resolveBattleTerrainOptions,
@@ -81,6 +82,13 @@ type View = Parameters<Scene["prepare"]>[0];
 type CrowdScene = Extract<Scene, { replaceCrowdAssets: unknown }>;
 const crowdScene = (scene: Scene | undefined): CrowdScene | null =>
   scene && "replaceCrowdAssets" in scene ? scene : null;
+/** The block-debug view needs the second triangle layer, which only the selected
+ * raw world owns. The constructor already refused the other backends. */
+type DebugBlockScene = Extract<Scene, { uploadDebugBlocks: unknown }>;
+const debugBlockScene = (scene: Scene): DebugBlockScene => {
+  if (!("uploadDebugBlocks" in scene)) throw Error("Selected backend owns no debug-block layer");
+  return scene;
+};
 const twoFrames = () =>
   new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
@@ -94,6 +102,7 @@ export class BattleRenderer implements BattleRendererApi {
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
   private readonly backend = __BATTLE_NATIVE_BACKEND__;
+  private readonly blockMode: boolean;
   private readonly timingQueries = __BATTLE_NATIVE_TIMING_QUERIES__;
   private readonly environmentRequest: string | null;
   private readonly settings: GraphicsSettings;
@@ -168,8 +177,10 @@ export class BattleRenderer implements BattleRendererApi {
       throw Error("Invalid native lab backend");
     if (!["enabled", "disabled"].includes(this.timingQueries))
       throw Error("Invalid native lab timing-query mode");
-    if (params.get("debug") === "blocks")
-      throw Error("Native live lab does not implement the source debug-block view");
+    // The debug-block view is implemented by the selected raw world only, like High.
+    this.blockMode = params.get("debug") === "blocks";
+    if (this.blockMode && this.backend !== "raw")
+      throw Error(`The ${this.backend} candidate does not implement the source debug-block view`);
     this.environmentRequest = params.get("env") ?? options.environment ?? null;
     this.environment = resolveBattleEnvironment(this.environmentRequest).environment;
     this.settings = resolveGraphicsSettings(
@@ -506,6 +517,18 @@ export class BattleRenderer implements BattleRendererApi {
           const uploadStart = cpuMs;
           await step(() => owner.scene.uploadReadouts(c.standards, c.readouts));
           await step(() => owner.scene.uploadCrowd(this.instances, view.camera, view.time));
+          if (this.blockMode)
+            await step(() =>
+              debugBlockScene(owner.scene).uploadDebugBlocks(
+                battleDebugBlockTriangles({
+                  positions: c.positions,
+                  alive: c.alive,
+                  count: c.count,
+                  soldierUnit: this.staticData.soldierUnit,
+                  unitTeam: this.staticData.teams,
+                }),
+              ),
+            );
           if (c.triangles.length) await step(() => owner.scene.uploadTriangles(c.triangles));
           this.startupCallback = true;
           try {

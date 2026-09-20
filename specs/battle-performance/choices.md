@@ -642,3 +642,13 @@ The source-shaped30k reader cannot measure raw honestly yet. M9 owns its diagnos
 migration with every numerical/content floor unchanged. Pixel and frame-control
 reds remain named in [promotion evidence](assets/m1b-promotion/README.md); source
 or component correctness is never labelled final raw speed or shadow acceptance.
+
+## Candidate native parallel target preparation
+
+Provisional only:256 phase actors per batch, minimum Rayon chunk32, fixed staging
+and one shared geometry scan with bitwise position invalidation. Ordered completion
+retains live flags/bearings and RNG. No production adoption or browser-threading
+commitment. Root added multi-batch behavioral coverage and rejected the worker's
+native/Menu correspondence claim. Feature/thread-matched controls are required
+because pre-existing parallel weapon repulsion otherwise confounds attribution.
+See [correctness evidence](assets/03a-native-target-preparation/README.md).

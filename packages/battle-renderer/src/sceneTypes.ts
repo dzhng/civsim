@@ -19,10 +19,15 @@ export interface BattleTerrainInput {
   slopeBands?: BattleSlopeBands | null;
 }
 
-export interface BattleSceneOptions {
-  environment: CivsimEnvironment;
+/** One published crowd generation: gameplay appearances and the offline property
+ * atlas baked for each of them. Both are replaced together or not at all. */
+export interface BattleCrowdAssets {
   assets: Record<number, AppearanceBundle>;
   atlases: Record<number, ImpostorAtlasData>;
+}
+
+export interface BattleSceneOptions extends BattleCrowdAssets {
+  environment: CivsimEnvironment;
   terrain: BattleTerrainInput;
   grassProfile: BladeFieldProfile;
   width: number;

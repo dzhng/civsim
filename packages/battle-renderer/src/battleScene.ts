@@ -1,5 +1,5 @@
 import { nativeGpuScope } from "./gpuScope";
-import type { BattleSceneOptions, BattleTerrainInput } from "./sceneTypes";
+import type { BattleCrowdAssets, BattleSceneOptions, BattleTerrainInput } from "./sceneTypes";
 import { createRawEnvironment } from "./world/environment";
 import { RawBattleFrame } from "./world/frame";
 import { RawSunShadow } from "./world/shadow";
@@ -44,7 +44,8 @@ export async function createRawBattleScene(
     options.signal?.throwIfAborted();
     return value;
   };
-  let lastCamera: BattleCameraSnapshot | null = null;
+  let lastCamera: BattleCameraSnapshot | null = null,
+    lastTime = 0;
   let bloom = options.bloom,
     post = options.post;
   let disposed = false,
@@ -82,17 +83,20 @@ export async function createRawBattleScene(
         options.terrain,
       ),
     );
-    const crowd = own(
-      await createRawCrowdAudience(
+    const newCrowdAudience = (published: BattleCrowdAssets) =>
+      createRawCrowdAudience(
         device,
         caps,
-        options.assets,
-        options.atlases,
+        published.assets,
+        published.atlases,
         frame.cameraLayout,
         environment,
         options.samples,
-      ),
-    );
+      );
+    // Replaceable, so the release reads the installed generation rather than the first.
+    let crowd = await newCrowdAudience(options);
+    releases.push(() => crowd.dispose());
+    options.signal?.throwIfAborted();
     const grass = own(
       await createRawGrassField(
         device,
@@ -152,6 +156,15 @@ export async function createRawBattleScene(
       },
       ...(shadow?.update(camera.snapshot.camera3d).crowdViews ?? []),
     ];
+    // The last prepared camera, detached from the caller's mutable snapshot. A crowd
+    // replacement reprojects the carried pose through it rather than a second owner.
+    const rememberCamera = (camera: BattleCameraSnapshot, time: number) => {
+      lastCamera = {
+        ...camera,
+        camera3d: { ...camera.camera3d, target: [...camera.camera3d.target] },
+      };
+      lastTime = time;
+    };
     const wind = createWindUniforms(),
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
@@ -185,6 +198,48 @@ export async function createRawBattleScene(
           busy = false;
         }
       },
+      /** Stage a complete new crowd and atlas generation. A failed load, a rejected
+       * admission or disposal releases the staged resources and keeps the installed
+       * crowd; terrain, environment and frame attachments are never rebuilt. */
+      async replaceCrowdAssets(published: BattleCrowdAssets, admit?: () => void | Promise<void>) {
+        check();
+        if (busy) throw Error("Battle scene preparation already in flight");
+        busy = true;
+        try {
+          const staged = await newCrowdAudience(published);
+          try {
+            check();
+            // Admission runs against the staged resources and the still-installed
+            // pose, so a pose that changed during the wait is still validated.
+            await admit?.();
+            check();
+            const carried = crowd.admitted();
+            if (carried?.length && lastCamera) {
+              const camera = battleSceneCamera(
+                lastCamera,
+                frame.width,
+                frame.height,
+                lastTime,
+                options.environment,
+              );
+              staged.upload(carried, crowdViews(camera), camera.impostor);
+              const encoder = device.createCommandEncoder({ label: "battle pose update" });
+              nativeGpuScope(device, "pose", () => staged.precompute(encoder));
+              device.queue.submit([encoder.finish()]);
+            }
+          } catch (error) {
+            staged.dispose();
+            throw error;
+          }
+          crowd.dispose();
+          crowd = staged;
+          prepared = false;
+        } finally {
+          busy = false;
+        }
+      },
+      admittedCrowdPoses: () => crowd.admittedPoses(),
+      debugSoldierAnim: (index: number) => crowd.debugSoldierAnim(index),
       async settleGrass(camera?: BattleCameraSnapshot) {
         check();
         if (busy) throw Error("Battle scene preparation already in flight");
@@ -305,10 +360,7 @@ export async function createRawBattleScene(
           );
           check();
           terrain.setFrame(input.camera.zoom, grass.snapshot().terrainDetailStrength);
-          lastCamera = {
-            ...input.camera,
-            camera3d: { ...input.camera.camera3d, target: [...input.camera.camera3d.target] },
-          };
+          rememberCamera(input.camera, input.time);
           prepared = true;
         } finally {
           busy = false;

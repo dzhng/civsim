@@ -3,12 +3,20 @@ import type { BattleSceneOptions } from "../../packages/battle-renderer/src/scen
 import { beforeEach, expect, test, vi } from "vitest";
 const state = vi.hoisted(() => ({
   owners: [] as { dispose: ReturnType<typeof vi.fn> }[],
+  crowds: [] as {
+    dispose: ReturnType<typeof vi.fn>;
+    upload: ReturnType<typeof vi.fn>;
+    precompute: ReturnType<typeof vi.fn>;
+  }[],
+  crowdFailure: null as unknown,
+  crowdHold: null as null | Promise<void>,
+  admitted: [] as unknown[],
   replace: vi.fn(),
   setTerrain: vi.fn(),
   standardsUpload: vi.fn(),
   readoutUpload: vi.fn(),
 }));
-function layer(extra = {}) {
+function layer<T extends object>(extra: T = {} as T) {
   const value = {
     dispose: vi.fn(),
     upload: vi.fn(),
@@ -57,8 +65,22 @@ vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
 }));
 vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({
   // Prepare reuses the upload camera, so the audience reports unchanged views.
-  createRawCrowdAudience: async () =>
-    layer({ precompute: vi.fn(), reproject: vi.fn(() => false), refreshCamera: vi.fn() }),
+  createRawCrowdAudience: async () => {
+    if (state.crowdFailure) throw state.crowdFailure;
+    const value = layer({
+      precompute: vi.fn(),
+      reproject: vi.fn(() => false),
+      refreshCamera: vi.fn(),
+      admitted: () => state.admitted,
+      admittedPoses: () => new Set<string>(),
+      debugSoldierAnim: vi.fn(() => null),
+    });
+    state.crowds.push(value);
+    // Staged resources exist before the owner is handed back, as a real GPU
+    // preparation does; disposal in that window must still release them.
+    await state.crowdHold;
+    return value;
+  },
 }));
 vi.mock("../../packages/battle-renderer/src/world/grassField", () => ({
   createRawGrassField: async () =>
@@ -139,6 +161,10 @@ const caps = {
 };
 beforeEach(() => {
   state.owners.length = 0;
+  state.crowds.length = 0;
+  state.crowdFailure = null;
+  state.crowdHold = null;
+  state.admitted = [];
   state.replace.mockReset();
   state.setTerrain.mockReset();
   state.standardsUpload.mockReset();
@@ -184,4 +210,104 @@ test("disposal during an awaited UI upload prevents late readout allocation", as
   await expect(pending).rejects.toThrow("disposed");
   expect(state.readoutUpload).not.toHaveBeenCalled();
   expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
+});
+
+const published = { assets: {}, atlases: {} };
+test("a successful crowd replacement installs staged resources and carries the admitted pose", async () => {
+  const scene = await ready();
+  state.admitted = [{ classId: 0 }];
+  const [installed] = state.crowds;
+  await scene.replaceCrowdAssets(published);
+  const staged = state.crowds[1];
+  expect(state.crowds).toHaveLength(2);
+  expect(installed.dispose).toHaveBeenCalledOnce();
+  expect(staged.upload).toHaveBeenCalledOnce();
+  expect(staged.upload.mock.lastCall![0]).toBe(state.admitted);
+  expect(staged.precompute).toHaveBeenCalledOnce();
+  // Terrain, grass and environment are never rebuilt to reload the crowd.
+  expect(state.replace).not.toHaveBeenCalled();
+  expect(state.setTerrain).toHaveBeenCalledOnce();
+  expect(() => scene.encode({} as GPUCommandEncoder, {} as GPUTextureView)).toThrow(
+    "no completed preparation",
+  );
+  await scene.prepare({ camera, time: 0 });
+  expect(() => scene.encode({} as GPUCommandEncoder, {} as GPUTextureView)).not.toThrow();
+  scene.dispose();
+  expect(staged.dispose).toHaveBeenCalledOnce();
+  expect(installed.dispose).toHaveBeenCalledOnce();
+});
+test("a failed crowd staging retains the last valid world and stages nothing", async () => {
+  const scene = await ready();
+  const [installed] = state.crowds;
+  state.crowdFailure = Error("atlas allocation failed");
+  await expect(scene.replaceCrowdAssets(published)).rejects.toThrow("atlas allocation failed");
+  state.crowdFailure = null;
+  expect(state.crowds).toHaveLength(1);
+  expect(installed.dispose).not.toHaveBeenCalled();
+  expect(() => scene.encode({} as GPUCommandEncoder, {} as GPUTextureView)).not.toThrow();
+  scene.dispose();
+  expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
+});
+test("a refused admission releases the staged crowd and keeps presenting the old one", async () => {
+  const scene = await ready();
+  state.admitted = [{ classId: 0 }];
+  const [installed] = state.crowds;
+  await expect(
+    scene.replaceCrowdAssets(published, () => {
+      throw Error("Reload does not contain active appearance 0 / clip march");
+    }),
+  ).rejects.toThrow("active appearance 0 / clip march");
+  const staged = state.crowds[1];
+  expect(staged.dispose).toHaveBeenCalledOnce();
+  expect(staged.upload).not.toHaveBeenCalled();
+  expect(installed.dispose).not.toHaveBeenCalled();
+  expect(() => scene.encode({} as GPUCommandEncoder, {} as GPUTextureView)).not.toThrow();
+  scene.dispose();
+});
+test("disposal while staged crowd preparation waits releases the staged resources", async () => {
+  const scene = await ready();
+  const [installed] = state.crowds;
+  let resume!: () => void;
+  state.crowdHold = new Promise<void>((r) => {
+    resume = r;
+  });
+  const pending = scene.replaceCrowdAssets(published);
+  scene.dispose();
+  resume();
+  await expect(pending).rejects.toThrow("disposed");
+  const staged = state.crowds[1];
+  expect(staged.dispose).toHaveBeenCalledOnce();
+  expect(installed.dispose).toHaveBeenCalledOnce();
+  expect(staged.upload).not.toHaveBeenCalled();
+});
+test("disposal while admission waits releases the staged crowd before it can install", async () => {
+  const scene = await ready();
+  state.admitted = [{ classId: 0 }];
+  let resume!: () => void;
+  const admitting = new Promise<void>((r) => {
+    resume = r;
+  });
+  const pending = scene.replaceCrowdAssets(published, () => admitting);
+  for (let i = 0; i < 8; i++) await Promise.resolve();
+  const staged = state.crowds[1];
+  expect(staged.dispose).not.toHaveBeenCalled();
+  scene.dispose();
+  resume();
+  await expect(pending).rejects.toThrow("disposed");
+  expect(staged.dispose).toHaveBeenCalledOnce();
+  expect(staged.upload).not.toHaveBeenCalled();
+});
+test("a crowd replacement cannot overlap another staged scene operation", async () => {
+  const scene = await ready();
+  let resume!: () => void;
+  state.standardsUpload.mockReturnValueOnce(
+    new Promise<void>((r) => {
+      resume = r;
+    }),
+  );
+  const readouts = scene.uploadReadouts([], []);
+  await expect(scene.replaceCrowdAssets(published)).rejects.toThrow("already in flight");
+  resume();
+  await readouts;
+  scene.dispose();
 });

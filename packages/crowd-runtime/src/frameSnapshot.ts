@@ -38,6 +38,24 @@ function blendStorage() {
   };
 }
 
+/** A standalone value copy of one submitted playback under the same shell rule.
+ * Diagnostics hand this out so a record kept across frames cannot silently observe
+ * a later submission through the frame pool's reused shells. */
+export function copySoldierPlayback(playback: SoldierPlayback): SoldierPlayback {
+  const base = blendStorage();
+  base.copy(playback.base);
+  const copy: SoldierPlayback = {
+    appearanceId: playback.appearanceId,
+    base: base.blend as ClipBlend,
+  };
+  if (playback.riderUpperBody) {
+    const upper = blendStorage();
+    upper.copy(playback.riderUpperBody);
+    copy.riderUpperBody = upper.blend;
+  }
+  return copy;
+}
+
 /** Own the last submitted crowd without allocating new per-man records each
  * frame. Camera-only visibility updates read this state, never a mutable caller
  * array. A new submission overwrites the pool; callers must not retain its result

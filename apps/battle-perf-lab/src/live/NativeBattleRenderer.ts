@@ -57,13 +57,27 @@ import { createTerrainPicking } from "../terrainPicking";
 import { NativeGpuTelemetry, type NativeTimingQueryMode } from "../nativeGpuTelemetry";
 import { trackNativeGpuAllocations } from "../nativeGpuAllocations";
 import { beginGpuAdmission, GpuAdmissionBatch } from "../../../../packages/battle-renderer/src/gpuAdmission";
-import type { BattleSceneOptions, BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
+import type {
+  BattleCrowdAssets,
+  BattleSceneOptions,
+  BattleTerrainInput,
+} from "../../../../packages/battle-renderer/src/sceneTypes";
 
 declare const __BATTLE_NATIVE_BACKEND__: SceneBackend;
+/** Lab-only comparison override for the published impostor catalog. It is empty in
+ * the product, which uses the offline bake published beside the appearance catalog. */
 declare const __BATTLE_NATIVE_ATLAS_CATALOG__: string;
 declare const __BATTLE_NATIVE_TIMING_QUERIES__: NativeTimingQueryMode;
+const PUBLISHED_APPEARANCE_CATALOG = "/assets/soldiers/catalog.json";
+const PUBLISHED_IMPOSTOR_CATALOG = "/assets/soldiers/impostors/catalog.json";
 type Owner = Awaited<ReturnType<typeof createSceneBackend>>;
-type View = Parameters<Owner["scene"]["prepare"]>[0];
+type Scene = Owner["scene"];
+type View = Parameters<Scene["prepare"]>[0];
+/** Crowd assets, replacement and admitted-pose diagnostics belong to the selected
+ * raw world; the remaining comparison backends are retired at M9 and never owned them. */
+type CrowdScene = Extract<Scene, { replaceCrowdAssets: unknown }>;
+const crowdScene = (scene: Scene | undefined): CrowdScene | null =>
+  scene && "replaceCrowdAssets" in scene ? scene : null;
 const twoFrames = () =>
   new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
@@ -151,8 +165,6 @@ export class BattleRenderer implements BattleRendererApi {
       throw Error("Invalid native lab backend");
     if (!["enabled", "disabled"].includes(this.timingQueries))
       throw Error("Invalid native lab timing-query mode");
-    if (!__BATTLE_NATIVE_ATLAS_CATALOG__)
-      throw Error("Native live lab requires the prepared atlas catalog");
     if (params.get("debug") === "blocks")
       throw Error("Native live lab does not implement the source debug-block view");
     this.environmentRequest = params.get("env") ?? options.environment ?? null;
@@ -216,12 +228,18 @@ export class BattleRenderer implements BattleRendererApi {
     this.lifecycle.check();
     signal?.throwIfAborted();
   }
-  private async assets() {
+  /** One published crowd generation: the shipped appearance catalog plus the offline
+   *  property atlas baked beside it. A lab comparison run may redirect the atlas
+   *  catalog; the product path resolves both from the published defaults. */
+  private async assets(): Promise<BattleCrowdAssets> {
     const assets = await loadAppearanceCatalog(
-      new URL("/assets/soldiers/catalog.json", location.href).href,
+      new URL(PUBLISHED_APPEARANCE_CATALOG, location.href).href,
     );
+    this.check();
     assertGameplayAppearances(assets);
-    const url = new URL(__BATTLE_NATIVE_ATLAS_CATALOG__, location.href);
+    const override =
+      new URLSearchParams(location.search).get("atlas") || __BATTLE_NATIVE_ATLAS_CATALOG__;
+    const url = new URL(override || PUBLISHED_IMPOSTOR_CATALOG, location.href);
     const response = await fetch(url);
     if (!response.ok) throw Error(`Atlas catalog ${response.status}`);
     const catalog = await response.json();
@@ -233,6 +251,16 @@ export class BattleRenderer implements BattleRendererApi {
       atlases[id] = await loadImpostorAtlas(new URL(catalog.appearances[id], url).href, assets[id]);
     }
     return { assets, atlases };
+  }
+  /** Every pose the crowd owner is presenting must exist in the replacement, both
+   *  when it loads and again at admission: the simulation may submit new poses while
+   *  the catalog load and the staged GPU resources wait. */
+  private assertActivePoses(published: BattleCrowdAssets, scene: CrowdScene) {
+    for (const pose of scene.admittedCrowdPoses()) {
+      const [classId, clip] = pose.split("\u0000");
+      if (!published.assets[Number(classId)]?.animation.clips.some((c) => c.name === clip))
+        throw Error(`Reload does not contain active appearance ${classId} / clip ${clip}`);
+    }
   }
   private async init() {
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
@@ -681,12 +709,50 @@ export class BattleRenderer implements BattleRendererApi {
   memoryInfo() {
     return null;
   }
+  /** The pose the crowd owner actually admitted, not the instance scratch the next
+   *  frame rebuilds in place. */
   debugSoldierAnim(index: number) {
-    const i = this.instances[index];
-    return i ? { appearanceId: i.classId, playback: i.playback ?? null } : null;
+    return crowdScene(this.owner?.scene)?.debugSoldierAnim(index) ?? null;
   }
-  async reloadSoldierAssets() {
-    throw Error("Asset reload is not implemented by this functional native benchmark checkpoint");
+  /** Reload the published crowd after a bake. The replacement is staged: a failed
+   *  load or admission keeps the last valid world, disposal releases the staged
+   *  resources, and success keeps the current playback while invalidating the frozen
+   *  presentation so the next frame actually resubmits. */
+  reloadSoldierAssets(): Promise<void> {
+    const prior = this.pendingPresentation,
+      previous = this.readiness;
+    const job = (async () => {
+      await this.ready;
+      await previous;
+      await prior;
+      this.check();
+      const scene = crowdScene(this.owner?.scene);
+      if (!scene) throw Error(`The ${this.backend} comparison backend does not own crowd assets`);
+      const published = await this.assets();
+      this.check();
+      this.assertActivePoses(published, scene);
+      await this.lifecycle.run(async () => {
+        await this.admitted(() =>
+          scene.replaceCrowdAssets(published, () => this.assertActivePoses(published, scene)),
+        );
+        this.soldierAssets = published.assets;
+        // Replacement changes the drawn generation: the retained frozen image is no
+        // longer what this crowd would present. Built instances stay, so playback continues.
+        this.invalidate();
+      });
+    })();
+    // Published synchronously, as in settlePresentedFrame: presentations started
+    // from here on park on this barrier instead of racing the replacement into
+    // scene ownership, and they do not inherit its failure.
+    const barrier = job.then(
+      () => {},
+      () => {},
+    );
+    this.readiness = barrier;
+    void barrier.then(() => {
+      if (this.readiness === barrier) this.readiness = null;
+    });
+    return job;
   }
   stats(): BattleRendererStats {
     const native = this.owner?.scene.stats() ?? null;

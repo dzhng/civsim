@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
-import { CrowdFrameSnapshot } from "@packages/crowd-runtime/src/frameSnapshot";
+import { copySoldierPlayback, CrowdFrameSnapshot } from "@packages/crowd-runtime/src/frameSnapshot";
 import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 
 function soldier(): CrowdInstance {
@@ -82,4 +82,22 @@ test("snapshot storage survives alias changes, optional fields and shrink/regrow
   expect(saved.playback).toBeUndefined();
   owner.clear();
   expect(owner.instances).toEqual([]);
+});
+
+test("a standalone playback copy is independent of the pool and keeps endpoint aliasing", () => {
+  const owner = new CrowdFrameSnapshot();
+  const input = soldier();
+  const [saved] = owner.capture([input]);
+  const copy = copySoldierPlayback(saved.playback!);
+  expect(copy).toEqual(saved.playback);
+  expect(copy).not.toBe(saved.playback);
+  const source = copy.base.source;
+  expect(source.kind === "clip" && source.sample).toBe(copy.base.destination);
+  // A later submission overwrites the pool; a handed-out copy must not follow it.
+  input.playback!.base.destination.phase = 0.8;
+  delete input.playback!.riderUpperBody;
+  owner.capture([input]);
+  expect(saved.playback!.base.destination.phase).toBe(0.8);
+  expect(copy.base.destination.phase).toBe(0.3);
+  expect(copy.riderUpperBody).toEqual(soldier().playback!.riderUpperBody);
 });

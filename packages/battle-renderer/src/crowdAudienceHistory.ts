@@ -56,10 +56,14 @@ export function createCrowdAudienceHistory(
     disposed = false;
   type Publication = {
     count: number;
+    submission: number;
     instances: CrowdInstance[];
     plan: ReturnType<typeof planCrowdLods>;
     groups: Map<number, CrowdInstance[]>;
   };
+  // Counts admitted poses, not uploads: a camera-only reprojection republishes the
+  // same submitted pose and must not read as a new one.
+  let submission = 0;
   let visibleTierHistogram = emptyLodCounts();
   let shadowTierHistogram = emptyLodCounts();
   let pending: Publication | undefined;
@@ -72,13 +76,16 @@ export function createCrowdAudienceHistory(
     ids,
     check,
     instances: () => snapshot.instances,
+    /** The pose actually admitted for drawing, or null while none is. */
+    admitted: () => (ready ? { submission, instances: snapshot.instances } : null),
     matchesViews: (views: readonly CrowdProjectionView[]) => ready && viewState.matches(views),
     begin(instances: readonly CrowdInstance[], views: readonly CrowdProjectionView[]): Publication {
       check();
       if (pending) throw Error("Crowd audience upload already pending");
       ready = false;
       nextViews.commit(views);
-      if (instances !== snapshot.instances) instances = snapshot.capture(instances);
+      const resubmitted = instances !== snapshot.instances;
+      if (resubmitted) instances = snapshot.capture(instances);
       for (const instance of instances)
         if (!assets[instance.classId]) throw Error(`Missing appearance ${instance.classId}`);
       if (next.levels.length < instances.length)
@@ -98,7 +105,13 @@ export function createCrowdAudienceHistory(
         if (plan.visibility[i] & 1 && plan.levels[i] === IMPOSTOR_LEVEL)
           groups.get(instance.classId)!.push(instance);
       }
-      pending = { count: instances.length, instances: snapshot.instances, plan, groups };
+      pending = {
+        count: instances.length,
+        submission: resubmitted ? submission + 1 : submission,
+        instances: snapshot.instances,
+        plan,
+        groups,
+      };
       return pending;
     },
     commit(publication: Publication, view: ImpostorView) {
@@ -106,6 +119,7 @@ export function createCrowdAudienceHistory(
       if (pending !== publication) throw Error("Crowd audience publication is not pending");
       [previous, next] = [next, previous];
       previousCount = publication.count;
+      submission = publication.submission;
       selected = publication.groups;
       mainVisible = publication.plan.viewVisible;
       shadowOnly = publication.plan.shadowOnly;

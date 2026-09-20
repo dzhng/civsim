@@ -55,7 +55,34 @@ const soldier = {
   mounted: false,
   lod: 0,
 } as const;
-const assets = { 0: { manifest: { bounds: { center: [0, 0, 0], radius: 1 } } } };
+const assets = {
+  0: {
+    manifest: { bounds: { center: [0, 0, 0], radius: 1 } },
+    animation: {
+      clips: [
+        { name: "idle", duration: 1.5 },
+        { name: "march", duration: 0.8 },
+      ],
+    },
+  },
+};
+/** A submitted playback with the real endpoint aliasing: a held pose samples its
+ *  own destination rather than a second sample object. */
+const playback = (clip: string, phase: number) => {
+  const destination = { clip, phase };
+  return {
+    appearanceId: 0,
+    base: { source: { kind: "clip" as const, sample: destination }, destination, weight: 1 },
+  };
+};
+const posed = (clip: string, phase: number) => ({
+  ...soldier,
+  x: 7,
+  y: 9,
+  clip,
+  phase,
+  playback: playback(clip, phase),
+});
 const create = () =>
   createRawCrowdAudience(
     {} as never,
@@ -251,6 +278,73 @@ test("failed billboard refresh cannot make the preceding camera drawable", async
     owner.upload([soldier], [view(0.1)], camera);
     owner.refreshCamera(camera);
     expect(layer.update).toHaveBeenCalledTimes(3);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("soldier diagnostics report the pose this owner admitted, not a caller's array", async () => {
+  const owner = await create();
+  try {
+    expect(owner.debugSoldierAnim(0)).toBeNull();
+    const submitted = posed("idle", 0.25);
+    owner.upload([submitted], [view(10)], camera);
+    const admitted = owner.debugSoldierAnim(0)!;
+    expect(admitted).toMatchObject({ root: [7, 9], clip: "idle", phase: 0.25, duration: 1.5 });
+    expect(admitted.playback).toEqual(submitted.playback);
+    expect(admitted.playback).not.toBe(submitted.playback);
+    expect(owner.debugSoldierAnim(1)).toBeNull();
+    // A camera that never moved re-reads one admitted submission, not a new pose.
+    expect(owner.debugSoldierAnim(0)).toBe(admitted);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("reprojection republishes one admitted pose while a new submission reads as new", async () => {
+  const owner = await create();
+  try {
+    owner.upload([posed("idle", 0.25)], [view(10)], camera);
+    const admitted = owner.debugSoldierAnim(0)!;
+    expect(owner.reproject([view(12)], camera)).toBe(true);
+    expect(owner.debugSoldierAnim(0)).toBe(admitted);
+    owner.refreshCamera({ ...camera, fovY: 0.8 });
+    expect(owner.debugSoldierAnim(0)).toBe(admitted);
+    owner.upload([posed("march", 0.5)], [view(12)], camera);
+    const next = owner.debugSoldierAnim(0)!;
+    expect(next).toMatchObject({ clip: "march", phase: 0.5, duration: 0.8 });
+    expect(next.playback).not.toBe(admitted.playback);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("a rejected upload reports no admitted pose rather than the refused one", async () => {
+  const owner = await create();
+  try {
+    owner.upload([posed("idle", 0.25)], [view(10)], camera);
+    mesh.upload.mockImplementationOnce(() => {
+      throw Error("upload failed");
+    });
+    expect(() => owner.upload([posed("march", 0.5)], [view(10)], camera)).toThrow("upload failed");
+    expect(owner.debugSoldierAnim(0)).toBeNull();
+    expect([...owner.admittedPoses()]).toEqual([]);
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("admitted poses name the distinct appearance and clip pairs being presented", async () => {
+  const owner = await create();
+  try {
+    expect([...owner.admittedPoses()]).toEqual([]);
+    owner.upload(
+      [posed("idle", 0.25), posed("march", 0.5), posed("idle", 0.9)],
+      [view(10)],
+      camera,
+    );
+    expect([...owner.admittedPoses()]).toEqual(["0\u0000idle", "0\u0000march"]);
+    expect(owner.admitted()).toHaveLength(3);
   } finally {
     owner.dispose();
   }

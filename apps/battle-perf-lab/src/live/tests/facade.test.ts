@@ -5,6 +5,8 @@ const state = vi.hoisted(() => ({
   queue: null as any,
   hold: null as null | (() => Promise<void>),
   calls: [] as any[],
+  fetched: [] as string[],
+  catalogFailure: null as unknown,
   disposed: vi.fn(),
 }));
 vi.mock("../../sceneBackend", () => ({
@@ -20,7 +22,10 @@ vi.mock("../../sceneBackend", () => ({
   },
 }));
 vi.mock("../../../../../packages/soldier-assets/src/appearanceBundle", () => ({
-  loadAppearanceCatalog: async () => ({ 0: { manifest: { mounted: false } } }),
+  loadAppearanceCatalog: async () => {
+    if (state.catalogFailure) throw state.catalogFailure;
+    return { 0: { manifest: { mounted: false }, animation: { clips: [{ name: "idle" }] } } };
+  },
 }));
 vi.mock("../../../../../packages/soldier-assets/src/impostorAtlas", () => ({
   loadImpostorAtlas: async () => ({}),
@@ -75,20 +80,28 @@ const packet = (): BattlePresentation => ({
 });
 beforeEach(() => {
   state.calls = [];
+  state.fetched = [];
+  state.catalogFailure = null;
   state.hold = null;
   state.disposed.mockReset();
 });
 afterEach(() => vi.unstubAllGlobals());
-function fixture(build: { timingQueries?: "enabled" | "disabled"; timestampQuery?: boolean } = {}) {
+function fixture(
+  build: {
+    timingQueries?: "enabled" | "disabled";
+    timestampQuery?: boolean;
+    atlasOverride?: string;
+  } = {},
+) {
   vi.stubGlobal("__BATTLE_NATIVE_BACKEND__", "raw");
-  vi.stubGlobal("__BATTLE_NATIVE_ATLAS_CATALOG__", "/prepared/catalog.json");
+  vi.stubGlobal("__BATTLE_NATIVE_ATLAS_CATALOG__", build.atlasOverride ?? "");
   vi.stubGlobal("__BATTLE_NATIVE_TIMING_QUERIES__", build.timingQueries ?? "enabled");
   vi.stubGlobal("location", { search: "", href: "http://localhost/benchmark" });
   vi.stubGlobal("window", { devicePixelRatio: 2, addEventListener() {}, removeEventListener() {} });
-  vi.stubGlobal("fetch", async () => ({
-    ok: true,
-    json: async () => ({ appearances: { 0: "a.json" } }),
-  }));
+  vi.stubGlobal("fetch", async (url: URL | string) => {
+    state.fetched.push(String(url));
+    return { ok: true, json: async () => ({ appearances: { 0: "a.json" } }) };
+  });
   const callbacks: FrameRequestCallback[] = [];
   vi.stubGlobal("requestAnimationFrame", (f: FrameRequestCallback) => {
     callbacks.push(f);
@@ -152,6 +165,12 @@ function fixture(build: { timingQueries?: "enabled" | "disabled"; timestampQuery
       uploadTacticalLines: call("lines"),
       prepare: call("prepare"),
       settleGrass: call("settle"),
+      replaceCrowdAssets: async (published: unknown, admit?: () => void | Promise<void>) => {
+        call("replaceCrowd")(published);
+        await admit?.();
+      },
+      admittedCrowdPoses: () => new Set(["0\u0000idle"]),
+      debugSoldierAnim: (index: number) => (index === 0 ? { clip: "idle", phase: 0.25 } : null),
       stats: () => ({ actual: true, crowd: { instances: 0, ready: true } }),
     },
     submitPresentation: () => {
@@ -535,4 +554,77 @@ test("cancellation during batched validation cannot submit a late frame", async 
   expect(f.renderer.frameMetrics().renderedFrameId).toBe(previous.renderedFrameId);
   await expect(f.renderer.present(packet())).resolves.toMatchObject({ submitted: true });
   f.renderer.dispose();
+});
+
+test("the published impostor catalog is resolved at runtime and overridable only in the lab", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  expect(state.fetched).toEqual(["http://localhost/assets/soldiers/impostors/catalog.json"]);
+  f.renderer.dispose();
+  const lab = fixture({ atlasOverride: "/benchmark-atlas/catalog.json" });
+  await lab.renderer.ready;
+  expect(state.fetched).toContain("http://localhost/benchmark-atlas/catalog.json");
+  lab.renderer.dispose();
+});
+
+test("a reload stages the published crowd, keeps playback and invalidates the frozen frame", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  const frozen = { ...packet(), fixedTime: 12 };
+  await f.renderer.present(frozen);
+  await expect(f.renderer.present(frozen)).resolves.toMatchObject({ submitted: false });
+  state.fetched = [];
+  await f.renderer.reloadSoldierAssets();
+  expect(state.calls.filter((c) => c[0] === "replaceCrowd")).toHaveLength(1);
+  expect(state.calls.at(-1)![1]).toMatchObject({ assets: { 0: {} }, atlases: { 0: {} } });
+  expect(state.fetched).toContain("http://localhost/assets/soldiers/impostors/catalog.json");
+  // The retained frozen image is no longer what this crowd would present.
+  await expect(f.renderer.present(frozen)).resolves.toMatchObject({ submitted: true });
+  f.renderer.dispose();
+});
+
+test("a failed reload load keeps the last valid world usable", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  state.catalogFailure = Error("catalog 503");
+  await expect(f.renderer.reloadSoldierAssets()).rejects.toThrow("catalog 503");
+  expect(state.calls.filter((c) => c[0] === "replaceCrowd")).toHaveLength(0);
+  expect(state.disposed).not.toHaveBeenCalled();
+  state.catalogFailure = null;
+  await expect(f.renderer.present(packet())).resolves.toMatchObject({ submitted: true });
+  f.renderer.dispose();
+});
+
+test("a reload whose replacement drops an admitted pose is refused before installation", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  state.owner.scene.admittedCrowdPoses = () => new Set(["0\u0000charge"]);
+  await expect(f.renderer.reloadSoldierAssets()).rejects.toThrow(
+    "Reload does not contain active appearance 0 / clip charge",
+  );
+  expect(state.calls.filter((c) => c[0] === "replaceCrowd")).toHaveLength(0);
+  await expect(f.renderer.present(packet())).resolves.toMatchObject({ submitted: true });
+  f.renderer.dispose();
+});
+
+test("a disposed renderer rejects a later reload without fetching", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  f.renderer.dispose();
+  state.fetched = [];
+  await expect(f.renderer.reloadSoldierAssets()).rejects.toThrow("disposed");
+  expect(state.fetched).toEqual([]);
+});
+
+test("soldier animation diagnostics report the crowd owner's admitted pose", async () => {
+  const f = fixture();
+  expect(f.renderer.debugSoldierAnim(0)).toBeNull();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  expect(f.renderer.debugSoldierAnim(0)).toEqual({ clip: "idle", phase: 0.25 });
+  expect(f.renderer.debugSoldierAnim(1)).toBeNull();
+  f.renderer.dispose();
+  expect(f.renderer.debugSoldierAnim(0)).toBeNull();
 });

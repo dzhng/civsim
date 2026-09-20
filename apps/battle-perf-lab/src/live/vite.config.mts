@@ -4,14 +4,15 @@ import base from "../../../../web/vite.config";
 import { heldBenchmarkPlugins } from "../held/heldBenchmarkPlugin";
 import { wholeMapShadowControlPlugins } from "../shadow-control/wholeMapShadowControl";
 const backend = process.env.BATTLE_NATIVE_BACKEND;
-const atlas = process.env.BATTLE_NATIVE_ATLAS_CATALOG;
+// Optional lab comparison override. Unset, the facade loads the published offline
+// impostor bake, so the real Menu route needs no compile-time catalog constant.
+const atlas = process.env.BATTLE_NATIVE_ATLAS_CATALOG ?? "";
 // Lab-only incremental query/readback overhead control. The default keeps the
 // existing instrumented workload; "disabled" removes only the observer's
 // timestamp queries, not its submission observation or any drawing.
 const timingQueries = process.env.BATTLE_NATIVE_TIMING_QUERIES ?? "enabled";
 if (!backend || !["raw", "typegpu", "vgpu"].includes(backend))
   throw Error("Set BATTLE_NATIVE_BACKEND=raw|typegpu|vgpu");
-if (!atlas) throw Error("Set BATTLE_NATIVE_ATLAS_CATALOG to the prepared full catalog URL");
 if (!["enabled", "disabled"].includes(timingQueries))
   throw Error("Set BATTLE_NATIVE_TIMING_QUERIES=enabled|disabled (default enabled)");
 const world = fileURLToPath(new URL("../../../../web/src/battle/battleWorld.ts", import.meta.url));

@@ -966,3 +966,17 @@ The same direct-write decision applies to authored-channel sampling. Wrappers
 with no production callers were removed rather than preserved as a compatibility
 surface; packed-pose tests now cover their behavior through the real consumer.
 No new architecture or interpolation policy is introduced.
+
+## LOD quality diagnosis
+
+- **When:** Existing-L2 footprint experiment. **Choice:** Keep current mesh
+  selection while diagnosing the coarser tier's weaker body and equipment
+  silhouettes. A soldier can retain the same material names and still lose
+  readable edges when its shape or normals change. The alternative would count
+  retained materials as sufficient quality and ship the faster tier immediately.
+  **Gap:** The plan permits representation changes but does not prescribe how
+  to distinguish geometry loss from changed lighting. **Reach:** Compare both
+  tiers with identical constant-color opaque rendering before choosing a new reduction or policy;
+  constant-color rendering itself never becomes the player's visual treatment.
+  **Verdict:** Sound; preserves the required readability while isolating the
+  cause of the observed difference. **Confidence:** High.

@@ -8,19 +8,16 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: test main L1→existing L2 with full shading against readable
-soldiers/weapon silhouettes, leaving L0 and shadow buckets unchanged.
-[Cheap-shading diagnostics](assets/gpu-crowd-shading/README.md) completed12 blocks:
-main13.9→8.8ms at200m with identical15.85M triangle count. Shading/normal/varying
-work is substantial; do not assume a purely geometric or purely texture bottleneck.
-The LOD audit finds all20 L2 meshes around25% of L1 triangles while retaining
-L1 material IDs. That does not prove silhouette quality; no LOD change is adopted. The
-[GPU layer controls](assets/gpu-layer-attribution/README.md) completed96 blocks.
-At physical200m, removing crowd draws changes main GPU time13.7→6.3ms; grass
-about2ms, backdrop nearly nothing, bloom small. Full mesh demand is about16million
-triangles for roughly4,000 visible mesh soldiers, mostlyL1. Initial dial-based
-controls were859/3200m, not tactical; always set and verify physical camera pose.
-These missing-content controls only attribute cost, never qualify as optimizations.
+Current pickup: distinguish geometry coverage from shading in the L1/L2
+comparison using identical constant-color opaque rendering. [The L2 footprint experiment](assets/07-l2-footprint/README.md)
+completed 24 matched blocks: main GPU time falls from about 13.6–13.8ms to
+9.1ms at 200m, with unchanged shadow geometry. Independent anonymous review
+prefers L1's more solid infantry/equipment silhouettes; no severed weapon was
+proven. **The remap is not adopted.** Diagnose coverage versus normals/materials
+before changing mesh assets or thresholds; motion acceptance remains open.
+[Cheap shading](assets/gpu-crowd-shading/README.md) and
+[layer controls](assets/gpu-layer-attribution/README.md) establish substantial
+crowd/shading cost. Use verified physical camera poses, not zoom-dial labels.
 
 [The combined blend/channel replay](assets/06a-transition-trace/README.md)
 is complete:32 actual late-window updates over15,560 soldiers, exact full state

@@ -1,0 +1,50 @@
+{
+  "horizon-200m": {
+    "control": {
+      "main": 13.827289,
+      "gpuUnionMs": 16.6224445,
+      "mainTriangles": 15945302.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 64.0
+    },
+    "l2": {
+      "main": 9.131183499999999,
+      "gpuUnionMs": 12.081836,
+      "mainTriangles": 4535618.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 64.0
+    }
+  },
+  "tactical-200m": {
+    "control": {
+      "main": 13.57634475,
+      "gpuUnionMs": 16.3832285,
+      "mainTriangles": 15845822.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 56.0
+    },
+    "l2": {
+      "main": 9.14787075,
+      "gpuUnionMs": 11.96892075,
+      "mainTriangles": 4391110.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 56.0
+    }
+  },
+  "wide-600m": {
+    "control": {
+      "main": 9.17455775,
+      "gpuUnionMs": 12.263499750000001,
+      "mainTriangles": 6738100.0,
+      "shadowTriangles": 6207200.0,
+      "draws": 59.0
+    },
+    "l2": {
+      "main": 9.2016825,
+      "gpuUnionMs": 12.12486725,
+      "mainTriangles": 6738100.0,
+      "shadowTriangles": 6207200.0,
+      "draws": 59.0
+    }
+  }
+}

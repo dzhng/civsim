@@ -51,3 +51,11 @@ appearance and gameplay behavior. Do not add a compatibility or backend switch.
 Verify all transitions (including shadow-floor and impostor routing), actual
 per-audience work, model/campaign consumers, the unchanged standing gate and
 moving-camera/live acceptance before adopting the new default.
+
+## Current discriminator
+
+[The existing-L2 footprint experiment](../assets/07-l2-footprint/README.md) shows
+a substantial GPU saving but weaker perceived soldier/equipment solidity. Do not
+adopt the remap as-is. A constant-color coverage comparison separates geometric coverage
+from shading before any new tier is baked. Material-ID retention alone is not
+a silhouette gate. All transition and full-catalog gates above remain open.

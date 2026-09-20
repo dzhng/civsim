@@ -22,6 +22,10 @@ before restarting. No timing job is active.
 
 Current evidence:
 
+- [Scene baseline](assets/typegpu-scene-state/README.md): actual TypeGPU Menu
+  rejects model reload and exposes no seating/pose/depth diagnostics before the
+  active integration;15,560 soldiers render and teardown releases tracked bytes.
+
 - [Typed colours and frame depth](assets/typegpu-first-passes/README.md): typed
   colour bodies, nonfinite-safe numerical comparison, real frame allocation and
   resize/disposal checks pass. Other string shader bodies remain untyped.

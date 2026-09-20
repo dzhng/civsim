@@ -7,6 +7,7 @@ import {
 import type { GrassRecordEdit } from "../../../game-renderer/src/battle/grassFocusTiles";
 import { grassRoutingShader, grassDrawShader } from "../shaders/grassPasses";
 import type { RawEnvironment } from "./environment";
+import { battleWorldDepth } from "../worldDepth";
 
 /** Published records and exact source geometry are inputs; no CPU placement/residency owner here.
  * Device/camera/environment/attachments are borrowed. GPU append order is never reordered. */
@@ -164,11 +165,7 @@ export async function createRawGrass(
         fragment: { module, entryPoint, targets: [{ format, writeMask }] },
         primitive: { topology: "triangle-list", cullMode: "none" },
         multisample: { count: sampleCount },
-        depthStencil: {
-          format: "depth32float",
-          depthWriteEnabled: true,
-          depthCompare: "greater-equal",
-        },
+        depthStencil: battleWorldDepth("read-write"),
       });
     const [beauty, prepass] = await Promise.all([
       pipeline("beauty", GPUColorWrite.ALL),

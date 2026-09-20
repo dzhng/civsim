@@ -10,6 +10,14 @@ const state = vi.hoisted(() => ({
   fetched: [] as string[],
   catalogFailure: null as unknown,
   disposed: vi.fn(),
+  /** Content the mocked scene owners actually hold, so the facade's published
+   *  diagnostics have to follow real changes rather than repeat a fixed shape. */
+  scene: {
+    generation: 0,
+    scenery: 0,
+    preparedCamera: null as any,
+    lines: { groundCues: 0, rings: 0, effects: 0 },
+  },
 }));
 vi.mock("../../sceneBackend", () => ({
   createSceneBackend: async (
@@ -88,6 +96,13 @@ beforeEach(() => {
   state.catalogFailure = null;
   state.hold = null;
   state.disposed.mockReset();
+  // The scene installs its first terrain generation while it is constructed.
+  state.scene = {
+    generation: 1,
+    scenery: 7,
+    preparedCamera: null,
+    lines: { groundCues: 0, rings: 0, effects: 0 },
+  };
 });
 afterEach(() => vi.unstubAllGlobals());
 function fixture(
@@ -96,6 +111,9 @@ function fixture(
     timestampQuery?: boolean;
     atlasOverride?: string;
     backend?: "raw" | "typegpu" | "vgpu";
+    /** Omit the crowd-replacement seam, as the retired comparison backends do:
+     *  their scenes never owned the selected world's content diagnostics. */
+    comparisonScene?: boolean;
     search?: string;
     /** Render passes the scene encodes per prepared frame, so the observer has
      *  real measured work to publish. */
@@ -181,13 +199,26 @@ function fixture(
     (...args: unknown[]) => {
       state.calls.push([name, ...args]);
     };
+  const selectedWorld = {
+    replaceCrowdAssets: async (published: unknown, admit?: () => void | Promise<void>) => {
+      call("replaceCrowd")(published);
+      await admit?.();
+    },
+    admittedCrowdPoses: () => new Set(["0\u0000idle"]),
+    debugSoldierAnim: (index: number) => (index === 0 ? { clip: "idle", phase: 0.25 } : null),
+    uploadDebugBlocks: call("blocks"),
+  };
   state.owner = {
     scene: {
       pickingMeshes: () => [],
       heightAt: () => 2,
       seatingHeightAt: () => 2,
       setVisibility: call("visibility"),
-      replaceTerrain: call("terrain"),
+      replaceTerrain: (...args: unknown[]) => {
+        call("terrain")(...args);
+        state.scene.generation++;
+        state.scene.scenery += 3;
+      },
       resize: call("resize"),
       uploadReadouts: call("readouts"),
       uploadCrowd: (...args: unknown[]) => {
@@ -195,23 +226,58 @@ function fixture(
         queue.submit([]);
       },
       uploadTriangles: call("triangles"),
-      uploadDebugBlocks: call("blocks"),
-      uploadTacticalLines: call("lines"),
-      prepare: (...args: unknown[]) => {
-        call("prepare")(...args);
+      uploadTacticalLines: (lines: any, ...rest: unknown[]) => {
+        call("lines")(lines, ...rest);
+        state.scene.lines = {
+          groundCues: lines.groundCues.length,
+          rings: lines.rings.length,
+          effects: lines.effects.length,
+        };
+      },
+      prepare: (view: any, ...rest: unknown[]) => {
+        call("prepare")(view, ...rest);
+        state.scene.preparedCamera = view.camera;
         if (!build.encodePasses) return;
         const encoder = device.createCommandEncoder();
         for (const label of build.encodePasses) encoder.beginRenderPass({ label }).end();
         state.encoded.push(encoder.finish());
       },
       settleGrass: call("settle"),
-      replaceCrowdAssets: async (published: unknown, admit?: () => void | Promise<void>) => {
-        call("replaceCrowd")(published);
-        await admit?.();
-      },
-      admittedCrowdPoses: () => new Set(["0\u0000idle"]),
-      debugSoldierAnim: (index: number) => (index === 0 ? { clip: "idle", phase: 0.25 } : null),
-      stats: () => ({ actual: true, crowd: { instances: 0, ready: true } }),
+      ...(build.comparisonScene ? {} : selectedWorld),
+      stats: () => ({
+        actual: true,
+        crowd: { instances: 0, ready: true },
+        preparedCamera: state.scene.preparedCamera,
+        environment: "aegean-noon",
+        depth: {
+          owner: "raw-battle-frame",
+          installed: true,
+          format: "depth32float",
+          samples: 1,
+          width: 1440,
+          height: 900,
+          clearValue: 0,
+          reversed: true,
+          requestedBytes: 1440 * 900 * 4,
+        },
+        shadows: { mode: "single", cascades: 1 },
+        grass: { residency: { rebuild: { pending: false } } },
+        terrain: {
+          installed: true,
+          generation: state.scene.generation,
+          replacing: false,
+          scenery: state.scene.scenery,
+          vistaBands: 4,
+          water: { draws: 1, triangles: 2 },
+        },
+        tacticalLines: {
+          groundCues: { count: state.scene.lines.groundCues },
+          rings: { count: state.scene.lines.rings },
+          effects: { count: state.scene.lines.effects },
+          triangles: { count: 0 },
+          debugBlocks: null,
+        },
+      }),
     },
     submitPresentation: () => {
       call("submit")();
@@ -835,6 +901,206 @@ test("a startup frame's readiness identity correlates no frame, and the next fra
   expect(f.renderer.stats().performance).toMatchObject({
     gpuTimeMs: 5,
     gpuFrame: { renderedFrameId: next.renderedFrameId },
+  });
+  f.renderer.dispose();
+});
+
+// --- Installed-scene diagnostics -------------------------------------------
+// The standing browser checks read a population, a presented camera, actual
+// scenery/grass content, the installed depth resource and requested memory off
+// this seam. Each assertion below moves with the thing it names, so a producer
+// that published a fixed shape would fail them.
+
+test("the expected population is the installed static simulation data, not the crowd's own count", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  f.renderer.setStatic(new Uint32Array([0, 0, 1, 1, 2]), [0, 1, 0], [0, 1]);
+  await f.renderer.present(packet());
+  const stats = f.renderer.stats();
+  // The mocked crowd owner has admitted nothing yet; `soldiers` may not borrow
+  // the expected number to hide that.
+  expect(stats.expectedSoldiers).toBe(5);
+  expect(stats.soldiers).toBe(0);
+  f.renderer.setStatic(new Uint32Array([0, 1]), [0, 1], [0]);
+  expect(f.renderer.stats().expectedSoldiers).toBe(2);
+  f.renderer.dispose();
+});
+
+test("published scene content follows the owners' actual content", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  const lines = {
+    groundCues: new Float32Array(12),
+    rings: new Float32Array(6),
+    effects: new Float32Array(),
+  };
+  await f.renderer.present({ ...packet(), tacticalLines: lines });
+  const first = f.renderer.stats();
+  expect(first).toMatchObject({
+    substrate: "raw-webgpu",
+    projection: "camera3d",
+    environment: "aegean-noon",
+    terrain: { installed: true, generation: 1, scenery: 7, vistaBands: 4 },
+    tacticalLines: {
+      groundCues: { count: 12 },
+      rings: { count: 6 },
+      effects: { count: 0 },
+    },
+  });
+  // Grass keeps its own owner's shape under the surface it covers.
+  expect(first.terrain).toMatchObject({ grass: { residency: { rebuild: { pending: false } } } });
+  // A real terrain replacement and different cues must both show up.
+  f.renderer.setTerrain({ w: 1, h: 1, cell: 4, ox: 0, oy: 0, tint: new Uint8Array(1) });
+  await f.renderer.present({
+    ...packet(),
+    tacticalLines: { ...lines, effects: new Float32Array(30) },
+  });
+  expect(f.renderer.stats()).toMatchObject({
+    terrain: { generation: 2, scenery: 10 },
+    tacticalLines: { effects: { count: 30 } },
+  });
+  f.renderer.dispose();
+});
+
+test("depth and requested memory describe installed resources, with their existing scope", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const stats = f.renderer.stats();
+  expect(stats.depth).toEqual({
+    owner: "raw-battle-frame",
+    installed: true,
+    format: "depth32float",
+    samples: 1,
+    width: 1440,
+    height: 900,
+    clearValue: 0,
+    reversed: true,
+    requestedBytes: 1440 * 900 * 4,
+  });
+  // The allocation tracker's own honest scope is reused, not restated.
+  expect(stats.allocations).toMatchObject({
+    scope: expect.stringContaining("not physical VRAM"),
+    currentBytes: expect.any(Number),
+  });
+  // Source three's CPU object tables do not exist here, and nothing stands in.
+  expect(f.renderer.memoryInfo()).toBeNull();
+  f.renderer.dispose();
+});
+
+test("the published camera is the frame that presented, paired with the id it presented under", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const presented = f.renderer.stats();
+  expect(presented).toMatchObject({
+    presentedFrameId: 1,
+    camera: { zoom: 2, zoomT: 0.5, camera3d: { target: [1, 2, 0], distance: 100 } },
+  });
+  // A later presentation that fails after its battle draw leaves the previous
+  // frame standing: a newer camera must never be published under an older id.
+  const moved = {
+    ...packet(),
+    camera: captureBattleRenderCamera({
+      zoom: 9,
+      zoomT: 1,
+      viewCenter: () => [40, 50],
+      params: () => ({
+        target: [40, 50, 0] as [number, number, number],
+        distance: 30,
+        yaw: 0,
+        pitch: 0.7,
+        fovY: 1,
+        aspect: 1.5,
+        near: 1,
+      }),
+    }),
+  };
+  f.device.queue.onSubmittedWorkDone.mockRejectedValueOnce(Error("device lost during readiness"));
+  const pending = f.renderer.present(moved, undefined, () => {
+    void f.renderer.settlePresentedFrame().catch(() => {});
+  });
+  await progress(f.callbacks);
+  await expect(pending).rejects.toThrow("device lost during readiness");
+  // The scene did prepare the newer pose, so `preparedCamera` is not a presented one.
+  expect(f.renderer.stats().native.preparedCamera.camera3d.target).toEqual([40, 50, 0]);
+  expect(f.renderer.stats()).toMatchObject({
+    presentedFrameId: 1,
+    camera: { zoom: 2, camera3d: { target: [1, 2, 0] } },
+  });
+  f.renderer.dispose();
+});
+
+test("a retained frozen image keeps its own camera and frame identity", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  const frozen = { ...packet(), fixedTime: 12 };
+  await f.renderer.present(frozen);
+  const drawn = f.renderer.stats();
+  await expect(f.renderer.present(frozen)).resolves.toMatchObject({ submitted: false });
+  expect(f.renderer.stats()).toMatchObject({
+    presentedFrameId: drawn.presentedFrameId,
+    camera: drawn.camera,
+  });
+  f.renderer.dispose();
+});
+
+test("a reader cannot mutate the published camera into the next read", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const camera = f.renderer.stats().camera as { camera3d: { target: number[] } };
+  camera.camera3d.target[0] = 999;
+  expect(f.renderer.stats().camera).toMatchObject({ camera3d: { target: [1, 2, 0] } });
+  f.renderer.dispose();
+});
+
+test("seating, draw calls and routed grass triangles are unavailable, each with a named obligation", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const stats = f.renderer.stats();
+  expect(stats.seating).toBeNull();
+  expect(stats.drawCalls).toBeNull();
+  const obligations = (stats.openObligations as string[]).join("\n");
+  for (const owed of ["seating", "drawCalls", "grass"]) expect(obligations).toContain(owed);
+  f.renderer.dispose();
+});
+
+test("a disposed renderer reports no installed world rather than an empty one", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  expect(f.renderer.stats().terrain).not.toBeNull();
+  f.renderer.dispose();
+  expect(f.renderer.stats()).toMatchObject({
+    ready: false,
+    substrate: null,
+    projection: null,
+    environment: null,
+    depth: null,
+    terrain: null,
+    tacticalLines: null,
+    shadows: null,
+    native: null,
+  });
+});
+
+test("a retired comparison backend keeps its own identity instead of the selected world's", async () => {
+  const f = fixture({ backend: "typegpu", comparisonScene: true });
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  expect(f.renderer.stats()).toMatchObject({
+    backend: "typegpu",
+    substrate: null,
+    projection: null,
+    environment: null,
+    depth: null,
+    terrain: null,
+    tacticalLines: null,
+    // Its own scene stats still publish, and presentation is still identified.
+    native: { actual: true },
+    presentedFrameId: 1,
   });
   f.renderer.dispose();
 });

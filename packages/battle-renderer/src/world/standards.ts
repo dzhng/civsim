@@ -8,6 +8,7 @@ import {
 import { beginGpuAdmission } from "../gpuAdmission";
 import { standardsShader } from "../shaders/standards";
 import type { RawEnvironment } from "./environment";
+import { battleWorldDepth } from "../worldDepth";
 export async function createRawStandards(
   device: GPUDevice,
   cameraLayout: GPUBindGroupLayout,
@@ -96,11 +97,7 @@ export async function createRawStandards(
       },
       fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
       primitive: { topology: "triangle-list", cullMode: "none" },
-      depthStencil: {
-        format: "depth32float",
-        depthWriteEnabled: true,
-        depthCompare: "greater-equal",
-      },
+      depthStencil: battleWorldDepth("read-write"),
       multisample: { count: samples },
     });
     await finish();

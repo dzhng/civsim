@@ -2,6 +2,7 @@ import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBu
 import type { WorldRay } from "@packages/renderer-core/src/camera3d";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 import type { BattleTerrainOptions } from "@packages/game-renderer/src/battle/terrainOptions";
+import type { BattleCameraSnapshot } from "@packages/battle-renderer/src/types";
 import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import type { BattlePostGradeUniforms } from "@packages/game-renderer/src/environment/postParameters";
 import type { GraphicsSettings } from "../shared/graphicsSettings";
@@ -76,6 +77,55 @@ export interface BattleCorrelatedGpuFrame {
   submissionId: number;
   observedGpuSpanMs: number;
   observedGpuUnionMs: number;
+}
+
+/** The depth resource a backend has actually allocated, and the convention its
+ * passes actually run under. `reversed` is read off the pass clear and the world
+ * compare together — a renderer cannot declare reverse-Z without them. */
+export interface BattleDepthDiagnostics {
+  owner: string;
+  /** False once the frame's attachments are released. */
+  installed: boolean;
+  format: GPUTextureFormat;
+  samples: number;
+  width: number;
+  height: number;
+  clearValue: number;
+  reversed: boolean;
+  requestedBytes: number;
+}
+
+/** Every drawn instance sits on the rendered surface, re-measured rather than
+ * inferred from which sampler the crowd builder was handed. */
+export interface BattleSeatingStats {
+  checked: number;
+  matches: boolean;
+  span: number;
+}
+
+/** What a backend publishes about the world it has actually installed, beside
+ * the frame timing. A field is null when that world is not installed, or when
+ * this backend has no truthful measurement for it — never a stand-in value.
+ * Measurements a backend still owes are named in `openObligations` rather than
+ * approximated, so a consumer migrating onto these can see what is missing. */
+export interface BattleInstalledSceneDiagnostics {
+  /** Population the installed static simulation data says must be drawn. */
+  expectedSoldiers: number;
+  /** Ownership identity of the installed world and its one projector. */
+  substrate: string | null;
+  projection: string | null;
+  environment: string | null;
+  /** The camera of the last frame that actually presented, and the frame id it
+   *  presented under. A preparation in flight is not a presentation, and the
+   *  two travel together so a camera is never published beside another frame's
+   *  identity. */
+  camera: BattleCameraSnapshot | null;
+  presentedFrameId: number | null;
+  depth: BattleDepthDiagnostics | null;
+  seating: BattleSeatingStats | null;
+  /** Null where the backend keeps no per-frame draw-call count. */
+  drawCalls: number | null;
+  openObligations: readonly string[];
 }
 
 export interface BattleRendererStats {

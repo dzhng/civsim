@@ -4,6 +4,7 @@ import { frameCamera, type FrameCameraSnapshot } from "../frameCamera";
 import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
 import type { RawEnvironment } from "./environment";
 import { RawBattlePost } from "./post";
+import { BATTLE_DEPTH_ATTACHMENT, battleDepthReversed } from "../worldDepth";
 
 /** One native HDR frame: borrowed device/environment, owned attachments/camera/post.
  * Scene layers encode into the same reverse-Z depth and multisampled color target.
@@ -90,12 +91,13 @@ export class RawBattleFrame {
               sampleCount: this.samples,
               usage: GPUTextureUsage.RENDER_ATTACHMENT,
             });
-      const depth = own({
+      const depthDescriptor: GPUTextureDescriptor = {
         size: [width, height],
-        format: "depth32float",
+        format: BATTLE_DEPTH_ATTACHMENT.format,
         sampleCount: this.samples,
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
-      });
+      };
+      const depth = own(depthDescriptor);
       const post = new RawBattlePost(
         this.device,
         hdr.createView(),
@@ -104,7 +106,7 @@ export class RawBattleFrame {
         this.outputFormat,
       );
       release.push(() => post.dispose());
-      return { width, height, hdr, color, depth, post, dispose };
+      return { width, height, hdr, color, depth, depthDescriptor, post, dispose };
     } catch (error) {
       dispose();
       throw error;
@@ -189,9 +191,9 @@ export class RawBattleFrame {
         ],
         depthStencilAttachment: {
           view: this.attachments.depth.createView(),
-          depthClearValue: 0,
-          depthLoadOp: "clear",
-          depthStoreOp: "store",
+          depthClearValue: BATTLE_DEPTH_ATTACHMENT.clearValue,
+          depthLoadOp: BATTLE_DEPTH_ATTACHMENT.loadOp,
+          depthStoreOp: BATTLE_DEPTH_ATTACHMENT.storeOp,
         },
       });
       try {
@@ -203,6 +205,26 @@ export class RawBattleFrame {
     nativeGpuScope(this.device, "post", () =>
       this.attachments.post.encode(encoder, output, bloom, postEnabled),
     );
+  }
+  /** The depth buffer this frame has actually allocated and the convention its
+   *  passes actually run under, read back off both rather than declared. */
+  depthStats() {
+    const { depthDescriptor: descriptor, width, height } = this.attachments;
+    const samples = descriptor.sampleCount ?? 1;
+    return {
+      owner: "raw-battle-frame" as const,
+      installed: !this.disposed,
+      format: descriptor.format,
+      samples,
+      width,
+      height,
+      clearValue: BATTLE_DEPTH_ATTACHMENT.clearValue,
+      loadOp: BATTLE_DEPTH_ATTACHMENT.loadOp,
+      storeOp: BATTLE_DEPTH_ATTACHMENT.storeOp,
+      reversed: battleDepthReversed(),
+      // depth32float, one 4-byte sample per pixel per MSAA sample.
+      requestedBytes: this.disposed ? 0 : width * height * 4 * samples,
+    };
   }
   private assertLive() {
     if (this.disposed) throw new Error("Native frame is disposed");

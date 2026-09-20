@@ -314,7 +314,7 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
         life.check();
         return {
           prepared,
-          camera: lastCamera,
+          preparedCamera: lastCamera,
           crowd: crowd.stats(),
           grass: grass.stats(),
           standards: standards.stats(),

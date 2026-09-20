@@ -17,6 +17,7 @@ import {
 } from "../../../renderer-core/src/gpuBuffers";
 import { sceneryShader } from "../shaders/scenery";
 import type { RawEnvironment } from "./environment";
+import { battleWorldDepth } from "../worldDepth";
 
 /** Battle trees and rocks use the shared authored opaque mesh for beauty and
  * source-equivalent directional casting. Devices/camera/environment remain borrowed. */
@@ -107,11 +108,7 @@ export async function createRawScenery(
     const shared = {
       vertex,
       primitive: { cullMode: "none" as const },
-      depthStencil: {
-        format: "depth32float" as const,
-        depthWriteEnabled: true,
-        depthCompare: "greater-equal" as const,
-      },
+      depthStencil: battleWorldDepth("read-write"),
     };
     const beautyReady = device.createRenderPipelineAsync({
       ...shared,

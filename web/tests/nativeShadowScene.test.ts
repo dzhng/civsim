@@ -34,6 +34,9 @@ vi.mock("../../packages/battle-renderer/src/world/frame", () => ({
     encode(_encoder: unknown, _output: unknown, draw: Function) {
       draw({}, this.cameraGroup);
     }
+    depthStats() {
+      return { owner: "raw-battle-frame", installed: true, reversed: true };
+    }
   },
 }));
 vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({

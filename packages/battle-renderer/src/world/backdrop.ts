@@ -6,6 +6,7 @@ import {
 import { backdropShader, type BackdropKind } from "../shaders/backdrop";
 import { beginGpuAdmission } from "../gpuAdmission";
 import type { RawEnvironment } from "./environment";
+import { battleDepthBypass } from "../worldDepth";
 
 /** Backdrop plus one terrain style, in the original depth-disabled background band. */
 export async function createRawBackdrop(
@@ -57,7 +58,7 @@ export async function createRawBackdrop(
         },
         fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
         primitive: { cullMode: "back" },
-        depthStencil: { format: "depth32float", depthWriteEnabled: false, depthCompare: "always" },
+        depthStencil: battleDepthBypass(),
         multisample: { count: samples },
       });
     });

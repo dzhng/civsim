@@ -19,6 +19,7 @@ const state = vi.hoisted(() => ({
   readoutUpload: vi.fn(),
   triangleLayers: [] as { id: number; upload: ReturnType<typeof vi.fn> }[],
   encoded: [] as number[],
+  terrainStats: {} as Record<string, unknown>,
 }));
 function layer<T extends object>(extra: T = {} as T) {
   const value = {
@@ -50,6 +51,21 @@ vi.mock("../../packages/battle-renderer/src/world/frame", () => ({
     encode(_encoder: unknown, _output: unknown, draw: Function) {
       draw({}, {});
     }
+    depthStats() {
+      return {
+        owner: "raw-battle-frame",
+        installed: true,
+        format: "depth32float",
+        samples: 1,
+        width: this.width,
+        height: this.height,
+        clearValue: 0,
+        loadOp: "clear",
+        storeOp: "store",
+        reversed: true,
+        requestedBytes: this.width * this.height * 4,
+      };
+    }
   },
 }));
 vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
@@ -65,6 +81,7 @@ vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
       drawOpaque: vi.fn(),
       drawTransparent: vi.fn(),
       drawShadow: vi.fn(),
+      stats: () => state.terrainStats,
     }),
 }));
 vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({
@@ -112,9 +129,20 @@ vi.mock("../../packages/battle-renderer/src/world/standards", () => ({
 vi.mock("../../packages/battle-renderer/src/world/readout", () => ({
   createRawReadout: () => layer({ upload: state.readoutUpload, setCamera: vi.fn() }),
 }));
+/** Overlay layers report the content they were last handed, so the scene's
+ *  published cue counts have to follow real uploads. */
+function overlayLayer() {
+  let count = 0;
+  return layer({
+    upload: vi.fn((vertices: Float32Array) => {
+      count = vertices.length;
+    }),
+    stats: () => ({ count }),
+  });
+}
 vi.mock("../../packages/battle-renderer/src/world/overlay", () => ({
-  createRawLineLayer: async () => layer(),
-  createRawRingLayer: async () => layer(),
+  createRawLineLayer: async () => overlayLayer(),
+  createRawRingLayer: async () => overlayLayer(),
   createRawTriangleLayer: async () => {
     const id = state.triangleLayers.length;
     const value = layer({ id, encode: vi.fn(() => state.encoded.push(id)) });
@@ -192,6 +220,7 @@ beforeEach(() => {
   state.readoutUpload.mockReset();
   state.triangleLayers.length = 0;
   state.encoded.length = 0;
+  state.terrainStats = { installed: true, generation: 1, replacing: false, scenery: 6 };
 });
 async function ready(debugBlocks = false) {
   const scene = await createRawBattleScene(device, caps, { ...options, debugBlocks });
@@ -378,5 +407,46 @@ test("a crowd replacement cannot overlap another staged scene operation", async 
   await expect(scene.replaceCrowdAssets(published)).rejects.toThrow("already in flight");
   resume();
   await readouts;
+  scene.dispose();
+});
+
+test("scene stats publish each owner's installed content and the PREPARED pose", async () => {
+  const scene = await ready(true);
+  scene.uploadTacticalLines({
+    groundCues: new Float32Array(9),
+    rings: new Float32Array(3),
+    effects: new Float32Array(15),
+  });
+  state.terrainStats = { installed: true, generation: 2, replacing: false, scenery: 21 };
+  const moved = {
+    ...camera,
+    camera3d: { ...camera.camera3d, target: [7, 8, 9] as [number, number, number] },
+  };
+  await scene.prepare({ camera: moved, time: 3 });
+  const stats = scene.stats();
+  expect(stats.environment).toBe(options.environment.id);
+  expect(stats.depth).toMatchObject({
+    owner: "raw-battle-frame",
+    reversed: true,
+    format: "depth32float",
+  });
+  expect(stats.terrain).toEqual({ installed: true, generation: 2, replacing: false, scenery: 21 });
+  expect(stats.tacticalLines).toEqual({
+    groundCues: { count: 9 },
+    rings: { count: 3 },
+    effects: { count: 15 },
+    triangles: {},
+    debugBlocks: {},
+  });
+  // `preparedCamera` moves the moment preparation completes — before anything
+  // reaches the queue — so it is not a presented camera and is not named one.
+  expect(stats.preparedCamera?.camera3d.target).toEqual([7, 8, 9]);
+  expect(stats.prepared).toBe(true);
+  scene.dispose();
+});
+
+test("an ordinary battle publishes no block-debug layer content", async () => {
+  const scene = await ready();
+  expect(scene.stats().tacticalLines.debugBlocks).toBeNull();
   scene.dispose();
 });

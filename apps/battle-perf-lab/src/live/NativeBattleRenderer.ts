@@ -1,4 +1,5 @@
 import type {
+  BattleInstalledSceneDiagnostics,
   BattlePresentationReceipt,
   BattleRendererApi,
   BattleRendererDisposeHook,
@@ -67,6 +68,10 @@ import type {
   BattleSceneOptions,
   BattleTerrainInput,
 } from "../../../../packages/battle-renderer/src/sceneTypes";
+import {
+  RAW_BATTLE_PROJECTION,
+  RAW_BATTLE_SUBSTRATE,
+} from "../../../../packages/battle-renderer/src/identity";
 
 declare const __BATTLE_NATIVE_BACKEND__: SceneBackend;
 /** Lab-only comparison override for the published impostor catalog. It is empty in
@@ -87,6 +92,16 @@ const twoFrames = () =>
   new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
   );
+
+/** Measurements the source renderer publishes that this world cannot produce
+ *  truthfully yet. They are listed rather than approximated: the fields above
+ *  are null, and a consumer migrating off the source stats can see exactly what
+ *  it still has to wait for instead of reading a plausible number. */
+const OPEN_DIAGNOSTIC_OBLIGATIONS = [
+  "seating: the crowd builder seats every instance through this scene's height sampler, but that is provenance, not verification — a stale elevation carried across a terrain replacement looks identical from there. Re-measuring it truthfully means inspecting one whole admitted population against one surface, which is a verification-only operation; a rotating per-frame sample cannot attest a single presented frame, and this renderer will not add a repeated population scan to the presenting path. Reported null until such an operation exists.",
+  "drawCalls: the source count comes from three's renderer.info. Each raw owner issues its own draws inside the shared pass; counting them truthfully needs a per-frame counter installed through every owner's encode, which this pass does not add.",
+  "grass submittedTriangles / per-tier records: the raw blade field routes and thins on the GPU into indirect draws, so its submitted counts exist only in GPU memory and the source's own numbers are CPU-side estimates. `terrain.grass` carries this world's real record residency and coverage instead of a mirror of those columns.",
+] as const;
 
 /** Lab-only frontend facade. Every GPU pass belongs to the selected native library;
  * the real menu, Game, ActionTimeline, input, HUD and benchmark remain production. */
@@ -150,7 +165,12 @@ export class BattleRenderer implements BattleRendererApi {
   private staticData = { soldierUnit: new Uint32Array(), teams: [] as number[] };
   private instances: CrowdInstance[] = [];
   private picking: ReturnType<typeof createTerrainPicking> | null = null;
-  private lastView: View | null = null;
+  /** The frame that actually presented: its view and the id it presented under,
+   *  recorded as one record so a camera can never be published beside another
+   *  frame's identity. Assigned only where the receipt is produced, so a
+   *  preparation in flight, a submission that threw, or a presentation that
+   *  failed after its draw all leave the previous presented frame standing. */
+  private presentedFrame: { view: View; renderedFrameId: number } | null = null;
   private frozenKey: string | null = null;
   private invalidation = 0;
   private pendingPresentation: Promise<BattlePresentationReceipt> | null = null;
@@ -566,7 +586,6 @@ export class BattleRenderer implements BattleRendererApi {
           await step(() => owner.scene.prepare(view));
           await submit("battle-draw");
           drawMs = cpuMs - drawStart;
-          this.lastView = view;
           if (this.startupRequested) {
             await this.device.queue.onSubmittedWorkDone();
             await twoFrames();
@@ -583,6 +602,7 @@ export class BattleRenderer implements BattleRendererApi {
             this.startupReady = null;
           }
           this.renderedFrameId++;
+          this.presentedFrame = { view, renderedFrameId: this.renderedFrameId };
           this.frozenKey = generation === this.invalidation ? key : null;
           this.metrics = {
             renderedFrameId: this.renderedFrameId,
@@ -682,9 +702,9 @@ export class BattleRenderer implements BattleRendererApi {
       await previous;
       await prior;
       this.check(signal);
-      if (!this.lastView) return;
+      if (!this.presentedFrame) return;
       await this.lifecycle.run(async () => {
-        const view = this.lastView!;
+        const { view } = this.presentedFrame!;
         for (let i = 0; i < 2; i++) {
           this.check(signal);
           this.telemetry!.beginSubmission("render-only");
@@ -780,14 +800,49 @@ export class BattleRenderer implements BattleRendererApi {
     return job;
   }
   stats(): BattleRendererStats {
-    const native = this.owner?.scene.stats() ?? null;
+    const scene = this.owner?.scene;
+    // Scene content diagnostics belong to the selected raw world; the retired
+    // comparison backends never owned them and report null rather than a shape.
+    const installed = rawScene(scene)?.stats() ?? null;
+    const native = installed ?? scene?.stats() ?? null;
     const gpuFrame = this.frameTiming.correlatedFrame();
+    const presented = this.presentedFrame;
+    const camera = presented?.view.camera ?? null;
+    const diagnostics: BattleInstalledSceneDiagnostics = {
+      // The population the installed static simulation data says must be drawn.
+      // `soldiers` below it means the crowd owner is behind, not a smaller army.
+      expectedSoldiers: this.staticData.soldierUnit.length,
+      // Identity of the world actually installed. The retired comparison
+      // backends are not this one and do not borrow its name.
+      substrate: installed ? RAW_BATTLE_SUBSTRATE : null,
+      projection: installed ? RAW_BATTLE_PROJECTION : null,
+      environment: installed?.environment ?? null,
+      // Detached from the caller's mutable snapshot. NOT the scene's
+      // `preparedCamera`, which a preparation still in flight has already moved
+      // past this one.
+      camera: camera
+        ? { ...camera, camera3d: { ...camera.camera3d, target: [...camera.camera3d.target] } }
+        : null,
+      presentedFrameId: presented?.renderedFrameId ?? null,
+      depth: installed?.depth ?? null,
+      // Unavailable, never a synthesized pass or a rotating sample presented as
+      // a whole-population verdict: see `openObligations`.
+      seating: null,
+      drawCalls: null,
+      openObligations: OPEN_DIAGNOSTIC_OBLIGATIONS,
+    };
     return {
       ready: this.soldierAssets !== null && native?.crowd.ready === true,
       soldiers: native?.crowd.instances ?? 0,
       renderer: "gpu",
       device: this.deviceLabel,
       backend: this.backend,
+      ...diagnostics,
+      // Grass is its own owner; it is grouped with the surface it covers because
+      // that is the content one check reads, not a copy of another stats tree.
+      terrain: installed ? { ...installed.terrain, grass: installed.grass } : null,
+      tacticalLines: installed?.tacticalLines ?? null,
+      shadows: installed?.shadows ?? null,
       performance: {
         buildMs: this.metrics.buildMs,
         uploadMs: this.metrics.uploadMs,

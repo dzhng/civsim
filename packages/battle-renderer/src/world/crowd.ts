@@ -20,10 +20,10 @@ import {
   makeVertexBuffer,
   makeIndexBuffer,
 } from "../../../renderer-core/src/gpuBuffers";
-import { GPU_DEPTH_FORMAT } from "../../../renderer-core/src/depthContract";
 import { uploadImageTexture } from "../../../renderer-core/src/imageTexture";
 import { soldierShader, type SoldierDiagnostic } from "../shaders/soldier";
 import type { RawEnvironment } from "./environment";
+import { battleWorldDepth } from "../worldDepth";
 
 type Audience = "main" | "shadow";
 type Bucket = {
@@ -267,11 +267,7 @@ export async function createRawCrowd(
           layout: pipelineLayout,
           vertex: { module, entryPoint: "vertex", buffers: [vertex, instance] },
           primitive: { topology: "triangle-list" as const, cullMode: "none" as const },
-          depthStencil: {
-            format: GPU_DEPTH_FORMAT,
-            depthWriteEnabled: true,
-            depthCompare: "greater-equal" as const,
-          },
+          depthStencil: battleWorldDepth("read-write"),
         };
         const [beauty, depth] = await Promise.all([
           device.createRenderPipelineAsync({

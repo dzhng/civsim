@@ -43,7 +43,7 @@ function gpu() {
 const environment = Object.assign({} as RawEnvironment, {
   exposure: 1,
   setView() {},
-  sky: { setRays() {} },
+  sky: { setRays() {}, encodeBackground() {} },
 });
 
 test("same-size resize preserves camera/attachments and compiles nothing", async () => {
@@ -187,4 +187,72 @@ test("resize republishes the latest camera/grade at the new physical size", asyn
   expect(retainedGrade[0]).toBeCloseTo(0.4);
   frame.dispose();
   expect(g.live.size).toBe(0);
+});
+
+// --- Published depth diagnostics -------------------------------------------
+// The frame owns the one depth attachment the world draws into, so it is also
+// the only honest source for what that buffer is. These assertions read the
+// descriptor the frame actually handed the device and the descriptor its pass
+// actually encodes, so a published field cannot drift from the resource.
+
+function recordedTextures(g: ReturnType<typeof gpu>) {
+  const descriptors: GPUTextureDescriptor[] = [];
+  const device = g.native as unknown as { createTexture: (d: GPUTextureDescriptor) => unknown };
+  const create = device.createTexture;
+  device.createTexture = (descriptor) => {
+    descriptors.push(descriptor);
+    return create(descriptor);
+  };
+  return descriptors;
+}
+
+test("depth diagnostics report the attachment the frame actually allocated", async () => {
+  const g = gpu(),
+    textures = recordedTextures(g);
+  const frame = new RawBattleFrame(g.native, environment, 127, 95, 4, "rgba16float");
+  const depth = textures.filter((t) => String(t.format).startsWith("depth"));
+  expect(depth).toHaveLength(1);
+  expect(frame.depthStats()).toMatchObject({
+    owner: "raw-battle-frame",
+    installed: true,
+    format: depth[0].format,
+    samples: depth[0].sampleCount,
+    width: 127,
+    height: 95,
+    // Reverse-Z: cleared to the far plane and compared `greater`.
+    clearValue: 0,
+    reversed: true,
+    requestedBytes: 127 * 95 * 4 * 4,
+  });
+  await frame.resize(191, 129);
+  expect(frame.depthStats()).toMatchObject({
+    width: 191,
+    height: 129,
+    requestedBytes: 191 * 129 * 4 * 4,
+  });
+  expect(textures.filter((t) => String(t.format).startsWith("depth"))).toHaveLength(2);
+  frame.dispose();
+  // Released resources are reported as released, not as a buffer that is still there.
+  expect(frame.depthStats()).toMatchObject({ installed: false, requestedBytes: 0 });
+});
+
+test("the encoded pass clears depth with the value the diagnostics publish", () => {
+  const g = gpu(),
+    frame = new RawBattleFrame(g.native, environment, 127, 95, 1, "rgba16float");
+  const passes: GPURenderPassDescriptor[] = [];
+  const encoder = {
+    beginRenderPass: (descriptor: GPURenderPassDescriptor) => {
+      passes.push(descriptor);
+      return { setPipeline() {}, setBindGroup() {}, draw() {}, end() {} };
+    },
+  } as unknown as GPUCommandEncoder;
+  frame.encode(encoder, {} as GPUTextureView, () => {}, false, false);
+  const world = passes.find((p) => p.label === "native composed scene");
+  const published = frame.depthStats();
+  expect(world?.depthStencilAttachment).toMatchObject({
+    depthClearValue: published.clearValue,
+    depthLoadOp: "clear",
+    depthStoreOp: "store",
+  });
+  frame.dispose();
 });

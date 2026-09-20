@@ -1,5 +1,6 @@
 import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
 import { nativeGpuScope } from "../gpuScope";
+import { BATTLE_DEPTH_ATTACHMENT } from "../worldDepth";
 import {
   NativeShadowFrame,
   SHADOW_CAMERA_FLOATS,
@@ -55,7 +56,7 @@ export class RawSunShadow {
           label: `native sun depth (${mode})`,
           size: [this.mapSize, this.mapSize, this.layers],
           dimension: "2d",
-          format: "depth32float",
+          format: BATTLE_DEPTH_ATTACHMENT.format,
           usage:
             GPUTextureUsage.RENDER_ATTACHMENT |
             GPUTextureUsage.TEXTURE_BINDING |
@@ -141,9 +142,9 @@ export class RawSunShadow {
           colorAttachments: [],
           depthStencilAttachment: {
             view: this.layerViews[cascade.index],
-            depthClearValue: 0,
-            depthLoadOp: "clear",
-            depthStoreOp: "store",
+            depthClearValue: BATTLE_DEPTH_ATTACHMENT.clearValue,
+            depthLoadOp: BATTLE_DEPTH_ATTACHMENT.loadOp,
+            depthStoreOp: BATTLE_DEPTH_ATTACHMENT.storeOp,
           },
         });
         try {

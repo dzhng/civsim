@@ -5,9 +5,9 @@ import {
 import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import { packImpostors, type ImpostorView } from "../impostorData";
 import { GrowableBuffer } from "../../../renderer-core/src/gpuBuffers";
-import { GPU_DEPTH_FORMAT } from "../../../renderer-core/src/depthContract";
 import { impostorShader } from "../shaders/impostor";
 import type { RawEnvironment } from "./environment";
+import { battleWorldDepth } from "../worldDepth";
 
 /** Owns uploaded property atlas mips and buffers; device, camera, environment and attachments are borrowed.
  * The shared offline artifact loader supplies verified bytes; no Three runtime is used here. */
@@ -138,11 +138,7 @@ export async function createRawImpostors(
       },
       fragment: { module: shader, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
       primitive: { topology: "triangle-list", cullMode: "none" },
-      depthStencil: {
-        format: GPU_DEPTH_FORMAT,
-        depthWriteEnabled: true,
-        depthCompare: "greater-equal",
-      },
+      depthStencil: battleWorldDepth("read-write"),
       multisample: { count: sampleCount },
     });
     const [pipeline] = await Promise.all([pipelinePromise, closeScopes()]);

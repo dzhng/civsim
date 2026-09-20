@@ -14,6 +14,7 @@ import {
   type OverlayKind,
 } from "../overlayStaging";
 import type { BattleLinePlacement } from "../../../game-renderer/src/battle/overlayData";
+import { battleDepthBypass, battleWorldDepth } from "../worldDepth";
 
 /** Each layer owns its stable pipeline and growable vertex/instance buffers.
  * The caller supplies the shared camera, target and semantic frame ordering. */
@@ -89,11 +90,7 @@ async function createOverlayDraw(
         ],
       },
       primitive: { topology: kind === "line" ? "line-list" : "triangle-list", cullMode: "none" },
-      depthStencil: {
-        format: "depth32float",
-        depthWriteEnabled: false,
-        depthCompare: depthTest ? "greater-equal" : "always",
-      },
+      depthStencil: depthTest ? battleWorldDepth("read") : battleDepthBypass(),
       multisample: { count: samples },
     });
     let count = 0;

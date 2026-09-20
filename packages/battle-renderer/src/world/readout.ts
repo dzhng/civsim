@@ -15,6 +15,7 @@ import {
   makeIndexBuffer,
 } from "../../../renderer-core/src/gpuBuffers";
 import { readoutWgsl } from "../shaders/readout";
+import { battleDepthBypass } from "../worldDepth";
 /** Source-equivalent cutout UI billboards: no depth test/write, lighting, fog or local tone map. */
 export function createRawReadout(device: GPUDevice, samples: 1 | 4, withDepth = true) {
   const owned: ({ destroy(): void } | { dispose(): void })[] = [];
@@ -124,15 +125,7 @@ export function createRawReadout(device: GPUDevice, samples: 1 | 4, withDepth = 
       fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
       primitive: { cullMode: "none" },
       multisample: { count: samples },
-      ...(withDepth
-        ? {
-            depthStencil: {
-              format: "depth32float" as const,
-              depthWriteEnabled: false,
-              depthCompare: "always" as const,
-            },
-          }
-        : {}),
+      ...(withDepth ? { depthStencil: battleDepthBypass() } : {}),
     });
     const live = () => {
       if (disposed) throw Error("Readout disposed");

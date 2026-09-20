@@ -1,6 +1,7 @@
 import { prepareWaterSurfaces, type BattleWaterInput } from "../waterData";
 import { waterShader } from "../shaders/water";
 import type { RawEnvironment } from "./environment";
+import { battleWorldDepth } from "../worldDepth";
 
 /** Opaque, front-sided, depth-writing water, matching the source standard
  * material. The caller encodes this before read-only world decals. All GPU
@@ -79,11 +80,7 @@ export class RawBattleWater {
             },
             fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
             primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
-            depthStencil: {
-              format: "depth32float",
-              depthWriteEnabled: true,
-              depthCompare: "greater-equal",
-            },
+            depthStencil: battleWorldDepth("read-write"),
             multisample: { count: samples },
           });
           pipelines.set(geometry.kind, pipeline);

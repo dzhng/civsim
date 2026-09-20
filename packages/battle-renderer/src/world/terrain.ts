@@ -5,6 +5,7 @@ import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/hori
 import type { TerrainMaterialOptions } from "../shaders/terrainMaterial";
 import { terrainShaders } from "../shaders/terrain";
 import type { RawEnvironment } from "./environment";
+import { battleWorldDepth } from "../worldDepth";
 
 interface Draw {
   pipeline: GPURenderPipeline;
@@ -123,11 +124,7 @@ export class RawBattleTerrain {
             ],
           },
           primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
-          depthStencil: {
-            format: "depth32float",
-            depthWriteEnabled: options.vistaBand !== "farFog",
-            depthCompare: "greater-equal",
-          },
+          depthStencil: battleWorldDepth(options.vistaBand === "farFog" ? "read" : "read-write"),
         });
       };
       const groundPipeline = pipeline(shaders.ground, [
@@ -195,11 +192,7 @@ export class RawBattleTerrain {
             },
             // Three PCF shadow overrides FrontSide with BackSide; no terrain receiver bindings here.
             primitive: { cullMode: "front", frontFace: "ccw" },
-            depthStencil: {
-              format: "depth32float",
-              depthWriteEnabled: true,
-              depthCompare: "greater-equal",
-            },
+            depthStencil: battleWorldDepth("read-write"),
           }),
         };
       }

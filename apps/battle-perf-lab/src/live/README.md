@@ -47,6 +47,20 @@ submissions report no GPU time rather than a zero; retention evictions, cursor g
 and an unavailable query mode are reported beside the sample. The join adds no
 queries, submissions, readbacks or waits of its own.
 
+Scene diagnostics describe the world actually installed. The expected population
+is the static simulation data, not a number borrowed from the crowd owner; the
+published camera is the frame that actually presented, carried together with the
+identity it presented under, so a newer pose is never labelled with an older
+frame's id; content, depth and cue counts come from the owners that hold them.
+A world that is not installed — before construction, on a retired comparison
+backend, after disposal — reports null rather than an empty shape. Measurements
+this world cannot make truthfully are named as open obligations beside those
+nulls instead of being approximated: per-instance seating verification (a
+whole-population inspection, not a rotating per-frame sample of a crowd that
+moves), per-frame draw calls, and the blade counts the grass field routes on the
+GPU. No diagnostic adds a readback, a wait or a repeated population scan to the
+presenting path.
+
 Submission identities count actual queue submissions, without a fictitious Three
 frame number. Routine preparation closes each validation scope before awaiting its
 operation, allowing validation to overlap subsequent preparation. Every presentation

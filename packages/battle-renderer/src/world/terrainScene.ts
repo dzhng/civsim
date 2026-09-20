@@ -27,7 +27,8 @@ export async function createRawBattleTerrainScene(
   let disposed = false,
     pending = false,
     zoom = 1,
-    strength = 1;
+    strength = 1,
+    generation = 0;
   let staging: { dispose(): void } | undefined;
   let active: Awaited<ReturnType<typeof prepare>> | undefined;
   const check = () => {
@@ -151,6 +152,7 @@ export async function createRawBattleTerrainScene(
       next.setFrame(zoom, strength);
       const previous = active;
       active = next;
+      generation++;
       staging = undefined;
       previous?.dispose();
     } catch (error) {
@@ -202,6 +204,30 @@ export async function createRawBattleTerrainScene(
     },
     drawTransparent(pass: GPURenderPassEncoder, camera: GPUBindGroup) {
       for (const layer of current().transparentVista) layer.encode(pass, camera);
+    },
+    /** Content of the terrain generation currently committed. Every count is a
+     *  number its owner already holds, so reading stats never rescans the world.
+     *  A disposed or uncommitted scene reports that, not zeros that read as an
+     *  empty map. */
+    stats() {
+      const committed = disposed ? undefined : active;
+      if (!committed)
+        return {
+          installed: false,
+          generation,
+          replacing: pending,
+          scenery: null,
+          vistaBands: null,
+          water: null,
+        };
+      return {
+        installed: true,
+        generation,
+        replacing: pending,
+        scenery: committed.scenery.stats().scenery,
+        vistaBands: committed.opaqueVista.length + committed.transparentVista.length,
+        water: committed.water.stats(),
+      };
     },
     drawShadow(pass: GPURenderPassEncoder, shadowCamera: GPUBindGroup) {
       const s = current();

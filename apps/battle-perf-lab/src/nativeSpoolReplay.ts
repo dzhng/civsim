@@ -226,7 +226,7 @@ export async function createSpoolReplay(
           })),
           source: captured.reference,
           replay: {
-            camera: stats.camera,
+            camera: stats.preparedCamera,
             crowd: stats.crowd,
             terrain: { grass: { recordHash: cpuHashes.join("+"), ...stats.grass.residency } },
           },

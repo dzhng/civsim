@@ -348,7 +348,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       },
       stats: () => ({
         prepared,
-        camera: lastCamera,
+        preparedCamera: lastCamera,
         crowd: crowd.stats(),
         grass: grass.stats(),
         standards: standards.stats(),

@@ -417,9 +417,17 @@ export async function createRawBattleScene(
           post,
         );
       },
+      /** What this scene has actually installed. `preparedCamera` is the pose the
+       *  last completed `prepare` wrote into the frame, which is NOT the pose of
+       *  the last frame that reached the queue: a preparation still in flight, or
+       *  one whose submission failed, has already replaced it. A consumer
+       *  reporting a presented camera must take it from its own presentation
+       *  record. */
       stats: () => ({
         prepared,
-        camera: lastCamera,
+        preparedCamera: lastCamera,
+        environment: options.environment.id,
+        depth: frame.depthStats(),
         shadows: shadow?.stats() ?? {
           mode: "off" as const,
           cascades: 0,
@@ -433,6 +441,14 @@ export async function createRawBattleScene(
         grass: grass.stats(),
         standards: standards.stats(),
         readouts: readouts.stats(),
+        terrain: terrain.stats(),
+        tacticalLines: {
+          groundCues: ground.stats(),
+          rings: rings.stats(),
+          effects: effects.stats(),
+          triangles: triangles.stats(),
+          debugBlocks: debugBlocks?.stats() ?? null,
+        },
       }),
       dispose,
     };

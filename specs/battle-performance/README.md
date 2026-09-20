@@ -20,8 +20,11 @@ a verified bundle at `throwaway/presented-draw-completed-cleanup/`.
 Camera-state candidate: `game-battle-camera-pose-reuse` holds c4e555c1 plus
 recovery25034412; Opus handle7582 is terminal. The actual producer/facade now
 reuse unchanged state, and failures invalidate reuse until admission validates.
-Root63 facade tests pass, including deferred GPU rejection and failed camera
-reprojection recovery. No GPU or timing acceptance yet. Ordinary advancing live
+Root63 facade tests pass, but independent review found post-await pose submission
+escapes the outer synchronous admission scopes. Opus is correcting that actual
+TypeGPU scene path; prompt/results are `throwaway/pose-admission-{prompt,result}.txt`.
+The existing mock facade regression is insufficient to cover it. No GPU or timing
+acceptance yet. Ordinary advancing live
 poses still rebuild; paused/repeated states benefit, so do not claim live gains.
 
 Grass candidate8ac39665 in `game-battle-grass-zoom-transition` is unadopted.

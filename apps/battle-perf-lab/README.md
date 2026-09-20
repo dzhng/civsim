@@ -148,3 +148,21 @@ The span includes gaps; the union removes overlap but is not physical GPU busy
 time. Overall values come from all recorded ranges, never a sum of stage unions.
 Pass-duration sums remain diagnostic only. Incomplete query coverage withholds
 interval metrics, and raw timestamps remain an opt-in diagnostic payload.
+
+The same observer counts the draw commands a submission window offered to
+`queue.submit`: direct, indexed and indirect draws, plus every submitted
+execution of a render bundle's own draws — per invocation, never per bundle
+creation. Offered is not drawn. The count is synchronous and needs no timestamp
+query and no readback, so it is the same under either timing mode; whether that
+batch was accepted and presented is the renderer's own admission and presentation
+validation, reported beside it rather than folded into it. What a window offered
+and what it encoded without offering are two accounts with their own reasons, so a
+batch that was built and dropped cannot spoil the total for the batches the queue
+actually received, and a backend that submits after the window closes shows up as
+work left behind rather than as a confident frame count. The observer's own timing
+resolve/copy submission is in neither account. Where an honest total is
+impossible — an executed bundle this observer never recorded, a submitted buffer
+it never encoded, a repeat submission WebGPU rejects, a multi-draw command whose
+count lives in a GPU buffer — the window reports unavailable with that reason
+instead of a lower bound. Retention is bounded and keyed to the open window, so
+no command history accumulates.

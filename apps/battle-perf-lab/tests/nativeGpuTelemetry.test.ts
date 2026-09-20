@@ -7,6 +7,7 @@ function deviceFixture(supported = true, timestampValues?: bigint[]) {
   vi.stubGlobal("GPUMapMode", { READ: 1 });
   const mappings: (() => void)[] = [];
   const descriptors: (GPURenderPassDescriptor | GPUComputePassDescriptor)[] = [];
+  const executed: GPURenderBundle[][] = [];
   const resources: { destroy: ReturnType<typeof vi.fn> }[] = [];
   const encoders: {
     resolveQuerySet: ReturnType<typeof vi.fn>;
@@ -40,12 +41,23 @@ function deviceFixture(supported = true, timestampValues?: bigint[]) {
       resources.push(buffer);
       return buffer;
     }),
+    createRenderBundleEncoder: vi.fn(() => {
+      const encoder = { ...drawMethods(), finish: vi.fn(() => ({ bundle: true })) };
+      return encoder;
+    }),
     createCommandEncoder: vi.fn(() => {
       const encoder = {
         beginRenderPass: vi.fn((descriptor: GPURenderPassDescriptor) => {
           descriptors.push(descriptor);
-          return { end: vi.fn() };
+          return {
+            end: vi.fn(),
+            ...drawMethods(),
+            executeBundles: vi.fn((bundles: Iterable<GPURenderBundle>) => {
+              executed.push(Array.from(bundles));
+            }),
+          };
         }),
+        // A compute pass encoder implements no drawing at all.
         beginComputePass: vi.fn((descriptor: GPUComputePassDescriptor) => {
           descriptors.push(descriptor);
           return { end: vi.fn() };
@@ -62,19 +74,87 @@ function deviceFixture(supported = true, timestampValues?: bigint[]) {
     mappings.splice(0).forEach((resolve) => resolve());
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
-  function encode(kind: "render" | "compute" = "render", submit = true) {
+  /** One command buffer: a pass, whatever `record` puts in it, and its submission. */
+  function encode(
+    kind: "render" | "compute" = "render",
+    submit = true,
+    record?: (pass: GPURenderPassEncoder) => void,
+  ) {
     const encoder = device.createCommandEncoder();
     const pass =
       kind === "render"
         ? encoder.beginRenderPass({ colorAttachments: [] })
         : encoder.beginComputePass();
+    record?.(pass as GPURenderPassEncoder);
     pass.end();
     const buffer = encoder.finish();
     if (submit) device.queue.submit([buffer]);
     return buffer;
   }
-  return { device, submit, queue, descriptors, resources, encoders, drain, encode };
+  function bundle(record: (encoder: GPURenderBundleEncoder) => void) {
+    const encoder = device.createRenderBundleEncoder({ colorFormats: [] });
+    record(encoder);
+    return encoder.finish();
+  }
+  return {
+    device,
+    submit,
+    queue,
+    descriptors,
+    executed,
+    resources,
+    encoders,
+    drain,
+    encode,
+    bundle,
+  };
 }
+
+/** A backend records nothing when it rejects a command, so these doubles validate
+ * their vertex/index count and throw exactly as an encoder would. */
+function drawMethods() {
+  const validated = (name: string) =>
+    vi.fn((count: number) => {
+      if (count < 0) throw Error(`invalid ${name} count`);
+    });
+  return {
+    draw: validated("draw"),
+    drawIndexed: validated("drawIndexed"),
+    drawIndirect: vi.fn(),
+    drawIndexedIndirect: vi.fn(),
+    multiDrawIndirect: vi.fn(),
+    multiDrawIndexedIndirect: vi.fn(),
+  };
+}
+
+/** The account of a window that encoded no drawing at all — a real zero, not an
+ * absent measurement. */
+const NO_DRAWS = {
+  status: "counted",
+  reason: null,
+  offeredDrawCalls: 0,
+  indirectDrawCalls: 0,
+  bundleExecutions: 0,
+  unsubmittedDrawCalls: 0,
+  unsubmittedReason: null,
+} as const;
+
+/** The offered account withheld, because its reason says the total would be a
+ * guess. What the window left unsubmitted is a separate account and survives. */
+const unavailable = (reason: string, unsubmittedDrawCalls = 0) => ({
+  status: "unavailable",
+  reason,
+  offeredDrawCalls: null,
+  indirectDrawCalls: null,
+  bundleExecutions: null,
+  unsubmittedDrawCalls,
+  unsubmittedReason: null,
+});
+
+/** An encoder method the standard type does not declare, reached the way a real
+ * backend exposes it: present only where the device supports the extension. */
+const extension = (pass: GPURenderPassEncoder, name: string) =>
+  (pass as unknown as { [key: string]: (...args: unknown[]) => void })[name];
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -88,6 +168,7 @@ test("multiple actual submissions correlate to final render, excluding asynchron
     submissionId: 2,
     backend: "typegpu",
     source: "battle-draw",
+    draws: NO_DRAWS,
   });
   expect(f.submit).toHaveBeenCalledTimes(3);
   expect(telemetry.eventsSince(0)?.events).toEqual([]);
@@ -319,6 +400,7 @@ test("the disabled lab control issues no query GPU work while actual submission 
     submissionId: 1,
     backend: "raw",
     source: "battle-draw",
+    draws: NO_DRAWS,
   });
   telemetry.beginSubmission("render-only");
   f.encode("compute");
@@ -326,6 +408,7 @@ test("the disabled lab control issues no query GPU work while actual submission 
     submissionId: 2,
     backend: "raw",
     source: "render-only",
+    draws: NO_DRAWS,
   });
   await f.drain();
   expect(f.device.createQuerySet).not.toHaveBeenCalled();
@@ -377,4 +460,509 @@ test("a lab-disabled control is distinguishable from an unsupported device and i
   expect(f.device.createQuerySet).toHaveBeenCalledTimes(1);
   expect(f.descriptors[0].timestampWrites).toBeDefined();
   telemetry.dispose();
+});
+
+// Draw observation. Every case below runs with timestamp queries disabled unless
+// the case is about timing itself: a submitted draw count is a synchronous fact
+// about encoded commands, so it must never depend on query support or a readback.
+
+test("the window counts the draws its submitted buffers offered, and only those", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => {
+    pass.draw(3);
+    pass.drawIndexed(6);
+    pass.drawIndexed(6);
+  });
+  // A second buffer this window built and then dropped: encoded, never offered.
+  f.encode("render", false, (pass) => pass.draw(3));
+  // Compute work submits commands but draws nothing.
+  f.encode("compute");
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    status: "counted",
+    reason: null,
+    offeredDrawCalls: 3,
+    indirectDrawCalls: 0,
+    bundleExecutions: 0,
+    unsubmittedDrawCalls: 1,
+    unsubmittedReason: null,
+  });
+  expect(f.submit).toHaveBeenCalledTimes(2);
+  telemetry.dispose();
+});
+
+test("draws are summed across every command buffer and every submit of one window", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  const first = f.encode("render", false, (pass) => pass.draw(3));
+  const second = f.encode("render", false, (pass) => pass.drawIndexed(6));
+  // Two buffers in one submit, then a third buffer in a submit of its own.
+  f.device.queue.submit([first, second]);
+  f.encode("render", true, (pass) => pass.draw(3));
+  const measurement = telemetry.endSubmission(Promise.resolve())!;
+  expect(measurement).toMatchObject({ submissionId: 2, source: "battle-draw" });
+  expect(measurement.draws).toEqual({ ...NO_DRAWS, offeredDrawCalls: 3 });
+  telemetry.dispose();
+});
+
+test("indirect draws count as one command each and are named separately", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => {
+    pass.draw(3);
+    pass.drawIndirect({} as GPUBuffer, 0);
+    pass.drawIndexedIndirect({} as GPUBuffer, 0);
+  });
+  // The observer never reads the GPU-side parameter buffer, so it reports how many
+  // indirect commands it saw rather than how many primitives they will draw.
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 3,
+    indirectDrawCalls: 2,
+  });
+  telemetry.dispose();
+});
+
+test("a reused render bundle counts per submitted execution, never per creation", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  const reused = f.bundle((encoder) => {
+    encoder.draw(3);
+    encoder.drawIndexed(6);
+    encoder.drawIndirect({} as GPUBuffer, 0);
+  });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => {
+    pass.executeBundles([reused]);
+    pass.executeBundles([reused]);
+    pass.draw(3);
+  });
+  // Two executions of a three-draw bundle, plus the pass's own draw.
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 7,
+    indirectDrawCalls: 2,
+    bundleExecutions: 2,
+  });
+  // The same bundle in a later window is counted again, from zero.
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.executeBundles([reused, reused]));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 6,
+    indirectDrawCalls: 2,
+    bundleExecutions: 2,
+  });
+  expect(f.executed).toEqual([[reused], [reused], [reused, reused]]);
+  telemetry.dispose();
+});
+
+test("a bundle this observer never recorded withholds the count instead of undercounting", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  // Built before installation, so its draws were never seen.
+  const foreign = { bundle: true } as unknown as GPURenderBundle;
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => {
+    pass.draw(3);
+    pass.executeBundles([foreign]);
+  });
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual(
+    unavailable("unobserved-render-bundle"),
+  );
+  telemetry.dispose();
+});
+
+test("a repeat submission of one command buffer is not a second execution to count", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  const buffer = f.encode("render", true, (pass) => pass.draw(3));
+  // WebGPU rejects this; the device, not the observer, owns that validation, so
+  // the call still reaches the queue and only the count refuses to double.
+  f.device.queue.submit([buffer]);
+  expect(f.submit).toHaveBeenCalledTimes(2);
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual(
+    unavailable("command-buffer-resubmitted"),
+  );
+  telemetry.dispose();
+});
+
+test("a queue submit that fails at the call offered nothing", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  // WebGPU reports an invalid submission asynchronously; a lost device fails here.
+  f.submit.mockImplementationOnce(() => {
+    throw Error("device lost");
+  });
+  expect(() =>
+    f.encode("render", true, (pass) => {
+      pass.draw(3);
+      pass.draw(3);
+    }),
+  ).toThrow("device lost");
+  // The rejected batch is encoded work that never reached the queue.
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+    unsubmittedDrawCalls: 2,
+  });
+  expect(telemetry.submissionCount).toBe(1);
+  telemetry.dispose();
+});
+
+test("offered is not presented: validation failing later does not retract the count", async () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw");
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  // The count answers what was handed to queue.submit. Whether that batch was
+  // accepted and presented is the renderer's own validation, reported beside it
+  // as the submission's timing status.
+  const measurement = telemetry.endSubmission(Promise.reject(Error("invalid command buffer")))!;
+  expect(measurement.draws).toEqual({ ...NO_DRAWS, offeredDrawCalls: 1 });
+  await f.drain();
+  expect(telemetry.eventsSince(0)?.events[0]).toMatchObject({
+    submissionId: measurement.submissionId,
+    status: "incomplete",
+    reason: "submission-validation-failed",
+  });
+  telemetry.dispose();
+});
+
+test("draws encoded outside the window that submits them are reported, not re-attributed", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  const early = f.encode("render", false, (pass) => pass.draw(3));
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  f.device.queue.submit([early]);
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual(
+    unavailable("draw-commands-encoded-outside-measurement"),
+  );
+  // A buffer with no drawing in it crosses the boundary without spoiling a count:
+  // it contributes the zero draws it truthfully holds.
+  const emptyEarly = f.encode("compute", false);
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  f.device.queue.submit([emptyEarly]);
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  telemetry.dispose();
+});
+
+test("a submitted buffer this observer never encoded withholds the count", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  f.device.queue.submit([{} as GPUCommandBuffer]);
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual(
+    unavailable("unobserved-command-buffer"),
+  );
+  telemetry.dispose();
+});
+
+test("the observer's own timing resolve and copy submission stays out of the count", async () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw");
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => {
+    pass.draw(3);
+    pass.drawIndexed(6);
+  });
+  const measurement = telemetry.endSubmission(Promise.resolve())!;
+  // Two submits reached the queue: the scene's, then this observer's resolve/copy.
+  expect(f.submit).toHaveBeenCalledTimes(2);
+  expect(measurement).toEqual({
+    submissionId: 1,
+    backend: "raw",
+    source: "battle-draw",
+    draws: { ...NO_DRAWS, offeredDrawCalls: 2 },
+  });
+  await f.drain();
+  // The next window starts clean rather than inheriting the resolve submission.
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  telemetry.dispose();
+});
+
+test("both timing modes and an unsupported device observe the identical draw count", () => {
+  const observe = (telemetry: NativeGpuTelemetry, f: ReturnType<typeof deviceFixture>) => {
+    const reused = f.bundle((encoder) => encoder.draw(3));
+    telemetry.beginSubmission("battle-draw");
+    f.encode("compute");
+    f.encode("render", true, (pass) => {
+      pass.draw(3);
+      pass.drawIndexed(6);
+      pass.drawIndirect({} as GPUBuffer, 0);
+      pass.executeBundles([reused]);
+    });
+    f.encode("render", false, (pass) => pass.draw(3));
+    const draws = telemetry.endSubmission(Promise.resolve())?.draws;
+    telemetry.dispose();
+    return draws;
+  };
+  const expected = {
+    status: "counted",
+    reason: null,
+    offeredDrawCalls: 4,
+    indirectDrawCalls: 1,
+    bundleExecutions: 1,
+    unsubmittedDrawCalls: 1,
+    unsubmittedReason: null,
+  };
+  const enabled = deviceFixture();
+  expect(observe(new NativeGpuTelemetry(enabled.device, "raw"), enabled)).toEqual(expected);
+  const disabled = deviceFixture();
+  expect(
+    observe(
+      new NativeGpuTelemetry(disabled.device, "raw", { timingQueries: "disabled" }),
+      disabled,
+    ),
+  ).toEqual(expected);
+  const unsupported = deviceFixture(false);
+  expect(observe(new NativeGpuTelemetry(unsupported.device, "raw"), unsupported)).toEqual(expected);
+  // Only the query work differs between the modes, never the drawing they watch.
+  expect(enabled.device.createQuerySet).toHaveBeenCalled();
+  expect(disabled.device.createQuerySet).not.toHaveBeenCalled();
+  expect(unsupported.device.createQuerySet).not.toHaveBeenCalled();
+});
+
+test("a submission that carried no command buffer reports no measurement at all", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", false, (pass) => pass.draw(3));
+  // No identity means no frame; a count under a previous frame's id would be worse
+  // than none.
+  expect(telemetry.endSubmission(Promise.resolve())).toBeNull();
+  telemetry.dispose();
+});
+
+test("a cancelled window's draws never reach the next window's count", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  telemetry.cancelSubmission();
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.drawIndexed(6));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  telemetry.dispose();
+});
+
+test("encoder retention is bounded, and only the unsubmitted account depends on it", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  for (let i = 0; i < 256; i++) f.encode("render", true, (pass) => pass.draw(3));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 256,
+  });
+  // Past the retention bound this window can no longer say what it left behind. The
+  // offered total is unaffected: it accrues as buffers are submitted, not from the
+  // retained encoders.
+  telemetry.beginSubmission("battle-draw");
+  for (let i = 0; i < 257; i++) f.encode("render", true, (pass) => pass.draw(3));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 257,
+    unsubmittedDrawCalls: null,
+    unsubmittedReason: "encoder-retention-limit",
+  });
+  telemetry.dispose();
+});
+
+test("disposal restores every patched entry point and counts nothing afterwards", () => {
+  const f = deviceFixture(),
+    originalBundleEncoder = f.device.createRenderBundleEncoder;
+  const telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  telemetry.dispose();
+  expect(f.device.createRenderBundleEncoder).toBe(originalBundleEncoder);
+  // A disposed observer owns no device and must not resurrect a window.
+  expect(() => telemetry.beginSubmission("battle-draw")).toThrow("disposed");
+  f.encode("render", true, (pass) => pass.draw(3));
+  expect(telemetry.submissionCount).toBe(1);
+});
+
+test("a device without render bundles is observed without pretending it has them", () => {
+  const f = deviceFixture();
+  delete (f.device as { createRenderBundleEncoder?: unknown }).createRenderBundleEncoder;
+  const telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  telemetry.dispose();
+  expect(f.device.createRenderBundleEncoder).toBeUndefined();
+});
+
+test("work submitted after its window closed is left behind, never counted as offered", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  const late = f.encode("render", false, (pass) => {
+    pass.draw(3);
+    pass.draw(3);
+  });
+  f.encode("compute");
+  // A window reports only what it had offered when it closed. A backend that
+  // submits after `endSubmission` appears here as nothing offered and work left
+  // behind, rather than as a confidently wrong frame total.
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    unsubmittedDrawCalls: 2,
+  });
+  f.device.queue.submit([late]);
+  // Offered while no window was open, it joins no other frame's count either.
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  telemetry.dispose();
+});
+
+test("a defect in work the queue never received leaves the offered count intact", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  const foreign = { bundle: true } as unknown as GPURenderBundle;
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  // Built and dropped, and its own total is not knowable. That is the dropped
+  // batch's problem, not the submitted one's.
+  f.encode("render", false, (pass) => {
+    pass.draw(3);
+    pass.executeBundles([foreign]);
+  });
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    status: "counted",
+    reason: null,
+    offeredDrawCalls: 1,
+    indirectDrawCalls: 0,
+    bundleExecutions: 0,
+    unsubmittedDrawCalls: null,
+    unsubmittedReason: "unobserved-render-bundle",
+  });
+  telemetry.dispose();
+});
+
+test("a multi-draw command taking its count from a GPU buffer withholds the total", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => {
+    pass.draw(3);
+    // How many draws this records is read by the GPU, never by this observer, so
+    // counting it as one command would be a guess.
+    extension(pass, "multiDrawIndirect")({}, 0, 8);
+  });
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual(
+    unavailable("multi-draw-command-count-unobservable"),
+  );
+  telemetry.dispose();
+});
+
+test("a draw the backend rejects is not counted as encoded", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => {
+    pass.draw(3);
+    expect(() => pass.drawIndexed(-1)).toThrow("invalid drawIndexed count");
+  });
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  telemetry.dispose();
+});
+
+test("counting a bundle execution does not consume the caller's sequence", () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  const reused = f.bundle((encoder) => encoder.draw(3));
+  telemetry.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) =>
+    pass.executeBundles(
+      (function* () {
+        yield reused;
+        yield reused;
+      })(),
+    ),
+  );
+  // A single-pass iterable must still reach the backend in full.
+  expect(f.executed).toEqual([[reused, reused]]);
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 2,
+    bundleExecutions: 2,
+  });
+  telemetry.dispose();
+});
+
+test("draws past the pass retention limit are counted even though their timing is not", async () => {
+  const f = deviceFixture(),
+    telemetry = new NativeGpuTelemetry(f.device, "raw");
+  telemetry.beginSubmission("battle-draw");
+  for (let i = 0; i < 65; i++) f.encode("render", true, (pass) => pass.draw(3));
+  // The draw account is not a pass record, so the cap on what can be timestamped
+  // does not silently cap what can be counted.
+  expect(telemetry.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 65,
+  });
+  await f.drain();
+  expect(telemetry.eventsSince(0)?.events[0]).toMatchObject({
+    status: "incomplete",
+    reason: "pass-retention-limit",
+    missingQueries: 65,
+  });
+  telemetry.dispose();
+});
+
+test("pass records are the timing path's, and are not allocated without it", () => {
+  const enabled = deviceFixture(),
+    on = new NativeGpuTelemetry(enabled.device, "raw");
+  enabled.encode("render", true, (pass) => pass.draw(3));
+  expect(on.stats().outsideSubmissionPasses).toBe(1);
+  on.dispose();
+  const f = deviceFixture(),
+    off = new NativeGpuTelemetry(f.device, "raw", { timingQueries: "disabled" });
+  f.encode("render", true, (pass) => pass.draw(3));
+  // `outsideSubmissionPasses` counts pass records, which the withheld query work
+  // never creates. Draw observation is unaffected either way.
+  expect(off.stats().outsideSubmissionPasses).toBe(0);
+  off.beginSubmission("battle-draw");
+  f.encode("render", true, (pass) => pass.draw(3));
+  expect(off.endSubmission(Promise.resolve())?.draws).toEqual({
+    ...NO_DRAWS,
+    offeredDrawCalls: 1,
+  });
+  off.dispose();
 });

@@ -31,6 +31,11 @@ pixel-identical, these are inherited visual limitations, not sharing regressions
 The HUD conceals the bottom formation; the close mounted coverage remains owed.
 
 Still open: close mounted/full-catalog fixture coverage,
-actual device reload/failure controls, and quiet paired preparation/traversal
-measurements. No grass, lighting, shadow quality, camera motion or FPS gain is
+quiet paired preparation/traversal measurements. Actual device reload/failure
+controls now pass: successful replacement retains3 material images; missing
+atlas and an injected real GPU validation error keep the installed crowd;
+disposal while admission is pending rejects pending/future reloads and releases
+every device-observed texture, with tracked allocated bytes zero. The fault is
+injected during staged resource admission, not specifically the camera-pose
+submission scope still under investigation. See `reload-report.json.gz`. No grass, lighting, shadow quality, camera motion or FPS gain is
 inferred from these stills. The candidate is not yet integrated.

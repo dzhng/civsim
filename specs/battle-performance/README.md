@@ -38,7 +38,8 @@ TypeGPU shared imagesfd41af3c/ad8c218a are wired in the isolated
 pass. [Actual device proof](assets/typegpu-shared-images/README.md) confirms60→3
 material images and95% lower logical texture payload, disposal tozero, and four
 pixel-identical Menu frames. Fresh critique records inherited contrast/aliasing/distant-terrain limitations;
-close mounted/catalog/reload-failure coverage and quiet timing remain; not yet integrated. Borrow immutable asset dirs
+device reload/failure/disposal also pass. Close mounted/catalog coverage and
+quiet timing remain; not yet integrated. Borrow immutable asset dirs
 when creating worktrees instead of copying them.
 
 Claude recovery run61331 stopped with an expired OAuth session that could not be

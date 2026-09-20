@@ -8,12 +8,16 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: selected TypeGPU identity and component diagnostics after the
+Current pickup: review the active TypeGPU identity/component diagnostics pass after the
 [scene integration](assets/typegpu-scene-state/README.md), then consumer/cutover
 verification. Scene worker and both independent reviews are terminal. Initial
 reload-before-prepare failure is corrected and GPU verified at9c496b47; main
 integration ends3fc961ba. Combined candidate64/64 and live57/57 pass. The finished
-scene worktree remains pending scratch cleanup; no timing job is active.
+scene worktree and branch are removed after preserving scratch and a verified
+bundle at `throwaway/typegpu-scene-completed-cleanup/`. The next Opus CPU pass is
+active in `/Users/david/dev/game-battle-typegpu-content-state`, basea6112e4a,
+handle21089; its `throwaway/content-state-prompt.txt` scopes actual owner reports
+and facade integration, excluding impostor/shadow-check work. No timing job is active.
 
 An independent Opus CPU pass in `/Users/david/dev/game-battle-typegpu-impostor-state`
 (basea90d3f82, handle80073) owns typed compact impostor state and audience camera

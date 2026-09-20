@@ -29,7 +29,8 @@ and expose exact disagreements. The first worker/review are terminal. Check the
 new handle or actual final report before restarting. [High receiver overlap/fade](assets/typegpu-shadow-overlap/README.md)
 is integrated and GPU verified, including valid numerical mutation failures and
 validation/nonfinite rejection. Main candidate77/77 passes. Its worker/review are
-terminal; the finished worktree remains pending scratch cleanup. No timing job is active.
+terminal; its worktree and branch were removed after preserving scratch and a
+verified bundle in `throwaway/typegpu-shadow-overlap-cleanup/`. No timing job is active.
 
 Current evidence:
 

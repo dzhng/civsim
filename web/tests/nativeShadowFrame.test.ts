@@ -22,8 +22,10 @@ import {
   sunShadowRadius,
 } from "@packages/game-renderer/src/battle/shadowPolicy";
 import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
-import { PHOTOREAL_FAR_FALLBACK } from "@packages/photoreal-renderer/src/cameraBridge";
-import type { Camera3DParams } from "@packages/renderer-core/src/camera3d";
+import {
+  FINITE_CAMERA_FAR_FALLBACK,
+  type Camera3DParams,
+} from "@packages/renderer-core/src/camera3d";
 
 const camera: Camera3DParams = {
   target: [0, 0, 0],
@@ -149,7 +151,7 @@ test("High packs two distinct caster cameras and a two-record receiver block", (
   expect(cold.cascades).toHaveLength(0);
   expect(uploads).toEqual([0]);
 
-  const data = native.update({ ...camera, far: PHOTOREAL_FAR_FALLBACK });
+  const data = native.update({ ...camera, far: FINITE_CAMERA_FAR_FALLBACK });
   expect(uploads).toEqual([0, CSM_CASCADES]);
   expect(data.cascades).toHaveLength(CSM_CASCADES);
   expect(data.mapSize).toBe(CSM_MAP_SIZE);
@@ -192,7 +194,7 @@ test("an unchanged camera reuses its cascade fit, a moved one refits", () => {
   const native = new NativeShadowFrame(CIVSIM_ENVIRONMENTS.golden, "csm", () => {
     uploads++;
   });
-  const view = { ...camera, far: PHOTOREAL_FAR_FALLBACK };
+  const view = { ...camera, far: FINITE_CAMERA_FAR_FALLBACK };
   const first = native.update(view);
   expect(uploads).toBe(2);
   expect(native.update({ ...view })).toBe(first);

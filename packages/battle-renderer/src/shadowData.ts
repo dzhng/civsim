@@ -25,10 +25,10 @@ import {
   SUN_SHADOW_CONTROL_OFFSET,
 } from "./shaders/shadow";
 import {
+  FINITE_CAMERA_FAR_FALLBACK,
   projectionFootprint,
   type Camera3DParams,
 } from "../../renderer-core/src/camera3d";
-import { PHOTOREAL_FAR_FALLBACK } from "../../photoreal-renderer/src/cameraBridge";
 import { reverseZFrustumPlanes } from "./crowdFrustum";
 import type { CrowdProjectionView } from "../../crowd-runtime/src/visibility";
 import type { CivsimEnvironment } from "../../game-renderer/src/environment/environment";
@@ -182,7 +182,11 @@ function cascadeFrameData(
   camera: Camera3DParams,
   sun: readonly [number, number, number],
 ): NativeShadowData {
-  const frame = cascadeFits({ camera, resolvedFar: PHOTOREAL_FAR_FALLBACK, unitSunDirection: sun });
+  const frame = cascadeFits({
+    camera,
+    resolvedFar: FINITE_CAMERA_FAR_FALLBACK,
+    unitSunDirection: sun,
+  });
   const radius = sunShadowRadius(environment.physical.turbidity, "csm");
   const receiver = new Float32Array(SUN_SHADOW_BLOCK_FLOATS);
   const cascades = frame.cascades.map((fit: CascadeFit) => {
@@ -313,7 +317,7 @@ export class NativeShadowFrame {
 }
 
 function cappedFarFor(camera: Camera3DParams): number {
-  return resolveCascadeFar({ camera, resolvedFar: PHOTOREAL_FAR_FALLBACK }).cappedFar;
+  return resolveCascadeFar({ camera, resolvedFar: FINITE_CAMERA_FAR_FALLBACK }).cappedFar;
 }
 
 /** Everything a repack would change. The receiver block carries every cascade's

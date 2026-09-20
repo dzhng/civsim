@@ -1,8 +1,11 @@
 import { frameCamera, type FrameCameraSnapshot } from "./frameCamera";
 import type { ImpostorView } from "./impostorData";
 import { invert } from "../../renderer-core/src/mat4";
-import { projMatrix, projectionFootprint } from "../../renderer-core/src/camera3d";
-import { PHOTOREAL_FAR_FALLBACK } from "../../photoreal-renderer/src/cameraBridge";
+import {
+  FINITE_CAMERA_FAR_FALLBACK,
+  projMatrix,
+  projectionFootprint,
+} from "../../renderer-core/src/camera3d";
 import type { BattleCameraSnapshot } from "./types";
 import type { CivsimEnvironment } from "../../game-renderer/src/environment/environment";
 
@@ -20,7 +23,7 @@ export function battleSceneCamera(
   const camera3d = {
     ...input.camera3d,
     aspect: width / height,
-    far: input.camera3d.far ?? PHOTOREAL_FAR_FALLBACK,
+    far: input.camera3d.far ?? FINITE_CAMERA_FAR_FALLBACK,
   };
   const snapshot: FrameCameraSnapshot = {
     ...input,

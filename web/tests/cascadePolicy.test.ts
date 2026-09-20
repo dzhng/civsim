@@ -27,13 +27,13 @@ import {
   SHADOW_MAX_FAR,
   SHADOW_NORMAL_BIAS,
 } from "@packages/game-renderer/src/battle/shadowPolicy";
-import {
-  applyCamera3d,
-  PHOTOREAL_FAR_FALLBACK,
-} from "@packages/photoreal-renderer/src/cameraBridge";
+import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "@packages/game-renderer/src/environment/physicalEnvironment";
-import type { Camera3DParams } from "@packages/renderer-core/src/camera3d";
+import {
+  FINITE_CAMERA_FAR_FALLBACK,
+  type Camera3DParams,
+} from "@packages/renderer-core/src/camera3d";
 
 const SUN = photorealEnvironment(CIVSIM_ENVIRONMENTS.golden).sunDirection;
 
@@ -107,16 +107,19 @@ function sourceCascades(camera: Camera3DParams, sun: readonly [number, number, n
 function nativeCascades(camera: Camera3DParams, sun: readonly [number, number, number] = SUN) {
   return cascadeFits({
     camera,
-    resolvedFar: PHOTOREAL_FAR_FALLBACK,
+    resolvedFar: FINITE_CAMERA_FAR_FALLBACK,
     unitSunDirection: sun,
   });
 }
 
 test("practical splits reproduce the source breaks for every resolved far", () => {
   for (const [name, base] of Object.entries(CAMERAS))
-    for (const far of [800, 1500, 10000, PHOTOREAL_FAR_FALLBACK, undefined]) {
+    for (const far of [800, 1500, 10000, FINITE_CAMERA_FAR_FALLBACK, undefined]) {
       const camera = { ...base, far };
-      const { csm, dispose } = sourceCascades({ ...camera, far: far ?? PHOTOREAL_FAR_FALLBACK });
+      const { csm, dispose } = sourceCascades({
+        ...camera,
+        far: far ?? FINITE_CAMERA_FAR_FALLBACK,
+      });
       const native = nativeCascades(camera);
       expect(native.breaks.length, name).toBe(csm.breaks.length);
       native.breaks.forEach((value, i) => expect(value).toBeCloseTo(csm.breaks[i], 12));
@@ -151,7 +154,7 @@ test("an absent, infinite or sentinel far resolves to a bounded shadow range, ne
 
 test("slice corners, extents, light poses and bias match the settled source fit", () => {
   for (const [name, base] of Object.entries(CAMERAS))
-    for (const far of [800, 1500, 10000, PHOTOREAL_FAR_FALLBACK]) {
+    for (const far of [800, 1500, 10000, FINITE_CAMERA_FAR_FALLBACK]) {
       const camera = { ...base, far };
       const { csm, three, dispose } = sourceCascades(camera);
       const native = nativeCascades(camera);
@@ -201,7 +204,7 @@ test("slice corners, extents, light poses and bias match the settled source fit"
 });
 
 test("cascade projections cover every world point their own slice contains", () => {
-  const camera = { ...CAMERAS.wide, far: PHOTOREAL_FAR_FALLBACK };
+  const camera = { ...CAMERAS.wide, far: FINITE_CAMERA_FAR_FALLBACK };
   const native = nativeCascades(camera);
   for (const fit of native.cascades)
     for (const corner of fit.corners) {
@@ -216,7 +219,7 @@ test("cascade projections cover every world point their own slice contains", () 
 
 test("light centres snap by floor onto their own texel grid and clear the slice by the margin", () => {
   for (const [name, base] of Object.entries(CAMERAS)) {
-    const camera = { ...base, far: PHOTOREAL_FAR_FALLBACK };
+    const camera = { ...base, far: FINITE_CAMERA_FAR_FALLBACK };
     const native = nativeCascades(camera);
     for (const fit of native.cascades) {
       const depthAxis = unit(fit.position, fit.target);
@@ -243,7 +246,7 @@ test("a moving camera refits the same frame it is culled on", () => {
   // The source positions its cascade lights during render update, so its own
   // pre-render culling views lag a pan. The native policy is pure: the fit is a
   // function of the camera handed in, so a pan cannot produce a prior-frame box.
-  const base = { ...CAMERAS.wide, far: PHOTOREAL_FAR_FALLBACK };
+  const base = { ...CAMERAS.wide, far: FINITE_CAMERA_FAR_FALLBACK };
   let previous = nativeCascades(base);
   for (const step of [40, 120, 400, -600]) {
     const moved = {
@@ -278,7 +281,7 @@ test("a moving camera refits the same frame it is culled on", () => {
 });
 
 test("adjacent blend weights partition the overlap and fade out at the capped far", () => {
-  const camera = { ...CAMERAS.wide, far: PHOTOREAL_FAR_FALLBACK };
+  const camera = { ...CAMERAS.wide, far: FINITE_CAMERA_FAR_FALLBACK };
   const native = nativeCascades(camera);
   const [first, last] = native.cascades;
   const at = (depth: number) => [
@@ -313,7 +316,7 @@ test("a zero-margin interval stays defined rather than leaking a 0/0 weight", ()
 
 test("a shader split sits n*(1-break) farther out than the geometric slice plane", () => {
   for (const near of [0.5, 1, 2]) {
-    const camera = { ...CAMERAS.wide, near, far: PHOTOREAL_FAR_FALLBACK };
+    const camera = { ...CAMERAS.wide, near, far: FINITE_CAMERA_FAR_FALLBACK };
     const native = nativeCascades(camera);
     const geometric = native.breaks[0] * native.cappedFar;
     // The shader's split plane is where receiver depth equals the break.
@@ -332,7 +335,7 @@ test("a near-vertical camera diverges in the SHARED camera basis, not in this po
     ...CAMERAS.topDown,
     aspect: 1.6,
     pitch: Math.PI / 2 - 0.01,
-    far: PHOTOREAL_FAR_FALLBACK,
+    far: FINITE_CAMERA_FAR_FALLBACK,
   };
   const { csm, dispose } = sourceCascades(degenerate);
   const native = nativeCascades(degenerate);
@@ -345,7 +348,7 @@ test("a near-vertical camera diverges in the SHARED camera basis, not in this po
   expect(drift).toBeGreaterThan(native.cascades[0].worldUnitsPerTexel * 8);
   dispose();
   // At the rig's own limit the same comparison holds to single precision.
-  const limit = { ...CAMERAS.topDown, aspect: 1.6, far: PHOTOREAL_FAR_FALLBACK };
+  const limit = { ...CAMERAS.topDown, aspect: 1.6, far: FINITE_CAMERA_FAR_FALLBACK };
   const settled = sourceCascades(limit);
   const fitted = nativeCascades(limit);
   for (const axis of [0, 1, 2])
@@ -362,11 +365,11 @@ test("a near-vertical camera diverges in the SHARED camera basis, not in this po
 test("the light basis follows the source's fixed Y-up, not the battle camera's Z-up", () => {
   for (const environment of Object.values(CIVSIM_ENVIRONMENTS)) {
     const sun = photorealEnvironment(environment).sunDirection;
-    const camera = { ...CAMERAS.close, far: PHOTOREAL_FAR_FALLBACK };
+    const camera = { ...CAMERAS.close, far: FINITE_CAMERA_FAR_FALLBACK };
     const { csm, dispose } = sourceCascades(camera, sun);
     const native = cascadeFits({
       camera,
-      resolvedFar: PHOTOREAL_FAR_FALLBACK,
+      resolvedFar: FINITE_CAMERA_FAR_FALLBACK,
       unitSunDirection: sun,
     });
     native.cascades.forEach((fit, i) => {

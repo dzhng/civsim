@@ -69,8 +69,6 @@ import type { BattleStandardInstance } from "../../../game-renderer/src/models/s
 import { BattlePostChain } from "../post/postChain";
 import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
 
-export type { BattleLakeSurfaceSpec } from "./seaLayer";
-
 export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;
   readonly camera = new THREE.PerspectiveCamera();

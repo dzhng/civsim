@@ -15,8 +15,10 @@ import {
   CSM_MAP_SIZE,
   SINGLE_MAP_SIZE,
 } from "@packages/game-renderer/src/battle/shadowPolicy";
-import { PHOTOREAL_FAR_FALLBACK } from "@packages/photoreal-renderer/src/cameraBridge";
-import type { Camera3DParams } from "@packages/renderer-core/src/camera3d";
+import {
+  FINITE_CAMERA_FAR_FALLBACK,
+  type Camera3DParams,
+} from "@packages/renderer-core/src/camera3d";
 
 const environment = CIVSIM_ENVIRONMENTS.golden;
 const camera: Camera3DParams = {
@@ -27,7 +29,7 @@ const camera: Camera3DParams = {
   fovY: 0.85,
   aspect: 1.6,
   near: 1,
-  far: PHOTOREAL_FAR_FALLBACK,
+  far: FINITE_CAMERA_FAR_FALLBACK,
 };
 
 afterEach(() => vi.unstubAllGlobals());

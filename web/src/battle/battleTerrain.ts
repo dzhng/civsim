@@ -6,7 +6,7 @@ import {
   type BattleTerrainGrid,
 } from "@packages/game-renderer/src/battle/terrainFeatures";
 import { battleMapByWasmId } from "@packages/game-renderer/src/battle/mapCatalog";
-import type { BattleLakeSurfaceSpec } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleLakeSurfaceSpec } from "@packages/game-renderer/src/water/battleWaterGeometry";
 import type { BattleAudioWaterSurface } from "./battleAudio";
 import type { BattleWorld } from "./battleWorld";
 

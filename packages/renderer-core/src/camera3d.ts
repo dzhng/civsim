@@ -42,6 +42,14 @@ export interface Camera3DParams {
   far?: number;
 }
 
+// Far plane for a consumer that cannot take an infinite far plane; the canonical
+// projection above still omits `far` for the infinite limit. three@0.185 has no
+// infinite-far branch (Matrix4.makePerspective NaNs on far=Infinity), so such a
+// consumer substitutes this huge finite plane. Under reverse-Z the depth terms
+// converge to the infinite limit (A=0, B=near) at ~near/far relative error —
+// inside the epsilon web/tests/photorealCamera.test.ts pins the two stacks to.
+export const FINITE_CAMERA_FAR_FALLBACK = 1e7;
+
 // Eye position derived from the orbit params. Pitch is clamped just shy of
 // vertical so `lookAt`'s up vector never degenerates at exact top-down.
 export function eyePosition(p: Camera3DParams): Vec3 {

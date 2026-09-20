@@ -6,12 +6,10 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import { PerspectiveCamera, Matrix4, Vector4 } from "three";
-import {
-  applyCamera3d,
-  PHOTOREAL_FAR_FALLBACK,
-} from "@packages/photoreal-renderer/src/cameraBridge.ts";
+import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge.ts";
 import {
   eyePosition,
+  FINITE_CAMERA_FAR_FALLBACK,
   projectPoint,
   viewProjMatrix,
   type Camera3DParams,
@@ -163,6 +161,6 @@ test("photoreal camera bridge: omitted far converges to camera3d's infinite-far 
   const params: Camera3DParams = { ...ZOOM_STOPS[1], far: undefined };
   const camera = new PerspectiveCamera();
   applyCamera3d(camera, params);
-  assert.equal(camera.far, PHOTOREAL_FAR_FALLBACK);
+  assert.equal(camera.far, FINITE_CAMERA_FAR_FALLBACK);
   assertMatricesMatch(threeViewProj(camera), viewProjMatrix(params), "infinite-far limit");
 });

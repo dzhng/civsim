@@ -2,6 +2,7 @@ import { referenceAtlasTextures } from "../../../../packages/soldier-assets/bake
 import type { WorldSurfaceDiagnostic } from "../../../../packages/battle-renderer/src/shaders/environment";
 import { captureMipChain } from "../../../../packages/soldier-assets/bake/impostors/capture";
 import {
+  impostorAtlasLayout,
   loadImpostorAtlas,
   packImpostorAtlas,
   type ImpostorAtlasData,
@@ -41,7 +42,11 @@ import { IMPOSTOR_LEVEL } from "../../../../packages/crowd-runtime/src/lod";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import { eyePosition, type Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { cameraUniformData } from "../../../../packages/renderer-core/src/cameraUniform";
-import { createImpostorControlBackend, type ImpostorBackend } from "../impostorControlBackend";
+import {
+  compareControlRecords,
+  createImpostorControlBackend,
+  type ImpostorBackend,
+} from "../impostorControlBackend";
 import type { ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
 import { readHdrTexture, unpackRgba16fRows, compareHdr } from "../numericalReadback";
 
@@ -246,7 +251,8 @@ async function run() {
           };
           layer.upload(source);
           layer.setCamera(camera);
-          const packed = native.update(source, billView);
+          native.update(source, billView);
+          const recorded = await native.controlRecords();
           const mesh = world.scene.getObjectByName(
             "battle-crowd-far-impostors",
           ) as THREE.Mesh<THREE.InstancedBufferGeometry>;
@@ -289,18 +295,19 @@ async function run() {
           const expectedInst = mesh.geometry.getAttribute("impostorInst"),
             expectedMeta = mesh.geometry.getAttribute("impostorMeta"),
             expectedLiving = mesh.geometry.getAttribute("impostorLiving");
-          let packingEqual = true;
-          for (let i = 0; i < source.length; i++)
-            for (let c = 0; c < 9; c++)
-              if (
-                packed[i * 12 + c] !==
-                (c < 4
-                  ? expectedInst.array[i * 4 + c]
-                  : c < 8
-                    ? expectedMeta.array[i * 4 + c - 4]
-                    : expectedLiving.array[i])
-              )
-                packingEqual = false;
+          // Three's own instance attributes, as the nine floats a record carries.
+          const threeRecord = (i: number) => [
+            ...Array.from({ length: 4 }, (_, c) => expectedInst.array[i * 4 + c]),
+            ...Array.from({ length: 4 }, (_, c) => expectedMeta.array[i * 4 + c]),
+            expectedLiving.array[i],
+          ];
+          const recordControl = compareControlRecords(
+            impostorAtlasLayout(data),
+            source,
+            billView,
+            threeRecord,
+            recorded,
+          );
           const output = await native.render(params);
           await new Promise<void>((r) => requestAnimationFrame(() => r()));
           renderer.setRenderTarget(reference);
@@ -355,7 +362,7 @@ async function run() {
             exceptionalPixels,
             shader,
             label: `${classId}-${label}`,
-            packingEqual,
+            recordControl,
             shadowFlagsMatch,
             pixels,
             covered,
@@ -363,7 +370,7 @@ async function run() {
             different,
             maxCovered,
             passed:
-              packingEqual &&
+              recordControl.passed &&
               shadowFlagsMatch &&
               pixels.nonfinite === 0 &&
               covered > 0 &&

@@ -7,6 +7,9 @@ export default {
         new URL("../../web/node_modules/vgpu/dist/mock.js", import.meta.url),
       ),
       vgpu: fileURLToPath(new URL("../../web/node_modules/vgpu/dist/index.js", import.meta.url)),
+      // The lab's own seams reach into the TypeGPU candidate; this suite resolves the
+      // library the same way the candidate's config does.
+      typegpu: fileURLToPath(new URL("../../web/node_modules/typegpu/index.js", import.meta.url)),
       "@packages": fileURLToPath(new URL("../../packages", import.meta.url)),
     },
   },

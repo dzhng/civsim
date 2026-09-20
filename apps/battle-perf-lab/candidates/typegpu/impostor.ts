@@ -3,13 +3,17 @@ import {
   impostorAtlasLayout,
   type ImpostorAtlasData,
 } from "../../../../packages/soldier-assets/src/impostorAtlas";
-import { tgpu, d, std, type TgpuBindGroup, type TgpuRenderCommands } from "typegpu";
+import {
+  tgpu,
+  d,
+  std,
+  type StorageFlag,
+  type TgpuBindGroup,
+  type TgpuRenderCommands,
+} from "typegpu";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import { GPU_DEPTH_FORMAT } from "../../../../packages/renderer-core/src/depthContract";
-import {
-  packImpostors,
-  type ImpostorView,
-} from "../../../../packages/battle-renderer/src/impostorData";
+import type { ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
 import {
   impostorVertexWgsl,
   impostorSurfaceWgsl,
@@ -19,6 +23,8 @@ import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 import {
   IMPOSTOR_STATE_FLOATS,
+  ImpostorRecord,
+  type ImpostorRecordValue,
   ImpostorState,
   ImpostorViewBlock,
   impostorDerivation,
@@ -44,6 +50,9 @@ const ImpostorSurface = d.struct({
   metal: d.f32,
   ao: d.f32,
 });
+/** The diagnostic stage's group size. It dispatches over the installed soldier buffer and
+ * guards on its actual length, so a capacity that is not a multiple of it is still safe. */
+const RECORD_WORKGROUP = 64;
 const vertexAlgorithm = tgpu
   .fn(
     [d.u32, d.vec4f, d.vec4f, d.f32, d.vec3f, d.vec3f],
@@ -58,6 +67,10 @@ export async function createTypegpuImpostors(
   atlas: ImpostorAtlasData,
   environment: TypegpuEnvironment,
   samples = 4,
+  /** Opt-in, and off for every frame path: admits the soldier buffer as storage as well
+   *  as vertex input so `readRecords` can run the derivation over it. Nothing else about
+   *  the layer changes, and the diagnostic's own resources are still built on first use. */
+  recordDiagnostics = false,
 ) {
   const root = tgpu.initFromDevice({ device });
   const placement = impostorAtlasLayout(atlas);
@@ -66,6 +79,8 @@ export async function createTypegpuImpostors(
     count = 0,
     capacity = 512,
     staging = new Float32Array(0);
+  /** Bumped by every publication of state or view: what a readback has to still match. */
+  let published = 0;
   let scopesOpen = false;
   const closeScopes = async () => {
     if (!scopesOpen) return;
@@ -94,7 +109,11 @@ export async function createTypegpuImpostors(
     device.pushErrorScope("internal");
     device.pushErrorScope("validation");
     scopesOpen = true;
-    let states = root.createBuffer(stateLayout.schemaForCount(capacity)).$usage("vertex");
+    const createStates = (size: number) => {
+      const buffer = root.createBuffer(stateLayout.schemaForCount(size));
+      return recordDiagnostics ? buffer.$usage("vertex", "storage") : buffer.$usage("vertex");
+    };
+    let states = createStates(capacity);
     owned.push(states);
     const viewBlock = root.createBuffer(ImpostorViewBlock).$usage("uniform");
     owned.push(viewBlock);
@@ -219,11 +238,12 @@ export async function createTypegpuImpostors(
     /** The camera-independent half: six floats a soldier owns until it is submitted again. */
     const updateState = (source: readonly CrowdInstance[]) => {
       assertLive();
+      published++;
       count = source.length;
       if (count > capacity) {
         states.destroy();
         capacity = Math.max(count, capacity * 2);
-        states = root.createBuffer(stateLayout.schemaForCount(capacity)).$usage("vertex");
+        states = createStates(capacity);
         owned.push(states);
       }
       if (!count) return;
@@ -238,18 +258,76 @@ export async function createTypegpuImpostors(
     const setView = (camera: ImpostorView) => {
       assertLive();
       viewBlock.write(impostorViewBlock(camera));
+      published++;
+    };
+    const recordLayout = tgpu.bindGroupLayout({
+      view: { uniform: ImpostorViewBlock },
+      states: { storage: (n: number) => d.arrayOf(ImpostorState, n), access: "readonly" },
+      records: { storage: (n: number) => d.arrayOf(ImpostorRecord, n), access: "mutable" },
+    });
+    const recordEntry = tgpu.computeFn({
+      workgroupSize: [RECORD_WORKGROUP],
+      in: { id: d.builtin.globalInvocationId },
+    })(({ id }) => {
+      "use gpu";
+      if (id.x < std.arrayLength(recordLayout.$.states))
+        recordLayout.$.records[id.x] = deriveImpostorRecord(
+          recordLayout.$.states[id.x],
+          recordLayout.$.view,
+        );
+    });
+    const createRecords = (size: number) =>
+      root.createBuffer(d.arrayOf(ImpostorRecord, size)).$usage("storage");
+    let recordPipeline: ReturnType<typeof root.createComputePipeline> | undefined;
+    let diagnostic:
+      | { states: typeof states; records: ReturnType<typeof createRecords>; group: TgpuBindGroup }
+      | undefined;
+    /** Diagnostic only. The records the buffers currently installed on this layer actually
+     *  produce: `recordEntry` closes over the SAME `deriveImpostorRecord` the
+     *  vertex entry compiles, and reads the SAME soldier buffer and view block the draw
+     *  binds. Its resources are built on first call and rebuilt whenever growth replaces
+     *  the soldier buffer, so a stale binding cannot answer for the live one; a submission
+     *  or a camera write that lands while the readback is in flight fails rather than
+     *  returning records no installed state ever had. Nothing in `draw` reaches here. */
+    const readRecords = async (): Promise<ImpostorRecordValue[]> => {
+      assertLive();
+      if (!recordDiagnostics)
+        throw new Error("TypeGPU impostors were admitted without record diagnostics");
+      if (!count) return [];
+      recordPipeline ??= root.createComputePipeline({ compute: recordEntry });
+      if (diagnostic?.states !== states) {
+        diagnostic?.records.destroy();
+        const records = createRecords(capacity);
+        owned.push(records);
+        const group = root.createBindGroup(recordLayout, {
+          view: viewBlock,
+          // `recordDiagnostics` is what gave this buffer its storage usage, and the guard
+          // above already rejected a layer admitted without it.
+          states: states as typeof states & StorageFlag,
+          records,
+        });
+        diagnostic = { states, records, group };
+      }
+      const installed = published;
+      const encoder = root["~unstable"].createCommandEncoder();
+      recordPipeline
+        .with(diagnostic.group)
+        .with(encoder)
+        .dispatchWorkgroups(Math.ceil(count / RECORD_WORKGROUP));
+      encoder.submit();
+      const values = await diagnostic.records.read().catch((error: unknown) => {
+        assertLive();
+        throw error;
+      });
+      assertLive();
+      if (published !== installed)
+        throw new Error("TypeGPU impostor records: state or view was republished during readback");
+      return values.slice(0, count);
     };
     return {
       updateState,
       setView,
-      /** The numerical control's combined entry (see impostorControlBackend): it publishes
-       *  exactly what the audience publishes and returns the independent CPU record the
-       *  control pins against Three. No frame path calls this. */
-      update(source: readonly CrowdInstance[], camera: ImpostorView) {
-        updateState(source);
-        setView(camera);
-        return packImpostors(placement, source, camera);
-      },
+      readRecords,
       draw(pass: TgpuRenderCommands, camera: TgpuBindGroup) {
         assertLive();
         if (count) pipeline.with(camera).with(stateLayout, states).with(pass).draw(6, count);

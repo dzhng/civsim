@@ -340,9 +340,15 @@ span are compile-time constants of the atlas. It reads no binding — the view a
 argument — which is why the same function runs in the vertex stage, in the diagnostic
 compute stage, and directly in JavaScript where a test can call it.
 
-`packImpostors` is untouched and remains the independent oracle. The layer's `update` is the
-[numerical control](../../src/impostorControlBackend.ts)'s combined entry and still returns
-that oracle's record for the control to pin against Three; no frame path calls it.
+`packImpostors` is untouched and remains the independent oracle of the fixture checks
+below. The layer has no combined `update` and hands nobody a packed record: the
+[numerical control](../../src/impostorControlBackend.ts) publishes state and view like the
+audience does, then asks `readRecords` what the installed buffers actually produce. That is
+an opt-in compute stage over the layer's own soldier buffer and view block, closing over the
+same `deriveImpostorRecord` the vertex entry compiles; it is built on first use, rebuilt when
+growth replaces the soldier buffer, and refuses to answer for a disposed layer or for state
+republished while its readback was in flight. No frame path reaches it, and a layer admitted
+without it carries no storage usage on its soldier buffer.
 
 ```sh
 web/node_modules/.bin/tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tests/tsconfig.json
@@ -357,7 +363,18 @@ precision but not its arithmetic. A tile index may differ only where the two cel
 baked from the identical direction (an even grid folds its corners onto interior cells) or
 where the direction is equidistant between them; the 6x4 grid has no duplicate cells at all,
 so its agreement is unconditional. Separate suites pin the bytes a camera move commits
-through the real layer and the real audience against a recording device.
+through the real layer and the real audience against a recording device, and pin that the
+diagnostic allocates nothing until it is asked, follows the soldier buffer through growth,
+and fails on a stale view, a wrong buffer or a disposed owner.
+
+The lab's [record gate](../../src/raw/impostor-check.ts) changed with this. A raw or vgpu
+layer uploads the packed record, so it still hands back those bytes and is still held to
+exact equality with Three's instance attributes, float for float. The TypeGPU layer has no
+packed buffer, so the former `packingEqual` would have compared the CPU oracle to Three
+while the GPU ran something else; it is replaced by the actual readback compared to the same
+Three attributes under the tolerances declared here, with exact agreement counted separately
+and every tile difference reported — cells baked from the identical direction, cells the
+route cannot separate, and faults with their dot margins.
 
 [impostor-record-check.html](impostor-record-check.html) is the hardware control, and it is
 the part this candidate still owes. A compute stage runs the same typed derivation over the

@@ -7,10 +7,12 @@ import {
 import { hemiOctTileDirections } from "../../../../packages/photoreal-renderer/src/battle/impostorTile";
 import { tanHalfFov } from "./impostorDerivation";
 
-/** The fixture and the verdict both checks of the derived billboard record share: the CPU
- * lifecycle suite, which runs the typed bodies directly, and the hardware readback, which
- * runs them through a compute stage. `packImpostors` is the oracle for both and is never
- * routed through the derivation. This module is a check, not a rendering path. */
+/** The fixture and the verdict every check of the derived billboard record shares: the CPU
+ * suite, which runs the typed bodies directly, the hardware readback, which runs them
+ * through a compute stage, and the lab's numerical control, which compares the installed
+ * layer's own records to Three. `packImpostors` is the oracle of the first two and is never
+ * routed through the derivation; the control supplies Three's attributes instead. This
+ * module is a check, not a rendering path. */
 
 /** One f32 step. TypeGPU stores struct and vector members at f32, so this is the precision
  * the published state and view block themselves carry on either route. */
@@ -251,6 +253,23 @@ function stateProbes(atlas: ImpostorAtlasLayout): RecordProbe[] {
   return probes;
 }
 
+/** The direction a soldier's tile pick is made from: the view direction in its local
+ * frame, in f64. This classifies a tile difference — it is the input `tileDots` measures
+ * margins against — and derives no record; the fixture cases above name the same quantity
+ * directly, and every record on either route comes from the typed derivation or the
+ * packer. */
+export function localViewDirection(instance: CrowdInstance, view: ImpostorView): Triple {
+  const angle = instance.facing - Math.PI / 2;
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const [x, y, z] = unit(
+    view.eye[0] - instance.x,
+    view.eye[1] - instance.y,
+    view.eye[2] - (instance.elevation ?? 0),
+  );
+  return unit(x * c + y * s, -x * s + y * c, z);
+}
+
 /** Every suite, by name, for one atlas. */
 export function impostorRecordSuites(atlas: ImpostorAtlasLayout): Record<string, RecordProbe[]> {
   return {
@@ -311,6 +330,9 @@ export interface RecordSwap {
 export interface RecordVerdict {
   probes: number;
   compared: number;
+  /** Fields that matched the expectation bit for bit. Reported apart from the tolerance
+   *  so an exact disagreement is never hidden behind a declared numeric bound. */
+  exact: number;
   faults: RecordFault[];
   /** A different index for the identical baked direction. */
   duplicates: RecordSwap[];
@@ -320,19 +342,26 @@ export interface RecordVerdict {
   worstGap: { field: RecordField; gap: number; allowed: number; label: string } | null;
 }
 
-/** Compares derived records against the oracle under one declared tolerance. A tile index
- * may differ only where the two centres are the same direction, or where the compared
- * route's own precision cannot separate them — every other difference, of any size, is a
- * fault, and carries the dot margin that proves it. */
+/** Compares derived records against an expectation under one declared tolerance. The
+ * expectation defaults to the CPU oracle, which is what the fixture checks want; the lab's
+ * numerical control passes Three's own instance attributes instead, so that gate stays a
+ * comparison against the reference renderer rather than against a second CPU packer.
+ *
+ * A tile index may differ only where the two centres are the same direction, or where the
+ * compared route's own precision cannot separate them — every other difference, of any
+ * size, is a fault, and carries the dot margin that proves it. */
 export function compareImpostorRecords(
   atlas: ImpostorAtlasLayout,
   probes: readonly RecordProbe[],
   actualFor: (probe: RecordProbe, index: number) => readonly number[],
   tolerance: RecordTolerance,
+  expectedFor: (probe: RecordProbe, index: number) => readonly number[] = (probe) =>
+    oracleRecord(atlas, probe),
 ): RecordVerdict {
   const verdict: RecordVerdict = {
     probes: probes.length,
     compared: 0,
+    exact: 0,
     faults: [],
     duplicates: [],
     ties: [],
@@ -340,7 +369,7 @@ export function compareImpostorRecords(
     worstGap: null,
   };
   probes.forEach((probe, index) => {
-    const expected = oracleRecord(atlas, probe);
+    const expected = expectedFor(probe, index);
     const actual = actualFor(probe, index);
     for (let i = 0; i < RECORD_FLOATS; i++) {
       const field = RECORD_FIELDS[i];
@@ -349,7 +378,10 @@ export function compareImpostorRecords(
         verdict.nonfinite.push({ label: probe.label, field, actual: actual[i] });
         continue;
       }
-      if (Object.is(expected[i], actual[i])) continue;
+      if (Object.is(expected[i], actual[i])) {
+        verdict.exact++;
+        continue;
+      }
       if (i === TILE_FIELD) {
         const dots = probe.direction ? tileDots(atlas, probe.direction) : null;
         const dotMargin = dots ? dots[expected[i]] - dots[actual[i]] : Number.POSITIVE_INFINITY;

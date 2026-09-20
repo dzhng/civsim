@@ -8,7 +8,16 @@ import { vi } from "vitest";
  *  real TypeGPU encoders over the same device, so attachment views are
  *  unwrapped through the production path rather than inspected by hand. */
 export function recordingGpu() {
-  vi.stubGlobal("GPUBufferUsage", { UNIFORM: 64, COPY_DST: 8, COPY_SRC: 4, VERTEX: 32, INDEX: 16 });
+  vi.stubGlobal("GPUBufferUsage", {
+    MAP_READ: 1,
+    MAP_WRITE: 2,
+    COPY_SRC: 4,
+    COPY_DST: 8,
+    INDEX: 16,
+    VERTEX: 32,
+    UNIFORM: 64,
+    STORAGE: 128,
+  });
   vi.stubGlobal("GPUTextureUsage", {
     COPY_SRC: 1,
     COPY_DST: 2,
@@ -17,11 +26,15 @@ export function recordingGpu() {
     RENDER_ATTACHMENT: 16,
   });
   vi.stubGlobal("GPUShaderStage", { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
+  vi.stubGlobal("GPUMapMode", { READ: 1, WRITE: 2 });
   const live = new Set<object>();
   const textures: GPUTextureDescriptor[] = [];
   const buffers: GPUBufferDescriptor[] = [];
   const views: GPUTextureViewDescriptor[] = [];
   const passes: GPURenderPassDescriptor[] = [];
+  const bindGroups: GPUBindGroupDescriptor[] = [];
+  const dispatches: { groups: [number, number, number]; bindGroups: object[] }[] = [];
+  const copies: { source: object; destination: object; bytes: number }[] = [];
   const writes: { buffer: object; bytes: number }[] = [];
   const textureWrites: { texture: object; bytes: number }[] = [];
   let buffersFailAt = Infinity;
@@ -43,6 +56,8 @@ export function recordingGpu() {
     },
     createPipelineLayout: () => ({}),
     createRenderPipelineAsync: async () => ({}),
+    createComputePipeline: () => ({}),
+    createComputePipelineAsync: async () => ({}),
     createTexture: (descriptor: GPUTextureDescriptor) => {
       textures.push(descriptor);
       const texture = {
@@ -58,12 +73,31 @@ export function recordingGpu() {
     createBuffer: (descriptor: GPUBufferDescriptor) => {
       if (buffers.length + 1 === buffersFailAt) throw Error("injected allocation failure");
       buffers.push(descriptor);
-      const buffer = { descriptor, mapState: "unmapped", destroy: () => live.delete(buffer) };
+      // Mapping is real enough for a readback: the range is the size the owner asked for,
+      // zero-filled, so what a test measures is the shape of the transfer, not its values.
+      let range: ArrayBuffer | undefined;
+      const buffer = {
+        descriptor,
+        size: descriptor.size,
+        usage: descriptor.usage,
+        mapState: "unmapped",
+        mapAsync: async () => {
+          buffer.mapState = "mapped";
+        },
+        getMappedRange: () => (range ??= new ArrayBuffer(descriptor.size)),
+        unmap: () => {
+          buffer.mapState = "unmapped";
+        },
+        destroy: () => live.delete(buffer),
+      };
       live.add(buffer);
       return buffer;
     },
     createSampler: () => ({}),
-    createBindGroup: () => ({}),
+    createBindGroup: (descriptor: GPUBindGroupDescriptor) => {
+      bindGroups.push(descriptor);
+      return { descriptor };
+    },
     createBindGroupLayout: () => ({}),
     queue: {
       submit: vi.fn(),
@@ -87,6 +121,23 @@ export function recordingGpu() {
         passes.push(descriptor);
         return { end: vi.fn(), setPipeline: vi.fn() };
       },
+      beginComputePass: () => {
+        const bound: object[] = [];
+        return {
+          setPipeline: vi.fn(),
+          setBindGroup: (_index: number, group: object) => bound.push(group),
+          dispatchWorkgroups: (x: number, y = 1, z = 1) =>
+            dispatches.push({ groups: [x, y, z], bindGroups: bound }),
+          end: vi.fn(),
+        };
+      },
+      copyBufferToBuffer: (
+        source: object,
+        _sourceOffset: number,
+        destination: object,
+        _destinationOffset: number,
+        bytes: number,
+      ) => copies.push({ source, destination, bytes }),
     }),
   };
   const native = device as unknown as GPUDevice;
@@ -102,6 +153,12 @@ export function recordingGpu() {
     buffers,
     views,
     passes,
+    /** Every bind group the device was actually asked to build, with its entries. */
+    bindGroups,
+    /** Every compute dispatch, with the groups bound to it. */
+    dispatches,
+    /** Every buffer-to-buffer copy: what a readback actually transfers. */
+    copies,
     writes,
     /** The atlas mip bytes this device was asked to commit, upload by upload. */
     textureWrites,

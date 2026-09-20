@@ -5,6 +5,7 @@ import {
   ImpostorState,
   ImpostorViewBlock,
   impostorDerivation,
+  impostorRecordFloats,
   impostorViewBlock,
   writeImpostorState,
 } from "./impostorDerivation";
@@ -90,22 +91,19 @@ async function readBack(
   }
 }
 
-/** An `ImpostorRecord` occupies eight floats; the oracle's record repeats the span as the
- *  quad's width and height, which is exactly what the vertex stage passes on. */
+/** An `ImpostorRecord` occupies eight floats in the buffer this reads back; expanding one
+ *  into the nine the oracle writes belongs to the record's own owner. */
 const RECORD_STRIDE = 8;
 const readRecord = (records: Float32Array, index: number) => {
   const o = index * RECORD_STRIDE;
-  return [
-    records[o],
-    records[o + 1],
-    records[o + 2],
-    records[o + 3],
-    records[o + 4],
-    records[o + 5],
-    records[o + 5],
-    records[o + 6],
-    records[o + 7],
-  ];
+  return impostorRecordFloats({
+    anchor: d.vec3f(records[o], records[o + 1], records[o + 2]),
+    faction: records[o + 3],
+    tile: records[o + 4],
+    span: records[o + 5],
+    angle: records[o + 6],
+    living: records[o + 7],
+  });
 };
 
 async function checkAtlas(device: GPUDevice, atlas: ImpostorAtlasLayout) {

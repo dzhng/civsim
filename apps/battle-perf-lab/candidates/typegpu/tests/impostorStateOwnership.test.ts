@@ -29,6 +29,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 const STATE_BYTES = 24;
 const VIEW_BYTES = 48;
+const RECORD_BYTES = 32;
 /** A 2x2 atlas: one real mip chain, small enough that the uploads are not the subject. */
 function atlasData() {
   const tileSize = 1;
@@ -74,16 +75,22 @@ function stubEnvironment(device: GPUDevice) {
     },
   };
 }
-const build = async (g: ReturnType<typeof recordingGpu>) => {
+const build = async (g: ReturnType<typeof recordingGpu>, recordDiagnostics = false) => {
   const { root, environment } = stubEnvironment(g.native);
   const layer = await createTypegpuImpostors(
     g.native,
     atlasData() as never,
     environment as never,
     1,
+    recordDiagnostics,
   );
   return { layer, dispose: () => (layer.dispose(), root.destroy()) };
 };
+/** The buffers one bind group was actually built over, in binding order. */
+const bound = (descriptor: GPUBindGroupDescriptor) =>
+  [...(descriptor.entries as Iterable<GPUBindGroupEntry>)].map(
+    (entry) => (entry.resource as GPUBufferBinding).buffer as unknown as GPUBuffer,
+  );
 
 const soldier = (i: number): CrowdInstance => ({
   x: i,
@@ -247,5 +254,129 @@ test("the audience's camera refresh writes one view block per layer and no soldi
   } finally {
     owner.dispose();
     root.destroy();
+  }
+});
+
+// The derived record has no packed buffer to hand a caller, so the numerical control asks
+// the installed layer what its own state and view produce. These pin that the answer comes
+// from the buffers the draw binds and from no other moment in the layer's life.
+
+test("no frame path builds or reads the record diagnostic", async () => {
+  const g = recordingGpu();
+  const built = await build(g, true);
+  try {
+    built.layer.updateState(population(9));
+    built.layer.setView(CAMERA);
+    const before = g.buffers.length;
+    built.layer.updateState(population(9));
+    built.layer.setView({ ...CAMERA, eye: [1, 2, 3] });
+    // Submitting and moving the camera allocate nothing, dispatch nothing, read nothing.
+    expect(g.buffers).toHaveLength(before);
+    expect(g.dispatches).toEqual([]);
+    expect(g.copies).toEqual([]);
+    const records = await built.layer.readRecords();
+    expect(records).toHaveLength(9);
+    // Only now: the records buffer, one staging buffer, one dispatch, one copy.
+    expect(g.buffers.slice(before).map((buffer) => buffer.size)).toEqual([
+      512 * RECORD_BYTES,
+      512 * RECORD_BYTES,
+    ]);
+    expect(g.dispatches.map((dispatch) => dispatch.groups)).toEqual([[1, 1, 1]]);
+    expect(g.copies.map((copy) => copy.bytes)).toEqual([512 * RECORD_BYTES]);
+  } finally {
+    built.dispose();
+  }
+  // And the diagnostic's own buffer is released with the layer that owns it.
+  expect(g.live.size).toBe(0);
+});
+
+test("a layer admitted without record diagnostics has no storage soldier buffer to read", async () => {
+  const g = recordingGpu();
+  const built = await build(g);
+  try {
+    built.layer.updateState(population(4));
+    built.layer.setView(CAMERA);
+    await expect(built.layer.readRecords()).rejects.toThrow("without record diagnostics");
+    expect(g.dispatches).toEqual([]);
+    // The soldier buffer a frame layer commits carries vertex usage and nothing else.
+    const soldierBuffer = g.buffers.find((buffer) => buffer.size === 512 * STATE_BYTES)!;
+    expect(soldierBuffer.usage & GPUBufferUsage.STORAGE).toBe(0);
+    expect(soldierBuffer.usage & GPUBufferUsage.VERTEX).toBe(GPUBufferUsage.VERTEX);
+  } finally {
+    built.dispose();
+  }
+});
+
+test("the diagnostic reads the soldier buffer growth installed, not the one it replaced", async () => {
+  const g = recordingGpu();
+  const built = await build(g, true);
+  try {
+    built.layer.updateState(population(8));
+    built.layer.setView(CAMERA);
+    await built.layer.readRecords();
+    const first = bound(g.bindGroups.at(-1)!);
+    built.layer.updateState(population(600));
+    const records = await built.layer.readRecords();
+    const second = bound(g.bindGroups.at(-1)!);
+    // The view block is the same buffer throughout; the soldier buffer is not.
+    expect(second[0]).toBe(first[0]);
+    expect(second[1]).not.toBe(first[1]);
+    expect(second[1].size).toBe(1024 * STATE_BYTES);
+    expect(records).toHaveLength(600);
+    // Ten workgroups of sixty-four cover six hundred soldiers, and the stage bounds itself
+    // on the buffer's own length, so the tail cannot read past it.
+    expect(g.dispatches.at(-1)!.groups).toEqual([Math.ceil(600 / 64), 1, 1]);
+  } finally {
+    built.dispose();
+  }
+});
+
+test("a republication or a disposal during the readback fails instead of answering", async () => {
+  const g = recordingGpu();
+  const built = await build(g, true);
+  try {
+    built.layer.updateState(population(5));
+    built.layer.setView(CAMERA);
+    // A camera published while the records are in flight: they are no longer anyone's.
+    const duringCamera = built.layer.readRecords();
+    built.layer.setView({ ...CAMERA, eye: [9, 9, 9] });
+    await expect(duringCamera).rejects.toThrow("republished during readback");
+    // And a submission, likewise.
+    const duringSubmission = built.layer.readRecords();
+    built.layer.updateState(population(6));
+    await expect(duringSubmission).rejects.toThrow("republished during readback");
+  } finally {
+    built.dispose();
+  }
+  await expect(built.layer.readRecords()).rejects.toThrow("disposed");
+});
+
+test("a disposal during the readback fails instead of answering", async () => {
+  const g = recordingGpu();
+  const built = await build(g, true);
+  built.layer.updateState(population(5));
+  built.layer.setView(CAMERA);
+  const inFlight = built.layer.readRecords();
+  built.dispose();
+  await expect(inFlight).rejects.toThrow("disposed");
+});
+
+test("the diagnostic stage compiles the same derivation the vertex stage does", async () => {
+  const g = recordingGpu();
+  const built = await build(g, true);
+  try {
+    built.layer.updateState(population(3));
+    built.layer.setView(CAMERA);
+    const beforeShaders = g.shaders.length;
+    await built.layer.readRecords();
+    const compute = g.shaders.slice(beforeShaders).join("\n");
+    expect(compute).toContain(`@compute @workgroup_size(64)`);
+    expect(compute).toContain("fn deriveImpostorRecord(");
+    // It reads the soldier buffer as a runtime-sized array and bounds itself on its length,
+    // so one stage serves every capacity the layer ever grows to.
+    expect(compute).toContain("array<ImpostorState>");
+    expect(compute).toContain("arrayLength(");
+  } finally {
+    built.dispose();
   }
 });

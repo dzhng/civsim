@@ -23,13 +23,18 @@ import {
   compareImpostorRecords,
   duplicateCells,
   impostorRecordSuites,
+  localViewDirection,
   type RecordProbe,
 } from "../impostorRecordCases";
 import type { ImpostorView } from "../../../../../packages/battle-renderer/src/impostorData";
 import type { ImpostorAtlasLayout } from "../../../../../packages/soldier-assets/src/impostorAtlas";
 import { IMPOSTOR_ATLAS_POLICY } from "../../../../../packages/soldier-assets/src/impostorAtlas";
 import type { CrowdInstance } from "../../../../../packages/crowd-runtime/src/instanceData";
-import { hemiOctTileDirections } from "../../../../../packages/photoreal-renderer/src/battle/impostorTile";
+import {
+  hemiOctTileDirections,
+  nearestHemiOctTile,
+} from "../../../../../packages/photoreal-renderer/src/battle/impostorTile";
+import { packImpostors } from "../../../../../packages/battle-renderer/src/impostorData";
 
 const SQUARE: ImpostorAtlasLayout = {
   ...IMPOSTOR_ATLAS_POLICY,
@@ -277,4 +282,30 @@ describe("the resolved shader", () => {
     const wgsl = resolved(SQUARE);
     for (const baked of ["0.137f", "-0.241f", "0.913f", "1.7f"]) expect(wgsl).toContain(baked);
   });
+});
+
+test("the tile-difference classifier's direction is the one the packer picks its tile from", () => {
+  // The classifier names the direction a dot margin is measured along. It is only
+  // trustworthy while it agrees with the packer's own rotation, so pin it there: over a
+  // spread of facings, positions, elevations and eyes, the tile the reference finds from
+  // this direction is the tile the packer wrote.
+  const dirs = hemiOctTileDirections(SQUARE.columns, SQUARE.rows);
+  for (let step = 0; step < 64; step++) {
+    const instance = soldier({
+      x: ((step % 8) - 3.5) * 2.75,
+      y: (Math.floor(step / 8) - 3.5) * 1.5,
+      facing: -Math.PI + ((step + 0.37) / 64) * Math.PI * 2,
+      elevation: ((step % 5) - 2) * 0.8,
+    });
+    const view: ImpostorView = {
+      right: [1, 0, 0],
+      up: [0, 0, 1],
+      eye: [3.75 + step * 0.5, -10.5 + step * 0.25, 4.25 - step * 0.1],
+      fovY: 0.8,
+    };
+    const [x, y, z] = localViewDirection(instance, view);
+    expect(nearestHemiOctTile(x, y, z, SQUARE.columns, SQUARE.rows, dirs)).toBe(
+      packImpostors(SQUARE, [instance], view)[4],
+    );
+  }
 });

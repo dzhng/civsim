@@ -39,6 +39,23 @@ export const ImpostorRecord = d.struct({
   angle: d.f32,
   living: d.f32,
 });
+export type ImpostorRecordValue = d.Infer<typeof ImpostorRecord>;
+/** One derived record as the nine floats a billboard actually carries, in the order
+ * `packImpostors` writes them and Three's instance attributes hold them. The single span
+ * becomes the quad's width and height here, which is exactly what the vertex stage does
+ * with it; every consumer of a derived record — the hardware fixture check and the lab's
+ * numerical control — expands it through this one owner. */
+export const impostorRecordFloats = (record: ImpostorRecordValue): number[] => [
+  record.anchor.x,
+  record.anchor.y,
+  record.anchor.z,
+  record.faction,
+  record.tile,
+  record.span,
+  record.span,
+  record.angle,
+  record.living,
+];
 const TileHit = d.struct({ index: d.i32, dot: d.f32 });
 
 export const IMPOSTOR_STATE_FLOATS = 6;

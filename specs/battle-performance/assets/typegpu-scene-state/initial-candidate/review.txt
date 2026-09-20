@@ -1,0 +1,6 @@
+Crowd replacement can discard an admitted pose before the first completed preparation, leaving the replacement unable to prepare without another upload. The 79 targeted lifecycle, shadow-scene, and facade tests pass but do not cover this sequence.
+
+Review comment:
+
+- [P2] Preserve admitted poses before the first preparation — /Users/david/dev/game-battle-typegpu-scene-state/apps/battle-perf-lab/candidates/typegpu/battleScene.ts:251-254
+  If `uploadCrowd()` succeeds before the first `prepare()`, the crowd has an admitted pose but `lastCamera` is still null. Reloading then skips the staged upload and disposes the installed crowd, silently losing that pose. Subsequent `prepare()` cannot recover it: `crowd.reproject()` requires an already-ready audience and throws `Crowd audience frame is not ready`. Retain the upload camera as a fallback, or reject replacement without retiring the admitted generation when no preparation camera exists.

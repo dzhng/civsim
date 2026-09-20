@@ -12,7 +12,10 @@ Current pickup: integrate TypeGPU scene reload and admitted-state diagnostics.
 Claude Opus is implementing this CPU pass in
 `/Users/david/dev/game-battle-typegpu-scene-state`, basef440191a, scoped to the
 TypeGPU scene/terrain and real live facade plus consumer tests. Prompt and runner
-outputs live in that worktree's `throwaway/` (handle19901).
+outputs live in that worktree's `throwaway/`. Initial2da55ab2 passes root CPU
+and Menu seating/reload/fault/disposal checks, but review found pose loss when
+reloading before first prepare; the accepted fix is active (handle72627), prompt
+`throwaway/scene-review-fix.txt`. Do not integrate until corrected and verified.
 An independent Opus CPU pass in `/Users/david/dev/game-battle-typegpu-impostor-state`
 (basea90d3f82, handle80073) owns typed compact impostor state and audience camera
 refresh, with no scene/facade edits. It must preserve exact tile choices and existing

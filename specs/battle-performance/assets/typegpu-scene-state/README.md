@@ -7,7 +7,8 @@ because the facade treats TypeGPU as a comparison backend without crowd ownershi
 errors and zero tracked bytes after disposal. This is an expected failure of the
 capability requirement, not an acceptance pass.
 
-The Opus scene pass is still active. Root prepared the existing whole-population
+[The initial candidate](initial-candidate/README.md) passes Menu lifecycle checks,
+but an independent P2 on reload before first preparation is accepted and being fixed. Root prepared the existing whole-population
 seating and staged-reload GPU checks in `throwaway/typegpu-scene-hardware/` for its
 fixed build after review. No post-change browser claim exists yet. These checks
 will not establish drawn-foot placement or camera/performance acceptance.

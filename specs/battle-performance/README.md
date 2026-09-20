@@ -7,12 +7,13 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: [impostor packing candidate](slices/07-impostor-packing-candidate.md).
-A pinned tick30 profile after the adopted snapshot improvement identifies packed
-billboard records as the leading named leaf cost; Claude Opus in `game-battle-impostor-packing` (base3a14a9c6, logs
-`throwaway/impostor-packing-worker/`) is removing temporary
-per-soldier record arrays while preserving packed bytes. Measure against the
-adopted snapshot build under the declared screen before integrating.
+Current pickup: Claude Opus is diagnosing the remaining ocean residual read-only
+(logs `throwaway/ocean-residual-review/`); verify its finding before a targeted
+M3b fix/check. The [impostor packing candidate](assets/07-impostor-packing/README.md)
+failed its declared ABBA ordering screen and is not adopted. Both images and state
+match; large timing variation prevents a reliable gain claim. Do not rerun
+unchanged code merely to seek a pass. Re-scope the next CPU step from the retained
+post-snapshot profile rather than treating this candidate as shipped.
 [Snapshot evidence](assets/07-snapshot-copy/README.md): CPU medians down24% wide/16%
 moving and improved rendered cadence; wide still misses60FPS. Both changed
 source/raw builds pass all19 unchanged30k checks (raw mid75 samples, little

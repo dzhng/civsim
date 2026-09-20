@@ -25,3 +25,6 @@ both controls and pooled renderCpuMs must fall at least5% in both segments; this
 narrow leaf accounts for only part of total preparation. Actual rendered cadence
 must not regress. Preserve matched images and crowd/LOD output. No adoption from
 unit tests, a synthetic microbenchmark, or profile percentages alone.
+
+Not adopted: [the declared screen failed](../assets/07-impostor-packing/README.md).
+Preserve the branch/evidence; no unchanged rerun to seek a pass.

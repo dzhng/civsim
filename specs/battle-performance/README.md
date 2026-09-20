@@ -14,14 +14,20 @@ complete selected-renderer browser contract/cutover checks.
 are integratedb31b730b. Root61 facade tests/web TypeScript and independent review
 pass. Actual TypeGPU command tallies match all18 single/High/off × zoom × query-mode
 checks; no query slots are allocated in disabled mode. The worker and review are
-terminal; preserve evidence and clean its finished worktree before reusing it.
+terminal; its worktree and both branches were removed after preserving scratch and
+a verified bundle at `throwaway/presented-draw-completed-cleanup/`.
 
 Independent CPU-work candidate: Opus is active in
 `/Users/david/dev/game-battle-camera-pose-reuse`, branch
-`codex/battle-camera-pose-reuse`, base969f9d3f, handle78107. Its prompt/results are
-under `throwaway/`. It separates snapshot-derived bounds/records and pose work
-from exact view membership; it must not alter LOD policy or skip newly visible
-poses. Unlike rejected929020f4, this targets downstream derivation/pose dispatch,
+`codex/battle-camera-pose-reuse`, base969f9d3f, resumed handle35299. Root intentionally stopped the first run
+(handle78107, terminal) after discovering that the actual facade uploads a new
+crowd snapshot on every rendered frame. The resumed prompt/results are
+`throwaway/consumer-correction-{prompt,result}.txt`. It must establish truthful
+producer-owned state identity through the actual presentation path before any
+downstream reuse can count as a game optimization. Do not infer unchanged poses
+from observation tick or borrowed-array identity; interpolation and held playback
+can advance separately. Preserve exact LOD and newly visible poses, and do not
+mark a merely encoded/discarded pose dispatch as successfully computed. Unlike rejected929020f4, this targets downstream derivation/pose dispatch,
 not source-column pooling. No speedup is established; root must measure actual
 work removal, union churn and matched camera performance before adoption.
 
@@ -70,7 +76,7 @@ preserving scratch and a verified bundle in
 `throwaway/older-branch-cleanup-20260920-194943/`. Earlier cleanup archives remain.
 The completed block-debug worktree/branch were also removed after a verified
 bundle and scratch archive at `throwaway/typegpu-block-debug-completed-cleanup/`.
-The draw worker is finished; the two optimization worktrees below are active. Preserve historical controls and unrelated worktrees.
+The draw worker is cleaned up; the two optimization worktrees above are active. Preserve historical controls and unrelated worktrees.
 Pending raw GPU-impostor1c816fc5 and water-comparisonc702e002 branches remain
 unadopted references. [The evidence ledger](evidence.md) retains older results;
 [choices](choices.md) records decisions.

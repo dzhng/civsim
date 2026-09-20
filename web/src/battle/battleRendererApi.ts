@@ -149,7 +149,6 @@ export interface BattleRendererApi {
   setTerrain(grid: BattleTerrainGrid, options?: BattleTerrainOptions): void;
   reloadSoldierAssets(): Promise<void>;
 
-  pxPerWorldAt(x: number, y: number, z: number): number;
   heightAt(x: number, y: number): number;
   raycastGround(ray: WorldRay): [number, number, number] | null;
 

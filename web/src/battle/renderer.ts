@@ -313,11 +313,6 @@ export class BattleRenderer implements BattleRendererApi {
     return this.fixedTime ?? this.benchmarkSeconds ?? performance.now() / 1000;
   }
 
-  /** True-projection pixels-per-world-meter; the chart projection diverges in swoop. */
-  pxPerWorldAt(x: number, y: number, z: number): number {
-    return this.world?.pxPerWorldAt(x, y, z) ?? 0;
-  }
-
   setUnitReadouts(
     standards: readonly BattleStandardInstance[],
     readouts: readonly BattleReadoutInstance[],

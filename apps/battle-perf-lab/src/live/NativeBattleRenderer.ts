@@ -50,7 +50,7 @@ import {
   type BattleTerrainOptions,
 } from "../../../../packages/game-renderer/src/battle/terrainOptions";
 import type { BattleTerrainGrid } from "../../../../packages/game-renderer/src/battle/terrainFeatures";
-import { eyePosition, type WorldRay } from "../../../../packages/renderer-core/src/camera3d";
+import type { WorldRay } from "../../../../packages/renderer-core/src/camera3d";
 import { claimCanvas } from "./canvasOwnership";
 import { createSceneBackend, type SceneBackend } from "../sceneBackend";
 import { createSceneLifecycle } from "../sceneLifecycle";
@@ -159,7 +159,7 @@ export class BattleRenderer implements BattleRendererApi {
   } | null = null;
   private audio: BattleRendererDisposeHook | null = null;
   private readonly resized = () => this.resize();
-  private size = { width: 1, height: 1, cssHeight: 1 };
+  private size = { width: 1, height: 1 };
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -378,7 +378,6 @@ export class BattleRenderer implements BattleRendererApi {
     this.size = {
       width: Math.floor((this.canvas.clientWidth || 1) * dpr),
       height: Math.floor((this.canvas.clientHeight || 1) * dpr),
-      cssHeight: this.canvas.clientHeight || 1,
     };
     this.invalidate();
   }
@@ -710,15 +709,6 @@ export class BattleRenderer implements BattleRendererApi {
   }
   raycastGround(ray: WorldRay) {
     return this.picking?.raycast(ray) ?? null;
-  }
-  pxPerWorldAt(x: number, y: number, z: number) {
-    const camera = this.lastView?.camera.camera3d;
-    const eye = camera ? eyePosition(camera) : [0, 0, 0];
-    const fov = camera?.fovY ?? (50 * Math.PI) / 180;
-    return (
-      this.size.cssHeight /
-      (2 * Math.max(0.001, Math.hypot(eye[0] - x, eye[1] - y, eye[2] - z)) * Math.tan(fov / 2))
-    );
   }
   frameMetrics() {
     return { ...this.metrics, gpuSubmission: this.latestSubmission };

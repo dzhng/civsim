@@ -80,6 +80,21 @@ export function projectPoint(p: Camera3DParams, world: Vec3): { ndc: Vec3; clipW
   return { ndc: [clip[0] * inv, clip[1] * inv, clip[2] * inv], clipW: w };
 }
 
+/** Pixels per world meter at a world point. */
+export type PxPerWorldSampler = (x: number, y: number, z: number) => number;
+
+/** Perspective screen scale, measured on the Euclidean eye distance so it holds
+ * off-axis as well as down the view ray. `viewportHeightPx` picks the unit —
+ * CSS pixels for overlay sizing, device pixels for GPU-space work. The pose
+ * binds once (eye and lens are per-frame constants); the returned sampler is
+ * one divide per point. */
+export function pxPerWorldSampler(p: Camera3DParams, viewportHeightPx: number): PxPerWorldSampler {
+  const eye = eyePosition(p);
+  const pxPerMeterAtUnitDistance = viewportHeightPx / (2 * Math.tan(p.fovY / 2));
+  return (x, y, z) =>
+    pxPerMeterAtUnitDistance / Math.max(0.001, Math.hypot(eye[0] - x, eye[1] - y, eye[2] - z));
+}
+
 /** Frame-owned projection scale: no matrices or vectors allocated per body. */
 export interface ProjectionFootprint {
   view: ArrayLike<number>;

@@ -105,8 +105,8 @@ function fixture(bundle = appearance) {
     positions: () => state.positions,
     unitInfo: () => unitInfo,
     stride: STRIDE,
-    renderer: { soldierAssets: { 0: bundle }, heightAt: () => 0, pxPerWorldAt: () => 80 },
-    camera: { zoom: 2, yaw: 0 },
+    renderer: { soldierAssets: { 0: bundle }, heightAt: () => 0 },
+    camera: { zoom: 2, yaw: 0, pxPerWorldSampler: () => () => 80 },
   } as unknown as BattleWorld;
   const crowd = new BattleCrowd(world, new BattleUnitPresentation(world));
   const complete = (tick: number) => {

@@ -66,7 +66,6 @@ function fixture(unitClass = 0) {
       labels.push(structuredClone(args)),
     drawTris: (vertices: Float32Array) => arcs.push(new Float32Array(vertices)),
     heightAt: () => 0,
-    pxPerWorldAt: () => 80,
   };
   const sim = liveBattleSim(game, wasm.memory);
   const world = {
@@ -74,7 +73,7 @@ function fixture(unitClass = 0) {
     ...views,
     renderer,
     stride: game.unit_info_stride(),
-    camera: { zoom: 2, yaw: 0 },
+    camera: { zoom: 2, yaw: 0, pxPerWorldSampler: () => () => 80 },
   } as unknown as BattleWorld;
   // Real adapter, timeline and attached standard owner; only the GPU edge records submissions.
   const crowd = new BattleCrowd(world, new BattleUnitPresentation(world));

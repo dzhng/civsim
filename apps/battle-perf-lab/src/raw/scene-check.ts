@@ -10,6 +10,7 @@ import { generatedFormation } from "../../../../packages/crowd-runtime/src/insta
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import { productionBladeFieldProfile } from "../../../../packages/game-renderer/src/battle/battleGrassResidency";
 import { resolveDeviceCaps } from "../../../../packages/renderer-core/src/capabilities";
+import { pxPerWorldSampler } from "../../../../packages/renderer-core/src/camera3d";
 import { trackTextureLifetime } from "../textureLifetimeCheck";
 import { trackBufferLifetime } from "../bufferLifetimeCheck";
 import type { BattleStandardInstance } from "../../../../packages/game-renderer/src/models/shared/battleStandardData";
@@ -187,12 +188,15 @@ async function run() {
       source.setTime(0);
       if (!cameraOnly || label === "tactical") source.drawInstances(instances, camera);
       else source.drawTris(attack, camera);
+      // Sized from the pose just submitted above, the same projection the
+      // source render used.
+      const pxPerWorldAt = pxPerWorldSampler(camera.camera3d, height);
       const readouts: BattleReadoutInstance[] = standards.map((s) => ({
         unitId: s.unitId,
         x: s.x,
         y: s.y,
         z: s.z + 8,
-        worldPerPx: 1 / source.pxPerWorldAt(s.x, s.y, s.z + 8),
+        worldPerPx: 1 / pxPerWorldAt(s.x, s.y, s.z + 8),
         chips: [{ text: "Holding" }],
       }));
       source.uploadUnitReadouts(standards, readouts);

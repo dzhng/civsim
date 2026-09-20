@@ -67,6 +67,9 @@ export class BattleUnitPresentation {
     const { camera, renderer, stride } = this.world;
     const selected = selectedUnits.length > 0 ? selectedUnits[0] : -1;
     const showReadouts = camera.zoom > READOUT_TACTICAL_ZOOM;
+    // Terrain comes from the renderer, the projection from the camera this
+    // build is for, so sizing tracks a pan or zoom in the frame it happens.
+    const pxPerWorldAt = camera.pxPerWorldSampler();
     const standards: BattleStandardInstance[] = [];
     const readouts: BattleReadoutInstance[] = [];
     for (let unit = 0; unit < info.length / stride; unit++) {
@@ -80,7 +83,7 @@ export class BattleUnitPresentation {
       const team = info[offset + UNIT_INFO.team];
       const groundZ = renderer.heightAt(anchorX, anchorY);
       const tier = STANDARD_SIZE_TIERS["battle-unit"];
-      const pxPerWorld = renderer.pxPerWorldAt(anchorX, anchorY, groundZ);
+      const pxPerWorld = pxPerWorldAt(anchorX, anchorY, groundZ);
       const pxPerClothWidth = pxPerWorld * tier.clothWidth;
       const scale = standardScale(pxPerClothWidth, isSelected);
       if (pxPerClothWidth * STANDARD_MIN_SCALE > STANDARD_NEAR_HIDE_PX) continue;

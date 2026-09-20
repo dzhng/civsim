@@ -31,12 +31,8 @@ import type {
   BattleSlopeBands,
   BattleTerrainGrid,
 } from "../../../game-renderer/src/battle/terrainFeatures";
-import { eyePosition, projectionFootprint } from "../../../renderer-core/src/camera3d";
-import {
-  heightFieldRange,
-  terrainHeightAt,
-  type TerrainHeightField,
-} from "../../../game-renderer/src/terrain/heightField";
+import { projectionFootprint } from "../../../renderer-core/src/camera3d";
+import { heightFieldRange } from "../../../game-renderer/src/terrain/heightField";
 import type {
   BattleCameraSnapshot,
   BattleTacticalLineFrame,
@@ -108,7 +104,6 @@ export class PhotorealBattleWorld {
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
   private terrainGrid: BattleTerrainGrid | null = null;
   private vistaGrid: BattleVistaGrid | null = null;
-  private viewportHeight = 800;
   private groundCover: BattleGroundCover = "green-grass";
   private slopeBands: BattleSlopeBands | null = null;
   private readonly grassTransition: BladeFieldTransitionUniforms;
@@ -312,17 +307,7 @@ export class PhotorealBattleWorld {
   }
 
   resize(width: number, height: number, pixelRatio = 1): void {
-    this.viewportHeight = height;
     this.world.resize(width, height, pixelRatio);
-  }
-
-  pxPerWorldAt(x: number, y: number, z: number): number {
-    const dx = this.camera.position.x - x;
-    const dy = this.camera.position.y - y;
-    const dz = this.camera.position.z - z;
-    const dist = Math.max(0.001, Math.hypot(dx, dy, dz));
-    const fovRad = (this.camera.fov * Math.PI) / 180;
-    return this.viewportHeight / (2 * dist * Math.tan(fovRad / 2));
   }
 
   setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[]): void {

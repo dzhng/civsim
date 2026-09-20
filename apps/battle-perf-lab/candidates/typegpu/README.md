@@ -323,3 +323,51 @@ fitting, cascade motion under a moving camera, PCF softness (constant layers
 make the five taps identical, so the filter is bypassed by construction), or
 whether a shadow reads correctly on screen. It is one numerical component gate
 for the receiver's layer binding, overlap blend and terminal fade.
+
+## Camera-independent impostor state
+
+The billboard layer publishes what a soldier _is_ — world position, facing, faction,
+elevation and corpse fade, six floats — and derives the drawable record from it in the
+vertex stage. The anchor rotation, the atlas tile pick and the screen-size floor are
+functions of those six values and one camera, so they belong on the GPU behind a single
+48-byte view block. A camera that only moved writes that block and nothing else, at any
+population; a submission is the only thing that costs per-soldier bytes.
+
+[impostorDerivation.ts](impostorDerivation.ts) is that derivation, written as actual typed
+TypeGPU functions rather than shader text: the tile directions are evaluated in closed form
+from the grid the layer was built for, so nothing indexes a baked table and the anchor and
+span are compile-time constants of the atlas. It reads no binding — the view arrives as an
+argument — which is why the same function runs in the vertex stage, in the diagnostic
+compute stage, and directly in JavaScript where a test can call it.
+
+`packImpostors` is untouched and remains the independent oracle. The layer's `update` is the
+[numerical control](../../src/impostorControlBackend.ts)'s combined entry and still returns
+that oracle's record for the control to pin against Three; no frame path calls it.
+
+```sh
+web/node_modules/.bin/tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tests/tsconfig.json
+web/node_modules/.bin/vitest run --config apps/battle-perf-lab/candidates/typegpu/vitest.config.mts
+```
+
+The CPU suites run the typed bodies over a dense fixture — every cell bisector and both
+sides of every cell edge, a full sphere through the below-horizon fallback, degenerate
+distance, field and elevation, and the corpse fade — and compare each record to the packer.
+TypeGPU stores struct and vector members at f32, so that run carries the shader's storage
+precision but not its arithmetic. A tile index may differ only where the two cells were
+baked from the identical direction (an even grid folds its corners onto interior cells) or
+where the direction is equidistant between them; the 6x4 grid has no duplicate cells at all,
+so its agreement is unconditional. Separate suites pin the bytes a camera move commits
+through the real layer and the real audience against a recording device.
+
+[impostor-record-check.html](impostor-record-check.html) is the hardware control, and it is
+the part this candidate still owes. A compute stage runs the same typed derivation over the
+same fixture, its actual buffer is read back, and the comparison uses tolerances derived
+from WGSL's sin/cos bound and f32 rounding and declared before any comparison — a
+nonduplicate, non-equidistant tile disagreement fails and is reported with its dot margin. A
+second dispatch writes the view block alone and requires every record to become the new
+camera's. Start the lab development server with the candidate config, then run
+`node apps/battle-perf-lab/candidates/typegpu/verify-impostor-records.mjs` with the
+coordinated GPU slot; the report lands in
+`throwaway/typegpu-impostor-records/impostor-record-check.json` unless
+`TYPEGPU_IMPOSTOR_RECORD_REPORT` says otherwise. Until that runs, the shader's own
+arithmetic is unmeasured. This is correctness evidence, not a timing or parity result.

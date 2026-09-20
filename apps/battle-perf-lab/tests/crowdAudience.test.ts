@@ -10,6 +10,8 @@ const state = vi.hoisted(() => ({
   },
   layers: [] as {
     update: ReturnType<typeof vi.fn>;
+    updateState: ReturnType<typeof vi.fn>;
+    setView: ReturnType<typeof vi.fn>;
     draw: ReturnType<typeof vi.fn>;
     stats: () => object;
     dispose: ReturnType<typeof vi.fn>;
@@ -19,7 +21,16 @@ const state = vi.hoisted(() => ({
 }));
 const atlasFactory = vi.hoisted(() => async () => {
   if (state.layers.length === state.failAtlas) throw Error("atlas admission failed");
-  const layer = { update: vi.fn(), draw: vi.fn(), stats: () => ({}), dispose: vi.fn() };
+  // The TypeGPU owner derives the record per view, so it publishes state and view apart;
+  // the raw and vgpu owners still pack a whole record per call.
+  const layer = {
+    update: vi.fn(),
+    updateState: vi.fn(),
+    setView: vi.fn(),
+    draw: vi.fn(),
+    stats: () => ({}),
+    dispose: vi.fn(),
+  };
   state.layers.push(layer);
   return layer;
 });
@@ -41,8 +52,12 @@ vi.mock("../candidates/typegpu/impostor", () => ({
 vi.mock("../src/vgpu/impostor", () => ({
   createVgpuImpostors: atlasFactory,
 }));
-vi.mock("../../../packages/battle-renderer/src/world/crowd", () => ({ createRawCrowd: async () => state.mesh }));
-vi.mock("../../../packages/battle-renderer/src/world/impostor", () => ({ createRawImpostors: atlasFactory }));
+vi.mock("../../../packages/battle-renderer/src/world/crowd", () => ({
+  createRawCrowd: async () => state.mesh,
+}));
+vi.mock("../../../packages/battle-renderer/src/world/impostor", () => ({
+  createRawImpostors: atlasFactory,
+}));
 import { createRawCrowdAudience } from "../../../packages/battle-renderer/src/world/crowdAudience";
 import { createTypegpuCrowdAudience } from "../candidates/typegpu/crowdAudience";
 import { createVgpuCrowdAudience } from "../src/vgpu/crowdAudience";
@@ -76,6 +91,14 @@ const asset = { manifest: { bounds: { center: [0, 0, 0], radius: 1 } } };
 const assets = { 0: asset, 1: asset, 2: asset },
   atlases = { 0: {}, 1: {}, 2: {} };
 const factories = { typegpu: createTypegpuCrowdAudience, vgpu: createVgpuCrowdAudience };
+type Layer = (typeof state.layers)[number];
+/** What a layer was last handed, whichever publication API its audience drives. */
+const lastPublished = (layer: Layer) =>
+  layer.updateState.mock.calls.length
+    ? { instances: layer.updateState.mock.lastCall![0], view: layer.setView.mock.lastCall![0] }
+    : { instances: layer.update.mock.lastCall![0], view: layer.update.mock.lastCall![1] };
+const publications = (layer: Layer) =>
+  layer.update.mock.calls.length + layer.updateState.mock.calls.length;
 const create = (backend: keyof typeof factories, prepared = atlases) =>
   factories[backend]({} as never, assets as never, prepared as never, {} as never, {} as never);
 beforeEach(() => {
@@ -96,9 +119,9 @@ for (const backend of ["typegpu", "vgpu"] as const) {
       [view(0.1), { ...hidden, shadow: true }, view(10, true)],
       camera,
     );
-    expect(state.layers[0].update).toHaveBeenLastCalledWith([soldier], camera);
-    expect(state.layers[1].update).toHaveBeenLastCalledWith([], camera);
-    expect(state.layers[2].update.mock.lastCall![0]).toHaveLength(1);
+    expect(lastPublished(state.layers[0])).toEqual({ instances: [soldier], view: camera });
+    expect(lastPublished(state.layers[1])).toEqual({ instances: [], view: camera });
+    expect(lastPublished(state.layers[2]).instances).toHaveLength(1);
     const plan = state.mesh.upload.mock.lastCall![1];
     expect(Array.from(plan.levels).slice(0, 2)).toEqual([IMPOSTOR_LEVEL, IMPOSTOR_LEVEL]);
     expect(plan.shadowLevels[0]).toBeLessThan(IMPOSTOR_LEVEL);
@@ -111,7 +134,7 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     expect(state.layers.every((x) => x.draw.mock.calls.length === 1)).toBe(true);
     await owner.upload([soldier], [hidden, { ...hidden, shadow: true }, view(10, true)], camera);
     expect(owner.stats().shadowOnly).toBe(1);
-    expect(state.layers[0].update).toHaveBeenLastCalledWith([], camera);
+    expect(lastPublished(state.layers[0])).toEqual({ instances: [], view: camera });
     owner.dispose();
   });
   test(`${backend}: camera refresh cannot move or alter a committed corpse when caller reuses input objects`, async () => {
@@ -135,7 +158,7 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     dynamic.facing = 1.2;
     dynamic.playback.base.weight = 0.9;
     owner.refreshCamera({ ...camera, eye: [200, 0, 30] });
-    const retained = state.layers[0].update.mock.lastCall![0][0];
+    const retained = lastPublished(state.layers[0]).instances[0];
     expect(retained.x).toBe(0);
     expect(retained.facing).toBe(0);
     expect(retained.playback.base.weight).toBe(0.25);
@@ -145,14 +168,19 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     const owner = await create(backend);
     await owner.upload([soldier], [view(0.1), view(34 / 1.8, true)], camera);
     const before = owner.stats(),
-      uploads = state.mesh.upload.mock.calls.length;
+      uploads = state.mesh.upload.mock.calls.length,
+      published = publications(state.layers[0]);
     const nextCamera = { ...camera, eye: [200, 0, 30] as const };
     owner.refreshCamera(nextCamera);
     owner.refreshCamera(camera);
     expect(state.mesh.upload.mock.calls.length).toBe(uploads);
     expect(state.mesh.precompute).not.toHaveBeenCalled();
     expect(owner.stats()).toEqual(before);
-    expect(state.layers[0].update.mock.calls.at(-2)).toEqual([[soldier], nextCamera]);
+    if (backend === "typegpu") {
+      // Two camera moves, two view writes, and not one soldier republished.
+      expect(state.layers[0].setView.mock.calls.slice(-2)).toEqual([[nextCamera], [camera]]);
+      expect(publications(state.layers[0])).toBe(published);
+    } else expect(state.layers[0].update.mock.calls.at(-2)).toEqual([[soldier], nextCamera]);
     await owner.upload([soldier], [view(0.1), view(31 / 1.8, true)], camera);
     expect(state.mesh.upload.mock.lastCall![1].shadowLevels[0]).toBe(0);
     owner.dispose();
@@ -168,7 +196,7 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     await owner.upload([soldier, soldier], [view(31 / 1.8)], camera);
     expect(Array.from(state.mesh.upload.mock.lastCall![1].levels).slice(0, 2)).toEqual([0, 1]);
     await owner.upload([], [], camera);
-    expect(state.layers.every((x) => x.update.mock.lastCall![0].length === 0)).toBe(true);
+    expect(state.layers.every((x) => lastPublished(x).instances.length === 0)).toBe(true);
     await owner.upload([soldier], [view(31 / 1.8)], camera);
     expect(state.mesh.upload.mock.lastCall![1].levels[0]).toBe(1);
     owner.dispose();
@@ -229,9 +257,7 @@ for (const backend of ["typegpu", "vgpu"] as const) {
     await expect(pending).rejects.toThrow("disposed");
     expect(state.mesh.dispose).toHaveBeenCalledOnce();
     expect(
-      state.layers.every(
-        (x) => x.dispose.mock.calls.length === 1 && x.update.mock.calls.length === 0,
-      ),
+      state.layers.every((x) => x.dispose.mock.calls.length === 1 && publications(x) === 0),
     ).toBe(true);
   });
   test(`${backend}: simultaneous upload/cleanup errors preserve the upload error and release every owner`, async () => {

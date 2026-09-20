@@ -11,12 +11,23 @@ const mesh = vi.hoisted(() => ({
   dispose: vi.fn(),
 }));
 const layers = vi.hoisted(
-  () => [] as { update: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn> }[],
+  () =>
+    [] as {
+      updateState: ReturnType<typeof vi.fn>;
+      setView: ReturnType<typeof vi.fn>;
+      dispose: ReturnType<typeof vi.fn>;
+    }[],
 );
 vi.mock("../crowd", () => ({ createTypegpuCrowd: async () => mesh }));
 vi.mock("../impostor", () => ({
   createTypegpuImpostors: async () => {
-    const layer = { update: vi.fn(), draw: vi.fn(), stats: () => ({}), dispose: vi.fn() };
+    const layer = {
+      updateState: vi.fn(),
+      setView: vi.fn(),
+      draw: vi.fn(),
+      stats: () => ({}),
+      dispose: vi.fn(),
+    };
     layers.push(layer);
     return layer;
   },
@@ -129,7 +140,9 @@ test("the admitted submission identifies a pose, not the uploads a moving camera
     expect(owner.admittedSubmission()).toBe(1);
     // A reprojection and a billboard refresh both republish one admitted pose.
     expect(owner.debugSoldierAnim(0)).toBe(admitted);
-    expect(layers.at(-1)!.update).toHaveBeenCalledTimes(3);
+    // Three published views, but only the two submissions touched a soldier's bytes.
+    expect(layers.at(-1)!.setView).toHaveBeenCalledTimes(3);
+    expect(layers.at(-1)!.updateState).toHaveBeenCalledTimes(2);
     await owner.upload([posed("march", 0.5)], [view(12)], camera);
     expect(owner.admittedSubmission()).toBe(2);
     const next = owner.debugSoldierAnim(0)!;

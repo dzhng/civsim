@@ -64,7 +64,10 @@ export async function createTypegpuCrowdAudience(
       try {
         await meshOwner.upload(publication.instances, publication.plan);
         history.check();
-        for (const [id, layer] of far) layer.update(publication.groups.get(id)!, view);
+        for (const [id, layer] of far) {
+          layer.updateState(publication.groups.get(id)!);
+          layer.setView(view);
+        }
         history.commit(publication, view);
       } catch (error) {
         history.abort(publication);
@@ -95,8 +98,10 @@ export async function createTypegpuCrowdAudience(
         return true;
       },
       refreshCamera(view: ImpostorView) {
-        history.refreshImpostors(view, (groups) => {
-          for (const [id, layer] of far) layer.update(groups.get(id)!, view);
+        // The record is derived per view in the vertex stage, so a camera that only moved
+        // rewrites one bounded uniform and leaves every soldier's bytes alone.
+        history.refreshImpostors(view, () => {
+          for (const layer of far.values()) layer.setView(view);
         });
       },
       precompute(encoder: GPUCommandEncoder) {

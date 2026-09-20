@@ -6,18 +6,30 @@ import {
 import { tgpu, d, std, type TgpuBindGroup, type TgpuRenderCommands } from "typegpu";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
 import { GPU_DEPTH_FORMAT } from "../../../../packages/renderer-core/src/depthContract";
-import { packImpostors, type ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
-import { impostorVertexWgsl, impostorSurfaceWgsl } from "../../../../packages/battle-renderer/src/shaders/impostor";
+import {
+  packImpostors,
+  type ImpostorView,
+} from "../../../../packages/battle-renderer/src/impostorData";
+import {
+  impostorVertexWgsl,
+  impostorSurfaceWgsl,
+} from "../../../../packages/battle-renderer/src/shaders/impostor";
 import { factionAccent } from "../../../../packages/battle-renderer/src/shaders/soldierFactionTyped";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
+import {
+  IMPOSTOR_STATE_FLOATS,
+  ImpostorState,
+  ImpostorViewBlock,
+  impostorDerivation,
+  impostorViewBlock,
+  writeImpostorState,
+} from "./impostorDerivation";
 
-const Instance = d.struct({ instance: d.vec4f, billboardData: d.vec4f, living: d.vec4f });
-const instanceLayout = tgpu.vertexLayout((n) => d.arrayOf(Instance, n), "instance");
-const Axes = d.struct({ right: d.vec4f, up: d.vec4f });
+const stateLayout = tgpu.vertexLayout((n) => d.arrayOf(ImpostorState, n), "instance");
 const bindings = tgpu
   .bindGroupLayout({
-    axes: { uniform: Axes, visibility: ["vertex"] },
+    view: { uniform: ImpostorViewBlock, visibility: ["vertex"] },
     albedo: { texture: d.texture2d(), visibility: ["fragment"] },
     normal: { texture: d.texture2d(), visibility: ["fragment"] },
     orm: { texture: d.texture2d(), visibility: ["fragment"] },
@@ -52,7 +64,8 @@ export async function createTypegpuImpostors(
   const owned: { destroy(): void }[] = [];
   let disposed = false,
     count = 0,
-    capacity = 512;
+    capacity = 512,
+    staging = new Float32Array(0);
   let scopesOpen = false;
   const closeScopes = async () => {
     if (!scopesOpen) return;
@@ -81,10 +94,10 @@ export async function createTypegpuImpostors(
     device.pushErrorScope("internal");
     device.pushErrorScope("validation");
     scopesOpen = true;
-    let instances = root.createBuffer(instanceLayout.schemaForCount(capacity)).$usage("vertex");
-    owned.push(instances);
-    const axes = root.createBuffer(Axes).$usage("uniform");
-    owned.push(axes);
+    let states = root.createBuffer(stateLayout.schemaForCount(capacity)).$usage("vertex");
+    owned.push(states);
+    const viewBlock = root.createBuffer(ImpostorViewBlock).$usage("uniform");
+    owned.push(viewBlock);
     const width = atlas.columns * atlas.tileSize,
       height = atlas.rows * atlas.tileSize,
       levels = Math.floor(Math.log2(Math.max(width, height))) + 1;
@@ -105,7 +118,7 @@ export async function createTypegpuImpostors(
       normal = upload(atlas.normal, "rgba8unorm"),
       orm = upload(atlas.orm, "rgba8unorm");
     const group = root.createBindGroup(bindings, {
-      axes,
+      view: viewBlock,
       albedo: albedo.createView(),
       normal: normal.createView(),
       orm: orm.createView(),
@@ -121,23 +134,36 @@ export async function createTypegpuImpostors(
         ImpostorSurface,
       )(impostorSurfaceWgsl(atlas.columns, atlas.rows))
       .$uses({ ImpostorSurface, factionAccent });
+    const { deriveImpostorRecord } = impostorDerivation(placement);
     const vertex = tgpu.vertexFn({
       in: {
         index: d.builtin.vertexIndex,
-        instance: d.vec4f,
-        billboardData: d.vec4f,
-        living: d.vec4f,
+        position: d.vec2f,
+        facing: d.f32,
+        faction: d.f32,
+        elevation: d.f32,
+        living: d.f32,
       },
       out: { position: d.builtin.position, world: d.vec3f, uv: d.vec2f, properties: d.vec4f },
     })((input) => {
       "use gpu";
+      const record = deriveImpostorRecord(
+        ImpostorState({
+          position: input.position,
+          facing: input.facing,
+          faction: input.faction,
+          elevation: input.elevation,
+          living: input.living,
+        }),
+        bindings.$.view,
+      );
       const v = vertexAlgorithm(
         input.index,
-        input.instance,
-        input.billboardData,
-        input.living.x,
-        bindings.$.axes.right.xyz,
-        bindings.$.axes.up.xyz,
+        d.vec4f(record.anchor, record.faction),
+        d.vec4f(record.tile, record.span, record.span, record.angle),
+        record.living,
+        bindings.$.view.right,
+        bindings.$.view.up,
       );
       return {
         position: std.mul(typegpuCameraLayout.$.cam.viewProj, d.vec4f(v.world, 1)),
@@ -177,7 +203,7 @@ export async function createTypegpuImpostors(
       .createRenderPipeline({
         vertex,
         fragment,
-        attribs: instanceLayout.attrib,
+        attribs: stateLayout.attrib,
         targets: { format: "rgba16float" },
         primitive: { topology: "triangle-list", cullMode: "none" },
         depthStencil: {
@@ -190,24 +216,43 @@ export async function createTypegpuImpostors(
       .with(group)
       .with(environment.group);
     await Promise.all([pipeline.initAsync(), closeScopes()]);
+    /** The camera-independent half: six floats a soldier owns until it is submitted again. */
+    const updateState = (source: readonly CrowdInstance[]) => {
+      assertLive();
+      count = source.length;
+      if (count > capacity) {
+        states.destroy();
+        capacity = Math.max(count, capacity * 2);
+        states = root.createBuffer(stateLayout.schemaForCount(capacity)).$usage("vertex");
+        owned.push(states);
+      }
+      if (!count) return;
+      if (staging.length !== count * IMPOSTOR_STATE_FLOATS)
+        staging = new Float32Array(count * IMPOSTOR_STATE_FLOATS);
+      for (let i = 0; i < count; i++)
+        writeImpostorState(source[i], staging, i * IMPOSTOR_STATE_FLOATS);
+      states.write(staging.buffer);
+    };
+    /** The whole camera dependency. A moving camera writes this and nothing else,
+     *  whatever the population: the record itself is derived in the vertex stage. */
+    const setView = (camera: ImpostorView) => {
+      assertLive();
+      viewBlock.write(impostorViewBlock(camera));
+    };
     return {
-      update(source: readonly CrowdInstance[], view: ImpostorView) {
-        assertLive();
-        const packed = packImpostors(placement, source, view);
-        count = source.length;
-        if (count > capacity) {
-          instances.destroy();
-          capacity = Math.max(count, capacity * 2);
-          instances = root.createBuffer(instanceLayout.schemaForCount(capacity)).$usage("vertex");
-          owned.push(instances);
-        }
-        if (count) instances.write(packed.buffer);
-        axes.write({ right: d.vec4f(...view.right, 0), up: d.vec4f(...view.up, 0) });
-        return packed;
+      updateState,
+      setView,
+      /** The numerical control's combined entry (see impostorControlBackend): it publishes
+       *  exactly what the audience publishes and returns the independent CPU record the
+       *  control pins against Three. No frame path calls this. */
+      update(source: readonly CrowdInstance[], camera: ImpostorView) {
+        updateState(source);
+        setView(camera);
+        return packImpostors(placement, source, camera);
       },
       draw(pass: TgpuRenderCommands, camera: TgpuBindGroup) {
         assertLive();
-        if (count) pipeline.with(camera).with(instanceLayout, instances).with(pass).draw(6, count);
+        if (count) pipeline.with(camera).with(stateLayout, states).with(pass).draw(6, count);
       },
       stats: () => ({
         instances: count,

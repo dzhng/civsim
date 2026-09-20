@@ -23,10 +23,26 @@ export function recordingGpu() {
   const views: GPUTextureViewDescriptor[] = [];
   const passes: GPURenderPassDescriptor[] = [];
   const writes: { buffer: object; bytes: number }[] = [];
+  const textureWrites: { texture: object; bytes: number }[] = [];
   let buffersFailAt = Infinity;
+  const shaders: string[] = [];
+  const errorScopes: GPUErrorFilter[] = [];
   const device = {
     limits: {},
     features: new Set<string>(),
+    // Admission scopes are tracked rather than faked clean, so an owner that pops more
+    // than it pushed fails here instead of silently reporting no error.
+    pushErrorScope: (filter: GPUErrorFilter) => errorScopes.push(filter),
+    popErrorScope: async () => {
+      if (!errorScopes.pop()) throw Error("popErrorScope without a matching push");
+      return null;
+    },
+    createShaderModule: (descriptor: GPUShaderModuleDescriptor) => {
+      shaders.push(descriptor.code);
+      return { getCompilationInfo: async () => ({ messages: [] }) };
+    },
+    createPipelineLayout: () => ({}),
+    createRenderPipelineAsync: async () => ({}),
     createTexture: (descriptor: GPUTextureDescriptor) => {
       textures.push(descriptor);
       const texture = {
@@ -58,6 +74,12 @@ export function recordingGpu() {
         _dataOffset: number,
         size: number,
       ) => writes.push({ buffer, bytes: size }),
+      writeTexture: (
+        destination: { texture: object },
+        data: ArrayBufferView,
+        _layout: GPUTexelCopyBufferLayout,
+        _size: GPUExtent3D,
+      ) => textureWrites.push({ texture: destination.texture, bytes: data.byteLength }),
     },
     createCommandEncoder: () => ({
       finish: () => ({}),
@@ -81,6 +103,12 @@ export function recordingGpu() {
     views,
     passes,
     writes,
+    /** The atlas mip bytes this device was asked to commit, upload by upload. */
+    textureWrites,
+    /** Every shader body this device was actually asked to compile. */
+    shaders,
+    /** Admission scopes still open. A balanced owner leaves none. */
+    errorScopes,
     failBufferAt: (index: number) => {
       buffersFailAt = index;
     },

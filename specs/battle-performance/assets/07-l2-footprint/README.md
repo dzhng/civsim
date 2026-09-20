@@ -44,8 +44,8 @@ were withheld from the reviewer. Static images cannot prove motion stability.
 Decision: do not adopt the remap as-is. Retained material IDs do not prove retained
 silhouettes. The baker changes triangle budget, detached-component omission and
 island floors between these tiers, and may alter normals/tangents during collapse.
-First compare both tiers with identical constant-color opaque rendering to separate coverage
-loss from shading differences. If coverage is responsible, test an intermediate
-reduction that retains L1's component-preservation settings before expanding to
-all appearances. Any candidate still owes full material, pose and moving-camera
-quality gates and the live net-shadow performance equation.
+[The completed constant-color coverage comparison](../07-lod-coverage/README.md)
+separates coverage loss from internal shading differences. It confirms weaker
+pike coverage and leads to a preserved-component intermediate reduction. Any
+candidate still owes full material, pose and moving-camera quality gates and
+the live net-shadow performance equation.

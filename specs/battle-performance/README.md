@@ -8,16 +8,16 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: distinguish geometry coverage from shading in the L1/L2
-comparison using identical constant-color opaque rendering. [The L2 footprint experiment](assets/07-l2-footprint/README.md)
-completed 24 matched blocks: main GPU time falls from about 13.6–13.8ms to
-9.1ms at 200m, with unchanged shadow geometry. Independent anonymous review
-prefers L1's more solid infantry/equipment silhouettes; no severed weapon was
-proven. **The remap is not adopted.** Diagnose coverage versus normals/materials
-before changing mesh assets or thresholds; motion acceptance remains open.
-[Cheap shading](assets/gpu-crowd-shading/README.md) and
-[layer controls](assets/gpu-layer-attribution/README.md) establish substantial
-crowd/shading cost. Use verified physical camera poses, not zoom-dial labels.
+Current pickup: test a roughly 2,000-triangle pike intermediate mesh using L1's
+component-preservation settings, then review full materials and motion.
+[Constant-color coverage controls](assets/07-lod-coverage/README.md) confirm that
+existing L2 weakens pike shafts even without lighting; body contrast also changes
+with shading. Eight corrected captures record matching tier counts; the initial
+page-reuse comparison was confounded by hysteresis and is excluded.
+[The original L2 experiment](assets/07-l2-footprint/README.md) saves roughly
+4.5ms main GPU time at 200m but is **not adopted**. Do not trade required weapon
+readability for that gain. [Shading](assets/gpu-crowd-shading/README.md) and
+[layer controls](assets/gpu-layer-attribution/README.md) remain cost attribution.
 
 [The combined blend/channel replay](assets/06a-transition-trace/README.md)
 is complete:32 actual late-window updates over15,560 soldiers, exact full state

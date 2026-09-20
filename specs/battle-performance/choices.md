@@ -975,8 +975,8 @@ No new architecture or interpolation policy is introduced.
   readable edges when its shape or normals change. The alternative would count
   retained materials as sufficient quality and ship the faster tier immediately.
   **Gap:** The plan permits representation changes but does not prescribe how
-  to distinguish geometry loss from changed lighting. **Reach:** Compare both
-  tiers with identical constant-color opaque rendering before choosing a new reduction or policy;
+  to distinguish geometry loss from changed lighting. **Reach:** Both tiers were compared
+  with identical constant-color opaque rendering before choosing a new reduction;
   constant-color rendering itself never becomes the player's visual treatment.
   **Verdict:** Sound; preserves the required readability while isolating the
   cause of the observed difference. **Confidence:** High.

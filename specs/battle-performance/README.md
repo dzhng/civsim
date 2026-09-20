@@ -24,6 +24,12 @@ encoded work from queued work and expose a bounded submission-associated count;
 root wires it to validated presented frames after review. Prompt and result paths
 are under that worktree's `throwaway/`. No timing job is active.
 
+Opus optional block-debug routing is active in
+`/Users/david/dev/game-battle-typegpu-block-debug` (basef027d1d6, handle69225),
+scoped to the existing triangle layer, scene/facade and tests. No ordinary-mode
+allocation or new shader/geometry owner is permitted. Prompt/results are under
+its `throwaway/`; root owns selection and unprimed visual checks after review.
+
 [The impostor candidate](assets/typegpu-impostor-state/README.md) atfc446726 has
 GPU arithmetic and12 source-image checks, but remains unadopted. Exact bisector
 tile choices differ, and root found its legacy packingEqual return was a CPU

@@ -22,3 +22,10 @@ follow-up now replaces the compatibility return with opt-in actual installed
 state/view GPU readback and explicitly migrates the TypeGPU record gate. Raw/vgpu
 packing checks and every existing image/coverage/lifecycle threshold must remain.
 Do not adopt or claim preserved tile decisions from the initial passed flag.
+
+Scope correction: the48-byte bound is the layer view setter/final audience refresh,
+not the whole moving-camera path. `CrowdViewState.matches` compares the actual
+frustum and projection, so a camera move calls `audience.reproject` and republishes
+state for the regrouped audience. Expensive billboard derivation moves to the GPU,
+but CPU preparation and state upload still scale with population. Measure the
+complete scene frame, never infer a constant-time camera from the setter test.

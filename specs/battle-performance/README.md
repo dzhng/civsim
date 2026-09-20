@@ -7,90 +7,49 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: finish High visual/coverage verification and M7 block-debug, then
-complete the remaining production cutover gates. High worker c1e78391 is integrated as b89a806a; independent
-review passed31 focused tests. Root merged39 shadow/scene tests,28 live tests and
-TypeScript pass. Single-shadow and lifecycle hardware controls pass; full-frame and
-terrain strict failures reproduce byte-for-byte pre/post. Raw Menu single/High/off
-boot, camera changes, resize and disposal pass with zero retained resources.
-Fresh visual critique still finds weak grounding: readable shadows remain open. Parent logs: `throwaway/high-shadow-worker/` and `throwaway/high-shadow-review/`.
-M4 admission/lifetime fixes survived the merge.
+Current pickup: verify the isolated shadow-sampling candidate, then resolve
+readable default shadows and the remaining [cutover obligations](migration.md).
+Claude Opus is implementing an early return outside the fitted shadow volume in
+`game-battle-shadow-sampling`, based on71f2d9d5. It must preserve images and prove
+measured GPU savings before adoption. Parent logs: `throwaway/shadow-sampling-worker/`.
+Root owns hardware verification; serialize timing against owned build/test/GPU work.
 
-Claude Opus M7 block-debug is active in `game-battle-block-debug`, baseline51819eef;
-parent logs `throwaway/block-debug-worker/`. Worker is CPU-only; root serializes
-GPU verification. Both completed High and M4 worktrees have been removed; refs/logs
-remain.
+The [grass-receiver experiment](assets/08-grass-receiver/README.md) is rejected:
+correct rendering but no discernible grounding improvement in the independent
+comparison. Its cost was not measured after that visual failure.
 
-[M4 reload corrections and public assets](assets/m4-publication/README.md) are
-committed at ca9b13ac after worker integration ddba56f0. Hardware reload, failed
-catalog, GPU rejection after pose encoding and disposal pass, with zero tracked
-resources remaining. The published atlas needs no lab override. Same-tick reload
-restarts the frontend animation timeline by its existing contract; screenshots
-are not pixel-equivalent. Broader pose/LOD/mounted/dead gates remain open.
-The completed M4 worktree was removed; its branch and evidence remain.
+Completed component evidence, not final acceptance:
 
-The [raw-world promotion](assets/m1b-promotion/README.md) is integrated.
-All24 inherited frame comparisons reproduce byte-for-byte pre/post; seven of eight
-scene captures are exact, with initial-frame variability documented.
-The raw-pose hardware gate passes; source30k/shared snapCheck gates remain queued.
+- [M4 public atlases and reload](assets/m4-publication/README.md): staged GPU
+  admission, failure retention and disposal verified. Broader pose/LOD/mounted/dead
+  gates remain; accepted reload restarts the existing frontend animation timeline.
+- [High shadows](assets/m6-high-implementation/hardware/README.md): single/High/off
+  hardware lifecycle works. Inherited strict frame/terrain failures reproduce
+  pre/post; readable grounding and moving-camera cascade stability remain open.
+- [M7 block debugging](assets/m7-block-debug/README.md): shared geometry, optional
+  allocation and actual selection checks pass. Other effects/cues remain open.
+- [Source30k floor](assets/m1b-promotion/source-floor/README.md): all18 checks pass,
+  preserving33ms and content assertions. This tests the source renderer; raw
+  diagnostics and timing still need truthful migration at M9.
+- [Native CPU pair](assets/03a-native-target-preparation/timing/README.md): serial
+  regresses and four-thread improves on an early-contact fixture. Not adopted;
+  it is not the canonical intense browser workload. Production WASM stays b42782f4….
+- [Held backend comparison](backend-decision.md): raw selected under the declared
+  conditional tie. All32 tours are functional but fail quiet-host criteria;
+  no broad repeat is planned and these are not live performance acceptance.
 
-The independent [native target-preparation candidate](assets/03a-native-target-preparation/README.md)
-is complete at54dae8ea on unadopted c8580623; it remains outside production.
-Four immutable native release binaries and the predeclared serial/one-thread/
-four-thread ABBA runner are ready in `throwaway/native-target-build/`.
-[The predeclared native pair](assets/03a-native-target-preparation/timing/README.md)
-finished: serial regresses; four-thread candidate averages about15.3% faster.
-This early-contact fixture has minimum8 fighting and no casualties; it is not
-the intense canonical Menu workload or a browser result. No candidate is adopted
-and no timing job is active. Do not repeat this experiment to seek a win.
+Keep shared camera/terrain/environment/pose owners and campaign's separate frame.
+Finish M2–M8 gates before the M9 hard production cutover, then judge the live
+net-shadow savings. Later simulation still misses30Hz; worker publication alone
+is not a throughput fix. No batching/thread-pool/mechanics candidate is adopted.
+The proposed60fps target was not explicitly confirmed; do not lower it or the
+standing30k/33ms floor. Preserve gameplay, assets, framebuffer scale, content,
+audio and default quality. No legacy compatibility or save migration.
 
-The [combined CPU ABBA](assets/03a-kernel-input-pair/README.md) finished with all
-hashes intact but failed its adoption rule: early ranges overlap, though both
-later candidate runs beat both controls. The two passes remain unintegrated;
-production WASM stays b42782f4…. Do not repeat the same experiment to seek a win.
-No owned build/test/GPU job overlapped CPU timing. There is no running timing job.
-
-All24 held timing tours and8 confirmations are complete: raw/TypeGPU tie under
-the declared rule,32 functional passes and32 failed quiet-host verdicts. All eight
-[coherent checkpoint tours](assets/02-held-authority/checkpoints/README.md) also
-finished. Raw/TypeGPU match every sampled count/histogram; other backends retain
-the documented88-caster shadow-tier and two-body visible-tier differences. No
-broad timing rerun is planned. These observations are not live acceptance.
-
-[Projection/LOD progress](assets/07-projection-progress/README.md) is integrated
-(bee130b4/bb6e8685): finite orthographic footprints and progress through crossed
-hysteresis boundaries, with46 root tests, full TypeScript and independent review.
-Corrected captured-scale fixtures produce five failures against the old policy.
-The [crowd-near correction](assets/09-shadow-audience-identity/README.md)4d1f1423
-is also integrated, with67 focused
-tests, full TypeScript and independent review. It can admit a small extra caster
-strip; visual/motion/cost gates and exact88 attribution remain open.
-
-The [whole-map control](assets/08-whole-map-control/README.md) builds in source/raw.
-It observes installed CPU fits, not GPU pixels. Original outside-volume receiver
-equivalence and final A/B/C proof remain open. Preserve fixed builds and linked
-assets: held8643cf05/e9f4f080…, historical98fc8a45 and live0ea8406d controls.
-Production WASM currently remains b42782f4… from the integrated packed-target pass.
-
-Complete M1b, then High/CSM, production atlas
-publication/reload, block-debug and disposal obligations before cutover.
-[M6a](slices/m6a-cascade-contract.md) now specifies cascade data and frame ownership;
-its independent source-contract review logs are in `throwaway/high-shadow-contract-review/`. Keep
-campaign's frame separate and shared camera/terrain/environment/pose owners intact.
-Then finish measured camera/grass/LOD work, stable readable default shadows and
-final live net savings. Later simulation still misses30Hz; worker publication is
-not a throughput fix. No batching/thread pool or mechanics change is adopted.
-
-Claude Opus owns isolated implementation; root reviews/integrates and serializes
-hardware work. Finished helper worktrees have verified scratch archives and retained
-branches under `throwaway/worktree-cleanup-2026-09-20/`. Only active candidates and
-required historical controls need their worktrees; do not remove unrelated projects.
-
-The proposed target remains60fps at normal device scale; it was recommended, not
-explicitly confirmed. Do not lower it or the standing30k/33ms floor by silence.
-The supplied image shows7,780 player men, not verified total render population.
-Preserve gameplay, assets, physical framebuffer, visibility, audio and default
-quality. No old-engine compatibility path or saved-battle migration is authorized.
+Finished M4, High, native CPU and block-debug worktrees were removed with branch
+refs/evidence retained. Clean up only this task's finished worktrees; preserve
+historical controls and unrelated projects. [The evidence ledger](evidence.md)
+and [choices](choices.md) retain earlier component decisions and unresolved gates.
 
 - [x] [01 — production motion evidence](slices/01-motion-evidence.md)
 - [x] [01a — menu-launched simulated benchmark](slices/01a-benchmark-run.md)

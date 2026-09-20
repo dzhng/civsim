@@ -3,8 +3,8 @@
 Claude read-only audit is retained with root disposition. Confirmed: raw grass
 passes shadow visibility1.0 and casts nothing; its emissive light is also unshadowed.
 That establishes missing grass reception, not how much of perceived faintness it
-causes. A separate unintegrated one-variable candidate will measure reception
-without changing geometry, density, emissive, ambient, fit, PCF or bias.
+causes. The [one-variable reception experiment](../08-grass-receiver/README.md) subsequently
+found no clear readability improvement and was not adopted.
 
 Rejected: the audit asserts the user's image is at the opposite end of the camera
 rig. Its camera metadata is unavailable, and the visible composition resembles

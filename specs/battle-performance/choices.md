@@ -699,3 +699,10 @@ Sound, high confidence: all three geometry consumers use one shared preparation
 function. The renderer-lab route adapts its packed unit-info data at the call site;
 it no longer owns another bounds/padding/color algorithm. Final cutover can remove
 the old battle world without deleting this still-used shared geometry policy.
+
+## Grass-receiver experiment disposition
+
+- **Retained decision:** do not adopt additional grass shadow sampling after the
+  matched hardware images and independent critique show no clear grounding gain.
+  A failed visual objective is sufficient to reject this isolated candidate;
+  no GPU cost conclusion is inferred from stopping before timing.

@@ -37,5 +37,6 @@ of readable shadows, and hiding it for timing would change the workload.
 
 [Current readability diagnosis](../assets/08-readability-diagnosis/README.md)
 separates observed map density from missing grass reception and unsupported framing
-claims. The grass-receiver candidate stays isolated until hardware comparison and
-its incremental cost are known.
+claims. The [grass-receiver candidate](../assets/08-grass-receiver/README.md) was not
+adopted after the hardware comparison showed no clear readability gain; its cost
+was not measured.

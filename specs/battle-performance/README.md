@@ -14,12 +14,22 @@ is integrated at89b2850b with replay-verifier cleanup atbeea655e. TypeScript,
 focused tests and lifecycle pass; seven of eight raw scene captures are exact.
 Initial-frame variability and inherited frame image failures remain documented.
 All24 frame comparisons reproduce byte-for-byte before and after promotion.
-The source30k/shared snapCheck/raw-pose gates remain queued; no timing job is active.
+The [raw-pose hardware gate](assets/m1b-promotion/pose/README.md) passes; the
+source30k/shared snapCheck gates remain queued. No timing job is active.
 
-An independent Claude Opus [native target-preparation spike](slices/03a-native-target-preparation.md)
-runs in `game-battle-native-target-preparation`, based on unadopted c8580623.
-Parent logs are `throwaway/native-target-worker/`. No timing starts until its
-correctness review is complete. This is not production or browser threading.
+The independent [native target-preparation candidate](assets/03a-native-target-preparation/README.md)
+is complete at54dae8ea on unadopted c8580623; it remains outside production.
+Root mutation checks and25 parallel/23 serial library tests pass. Four immutable
+native release binaries are ready in `throwaway/native-target-build/`. Before
+running its predeclared serial/one-thread/four-thread ABBA pairs, finish all owned
+CPU/build/test/GPU work. No native timing has started.
+
+[M4 crowd publication/reload](slices/m4-crowd-assets.md) runs concurrently with
+High, in `game-battle-crowd-publication` at b4007d39; parent logs are
+`throwaway/crowd-publication-worker/`. Root prepared41 verified atlas files in
+`throwaway/crowd-publication-assets/` for the production publication step. They
+have not been copied into public yet. Coordinate the two workers' scene/facade
+changes during integration.
 
 The [combined CPU ABBA](assets/03a-kernel-input-pair/README.md) finished with all
 hashes intact but failed its adoption rule: early ranges overlap, though both

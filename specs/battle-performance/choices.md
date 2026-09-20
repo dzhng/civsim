@@ -820,3 +820,13 @@ the old battle world without deleting this still-used shared geometry policy.
   stored values. New optional fields require a deliberate copy and behavior test;
   accepting that maintenance obligation avoids a second field registry or runtime
   compatibility path. Required fields are checked by the retained-slot literal.
+
+## Crowd construction ownership candidate
+
+- **Sound, medium confidence — construct retained soldiers at the admission owner.**
+  A frame currently makes one set of soldier records and then copies it into
+  another set so camera movement can safely reuse it. Build that retained set
+  directly, consuming mutable inputs before yielding. Real reload/fixture
+  records still need adoption. This removes duplicate ownership while preserving
+  the isolation that prevents later simulation changes from altering an admitted
+  frame. Adoption remains conditional on measured CPU and camera cadence gains.

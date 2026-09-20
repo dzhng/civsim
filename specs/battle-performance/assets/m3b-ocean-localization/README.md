@@ -29,8 +29,9 @@ shader/runner archive retain the primary data.
   does **not** solve the comparison: horizon peaks grow to .0068359375 and
   .0107421875. Do not adopt that reference change or use it to relax the gate.
 - Intercepting createShaderModule captures native ocean and actual Three vertex/
-  fragment WGSL while reproducing the original beauty numbers. The next bounded
-  review compares realized shader operations and interpolants, not only TSL.
+  fragment WGSL while reproducing the original beauty numbers. The captured
+  modules support comparison of realized shader operations and
+  interpolants, not only TSL.
 
 ## Review limits and next step
 
@@ -41,7 +42,42 @@ outright, or that subpixel reprojection was excluded, are not established and ar
 not accepted. Floating-point amplification remains a hypothesis, not justification
 for reblessing. There is no FXAA in this post path; bloom is disabled in the check.
 
-Claude Opus now reads the captured WGSL directly, with no GPU work or edits. Root
-will verify a concrete finding before delegating a narrow fix. Ordinary ocean
-appearance, the original absolute threshold, full-scene quality and final battle
-performance acceptance remain unchanged/open.
+The shader review identifies a concrete difference: raw uses a combined canonical
+projection and invariant vertex position; Three uses separated operations without
+invariance. Matching mathematical formulas does not guarantee identical floating
+point results across compiler contexts. Its speculative world-space error estimates
+are not established by the data.
+
+## Projection and invariance experiment
+
+The [projection summary](projection-summary.json), compressed full reports and
+runner archive retain a controlled follow-up. All beauty measurements preserve
+the original material and absolute threshold; the source projector and shader
+invariance are explicit diagnostic changes, not an adopted oracle correction.
+
+| Reference vertex calculation | Overview t0 / t3.25 maxAbs | Horizon t0 / t3.25 maxAbs |
+| --- | --- | --- |
+| Original | .0029296875 / .004638671875 | .00439453125 / .00244140625 |
+| Combined projector only | .00244140625 / .004638671875 | .0068359375 / .0107421875 |
+| Invariance only | .00341796875 / .00439453125 | .00439453125 / .001953125 |
+| Combined projector and invariance | .000732421875 / .000732421875 | .0009765625 / .0009765625 |
+
+Horizon repeats match their first cases. Both changes together pass all six cases;
+either alone fails. Removing native invariance alone also fails and worsens the
+horizon. All runs have empty browser error/warning lists and zero tracked water
+buffers after disposal.
+
+An unlit fractional-world-coordinate probe reads linear HDR directly, bypassing
+postprocessing. Its blue .25 sentinel distinguishes water from sky. At the two
+original problematic water pixels, the joint change makes sampled fractional XY
+exactly agree; projector-only does not. Fractional coordinates wrap every metre:
+they establish a coordinate discrepancy, not its unwrapped absolute distance.
+Large global errors in this diagnostic can occur at the wrap discontinuity and
+are not beauty failures.
+
+This supports projection/interpolation as the cause of the localized discrepancy
+in these cases. It does not prove all composed-scene residuals have that cause.
+A fresh read-only review is evaluating a durable, explicit comparison contract.
+Do not ship global shader string interception or silently replace the original
+end-to-end comparison with the passing diagnostic. Ordinary ocean appearance,
+original source residual, full-scene quality and final performance remain open.

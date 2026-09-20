@@ -1,0 +1,1444 @@
+{
+  "water-position-report": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "beforeDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 4,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": false
+    },
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "invarianceChanges": null,
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.004685064469910695,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.251708984375,
+              0.5615234375,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.251708984375,
+              0.5615234375,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.65283203125,
+              0.58642578125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.65283203125,
+              0.5859375,
+              0.25,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.003831242502105286,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.89208984375,
+              0.880859375,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.89208984375,
+              0.880859375,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.76611328125,
+              0.2078857421875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.7607421875,
+              0.1756591796875,
+              0.25,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.034512897221950715,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.73046875,
+              0.31201171875,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.035181664484912556,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.034512897221950715,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.73046875,
+              0.31201171875,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.035181664484912556,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "water-position-shared-report": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "beforeDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 4,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": false
+    },
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "invarianceChanges": null,
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.004333756691327629,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.251708984375,
+              0.5615234375,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.251708984375,
+              0.5615234375,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.65283203125,
+              0.58642578125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.65283203125,
+              0.5859375,
+              0.25,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.003833076224384062,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.89208984375,
+              0.880859375,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.89208984375,
+              0.880859375,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.76611328125,
+              0.2078857421875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.7607421875,
+              0.1756591796875,
+              0.25,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.03448953670782159,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.73046875,
+              0.31201171875,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.03516633882925587,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.03448953670782159,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.73046875,
+              0.31201171875,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.99951171875,
+          "maxRelative": 19.990234375,
+          "rmse": 0.03516633882925587,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "water-source-invariant-position-report": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "beforeDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 4,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": false
+    },
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "invarianceChanges": [
+      {
+        "label": "vertex",
+        "changed": true
+      }
+    ],
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.89508056640625,
+          "maxRelative": 13.040771484375,
+          "rmse": 0.0026051419913681304,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.251708984375,
+              0.5615234375,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.251708984375,
+              0.5615234375,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.65283203125,
+              0.58642578125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.65283203125,
+              0.58642578125,
+              0.25,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.83843994140625,
+          "maxRelative": 13.037109375,
+          "rmse": 0.002280378073401125,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.89208984375,
+              0.880859375,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.89208984375,
+              0.880859375,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.76611328125,
+              0.2078857421875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.76611328125,
+              0.2078857421875,
+              0.25,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.9937744140625,
+          "maxRelative": 19.6337890625,
+          "rmse": 0.03446723627612999,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.998291015625,
+          "maxRelative": 19.9658203125,
+          "rmse": 0.035120848292915,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.9937744140625,
+          "maxRelative": 19.6337890625,
+          "rmse": 0.03446723627612999,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.75537109375,
+              0.1287841796875,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.998291015625,
+          "maxRelative": 19.9658203125,
+          "rmse": 0.035120848292915,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.5791015625,
+          "samples": 1572864
+        },
+        "pointSamples": [
+          {
+            "x": 300,
+            "y": 163,
+            "actual": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ],
+            "expected": [
+              0.393798828125,
+              0.7783203125,
+              0.25,
+              1
+            ]
+          },
+          {
+            "x": 498,
+            "y": 14,
+            "actual": [
+              0.37890625,
+              0.68896484375,
+              0.92236328125,
+              1
+            ],
+            "expected": [
+              0.37890625,
+              0.689453125,
+              0.9228515625,
+              1
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "water-raw-no-invariant-beauty-report": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "beforeDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 4,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": false
+    },
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "invarianceChanges": [
+      {
+        "label": "native ocean water",
+        "changed": true
+      }
+    ],
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0029296875,
+          "maxAbsIndex": 17188,
+          "maxAbsActual": 0.509765625,
+          "maxAbsExpected": 0.5126953125,
+          "maxRelative": 0.00701904296875,
+          "rmse": 7.769073530780834e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0029296875,
+          "maxAbsIndex": 33016,
+          "maxAbsActual": 0.50537109375,
+          "maxAbsExpected": 0.50830078125,
+          "maxRelative": 0.0067138671875,
+          "rmse": 7.753283038262647e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0068359375,
+          "maxAbsIndex": 551240,
+          "maxAbsActual": 0.5205078125,
+          "maxAbsExpected": 0.52734375,
+          "maxRelative": 0.012962962962962963,
+          "rmse": 9.56081788848869e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0107421875,
+          "maxAbsIndex": 646420,
+          "maxAbsActual": 0.47705078125,
+          "maxAbsExpected": 0.46630859375,
+          "maxRelative": 0.023036649214659685,
+          "rmse": 9.690721244174907e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0068359375,
+          "maxAbsIndex": 551240,
+          "maxAbsActual": 0.5205078125,
+          "maxAbsExpected": 0.52734375,
+          "maxRelative": 0.012962962962962963,
+          "rmse": 9.56081788848869e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0107421875,
+          "maxAbsIndex": 646420,
+          "maxAbsActual": 0.47705078125,
+          "maxAbsExpected": 0.46630859375,
+          "maxRelative": 0.023036649214659685,
+          "rmse": 9.690721244174907e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  },
+  "water-source-invariant-shared-beauty-report": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "beforeDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 4,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": false
+    },
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "invarianceChanges": [
+      {
+        "label": "vertex",
+        "changed": true
+      }
+    ],
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.000732421875,
+          "maxAbsIndex": 3722,
+          "maxAbsActual": 0.438232421875,
+          "maxAbsExpected": 0.43896484375,
+          "maxRelative": 0.00701904296875,
+          "rmse": 7.719120236559868e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.000732421875,
+          "maxAbsIndex": 3722,
+          "maxAbsActual": 0.438232421875,
+          "maxAbsExpected": 0.43896484375,
+          "maxRelative": 0.0067138671875,
+          "rmse": 7.715375550691285e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0009765625,
+          "maxAbsIndex": 302570,
+          "maxAbsActual": 0.70361328125,
+          "maxAbsExpected": 0.70263671875,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.49572737192046e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0009765625,
+          "maxAbsIndex": 302570,
+          "maxAbsActual": 0.70361328125,
+          "maxAbsExpected": 0.70263671875,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.49213130151655e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0009765625,
+          "maxAbsIndex": 302570,
+          "maxAbsActual": 0.70361328125,
+          "maxAbsExpected": 0.70263671875,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.49572737192046e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0009765625,
+          "maxAbsIndex": 302570,
+          "maxAbsActual": 0.70361328125,
+          "maxAbsExpected": 0.70263671875,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.49213130151655e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  },
+  "water-source-invariant-original-beauty-report": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "beforeDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 4,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": false
+    },
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "invarianceChanges": [
+      {
+        "label": "vertex",
+        "changed": true
+      }
+    ],
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00341796875,
+          "maxAbsIndex": 136777,
+          "maxAbsActual": 0.433349609375,
+          "maxAbsExpected": 0.429931640625,
+          "maxRelative": 0.010007698229407237,
+          "rmse": 7.790791850114267e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00439453125,
+          "maxAbsIndex": 45000,
+          "maxAbsActual": 0.4755859375,
+          "maxAbsExpected": 0.47119140625,
+          "maxRelative": 0.009444444444444445,
+          "rmse": 7.792869060026071e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00439453125,
+          "maxAbsIndex": 501937,
+          "maxAbsActual": 0.66943359375,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.008653326122228232,
+          "rmse": 9.550959141724466e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.001953125,
+          "maxAbsIndex": 468812,
+          "maxAbsActual": 0.6171875,
+          "maxAbsExpected": 0.615234375,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.513482411904848e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00439453125,
+          "maxAbsIndex": 501937,
+          "maxAbsActual": 0.66943359375,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.008653326122228232,
+          "rmse": 9.550959141724466e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.001953125,
+          "maxAbsIndex": 468812,
+          "maxAbsActual": 0.6171875,
+          "maxAbsExpected": 0.615234375,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.513482411904848e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  }
+}

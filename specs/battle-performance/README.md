@@ -7,12 +7,15 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: [ocean localization](assets/m3b-ocean-localization/README.md).
-Reporting-only, roughness, normal and projector experiments are recorded; no fix
-or threshold change is adopted. Claude Opus compares captured native/Three WGSL
-read-only (logs `throwaway/ocean-shader-review/`); verify its finding before a
-targeted M3b fix. In parallel, Claude reviews crowd construction/retention
-ownership (`throwaway/crowd-ownership-review/`) to define a larger CPU saving.
+Current pickup: review and measure the [single-owner crowd candidate](slices/07-crowd-ownership.md).
+Claude Opus implements in `/Users/david/dev/game-battle-crowd-ownership` from89365503;
+logs are in that worktree's `throwaway/implementation-*`. Root owns integration
+and serialized hardware measurement against the adopted snapshot control.
+In parallel, [ocean localization](assets/m3b-ocean-localization/README.md) now
+isolates projection/invariance: jointly matching them passes all six diagnostic
+beauty comparisons. The original reference remains red; no oracle or production
+change is adopted. Claude reviews the durable comparison decision read-only in
+`throwaway/ocean-projection-disposition/`. Preserve the original end-to-end evidence.
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state

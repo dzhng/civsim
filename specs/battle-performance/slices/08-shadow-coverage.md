@@ -34,3 +34,8 @@ The [held contact captures](../assets/02-held-authority/composition/README.md)
 show shared bright contact-mark bands obscuring dense soldiers. Judge grounding
 in those ranks as well as isolated units; preserving a noisy overlay is not proof
 of readable shadows, and hiding it for timing would change the workload.
+
+[Current readability diagnosis](../assets/08-readability-diagnosis/README.md)
+separates observed map density from missing grass reception and unsupported framing
+claims. The grass-receiver candidate stays isolated until hardware comparison and
+its incremental cost are known.

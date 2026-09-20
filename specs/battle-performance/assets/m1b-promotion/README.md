@@ -37,3 +37,6 @@ M1b's source30k regression floor and shared snapCheck/pose gates remain open.
 The native facade cannot yet satisfy that scene's source-shaped diagnostic reads;
 M9 must migrate those reads honestly while preserving all locked floors. This
 checkpoint establishes relocation ownership, not raw performance acceptance.
+
+[The unchanged source30k floor](source-floor/README.md) now passes18 checks; this
+remains a source regression guard, not raw/live acceptance.

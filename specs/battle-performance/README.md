@@ -8,27 +8,34 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: profile the late combined/return camera phase, then attribute
-main-world and fullscreen GPU cost with matched-state diagnostics. The
-[three live image-sharing pairs](assets/typegpu-shared-images/live-pairs/README.md)
-finished with all validity checks passing, but only15.79–16.10 average FPS and
-unmatched final ticks. Texture sharing reduces material payload95% and improves
-initial readiness by1.0–1.2seconds in every pair; no FPS gain is established.
-Main-world GPU median is about25ms, post about9ms, measured render CPU p95 about
-10–11ms. Late awaited presentation p95 reaches196–267ms and includes unprofiled
-continuations. Do not sum overlapping stages or call all await time GPU wait.
-The next rAF is requested only after presentation settles; profile before changing
-that policy. All six timing runs (session60793) are terminal; no timing job active.
+Current pickup: remove temporary channel-sampling storage and measure transition
+preparation against an identical retained observation trace; then attribute the
+remaining main-world/fullscreen GPU cost. The
+[late CPU profile](assets/06a-pose-blend/README.md) is complete (session41517
+terminal): publication/action transitions consume67% of the sampled50-second
+window, plus11% GC self time. These callbacks were omitted from render-only
+CPU timers; the long presentation await is not all GPU wait. Pose blending now
+writes directly into its result; exact differential tests and81 focused tests
+pass, with web TypeScript and independent reviews. Primitive V8 throughput
+improves about5.6×. The follow-up late profile completed in session45084:
+blend inclusive7.35→2.60s, publication33.61→30.31s, GC5.72→5.91s. Different
+late battle ticks preclude a matched-state FPS claim. No owned timing job is live.
 
-Image candidatefd41af3c/ad8c218a remains in
-`game-battle-typegpu-shared-images`, not integrated. Root129 tests, independent
+The [three live image-sharing pairs](assets/typegpu-shared-images/live-pairs/README.md)
+remain the prior full-window evidence:15.79–16.10 average FPS and unmatched final
+ticks. Image sharing saves95% logical image payload and1.0–1.2seconds initial
+readiness, without a demonstrated FPS gain. Main-world GPU median remains about
+25ms and post9ms, so CPU allocation fixes alone cannot establish60FPS.
+
+Image candidatefd41af3c/ad8c218a is retained on
+`codex/battle-typegpu-shared-images`, not integrated; its checkout was retired. Root129 tests, independent
 owner review, actual60→3 device textures, four pixel-identical Menu frames,
 reload/failure/disposal and fresh visual critique are recorded in
 [its evidence](assets/typegpu-shared-images/README.md). Close mounted/full-catalog
 fixture coverage remains open. Fixed builds, raw runs, analysis script and planned
 late-phase CPU profile build are in `throwaway/typegpu-image-sharing/`.
 
-Camera candidate in `game-battle-camera-pose-reuse` is c4e555c1 +25034412 +457caafa +d51f1c4a.
+Camera candidate retained on `codex/battle-camera-pose-reuse` is c4e555c1 +25034412 +457caafa +d51f1c4a.
 The last commit scopes actual post-await pose commands, preserves the first error
 while draining validation, and keeps failed pose work owed. Root121 TypeGPU tests,
 web/candidate/test TypeScript and independent scoped review pass; three new regressions were
@@ -39,7 +46,7 @@ root completed it locally. No Claude worker remains live; do not repair credenti
 without user authorization. Borrowed asset symlinks/apparent sparse deletions are
 checkout setup and were excluded from the focused two-file commit.
 
-Grass candidate8ac39665 in `game-battle-grass-zoom-transition` is unadopted.
+Grass candidate8ac39665 on `codex/battle-grass-zoom-transition` is unadopted.
 [Menu boundary controls](assets/grass-zoom-transition/README.md) prove parameter
 continuity and rendering changes at two pitches, but not a motion improvement.
 Continuous ground-sequence review and timing remain owed. Keep this separate from
@@ -89,7 +96,7 @@ preserving scratch and a verified bundle in
 `throwaway/older-branch-cleanup-20260920-194943/`. Earlier cleanup archives remain.
 The completed block-debug worktree/branch were also removed after a verified
 bundle and scratch archive at `throwaway/typegpu-block-debug-completed-cleanup/`.
-The draw worker is cleaned up; the candidate worktrees above remain pending verification. Historical control checkouts `game-battle-claude-builds` and `game-battle-perf-fixture`
+The draw worker and three experiment checkouts above are cleaned up; their branches remain pending verification. All57 scratch/log files and incremental bundles are verified in `throwaway/retired-experiments-20260920/`. Historical control checkouts `game-battle-claude-builds` and `game-battle-perf-fixture`
 were removed at the user's request after confirming no active process/dependent
 link or tracked code change. `throwaway/unused-controls-cleanup/` preserves their
 heads, verified bundle, scratch, and1111 SHA-verified unique captures. Restore

@@ -54,15 +54,13 @@ export function blendLocalPoses(a: LocalPose, b: LocalPose, weight: number): Loc
   if (weight === 1) return b.slice();
   const out = new Float64Array(a.length);
   for (let joint = 0; joint < a.length; joint += 10) {
-    out.set(vec3Lerp(a.subarray(joint, joint + 3), b.subarray(joint, joint + 3), weight), joint);
-    out.set(
-      quatSlerp(a.subarray(joint + 3, joint + 7), b.subarray(joint + 3, joint + 7), weight),
-      joint + 3,
-    );
-    out.set(
-      vec3Lerp(a.subarray(joint + 7, joint + 10), b.subarray(joint + 7, joint + 10), weight),
-      joint + 7,
-    );
+    for (let component = 0; component < 3; component++) {
+      const translation = joint + component;
+      const scale = joint + 7 + component;
+      out[translation] = scalarLerp(a[translation], b[translation], weight);
+      out[scale] = scalarLerp(a[scale], b[scale], weight);
+    }
+    writeQuatSlerp(a, joint + 3, b, joint + 3, weight, out, joint + 3);
   }
   return out;
 }
@@ -173,8 +171,29 @@ function vec3Lerp(a: NumericArray, b: NumericArray, u: number) {
 
 /** Shortest-arc quaternion slerp (x,y,z,w), normalized. */
 export function quatSlerp(a: NumericArray, b: NumericArray, u: number) {
-  let [ax, ay, az, aw] = a;
-  let [bx, by, bz, bw] = b;
+  const out = new Array<number>(4);
+  writeQuatSlerp(a, 0, b, 0, u, out, 0);
+  return out;
+}
+
+// Write into the final pose so each joint needs no temporary arrays or views.
+function writeQuatSlerp(
+  a: NumericArray,
+  aOffset: number,
+  b: NumericArray,
+  bOffset: number,
+  u: number,
+  out: NumericArray,
+  outOffset: number,
+) {
+  const ax = a[aOffset],
+    ay = a[aOffset + 1],
+    az = a[aOffset + 2],
+    aw = a[aOffset + 3];
+  let bx = b[bOffset],
+    by = b[bOffset + 1],
+    bz = b[bOffset + 2],
+    bw = b[bOffset + 3];
   let dot = ax * bx + ay * by + az * bz + aw * bw;
   if (dot < 0) {
     bx = -bx;
@@ -198,7 +217,10 @@ export function quatSlerp(a: NumericArray, b: NumericArray, u: number) {
     qz = s0 * az + s1 * bz,
     qw = s0 * aw + s1 * bw;
   const len = Math.hypot(qx, qy, qz, qw) || 1;
-  return [qx / len, qy / len, qz / len, qw / len];
+  out[outOffset] = qx / len;
+  out[outOffset + 1] = qy / len;
+  out[outOffset + 2] = qz / len;
+  out[outOffset + 3] = qw / len;
 }
 
 /** Sample a keyframe channel `{ times:[t...], values:[v...] }` at time `t`.

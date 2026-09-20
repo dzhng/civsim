@@ -30,3 +30,12 @@ Exact zero/one blend endpoints now evaluate only the pose that contributes to th
 Root and independent review both pass 64 focused action-timeline tests; web typechecking passes. This small engine-independent optimization integrates before selection while fixed comparison builds remain unchanged. It is not the exit gate: contact-window preparation cost, full animation motion, allocation/GC and final combined performance remain to be measured. All compared backends must consume the same implementation in the refreshed final round.
 
 [Authored-rig differential evidence](../assets/06a-endpoint-poses/authored-rigs.json) extends the fixture check to every production appearance and every authored rig clip at four phases and four blend weights, with clip/frozen sources and mounted clip/base overlays. All 13,824 comparisons and result-mutation checks pass exactly. Rig hashes identify the tested inputs. This is a bounded pose-value/ownership check, not an observed live transition history or temporal visual verdict.
+
+## Direct blend writes
+
+[The late-window CPU profile and blend evidence](../assets/06a-pose-blend/README.md)
+identify publication-side transition capture and garbage collection as the
+first priority. Blending writes directly into its owned Float64 result while
+retaining the exact former arithmetic. This removes temporary per-joint storage
+without sharing mutable snapshots. Primitive throughput is improved; complete
+contact-window and motion acceptance are still required before closing this slice.

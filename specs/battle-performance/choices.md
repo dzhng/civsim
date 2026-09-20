@@ -949,3 +949,15 @@ the old battle world without deleting this still-used shared geometry policy.
   commands for the retained frame, not GPU execution or current allocation.
   **Verdict:** Sound; it uses the existing frame and observation owners without a
   new schema mirror or per-frame readback. **Confidence:** High.
+
+## Direct pose-blend writes
+
+- **Choice:** Keep published animation snapshots independently owned, and remove
+  only the temporary arrays used to calculate a blend. A soldier interrupted
+  midway through a movement still keeps precisely the same frozen pose.
+  **Gap:** The profile identifies allocation pressure but does not prescribe
+  pooling, caching or moving transition history onto the GPU. **Reach:** This
+  changes the shared pose arithmetic's storage strategy without adding a new
+  history owner or reusing memory that an earlier frame may still read.
+  **Verdict:** Sound; retain one quaternion interpolation implementation and
+  exact independent comparisons against the former arithmetic. **Confidence:** High.

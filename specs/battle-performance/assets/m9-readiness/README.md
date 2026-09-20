@@ -30,3 +30,13 @@ are needed. No exit is silently declared from relocation alone. Contact-effect
 bands belong to M7's effects owner; shadow readability judges their impact but
 does not create a second implementation owner. Lab comparison unions may remain
 in lab tools; they must be absent from the production facade after M9.
+
+The seating audit (retained compressed) confirms that the normal source path
+assigns seating success after the builder; its separate drawInstances check is
+not the production normal path. Do not call that a measured full-population
+reference. Raw can inspect the existing admitted snapshot explicitly. Root chooses
+an operation return value, not the audit's proposed cached stats verdict, avoiding
+another stale-verdict invalidation owner. The [M9c contract](../../slices/m9c-seating-inspection.md)
+identifies the crowd/terrain of a successful frame and retains pixel seating as a
+separate proof. A tiny crowd-owner epoch is justified by counter reset on reload;
+no generalized generation framework or new army copy is intended.

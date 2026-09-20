@@ -8,13 +8,15 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
 Current pickup: Claude Opus migrates raw30k scene reads in
-`game-battle-30k-diagnostics`, baselinefa397c1c; logs `throwaway/30k-diagnostics-worker/`.
+`game-battle-30k-diagnostics`, baselinefa397c1c; logs `throwaway/30k-diagnostics-worker/` (resumed-result active).
 Preserve all content/33ms assertions and collect distinct completed GPU frame IDs.
 Expose actual prepared grass visibility, never infer it from cached records.
 [Diagnostics producer](assets/m9b-diagnostics/README.md) is verified and committed;
 its worker was removed with ref retained. Root next reviews/integrates and runs
-actual source/raw30k. A read-only seating-proof audit runs separately in
-`throwaway/seating-proof-audit/`; complete seating/draw inspection stays open.
+actual source/raw30k. Claude Opus implements [M9c on-demand seating inspection](slices/m9c-seating-inspection.md)
+in `game-battle-seating-inspection` at4e80613b, logs `throwaway/seating-inspection-worker/`.
+Return identified evidence; no cached stats verdict or normal-frame scan. Draw
+inspection and browser contract migration remain open.
 No GPU/timing job is running. [Component evidence](assets/migration-component-review/README.md)
 confirms exact raw post numerics and passing sky/PMREM/lake controls; ocean remains
 strictly red. [M9a timing](assets/m9a-frame-timing/README.md) is also verified.

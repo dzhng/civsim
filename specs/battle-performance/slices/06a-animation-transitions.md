@@ -45,3 +45,9 @@ storage strategy to authored keys without changing interpolation or ownership.
 The authored corpus matches exactly; [an identical live observation replay](../assets/06a-transition-trace/README.md)
 now proves a22.26% bounded timeline-update gain with exact state, playback and
 sharing equivalence. Full contact-window and motion acceptance remain open.
+
+[Direct frozen snapshot copying](../assets/06a-frozen-copy/README.md) removes
+iterator materialization while retaining the same frozen arrays and memo
+semantics. The identical trace demonstrates an additional bounded update gain.
+Move next to GPU attribution and refreshed full live acceptance; do not treat
+these component CPU results as completion of the moving-battle contract.

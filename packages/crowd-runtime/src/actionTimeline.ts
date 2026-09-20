@@ -154,10 +154,12 @@ function frozenPoseCapture() {
       first = hit;
       return hit.source;
     }
-    const source: PoseSource = Object.freeze({
-      kind: "frozen",
-      locals: Object.freeze(Array.from(evaluatePlaybackPose(appearance, playback))),
-    });
+    const pose = evaluatePlaybackPose(appearance, playback);
+    // Avoid iterator-driven materialization for frequently captured skeletons;
+    // final-sized storage preserves exact values and immutable ownership.
+    const locals = new Array<number>(pose.length);
+    for (let i = 0; i < pose.length; i++) locals[i] = pose[i];
+    const source: PoseSource = Object.freeze({ kind: "frozen", locals: Object.freeze(locals) });
     const entry = second ?? { appearance, playback, source };
     entry.appearance = appearance;
     entry.playback = playback;

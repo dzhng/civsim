@@ -33,14 +33,17 @@ continuous parameters and rendering changes at two pitches. Temporal image
 metrics are mixed and not a clean pop metric. Continuous ground-sequence review
 and timing remain owed; the worker is terminal.
 
-TypeGPU image ownerfd41af3c in `game-battle-typegpu-shared-images` passed static
-root/independent review. Opus handle16260 is wiring it into crowd.ts in that
-separate worktree; root will resolve the small preparation/import overlap with
-the finished camera candidate. Prompt/results: `throwaway/wiring-{prompt,result}.txt`.
-Actual GPU baseline confirms60 bitmap-uploaded2048-square/12-mip material
-textures (20srgb/40linear). The owner is not yet hardware-verified: real allocation,
-visual, reload/lifetime and performance checks remain. Future worktrees borrow
-`packages/soldier-assets/assets` as well as public/wasm/node_modules.
+TypeGPU shared imagesfd41af3c/ad8c218a are wired in the isolated
+`game-battle-typegpu-shared-images` candidate; Opus16260 is terminal. Root129 tests
+pass. [Actual device proof](assets/typegpu-shared-images/README.md) confirms60→3
+material images and95% lower logical texture payload, disposal tozero, and four
+pixel-identical Menu frames. Fresh critique, close mounted/catalog/reload-failure
+coverage and quiet timing remain; not yet integrated. Borrow immutable asset dirs
+when creating worktrees instead of copying them.
+
+Claude recovery run61331 stopped with an expired OAuth session that could not be
+refreshed; user was informed. Do not retry credentials automatically. The pending
+pose-admission prompt is preserved; other verification can continue independently.
 
 Current evidence:
 

@@ -12,4 +12,20 @@ Preserve current thresholds and carry inherited failures explicitly.
 
 Promoted raw sky/PMREM numerical controls pass all four presets under unchanged
 thresholds: [evidence](../assets/migration-component-review/README.md). This does
-not alone close composed horizon or initialization/update ownership checks.
+not alone close composed horizon checks.
+
+Initialization/update ownership is now traced in the promoted implementation:
+`world/environment.ts` creates sky, PMREM and DFG once during scene construction;
+its live `setView` writes only the retained view/observer uniform. Sky LUT and
+PMREM rendering submit only inside their constructors, whose returned objects
+expose no regeneration operation. Scene prepare updates wind/view inputs without
+reconstructing this environment owner. Disposal owns the lookup resources.
+
+The existing [snapshot ABBA reports](../assets/07-snapshot-copy/README.md) provide
+real camera-motion corroboration: every arm starts and ends with164 total textures
+created/live and the same requested texture bytes. Buffer creation grows by two,
+so this is specifically unchanged texture allocation, not a zero-allocation claim.
+Source tracing establishes no repeated lookup rendering; allocation counts alone
+would not rule out rewriting an existing texture. Combined with the retained
+numerical/disposal controls, this closes the initialization/update ownership
+obligation. Composed horizon/sky readability remains open.

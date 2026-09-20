@@ -961,3 +961,8 @@ the old battle world without deleting this still-used shared geometry policy.
   history owner or reusing memory that an earlier frame may still read.
   **Verdict:** Sound; retain one quaternion interpolation implementation and
   exact independent comparisons against the former arithmetic. **Confidence:** High.
+
+The same direct-write decision applies to authored-channel sampling. Wrappers
+with no production callers were removed rather than preserved as a compatibility
+surface; packed-pose tests now cover their behavior through the real consumer.
+No new architecture or interpolation policy is introduced.

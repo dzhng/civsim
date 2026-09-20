@@ -39,3 +39,8 @@ first priority. Blending writes directly into its owned Float64 result while
 retaining the exact former arithmetic. This removes temporary per-joint storage
 without sharing mutable snapshots. Primitive throughput is improved; complete
 contact-window and motion acceptance are still required before closing this slice.
+
+[Direct channel sampling](../assets/06a-channel-sampling/README.md) extends this
+storage strategy to authored keys without changing interpolation or ownership.
+The authored corpus matches exactly; an identical live observation-history replay
+is still needed to quantify the combined publication-side savings.

@@ -8,8 +8,8 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: remove temporary channel-sampling storage and measure transition
-preparation against an identical retained observation trace; then attribute the
+Current pickup: capture and replay an identical retained live observation trace
+to measure combined transition preparation; then attribute the
 remaining main-world/fullscreen GPU cost. The
 [late CPU profile](assets/06a-pose-blend/README.md) is complete (session41517
 terminal): publication/action transitions consume67% of the sampled50-second
@@ -19,7 +19,10 @@ writes directly into its result; exact differential tests and81 focused tests
 pass, with web TypeScript and independent reviews. Primitive V8 throughput
 improves about5.6×. The follow-up late profile completed in session45084:
 blend inclusive7.35→2.60s, publication33.61→30.31s, GC5.72→5.91s. Different
-late battle ticks preclude a matched-state FPS claim. No owned timing job is live.
+late battle ticks preclude a matched-state FPS claim.
+[Direct channel writes](assets/06a-channel-sampling/README.md) also match23,798
+authored poses exactly and improve isolated sampling about2.3×;84 focused tests
+and TypeScript pass. No owned timing job is live.
 
 The [three live image-sharing pairs](assets/typegpu-shared-images/live-pairs/README.md)
 remain the prior full-window evidence:15.79–16.10 average FPS and unmatched final

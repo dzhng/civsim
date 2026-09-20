@@ -32,11 +32,14 @@ export function sampleRigLocalPoseSeconds(
 function sampleClipLocals(rig: ImportedRig, clip: RigClip, time: number): LocalPose {
   const pose = new Float64Array(rig.bones.length * 10);
   for (let joint = 0; joint < rig.bones.length; joint++) {
-    const track = clip.tracks[joint] || {};
+    const track = clip.tracks[joint];
     const bind = rig.bones[joint].bind;
-    pose.set(track.T ? sampleChannel(track.T, time, "vec3") : bind.T, joint * 10);
-    pose.set(track.R ? sampleChannel(track.R, time, "quat") : bind.R, joint * 10 + 3);
-    pose.set(track.S ? sampleChannel(track.S, time, "vec3") : bind.S, joint * 10 + 7);
+    if (track?.T) writeChannel(track.T, time, "vec3", pose, joint * 10);
+    else pose.set(bind.T, joint * 10);
+    if (track?.R) writeChannel(track.R, time, "quat", pose, joint * 10 + 3);
+    else pose.set(bind.R, joint * 10 + 3);
+    if (track?.S) writeChannel(track.S, time, "vec3", pose, joint * 10 + 7);
+    else pose.set(bind.S, joint * 10 + 7);
   }
   return pose;
 }
@@ -165,25 +168,14 @@ function scalarLerp(a: number, b: number, u: number) {
   return Math.max(Math.min(a, b), Math.min(Math.max(a, b), a + (b - a) * u));
 }
 
-function vec3Lerp(a: NumericArray, b: NumericArray, u: number) {
-  return [scalarLerp(a[0], b[0], u), scalarLerp(a[1], b[1], u), scalarLerp(a[2], b[2], u)];
-}
-
-/** Shortest-arc quaternion slerp (x,y,z,w), normalized. */
-export function quatSlerp(a: NumericArray, b: NumericArray, u: number) {
-  const out = new Array<number>(4);
-  writeQuatSlerp(a, 0, b, 0, u, out, 0);
-  return out;
-}
-
-// Write into the final pose so each joint needs no temporary arrays or views.
+/** Shortest-arc normalized slerp, written without temporary arrays or views. */
 function writeQuatSlerp(
   a: NumericArray,
   aOffset: number,
   b: NumericArray,
   bOffset: number,
   u: number,
-  out: NumericArray,
+  out: LocalPose,
   outOffset: number,
 ) {
   const ax = a[aOffset],
@@ -223,22 +215,45 @@ function writeQuatSlerp(
   out[outOffset + 3] = qw / len;
 }
 
-/** Sample a keyframe channel `{ times:[t...], values:[v...] }` at time `t`.
- *  `kind` is 'vec3' (translation/scale) or 'quat' (rotation). Holds the
- *  endpoints outside the range; linear between (slerp for quats). */
-export function sampleChannel(ch: RigChannel, t: number, kind: "vec3" | "quat") {
+function writeChannel(
+  ch: RigChannel,
+  t: number,
+  kind: "vec3" | "quat",
+  out: LocalPose,
+  offset: number,
+) {
   const { times, values } = ch;
   const n = times.length;
   const stride = kind === "quat" ? 4 : 3;
-  const at = (i: number) => values.slice(i * stride, i * stride + stride);
-  if (n === 0) return kind === "quat" ? [0, 0, 0, 1] : [0, 0, 0];
-  if (t <= times[0]) return at(0);
-  if (t >= times[n - 1]) return at(n - 1);
-  let i = 0;
-  while (i < n - 1 && times[i + 1] < t) i++;
-  if (ch.interpolation === "STEP") return at(times[i + 1] === t ? i + 1 : i);
-  const u = (t - times[i]) / (times[i + 1] - times[i] || 1);
-  return kind === "quat" ? quatSlerp(at(i), at(i + 1), u) : vec3Lerp(at(i), at(i + 1), u);
+  if (n === 0) {
+    for (let component = 0; component < stride; component++)
+      out[offset + component] = component === 3 ? 1 : 0;
+    return;
+  }
+  let key: number;
+  if (t <= times[0]) key = 0;
+  else if (t >= times[n - 1]) key = n - 1;
+  else {
+    let i = 0;
+    while (i < n - 1 && times[i + 1] < t) i++;
+    if (ch.interpolation === "STEP") key = times[i + 1] === t ? i + 1 : i;
+    else {
+      const u = (t - times[i]) / (times[i + 1] - times[i] || 1);
+      if (kind === "quat")
+        writeQuatSlerp(values, i * stride, values, (i + 1) * stride, u, out, offset);
+      else
+        for (let component = 0; component < stride; component++)
+          out[offset + component] = scalarLerp(
+            values[i * stride + component],
+            values[(i + 1) * stride + component],
+            u,
+          );
+      return;
+    }
+  }
+  const start = key * stride;
+  for (let component = 0; component < stride && start + component < values.length; component++)
+    out[offset + component] = values[start + component];
 }
 
 /** Apply a column-major mat4 to a homogeneous point (x,y,z,1) -> [x,y,z]. */

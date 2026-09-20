@@ -205,11 +205,18 @@ that created it, so a staged reload allocates its own images while the outgoing
 ones stay valid, and images belong to the preparation rather than to a surface:
 `dispose` destroys the set exactly once, including an image still being created
 when disposal arrives. A failed decode or upload retains nothing and leaves the
-key free to retry. `stats()` separates unique allocated images and their logical
-payload — read from each texture's own props — from the number of surface
-bindings; it is never a physical VRAM or frame-time claim. The crowd does not
-consume this owner yet, so nothing here is evidence of a reduction in the
-running candidate: that arrives with the wiring and its hardware capture.
+key free to retry.
+
+[crowd.ts](crowd.ts) prepares its material bind groups through this owner, and
+publishes what it retained as `images` in its own `stats()`, beside the pose and
+bucket counts it already reports: unique allocated images and their logical
+payload, read from each texture's own props, separate from the number of surface
+bindings. That separation is the whole point of the number — it is never a
+physical VRAM, frame-time or frame-rate claim. The CPU suites pin that the crowd
+shares one image between appearances baked from one picture, keeps every
+material table and sampler per appearance, and destroys each image once. No
+hardware capture has run: until a device reports its live textures, the
+allocation reduction is a design property, not a measured result.
 
 ## Typed colour helpers
 

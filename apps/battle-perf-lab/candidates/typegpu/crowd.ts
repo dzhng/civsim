@@ -4,7 +4,6 @@ import { packSoldierVertices } from "../../../../packages/soldier-assets/src/mes
 import {
   packSoldierMaterials,
   SOLDIER_MATERIAL_ROWS,
-  SOLDIER_TEXTURE_COLOR_SPACES,
   type SoldierSurface,
 } from "../../../../packages/soldier-assets/src/material";
 import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/instanceData";
@@ -14,9 +13,9 @@ import {
   type CrowdAudiencePlan,
   type CrowdAudience,
 } from "../../../../packages/battle-renderer/src/crowdData";
-import { crowdImage, crowdSampler, crowdTextureChannels } from "../../src/crowdMaterial";
+import { crowdSampler, crowdTextureChannels } from "../../src/crowdMaterial";
 import { createTypegpuPosePalette } from "./posePalette";
-import { createTypegpuImageTexture } from "./imageTexture";
+import { createTypegpuSoldierImageOwner } from "./soldierImages";
 import { typegpuTextureBytes } from "./textureUpload";
 import {
   crowdVertexAlgorithm,
@@ -91,6 +90,10 @@ export async function createTypegpuCrowd(
       palettes.push(p);
       owned.push(p.dispose);
     }
+    // Images are owned once for the whole catalog; tables and samplers below
+    // stay per appearance.
+    const surfaceImages = createTypegpuSoldierImageOwner(device);
+    owned.push(surfaceImages.dispose);
     const materials = new Map<SoldierSurface, TgpuBindGroup<typeof materialLayout.entries>>();
     async function prepare(
       surface: SoldierSurface,
@@ -107,21 +110,8 @@ export async function createTypegpuCrowd(
       );
       table.write(typegpuTextureBytes(packSoldierMaterials(surface.materials)));
       const images = [];
-      for (const channel of crowdTextureChannels) {
-        const bitmap = await crowdImage(surface, channel);
-        try {
-          const t = await createTypegpuImageTexture(device, bitmap, {
-            colorSpace: SOLDIER_TEXTURE_COLOR_SPACES[channel],
-            generateMipmaps:
-              !!surface.textures[channel] &&
-              surface.textures[channel]!.sampler.mipmapFilter !== "none",
-          });
-          owned.push(t.dispose);
-          images.push(t.texture);
-        } finally {
-          bitmap.close();
-        }
-      }
+      for (const channel of crowdTextureChannels)
+        images.push(await surfaceImages.acquire(surface, channel));
       const group = root.createBindGroup(materialLayout, {
         materialTable: table.createView(d.texture2d(d.f32), { sampleType: "unfilterable-float" }),
         baseMap: images[0],
@@ -368,6 +358,10 @@ export async function createTypegpuCrowd(
           shadowDraws: buckets.filter((b) => b.audience === "shadow" && b.count).length,
           impostorsPending,
           pose: palettes.map((p) => p.stats()),
+          // Unique material images this preparation allocated, apart from the
+          // surface bindings pointing at them: a retained-resource count, not
+          // physical VRAM.
+          images: surfaceImages.stats(),
         };
       },
       dispose,

@@ -37,8 +37,8 @@ TypeGPU shared imagesfd41af3c/ad8c218a are wired in the isolated
 `game-battle-typegpu-shared-images` candidate; Opus16260 is terminal. Root129 tests
 pass. [Actual device proof](assets/typegpu-shared-images/README.md) confirms60→3
 material images and95% lower logical texture payload, disposal tozero, and four
-pixel-identical Menu frames. Fresh critique, close mounted/catalog/reload-failure
-coverage and quiet timing remain; not yet integrated. Borrow immutable asset dirs
+pixel-identical Menu frames. Fresh critique records inherited contrast/aliasing/distant-terrain limitations;
+close mounted/catalog/reload-failure coverage and quiet timing remain; not yet integrated. Borrow immutable asset dirs
 when creating worktrees instead of copying them.
 
 Claude recovery run61331 stopped with an expired OAuth session that could not be

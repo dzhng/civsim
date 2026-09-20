@@ -24,7 +24,13 @@ all frames, scripts and fixed builds remain at `throwaway/typegpu-image-sharing/
 The allocation baselinefeabc4d4 differs from the visual control only in intervening
 non-material work; visual builds differ in image ownership and shared extraction.
 
-Still open: fresh visual critique, close mounted/full-catalog fixture coverage,
+Fresh unprimed critique found visible grounded soldiers and intact bodies/shields/flags,
+but also noisy thin weapons, weak warm-material contrast, rectangular distant
+terrain/shore edges and flat distant vegetation. Since the compared frames are
+pixel-identical, these are inherited visual limitations, not sharing regressions.
+The HUD conceals the bottom formation; the close mounted coverage remains owed.
+
+Still open: close mounted/full-catalog fixture coverage,
 actual device reload/failure controls, and quiet paired preparation/traversal
 measurements. No grass, lighting, shadow quality, camera motion or FPS gain is
 inferred from these stills. The candidate is not yet integrated.

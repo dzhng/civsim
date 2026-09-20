@@ -15,6 +15,14 @@ import {
   LOD_COUNT_KEYS,
 } from "../../crowd-runtime/src/lod";
 
+/** The pose a history currently has admitted for drawing. `submission` counts
+ * admitted poses rather than uploads, so every reader of an admitted crowd names
+ * the same pose no matter how many times a moving camera republished it. */
+export interface AdmittedCrowdPose {
+  submission: number;
+  instances: readonly CrowdInstance[];
+}
+
 /** CPU publication policy shared by each resource owner. A failed upload cannot
  * advance either LOD history, and no partially uploaded audience may draw. */
 export function createCrowdAudienceHistory(
@@ -77,7 +85,8 @@ export function createCrowdAudienceHistory(
     check,
     instances: () => snapshot.instances,
     /** The pose actually admitted for drawing, or null while none is. */
-    admitted: () => (ready ? { submission, instances: snapshot.instances } : null),
+    admitted: (): AdmittedCrowdPose | null =>
+      ready ? { submission, instances: snapshot.instances } : null,
     matchesViews: (views: readonly CrowdProjectionView[]) => ready && viewState.matches(views),
     begin(instances: readonly CrowdInstance[], views: readonly CrowdProjectionView[]): Publication {
       check();

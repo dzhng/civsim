@@ -356,6 +356,30 @@ const seated = (x: number, elevation: number) => ({ ...soldier, x, y: 0, elevati
 /** The surface itself: height equals x, so a seated soldier's elevation is its x. */
 const ground = () => vi.fn((x: number, _y: number) => x);
 
+test("admitted diagnostics keep reading the captured pose after the caller mutates it", async () => {
+  const owner = await create();
+  try {
+    const submitted = { ...posed("idle", 0.25), elevation: 7 };
+    owner.upload([submitted], [view(10)], camera);
+    const admitted = owner.debugSoldierAnim(0)!;
+    // The caller reuses its own per-frame records the moment the upload returns.
+    submitted.x = -1;
+    submitted.clip = "march";
+    submitted.elevation = 999;
+    submitted.playback.base.destination.phase = 0.9;
+    expect(owner.admitted()![0]).toMatchObject({ x: 7, y: 9, clip: "idle", elevation: 7 });
+    expect(owner.debugSoldierAnim(0)).toBe(admitted);
+    expect(admitted).toMatchObject({ root: [7, 9], clip: "idle", phase: 0.25 });
+    expect(admitted.playback!.base.destination).toEqual({ clip: "idle", phase: 0.25 });
+    expect([...owner.admittedPoses()]).toEqual(["0\u0000idle"]);
+    const surface = ground();
+    expect(owner.verifySeating(surface)).toMatchObject({ checked: 1, worstDelta: 0 });
+    expect(surface.mock.calls).toEqual([[7, 9]]);
+  } finally {
+    owner.dispose();
+  }
+});
+
 test("explicit seating verification re-samples the whole population, errors at its end included", async () => {
   const owner = await create();
   const surface = ground();

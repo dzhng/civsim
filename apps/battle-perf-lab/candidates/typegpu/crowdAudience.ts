@@ -5,6 +5,7 @@ import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/insta
 import type { CrowdProjectionView } from "../../../../packages/crowd-runtime/src/visibility";
 import type { ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
 import { createCrowdAudienceHistory } from "../../../../packages/battle-renderer/src/crowdAudienceHistory";
+import { createCrowdAudienceDiagnostics } from "../../../../packages/battle-renderer/src/crowdAudienceDiagnostics";
 import type { TypegpuEnvironment } from "./environment";
 import { createTypegpuCrowd } from "./crowd";
 import { createTypegpuImpostors } from "./impostor";
@@ -86,6 +87,7 @@ export async function createTypegpuCrowdAudience(
     };
     return {
       upload,
+      ...createCrowdAudienceDiagnostics(history, assets),
       async reproject(views: readonly CrowdProjectionView[], view: ImpostorView) {
         history.check(true);
         if (history.matchesViews(views)) return false;

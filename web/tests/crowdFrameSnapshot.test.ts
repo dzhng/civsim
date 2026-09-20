@@ -101,3 +101,35 @@ test("a standalone playback copy is independent of the pool and keeps endpoint a
   expect(copy.base.destination.phase).toBe(0.3);
   expect(copy.riderUpperBody).toEqual(soldier().playback!.riderUpperBody);
 });
+
+test("a reused slot carries no value from the submission it overwrote", () => {
+  const owner = new CrowdFrameSnapshot();
+  const [saved] = owner.capture([soldier()]);
+  // Every field differs from the first submission, so a slot that forgets one
+  // reports the earlier man rather than the one actually submitted.
+  const next: CrowdInstance = {
+    x: -5,
+    y: -6,
+    facing: -1.25,
+    classId: 2,
+    faction: 1,
+    alive: false,
+    clip: "die",
+    phase: 0.75,
+    seed: 9,
+    mounted: true,
+    lod: 3,
+    elevation: -4,
+    playback: {
+      appearanceId: 2,
+      base: {
+        source: { kind: "clip", sample: { clip: "hit", phase: 0.1 } },
+        destination: { clip: "die", phase: 0.75 },
+        weight: 0.25,
+      },
+    },
+  };
+  expect(owner.capture([next])[0]).toBe(saved);
+  expect(saved).toEqual(next);
+  expect(saved.playback).not.toBe(next.playback);
+});

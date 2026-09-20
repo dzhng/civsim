@@ -22,14 +22,16 @@ function blendStorage() {
       blend.weight = input.weight;
       if ("kind" in input.destination) blend.destination = base;
       else {
-        Object.assign(destination, input.destination);
+        destination.clip = input.destination.clip;
+        destination.phase = input.destination.phase;
         blend.destination = destination;
       }
       if (input.source.kind === "frozen") blend.source = input.source;
       else {
         if (input.source.sample === input.destination) source.sample = destination;
         else {
-          Object.assign(sample, input.source.sample);
+          sample.clip = input.source.sample.clip;
+          sample.phase = input.source.sample.phase;
           source.sample = sample;
         }
         blend.source = source;
@@ -77,16 +79,47 @@ export class CrowdFrameSnapshot {
         const base = blendStorage(),
           upper = blendStorage();
         slot = this.slots[i] = {
-          instance: { ...value },
+          // Every retained record is born from this one literal, so the pool
+          // shares a single shape instead of inheriting each first input's.
+          instance: {
+            x: 0,
+            y: 0,
+            facing: 0,
+            classId: 0,
+            faction: 0,
+            alive: true,
+            clip: "",
+            phase: 0,
+            seed: 0,
+            mounted: false,
+            lod: 0,
+            playback: undefined,
+            elevation: undefined,
+          },
           base,
           upper,
-          playback: { appearanceId: value.classId, base: base.blend as ClipBlend },
+          playback: {
+            appearanceId: 0,
+            base: base.blend as ClipBlend,
+            riderUpperBody: undefined,
+          },
         };
       }
-      Object.assign(slot.instance, value);
-      // Assign optional fields explicitly: Object.assign retains keys absent in
-      // a later input object, which would resurrect old elevations or playback.
-      slot.instance.elevation = value.elevation;
+      const instance = slot.instance;
+      instance.x = value.x;
+      instance.y = value.y;
+      instance.facing = value.facing;
+      instance.classId = value.classId;
+      instance.faction = value.faction;
+      instance.alive = value.alive;
+      instance.clip = value.clip;
+      instance.phase = value.phase;
+      instance.seed = value.seed;
+      instance.mounted = value.mounted;
+      instance.lod = value.lod;
+      // Optional fields are written on every capture, absent or not: a reused
+      // slot would otherwise resurrect an old elevation or playback.
+      instance.elevation = value.elevation;
       if (value.playback) {
         slot.base.copy(value.playback.base);
         slot.playback.appearanceId = value.playback.appearanceId;
@@ -94,9 +127,9 @@ export class CrowdFrameSnapshot {
           slot.upper.copy(value.playback.riderUpperBody);
           slot.playback.riderUpperBody = slot.upper.blend;
         } else slot.playback.riderUpperBody = undefined;
-        slot.instance.playback = slot.playback;
-      } else slot.instance.playback = undefined;
-      this.instances[i] = slot.instance;
+        instance.playback = slot.playback;
+      } else instance.playback = undefined;
+      this.instances[i] = instance;
     }
     this.instances.length = input.length;
     return this.instances;

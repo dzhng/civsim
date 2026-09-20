@@ -1,0 +1,1420 @@
+{
+  "scope": "32 ordered actual late-window timeline calls; instrumented capture, not timed performance",
+  "base": "ad8c218a + localPose at176c5874 + scratch pre-update hook",
+  "identity": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "adapter": "apple metal-3",
+    "viewport": [
+      1440,
+      900
+    ],
+    "framebuffer": [
+      2880,
+      1800
+    ],
+    "dpr": 2,
+    "initialStateHash": "9928381812590497427",
+    "soldiers": 15560,
+    "graphics": {
+      "shadows": "single",
+      "grassQuality": "standard",
+      "grass": true,
+      "farGrass": true,
+      "bloom": true,
+      "audio": {
+        "masterVolume": 0.55,
+        "muted": true,
+        "birds": true,
+        "water": true
+      }
+    }
+  },
+  "renderer": {
+    "ready": true,
+    "soldiers": 15560,
+    "renderer": "gpu",
+    "device": "apple metal-3",
+    "backend": "typegpu",
+    "expectedSoldiers": 15560,
+    "substrate": "typegpu",
+    "projection": "camera3d",
+    "environment": "golden",
+    "camera": {
+      "x": -92.5665521014334,
+      "y": -67.17918098732082,
+      "zoom": 7.614076302935198,
+      "zoomT": 0.9433779903920367,
+      "camera3d": {
+        "target": [
+          -92.5665521014334,
+          -67.17918098732082,
+          -5.18707241370771
+        ],
+        "distance": 551.3310419969744,
+        "pitch": 0.6474573308875423,
+        "yaw": -1.4397099086052907,
+        "fovY": 0.5247093615158629,
+        "aspect": 1.6,
+        "near": 1
+      }
+    },
+    "presentedFrameId": 5174,
+    "depth": {
+      "owner": "typegpu-battle-frame",
+      "installed": true,
+      "format": "depth32float",
+      "samples": 1,
+      "width": 2880,
+      "height": 1800,
+      "clearValue": 0,
+      "loadOp": "clear",
+      "storeOp": "store",
+      "reversed": true,
+      "requestedBytes": 20736000
+    },
+    "seating": null,
+    "drawCalls": 64,
+    "drawCallsUnavailable": null,
+    "openObligations": [
+      "seating",
+      "grassRouting"
+    ],
+    "terrain": {
+      "installed": true,
+      "generation": 1,
+      "replacing": false,
+      "scenery": 585,
+      "vistaBands": 2,
+      "water": {
+        "draws": 1,
+        "triangles": 3762,
+        "ownedBuffers": 4,
+        "disposed": false,
+        "depth": "read-write",
+        "blending": "opaque"
+      },
+      "grass": {
+        "residency": {
+          "productionSamplingProfile": {
+            "quality": "standard",
+            "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+            "seed": 1588011046,
+            "vistaVisibleRadiusM": 260,
+            "vistaTransitionDefaults": {
+              "edgeSinkStartM": 380,
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 480,
+              "farSoftWidthScale": 1.6
+            },
+            "closeVisibleRadiusM": 40,
+            "rebuildMarginM": 48,
+            "fieldCellSize": 0.42,
+            "snapCellSize": 48,
+            "clumpCellSize": 1.55,
+            "maxRecords": 160000,
+            "minActiveRecords": 18000,
+            "closeDensityReferenceRecords": 42000,
+            "closeDensityReferenceRadiusM": 64,
+            "lodStratifiedBudget": true,
+            "density": 1,
+            "jitter": 0.72,
+            "minNormalZ": 0.45,
+            "lodNearRadiusM": 5,
+            "lodMidRadiusM": 20,
+            "baseHeight": 0.26,
+            "heightJitter": 0.62,
+            "baseWidth": 0.004,
+            "widthJitter": 0.2,
+            "baseBend": 0.62,
+            "bendJitter": 0.45,
+            "tiers": [
+              {
+                "id": "near",
+                "lodTier": 0,
+                "segments": 4,
+                "minDistanceM": 0,
+                "maxDistanceM": 5
+              },
+              {
+                "id": "mid",
+                "lodTier": 1,
+                "segments": 2,
+                "minDistanceM": 5,
+                "maxDistanceM": 20
+              },
+              {
+                "id": "far",
+                "lodTier": 2,
+                "segments": 2,
+                "minDistanceM": 20,
+                "maxDistanceM": 480
+              }
+            ]
+          },
+          "detail": {
+            "bladePixels": 1.5804735844692872,
+            "baseMinPixels": 0.5,
+            "ringMinPixels": 1.5,
+            "ringReleasePixels": 1,
+            "focusRingActive": true
+          },
+          "transitionOwner": "battleGrassResidency.update",
+          "activeTransition": {
+            "denseBladeEndM": 143,
+            "farGrassStartM": 260,
+            "farGrassEndM": 1250,
+            "nearTierEndM": 5,
+            "midTierEndM": 64,
+            "farSoftWidthScale": 3,
+            "nearCoverageWidthScale": 1,
+            "lowerFarWidthScale": 1.35,
+            "lowerFarWidthEndM": 112,
+            "terrainDetailStrength": 1,
+            "edgeSinkStartM": 1120
+          },
+          "sample": {
+            "seed": 1588011046,
+            "snapX": -144,
+            "snapY": -96,
+            "snapCellSize": 0.6,
+            "fieldCellSize": 0.6,
+            "clumpCellSize": 1.55,
+            "minNormalZ": 0.45,
+            "lodNearRadius": 0.016666666666666666,
+            "lodMidRadius": 0.06666666666666667,
+            "lodStratifiedBudget": false,
+            "candidateCells": 761600,
+            "acceptedRecords": 650091,
+            "recordCapacity": 1024000,
+            "cappedRecords": 0,
+            "outOfBoundsCells": 0,
+            "rejectedTintCells": 89738,
+            "rejectedSlopeCells": 0,
+            "rejectedDensityCells": 21771,
+            "openGrassCells": 638007,
+            "forestCells": 11199,
+            "roughCells": 885,
+            "lodCandidateCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "lodBudgetQuotas": [
+              768,
+              592,
+              240
+            ],
+            "lodDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "lodCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "packedStrideFloats": 16,
+            "packedStrideBytes": 64,
+            "packedBytes": 41605824
+          },
+          "baseSample": {
+            "seed": 1588011046,
+            "snapX": 0,
+            "snapY": 0,
+            "snapCellSize": 48,
+            "fieldCellSize": 1.5,
+            "clumpCellSize": 1.55,
+            "minNormalZ": 0.45,
+            "lodNearRadius": 0.003466876226407682,
+            "lodMidRadius": 0.013867504905630728,
+            "lodStratifiedBudget": false,
+            "candidateCells": 2904244,
+            "acceptedRecords": 992334,
+            "recordCapacity": 1000000,
+            "cappedRecords": 0,
+            "outOfBoundsCells": 1197777,
+            "rejectedTintCells": 632022,
+            "rejectedSlopeCells": 0,
+            "rejectedDensityCells": 82111,
+            "openGrassCells": 969914,
+            "forestCells": 9153,
+            "roughCells": 13267,
+            "lodCandidateCounts": [
+              32,
+              525,
+              991777
+            ],
+            "lodBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "lodDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "lodCounts": [
+              32,
+              525,
+              991777
+            ],
+            "packedStrideFloats": 16,
+            "packedStrideBytes": 64,
+            "packedBytes": 63509376
+          },
+          "focusSample": {
+            "seed": 1588011046,
+            "snapX": -144,
+            "snapY": -96,
+            "snapCellSize": 0.6,
+            "fieldCellSize": 0.6,
+            "clumpCellSize": 1.55,
+            "minNormalZ": 0.45,
+            "lodNearRadius": 0.016666666666666666,
+            "lodMidRadius": 0.06666666666666667,
+            "lodStratifiedBudget": false,
+            "candidateCells": 761600,
+            "acceptedRecords": 650091,
+            "recordCapacity": 1024000,
+            "cappedRecords": 0,
+            "outOfBoundsCells": 0,
+            "rejectedTintCells": 89738,
+            "rejectedSlopeCells": 0,
+            "rejectedDensityCells": 21771,
+            "openGrassCells": 638007,
+            "forestCells": 11199,
+            "roughCells": 885,
+            "lodCandidateCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "lodBudgetQuotas": [
+              768,
+              592,
+              240
+            ],
+            "lodDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "lodCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "packedStrideFloats": 16,
+            "packedStrideBytes": 64,
+            "packedBytes": 41605824
+          },
+          "rebuild": {
+            "strategy": "static-whole-map+camera-focus-tiles",
+            "activeRecordBudget": 2024000,
+            "vistaRecordBudget": 160000,
+            "areaBudgetScale": 1,
+            "pending": false,
+            "rebuilds": 116,
+            "lastSampleMs": 0.045,
+            "lastSlices": 13,
+            "lastMaxSliceMs": 4.35,
+            "requestedGeneration": 16,
+            "activeGeneration": 16,
+            "pendingAgeMs": 0,
+            "requiredTiles": 476,
+            "residentTiles": 476,
+            "missingTiles": 0,
+            "publishTilesPerStep": 8,
+            "tileSlotRecords": 1600,
+            "tileCells": 1600,
+            "slotCapacity": 640,
+            "retainedRecordBytes": 65536000,
+            "sampledTiles": 1576,
+            "sampledCells": 2521600,
+            "publishedRecords": 2521600,
+            "publishedBytes": 161382400,
+            "evictedTiles": 1100,
+            "cancelledTiles": 0,
+            "cancelledCells": 0,
+            "retiredFocusGenerations": 0,
+            "coverageTileM": 24,
+            "coverageRadiusM": 279.9375,
+            "coverageSampledRadiusM": 279.96875,
+            "publishedCoverageTiles": 476,
+            "activeCoverageResident": true
+          }
+        },
+        "visibility": {
+          "base": true,
+          "ring": true,
+          "far": true
+        },
+        "uploads": [
+          1,
+          189
+        ],
+        "ringRecordRanges": 1480,
+        "layers": [
+          {
+            "recordCount": 992334,
+            "capacity": 992334,
+            "pipelineBuilds": 4
+          },
+          {
+            "recordCount": 761600,
+            "capacity": 1024000,
+            "pipelineBuilds": 4
+          }
+        ]
+      }
+    },
+    "tacticalLines": {
+      "groundCues": {
+        "count": 0,
+        "capacityBytes": 28
+      },
+      "rings": {
+        "count": 0,
+        "capacityBytes": 32
+      },
+      "effects": {
+        "count": 2496,
+        "capacityBytes": 188160
+      },
+      "triangles": {
+        "count": 10908,
+        "capacityBytes": 589008
+      },
+      "debugBlocks": null
+    },
+    "shadows": {
+      "mode": "single",
+      "cascades": 1,
+      "mapSize": 1024,
+      "layers": 1,
+      "depthBytes": 4194304,
+      "cameraBuffers": 1,
+      "receiverBytes": 208
+    },
+    "performance": {
+      "buildMs": 0.49000000208616257,
+      "uploadMs": 6.38000001013279,
+      "drawMs": 0.5900000035762787,
+      "frameCpuMs": 7.465000011026859,
+      "gpuTimeMs": 41.876569,
+      "gpuTimeMetric": "correlated-complete-submission-span",
+      "gpuFrame": {
+        "renderedFrameId": 5173,
+        "submissionId": 15532,
+        "observedGpuSpanMs": 41.876569,
+        "observedGpuUnionMs": 21.473422
+      }
+    },
+    "native": {
+      "prepared": true,
+      "preparedCamera": {
+        "x": -92.5665521014334,
+        "y": -67.17918098732082,
+        "zoom": 7.614076302935198,
+        "zoomT": 0.9433779903920367,
+        "camera3d": {
+          "target": [
+            -92.5665521014334,
+            -67.17918098732082,
+            -5.18707241370771
+          ],
+          "distance": 551.3310419969744,
+          "pitch": 0.6474573308875423,
+          "yaw": -1.4397099086052907,
+          "fovY": 0.5247093615158629,
+          "aspect": 1.6,
+          "near": 1
+        }
+      },
+      "environment": "golden",
+      "depth": {
+        "owner": "typegpu-battle-frame",
+        "installed": true,
+        "format": "depth32float",
+        "samples": 1,
+        "width": 2880,
+        "height": 1800,
+        "clearValue": 0,
+        "loadOp": "clear",
+        "storeOp": "store",
+        "reversed": true,
+        "requestedBytes": 20736000
+      },
+      "shadows": {
+        "mode": "single",
+        "cascades": 1,
+        "mapSize": 1024,
+        "layers": 1,
+        "depthBytes": 4194304,
+        "cameraBuffers": 1,
+        "receiverBytes": 208
+      },
+      "crowd": {
+        "instances": 15560,
+        "mainVisible": 14593,
+        "shadowOnly": 887,
+        "ready": true,
+        "visibleTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 13957,
+          "l3": 636,
+          "l4": 0
+        },
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 0,
+          "l3": 15480,
+          "l4": 0
+        },
+        "mesh": {
+          "clipInvariant": false,
+          "mainTriangles": 14447104,
+          "shadowTriangles": 12351200,
+          "mainDraws": 13,
+          "shadowDraws": 10,
+          "impostorsPending": 0,
+          "pose": [
+            {
+              "instances": 5000,
+              "residentSnapshots": 860,
+              "snapshotUploadBytes": 375648,
+              "controlBytes": 400000,
+              "snapshotBytes": 2056704,
+              "paletteBytes": 8320000
+            },
+            {
+              "instances": 3000,
+              "residentSnapshots": 358,
+              "snapshotUploadBytes": 113568,
+              "controlBytes": 240000,
+              "snapshotBytes": 1562496,
+              "paletteBytes": 4992000
+            },
+            {
+              "instances": 700,
+              "residentSnapshots": 96,
+              "snapshotUploadBytes": 29952,
+              "controlBytes": 56000,
+              "snapshotBytes": 638976,
+              "paletteBytes": 1164800
+            },
+            {
+              "instances": 1999,
+              "residentSnapshots": 226,
+              "snapshotUploadBytes": 84864,
+              "controlBytes": 160000,
+              "snapshotBytes": 1118208,
+              "paletteBytes": 3328000
+            },
+            {
+              "instances": 2100,
+              "residentSnapshots": 294,
+              "snapshotUploadBytes": 218544,
+              "controlBytes": 211200,
+              "snapshotBytes": 1425408,
+              "paletteBytes": 4899840
+            },
+            {
+              "instances": 1400,
+              "residentSnapshots": 228,
+              "snapshotUploadBytes": 196224,
+              "controlBytes": 112000,
+              "snapshotBytes": 1290240,
+              "paletteBytes": 2508800
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 400,
+              "residentSnapshots": 15,
+              "snapshotUploadBytes": 9408,
+              "controlBytes": 32000,
+              "snapshotBytes": 301056,
+              "paletteBytes": 1254400
+            },
+            {
+              "instances": 80,
+              "residentSnapshots": 7,
+              "snapshotUploadBytes": 2784,
+              "controlBytes": 12800,
+              "snapshotBytes": 178176,
+              "paletteBytes": 296960
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 800,
+              "residentSnapshots": 39,
+              "snapshotUploadBytes": 27072,
+              "controlBytes": 119680,
+              "snapshotBytes": 288768,
+              "paletteBytes": 4499968
+            },
+            {
+              "instances": 1,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 37600,
+              "snapshotBytes": 586560,
+              "paletteBytes": 782080
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            },
+            {
+              "instances": 0,
+              "residentSnapshots": 0,
+              "snapshotUploadBytes": 0,
+              "controlBytes": 16,
+              "snapshotBytes": 32,
+              "paletteBytes": 64
+            }
+          ],
+          "images": {
+            "allocated": [
+              {
+                "channel": "baseColor",
+                "width": 2048,
+                "height": 2048,
+                "mipLevels": 12,
+                "format": "rgba8unorm-srgb",
+                "bytes": 22369620,
+                "references": 20
+              },
+              {
+                "channel": "normal",
+                "width": 2048,
+                "height": 2048,
+                "mipLevels": 12,
+                "format": "rgba8unorm",
+                "bytes": 22369620,
+                "references": 20
+              },
+              {
+                "channel": "orm",
+                "width": 2048,
+                "height": 2048,
+                "mipLevels": 12,
+                "format": "rgba8unorm",
+                "bytes": 22369620,
+                "references": 20
+              }
+            ],
+            "allocatedImages": 3,
+            "allocatedBytes": 67108860,
+            "references": 60,
+            "referencedBytes": 1342177200
+          }
+        },
+        "impostors": {
+          "0": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "1": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "2": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "3": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "4": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "5": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "6": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "7": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "8": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "9": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "10": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "11": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "12": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "13": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "14": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "15": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "16": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "17": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "18": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          },
+          "19": {
+            "instances": 0,
+            "draws": 0,
+            "clipInvariant": false,
+            "castShadow": false,
+            "receiveShadow": false,
+            "atlasSource": "prepared full mip chain"
+          }
+        }
+      },
+      "grass": {
+        "residency": {
+          "productionSamplingProfile": {
+            "quality": "standard",
+            "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+            "seed": 1588011046,
+            "vistaVisibleRadiusM": 260,
+            "vistaTransitionDefaults": {
+              "edgeSinkStartM": 380,
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 480,
+              "farSoftWidthScale": 1.6
+            },
+            "closeVisibleRadiusM": 40,
+            "rebuildMarginM": 48,
+            "fieldCellSize": 0.42,
+            "snapCellSize": 48,
+            "clumpCellSize": 1.55,
+            "maxRecords": 160000,
+            "minActiveRecords": 18000,
+            "closeDensityReferenceRecords": 42000,
+            "closeDensityReferenceRadiusM": 64,
+            "lodStratifiedBudget": true,
+            "density": 1,
+            "jitter": 0.72,
+            "minNormalZ": 0.45,
+            "lodNearRadiusM": 5,
+            "lodMidRadiusM": 20,
+            "baseHeight": 0.26,
+            "heightJitter": 0.62,
+            "baseWidth": 0.004,
+            "widthJitter": 0.2,
+            "baseBend": 0.62,
+            "bendJitter": 0.45,
+            "tiers": [
+              {
+                "id": "near",
+                "lodTier": 0,
+                "segments": 4,
+                "minDistanceM": 0,
+                "maxDistanceM": 5
+              },
+              {
+                "id": "mid",
+                "lodTier": 1,
+                "segments": 2,
+                "minDistanceM": 5,
+                "maxDistanceM": 20
+              },
+              {
+                "id": "far",
+                "lodTier": 2,
+                "segments": 2,
+                "minDistanceM": 20,
+                "maxDistanceM": 480
+              }
+            ]
+          },
+          "detail": {
+            "bladePixels": 1.5804735844692872,
+            "baseMinPixels": 0.5,
+            "ringMinPixels": 1.5,
+            "ringReleasePixels": 1,
+            "focusRingActive": true
+          },
+          "transitionOwner": "battleGrassResidency.update",
+          "activeTransition": {
+            "denseBladeEndM": 143,
+            "farGrassStartM": 260,
+            "farGrassEndM": 1250,
+            "nearTierEndM": 5,
+            "midTierEndM": 64,
+            "farSoftWidthScale": 3,
+            "nearCoverageWidthScale": 1,
+            "lowerFarWidthScale": 1.35,
+            "lowerFarWidthEndM": 112,
+            "terrainDetailStrength": 1,
+            "edgeSinkStartM": 1120
+          },
+          "sample": {
+            "seed": 1588011046,
+            "snapX": -144,
+            "snapY": -96,
+            "snapCellSize": 0.6,
+            "fieldCellSize": 0.6,
+            "clumpCellSize": 1.55,
+            "minNormalZ": 0.45,
+            "lodNearRadius": 0.016666666666666666,
+            "lodMidRadius": 0.06666666666666667,
+            "lodStratifiedBudget": false,
+            "candidateCells": 761600,
+            "acceptedRecords": 650091,
+            "recordCapacity": 1024000,
+            "cappedRecords": 0,
+            "outOfBoundsCells": 0,
+            "rejectedTintCells": 89738,
+            "rejectedSlopeCells": 0,
+            "rejectedDensityCells": 21771,
+            "openGrassCells": 638007,
+            "forestCells": 11199,
+            "roughCells": 885,
+            "lodCandidateCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "lodBudgetQuotas": [
+              768,
+              592,
+              240
+            ],
+            "lodDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "lodCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "packedStrideFloats": 16,
+            "packedStrideBytes": 64,
+            "packedBytes": 41605824
+          },
+          "baseSample": {
+            "seed": 1588011046,
+            "snapX": 0,
+            "snapY": 0,
+            "snapCellSize": 48,
+            "fieldCellSize": 1.5,
+            "clumpCellSize": 1.55,
+            "minNormalZ": 0.45,
+            "lodNearRadius": 0.003466876226407682,
+            "lodMidRadius": 0.013867504905630728,
+            "lodStratifiedBudget": false,
+            "candidateCells": 2904244,
+            "acceptedRecords": 992334,
+            "recordCapacity": 1000000,
+            "cappedRecords": 0,
+            "outOfBoundsCells": 1197777,
+            "rejectedTintCells": 632022,
+            "rejectedSlopeCells": 0,
+            "rejectedDensityCells": 82111,
+            "openGrassCells": 969914,
+            "forestCells": 9153,
+            "roughCells": 13267,
+            "lodCandidateCounts": [
+              32,
+              525,
+              991777
+            ],
+            "lodBudgetQuotas": [
+              480000,
+              370000,
+              150000
+            ],
+            "lodDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "lodCounts": [
+              32,
+              525,
+              991777
+            ],
+            "packedStrideFloats": 16,
+            "packedStrideBytes": 64,
+            "packedBytes": 63509376
+          },
+          "focusSample": {
+            "seed": 1588011046,
+            "snapX": -144,
+            "snapY": -96,
+            "snapCellSize": 0.6,
+            "fieldCellSize": 0.6,
+            "clumpCellSize": 1.55,
+            "minNormalZ": 0.45,
+            "lodNearRadius": 0.016666666666666666,
+            "lodMidRadius": 0.06666666666666667,
+            "lodStratifiedBudget": false,
+            "candidateCells": 761600,
+            "acceptedRecords": 650091,
+            "recordCapacity": 1024000,
+            "cappedRecords": 0,
+            "outOfBoundsCells": 0,
+            "rejectedTintCells": 89738,
+            "rejectedSlopeCells": 0,
+            "rejectedDensityCells": 21771,
+            "openGrassCells": 638007,
+            "forestCells": 11199,
+            "roughCells": 885,
+            "lodCandidateCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "lodBudgetQuotas": [
+              768,
+              592,
+              240
+            ],
+            "lodDroppedByBudget": [
+              0,
+              0,
+              0
+            ],
+            "lodCounts": [
+              88577,
+              561514,
+              0
+            ],
+            "packedStrideFloats": 16,
+            "packedStrideBytes": 64,
+            "packedBytes": 41605824
+          },
+          "rebuild": {
+            "strategy": "static-whole-map+camera-focus-tiles",
+            "activeRecordBudget": 2024000,
+            "vistaRecordBudget": 160000,
+            "areaBudgetScale": 1,
+            "pending": false,
+            "rebuilds": 116,
+            "lastSampleMs": 0.045,
+            "lastSlices": 13,
+            "lastMaxSliceMs": 4.35,
+            "requestedGeneration": 16,
+            "activeGeneration": 16,
+            "pendingAgeMs": 0,
+            "requiredTiles": 476,
+            "residentTiles": 476,
+            "missingTiles": 0,
+            "publishTilesPerStep": 8,
+            "tileSlotRecords": 1600,
+            "tileCells": 1600,
+            "slotCapacity": 640,
+            "retainedRecordBytes": 65536000,
+            "sampledTiles": 1576,
+            "sampledCells": 2521600,
+            "publishedRecords": 2521600,
+            "publishedBytes": 161382400,
+            "evictedTiles": 1100,
+            "cancelledTiles": 0,
+            "cancelledCells": 0,
+            "retiredFocusGenerations": 0,
+            "coverageTileM": 24,
+            "coverageRadiusM": 279.9375,
+            "coverageSampledRadiusM": 279.96875,
+            "publishedCoverageTiles": 476,
+            "activeCoverageResident": true
+          }
+        },
+        "visibility": {
+          "base": true,
+          "ring": true,
+          "far": true
+        },
+        "uploads": [
+          1,
+          189
+        ],
+        "ringRecordRanges": 1480,
+        "layers": [
+          {
+            "recordCount": 992334,
+            "capacity": 992334,
+            "pipelineBuilds": 4
+          },
+          {
+            "recordCount": 761600,
+            "capacity": 1024000,
+            "pipelineBuilds": 4
+          }
+        ]
+      },
+      "standards": {
+        "count": 40,
+        "selected": 0,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "readouts": {
+        "readouts": 0,
+        "chips": 0,
+        "atlasWidth": 64,
+        "atlasHeight": 8,
+        "atlasUploads": 27,
+        "atlasUploadBytes": 1642496,
+        "instanceUploadBytes": 16512,
+        "instanceBufferBytes": 12288
+      },
+      "terrain": {
+        "installed": true,
+        "generation": 1,
+        "replacing": false,
+        "scenery": 585,
+        "vistaBands": 2,
+        "water": {
+          "draws": 1,
+          "triangles": 3762,
+          "ownedBuffers": 4,
+          "disposed": false,
+          "depth": "read-write",
+          "blending": "opaque"
+        }
+      },
+      "tacticalLines": {
+        "groundCues": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "rings": {
+          "count": 0,
+          "capacityBytes": 32
+        },
+        "effects": {
+          "count": 2496,
+          "capacityBytes": 188160
+        },
+        "triangles": {
+          "count": 10908,
+          "capacityBytes": 589008
+        },
+        "debugBlocks": null
+      }
+    },
+    "submission": {
+      "actualQueueSubmissions": 15536,
+      "readinessSubmissions": 4,
+      "latest": {
+        "submissionId": 15535,
+        "backend": "typegpu",
+        "source": "battle-draw",
+        "draws": {
+          "status": "counted",
+          "reason": null,
+          "offeredDrawCalls": 64,
+          "indirectDrawCalls": 6,
+          "bundleExecutions": 0,
+          "unsubmittedDrawCalls": 0,
+          "unsubmittedReason": null
+        }
+      }
+    },
+    "gpuTiming": {
+      "supported": true,
+      "timingQueries": "enabled",
+      "availability": "available",
+      "submissionCount": 15536,
+      "outsideSubmissionPasses": 59,
+      "querySlots": 3,
+      "busyQuerySlots": 1
+    },
+    "gpuCorrelation": {
+      "availability": "correlating",
+      "eventCursor": 5177,
+      "cursorGaps": 1,
+      "pendingReceipts": 1,
+      "pendingCompletions": 64,
+      "evictedReceipts": 5109,
+      "evictedCompletions": 3,
+      "correlatedFrames": 63,
+      "unmeasuredSubmissions": 0,
+      "supersededCompletions": 0
+    },
+    "labBuild": {
+      "backend": "typegpu",
+      "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+      "timingQueries": "enabled",
+      "scope": "compile-time default: this observer's timestamp queries, resolve/copy submission and readback are active"
+    },
+    "allocations": {
+      "scope": "requested buffer and texture bytes, including telemetry; not physical VRAM",
+      "buffers": {
+        "liveCount": 490,
+        "createdCount": 706,
+        "currentBytes": 267674780,
+        "peakBytes": 267744284,
+        "unknownCount": 0
+      },
+      "textures": {
+        "liveCount": 107,
+        "createdCount": 133,
+        "currentBytes": 364313124,
+        "peakBytes": 364442148,
+        "unknownCount": 0
+      },
+      "currentBytes": 631987904,
+      "peakBytes": 632057408
+    },
+    "cpuCoverage": "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+    "picking": {
+      "triangles": 231224
+    }
+  },
+  "metadata": {
+    "status": {
+      "phase": "running",
+      "scenario": {
+        "id": "generated-seven-heavy-combat",
+        "version": 1,
+        "simSeed": 1592639710,
+        "mapSeed": "7",
+        "armySource": "generated-default",
+        "orders": "player-nearest-enemy-at-tick-zero",
+        "startTick": 9000,
+        "durationMs": 300000,
+        "cameraScript": "contact-9000-v2"
+      },
+      "preparationMs": 67387.60500000417,
+      "elapsedMs": 230007.46500000003,
+      "startTick": 9000,
+      "tick": 13356,
+      "reason": null
+    },
+    "startHash": "10316872581990286639",
+    "limit": 32,
+    "byteCap": 134217728,
+    "scope": "Instrumented actual Menu update capture; capture time is not a performance sample",
+    "endStatus": {
+      "phase": "running",
+      "scenario": {
+        "id": "generated-seven-heavy-combat",
+        "version": 1,
+        "simSeed": 1592639710,
+        "mapSeed": "7",
+        "armySource": "generated-default",
+        "orders": "player-nearest-enemy-at-tick-zero",
+        "startTick": 9000,
+        "durationMs": 300000,
+        "cameraScript": "contact-9000-v2"
+      },
+      "preparationMs": 67387.60500000417,
+      "elapsedMs": 232090.71500000003,
+      "startTick": 9000,
+      "tick": 13383,
+      "reason": null
+    },
+    "bytes": 122359881
+  },
+  "errors": [],
+  "events": [
+    {
+      "tick": 13357,
+      "count": 15560
+    },
+    {
+      "tick": 13358,
+      "count": 15560
+    },
+    {
+      "tick": 13359,
+      "count": 15560
+    },
+    {
+      "tick": 13360,
+      "count": 15560
+    },
+    {
+      "tick": 13361,
+      "count": 15560
+    },
+    {
+      "tick": 13362,
+      "count": 15560
+    },
+    {
+      "tick": 13363,
+      "count": 15560
+    },
+    {
+      "tick": 13364,
+      "count": 15560
+    },
+    {
+      "tick": 13365,
+      "count": 15560
+    },
+    {
+      "tick": 13366,
+      "count": 15560
+    },
+    {
+      "tick": 13367,
+      "count": 15560
+    },
+    {
+      "tick": 13368,
+      "count": 15560
+    },
+    {
+      "tick": 13369,
+      "count": 15560
+    },
+    {
+      "tick": 13370,
+      "count": 15560
+    },
+    {
+      "tick": 13371,
+      "count": 15560
+    },
+    {
+      "tick": 13372,
+      "count": 15560
+    },
+    {
+      "tick": 13373,
+      "count": 15560
+    },
+    {
+      "tick": 13374,
+      "count": 15560
+    },
+    {
+      "tick": 13375,
+      "count": 15560
+    },
+    {
+      "tick": 13376,
+      "count": 15560
+    },
+    {
+      "tick": 13377,
+      "count": 15560
+    },
+    {
+      "tick": 13378,
+      "count": 15560
+    },
+    {
+      "tick": 13379,
+      "count": 15560
+    },
+    {
+      "tick": 13380,
+      "count": 15560
+    },
+    {
+      "tick": 13381,
+      "count": 15560
+    },
+    {
+      "tick": 13382,
+      "count": 15560
+    },
+    {
+      "tick": 13383,
+      "count": 15560
+    },
+    {
+      "tick": 13384,
+      "count": 15560
+    },
+    {
+      "tick": 13385,
+      "count": 15560
+    },
+    {
+      "tick": 13386,
+      "count": 15560
+    },
+    {
+      "tick": 13387,
+      "count": 15560
+    },
+    {
+      "tick": 13388,
+      "count": 15560
+    }
+  ]
+}

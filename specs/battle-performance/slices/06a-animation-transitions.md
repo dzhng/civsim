@@ -42,5 +42,6 @@ contact-window and motion acceptance are still required before closing this slic
 
 [Direct channel sampling](../assets/06a-channel-sampling/README.md) extends this
 storage strategy to authored keys without changing interpolation or ownership.
-The authored corpus matches exactly; an identical live observation-history replay
-is still needed to quantify the combined publication-side savings.
+The authored corpus matches exactly; [an identical live observation replay](../assets/06a-transition-trace/README.md)
+now proves a22.26% bounded timeline-update gain with exact state, playback and
+sharing equivalence. Full contact-window and motion acceptance remain open.

@@ -8,21 +8,21 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: capture and replay an identical retained live observation trace
-to measure combined transition preparation; then attribute the
-remaining main-world/fullscreen GPU cost. The
-[late CPU profile](assets/06a-pose-blend/README.md) is complete (session41517
-terminal): publication/action transitions consume67% of the sampled50-second
-window, plus11% GC self time. These callbacks were omitted from render-only
-CPU timers; the long presentation await is not all GPU wait. Pose blending now
-writes directly into its result; exact differential tests and81 focused tests
-pass, with web TypeScript and independent reviews. Primitive V8 throughput
-improves about5.6×. The follow-up late profile completed in session45084:
-blend inclusive7.35→2.60s, publication33.61→30.31s, GC5.72→5.91s. Different
-late battle ticks preclude a matched-state FPS claim.
-[Direct channel writes](assets/06a-channel-sampling/README.md) also match23,798
-authored poses exactly and improve isolated sampling about2.3×;84 focused tests
-and TypeScript pass. No owned timing job is live.
+Current pickup: profile remaining frozen-capture/observation work using the
+retained identical live trace, then attribute main-world/fullscreen GPU cost.
+[The combined blend/channel replay](assets/06a-transition-trace/README.md)
+is complete:32 actual late-window updates over15,560 soldiers, exact full state
+and1,493,760 playback comparisons plus48,192 old-evaluator pose comparisons.
+Three balanced ABBA blocks show22.26% less timeline update wall time; this is
+CPU preparation only, not live FPS. Sources, runtime, traces and scope limits
+are recorded. Capture42463 and replay38489 are terminal; no owned timing job is live.
+
+[The late CPU profiles](assets/06a-pose-blend/README.md) remain diagnostic:
+publication33.61→30.31s and blend7.35→2.60s across50seconds, with unmatched
+battle ticks. Render-only timers omit publication callbacks during await.
+[Authored channel sampling](assets/06a-channel-sampling/README.md) matches23,798
+poses exactly;84 focused tests and TypeScript pass. Keep frozen snapshot
+ownership and exact transition semantics while investigating remaining costs.
 
 The [three live image-sharing pairs](assets/typegpu-shared-images/live-pairs/README.md)
 remain the prior full-window evidence:15.79–16.10 average FPS and unmatched final

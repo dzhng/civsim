@@ -50,3 +50,5 @@ x502/y161 (red .529296875 versus .56396484375); time3.25 at x670/y160
 cases pass at .000732421875. This narrows the failing condition but does not yet
 identify whether coverage, interpolation or shading causes it. Claude reads the
 4x pipeline contracts; no further shader change is adopted.
+
+[Matched multisample diagnostics](msaa-diagnostics/README.md) correct the probe sample count and retain pre-lighting coordinate and rejected centroid evidence. Ocean4x remains red.

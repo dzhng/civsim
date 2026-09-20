@@ -8,6 +8,7 @@ import {
 } from "../../../../packages/game-renderer/src/models/shared/battleStandardData";
 import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { standardFunctions } from "../../../../packages/battle-renderer/src/shaders/standards";
+import { linearAlbedo } from "../../../../packages/battle-renderer/src/shaders/soldierFactionTyped";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 const Vertex = d.struct({ world: d.vec3f, normal: d.vec3f }),
@@ -18,13 +19,12 @@ const vertexAlgorithm = tgpu
     Vertex,
   )(standardFunctions.vertex)
   .$uses({ StandardVertex: Vertex });
-const standardLinear = tgpu.fn([d.vec3f], d.vec3f)(standardFunctions.linear);
 const surfaceAlgorithm = tgpu
   .fn(
     [d.f32, d.f32, d.vec3f],
     Surface,
   )(standardFunctions.surface)
-  .$uses({ StandardSurface: Surface, standardLinear });
+  .$uses({ StandardSurface: Surface, standardLinear: linearAlbedo });
 const vertexLayout = tgpu.vertexLayout(
     d.disarrayOf(d.unstruct({ local: d.vec3f, normal: d.vec3f, uvwm: d.vec4f })),
   ),

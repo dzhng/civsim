@@ -20,7 +20,7 @@ import {
   type OverlayUpload,
 } from "../../../../packages/battle-renderer/src/overlayStaging";
 import { overlayFunctions } from "../../../../packages/battle-renderer/src/shaders/overlay";
-import { linearAlbedoWgsl } from "../../../../packages/battle-renderer/src/shaders/soldierFaction";
+import { linearAlbedo } from "../../../../packages/battle-renderer/src/shaders/soldierFactionTyped";
 import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { typegpuCameraLayout } from "./camera";
 const position = tgpu.vertexLayout(d.disarrayOf(d.vec3f)),
@@ -84,7 +84,6 @@ async function createTypegpuOverlayDraw(
           Vertex,
         )(f.vertex)
         .$uses({ OverlayVertex: Vertex }),
-      linearAlbedo = tgpu.fn([d.vec3f], d.vec3f)(linearAlbedoWgsl),
       shade = tgpu.fn([d.vec4f, d.vec2f], d.vec4f)(f.fragment).$uses({ linearAlbedo });
     const fragment = tgpu.fragmentFn({ in: varying, out: d.vec4f })((v) => {
       "use gpu";

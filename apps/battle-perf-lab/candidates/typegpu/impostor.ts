@@ -8,7 +8,7 @@ import type { CrowdInstance } from "../../../../packages/crowd-runtime/src/insta
 import { GPU_DEPTH_FORMAT } from "../../../../packages/renderer-core/src/depthContract";
 import { packImpostors, type ImpostorView } from "../../../../packages/battle-renderer/src/impostorData";
 import { impostorVertexWgsl, impostorSurfaceWgsl } from "../../../../packages/battle-renderer/src/shaders/impostor";
-import { linearAlbedoWgsl, factionAccentWgsl } from "../../../../packages/battle-renderer/src/shaders/soldierFaction";
+import { factionAccent } from "../../../../packages/battle-renderer/src/shaders/soldierFactionTyped";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 
@@ -38,8 +38,6 @@ const vertexAlgorithm = tgpu
     ImpostorVertex,
   )(impostorVertexWgsl)
   .$uses({ ImpostorVertex });
-const linearAlbedo = tgpu.fn([d.vec3f], d.vec3f)(linearAlbedoWgsl);
-const factionAccent = tgpu.fn([d.f32], d.vec3f)(factionAccentWgsl).$uses({ linearAlbedo });
 
 /** Owns atlas uploads and instance data; device, camera and typed environment are borrowed.
  * TypeGPU owns resource creation, uploads, pipeline compilation and draw encoding. */

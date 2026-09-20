@@ -1,5 +1,9 @@
 import { fileURLToPath } from "node:url";
+// The same transform the candidate Vite build uses; typed shader bodies only resolve to WGSL
+// once it has attached their syntax tree.
+import typegpu from "../../../../web/node_modules/unplugin-typegpu/vite.js";
 export default {
+  plugins: [typegpu()],
   resolve: {
     alias: {
       typegpu: fileURLToPath(

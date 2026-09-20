@@ -4,7 +4,7 @@ import {
   soldierVertexBodyWgsl,
   soldierSurfacePreludeWgsl,
 } from "../../../../packages/battle-renderer/src/shaders/soldier";
-import { linearAlbedoWgsl, factionAccentWgsl } from "../../../../packages/battle-renderer/src/shaders/soldierFaction";
+import { factionAccent } from "../../../../packages/battle-renderer/src/shaders/soldierFactionTyped";
 import { typegpuCameraLayout } from "./camera";
 import { environmentLayout, type TypegpuEnvironment } from "./environment";
 import { typegpuPaletteLayout } from "./posePalette";
@@ -33,8 +33,6 @@ export const materialLayout = tgpu
   })
   .$idx(2);
 const unitDirection = tgpu.fn([d.vec3f, d.vec3f], d.vec3f)(soldierUnitDirectionWgsl);
-const linearAlbedo = tgpu.fn([d.vec3f], d.vec3f)(linearAlbedoWgsl);
-const factionAccent = tgpu.fn([d.f32], d.vec3f)(factionAccentWgsl).$uses({ linearAlbedo });
 export function crowdVertexAlgorithm(
   bones: number,
   layout: TypegpuEnvironment["layout"] | TypegpuEnvironment["casterLayout"] = environmentLayout,

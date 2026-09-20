@@ -153,3 +153,40 @@ admission errors and pose-update ordering. Complete-scene browser controls and
 fresh visual review are still pending for this composition; existing component
 edge/cold-frame diagnostics remain open. This checkpoint establishes neither
 full-scene fidelity nor performance eligibility.
+
+## Typed colour helpers
+
+The soldier faction helpers are the first shared algorithm this candidate expresses as
+actual typed TypeGPU functions rather than WGSL text:
+[soldierFactionTyped.ts](../../../../packages/battle-renderer/src/shaders/soldierFactionTyped.ts)
+carries the sRGB transfer and the faction accent as `'use gpu'` TypeScript, and the crowd,
+impostor, overlay and standard pipelines import that one owner. The formulas and the
+canonical palette are unchanged: the colours still come from the battle faction module, and
+the untouched [WGSL bodies](../../../../packages/battle-renderer/src/shaders/soldierFaction.ts)
+remain the reference for every non-TypeGPU consumer and for the numerical control below.
+Production still compiles the raw bodies; nothing here cuts over.
+
+The surface bodies that call these helpers stay WGSL and bind the typed functions through
+`$uses`, so the resolved shader keeps one definition of each helper rather than a copy per
+pipeline. The candidate test config now applies the same TypeGPU transform the lab build
+uses, because typed bodies only resolve to WGSL once their syntax tree is attached.
+
+```sh
+web/node_modules/.bin/tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tests/tsconfig.json
+web/node_modules/.bin/vitest run --config apps/battle-perf-lab/candidates/typegpu/vitest.config.mts
+```
+
+The first command is the type gate: the test file asserts with `@ts-expect-error` that wrong
+argument and return types are rejected, so it fails if the helpers stop being typed. The
+second resolves the typed bodies to WGSL and pins the palette, the single-owner property and
+the sRGB threshold branch.
+
+[color-check.html](color-check.html) is the hardware numerical control. It runs the same
+inputs through the typed bodies and through the raw WGSL on one device and compares every
+output word bit for bit, covering the sRGB threshold to a single f32 step on both sides, both
+faction step edges to a single f32 step, the actual palette entries and a representative
+ramp. Start the lab development server with the candidate config, then run
+`node apps/battle-perf-lab/candidates/typegpu/verify-colors.mjs` with the coordinated GPU
+slot; let the server settle after an edit, or it will serve the previous module. The report
+lands in `throwaway/typegpu-colors/color-check.json` unless `TYPEGPU_COLOR_REPORT` says
+otherwise. This is correctness evidence for two shader functions — not parity, not timing.

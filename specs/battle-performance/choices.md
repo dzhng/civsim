@@ -740,3 +740,14 @@ the old battle world without deleting this still-used shared geometry policy.
   without obvious new artifacts; full temporal/net-cost acceptance remains open.
   The scale is an empirical visual choice, not an asserted physical equivalence
   between single and cascade texels.
+
+## Cutover diagnostics metric
+
+- **Retained:** selected raw GPU cost is a complete observed submission span,
+  correlated to the actual presented frame; keep interval union separately. Do
+  not sum overlapping pass times, invent a zero for unavailable data, or pretend
+  source Three's uncorrelated render-only sum is the same measurement. Keep the
+  numeric33ms/content floor while migrating raw reads to distinct completed IDs.
+- **Retained:** add real diagnostics before switching the constructor. Reuse
+  evidence by mapping existing controls to their obligations; do not demand new
+  runs merely because their artifact directory has another pass name.

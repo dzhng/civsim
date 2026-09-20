@@ -7,24 +7,20 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: verify the isolated default-single filter-footprint candidate in
-`game-battle-shadow-filter`, baseline6870a77e. Claude Opus is implementing0.6× the
-existing single-mode radius; High stays unchanged. Parent logs:
-`throwaway/shadow-filter-worker/`. Root owes matched stills and a moving-camera
-sequence before adoption. Keep lighting, fits, bias, map size, taps and content fixed;
-then continue the remaining [cutover obligations](migration.md). The [current-camera sizing fix](assets/m7-current-camera/README.md)
-is integrated atb1818420: all six DPR1/2 zoom probes eliminate the first-frame
-banner correction. Independent review and hardware controls pass; all settled
-complete-scene images preserve the comparison. Small initial/HUD differences are
-explicit in the evidence. The combined source30k floor passes all18 checks without
-changing its33ms or content limits. Only the CPU-only filter worker is active; no timing job is running.
+Current pickup: implement [M9a correlated frame timing](slices/m9a-frame-timing.md),
+then actual content/depth/memory diagnostics needed by the raw production gates.
+[The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
+cutover blockers from inherited quality work. Do not copy Three-shaped counters
+or relabel pass sums as a complete frame. Production still constructs Three until
+M9; raw is exercised through the real Menu lab seam.
 
-[Golden light balance](assets/08-light-balance/README.md) is integrated at7423764b:
-independent review prefers grounding and soldier readability but flags a more
-yellow/olive ground and still-faint individual shadows. It is a partial improvement;
-finish wider/moving quality and final net-shadow savings before accepting the user
-requirement. The five-tap filter's footprint is the next bounded readability question,
-with camera, lighting, density, fit, bias and map resolution held fixed.
+[Current-camera sizing](assets/m7-current-camera/README.md) is integrated atb1818420:
+all six DPR1/2 zoom probes eliminate the first-frame banner correction. The
+[golden light balance](assets/08-light-balance/README.md) and
+[narrower default filter](assets/08-shadow-filter/README.md) improve grounding;
+High/off are preserved. The latest source30k and per-preset shadow run passes34
+checks without changing33ms/content thresholds. Full raw/live60fps, receiver and
+moving-shadow/net-cost acceptance remain open. No timing job is running.
 
 Both narrow candidates remain outside production:
 [grass reception](assets/08-grass-receiver/README.md) had no discernible grounding

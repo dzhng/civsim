@@ -18,3 +18,8 @@ joined complete submission timing, preserving all population, scenery, grass,
 physical-scale and33ms assertions. Do not fabricate source fields or sum overlapping
 passes to make the scene green. M1b's unchanged source floor is a regression guard,
 not raw performance acceptance.
+
+[M9a](m9a-frame-timing.md) first supplies correlated native frame timing; then
+migrate actual content/depth/memory diagnostics and scene reads before switching
+the constructor. [Readiness audit disposition](../assets/m9-readiness/README.md)
+records source-specific guards and legitimate consumers that the sweep must cover.

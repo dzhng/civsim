@@ -25,6 +25,25 @@ remain explicit. Current pickup lives in the README handoff. Concrete obligation
 [M7](slices/m7-effects-debug.md), [M8](slices/m8-post-output.md),
 [M9](slices/m9-production-cutover.md).
 
+Current prerequisite ledger (capability and final optimization are distinct):
+
+| Pass | Recorded capability checkpoint | Still needed before declaring exit |
+| --- | --- | --- |
+| M1 | Promotion/API, lifecycle, raw pose and repeated scene controls | Carry documented initial/strict pixel differences |
+| M2 | Promoted terrain/scenery and M6 pre/post terrain controls | Map checks to seating/picking/replacement contract explicitly |
+| M3a/M3b | Complete-scene atmosphere/water controls exist | Map fixed environment and horizon/water proofs to each exit |
+| M4 | Public atlas/reload admission and hostile disposal | Broader posed/LOD/mounted/dead coverage |
+| M5 | Promoted residency/grass and complete-scene controls | Coverage/motion/bounded-work proof; joins04/05 |
+| M6 | Single/High/off hardware and lighting checkpoints | Default receiver/motion quality and net cost |
+| M7 | Debug blocks and immediate overlay sizing | Remaining effect ordering/contact-band assessment |
+| M8 | Frame controls reproduce inherited strict differences | Explicit post/output exit mapping; carry unresolved pixel reds |
+| M9 | Import seam exists | [Correlated timing](slices/m9a-frame-timing.md), honest diagnostics, production guard/capture/handoff migration, then deletion |
+
+Missing pass-named directories do not by themselves invalidate existing evidence.
+Map the recorded checks before scheduling replacements; do not infer a full exit
+from the mere presence of promoted code. Lab comparison types can stay in lab
+harnesses; the final production facade has only the selected backend.
+
 The table below retains the original verification contracts. Its rows are now
 owned by the linked passes, not an unresolved choice of engines.
 

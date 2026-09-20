@@ -30,8 +30,11 @@ terrain/shore edges and flat distant vegetation. Since the compared frames are
 pixel-identical, these are inherited visual limitations, not sharing regressions.
 The HUD conceals the bottom formation; the close mounted coverage remains owed.
 
-Still open: close mounted/full-catalog fixture coverage,
-quiet paired preparation/traversal measurements. Actual device reload/failure
+Close mounted/full-catalog fixture coverage remains open.
+
+The [three live pairs](live-pairs/README.md) now establish a loading/readiness gain
+of about1.0–1.2seconds in every pair, but no demonstrated FPS gain. The complete
+300-second windows and phase breakdowns remain far below final targets. Actual device reload/failure
 controls now pass: successful replacement retains3 material images; missing
 atlas and an injected real GPU validation error keep the installed crowd;
 disposal while admission is pending rejects pending/future reloads and releases

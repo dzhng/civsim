@@ -1,0 +1,8 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-camera-pose-reuse/apps/battle-perf-lab/candidates/typegpu
+
+
+ Test Files  15 passed (15)
+      Tests  121 passed (121)
+   Start at  21:49:50
+   Duration  583ms (transform 3.16s, setup 0ms, import 4.44s, tests 378ms, environment 1ms)

@@ -1,0 +1,36 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-camera-pose-reuse/apps/battle-perf-lab/candidates/typegpu
+
+ ❯ tests/typegpuSceneLifecycle.test.ts (28 tests | 2 failed | 26 skipped) 7ms
+   × a post-await pose submission failure rejects upload and cannot discharge its pose work 5ms
+   × a post-await pose submission failure rejects reproject and cannot discharge its pose work 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/typegpuSceneLifecycle.test.ts > a post-await pose submission failure rejects upload and cannot discharge its pose work
+ FAIL  tests/typegpuSceneLifecycle.test.ts > a post-await pose submission failure rejects reproject and cannot discharge its pose work
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/typegpuSceneLifecycle.test.ts:387:29
+    385|     };
+    386|     try {
+    387|       await expect(present()).rejects.toThrow("rejected pose command");
+       |                             ^
+    388|       expect(uncaptured).toEqual([]);
+    389|       expect(scopes).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 26 skipped (28)
+   Start at  21:45:27
+   Duration  299ms (transform 148ms, setup 0ms, import 229ms, tests 7ms, environment 0ms)

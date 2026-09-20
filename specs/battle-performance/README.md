@@ -8,43 +8,48 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: verify the camera-work and grass-transition candidates, then
-complete selected-renderer browser contract/cutover checks.
-[Presented-frame draw counts](assets/native-draw-observation/presented-frame/README.md)
-are integratedb31b730b. Root61 facade tests/web TypeScript and independent review
-pass. Actual TypeGPU command tallies match all18 single/High/off × zoom × query-mode
-checks; no query slots are allocated in disabled mode. The worker and review are
-terminal; its worktree and both branches were removed after preserving scratch and
-a verified bundle at `throwaway/presented-draw-completed-cleanup/`.
+Current pickup: profile the late combined/return camera phase, then attribute
+main-world and fullscreen GPU cost with matched-state diagnostics. The
+[three live image-sharing pairs](assets/typegpu-shared-images/live-pairs/README.md)
+finished with all validity checks passing, but only15.79–16.10 average FPS and
+unmatched final ticks. Texture sharing reduces material payload95% and improves
+initial readiness by1.0–1.2seconds in every pair; no FPS gain is established.
+Main-world GPU median is about25ms, post about9ms, measured render CPU p95 about
+10–11ms. Late awaited presentation p95 reaches196–267ms and includes unprofiled
+continuations. Do not sum overlapping stages or call all await time GPU wait.
+The next rAF is requested only after presentation settles; profile before changing
+that policy. All six timing runs (session60793) are terminal; no timing job active.
 
-Camera-state candidate: `game-battle-camera-pose-reuse` holds c4e555c1 plus
-recovery25034412; Opus handle7582 is terminal. The actual producer/facade now
-reuse unchanged state, and failures invalidate reuse until admission validates.
-Root63 facade tests pass, but independent review found post-await pose submission
-escapes the outer synchronous admission scopes. Opus is correcting that actual
-TypeGPU scene path; prompt/results are `throwaway/pose-admission-{prompt,result}.txt`.
-The existing mock facade regression is insufficient to cover it. No GPU or timing
-acceptance yet. Ordinary advancing live
-poses still rebuild; paused/repeated states benefit, so do not claim live gains.
+Image candidatefd41af3c/ad8c218a remains in
+`game-battle-typegpu-shared-images`, not integrated. Root129 tests, independent
+owner review, actual60→3 device textures, four pixel-identical Menu frames,
+reload/failure/disposal and fresh visual critique are recorded in
+[its evidence](assets/typegpu-shared-images/README.md). Close mounted/full-catalog
+fixture coverage remains open. Fixed builds, raw runs, analysis script and planned
+late-phase CPU profile build are in `throwaway/typegpu-image-sharing/`.
+
+Camera candidate in `game-battle-camera-pose-reuse` is c4e555c1 +25034412 +457caafa.
+The last commit scopes actual post-await pose commands, preserves the first error
+while draining validation, and keeps failed pose work owed. Root121 TypeGPU tests,
+web TypeScript and independent scoped review pass; three new regressions were
+observed red before their fixes. No hardware/performance acceptance yet. Ordinary
+advancing live poses still rebuild; paused/repeated-state savings cannot be called
+live gains. Claude's final run failed authentication after leaving a partial edit;
+root completed it locally. No Claude worker remains live; do not repair credentials
+without user authorization. Borrowed asset symlinks/apparent sparse deletions are
+checkout setup and were excluded from the focused two-file commit.
 
 Grass candidate8ac39665 in `game-battle-grass-zoom-transition` is unadopted.
-[Actual Menu boundary controls](assets/grass-zoom-transition/README.md) prove
-continuous parameters and rendering changes at two pitches. Temporal image
-metrics are mixed and not a clean pop metric. Continuous ground-sequence review
-and timing remain owed; the worker is terminal.
+[Menu boundary controls](assets/grass-zoom-transition/README.md) prove parameter
+continuity and rendering changes at two pitches, but not a motion improvement.
+Continuous ground-sequence review and timing remain owed. Keep this separate from
+the dominant live frame-time investigation.
 
-TypeGPU shared imagesfd41af3c/ad8c218a are wired in the isolated
-`game-battle-typegpu-shared-images` candidate; Opus16260 is terminal. Root129 tests
-pass. [Actual device proof](assets/typegpu-shared-images/README.md) confirms60→3
-material images and95% lower logical texture payload, disposal tozero, and four
-pixel-identical Menu frames. Fresh critique records inherited contrast/aliasing/distant-terrain limitations;
-device reload/failure/disposal also pass. Close mounted/catalog coverage and
-quiet timing remain; not yet integrated. Borrow immutable asset dirs
-when creating worktrees instead of copying them.
-
-Claude recovery run61331 stopped with an expired OAuth session that could not be
-refreshed; user was informed. Do not retry credentials automatically. The pending
-pose-admission prompt is preserved; other verification can continue independently.
+Presented-frame draw countsb31b730b are integrated. Root61 facade tests, TypeScript,
+independent review and actual TypeGPU tallies across18 shadow/zoom/query-mode cases
+pass. Its worktree/branches were removed with verified recovery archives. Future
+worktrees must borrow public/wasm/node_modules and immutable soldier asset dirs,
+not copy gigabytes of assets. Keep the dirty benchmark and unrelated worktrees.
 
 Current evidence:
 
@@ -77,7 +82,7 @@ CPU savings and simulation throughput, then the full five-minute live/default-sh
 acceptance. Preserve content, HUD, DPR, assets, behavior and gates. No compatibility,
 migrations or reduced-quality win. Do not repeat unchanged rejected ABBA trials
 merely to seek green. Serialize timing against owned builds, CPU agents and GPU work.
-No timing job is active.
+The image-sharing timing sequence is complete; do not rerun it merely to seek green.
 
 The finished impostor worktree and8 older renderer branches were removed after
 preserving scratch and a verified bundle in

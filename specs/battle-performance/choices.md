@@ -770,3 +770,22 @@ the old battle world without deleting this still-used shared geometry policy.
   canonical far plane stays infinite. Moving the constant changes no math. The
   cleanup removes source-renderer coupling without inventing compatibility
   exports; genuine shared impostor and sea consumers retain their existing owner.
+
+## Installed-scene diagnostics
+
+- **Sound, high confidence — whole-frame seating remains an explicit gap.** A
+  scan that checks the first thousand soldiers now and the next thousand later
+  mixes moving frames; it cannot prove the whole frame is seated correctly. Root
+  rejected that worker design. Report no seating verdict until a deliberate
+  check inspects one admitted population. The plan required truthful diagnostics
+  but left cadence open; camera frames acquire no new population sweep.
+- **Sound, high confidence — presentation camera travels with its receipt.** If
+  drawing succeeds but startup readiness subsequently fails, keep the previous
+  successful camera and frame ID together. Preparation can already contain a
+  newer pose. This makes failure diagnostics meaningful and constrains consumers
+  to distinguish preparation from completed presentation.
+- **Sound, high confidence — depth policy feeds both pipeline and report.** The
+  allocated attachment and world pipelines use shared reverse-depth settings.
+  Reporting those same settings avoids an unrelated label that could stay green
+  while rendering changes. Values remain unchanged; missing routed grass/draw
+  measurements stay null rather than acquiring a second estimating owner.

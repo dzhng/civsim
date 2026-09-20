@@ -27,3 +27,7 @@ seating assertion must examine an identified admitted population deliberately,
 without adding a repeated telemetry sweep to normal camera frames. Grass routed
 triangle estimates and draw-call totals likewise remain absent until an actual
 owner measures them; missing report columns do not justify invented counters.
+
+Producer implemented and [hardware verified](../assets/m9b-diagnostics/README.md).
+Next: scene-read migration and distinct GPU sample collection; complete seating
+and draw inspection remain separate, explicit obligations.

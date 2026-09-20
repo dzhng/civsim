@@ -7,15 +7,15 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: Claude Opus implements the [M9b diagnostics producer](slices/m9b-diagnostics.md)
-in `game-battle-scene-diagnostics` at e0f5236e; logs `throwaway/scene-diagnostics-worker/` (corrected-result is the active run).
-Root rejected the rotating seating scan; this pass reports unavailable seating
-until a complete admitted-population check is implemented deliberately.
-Root then migrates raw scene reads, preserving content/33ms thresholds and counting
-distinct completed frame identities. [M9a](assets/m9a-frame-timing/README.md) is
-verified at4375effd (22hardware checks); timing and neutral-owner worktrees were
-removed with branches/evidence retained. [The evidence audit and focused controls](assets/migration-component-review/README.md)
-confirm exact raw post numerics and passing lake coverage; ocean remains red.
+Current pickup: migrate raw30k scene reads onto the [verified diagnostics producer](assets/m9b-diagnostics/README.md),
+preserving all content/33ms assertions and collecting distinct completed GPU frame
+IDs. Producer53c07952 is integrated atd3147865; root hardware28checks and focused
+checks pass. Full seating/draw inspection remains explicit; no per-frame sweep.
+[Timing M9a](assets/m9a-frame-timing/README.md) is verified at4375effd. The earlier
+timing/neutral-owner worktrees were removed. Diagnostics worker can now be cleaned
+up with its ref retained. No GPU/timing worker is running.
+[Component evidence](assets/migration-component-review/README.md) confirms exact
+raw post numerics and passing sky/PMREM/lake controls; ocean stays strictly red.
 [The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
 cutover blockers from inherited quality work. Do not copy Three-shaped counters
 or relabel pass sums as a complete frame. Production still constructs Three until

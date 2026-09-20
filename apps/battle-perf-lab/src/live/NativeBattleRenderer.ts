@@ -68,10 +68,7 @@ import type {
   BattleSceneOptions,
   BattleTerrainInput,
 } from "../../../../packages/battle-renderer/src/sceneTypes";
-import {
-  RAW_BATTLE_PROJECTION,
-  RAW_BATTLE_SUBSTRATE,
-} from "../../../../packages/battle-renderer/src/identity";
+import { RAW_BATTLE_PROJECTION, RAW_BATTLE_SUBSTRATE } from "../../../../packages/battle-renderer/src/identity";
 
 declare const __BATTLE_NATIVE_BACKEND__: SceneBackend;
 /** Lab-only comparison override for the published impostor catalog. It is empty in
@@ -93,15 +90,9 @@ const twoFrames = () =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
   );
 
-/** Measurements the source renderer publishes that this world cannot produce
- *  truthfully yet. They are listed rather than approximated: the fields above
- *  are null, and a consumer migrating off the source stats can see exactly what
- *  it still has to wait for instead of reading a plausible number. */
-const OPEN_DIAGNOSTIC_OBLIGATIONS = [
-  "seating: the crowd builder seats every instance through this scene's height sampler, but that is provenance, not verification — a stale elevation carried across a terrain replacement looks identical from there. Re-measuring it truthfully means inspecting one whole admitted population against one surface, which is a verification-only operation; a rotating per-frame sample cannot attest a single presented frame, and this renderer will not add a repeated population scan to the presenting path. Reported null until such an operation exists.",
-  "drawCalls: the source count comes from three's renderer.info. Each raw owner issues its own draws inside the shared pass; counting them truthfully needs a per-frame counter installed through every owner's encode, which this pass does not add.",
-  "grass submittedTriangles / per-tier records: the raw blade field routes and thins on the GPU into indirect draws, so its submitted counts exist only in GPU memory and the source's own numbers are CPU-side estimates. `terrain.grass` carries this world's real record residency and coverage instead of a mirror of those columns.",
-] as const;
+// Missing measurements stay explicit; the verification contract and rationale
+// live in the live renderer README rather than being copied into each report.
+const OPEN_DIAGNOSTIC_OBLIGATIONS = ["seating", "drawCalls", "grassRouting"] as const;
 
 /** Lab-only frontend facade. Every GPU pass belongs to the selected native library;
  * the real menu, Game, ActionTimeline, input, HUD and benchmark remain production. */
@@ -801,8 +792,8 @@ export class BattleRenderer implements BattleRendererApi {
   }
   stats(): BattleRendererStats {
     const scene = this.owner?.scene;
-    // Scene content diagnostics belong to the selected raw world; the retired
-    // comparison backends never owned them and report null rather than a shape.
+    // Scene content diagnostics belong to the selected raw world; the comparison
+    // backends never owned them and report null rather than a shape.
     const installed = rawScene(scene)?.stats() ?? null;
     const native = installed ?? scene?.stats() ?? null;
     const gpuFrame = this.frameTiming.correlatedFrame();
@@ -812,7 +803,7 @@ export class BattleRenderer implements BattleRendererApi {
       // The population the installed static simulation data says must be drawn.
       // `soldiers` below it means the crowd owner is behind, not a smaller army.
       expectedSoldiers: this.staticData.soldierUnit.length,
-      // Identity of the world actually installed. The retired comparison
+      // Identity of the world actually installed. The comparison
       // backends are not this one and do not borrow its name.
       substrate: installed ? RAW_BATTLE_SUBSTRATE : null,
       projection: installed ? RAW_BATTLE_PROJECTION : null,

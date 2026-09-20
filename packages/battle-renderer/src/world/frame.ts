@@ -207,7 +207,7 @@ export class RawBattleFrame {
     );
   }
   /** The depth buffer this frame has actually allocated and the convention its
-   *  passes actually run under, read back off both rather than declared. */
+   *  passes use, derived from their descriptors and shared pipeline policy. */
   depthStats() {
     const { depthDescriptor: descriptor, width, height } = this.attachments;
     const samples = descriptor.sampleCount ?? 1;

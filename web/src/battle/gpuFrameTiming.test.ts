@@ -112,6 +112,27 @@ test("a readback that arrives before its own receipt still correlates", () => {
   expect(timing.status()).toMatchObject({ pendingCompletions: 0 });
 });
 
+test("an unusable event arriving first closes its later receipt", () => {
+  for (const failure of [
+    { status: "incomplete" as const },
+    { status: "dropped" as const },
+    { missingQueries: 1 },
+  ]) {
+    const events = stream();
+    const timing = new BattleGpuFrameTiming(events.read);
+    events.publish({ submissionId: 11, ...failure });
+    expect(timing.correlatedFrame()).toBeNull();
+
+    timing.presented(receipt(1, 11));
+    expect(timing.correlatedFrame()).toBeNull();
+    expect(timing.status()).toMatchObject({
+      pendingReceipts: 0,
+      pendingCompletions: 0,
+      unmeasuredSubmissions: 1,
+    });
+  }
+});
+
 test("an older completion never replaces a newer presented frame's sample", () => {
   const events = stream();
   const timing = new BattleGpuFrameTiming(events.read);

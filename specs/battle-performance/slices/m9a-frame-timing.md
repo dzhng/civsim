@@ -31,3 +31,6 @@ root verifies hardware sample identity and the query-disabled null result. The
 remaining content counters and scene-read migration are the next separate pass.
 At that pass, preserve every30k/33ms/content assertion and count distinct completed
 raw frame identities rather than repeatedly sampling a cached result.
+
+Implemented and hardware-verified: [evidence](../assets/m9a-frame-timing/README.md).
+M9b remains the next pass; production cutover is not part of this completion.

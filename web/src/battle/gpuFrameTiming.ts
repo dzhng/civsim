@@ -51,7 +51,7 @@ interface Measurement {
  * flight, and it is never relabelled as the current one. */
 export class BattleGpuFrameTiming {
   private readonly receipts = new Map<number, number>();
-  private readonly completions = new Map<number, Measurement>();
+  private readonly completions = new Map<number, Measurement | null>();
   private sample: BattleCorrelatedGpuFrame | null = null;
   private availability: BattleGpuCorrelationStatus["availability"] = "unknown";
   private cursor = 0;
@@ -75,9 +75,9 @@ export class BattleGpuFrameTiming {
     const identity = receipt.gpuSubmission;
     if (!receipt.submitted || !identity || identity.source !== "battle-draw") return;
     const completed = this.completions.get(identity.submissionId);
-    if (completed) {
+    if (this.completions.has(identity.submissionId)) {
       this.completions.delete(identity.submissionId);
-      this.publish(receipt.renderedFrameId, identity.submissionId, completed);
+      if (completed) this.publish(receipt.renderedFrameId, identity.submissionId, completed);
       return;
     }
     this.receipts.set(identity.submissionId, receipt.renderedFrameId);
@@ -145,15 +145,15 @@ export class BattleGpuFrameTiming {
     const measurement = usableMeasurement(event);
     if (!measurement) {
       this.unmeasuredSubmissions++;
-      return;
     }
     if (frameId === undefined) {
-      // The readback beat its own receipt; hold it for the presentation to claim.
+      // Retain failures too: a later receipt must not wait for a measurement
+      // that the observer has already declared unusable.
       this.completions.set(event.submissionId, measurement);
       this.evictedCompletions += evictOldest(this.completions);
       return;
     }
-    this.publish(frameId, event.submissionId, measurement);
+    if (measurement) this.publish(frameId, event.submissionId, measurement);
   }
 
   private publish(renderedFrameId: number, submissionId: number, measured: Measurement): void {

@@ -751,3 +751,22 @@ the old battle world without deleting this still-used shared geometry policy.
 - **Retained:** add real diagnostics before switching the constructor. Reuse
   evidence by mapping existing controls to their obligations; do not demand new
   runs merely because their artifact directory has another pass name.
+
+## Frame timing retention and neutral ownership
+
+- **Sound, medium confidence — bounded delayed matching (M9a).** If the GPU
+  result arrives first, keep it until its frame receipt arrives; this includes
+  failed measurements so a later receipt cannot wait forever. Keep at most64
+  items on each side and expose dropped-item counts. The plan required a bound
+  but did not set its size; overflow loses an explicitly reported sample rather
+  than increasing memory or stalling the game. Consumers must tolerate gaps.
+- **Sound, high confidence — preserve sample identity (M9a).** While a new frame
+  is pending, report the last measured frame with its original identifiers.
+  Reading it twice does not measure two frames. The plan left read cadence open;
+  lazy reads use an independent event cursor, so benchmark exports retain their
+  own history and no GPU synchronization is added.
+- **Sound, high confidence — neutral camera fallback owner.** A renderer needing
+  a finite far distance reads the shared camera constant, while an omitted
+  canonical far plane stays infinite. Moving the constant changes no math. The
+  cleanup removes source-renderer coupling without inventing compatibility
+  exports; genuine shared impostor and sea consumers retain their existing owner.

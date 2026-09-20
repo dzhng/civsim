@@ -66,10 +66,8 @@ const REPORT_DIR = new URL("../../reports/rendering/scenario-runs/", import.meta
 // lab's Menu substitution, and this names which diagnostics owners the run is
 // reading so the scene never has to guess (or quietly fall back) when a shape
 // is missing. Both branches retire at the M9 cutover, when there is one route.
-// An unset variable is the incumbent source route. Any other value is carried
-// through unrecognised — `run` rejects it below, and every reader here fails
-// closed on it — so a typo can never be measured as if it were the source.
-const ROUTE = process.env.VERIFY_BATTLE_ROUTE || "source";
+// Validate route selection once at run entry, before reading any diagnostics.
+const ROUTE = process.env.VERIFY_BATTLE_ROUTE ?? "source";
 const ROUTE_SUBSTRATE = { source: "threejs-webgpu-tsl", raw: "raw-webgpu" };
 // `performance.gpuTimeMs` is a different measurement on each route, and the
 // renderer names which one it published. The source value is an asynchronous
@@ -866,7 +864,7 @@ async function sampleWheelBurst(page, hardware) {
  * `VERIFY_BATTLE_ROUTE=rwa` run from reporting the incumbent source renderer's
  * numbers under the raw world's name. */
 export function assertKnownRoute(route) {
-  if (route in ROUTE_SUBSTRATE) return route;
+  if (Object.hasOwn(ROUTE_SUBSTRATE, route)) return route;
   throw new Error(
     `VERIFY_BATTLE_ROUTE must be "source" or "raw" (unset means source), not ${JSON.stringify(route)}`,
   );

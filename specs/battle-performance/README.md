@@ -7,19 +7,18 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: Claude Opus migrates raw30k scene reads in
-`game-battle-30k-diagnostics`, baselinefa397c1c; logs `throwaway/30k-diagnostics-worker/` (resumed-result active).
-Preserve all content/33ms assertions and collect distinct completed GPU frame IDs.
-Expose actual prepared grass visibility, never infer it from cached records.
-[Diagnostics producer](assets/m9b-diagnostics/README.md) is verified and committed;
-its worker was removed with ref retained. Root next reviews/integrates and runs
-actual source/raw30k. Claude Opus implements [M9c on-demand seating inspection](slices/m9c-seating-inspection.md)
-in `game-battle-seating-inspection` at4e80613b, logs `throwaway/seating-inspection-worker/`.
-Return identified evidence; no cached stats verdict or normal-frame scan. Draw
-inspection and browser contract migration remain open.
-No GPU/timing job is running. [Component evidence](assets/migration-component-review/README.md)
-confirms exact raw post numerics and passing sky/PMREM/lake controls; ocean remains
-strictly red. [M9a timing](assets/m9a-frame-timing/README.md) is also verified.
+Current pickup: the [migrated30k gate](assets/m9b-30k-readers/README.md) exposes
+about30FPS actual raw presentation at the wide stop despite60 browser rAF. Source
+passes19checks; raw passes18/19, collecting74/75required distinct mid GPU samples.
+No threshold/window was weakened and no repeat substitutes for that failure.
+A diagnostic trace attributes the leading cost to CPU crowd-upload preparation;
+root is preparing a source-mapped CPU profile before selecting an optimization.
+The30k worker is finished (d66b0115→9dde7b5c), ready for cleanup.
+Claude Opus implements [M9c on-demand seating inspection](slices/m9c-seating-inspection.md)
+in `game-battle-seating-inspection` at4e80613b; logs `throwaway/seating-inspection-worker/`.
+Temporarily stop its CPU work for timing, always resume afterward. [Diagnostics](assets/m9b-diagnostics/README.md)
+and [M9a timing](assets/m9a-frame-timing/README.md) are verified. [Component evidence](assets/migration-component-review/README.md)
+confirms post/sky/PMREM/lake numerical checks; ocean remains strictly red.
 [The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
 cutover blockers from inherited quality work. Do not copy Three-shaped counters
 or relabel pass sums as a complete frame. Production still constructs Three until

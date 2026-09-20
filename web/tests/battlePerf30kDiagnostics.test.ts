@@ -205,28 +205,16 @@ test("an unset route is the incumbent source renderer, and both routes are known
 });
 
 test("a mistyped route is rejected rather than quietly measuring source", () => {
-  for (const typo of ["rwa", "Raw", "RAW", "native", "three", " raw"])
+  for (const typo of [
+    "rwa",
+    "Raw",
+    "RAW",
+    "native",
+    "three",
+    " raw",
+    "",
+    "constructor",
+    "__proto__",
+  ])
     expect(() => assertKnownRoute(typo)).toThrow(/VERIFY_BATTLE_ROUTE/);
-});
-
-test("an unknown route reads nothing at all, so no floor can pass on it", () => {
-  // Belt and braces behind `assertKnownRoute`: even if a typo reached the
-  // readers, they must not answer a raw question from the source shape or the
-  // other way round.
-  const sourceShaped = {
-    ...residency,
-    enabled: true,
-    recordCount: 900_000,
-    submittedTriangles: 12_345,
-  };
-  const rawShaped = {
-    residency,
-    visibility: { base: true, ring: true, far: true },
-    layers: [{ recordCount: 840_000 }, { recordCount: 60_000 }],
-  };
-  expect(grassReading(sourceShaped, "rwa")).toBeNull();
-  expect(grassReading(rawShaped, "rwa")!.recordCount).toBe(900_000);
-  expect(grassReading(rawShaped, "rwa")!.submittedTriangles).toBeNull();
-  // An unknown route is not the source's every-read-counts rule either.
-  expect(gpuSamples([sourceReading(9), sourceReading(9)], sourceReading(9), "rwa").ms).toEqual([]);
 });

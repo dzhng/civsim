@@ -7,25 +7,26 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: verify the current-camera overlay-sizing fix from Claude Opus in
-`game-battle-current-camera`, baseline c29162e9; parent logs are
-`throwaway/current-camera-worker/`. Root hardware harness lives in
-`throwaway/current-camera-review/`. The source/current native APIs previously
-sized banners from the last rendered camera; test immediate zoom at DPR1/2 and
-preserve settled visuals. The worker is CPU-only.
+Current pickup: finish default shadow readability and moving coverage, then the
+remaining [cutover obligations](migration.md). The [current-camera sizing fix](assets/m7-current-camera/README.md)
+is integrated atb1818420: all six DPR1/2 zoom probes eliminate the first-frame
+banner correction. Independent review and hardware controls pass; all settled
+complete-scene images preserve the comparison. Small initial/HUD differences are
+explicit in the evidence. The combined source30k floor passes all18 checks without
+changing its33ms or content limits. No worker or timing job is active.
 
 [Golden light balance](assets/08-light-balance/README.md) is integrated at7423764b:
-independent image review prefers grounding and soldier readability but flags a
-more yellow/olive ground and still-faint individual shadows. Root22 focused tests
-and TypeScript pass. Finish updated source30k and wider/moving quality gates;
-do not call the original shadow requirement complete. Match the lighting in both
-arms when verifying the separately based camera candidate.
+independent review prefers grounding and soldier readability but flags a more
+yellow/olive ground and still-faint individual shadows. It is a partial improvement;
+finish wider/moving quality and final net-shadow savings before accepting the user
+requirement. The five-tap filter's footprint is the next bounded readability question,
+with camera, lighting, density, fit, bias and map resolution held fixed.
 
 Both narrow candidates remain outside production:
 [grass reception](assets/08-grass-receiver/README.md) had no discernible grounding
 gain; [outside-volume sampling](assets/08-shadow-sampling/README.md) preserved
 images but failed its predeclared ABBA screen at both camera poses. No repeat of
-these experiments is planned. No timing job remains active; the camera worker is CPU-only.
+these experiments is planned. No timing job remains active.
 
 Completed component evidence, not final acceptance:
 

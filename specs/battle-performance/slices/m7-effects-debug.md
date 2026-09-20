@@ -17,3 +17,7 @@ Ordinary scenes allocate no extra debug GPU layer. The source lab's third geomet
 copy also uses the shared owner. This closes the missing debug mode; complete
 opaque/transparent cue ordering and the shared bright contact bands remain separate
 M7 visual obligations, not implicitly accepted by these debug checks.
+
+[Current-camera sizing](../assets/m7-current-camera/README.md) removes the observed
+first-frame banner correction after pan/zoom. This closes that camera-ownership
+defect; other effect ordering and bright-contact-band obligations remain separate.

@@ -19,8 +19,8 @@ Independent code review found no actionable defect; its tests were sandbox-block
 Root runs22 focused environment/shadow tests and full web TypeScript successfully.
 Worker's broad suite retains one missing sparse-checkout campaign fixture; it is
 not a full green suite. No new pass, texture, sampling loop or GPU resource is added,
-but that does not substitute for final measured performance. The updated source30k
-floor, wider environment/receiver views, motion and net-shadow cost remain open.
+but that does not substitute for final measured performance. The [combined source30k floor](../m7-current-camera/README.md) now passes; wider
+environment/receiver views, motion and net-shadow cost remain open.
 
 Source Three and selected raw use the same changed preset. Renderer/baker lab
 consumers also inherit it; campaign rendering does not consume these physical

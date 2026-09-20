@@ -115,7 +115,7 @@ test("overlay sizing is CSS-pixel sized: live viewport, indifferent to DPR", () 
   const atThreeX = fixture({ dpr: 3 }).build();
   expect(atThreeX).toEqual(atOneX);
 
-  // A relayout the renderer has not resized for yet still sizes overlays.
+  // A viewport resize is reflected in the next overlay build.
   const f = fixture();
   const before = f.build();
   f.layout(1200, 1400);

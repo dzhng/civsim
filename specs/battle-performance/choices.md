@@ -723,3 +723,12 @@ the old battle world without deleting this still-used shared geometry policy.
 - **Retained:** a preset may override sky-fill intensity; omitted values use the
   established common value. Other environments stay unchanged, and the setting
   is shared by source and raw consumers rather than copied into renderer shaders.
+
+## Current-camera overlay sizing
+
+- **Retained:** prepare banner and readout scale from the current canonical
+  camera and CSS viewport. Renderers no longer answer this frontend projection
+  question from their previous frame. Bind the sampler once per preparation.
+- **Retained:** preserve the existing Euclidean-distance approximation and
+  visibility thresholds; changing to projected depth would be a different visual
+  policy. The lab uses the same pure math for its submitted camera.

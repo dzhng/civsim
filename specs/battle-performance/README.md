@@ -8,25 +8,21 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
 Current pickup: review and measure the [single-owner crowd candidate](slices/07-crowd-ownership.md).
-Claude Opus corrects candidate7547db35 in `/Users/david/dev/game-battle-crowd-ownership`;
-current logs are in that worktree's `throwaway/correction-*`. Root owns integration
-and serialized hardware measurement against the adopted snapshot control.
-Root review found the library-copy premise wrong: construction already occurs
-synchronously before the first await. Remove the draft extra snapshots and
-timing clamp; see the crowd ownership evidence disposition before integration.
-In parallel, [ocean localization](assets/m3b-ocean-localization/README.md) now
-isolates projection/invariance: jointly matching them passes all six diagnostic
-beauty comparisons. The original reference remains red; no oracle or production
-change is adopted. The independent review is complete: the next water pass is a
-lab-only aligned comparison with per-reference projection ownership; preserve the
-original default gate and end-to-end evidence. Claude implements that bounded
-pass in `/Users/david/dev/game-battle-water-comparison` as267949e8. It incorporated
-the rejected color-mask finding and now uses an unlit static-coordinate probe.
-Root's13 CPU tests pass; independent code review is active (that worktree's
-`throwaway/codex-review*`). The candidate build is being prepared under main
-`throwaway/ocean-aligned-hardware/candidate`. Verify original/aligned beauty and
-actual flattening/shading mutations before integration; no GPU timings overlap
-owned CPU jobs. See the M3b review disposition.
+Crowd candidate7547db35 plus correction929020f4 is ready for hardware review in
+`/Users/david/dev/game-battle-crowd-ownership`. Independent review has no findings;
+root's71 focused tests pass. The extra library snapshots and timing clamp are
+removed, with real synchronous-borrow tests. Candidate build and matching scene
+controls are in `throwaway/crowd-ownership-hardware/`. Four-camera submit/reproject
+checks are running (`run-scenes.mjs`, `scenes.log`), then run serialized ABBA
+against the fixed adopted snapshot control. Candidate is not yet integrated.
+
+[Aligned water evidence](assets/m3b-aligned-water/README.md): candidate267949e8 plus
+fog fix98692752 in `/Users/david/dev/game-battle-water-comparison`. Root's13 CPU
+tests pass; independent review's fog finding is fixed. Ocean1x and lake1x/4x
+aligned checks pass; ocean4x remains red. Flattening and shading mutations fail
+as intended without GPU errors. Original source residuals and default gates are
+preserved. No M3b exit or performance gain is claimed. Diagnose ocean4x after the
+crowd performance screen; keep owned CPU/GPU work out of timing windows.
 [Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
 typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
 failed its declared ABBA ordering screen and is not adopted. Both images and state

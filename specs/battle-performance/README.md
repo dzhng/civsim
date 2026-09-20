@@ -25,6 +25,11 @@ applied an unrelated landscape stash; root archived and removed only that accide
 content. Recovery worker continues existing changes with stash/branch mutations
 forbidden. Evidence: `throwaway/typegpu-high-recovery/`; worker prompt:
 `throwaway/typegpu-high/recovery-prompt.txt` inside its worktree. Original root prompt: `throwaway/typegpu-high/prompt.txt`.
+A CPU-only admitted-crowd state pass is active in
+`/Users/david/dev/game-battle-typegpu-crowd-state` (basea18be0e1), sharing raw and
+TypeGPU explicit seating/pose diagnostics without per-frame scans. It owns audience
+history/diagnostics and audience consumers only; scene/facade integration follows
+High shadows. Root prompt: `throwaway/typegpu-crowd-state/prompt.txt`.
 Colour and frame workers/reviews are terminal; their worktrees still hold review
 evidence. Root now owns the free GPU correctness lane. No timing job is active.
 

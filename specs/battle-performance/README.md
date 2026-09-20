@@ -11,6 +11,9 @@ Current pickup: review and measure the [single-owner crowd candidate](slices/07-
 Claude Opus implements in `/Users/david/dev/game-battle-crowd-ownership` from89365503;
 logs are in that worktree's `throwaway/implementation-*`. Root owns integration
 and serialized hardware measurement against the adopted snapshot control.
+Root review found the library-copy premise wrong: construction already occurs
+synchronously before the first await. Remove the draft extra snapshots and
+timing clamp; see the crowd ownership evidence disposition before integration.
 In parallel, [ocean localization](assets/m3b-ocean-localization/README.md) now
 isolates projection/invariance: jointly matching them passes all six diagnostic
 beauty comparisons. The original reference remains red; no oracle or production

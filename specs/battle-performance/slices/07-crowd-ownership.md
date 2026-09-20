@@ -12,7 +12,7 @@ Retained mutable playback must be isolated, while readonly frozen pose arrays an
 settled endpoint aliasing retain their existing meaning. Camera-only reprojection
 reads the retained pose without advancing submission. Failure, asset replacement,
 freeze, disposal and truthful build-time reporting keep their current contracts.
-Source Three remains production; TypeGPU/vgpu deferred comparison uploads must
+Source Three remains production; TypeGPU/vgpu asynchronous comparison uploads must
 also respect the borrow lifetime. No old backend is deleted in this slice.
 
 Before changing code, retain a differential oracle of the old build-plus-capture
@@ -32,3 +32,9 @@ owned CPU/GPU jobs. This supplemental paused workload is not final live acceptan
 The [ownership review](../assets/07-crowd-ownership/README.md) motivates this pass.
 Removed profile labels or estimated savings do not establish a speedup. Candidate
 implementation is active; adoption requires the measurements above.
+
+Review correction: async scene methods do not by themselves defer construction.
+Both library lifecycle callbacks and history.begin execute before their first
+await. Preserve that call ordering and use the admitted snapshot directly; do not
+add a per-call safety snapshot or compensate with clipped timing fields. Verify
+borrow isolation at the actual scene upload boundary.

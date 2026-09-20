@@ -20,7 +20,11 @@ colour control matches306 words and rejects equal-NaN corruption. Full consumer
 pipeline hardware and frame depthStats wiring remain open.
 
 High-shadow conversion remains active in `/Users/david/dev/game-battle-typegpu-high`,
-base81f847b7, CPU-only. Root prompt: `throwaway/typegpu-high/prompt.txt`.
+base81f847b7, CPU-only. Original worker stopped after a failed stash baseline probe
+applied an unrelated landscape stash; root archived and removed only that accidental
+content. Recovery worker continues existing changes with stash/branch mutations
+forbidden. Evidence: `throwaway/typegpu-high-recovery/`; worker prompt:
+`throwaway/typegpu-high/recovery-prompt.txt` inside its worktree. Original root prompt: `throwaway/typegpu-high/prompt.txt`.
 Colour and frame workers/reviews are terminal; their worktrees still hold review
 evidence. Root now owns the free GPU correctness lane. No timing job is active.
 

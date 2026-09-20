@@ -227,9 +227,10 @@ export class BattleRenderer implements BattleRendererApi {
       farGrass: this.settings.farGrass,
       bloom: this.settings.bloom,
     };
-    // High is implemented by the selected raw world only; the discarded
-    // candidates keep their fitted single map and reject it explicitly.
-    if (resolveSunShadowMode("", this.settings.shadows) === "csm" && this.backend !== "raw")
+    // High is implemented by the selected raw world and by the selected TypeGPU
+    // candidate; the discarded vgpu candidate keeps its fitted single map and
+    // rejects it explicitly.
+    if (resolveSunShadowMode("", this.settings.shadows) === "csm" && this.backend === "vgpu")
       throw Error(`The ${this.backend} candidate implements the single shadow map, not High`);
     this.post = (params.get("post") ?? options.post) !== "off";
     this.grade = battlePostGrade(

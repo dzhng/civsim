@@ -18,6 +18,7 @@ const vertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
 const vertexWgsl = `struct Camera {vp:mat4x4f}; @group(0) @binding(0) var<uniform> camera:Camera;
 struct V {@builtin(position) clip:vec4f,@location(0) world:vec3f};
 @vertex fn vertex(@location(0) p:vec3f)->V {return V(camera.vp*vec4f(p,1),p);}`;
+/** The vgpu arm still binds its own single depth map and one cascade record. */
 const receiverWgsl = `${vertexWgsl}
 ${sunCascadeRecordWgsl} @group(1) @binding(0) var<uniform> sun:SunCascade;
 @group(1) @binding(1) var depth:texture_depth_2d;
@@ -69,11 +70,14 @@ export async function createShadowControlBackend(
         out: d.vec4f,
       })((v) => {
         "use gpu";
+        // Cascade 0 of the fitted single map, exactly as the raw control reads
+        // it: the gate compares the same record against the same oracle.
         const shade = visibility(
-          sunSamplingLayout.$.depth,
-          sunSamplingLayout.$.compare,
-          sunSamplingLayout.$.sun.matrix,
-          sunSamplingLayout.$.sun.bias,
+          sunSamplingLayout.$.sunDepth,
+          sunSamplingLayout.$.sunCompare,
+          0,
+          sunSamplingLayout.$.sun.cascades[0].matrix,
+          sunSamplingLayout.$.sun.cascades[0].bias,
           v.world,
           d.vec3f(0, 0, 1),
           v.clip.xy,
@@ -116,9 +120,9 @@ export async function createShadowControlBackend(
           packed.set(vp);
           camera.write(packed.buffer);
           const encoder = root["~unstable"].createCommandEncoder();
-          shadow.encode(encoder, (pass) =>
+          shadow.encode(encoder, (pass, cascade) =>
             depth
-              .with(shadow.cameraGroup)
+              .with(shadow.cameraGroups[cascade])
               .with(vertices, cubeBuffer)
               .with(pass)
               .draw(cube.length / 3),

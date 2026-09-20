@@ -870,6 +870,22 @@ test("a discarded comparison backend still refuses the debug-block view", () => 
   );
 });
 
+test("High is refused only by the backend that has no cascades", async () => {
+  // The selected raw world and the selected TypeGPU candidate both implement it,
+  // and the selection reaches the scene they are built with; the discarded vgpu
+  // candidate still keeps its fitted single map and says so.
+  for (const backend of ["raw", "typegpu"] as const) {
+    state.options = null;
+    const f = fixture({ backend, search: "?shadows=csm" });
+    await f.renderer.ready;
+    expect(state.options).toMatchObject({ shadows: "csm" });
+    f.renderer.dispose();
+  }
+  expect(() => fixture({ backend: "vgpu", search: "?shadows=csm" })).toThrow(
+    "implements the single shadow map, not High",
+  );
+});
+
 test("the facade reports the presented frame's own completed submission span", async () => {
   vi.stubGlobal("GPUBufferUsage", { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 });
   vi.stubGlobal("GPUMapMode", { READ: 1 });

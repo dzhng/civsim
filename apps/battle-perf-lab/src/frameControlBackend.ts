@@ -121,9 +121,9 @@ export async function createFrameControlBackend(
             root.unwrap(output).createView(),
             (encoder) => {
               crowd.precompute(root.unwrap(encoder));
-              shadow?.encode(encoder, (pass) => {
-                crowd.draw(pass, "shadow", shadow.cameraGroup);
-                scenery?.draw(pass, shadow.cameraGroup, "shadow");
+              shadow?.encode(encoder, (pass, cascade) => {
+                crowd.draw(pass, "shadow", shadow.cameraGroups[cascade]);
+                scenery?.draw(pass, shadow.cameraGroups[cascade], "shadow");
               });
             },
             (pass) => {

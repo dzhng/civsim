@@ -64,12 +64,10 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
   const check = lifecycle.check;
   const dispose = lifecycle.dispose;
   try {
-    if (options.shadows === "csm")
-      throw Error("The TypeGPU candidate implements the fitted single shadow map, not High");
     const shadow =
       options.shadows === "off"
         ? undefined
-        : own(createTypegpuSunShadow(device, options.environment));
+        : own(createTypegpuSunShadow(device, options.environment, options.shadows));
     const environment = own(
       await createTypegpuEnvironment(
         device,
@@ -149,7 +147,9 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
     const triangles = own(
       await createTypegpuTriangleLayer(device, frame.cameraGroup, options.samples),
     );
-    const shadowCamera = shadow?.cameraGroup;
+    // One camera bind group per cascade: the caster passes are encoded into the
+    // same submission, so they cannot share one buffer.
+    const shadowCameras = shadow?.cameraGroups ?? [];
     const updateShadowAudience = (): CrowdProjectionView[] =>
       shadow?.setWorldRect(terrain.rect(), heightFieldRange(terrain.field())).crowdViews ?? [];
     updateShadowAudience();
@@ -319,13 +319,12 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
         check();
         if (!prepared || lifecycle.busy) throw Error("Battle scene has no completed preparation");
         nativeGpuScope(device, "grass", () => grass.route(encoder));
-        if (shadow && shadowCamera)
-          nativeGpuScope(device, "shadow", () =>
-            shadow.encode(encoder, (pass) => {
-              terrain.drawShadow(pass, shadowCamera);
-              crowd.draw(pass, "shadow", shadowCamera);
-            }),
-          );
+        // The shadow owner labels and orders its own cascade passes; each gets
+        // its own camera bind group and the SAME union audience and poses.
+        shadow?.encode(encoder, (pass, cascade) => {
+          terrain.drawShadow(pass, shadowCameras[cascade]);
+          crowd.draw(pass, "shadow", shadowCameras[cascade]);
+        });
         frame.encode(
           encoder,
           output,
@@ -349,6 +348,15 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       stats: () => ({
         prepared,
         preparedCamera: lastCamera,
+        shadows: shadow?.stats() ?? {
+          mode: "off" as const,
+          cascades: 0,
+          mapSize: 0,
+          layers: 0,
+          depthBytes: 0,
+          cameraBuffers: 0,
+          receiverBytes: 0,
+        },
         crowd: crowd.stats(),
         grass: grass.stats(),
         standards: standards.stats(),

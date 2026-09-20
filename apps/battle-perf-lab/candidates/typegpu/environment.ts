@@ -1,4 +1,12 @@
-import { SunSampling, shadowVisibility, type createTypegpuSunShadow } from "./shadow";
+import {
+  SunShadow,
+  shadowVisibility,
+  sunShadowEntries,
+  sunShadowSampleBodyWgsl,
+  type TypegpuSunShadow,
+} from "./shadow";
+import { Camera, typegpuCameraLayout } from "./camera";
+import type { NativeShadowMode } from "../../../../packages/battle-renderer/src/shadowData";
 import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d } from "typegpu";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
@@ -30,9 +38,7 @@ const environmentEntries = {
 export const environmentLayout = tgpu.bindGroupLayout(environmentEntries);
 const shadowEnvironmentLayout = tgpu.bindGroupLayout({
   ...environmentEntries,
-  sun: { uniform: SunSampling, visibility: ["fragment"] },
-  sunDepth: { texture: d.textureDepth2d(), visibility: ["fragment"] },
-  sunCompare: { sampler: "comparison", visibility: ["fragment"] },
+  ...sunShadowEntries,
 });
 const casterEnvironmentLayout = tgpu.bindGroupLayout({
   data: { uniform: Environment, visibility: ["vertex"] },
@@ -63,13 +69,57 @@ const standardPbr = tgpu
   .$uses({ samplePmrem });
 const equirectUv = tgpu.fn([d.vec3f], d.vec2f)(equirectUvWgsl);
 
+/** The receiver's sun-shadow entry point for one mode: the inherited sampling
+ * body (see shadow.ts for that boundary) bound to THIS owner's typed resources
+ * — the environment block, the world camera and the cascade depth array. High
+ * reads the shared view row and near plane, so a receiver blends its cascades
+ * against the same admitted frame the fits came from. */
+export function typegpuSunShadowSample(mode: NativeShadowMode) {
+  const inherited = tgpu
+    .fn(
+      [
+        Environment,
+        Camera,
+        SunShadow,
+        d.textureDepth2dArray(),
+        d.comparisonSampler(),
+        d.vec3f,
+        d.vec3f,
+        d.vec2f,
+      ],
+      d.f32,
+    )(sunShadowSampleBodyWgsl(mode))
+    .$uses({ Environment, Camera, SunShadow, shadowVisibility });
+  return tgpu.fn(
+    [d.vec3f, d.vec3f, d.vec2f],
+    d.f32,
+  )((world, normal, pixel) => {
+    "use gpu";
+    return inherited(
+      shadowEnvironmentLayout.$.data,
+      typegpuCameraLayout.$.cam,
+      shadowEnvironmentLayout.$.sun,
+      shadowEnvironmentLayout.$.sunDepth,
+      shadowEnvironmentLayout.$.sunCompare,
+      world,
+      normal,
+      pixel,
+    );
+  });
+}
+/** Shadows off: receivers keep the same entry point and read nothing. */
+const unshadowed = tgpu.fn(
+  [d.vec3f, d.vec3f, d.vec2f],
+  d.f32,
+)("(world:vec3f,normal:vec3f,pixel:vec2f)->f32{return 1.0;}");
+
 /** TypeGPU resource ownership; exposed GPU views are borrowed by component bindings. */
 export async function createTypegpuEnvironment(
   device: GPUDevice,
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
   backgroundSamples: 1 | 4 = 1,
-  shadow?: ReturnType<typeof createTypegpuSunShadow>,
+  shadow?: TypegpuSunShadow,
 ) {
   const root = tgpu.initFromDevice({ device }),
     owned: { destroy(): void }[] = [];
@@ -105,31 +155,12 @@ export async function createTypegpuEnvironment(
       ? root.createBindGroup(shadowEnvironmentLayout, {
           ...resources,
           sun: shadow.state,
-          sunDepth: shadow.depth.createView(),
+          sunDepth: shadow.receiverView,
           sunCompare: shadow.comparison,
         })
       : root.createBindGroup(environmentLayout, resources);
     const casterGroup = root.createBindGroup(casterEnvironmentLayout, { data });
-    const sampleSunShadow = shadow
-      ? tgpu.fn(
-          [d.vec3f, d.vec3f, d.vec2f],
-          d.f32,
-        )((world, normal, pixel) => {
-          "use gpu";
-          return shadowVisibility(
-            shadowEnvironmentLayout.$.sunDepth,
-            shadowEnvironmentLayout.$.sunCompare,
-            shadowEnvironmentLayout.$.sun.matrix,
-            shadowEnvironmentLayout.$.sun.bias,
-            world,
-            normal,
-            pixel,
-          );
-        })
-      : tgpu.fn(
-          [d.vec3f, d.vec3f, d.vec2f],
-          d.f32,
-        )("(world:vec3f,normal:vec3f,pixel:vec2f)->f32{return 1.0;}");
+    const sampleSunShadow = shadow ? typegpuSunShadowSample(shadow.mode) : unshadowed;
     const spec = photorealEnvironment(env),
       functions = environmentFunctions(diagnostic);
     const applyAerial = tgpu
@@ -198,6 +229,7 @@ export async function createTypegpuEnvironment(
       casterLayout: casterEnvironmentLayout,
       casterGroup,
       shadows: Boolean(shadow),
+      shadowMode: shadow?.mode ?? null,
       sampleSunShadow,
       shade,
       geometryRoughnessFromView: fromView,

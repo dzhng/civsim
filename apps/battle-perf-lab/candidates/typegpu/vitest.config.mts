@@ -1,6 +1,5 @@
 import { fileURLToPath } from "node:url";
-// The same transform the candidate Vite build uses; typed shader bodies only resolve to WGSL
-// once it has attached their syntax tree.
+// Match the build transform so typed shader bodies carry resolution metadata.
 import typegpu from "../../../../web/node_modules/unplugin-typegpu/vite.js";
 export default {
   plugins: [typegpu()],

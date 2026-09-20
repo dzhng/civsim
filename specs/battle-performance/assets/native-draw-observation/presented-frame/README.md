@@ -38,3 +38,7 @@ that frame owns a count. Existing disposal assertions now also reject the pendin
 frame's count. New tests cover replacement by a later frame, readiness isolation,
 validation failure, dropped buffers and unknown command buffers. No existing
 visual, performance or population threshold was changed.
+
+Full per-frame observations are retained losslessly as compressed JSON beside the
+compact checks and mode comparison. Reproduction scripts remain in
+`throwaway/presented-draw-hardware/` with the fixed-build identities.

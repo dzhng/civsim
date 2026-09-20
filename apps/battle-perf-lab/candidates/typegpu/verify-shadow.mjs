@@ -48,7 +48,20 @@ try {
   await mkdir(new URL("./", output), { recursive: true });
   await writeFile(output, JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report, null, 2));
-  const satisfied = report.passed === expectPass && pageErrors.length === 0;
+  // A mutation must fail numerically, not because the GPU rejected its work.
+  const validReadback =
+    report.validation?.length === 0 &&
+    report.probes?.length > 0 &&
+    report.configurations?.length > 0 &&
+    report.configurations.every(
+      (entry) => entry.nonfinite === 0 && entry.actual.length === report.probes.length,
+    );
+  const numericalMismatch = report.configurations?.some((entry) => entry.maxAbs > report.tolerance);
+  const satisfied =
+    validReadback &&
+    report.passed === expectPass &&
+    (expectPass || numericalMismatch) &&
+    pageErrors.length === 0;
   console.log(
     satisfied
       ? `OK: mutation=${mutation} passed=${report.passed} as expected`

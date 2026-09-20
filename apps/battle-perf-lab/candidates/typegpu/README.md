@@ -279,7 +279,10 @@ node apps/battle-perf-lab/candidates/typegpu/verify-shadow.mjs
 ```
 
 The runner asserts the outcome it asked for, not the outcome it got, because the
-mutations below are expected to FAIL. Reports land in
+mutations below are expected to FAIL. Expected failure counts only when GPU
+validation is clean, every numerical readback is finite and complete, and the
+injected mutation produces a numerical mismatch. A broken GPU run cannot certify
+the negative control. Reports land in
 `throwaway/typegpu-shadow/` unless `TYPEGPU_SHADOW_REPORT` says otherwise; each
 retains every raw sample beside both oracles. Let the server settle after an
 edit or it will serve the previous module.

@@ -63,3 +63,11 @@ the existing rAF motion floor alone does not prove60 presented frames per second
 | rawGrassField visibility (new) | Counts alone cannot distinguish disabled retained buffers | Prepared disabled field retains records while route/draw issue no layer calls | Verify actual rendering intent without inventing content. |
 
 All other tests add coverage; no original floor, snapshot, or gameplay stat changed.
+
+Source-mapped CDP1000us profile (diagnostic, includes warmup) records4.171s:
+1.416s idle,0.720s unattributed program work,0.666s self time in crowd audience
+history.begin (0.752s inclusive),0.241s self in packImpostors (0.334s inclusive),
+and0.199s in action timeline sampling. Inlining limits leaf attribution; inclusive
+rows overlap. Inspection finds Object.assign in the retained instance/playback
+snapshot path. A fixed-field copy is a candidate to measure, not a proven cause
+of the entire begin cost. Profiler overhead prevents using this run as acceptance.

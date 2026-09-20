@@ -11,7 +11,8 @@ Current pickup: map the latest promoted renderer capabilities into one TypeGPU
 implementation before the next production edit. Read [the revised decision](backend-decision.md).
 The existing raw work is reusable evidence and algorithms; the older TypeGPU
 candidate lacks subsequent fixes and must not replace it wholesale. Claude's
-read-only conversion scoping is in `throwaway/typegpu-reselection/`.
+conversion scoping is complete; read [the conversion plan](slices/typegpu-conversion.md)
+and [review disposition](assets/typegpu-conversion/README.md).
 An independent first typed-shader pass is active in
 `/Users/david/dev/game-battle-typegpu-colors` (base f1912eb1): convert the actual
 TypeGPU soldier/impostor colour helpers from WGSL strings into typed function
@@ -19,6 +20,11 @@ bodies, preserving canonical palette and formulas. Claude owns GPU correctness
 for this pass; no timing overlaps. Root prompt: `throwaway/typegpu-colors/prompt.txt`.
 Compile-time rejection checks and old-WGSL versus typed GPU numerical comparison
 are required before adoption. This does not claim the whole renderer is typed.
+High-shadow capability conversion is active in `/Users/david/dev/game-battle-typegpu-high`,
+base81f847b7, CPU-only while the colour worker owns GPU correctness. Its initial
+checkout exhausted disk copying historical evidence; it was removed and recreated
+without specs/assets, retaining originals in main. Do not duplicate those assets.
+Root prompt: `throwaway/typegpu-high/prompt.txt`.
 
 GPU impostor candidate1c816fc5 is committed in
 `/Users/david/dev/game-battle-gpu-impostor` but unadopted; its WGSL has not yet

@@ -6,7 +6,9 @@ exits; it is historical implementation evidence, not proof that the TypeGPU path
 already owns those capabilities. First map and convert the resource/shader owners
 using the existing TypeGPU candidate and latest raw improvements. Keep one device
 and frame owner, typed schemas/bindings and explicit shader-body type-safety
-boundaries. The concrete conversion passes are being scoped before implementation.
+boundaries. The [conversion passes](slices/typegpu-conversion.md) preserve these requirements;
+[review disposition](assets/typegpu-conversion/README.md) separates verified API
+facts from speculative mechanisms.
 No production selector, saved-data migration or compatibility owner is introduced.
 
 ```text

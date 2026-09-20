@@ -131,7 +131,7 @@ const options: BattleSceneOptions = {
   height: 900,
   samples: 1,
   outputFormat: "rgba8unorm",
-  shadows: false,
+  shadows: "off",
   grass: true,
   farGrass: true,
   bloom: true,

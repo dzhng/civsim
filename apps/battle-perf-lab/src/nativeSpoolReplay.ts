@@ -115,7 +115,7 @@ export async function createSpoolReplay(
       height: canvas.height,
       samples: 1,
       outputFormat: format,
-      shadows: settings.shadows !== "off",
+      shadows: settings.shadows,
       grass: settings.grass,
       farGrass: settings.farGrass,
       bloom: settings.bloom,

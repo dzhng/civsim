@@ -1,31 +1,60 @@
 import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
-import { NativeShadowFrame } from "../shadowData";
-import { SINGLE_MAP_SIZE } from "../../../game-renderer/src/battle/shadowPolicy";
+import { nativeGpuScope } from "../gpuScope";
+import {
+  NativeShadowFrame,
+  SHADOW_CAMERA_FLOATS,
+  type NativeShadowData,
+  type NativeShadowMode,
+} from "../shadowData";
+import {
+  CSM_CASCADES,
+  CSM_MAP_SIZE,
+  SINGLE_MAP_SIZE,
+} from "../../../game-renderer/src/battle/shadowPolicy";
+import { SUN_SHADOW_BLOCK_FLOATS } from "../shaders/shadow";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
 
-/** One camera-fitted directional depth pass. Owns depth/uniform buffers;
- * the world owns caster selection and binds the same pose with a distinct camera. */
+/** Camera-fitted directional depth. Owns the depth array, the per-cascade caster
+ *  camera buffers and the one receiver block; the world owns caster selection
+ *  and binds the same pose with each cascade's own camera.
+ *
+ *  Resource shape follows the mode and nothing else: the fitted single map is
+ *  ONE 1024 layer, High is TWO 2048 layers. Selecting single never allocates a
+ *  High-sized map. Both bind the same array view to receivers, so the binding
+ *  shape is fixed while the allocation is not. */
 export class RawSunShadow {
   readonly depth: GPUTexture;
   readonly comparison: GPUSampler;
+  /** The receiver block: one 208-byte uniform for every shadow receiver. */
   readonly state: GPUBuffer;
-  readonly camera: GPUBuffer;
+  /** One distinct caster camera per active cascade. Sharing a single buffer
+   *  across passes would let both see the final write queued before submission. */
+  readonly cameras: readonly GPUBuffer[];
+  readonly mapSize: number;
+  readonly layers: number;
+  /** The full-array view receivers sample; layer views are attachments only. */
+  readonly receiverView: GPUTextureView;
+  private readonly layerViews: readonly GPUTextureView[];
   private readonly owned: { destroy(): void }[] = [];
   private disposed = false;
   private readonly frameData: NativeShadowFrame;
   constructor(
     private readonly device: GPUDevice,
     environment: CivsimEnvironment,
+    readonly mode: NativeShadowMode = "single",
   ) {
     const own = <T extends { destroy(): void }>(r: T): T => {
       this.owned.push(r);
       return r;
     };
+    this.layers = mode === "csm" ? CSM_CASCADES : 1;
+    this.mapSize = mode === "csm" ? CSM_MAP_SIZE : SINGLE_MAP_SIZE;
     try {
       this.depth = own(
-        device.createTexture({
-          label: "native sun depth",
-          size: [SINGLE_MAP_SIZE, SINGLE_MAP_SIZE],
+        this.device.createTexture({
+          label: `native sun depth (${mode})`,
+          size: [this.mapSize, this.mapSize, this.layers],
+          dimension: "2d",
           format: "depth32float",
           usage:
             GPUTextureUsage.RENDER_ATTACHMENT |
@@ -33,30 +62,47 @@ export class RawSunShadow {
             GPUTextureUsage.COPY_SRC,
         }),
       );
-      this.camera = own(
-        device.createBuffer({
-          label: "native sun camera",
-          size: 192,
-          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      this.layerViews = Array.from({ length: this.layers }, (_, layer) =>
+        this.depth.createView({
+          label: `native sun depth layer ${layer}`,
+          dimension: "2d",
+          baseArrayLayer: layer,
+          arrayLayerCount: 1,
         }),
+      );
+      this.receiverView = this.depth.createView({
+        label: "native sun depth array",
+        dimension: "2d-array",
+      });
+      this.cameras = Array.from({ length: this.layers }, (_, layer) =>
+        own(
+          this.device.createBuffer({
+            label: `native sun camera ${layer}`,
+            size: SHADOW_CAMERA_FLOATS * 4,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+          }),
+        ),
       );
       this.state = own(
-        device.createBuffer({
+        this.device.createBuffer({
           label: "native sun sampling",
-          size: 80,
+          size: SUN_SHADOW_BLOCK_FLOATS * 4,
           usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         }),
       );
-      this.comparison = device.createSampler({
+      this.comparison = this.device.createSampler({
         compare: "greater-equal",
         magFilter: "linear",
         minFilter: "linear",
         addressModeU: "clamp-to-edge",
         addressModeV: "clamp-to-edge",
       });
-      this.frameData = new NativeShadowFrame(environment, (data) => {
-        device.queue.writeBuffer(this.camera, 0, data.camera);
-        device.queue.writeBuffer(this.state, 0, data.state);
+      this.frameData = new NativeShadowFrame(environment, mode, (data) => {
+        // Every distinct caster camera and the shared block are written once
+        // their inputs change; a cold frame publishes a legal empty block.
+        for (const cascade of data.cascades)
+          this.device.queue.writeBuffer(this.cameras[cascade.index], 0, cascade.camera);
+        this.device.queue.writeBuffer(this.state, 0, data.receiver);
       });
     } catch (error) {
       this.dispose();
@@ -74,24 +120,52 @@ export class RawSunShadow {
     this.assertLive();
     return this.frameData.update(camera);
   }
+  get data(): NativeShadowData {
+    return this.frameData.data;
+  }
 
-  encode(encoder: GPUCommandEncoder, draw: (pass: GPURenderPassEncoder) => void) {
+  /** Encodes one clear-to-0 depth pass per ACTIVE cascade, each labelled so a
+   *  timestamp owner can price the cascades separately. A cold frame with no fit
+   *  yet encodes nothing rather than drawing casters against an unfitted box. */
+  encode(
+    encoder: GPUCommandEncoder,
+    draw: (pass: GPURenderPassEncoder, cascade: number) => void,
+  ) {
     this.assertLive();
-    const pass = encoder.beginRenderPass({
-      label: "native directional shadow",
-      colorAttachments: [],
-      depthStencilAttachment: {
-        view: this.depth.createView(),
-        depthClearValue: 0,
-        depthLoadOp: "clear",
-        depthStoreOp: "store",
-      },
-    });
-    try {
-      draw(pass);
-    } finally {
-      pass.end();
+    const active = this.data.cascades;
+    for (const cascade of active) {
+      const label = active.length > 1 ? `shadow-cascade-${cascade.index}` : "shadow";
+      nativeGpuScope(this.device, label, () => {
+        const pass = encoder.beginRenderPass({
+          label: `native directional shadow ${cascade.index}`,
+          colorAttachments: [],
+          depthStencilAttachment: {
+            view: this.layerViews[cascade.index],
+            depthClearValue: 0,
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+          },
+        });
+        try {
+          draw(pass, cascade.index);
+        } finally {
+          pass.end();
+        }
+      });
     }
+  }
+
+  /** Real textures and buffers, counted as allocated — not as configured. */
+  stats() {
+    return {
+      mode: this.mode,
+      cascades: this.data.cascades.length,
+      mapSize: this.mapSize,
+      layers: this.layers,
+      depthBytes: this.mapSize * this.mapSize * 4 * this.layers,
+      cameraBuffers: this.cameras.length,
+      receiverBytes: SUN_SHADOW_BLOCK_FLOATS * 4,
+    };
   }
   private assertLive() {
     if (this.disposed) throw Error("Native shadow is disposed");

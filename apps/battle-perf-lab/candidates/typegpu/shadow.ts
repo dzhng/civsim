@@ -1,11 +1,23 @@
 import type { Camera3DParams } from "../../../../packages/renderer-core/src/camera3d";
 import { tgpu, d, type TgpuRenderPass } from "typegpu";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../../packages/battle-renderer/src/shaders/shadow";
+import {
+  SUN_CASCADE_RECORD_FLOATS,
+  shadowPcfWgsl,
+  shadowVisibilityWgsl,
+} from "../../../../packages/battle-renderer/src/shaders/shadow";
 import { Camera, typegpuCameraLayout } from "./camera";
 import { NativeShadowFrame } from "../../../../packages/battle-renderer/src/shadowData";
 import { SINGLE_MAP_SIZE } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
-export const SunSampling = d.struct({ vp: d.mat4x4f, settings: d.vec4f });
+/** This discarded candidate renders the fitted SINGLE map only, so it binds one
+ * shared cascade record (96 bytes) and one plain depth map rather than the
+ * world's cascade array. The record layout and the sampling math are the shared
+ * owner's; only the resource dimension differs. */
+export const SunSampling = d.struct({
+  matrix: d.mat4x4f,
+  bias: d.vec4f,
+  interval: d.vec4f,
+});
 export const sunSamplingLayout = tgpu.bindGroupLayout({
   sun: { uniform: SunSampling, visibility: ["fragment"] },
   depth: { texture: d.textureDepth2d(), visibility: ["fragment"] },
@@ -14,12 +26,12 @@ export const sunSamplingLayout = tgpu.bindGroupLayout({
 const shadowPcf = tgpu.fn(
   [d.textureDepth2d(), d.comparisonSampler(), d.vec2f, d.f32, d.vec2f, d.f32],
   d.f32,
-)(shadowPcfWgsl);
+)(shadowPcfWgsl("single-map"));
 export const shadowVisibility = tgpu
   .fn(
     [d.textureDepth2d(), d.comparisonSampler(), d.mat4x4f, d.vec4f, d.vec3f, d.vec3f, d.vec2f],
     d.f32,
-  )(shadowVisibilityWgsl)
+  )(shadowVisibilityWgsl("single-map"))
   .$uses({ shadowPcf });
 /** Owns depth/camera/sampling; caster pass deliberately binds no sampled depth. */
 export function createTypegpuSunShadow(device: GPUDevice, environment: CivsimEnvironment) {
@@ -60,9 +72,11 @@ export function createTypegpuSunShadow(device: GPUDevice, environment: CivsimEnv
       depth: depth.createView(),
       compare: comparison,
     });
-    const frameData = new NativeShadowFrame(environment, (data) => {
-      camera.write(data.camera.buffer);
-      state.write(data.state.buffer);
+    const frameData = new NativeShadowFrame(environment, "single", (data) => {
+      // A cold frame still publishes its (empty) record, so the receiver never
+      // samples uninitialized uniform memory.
+      state.write(data.receiver.slice(0, SUN_CASCADE_RECORD_FLOATS).buffer);
+      for (const fitted of data.cascades) camera.write(fitted.camera.buffer);
     });
     return {
       depth,

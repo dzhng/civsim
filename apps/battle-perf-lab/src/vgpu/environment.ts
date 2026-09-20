@@ -1,4 +1,9 @@
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../../packages/battle-renderer/src/shaders/shadow";
+import {
+  shadowPcfWgsl,
+  shadowVisibilityWgsl,
+  sunCascadeRecordWgsl,
+  sunShadowSampleWgsl,
+} from "../../../../packages/battle-renderer/src/shaders/shadow";
 import type { createVgpuSunShadow } from "./shadow";
 import { texture, sampler, type Gpu } from "vgpu";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
@@ -62,13 +67,13 @@ struct Environment {worldToView:mat4x4f,observer:vec4f,sunDirection:vec4f,sunRad
 @group(${groupIndex}) @binding(4) var environmentSampler:sampler;
 ${
   shadow
-    ? `struct SunShadow {matrix:mat4x4f,settings:vec4f};
-@group(${groupIndex}) @binding(5) var<uniform> sunShadow:SunShadow;
+    ? `${sunCascadeRecordWgsl}
+@group(${groupIndex}) @binding(5) var<uniform> sunShadow:SunCascade;
 @group(${groupIndex}) @binding(6) var sunDepth:texture_depth_2d;
 @group(${groupIndex}) @binding(7) var sunCompare:sampler_comparison;
-fn shadowPcf${shadowPcfWgsl}
-fn shadowVisibility${shadowVisibilityWgsl}
-fn sampleSunShadow(world:vec3f,normal:vec3f,pixel:vec2f)->f32{return shadowVisibility(sunDepth,sunCompare,sunShadow.matrix,sunShadow.settings,world,normal,pixel);}`
+fn shadowPcf${shadowPcfWgsl("single-map")}
+fn shadowVisibility${shadowVisibilityWgsl("single-map")}
+${sunShadowSampleWgsl("single", "single-map")}`
     : ""
 }
 ${cubeUvWGSL}

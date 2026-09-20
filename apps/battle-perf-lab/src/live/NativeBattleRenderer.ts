@@ -181,10 +181,10 @@ export class BattleRenderer implements BattleRendererApi {
       farGrass: this.settings.farGrass,
       bloom: this.settings.bloom,
     };
-    if (resolveSunShadowMode("", this.settings.shadows) === "csm")
-      throw Error(
-        "Native live comparison currently implements the source single shadow map, not CSM",
-      );
+    // High is implemented by the selected raw world only; the discarded
+    // candidates keep their fitted single map and reject it explicitly.
+    if (resolveSunShadowMode("", this.settings.shadows) === "csm" && this.backend !== "raw")
+      throw Error(`The ${this.backend} candidate implements the single shadow map, not High`);
     this.post = (params.get("post") ?? options.post) !== "off";
     this.grade = battlePostGrade(
       this.environment.id,
@@ -344,7 +344,7 @@ export class BattleRenderer implements BattleRendererApi {
       height: this.size.height,
       samples: 1,
       outputFormat: this.format,
-      shadows: this.settings.shadows !== "off",
+      shadows: resolveSunShadowMode("", this.settings.shadows),
       ...this.visibility,
       post: this.post,
       grade: this.grade,

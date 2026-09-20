@@ -151,7 +151,7 @@ async function run() {
         height,
         comparison: compareHdr(actual, expected),
         projectionMax: Math.max(
-          ...fit.viewProjection.map((v, i) => Math.abs(v - sourceVp.elements[i])),
+          ...[...fit.cascades[0].viewProjection].map((v, i) => Math.abs(v - sourceVp.elements[i])),
         ),
         actualRgba: bytes(actual),
         expectedRgba: bytes(expected),

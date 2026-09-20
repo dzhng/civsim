@@ -10,6 +10,7 @@ import type {
 } from "../../game-renderer/src/battle/terrainFeatures";
 import type { BattleVistaGrid } from "../../game-renderer/src/battle/vistaSurface";
 import type { BattleLakeSurfaceSpec } from "../../game-renderer/src/water/battleWaterGeometry";
+import type { SunShadowMode } from "../../game-renderer/src/battle/shadowPolicy";
 
 export interface BattleTerrainInput {
   grid: BattleTerrainGrid;
@@ -34,7 +35,9 @@ export interface BattleSceneOptions extends BattleCrowdAssets {
   height: number;
   samples: 1 | 4;
   outputFormat: GPUTextureFormat;
-  shadows: boolean;
+  /** The user-visible sun tier: `off`, the fitted single map, or High's two
+   *  cascades. Explicit — a scene never infers a tier from a boolean. */
+  shadows: SunShadowMode;
   grass: boolean;
   farGrass: boolean;
   bloom: boolean;

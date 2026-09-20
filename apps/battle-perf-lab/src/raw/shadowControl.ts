@@ -1,5 +1,9 @@
 import { RawSunShadow } from "../../../../packages/battle-renderer/src/world/shadow";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../../packages/battle-renderer/src/shaders/shadow";
+import {
+  shadowPcfWgsl,
+  shadowVisibilityWgsl,
+  sunShadowBlockWgsl,
+} from "../../../../packages/battle-renderer/src/shaders/shadow";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 export function createRawShadowControl(
   device: GPUDevice,
@@ -27,7 +31,7 @@ export function createRawShadowControl(
     const native = own(new RawSunShadow(device, env));
     const shadowCameraGroup = device.createBindGroup({
       layout: cameraLayout,
-      entries: [{ binding: 0, resource: { buffer: native.camera } }],
+      entries: [{ binding: 0, resource: { buffer: native.cameras[0] } }],
     });
     const output = own(
       device.createTexture({
@@ -46,7 +50,11 @@ export function createRawShadowControl(
     const lightLayout = device.createBindGroupLayout({
       entries: [
         { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
-        { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "depth" } },
+        {
+          binding: 1,
+          visibility: GPUShaderStage.FRAGMENT,
+          texture: { sampleType: "depth", viewDimension: "2d-array" },
+        },
         { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "comparison" } },
       ],
     });
@@ -54,7 +62,7 @@ export function createRawShadowControl(
       layout: lightLayout,
       entries: [
         { binding: 0, resource: { buffer: native.state } },
-        { binding: 1, resource: native.depth.createView() },
+        { binding: 1, resource: native.receiverView },
         { binding: 2, resource: native.comparison },
       ],
     });
@@ -62,13 +70,13 @@ export function createRawShadowControl(
       struct V {@builtin(position) clip:vec4f,@location(0) world:vec3f};
       @vertex fn vertex(@location(0) p:vec3f)->V {return V(camera.vp*vec4f(p,1),p);}`;
     const receiver = `${vertex}
-      struct Sun {vp:mat4x4f,settings:vec4f}; @group(1) @binding(0) var<uniform> sun:Sun;
-      @group(1) @binding(1) var depth:texture_depth_2d;
+      ${sunShadowBlockWgsl} @group(1) @binding(0) var<uniform> sun:SunShadow;
+      @group(1) @binding(1) var depth:texture_depth_2d_array;
       @group(1) @binding(2) var compare:sampler_comparison;
-      fn shadowPcf${shadowPcfWgsl}
-      fn shadowVisibility${shadowVisibilityWgsl}
+      fn shadowPcf${shadowPcfWgsl("cascade-array")}
+      fn shadowVisibility${shadowVisibilityWgsl("cascade-array")}
       @fragment fn fragment(v:V)->@location(0) vec4f {
-        let shade=shadowVisibility(depth,compare,sun.vp,sun.settings,v.world,vec3f(0,0,1),v.clip.xy);
+        let shade=shadowVisibility(depth,compare,0,sun.cascades[0].matrix,sun.cascades[0].bias,v.world,vec3f(0,0,1),v.clip.xy);
         return vec4f(vec3f(shade),1);
       }`;
     const vertexLayout: GPUVertexBufferLayout = {

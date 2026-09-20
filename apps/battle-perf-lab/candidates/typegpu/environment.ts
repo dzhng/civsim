@@ -119,8 +119,8 @@ export async function createTypegpuEnvironment(
           return shadowVisibility(
             shadowEnvironmentLayout.$.sunDepth,
             shadowEnvironmentLayout.$.sunCompare,
-            shadowEnvironmentLayout.$.sun.vp,
-            shadowEnvironmentLayout.$.sun.settings,
+            shadowEnvironmentLayout.$.sun.matrix,
+            shadowEnvironmentLayout.$.sun.bias,
             world,
             normal,
             pixel,

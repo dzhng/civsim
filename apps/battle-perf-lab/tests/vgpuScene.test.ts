@@ -131,7 +131,7 @@ const input = {
 const create = () =>
   createVgpuBattleScene(
     { device: { gpu: {} } } as never,
-    { environment: Object.values(CIVSIM_ENVIRONMENTS)[0], shadows: true, post: true } as never,
+    { environment: Object.values(CIVSIM_ENVIRONMENTS)[0], shadows: "single", post: true } as never,
   );
 beforeEach(() => {
   vi.resetAllMocks();

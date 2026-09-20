@@ -8,19 +8,23 @@ import {
 } from "../candidates/typegpu/shadow";
 import { createVgpuSunShadow } from "./vgpu/shadow";
 import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../../../packages/battle-renderer/src/shaders/shadow";
+import {
+  shadowPcfWgsl,
+  shadowVisibilityWgsl,
+  sunCascadeRecordWgsl,
+} from "../../../packages/battle-renderer/src/shaders/shadow";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";
 const vertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
 const vertexWgsl = `struct Camera {vp:mat4x4f}; @group(0) @binding(0) var<uniform> camera:Camera;
 struct V {@builtin(position) clip:vec4f,@location(0) world:vec3f};
 @vertex fn vertex(@location(0) p:vec3f)->V {return V(camera.vp*vec4f(p,1),p);}`;
 const receiverWgsl = `${vertexWgsl}
-struct Sun {vp:mat4x4f,settings:vec4f}; @group(1) @binding(0) var<uniform> sun:Sun;
+${sunCascadeRecordWgsl} @group(1) @binding(0) var<uniform> sun:SunCascade;
 @group(1) @binding(1) var depth:texture_depth_2d;
 @group(1) @binding(2) var compare:sampler_comparison;
-fn shadowPcf${shadowPcfWgsl}
-fn shadowVisibility${shadowVisibilityWgsl}
-@fragment fn fragment(v:V)->@location(0) vec4f {let shade=shadowVisibility(depth,compare,sun.vp,sun.settings,v.world,vec3f(0,0,1),v.clip.xy);return vec4f(vec3f(shade),1);}`;
+fn shadowPcf${shadowPcfWgsl("single-map")}
+fn shadowVisibility${shadowVisibilityWgsl("single-map")}
+@fragment fn fragment(v:V)->@location(0) vec4f {let shade=shadowVisibility(depth,compare,sun.matrix,sun.bias,v.world,vec3f(0,0,1),v.clip.xy);return vec4f(vec3f(shade),1);}`;
 /** Only the orchestration differs: all candidates receive identical unindexed fixture vertices. */
 export async function createShadowControlBackend(
   backend: "typegpu" | "vgpu",
@@ -68,8 +72,8 @@ export async function createShadowControlBackend(
         const shade = visibility(
           sunSamplingLayout.$.depth,
           sunSamplingLayout.$.compare,
-          sunSamplingLayout.$.sun.vp,
-          sunSamplingLayout.$.sun.settings,
+          sunSamplingLayout.$.sun.matrix,
+          sunSamplingLayout.$.sun.bias,
           v.world,
           d.vec3f(0, 0, 1),
           v.clip.xy,

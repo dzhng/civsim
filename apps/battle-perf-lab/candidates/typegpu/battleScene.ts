@@ -64,9 +64,12 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
   const check = lifecycle.check;
   const dispose = lifecycle.dispose;
   try {
-    const shadow = options.shadows
-      ? own(createTypegpuSunShadow(device, options.environment))
-      : undefined;
+    if (options.shadows === "csm")
+      throw Error("The TypeGPU candidate implements the fitted single shadow map, not High");
+    const shadow =
+      options.shadows === "off"
+        ? undefined
+        : own(createTypegpuSunShadow(device, options.environment));
     const environment = own(
       await createTypegpuEnvironment(
         device,

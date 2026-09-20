@@ -1,5 +1,11 @@
 import type { RawSunShadow } from "./shadow";
-import { shadowPcfWgsl, shadowVisibilityWgsl } from "../shaders/shadow";
+import {
+  shadowPcfWgsl,
+  shadowVisibilityWgsl,
+  sunShadowBlockWgsl,
+  sunShadowSampleWgsl,
+} from "../shaders/shadow";
+import type { NativeShadowMode } from "../shadowData";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../game-renderer/src/environment/physicalEnvironment";
 import { skyModelParams } from "../../../game-renderer/src/environment/skyParameters";
@@ -18,7 +24,7 @@ import { environmentFunctions, type WorldSurfaceDiagnostic } from "../shaders/en
 export function rawEnvironmentWgsl(
   env: CivsimEnvironment,
   diagnostic?: WorldSurfaceDiagnostic,
-  shadows = false,
+  shadows: NativeShadowMode | null = null,
 ): string {
   return `
     struct Environment {
@@ -32,15 +38,13 @@ export function rawEnvironmentWgsl(
     ${
       shadows
         ? `
-    struct SunShadow {matrix:mat4x4f,settings:vec4f};
+    ${sunShadowBlockWgsl}
     @group(3) @binding(5) var<uniform> sunShadow:SunShadow;
-    @group(3) @binding(6) var sunDepth:texture_depth_2d;
+    @group(3) @binding(6) var sunDepth:texture_depth_2d_array;
     @group(3) @binding(7) var sunCompare:sampler_comparison;
-    fn shadowPcf${shadowPcfWgsl}
-    fn shadowVisibility${shadowVisibilityWgsl}
-    fn sampleSunShadow(world:vec3f,normal:vec3f,pixel:vec2f)->f32 {
-      return shadowVisibility(sunDepth,sunCompare,sunShadow.matrix,sunShadow.settings,world,normal,pixel);
-    }`
+    fn shadowPcf${shadowPcfWgsl("cascade-array")}
+    fn shadowVisibility${shadowVisibilityWgsl("cascade-array")}
+    ${sunShadowSampleWgsl(shadows, "cascade-array")}`
         : ""
     }
     ${cubeUvWGSL}
@@ -65,7 +69,7 @@ export async function createRawEnvironment(
   device: GPUDevice,
   env: CivsimEnvironment,
   backgroundSamples: 1 | 4 = 1,
-  shadow?: Pick<RawSunShadow, "state" | "depth" | "comparison">,
+  shadow?: Pick<RawSunShadow, "state" | "receiverView" | "comparison" | "mode">,
 ) {
   const spec = photorealEnvironment(env);
   let sky: Awaited<ReturnType<typeof createRawSky>> | undefined;
@@ -120,7 +124,7 @@ export async function createRawEnvironment(
               {
                 binding: 6,
                 visibility: GPUShaderStage.FRAGMENT,
-                texture: { sampleType: "depth" as const },
+                texture: { sampleType: "depth" as const, viewDimension: "2d-array" as const },
               },
               {
                 binding: 7,
@@ -142,7 +146,7 @@ export async function createRawEnvironment(
         ...(shadow
           ? [
               { binding: 5, resource: { buffer: shadow.state } },
-              { binding: 6, resource: shadow.depth.createView() },
+              { binding: 6, resource: shadow.receiverView },
               { binding: 7, resource: shadow.comparison },
             ]
           : []),
@@ -171,10 +175,11 @@ export async function createRawEnvironment(
       casterLayout,
       casterBindGroup,
       shadows: Boolean(shadow),
+      shadowMode: shadow?.mode ?? null,
       sky,
       pmrem,
       exposure: spec.exposure,
-      shader: rawEnvironmentWgsl(env, undefined, Boolean(shadow)),
+      shader: rawEnvironmentWgsl(env, undefined, shadow?.mode ?? null),
       /** View matrix must come from renderer-core camera3d; observer is the exact
        * source aerial observer; live battle uses focus XY at zero elevation. */
       setView(worldToView: ArrayLike<number>, observer: readonly [number, number, number]) {

@@ -152,7 +152,7 @@ async function run() {
       frame = own(new RawBattleFrame(device, environment, width, height, samples, "rgba16float"));
     const shadowCamera = device.createBindGroup({
       layout: frame.cameraLayout,
-      entries: [{ binding: 0, resource: { buffer: shadow.camera } }],
+      entries: [{ binding: 0, resource: { buffer: shadow.cameras[0] } }],
     });
     const native = own(
       await createRawBattleTerrainScene(device, frame.cameraLayout, environment, samples, a),

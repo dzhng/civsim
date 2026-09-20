@@ -52,7 +52,10 @@ export async function createRawBattleScene(
     for (const release of releases.reverse()) release();
   };
   try {
-    const shadow = options.shadows ? own(new RawSunShadow(device, options.environment)) : undefined;
+    const shadow =
+      options.shadows === "off"
+        ? undefined
+        : own(new RawSunShadow(device, options.environment, options.shadows));
     const environment = own(
       await createRawEnvironment(device, options.environment, options.samples, shadow),
     );
@@ -131,12 +134,15 @@ export async function createRawBattleScene(
     const triangles = own(
       await createRawTriangleLayer(device, frame.cameraLayout, options.samples),
     );
-    const shadowCamera = shadow
-      ? device.createBindGroup({
+    // One camera bind group per cascade: the caster passes are encoded into the
+    // same submission, so they cannot share one buffer.
+    const shadowCameras =
+      shadow?.cameras.map((buffer) =>
+        device.createBindGroup({
           layout: frame.cameraLayout,
-          entries: [{ binding: 0, resource: { buffer: shadow.camera } }],
-        })
-      : undefined;
+          entries: [{ binding: 0, resource: { buffer } }],
+        }),
+      ) ?? [];
     const updateShadowAudience = (): CrowdProjectionView[] =>
       shadow?.setWorldRect(terrain.rect(), heightFieldRange(terrain.field())).crowdViews ?? [];
     updateShadowAudience();
@@ -332,6 +338,10 @@ export async function createRawBattleScene(
             input.time,
             options.environment,
           );
+          // The canonical admitted frame publishes its view matrix and near
+          // plane FIRST; every shadow fit and the receiver block below are then
+          // derived from that same camera, so receivers never blend a fit
+          // against a different frame's view.
           frame.setCamera(camera.snapshot, camera.observer, options.grade);
           standards.setView(camera.view, input.time);
           readouts.setCamera(camera.viewProjection, camera.world);
@@ -367,13 +377,12 @@ export async function createRawBattleScene(
         check();
         if (!prepared || busy) throw Error("Battle scene has no completed preparation");
         nativeGpuScope(device, "grass", () => grass.route(encoder));
-        if (shadow && shadowCamera)
-          nativeGpuScope(device, "shadow", () =>
-            shadow.encode(encoder, (pass) => {
-              terrain.drawShadow(pass, shadowCamera);
-              crowd.draw(pass, shadowCamera, "shadow");
-            }),
-          );
+        // The shadow owner labels and orders its own cascade passes; each gets
+        // its own camera bind group and the SAME union audience and poses.
+        shadow?.encode(encoder, (pass, cascade) => {
+          terrain.drawShadow(pass, shadowCameras[cascade]);
+          crowd.draw(pass, shadowCameras[cascade], "shadow");
+        });
         frame.encode(
           encoder,
           output,
@@ -397,6 +406,15 @@ export async function createRawBattleScene(
       stats: () => ({
         prepared,
         camera: lastCamera,
+        shadows: shadow?.stats() ?? {
+          mode: "off" as const,
+          cascades: 0,
+          mapSize: 0,
+          layers: 0,
+          depthBytes: 0,
+          cameraBuffers: 0,
+          receiverBytes: 0,
+        },
         crowd: crowd.stats(),
         grass: grass.stats(),
         standards: standards.stats(),

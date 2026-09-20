@@ -112,7 +112,7 @@ async function run() {
     ) as WorldSurfaceDiagnostic | null;
     if (nativeDiagnostic && !nativeEnv) throw new Error("Native diagnostics require raw backend");
     if (nativeDiagnostic && nativeEnv)
-      nativeEnv.shader = rawEnvironmentWgsl(env, nativeDiagnostic, shadows);
+      nativeEnv.shader = rawEnvironmentWgsl(env, nativeDiagnostic, shadows ? "single" : null);
     const nativeFrame = nativeEnv
       ? own(new RawBattleFrame(device, nativeEnv, width, height, samples, "rgba16float"))
       : undefined;
@@ -120,7 +120,7 @@ async function run() {
       nativeShadow && nativeFrame
         ? device.createBindGroup({
             layout: nativeFrame.cameraLayout,
-            entries: [{ binding: 0, resource: { buffer: nativeShadow.camera } }],
+            entries: [{ binding: 0, resource: { buffer: nativeShadow.cameras[0] } }],
           })
         : undefined;
     const catalogUrl = new URL("/assets/soldiers/catalog.json", location.href);

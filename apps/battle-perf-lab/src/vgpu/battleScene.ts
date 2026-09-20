@@ -61,7 +61,10 @@ export async function createVgpuBattleScene(gpu: Gpu, options: BattleSceneOption
       return operation();
     });
   try {
-    const shadow = options.shadows ? own(createVgpuSunShadow(gpu, options.environment)) : undefined;
+    if (options.shadows === "csm")
+      throw Error("The vgpu candidate implements the fitted single shadow map, not High");
+    const shadow =
+      options.shadows === "off" ? undefined : own(createVgpuSunShadow(gpu, options.environment));
     const environment = own(
       await createVgpuEnvironment(gpu, options.environment, undefined, 3, options.samples, shadow),
     );

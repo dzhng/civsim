@@ -97,7 +97,7 @@ async function run() {
       height: height * ratio,
       samples: 1,
       outputFormat: format,
-      shadows: true,
+      shadows: "single",
       grass: true,
       farGrass: true,
       bloom: true,

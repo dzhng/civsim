@@ -200,11 +200,17 @@ export interface ShadowLightBasis {
 
 export function shadowLightBasis(
   unitSunDirection: readonly [number, number, number],
+  fixedUp?: readonly [number, number, number],
 ): ShadowLightBasis {
   const depth = unit3(unitSunDirection, [0, 0, 1]);
   // Three's shadow camera keeps its default +Y up; only a sun lying along it
-  // would degenerate the cross product.
-  const up: Vec3 = Math.abs(depth[1]) > 0.99 ? [0, 0, 1] : [0, 1, 0];
+  // would degenerate the cross product. CSM pins that +Y with no such guard, so
+  // a cascade fit passes its up explicitly instead of inheriting this one.
+  const up: Vec3 = fixedUp
+    ? [fixedUp[0], fixedUp[1], fixedUp[2]]
+    : Math.abs(depth[1]) > 0.99
+      ? [0, 0, 1]
+      : [0, 1, 0];
   const right = unit3(cross3(up, depth), [1, 0, 0]);
   return { right, upAxis: cross3(depth, right), depth, up };
 }

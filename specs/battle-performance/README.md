@@ -38,6 +38,16 @@ are under `throwaway/`. The existing complete transition profile jumps at physic
 camera heights15/30/45m. This pass smooths those joins without changing steady
 profiles, source records or residency work. Actual coverage/motion proof is owed.
 
+TypeGPU image sharing: Opus is active in
+`/Users/david/dev/game-battle-typegpu-shared-images`, branch of the same name with
+`codex/` prefix, base2702bd81, handle28741. Prompt/result are in `throwaway/`.
+Root actual GPU baseline confirms60 bitmap-uploaded2048-square/12-mip material
+textures (20srgb/40linear). The isolated owner must share immutable images while
+keeping per-appearance materials; root wires it only after the camera worker
+finishes, since both would otherwise touch crowd.ts. GPU allocation/visual/lifetime
+acceptance remains owed. Future worktrees must borrow `packages/soldier-assets/assets`
+as well as public/wasm/node_modules; copying those assets filled the disk once.
+
 Current evidence:
 
 - [Impostor GPU derivation](assets/typegpu-impostor-state/README.md), integrated
@@ -76,7 +86,13 @@ preserving scratch and a verified bundle in
 `throwaway/older-branch-cleanup-20260920-194943/`. Earlier cleanup archives remain.
 The completed block-debug worktree/branch were also removed after a verified
 bundle and scratch archive at `throwaway/typegpu-block-debug-completed-cleanup/`.
-The draw worker is cleaned up; the two optimization worktrees above are active. Preserve historical controls and unrelated worktrees.
+The draw worker is cleaned up; the two optimization worktrees above are active. Historical control checkouts `game-battle-claude-builds` and `game-battle-perf-fixture`
+were removed at the user's request after confirming no active process/dependent
+link or tracked code change. `throwaway/unused-controls-cleanup/` preserves their
+heads, verified bundle, scratch, and1111 SHA-verified unique captures. Restore
+those exact heads if an old control rerun is needed. Current fixed-build inputs
+remain under this main worktree. Keep the dirty benchmark worktree and unrelated
+worktrees intact.
 Pending raw GPU-impostor1c816fc5 and water-comparisonc702e002 branches remain
 unadopted references. [The evidence ledger](evidence.md) retains older results;
 [choices](choices.md) records decisions.

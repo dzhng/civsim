@@ -16,6 +16,15 @@ Opus is implementing that narrow facade/API pass in the reused worktree
 are `throwaway/presented-draw-{prompt,result}.txt`. Check the live handle or actual
 final result before restarting. Root owns GPU validation after review.
 
+Independent CPU-work candidate: Opus is active in
+`/Users/david/dev/game-battle-camera-pose-reuse`, branch
+`codex/battle-camera-pose-reuse`, base969f9d3f, handle78107. Its prompt/results are
+under `throwaway/`. It separates snapshot-derived bounds/records and pose work
+from exact view membership; it must not alter LOD policy or skip newly visible
+poses. Unlike rejected929020f4, this targets downstream derivation/pose dispatch,
+not source-column pooling. No speedup is established; root must measure actual
+work removal, union churn and matched camera performance before adoption.
+
 Current evidence:
 
 - [Impostor GPU derivation](assets/typegpu-impostor-state/README.md), integrated

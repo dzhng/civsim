@@ -13,3 +13,12 @@ Require source/native default and High controls, real fit telemetry, depth/recei
 Use the shared snapCheck path for visual evidence; inspect actual frames, compare
 matched crops and run unprimed screenshot-critique before accepting visual change.
 Preserve current thresholds and carry inherited failures explicitly.
+
+
+Implementation is integrated at b89a806a from Claude c1e78391. Independent review
+found no actionable regression and passed31 focused tests plus TypeScript.
+Root confirmed the scene fits/culls the same camera, distinct caster buffers,
+array receiver binding and M4 admission fixes after integration. Hardware WGSL,
+single-map pixel preservation, cascade crossings and final cost are still open.
+The unchanged-camera path avoids uploads but still computes candidate fits before
+comparison; its CPU cost is not measured and no allocation-free claim is made.

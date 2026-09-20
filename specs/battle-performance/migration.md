@@ -16,8 +16,9 @@ M2–M8 → M9 production cutover →10 final live/quality/net-cost acceptance
 03a unchanged simulation throughput joins10 independently.
 ```
 
-[M1a](assets/m1a-contracts/README.md) is integrated. Continue with
-[M1b](slices/m1b-promote-raw-world.md). Concrete obligations:
+[M1a](assets/m1a-contracts/README.md) and the
+[M1b promotion](assets/m1b-promotion/README.md) are integrated; inherited gates
+remain explicit. Current pickup lives in the README handoff. Concrete obligations:
 [M2](slices/m2-terrain-scenery.md), [M3a](slices/m3a-atmosphere.md),
 [M3b](slices/m3b-water.md), [M4](slices/m4-crowd-assets.md),
 [M5](slices/m5-grass.md), [M6](slices/m6-high-shadows.md),

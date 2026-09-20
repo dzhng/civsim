@@ -892,3 +892,15 @@ the old battle world without deleting this still-used shared geometry policy.
 - **Reach:** Final cutover must retire the raw implementation rather than keeping
   two production replacements. **Verdict:** Sound for the conversion stage;
   no permanent dual renderer is authorized. **Confidence:** Medium.
+
+## Independent High receiver sampling proof — 0a157745
+
+- **Choice:** Fill each shadow layer with a known depth and ask the actual receiver
+  shader to sample points inside, between and beyond the cascades. With geometry
+  removed, each layer is wholly lit or shadowed, making the expected overlap fade
+  calculable independently. Swapping the layers must change the measured result.
+- **Gap:** Existing single-map and Menu checks did not isolate array binding or
+  overlap weights. **Reach:** This gate catches receiver mistakes; geometry,
+  moving-shadow quality and performance still require their own evidence.
+- **Verdict:** Sound; it isolates the missing contract without treating a synthetic
+  image as final game acceptance. **Confidence:** High.

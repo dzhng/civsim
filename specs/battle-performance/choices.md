@@ -671,3 +671,18 @@ without copying every soldier on every camera frame.
 Sound, high confidence: publish the existing validated offline atlas bytes with
 the soldier assets, with no runtime bake or spec-directory dependency. The lab
 may override its catalog for comparison; the selected game path needs no override.
+
+
+## High shadow resource variants
+
+Sound, medium confidence: the discarded TypeGPU/vgpu experiments keep a single
+2D depth texture and bind only the shared first cascade record. The selected raw
+world uses a depth array and the full two-record block. Both consume one sampling
+implementation; migrating the discarded engines to High would add an unneeded
+maintenance surface. They explicitly reject High instead of silently reducing it.
+
+Sound, high confidence: retain the reviewed source cascade geometry while fixing
+when it is computed. A camera movement must produce its caster view before that
+frame is culled. Source cold/prior-frame cascade lag is not a behavior to preserve.
+The native valid-depth guard also remains on High. These declared differences
+need targeted coverage evidence, not a claim of unconditional pixel identity.

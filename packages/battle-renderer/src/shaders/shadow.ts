@@ -52,8 +52,9 @@ export function shadowPcfWgsl(binding: ShadowMapBinding = "single-map"): string 
 /** Source reverse-Z coordinate/bias contract; world normal is the material's
  * resolved shading normal. Pixel coordinates are physical fragment coordinates.
  * The `z>=0` half of the bound is a NATIVE correction the source keeps only on
- * its single tier: without it a receiver past a fitted map's far plane compares
- * against cleared depth and reads lit. High retains it in both modes. */
+ * its single tier: without it a receiver past a fitted map's far plane can fail the
+ * greater-equal comparison against cleared depth and appear shadowed. Native
+ * retains the lower bound in both modes. */
 export function shadowVisibilityWgsl(binding: ShadowMapBinding = "single-map"): string {
   return `(depth:${depthType(binding)}, compare:sampler_comparison, ${layerParam(binding)}matrix:mat4x4f, settings:vec4f, world:vec3f, normal:vec3f, pixel:vec2f)->f32 {
   let clip=matrix*vec4f(world+normal*settings.y,1);

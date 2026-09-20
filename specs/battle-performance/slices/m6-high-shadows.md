@@ -22,3 +22,6 @@ array receiver binding and M4 admission fixes after integration. Hardware WGSL,
 single-map pixel preservation, cascade crossings and final cost are still open.
 The unchanged-camera path avoids uploads but still computes candidate fits before
 comparison; its CPU cost is not measured and no allocation-free claim is made.
+
+[Implementation review](../assets/m6-high-implementation/README.md) records resource
+variants, changed-test behavior and the still-open hardware gates.

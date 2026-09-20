@@ -19,12 +19,11 @@ policy/attachment diagnostics. Combined candidate suite26/26 passes. Root GPU
 colour control matches306 words and rejects equal-NaN corruption. Full consumer
 pipeline hardware and frame depthStats wiring remain open.
 
-High-shadow conversion remains active in `/Users/david/dev/game-battle-typegpu-high`,
-base81f847b7, CPU-only. Original worker stopped after a failed stash baseline probe
-applied an unrelated landscape stash; root archived and removed only that accidental
-content. Recovery worker continues existing changes with stash/branch mutations
-forbidden. Evidence: `throwaway/typegpu-high-recovery/`; worker prompt:
-`throwaway/typegpu-high/recovery-prompt.txt` inside its worktree. Original root prompt: `throwaway/typegpu-high/prompt.txt`.
+[TypeGPU High shadows](assets/typegpu-high/README.md) are integrated: single/High/off
+Menu hardware lifecycle and the unchanged single-map source comparison pass.
+Combined candidate suite42/42 and type gate pass. Split/overlap correctness,
+matched-state readability and moving-shadow performance remain open. High worker
+and review are terminal; its worktree is retained pending evidence cleanup.
 A CPU-only admitted-crowd state pass is active in
 `/Users/david/dev/game-battle-typegpu-crowd-state` (basea18be0e1), sharing raw and
 TypeGPU explicit seating/pose diagnostics without per-frame scans. It owns audience

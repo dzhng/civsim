@@ -1,0 +1,72 @@
+## Commit
+
+`887506b0` — *Give the TypeGPU candidate the cascade shadow resources High needs* (14 files, +950/−99). Only the named TypeGPU implementation/test paths are staged; nothing under `web/`, `throwaway/`, or the recovery archive was touched. No stash/reset/checkout/branch operations were used.
+
+## Implementation
+
+**`candidates/typegpu/shadow.ts`** — resource conversion, mode-driven:
+- `SunCascade` / `SunShadow` are now `d.struct` schemas (96 / 208 bytes) replacing the one-record WGSL struct; record count comes from `CSM_CASCADES`.
+- `sunShadowEntries` is the single receiver binding shape, spread into both `sunSamplingLayout` and the environment's shadow group, so the depth dimension and block type can't drift between them.
+- Depth is one **array** texture sized by mode only — 1×1024 for single, 2×2048 for High — with per-layer `"render"` views as attachments and one `textureDepth2dArray` view for receivers. Attachments are never the array view (a validation error); the array view is never an attachment.
+- One distinct caster camera buffer + bind group per active cascade; `encode` emits one clear-to-0 pass per *active* cascade, labelled `shadow-cascade-N`/`shadow` — byte-identical policy to `packages/battle-renderer/src/world/shadow.ts`. Cold frames encode nothing.
+- `BATTLE_DEPTH_ATTACHMENT` now owns format/clear/load/store instead of local literals. Device stays borrowed.
+
+**`candidates/typegpu/environment.ts`** — `typegpuSunShadowSample(mode)` binds the inherited sampler to the typed environment block, world camera and depth array; `single` samples record 0 directly, `csm` blends against the shared view row and near plane.
+
+**Inherited-WGSL boundary (labelled in code, not claimed as type-safe):** `sunShadowSampleBodyWgsl` re-heads the shared `sampleSunShadow` with the five module-scope bindings as parameters and carries the body verbatim. A `startsWith` guard throws if the shared head ever moves rather than letting the candidate silently fork. PCF taps, reverse-Z bias contract and cascade fade are all still the shared owner's text. I dumped the resolved WGSL for both modes (`throwaway/typegpu-high/logs/resolved-{single,csm}.wgsl`) and confirmed the math is character-identical to `sunShadowSampleWgsl`.
+
+**Gates:** `NativeBattleRenderer` now refuses High only for `vgpu` (closed 3-value union, validated at line 211). `shadowControlBackend`'s TypeGPU arm already existed; it reads cascade 0 through the new array binding, so `raw/shadow-check.ts` compares the same record against the same three.js oracle with unchanged thresholds. That gate reads back only the receiver colour, so no `COPY_SRC` is needed on depth.
+
+## Checks (full logs + exits in `throwaway/typegpu-high/logs/`)
+
+| Check | Exit |
+|---|---|
+| `tsc -p candidates/typegpu/tsconfig.json` | 0 |
+| `tsc -p candidates/typegpu/tests/tsconfig.json` (pins the `@ts-expect-error` cases) | 0 |
+| `tsc -p src/live/tsconfig.json` | 0 |
+| `tsc -p src/shadow-control`, `src/tests`, `trials`, `report` | 0 |
+| vitest `candidates/typegpu` | 0 — 9 files, 30 tests |
+| vitest `src/live` | 0 — 4 files, 55 tests |
+| vitest `src/shadow-control` | 0 — 1 file, 6 tests |
+| vitest `apps/battle-perf-lab` | 0 — 18 files, 162 tests |
+| `tsc -p src/live/tests/tsconfig.json` | **2 — pre-existing, see below** |
+
+New tests: `typegpuShadowResources` (per-mode allocation, 32 MiB High depth, per-cascade pass/layer/camera, cold-frame no-draw, separate camera writes, injected-allocation-failure at each index, double dispose, re-headed body verbatim), `typegpuShadowScene` (audience `1 + CSM_CASCADES` views, one pose pass, `setCamera` before the fits, per-cascade draws with distinct bindings, terrain and crowd into the same cascade, off allocates nothing, reload/resize doesn't grow resources, disposal releases everything), `typegpuShadowShader` (resolved WGSL binds the array + one block, one `shadowPcf`/`shadowVisibility` per mode), `typegpuShadowTypes` (compile-time rejection of a missing depth array, a record where the block belongs, a record-shaped write, and single-map arity).
+
+## Pre-existing type error — exact evidence, no stash
+
+`apps/battle-perf-lab/src/live/tests/facade.test.ts(1101,10): error TS2571: Object is of type 'unknown'.`
+
+`BattleRendererStats` (`web/src/battle/battleRendererApi.ts:152`) carries `[key: string]: unknown`, so `stats().native.preparedCamera` is unbounded. Proven independent of this work by `git show HEAD:…facade.test.ts` into a sibling probe file, type-checked alongside the working copy and removed in the same command:
+
+```
+facade.test.ts(1101,10): error TS2571: Object is of type 'unknown'.
+zzBaselineProbe.test.ts(1085,10): error TS2571: Object is of type 'unknown'.
+```
+
+Same statement, both copies. I left it alone — fixing it is a `stats()` typing decision, not shadow work.
+
+## Flag for root: an orphan file from the stash incident
+
+`web/tests/sunShadowFit.test.ts` (untracked, mtime 18:00) is landscape work, not mine. It imports `@packages/photoreal-renderer/src/landscape/sunShadow`, which does not exist on this branch, so it **reds the web suite**:
+
+```
+FAIL tests/sunShadowFit.test.ts — Cannot find package
+'@packages/photoreal-renderer/src/landscape/sunShadow'   (exit 1)
+```
+
+It's picked up by web's `tests/**/*.test.ts` glob. I did not delete or move it — the recovery archive is yours.
+
+## Choices you may want to overrule
+
+1. **The shadow-control gate stays single-mode.** It compares against three's `shadow(sun)` with `configureSunShadows(..., "single")`; extending it to High would mean a new oracle, i.e. changing the gate. The TypeGPU arm now exercises the array binding while comparing the identical record, so it's strictly stronger, not weaker.
+2. **Cameras/groups live in the shadow owner**, not the scene (raw builds groups scene-side). TypeGPU needs the root to make a bind group; keeping it here means `encode`'s cascade index and the group array can't disagree.
+3. **`depth` keeps `$usage("render","sampled")`** — no `COPY_SRC`, unlike raw. Nothing in the CPU or hardware gates copies the shadow depth out. Say the word if you want depth readback and I'll add it.
+4. **One weak test assertion fixed.** The per-cascade test had `expect(views.filter(v => v.dimension === "2d-array")).toHaveLength(0)` under a comment saying the opposite; it only passed because the sampling group was never materialized. Replaced with an exact `toEqual` on the attachment descriptor plus a real check, via a new `unwrap` on the recording device, that materializing the receiver group yields exactly one `2d-array` view of the one texture.
+5. **Formatting/lint left as found.** `oxfmt`/`oxlint` don't cover `apps/**` (65 of 252 lab files are already unformatted). I matched the formatter's output only inside hunks I wrote and fixed my own `no-useless-spread` warning; I did not reformat pre-existing long imports.
+
+## Unresolved, needs your hardware
+
+- **No High receiver oracle exists anywhere** — neither raw nor TypeGPU. Single-mode has the three.js comparison; the cascade blend, split intervals and the seam across the overlap are unverified against any reference on CPU or GPU.
+- The re-headed sampler resolves to valid-looking WGSL but **has never been compiled by a driver**. First real risks: `array<SunCascade,2>` uniform stride, and passing `texture_depth_2d_array` / `sampler_comparison` as function parameters.
+- Per-cascade GPU cost (`shadow-cascade-0/1` scopes) and the 32 MiB High depth budget are unmeasured — no timing was run.

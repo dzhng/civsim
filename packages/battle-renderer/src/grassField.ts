@@ -203,6 +203,10 @@ export function createGrassField<
     stats() {
       return {
         residency: owner.stats(),
+        // The visibility `route` and `draw` above actually obey, read off the
+        // same prepared state they read. A layer that is off still holds its
+        // records, so a record count cannot answer this question.
+        visibility: { base: state.base.visible, ring: state.ring.visible, far: state.farVisible },
         uploads: [...uploads],
         ringRecordRanges: ringRanges,
         layers: layers.map((layer) => layer.stats()),

@@ -8,6 +8,7 @@ const handles = vi.hoisted(
       writeRecordRanges: ReturnType<typeof vi.fn>;
       dispose: ReturnType<typeof vi.fn>;
       draw: ReturnType<typeof vi.fn>;
+      route: ReturnType<typeof vi.fn>;
     }[],
 );
 vi.mock("../../packages/battle-renderer/src/world/grass", () => ({
@@ -250,6 +251,73 @@ test("edits published during capacity admission reach the GPU on the next prepar
     ).toBe(0);
   } finally {
     release();
+    native.dispose();
+  }
+});
+
+test("prepared visibility diagnostics report what route and draw actually obey", async () => {
+  handles.length = 0;
+  const native = await createRawGrassField(
+    {} as GPUDevice,
+    {} as GPUBindGroupLayout,
+    {} as never,
+    productionBladeFieldProfile(),
+  );
+  const field = flatHeightField(-32, -32, 16, 16, 4),
+    grid = { ...field, tint: new Uint8Array(256) };
+  const camera: Camera3DParams = {
+    target: [0, 0, 0],
+    distance: 24,
+    pitch: 0.5,
+    yaw: 0,
+    fovY: 0.8,
+    aspect: 1.5,
+    near: 0.1,
+    far: 2000,
+  };
+  const wind = {
+    direction: [1, 0] as [number, number],
+    speed: 1,
+    gustPhase: 0,
+    velocity: [1, 0] as [number, number],
+    frequency: 1,
+    sharpness: 1,
+  };
+  const encoder = {} as GPUCommandEncoder;
+  const pass = {} as GPURenderPassEncoder;
+  const calls = () => handles.map((h) => h.route.mock.calls.length + h.draw.mock.calls.length);
+  try {
+    native.setTerrain(grid, field, "green-grass");
+    await native.prepare(camera, 900, wind, [0, 0, 1]);
+    await native.settle();
+    await native.prepare(camera, 900, wind, [0, 0, 1]);
+    expect(native.stats().visibility).toEqual({ base: true, ring: true, far: true });
+    native.route(encoder);
+    native.draw(pass, {} as GPUBindGroup);
+    const drawn = calls();
+    expect(drawn.every((count) => count > 0)).toBe(true);
+
+    native.setVisible(false);
+    await native.prepare(camera, 900, wind, [0, 0, 1]);
+    expect(native.stats().visibility).toEqual({ base: false, ring: false, far: true });
+    // The records a switched-off field sampled are still resident — they are
+    // the cache a re-engaged camera reuses — so a consumer asking whether grass
+    // is on cannot read the answer off a positive record count.
+    expect(native.snapshot().base.recordCount).toBeGreaterThan(0);
+    expect(native.snapshot().ring.recordCount).toBeGreaterThan(0);
+    native.route(encoder);
+    native.draw(pass, {} as GPUBindGroup);
+    expect(calls()).toEqual(drawn);
+
+    native.setVisible(true);
+    native.setFarVisible(false);
+    await native.prepare(camera, 900, wind, [0, 0, 1]);
+    expect(native.stats().visibility).toEqual({ base: true, ring: true, far: false });
+    native.draw(pass, {} as GPUBindGroup);
+    // `farVisible` is the draw argument the tiers actually read, not a layer switch.
+    expect(handles[0].draw.mock.calls.at(-1)![3]).toBe(false);
+    expect(calls().every((count, i) => count > drawn[i])).toBe(true);
+  } finally {
     native.dispose();
   }
 });

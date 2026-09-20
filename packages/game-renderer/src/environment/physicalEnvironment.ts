@@ -18,8 +18,7 @@ export interface PhotorealEnvironmentSpec {
   environmentIntensity: number;
 }
 
-// Verdict-grade constant carried over from the 06 bake-off's winning probe —
-// the default for every preset that does not balance its own sky fill.
+// Presets without a sky-fill override retain the shared lighting balance.
 const ENVIRONMENT_INTENSITY = 0.7;
 
 /** The pure preset → physical-parameters mapping (no GPU, no scene mutation).

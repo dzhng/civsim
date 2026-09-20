@@ -101,9 +101,8 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     hazeColor: [0.86, 0.82, 0.68],
     exposure: 1.16,
     physical: {
-      // Lighting-balance candidate (unadopted, pending visual review): more
-      // direct sun against a dimmer sky fill, so shadow shapes on troops read
-      // at the tactical camera. The shared 0.7 sky fill washed them flat.
+      // Balance direct sun against sky fill so directional shadows remain
+      // distinct while shaded troops keep their indirect illumination.
       sunIntensity: 6.0,
       exposure: 1.06,
       turbidity: 2.9,

@@ -713,3 +713,13 @@ the old battle world without deleting this still-used shared geometry policy.
   candidate fails its predeclared repeated cost screen. Pixel equivalence alone
   does not establish a worthwhile performance change. Keep the experiment on its
   branch; do not adopt based on the first favorable run.
+
+## Golden direct/indirect balance
+
+- **Retained, with visual tradeoff:** golden sunlight becomes stronger relative to
+  sky fill through one shared preset owner. Independent image review prefers
+  grounding and soldier separation; accept the somewhat more yellow/olive ground.
+  This is a partial improvement, with final shadow readability still open.
+- **Retained:** a preset may override sky-fill intensity; omitted values use the
+  established common value. Other environments stay unchanged, and the setting
+  is shared by source and raw consumers rather than copied into renderer shaders.

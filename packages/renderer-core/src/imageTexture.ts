@@ -12,6 +12,19 @@ export interface RgbaTextureData {
 }
 
 /**
+ * The texel payload of an image and its mip chain. Every texture this module
+ * uploads is 8-bit RGBA, so the size follows from the dimensions alone. It is a
+ * logical payload for comparing what a preparation retains, never a claim about
+ * physical VRAM.
+ */
+export function imageTextureBytes(width: number, height: number, mipLevels: number) {
+  let bytes = 0;
+  for (let level = 0; level < mipLevels; level++)
+    bytes += Math.max(1, width >> level) * Math.max(1, height >> level) * 4;
+  return bytes;
+}
+
+/**
  * Prepare an immutable, caller-owned GPU texture. The caller also retains
  * ownership of bitmap or packed RGBA data. It may close the bitmap after this
  * promise settles. Typed data is uploaded verbatim in the declared color space. No decoding,

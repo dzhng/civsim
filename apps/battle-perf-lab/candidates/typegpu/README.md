@@ -187,6 +187,30 @@ fresh visual review are still pending for this composition; existing component
 edge/cold-frame diagnostics remain open. This checkpoint establishes neither
 full-scene fidelity nor performance eligibility.
 
+## Shared immutable material images
+
+[soldierImages.ts](soldierImages.ts) owns one GPU image per distinct immutable
+material image for a whole crowd/catalog preparation on one device, so twenty
+appearances baked from the same three pictures decode and allocate three images
+rather than sixty. What may be shared is decided by the backend-neutral
+[image identity](../../../../packages/renderer-core/src/soldierImageIdentity.ts)
+the source renderer's owner also uses: the loader's own byte buffer, never a
+filename or a re-hash, plus the channel's colour interpretation and the mip and
+sampling requirements. Material tables, samplers and every authored parameter
+stay appearance-specific; two appearances that differ only in roughness still
+borrow one image.
+
+It is not an application cache. The owner lives and dies with the preparation
+that created it, so a staged reload allocates its own images while the outgoing
+ones stay valid, and images belong to the preparation rather than to a surface:
+`dispose` destroys the set exactly once, including an image still being created
+when disposal arrives. A failed decode or upload retains nothing and leaves the
+key free to retry. `stats()` separates unique allocated images and their logical
+payload — read from each texture's own props — from the number of surface
+bindings; it is never a physical VRAM or frame-time claim. The crowd does not
+consume this owner yet, so nothing here is evidence of a reduction in the
+running candidate: that arrives with the wiring and its hardware capture.
+
 ## Typed colour helpers
 
 The soldier faction helpers are the first shared algorithm this candidate expresses as

@@ -5,7 +5,11 @@ import { prepareSoldierSurface } from "@packages/photoreal-renderer/src/battle/s
 import { uploadImageTexture } from "@packages/renderer-core/src/imageTexture";
 import type { SoldierSurface } from "@packages/soldier-assets/src/material";
 
-vi.mock("@packages/renderer-core/src/imageTexture", () => ({ uploadImageTexture: vi.fn() }));
+// Only the upload is faked; the module's byte accounting is the real one.
+vi.mock("@packages/renderer-core/src/imageTexture", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@packages/renderer-core/src/imageTexture")>()),
+  uploadImageTexture: vi.fn(),
+}));
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();

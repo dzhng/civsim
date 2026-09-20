@@ -9,14 +9,13 @@ import * as THREE from "three/webgpu";
 import {
   SOLDIER_TEXTURE_COLOR_SPACES,
   type SoldierSampler,
-  type SoldierSurface,
   type SoldierTextureChannel,
 } from "../../../soldier-assets/src/material";
-import { uploadImageTexture } from "../../../renderer-core/src/imageTexture";
-
-export type SoldierTextureDefinition = NonNullable<
-  SoldierSurface["textures"][SoldierTextureChannel]
->;
+import { imageTextureBytes, uploadImageTexture } from "../../../renderer-core/src/imageTexture";
+import {
+  createSoldierImageIdentity,
+  type SoldierTextureDefinition,
+} from "../../../renderer-core/src/soldierImageIdentity";
 
 export interface SoldierImageStats {
   channel: SoldierTextureChannel;
@@ -97,33 +96,7 @@ export function createSoldierImageOwner(): SoldierImageOwner {
   // for an image that left the index while still borrowed.
   const shared = new Map<string, ImageEntry>();
   const live = new Set<ImageEntry>();
-  // Bytes are identified by the buffer the loader fetched them into, never by
-  // filename or content hash: two appearances share an image exactly when the
-  // loader gave them one buffer. Everything else sharing depends on is derived
-  // from the rest of the key — color space and dimensions/format from the
-  // channel and those bytes, the mip policy from the sampler's mipmap filter.
-  // Keying on the channel rather than the color space alone keeps each reported
-  // image attributable to one channel; it only ever costs a shared allocation
-  // between two linear channels that carry byte-identical images.
-  const bufferIds = new WeakMap<ArrayBufferLike, number>();
-  let nextBufferId = 0;
-  const imageKey = (channel: SoldierTextureChannel, definition: SoldierTextureDefinition) => {
-    const { image, sampler } = definition;
-    let id = bufferIds.get(image.buffer);
-    if (id === undefined) bufferIds.set(image.buffer, (id = nextBufferId++));
-    return [
-      channel,
-      id,
-      image.byteOffset,
-      image.byteLength,
-      definition.mimeType,
-      sampler.magFilter,
-      sampler.minFilter,
-      sampler.mipmapFilter,
-      sampler.wrapS,
-      sampler.wrapT,
-    ].join("|");
-  };
+  const imageKey = createSoldierImageIdentity();
 
   const load = async (
     device: GPUDevice,
@@ -148,15 +121,12 @@ export function createSoldierImageOwner(): SoldierImageOwner {
     try {
       const texture = new THREE.ExternalTexture(gpu);
       applySampling(texture, channel, definition.sampler);
-      let bytes = 0;
-      for (let level = 0; level < gpu.mipLevelCount; level++)
-        bytes += Math.max(1, gpu.width >> level) * Math.max(1, gpu.height >> level) * 4;
       const stats = {
         channel,
         width: gpu.width,
         height: gpu.height,
         mipLevels: gpu.mipLevelCount,
-        bytes,
+        bytes: imageTextureBytes(gpu.width, gpu.height, gpu.mipLevelCount),
       };
       return { device, gpu, texture, stats, references: 0 };
     } catch (error) {

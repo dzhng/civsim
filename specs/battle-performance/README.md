@@ -39,8 +39,8 @@ camera heights15/30/45m. This pass smooths those joins without changing steady
 profiles, source records or residency work. Actual coverage/motion proof is owed.
 
 TypeGPU image sharing: Opus is active in
-`/Users/david/dev/game-battle-typegpu-shared-images`, branch of the same name with
-`codex/` prefix, base2702bd81, handle28741. Prompt/result are in `throwaway/`.
+`/Users/david/dev/game-battle-typegpu-shared-images`, branch
+`codex/battle-typegpu-shared-images`, base2702bd81, handle28741. Prompt/result are in `throwaway/`.
 Root actual GPU baseline confirms60 bitmap-uploaded2048-square/12-mip material
 textures (20srgb/40linear). The isolated owner must share immutable images while
 keeping per-appearance materials; root wires it only after the camera worker

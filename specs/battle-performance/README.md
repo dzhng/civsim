@@ -7,15 +7,17 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: migrate raw30k scene reads onto the [verified diagnostics producer](assets/m9b-diagnostics/README.md),
-preserving all content/33ms assertions and collecting distinct completed GPU frame
-IDs. Producer53c07952 is integrated atd3147865; root hardware28checks and focused
-checks pass. Full seating/draw inspection remains explicit; no per-frame sweep.
-[Timing M9a](assets/m9a-frame-timing/README.md) is verified at4375effd. The earlier
-timing/neutral-owner worktrees were removed. Diagnostics worker can now be cleaned
-up with its ref retained. No GPU/timing worker is running.
-[Component evidence](assets/migration-component-review/README.md) confirms exact
-raw post numerics and passing sky/PMREM/lake controls; ocean stays strictly red.
+Current pickup: Claude Opus migrates raw30k scene reads in
+`game-battle-30k-diagnostics`, baselinefa397c1c; logs `throwaway/30k-diagnostics-worker/`.
+Preserve all content/33ms assertions and collect distinct completed GPU frame IDs.
+Expose actual prepared grass visibility, never infer it from cached records.
+[Diagnostics producer](assets/m9b-diagnostics/README.md) is verified and committed;
+its worker was removed with ref retained. Root next reviews/integrates and runs
+actual source/raw30k. A read-only seating-proof audit runs separately in
+`throwaway/seating-proof-audit/`; complete seating/draw inspection stays open.
+No GPU/timing job is running. [Component evidence](assets/migration-component-review/README.md)
+confirms exact raw post numerics and passing sky/PMREM/lake controls; ocean remains
+strictly red. [M9a timing](assets/m9a-frame-timing/README.md) is also verified.
 [The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
 cutover blockers from inherited quality work. Do not copy Three-shaped counters
 or relabel pass sums as a complete frame. Production still constructs Three until

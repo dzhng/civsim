@@ -26,11 +26,13 @@ checkout exhausted disk copying historical evidence; it was removed and recreate
 without specs/assets, retaining originals in main. Do not duplicate those assets.
 Root prompt: `throwaway/typegpu-high/prompt.txt`.
 
-GPU impostor candidate1c816fc5 is committed in
-`/Users/david/dev/game-battle-gpu-impostor` but unadopted; its WGSL has not yet
+GPU impostor candidate1c816fc5 is committed on `codex/battle-gpu-impostor`
+but unadopted; its finished worktree is removed; its WGSL has not yet
 passed hardware checks. Transfer the state/view optimization only after verifying
 it in the selected architecture. Water worker atc702e002 returned diagnostics, no
-fix. Its claims of proven equality/no port defect overreach finite diagnostic
+fix. Its finished worktree is removed; `codex/battle-water-comparison` retains code.
+Both scratch archives and a verified bundle of16 deleted finished branches live
+in `throwaway/worktree-cleanup-2026-09-20-latest/`. Its claims of proven equality/no port defect overreach finite diagnostic
 measurements; ocean4x remains red. Earlier cutover consultation also cites an
 obsolete74-sample failure: latest changed source/raw gates both passed19 checks.
 Preserve historical reds without presenting them as current observations.

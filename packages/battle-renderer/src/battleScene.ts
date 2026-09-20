@@ -20,7 +20,12 @@ import { photorealEnvironment } from "../../game-renderer/src/environment/physic
 import { createWindUniforms, updateWindUniforms } from "../../game-renderer/src/battle/windSignal";
 import type { BattleStandardInstance } from "../../game-renderer/src/models/shared/battleStandardData";
 import type { BattleReadoutInstance } from "../../game-renderer/src/battle/readoutData";
-import type { BattleCameraSnapshot, BattleTacticalLineFrame } from "./types";
+import type {
+  AdmittedSeatingIdentity,
+  AdmittedSeatingVerification,
+  BattleCameraSnapshot,
+  BattleTacticalLineFrame,
+} from "./types";
 
 /** Complete native scene submission. The caller owns simulation/presentation data,
  * device and canvas; this owner owns every scene resource and final pass ordering. */
@@ -90,6 +95,9 @@ export async function createRawBattleScene(
       );
     // Replaceable, so the release reads the installed generation rather than the first.
     let crowd = await newCrowdAudience(options);
+    // A replacement history restarts its submission counter at 0, so the submission
+    // alone cannot identify a pose across one. This epoch is what distinguishes them.
+    let crowdGeneration = 0;
     releases.push(() => crowd.dispose());
     options.signal?.throwIfAborted();
     const grass = own(
@@ -168,6 +176,21 @@ export async function createRawBattleScene(
       };
       lastTime = time;
     };
+    // The one surface soldiers are seated on: the playable height field, without
+    // the vista apron `heightAt` adds. The crowd builder and every later
+    // verification of what it built share this exact sampler.
+    const seatingHeightAt = (x: number, y: number) => terrainHeightAt(terrain.field(), x, y);
+    /** Identity of the pose this scene currently has admitted, joined to the terrain
+     *  generation it was seated against. O(1) — every counter is one its owner
+     *  already keeps — so a consumer may record it on each presented frame. Null
+     *  while nothing is admitted, or while no terrain generation is committed. */
+    const admittedSeatingIdentity = (): AdmittedSeatingIdentity | null => {
+      check();
+      const submission = crowd.admittedSubmission();
+      const installed = terrain.stats();
+      if (submission === null || !installed.installed) return null;
+      return { crowdGeneration, submission, terrainGeneration: installed.generation };
+    };
     const wind = createWindUniforms(),
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
@@ -177,7 +200,31 @@ export async function createRawBattleScene(
       grassReplayState: () => grass.snapshot(),
       grassRoutingBuffers: () => grass.routingBuffers(),
       heightAt: terrain.heightAt,
-      seatingHeightAt: (x: number, y: number) => terrainHeightAt(terrain.field(), x, y),
+      seatingHeightAt,
+      admittedSeatingIdentity,
+      /** Re-measure the whole admitted population against the installed playable
+       *  height field. Verification only: it submits nothing, allocates no army
+       *  copy, and no frame or stats read reaches it. A caller holding a presented
+       *  frame's identity must compare it against `installed` before attributing
+       *  the measurement to that frame. */
+      verifyAdmittedSeating(): AdmittedSeatingVerification {
+        check();
+        const installed = admittedSeatingIdentity();
+        const refuse = (unavailable: string): AdmittedSeatingVerification => ({
+          measurement: null,
+          unavailable,
+          installed,
+        });
+        // A staged operation is mid-flight, so what is admitted now is not what
+        // this scene is about to present.
+        if (busy) return refuse("Battle scene preparation is in flight");
+        if (!installed) return refuse("No admitted crowd pose over a committed terrain generation");
+        const measurement = crowd.verifySeating(seatingHeightAt);
+        // An identified pose that measures nothing is an empty population, which
+        // is an unseated world rather than a world that passed.
+        if (!measurement) return refuse("The admitted crowd pose is empty");
+        return { measurement, unavailable: null, installed };
+      },
       async replaceTerrain(input: BattleTerrainInput) {
         check();
         if (busy) throw Error("Battle scene preparation already in flight");
@@ -240,6 +287,7 @@ export async function createRawBattleScene(
           }
           crowd.dispose();
           crowd = staged;
+          crowdGeneration++;
           prepared = false;
         } finally {
           await admitGpu().catch(() => {});

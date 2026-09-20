@@ -9,6 +9,9 @@ const state = vi.hoisted(() => ({
   timestamps: [] as bigint[][],
   fetched: [] as string[],
   catalogFailure: null as unknown,
+  /** One-shot failure for the first upload of a presentation, so a frame can fail
+   *  before it ever admits a crowd pose. */
+  readoutFailure: null as unknown,
   disposed: vi.fn(),
   /** Content the mocked scene owners actually hold, so the facade's published
    *  diagnostics have to follow real changes rather than repeat a fixed shape. */
@@ -17,6 +20,12 @@ const state = vi.hoisted(() => ({
     scenery: 0,
     preparedCamera: null as any,
     lines: { groundCues: 0, rings: 0, effects: 0 },
+    /** The crowd epoch and submission the mocked owner has admitted, which only a
+     *  real upload or replacement moves — the facade must join them itself. */
+    crowdGeneration: 0,
+    submission: 0,
+    admitted: false,
+    measurement: null as any,
   },
 }));
 vi.mock("../../sceneBackend", () => ({
@@ -94,6 +103,7 @@ beforeEach(() => {
   state.timestamps = [];
   state.fetched = [];
   state.catalogFailure = null;
+  state.readoutFailure = null;
   state.hold = null;
   state.disposed.mockReset();
   // The scene installs its first terrain generation while it is constructed.
@@ -102,6 +112,17 @@ beforeEach(() => {
     scenery: 7,
     preparedCamera: null,
     lines: { groundCues: 0, rings: 0, effects: 0 },
+    crowdGeneration: 0,
+    submission: 0,
+    admitted: false,
+    measurement: {
+      checked: 3,
+      matches: true,
+      span: 1.25,
+      nonFinite: 0,
+      worstDelta: 0.0004,
+      tolerance: 1e-3,
+    },
   };
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -199,14 +220,45 @@ function fixture(
     (...args: unknown[]) => {
       state.calls.push([name, ...args]);
     };
+  /** What the mocked crowd owner has admitted right now. A replacement restarts
+   *  its submission counter, exactly as a fresh history does. */
+  const seatingIdentity = () =>
+    state.scene.admitted
+      ? {
+          crowdGeneration: state.scene.crowdGeneration,
+          submission: state.scene.submission,
+          terrainGeneration: state.scene.generation,
+        }
+      : null;
   const selectedWorld = {
     replaceCrowdAssets: async (published: unknown, admit?: () => void | Promise<void>) => {
       call("replaceCrowd")(published);
       await admit?.();
+      state.scene.crowdGeneration++;
+      state.scene.submission = 1;
     },
     admittedCrowdPoses: () => new Set(["0\u0000idle"]),
     debugSoldierAnim: (index: number) => (index === 0 ? { clip: "idle", phase: 0.25 } : null),
     uploadDebugBlocks: call("blocks"),
+    admittedSeatingIdentity: () => {
+      call("seatingIdentity")();
+      return seatingIdentity();
+    },
+    verifyAdmittedSeating: () => {
+      call("verifySeating")();
+      const installed = seatingIdentity();
+      if (!installed)
+        return {
+          measurement: null,
+          unavailable: "No admitted crowd pose over a committed terrain generation",
+          installed: null,
+        };
+      // A pose the owner measured nothing for is an empty population, as the real
+      // scene reports it.
+      if (!state.scene.measurement)
+        return { measurement: null, unavailable: "The admitted crowd pose is empty", installed };
+      return { measurement: state.scene.measurement, unavailable: null, installed };
+    },
   };
   state.owner = {
     scene: {
@@ -220,9 +272,16 @@ function fixture(
         state.scene.scenery += 3;
       },
       resize: call("resize"),
-      uploadReadouts: call("readouts"),
+      uploadReadouts: (...args: unknown[]) => {
+        call("readouts")(...args);
+        const failure = state.readoutFailure;
+        state.readoutFailure = null;
+        if (failure) throw failure;
+      },
       uploadCrowd: (...args: unknown[]) => {
         call("crowd")(...args);
+        state.scene.admitted = true;
+        state.scene.submission++;
         queue.submit([]);
       },
       uploadTriangles: call("triangles"),
@@ -1101,6 +1160,180 @@ test("a retired comparison backend keeps its own identity instead of the selecte
     // Its own scene stats still publish, and presentation is still identified.
     native: { actual: true },
     presentedFrameId: 1,
+  });
+  f.renderer.dispose();
+});
+
+test("an explicit inspection answers for the frame that presented, without caching a verdict", async () => {
+  const f = fixture();
+  f.renderer.setStatic(new Uint32Array(3), [0], [0]);
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const inspection = await f.renderer.verifySeating();
+  expect(inspection).toMatchObject({
+    measurement: { checked: 3, matches: true, span: 1.25, nonFinite: 0, tolerance: 1e-3 },
+    unavailable: null,
+    presentedFrameId: 1,
+    presented: { crowdGeneration: 0, submission: 1, terrainGeneration: 1 },
+    installed: { crowdGeneration: 0, submission: 1, terrainGeneration: 1 },
+    expectedSoldiers: 3,
+  });
+  // It names the population and surface it walked, and refuses the stronger claim.
+  expect(inspection.scope).toContain("playable");
+  expect(inspection.scope).toContain("not evidence of drawn GPU feet placement");
+  // The verdict is returned, never published: the normal stat stays unavailable
+  // and keeps naming its obligation.
+  expect(f.renderer.stats().seating).toBeNull();
+  expect(f.renderer.stats().openObligations).toContain("seating");
+  f.renderer.dispose();
+});
+
+test("ordinary presentation and stats reads never reach the population inspector", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  await f.renderer.present(packet());
+  f.renderer.stats();
+  f.renderer.stats();
+  f.renderer.frameMetrics();
+  const named = (name: string) => state.calls.filter(([called]) => called === name).length;
+  expect(named("verifySeating")).toBe(0);
+  // One O(1) identity read per presented frame, and none per stats read.
+  expect(named("seatingIdentity")).toBe(2);
+  await f.renderer.verifySeating();
+  expect(named("verifySeating")).toBe(1);
+  f.renderer.dispose();
+});
+
+test("a presentation that failed after admitting its pose leaves no verdict for the older frame", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  state.hold = async () => {
+    throw Error("submission rejected");
+  };
+  await expect(f.renderer.present(packet())).rejects.toThrow("submission rejected");
+  state.hold = null;
+  const inspection = await f.renderer.verifySeating();
+  expect(inspection.measurement).toBeNull();
+  expect(inspection.unavailable).toContain("no longer the one the last presented frame drew");
+  // The newer pose is admitted; the frame that drew the older one still stands.
+  expect(inspection).toMatchObject({
+    presentedFrameId: 1,
+    presented: { submission: 1 },
+    installed: { submission: 2 },
+  });
+  f.renderer.dispose();
+});
+
+test("a terrain generation the next frame never presented is not verified against the old pose", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  f.renderer.setTerrain({ w: 1, h: 1, cell: 4, ox: 0, oy: 0, tint: new Uint8Array(1) });
+  state.readoutFailure = Error("readout allocation failed");
+  await expect(f.renderer.present(packet())).rejects.toThrow("readout allocation failed");
+  const inspection = await f.renderer.verifySeating();
+  expect(inspection.measurement).toBeNull();
+  // The pose never moved; only the surface underneath it did.
+  expect(inspection).toMatchObject({
+    presentedFrameId: 1,
+    presented: { submission: 1, terrainGeneration: 1 },
+    installed: { submission: 1, terrainGeneration: 2 },
+  });
+  f.renderer.dispose();
+});
+
+test("a crowd replacement restarting its submission counter cannot reuse the old verdict", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  await f.renderer.reloadSoldierAssets();
+  const inspection = await f.renderer.verifySeating();
+  expect(inspection.measurement).toBeNull();
+  // Identical submissions from two different histories: only the epoch separates them.
+  expect(inspection).toMatchObject({
+    presented: { crowdGeneration: 0, submission: 1 },
+    installed: { crowdGeneration: 1, submission: 1 },
+  });
+  f.renderer.dispose();
+});
+
+test("a retained frozen image keeps the verification of the frame it is still showing", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  const frozen = { ...packet(), fixedTime: 12 };
+  await f.renderer.present(frozen);
+  await expect(f.renderer.present(frozen)).resolves.toMatchObject({ submitted: false });
+  expect(await f.renderer.verifySeating()).toMatchObject({
+    measurement: { matches: true },
+    unavailable: null,
+    presentedFrameId: 1,
+  });
+  f.renderer.dispose();
+});
+
+test("verification waits for a presentation in flight instead of reading past it", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  let release!: () => void;
+  state.hold = () =>
+    new Promise<void>((resolve) => {
+      release = resolve;
+    });
+  const presenting = f.renderer.present(packet());
+  for (let i = 0; i < 40 && !release; i++) await Promise.resolve();
+  const inspecting = f.renderer.verifySeating();
+  for (let i = 0; i < 40; i++) await Promise.resolve();
+  expect(state.calls.some(([name]) => name === "verifySeating")).toBe(false);
+  release();
+  await presenting;
+  expect(await inspecting).toMatchObject({ measurement: { matches: true }, presentedFrameId: 1 });
+  f.renderer.dispose();
+});
+
+test("verification before any presented frame is unavailable rather than an empty pass", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  expect(await f.renderer.verifySeating()).toMatchObject({
+    measurement: null,
+    unavailable: "No frame has presented a pose to verify",
+    presentedFrameId: null,
+    presented: null,
+  });
+  f.renderer.dispose();
+});
+
+test("a retired comparison backend owns no population to verify and copies no other verdict", async () => {
+  const f = fixture({ backend: "typegpu", comparisonScene: true });
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const inspection = await f.renderer.verifySeating();
+  expect(inspection.measurement).toBeNull();
+  expect(inspection.unavailable).toContain("typegpu");
+  expect(inspection).toMatchObject({ presentedFrameId: 1, presented: null, installed: null });
+  f.renderer.dispose();
+});
+
+test("a disposed renderer refuses verification rather than reporting a seated world", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  f.renderer.dispose();
+  await expect(f.renderer.verifySeating()).rejects.toThrow("disposed");
+});
+
+test("a scene that refuses to measure is forwarded as refused, not as an absent match", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  // The identity still matches; the world simply has no population to measure.
+  state.scene.measurement = null;
+  expect(await f.renderer.verifySeating()).toMatchObject({
+    measurement: null,
+    unavailable: "The admitted crowd pose is empty",
+    presentedFrameId: 1,
+    installed: { submission: 1 },
   });
   f.renderer.dispose();
 });

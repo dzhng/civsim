@@ -20,6 +20,10 @@ const state = vi.hoisted(() => ({
   triangleLayers: [] as { id: number; upload: ReturnType<typeof vi.fn> }[],
   encoded: [] as number[],
   terrainStats: {} as Record<string, unknown>,
+  /** The pose counter a real history keeps, and the measurement its owner would
+   *  return. The scene must join them; it never measures anything itself. */
+  submission: 1,
+  verifySeating: vi.fn(),
 }));
 function layer<T extends object>(extra: T = {} as T) {
   const value = {
@@ -100,6 +104,8 @@ vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({
       }),
       refreshCamera: vi.fn(),
       admitted: () => state.admitted,
+      admittedSubmission: () => (ready ? state.submission : null),
+      verifySeating: state.verifySeating,
       admittedPoses: () => new Set<string>(),
       debugSoldierAnim: vi.fn(() => null),
     });
@@ -221,6 +227,16 @@ beforeEach(() => {
   state.triangleLayers.length = 0;
   state.encoded.length = 0;
   state.terrainStats = { installed: true, generation: 1, replacing: false, scenery: 6 };
+  state.submission = 1;
+  state.verifySeating.mockReset();
+  state.verifySeating.mockReturnValue({
+    checked: 2,
+    matches: true,
+    span: 0.5,
+    nonFinite: 0,
+    worstDelta: 0.0002,
+    tolerance: 1e-3,
+  });
 });
 async function ready(debugBlocks = false) {
   const scene = await createRawBattleScene(device, caps, { ...options, debugBlocks });
@@ -448,5 +464,94 @@ test("scene stats publish each owner's installed content and the PREPARED pose",
 test("an ordinary battle publishes no block-debug layer content", async () => {
   const scene = await ready();
   expect(scene.stats().tacticalLines.debugBlocks).toBeNull();
+  scene.dispose();
+});
+
+test("an explicit inspection measures the admitted pose against the seating sampler itself", async () => {
+  const scene = await ready();
+  expect(scene.verifyAdmittedSeating()).toEqual({
+    measurement: {
+      checked: 2,
+      matches: true,
+      span: 0.5,
+      nonFinite: 0,
+      worstDelta: 0.0002,
+      tolerance: 1e-3,
+    },
+    unavailable: null,
+    installed: { crowdGeneration: 0, submission: 1, terrainGeneration: 1 },
+  });
+  // The verification and the crowd builder share ONE sampler: the playable field,
+  // not `heightAt`, which adds the vista apron no soldier stands on.
+  expect(state.verifySeating.mock.lastCall![0]).toBe(scene.seatingHeightAt);
+  expect(state.verifySeating.mock.lastCall![0]).not.toBe(scene.heightAt);
+  scene.dispose();
+});
+
+test("an unadmitted, empty or uninstalled world is unavailable rather than a vacuous match", async () => {
+  const scene = await createRawBattleScene(device, caps, options);
+  // Nothing has been uploaded: there is no pose to identify or measure.
+  expect(scene.admittedSeatingIdentity()).toBeNull();
+  expect(scene.verifyAdmittedSeating()).toMatchObject({
+    measurement: null,
+    unavailable: "No admitted crowd pose over a committed terrain generation",
+    installed: null,
+  });
+  expect(state.verifySeating).not.toHaveBeenCalled();
+  scene.uploadCrowd([], camera);
+  // An admitted but empty population measures nothing, and nothing is not a pass.
+  state.verifySeating.mockReturnValueOnce(null);
+  expect(scene.verifyAdmittedSeating()).toMatchObject({
+    measurement: null,
+    unavailable: "The admitted crowd pose is empty",
+    installed: { submission: 1 },
+  });
+  // A terrain generation that is not committed cannot seat anything either.
+  state.terrainStats = { installed: false, generation: 1, replacing: false };
+  expect(scene.admittedSeatingIdentity()).toBeNull();
+  expect(scene.verifyAdmittedSeating()).toMatchObject({ measurement: null, installed: null });
+  scene.dispose();
+  expect(() => scene.verifyAdmittedSeating()).toThrow("disposed");
+  expect(() => scene.admittedSeatingIdentity()).toThrow("disposed");
+});
+
+test("a staged operation in flight suspends verification instead of answering mid-replacement", async () => {
+  const scene = await ready();
+  let resume!: () => void;
+  state.standardsUpload.mockReturnValueOnce(
+    new Promise<void>((r) => {
+      resume = r;
+    }),
+  );
+  const readouts = scene.uploadReadouts([], []);
+  expect(scene.verifyAdmittedSeating()).toMatchObject({
+    measurement: null,
+    unavailable: "Battle scene preparation is in flight",
+  });
+  expect(state.verifySeating).not.toHaveBeenCalled();
+  resume();
+  await readouts;
+  expect(scene.verifyAdmittedSeating().measurement).not.toBeNull();
+  scene.dispose();
+});
+
+test("a crowd replacement advances the epoch that a restarted submission counter cannot", async () => {
+  const scene = await ready();
+  state.admitted = [{ classId: 0 }];
+  expect(scene.admittedSeatingIdentity()).toEqual({
+    crowdGeneration: 0,
+    submission: 1,
+    terrainGeneration: 1,
+  });
+  await scene.replaceCrowdAssets(published);
+  // The staged history restarted at 0 and re-admitted the carried pose as its
+  // own submission 1: identical counters, a different generation of crowd.
+  expect(scene.admittedSeatingIdentity()).toEqual({
+    crowdGeneration: 1,
+    submission: 1,
+    terrainGeneration: 1,
+  });
+  state.terrainStats = { installed: true, generation: 2, replacing: false, scenery: 6 };
+  expect(scene.admittedSeatingIdentity()).toMatchObject({ terrainGeneration: 2 });
   scene.dispose();
 });

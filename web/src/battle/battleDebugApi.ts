@@ -175,6 +175,10 @@ export function installBattleDebugApi({
     debugSoldierAnim: (i: number) => renderer.debugSoldierAnim(i),
     soldierMotorPath: (i: number) => sim.motorPath(i),
     reloadSoldierAssets: () => renderer.reloadSoldierAssets(),
+    /** Explicit whole-population seating verification, asked for by a caller and
+     * answered once: no frame or stats read scans the population. Null from a
+     * renderer that owns no such measurement, never another backend's assignment. */
+    verifySeating: async () => (await renderer.verifySeating?.()) ?? null,
     rendererMemoryInfo: () => ({
       ...renderer.memoryInfo(),
       // The battle's WASM heap now lives in the authority worker. What this thread

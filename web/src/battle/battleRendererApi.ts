@@ -2,7 +2,11 @@ import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBu
 import type { WorldRay } from "@packages/renderer-core/src/camera3d";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 import type { BattleTerrainOptions } from "@packages/game-renderer/src/battle/terrainOptions";
-import type { BattleCameraSnapshot } from "@packages/battle-renderer/src/types";
+import type {
+  AdmittedSeatingIdentity,
+  AdmittedSeatingVerification,
+  BattleCameraSnapshot,
+} from "@packages/battle-renderer/src/types";
 import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import type { BattlePostGradeUniforms } from "@packages/game-renderer/src/environment/postParameters";
 import type { GraphicsSettings } from "../shared/graphicsSettings";
@@ -101,6 +105,23 @@ export interface BattleSeatingStats {
   checked: number;
   matches: boolean;
   span: number;
+}
+
+/** The result of one explicit seating inspection: a verification the caller asked
+ * for, never a per-frame diagnostic. The measurement belongs to the frame named by
+ * `presentedFrameId`, and only exists where `installed` still equals `presented` —
+ * a crowd or terrain replacement since that frame drew leaves it unavailable
+ * rather than attributing a verdict to a pose the renderer no longer holds. */
+export interface BattleSeatingInspection extends AdmittedSeatingVerification {
+  /** What this operation actually examined, and what it therefore does not prove. */
+  scope: string;
+  /** The frame whose admitted pose was examined, and the identity it presented
+   *  under. Null before any frame has presented. */
+  presentedFrameId: number | null;
+  presented: AdmittedSeatingIdentity | null;
+  /** Population the installed static simulation data says must be drawn, beside
+   *  the population actually checked. */
+  expectedSoldiers: number;
 }
 
 /** What a backend publishes about the world it has actually installed, beside
@@ -232,4 +253,9 @@ export interface BattleRendererApi {
   stats(): BattleRendererStats;
   memoryInfo(): BattleRendererMemoryInfo | null;
   debugSoldierAnim(index: number): unknown;
+  /** Explicit whole-population seating verification, on demand only: no frame or
+   *  stats read performs this scan. Optional — a backend that cannot measure its
+   *  own admitted population omits it rather than republishing an assignment its
+   *  builder made by construction. */
+  verifySeating?(signal?: AbortSignal): Promise<BattleSeatingInspection>;
 }

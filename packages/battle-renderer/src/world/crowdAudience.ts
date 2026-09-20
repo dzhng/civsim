@@ -8,8 +8,13 @@ import type { GpuDeviceCaps } from "../../../renderer-core/src/capabilities";
 import type { ImpostorView } from "../impostorData";
 import type { RawEnvironment } from "./environment";
 import type { SoldierPlayback } from "../../../crowd-runtime/src/actionTimeline";
+import type { AdmittedSeatingMeasurement } from "../types";
 import { createRawCrowd } from "./crowd";
 import { createRawImpostors } from "./impostor";
+
+/** Metres of agreement required between an instance's elevation and the surface
+ * it is seated on. The source world's seating tolerance, unchanged. */
+const SEATING_TOLERANCE_METRES = 1e-3;
 
 /** The submitted pose of one soldier, as the crowd owner admitted it. */
 export interface SoldierAnimDiagnostic {
@@ -72,6 +77,48 @@ export async function createRawCrowdAudience(
     return {
       upload,
       admitted: () => history.admitted()?.instances ?? null,
+      /** The submission this owner currently has admitted, or null while none is.
+       *  O(1): the counter the history already keeps, so a consumer may record it
+       *  on every presented frame without scanning anything. */
+      admittedSubmission: () => history.admitted()?.submission ?? null,
+      /** Re-measure EVERY admitted instance against `sampleHeightAt`. Verification
+       *  only: no frame calls this, nothing is retained afterwards, and null means
+       *  there was no admitted population to measure rather than a vacuous match. */
+      verifySeating(
+        sampleHeightAt: (x: number, y: number) => number,
+      ): AdmittedSeatingMeasurement | null {
+        const admitted = history.admitted();
+        if (!admitted?.instances.length) return null;
+        let matches = true,
+          nonFinite = 0,
+          worstDelta = 0,
+          lo = Infinity,
+          hi = -Infinity;
+        for (const instance of admitted.instances) {
+          const elevation = instance.elevation ?? 0;
+          const height = sampleHeightAt(instance.x, instance.y);
+          // `Math.abs(NaN) > tolerance` is false, so a nonfinite pair has to be
+          // rejected explicitly instead of passing as agreement.
+          if (!Number.isFinite(elevation) || !Number.isFinite(height)) {
+            nonFinite++;
+            matches = false;
+            continue;
+          }
+          const delta = Math.abs(elevation - height);
+          if (delta > worstDelta) worstDelta = delta;
+          if (delta > SEATING_TOLERANCE_METRES) matches = false;
+          if (elevation < lo) lo = elevation;
+          if (elevation > hi) hi = elevation;
+        }
+        return {
+          checked: admitted.instances.length,
+          matches,
+          span: lo <= hi ? Number((hi - lo).toFixed(3)) : 0,
+          nonFinite,
+          worstDelta,
+          tolerance: SEATING_TOLERANCE_METRES,
+        };
+      },
       /** Distinct `classId`/`clip` pairs in the admitted pose, for admission checks. */
       admittedPoses() {
         const poses = new Set<string>();

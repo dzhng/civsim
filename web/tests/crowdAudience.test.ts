@@ -349,3 +349,111 @@ test("admitted poses name the distinct appearance and clip pairs being presented
     owner.dispose();
   }
 });
+
+/** A soldier the crowd builder has already seated: its `elevation` is what an
+ *  explicit inspection re-measures against the surface it claims to sit on. */
+const seated = (x: number, elevation: number) => ({ ...soldier, x, y: 0, elevation });
+/** The surface itself: height equals x, so a seated soldier's elevation is its x. */
+const ground = () => vi.fn((x: number, _y: number) => x);
+
+test("explicit seating verification re-samples the whole population, errors at its end included", async () => {
+  const owner = await create();
+  const surface = ground();
+  try {
+    owner.upload([seated(0, 0), seated(1, 1), seated(2, 2)], [view(10)], camera);
+    expect(owner.verifySeating(surface)).toEqual({
+      checked: 3,
+      matches: true,
+      span: 2,
+      nonFinite: 0,
+      worstDelta: 0,
+      tolerance: 1e-3,
+    });
+    // One sample per admitted instance, at that instance's own position.
+    expect(surface.mock.calls).toEqual([
+      [0, 0],
+      [1, 0],
+      [2, 0],
+    ]);
+    // A defect in the LAST soldier is found: the loop never stops at the first match.
+    owner.upload([seated(0, 0), seated(1, 1), seated(2, 2.5)], [view(10)], camera);
+    expect(owner.verifySeating(surface)).toMatchObject({
+      checked: 3,
+      matches: false,
+      span: 2.5,
+      worstDelta: 0.5,
+    });
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("seating verification keeps the source tolerance at its exact boundary", async () => {
+  const owner = await create();
+  try {
+    owner.upload([seated(0, 1e-3)], [view(10)], camera);
+    expect(owner.verifySeating(ground())).toMatchObject({ matches: true, worstDelta: 1e-3 });
+    owner.upload([seated(0, 1.1e-3)], [view(10)], camera);
+    expect(owner.verifySeating(ground())).toMatchObject({ matches: false, worstDelta: 1.1e-3 });
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("nonfinite elevations and heights are rejected rather than passing an absolute compare", async () => {
+  const owner = await create();
+  try {
+    owner.upload([seated(0, 0), seated(1, NaN), seated(2, 2)], [view(10)], camera);
+    // `Math.abs(NaN) > tolerance` is false, so an unguarded compare would pass this.
+    expect(owner.verifySeating(ground())).toEqual({
+      checked: 3,
+      matches: false,
+      span: 2,
+      nonFinite: 1,
+      worstDelta: 0,
+      tolerance: 1e-3,
+    });
+    // A second, independent instance: a surface that is not finite where it stands.
+    const broken = vi.fn((x: number) => (x === 2 ? Infinity : x));
+    expect(owner.verifySeating(broken)).toMatchObject({ matches: false, nonFinite: 2 });
+  } finally {
+    owner.dispose();
+  }
+});
+
+test("an unadmitted, empty or released population reports nothing measured, never a match", async () => {
+  const owner = await create();
+  const surface = ground();
+  try {
+    expect(owner.verifySeating(surface)).toBeNull();
+    owner.upload([], [view(10)], camera);
+    expect(owner.verifySeating(surface)).toBeNull();
+    owner.upload([seated(0, 0)], [view(10)], camera);
+    expect(owner.verifySeating(surface)).toMatchObject({ checked: 1, matches: true });
+    mesh.upload.mockImplementationOnce(() => {
+      throw Error("upload failed");
+    });
+    expect(() => owner.upload([seated(0, 9)], [view(10)], camera)).toThrow("upload failed");
+    expect(owner.verifySeating(surface)).toBeNull();
+  } finally {
+    owner.dispose();
+  }
+  expect(owner.verifySeating(surface)).toBeNull();
+});
+
+test("the admitted submission identifies a pose, not the uploads a moving camera causes", async () => {
+  const owner = await create();
+  try {
+    expect(owner.admittedSubmission()).toBeNull();
+    owner.upload([seated(0, 0)], [view(10)], camera);
+    expect(owner.admittedSubmission()).toBe(1);
+    expect(owner.reproject([view(12)], camera)).toBe(true);
+    owner.refreshCamera({ ...camera, fovY: 0.8 });
+    expect(owner.admittedSubmission()).toBe(1);
+    owner.upload([seated(0, 0)], [view(12)], camera);
+    expect(owner.admittedSubmission()).toBe(2);
+  } finally {
+    owner.dispose();
+  }
+  expect(owner.admittedSubmission()).toBeNull();
+});

@@ -55,11 +55,24 @@ frame's id; content, depth and cue counts come from the owners that hold them.
 A world that is not installed — before construction, on a retired comparison
 backend, after disposal — reports null rather than an empty shape. Measurements
 this world cannot make truthfully are named as open obligations beside those
-nulls instead of being approximated: per-instance seating verification (a
-whole-population inspection, not a rotating per-frame sample of a crowd that
-moves), per-frame draw calls, and the blade counts the grass field routes on the
-GPU. No diagnostic adds a readback, a wait or a repeated population scan to the
-presenting path.
+nulls instead of being approximated: per-instance seating verification, per-frame
+draw calls, and the blade counts the grass field routes on the GPU. No diagnostic
+adds a readback, a wait or a repeated population scan to the presenting path.
+
+Seating is verified by asking, never by watching. The explicit inspection walks
+every instance of one admitted crowd pose and re-samples it against the installed
+playable height field — the same sampler the crowd builder was handed, not the
+one that adds the vista apron no soldier stands on. It is a measurement, so a
+nonfinite elevation or height fails rather than slipping past an absolute compare,
+and an empty, unadmitted, uninstalled or disposed world reports itself unavailable
+rather than passing vacuously. Admission is not presentation: the pose and terrain
+generation a frame actually drew are recorded with that frame's presentation
+receipt, and a later inspection refuses to answer once a replacement has moved
+either, instead of attributing a verdict to the frame that no longer owns the
+pose. The result is returned to its caller and never cached, so `stats().seating`
+stays unavailable and the obligation above stays named. It proves the CPU
+firewall between the height field and the uploaded instance data; where the GPU
+actually drew a soldier's feet remains the image gate's claim, not this one's.
 
 Submission identities count actual queue submissions, without a fictitious Three
 frame number. Routine preparation closes each validation scope before awaiting its

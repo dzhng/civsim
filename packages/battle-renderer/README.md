@@ -16,6 +16,15 @@ pending work. Crowd replacement retains the admitted pose and validates all stag
 GPU uploads before retiring the installed generation. Diagnostics describe that
 admitted pose, so camera-only frames never invent animation progress. Resizing does not imply rebuilding unrelated resources or pipelines.
 
+Whole-population verification is an operation a caller asks for, never something
+a frame does. The world re-measures the admitted pose against the surface it was
+seated on and hands back the answer, refusing rather than passing where nothing
+is admitted, the population is empty, no terrain generation is committed or a
+staged operation is in flight. It identifies what it measured with counters the
+crowd history and terrain already keep, plus a crowd epoch — a replacement
+restarts the submission counter, so the submission alone cannot tell two
+generations apart.
+
 One depth decision covers the frame's attachment and every world pipeline's
 declared state, so the published depth diagnostics are a reading of installed
 resources rather than a constant kept beside them; reverse-Z follows from the

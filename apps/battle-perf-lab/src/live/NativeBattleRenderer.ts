@@ -6,8 +6,13 @@ import type {
   BattleRendererFrameMetrics,
   BattleRendererOptions,
   BattleRendererStats,
+  BattleSeatingInspection,
   BattleSubmissionIdentity,
 } from "../../../../web/src/battle/battleRendererApi";
+import type {
+  AdmittedSeatingIdentity,
+  AdmittedSeatingMeasurement,
+} from "../../../../packages/battle-renderer/src/types";
 import type { BattlePresentation } from "../../../../web/src/battle/battlePresentation";
 import { BattleGpuFrameTiming } from "../../../../web/src/battle/gpuFrameTiming";
 import {
@@ -93,6 +98,20 @@ const twoFrames = () =>
 // Missing measurements stay explicit; the verification contract and rationale
 // live in the live renderer README rather than being copied into each report.
 const OPEN_DIAGNOSTIC_OBLIGATIONS = ["seating", "drawCalls", "grassRouting"] as const;
+/** What an explicit seating inspection examines, and what it therefore does not
+ * prove. It is a CPU firewall between the installed height field and the instance
+ * data that was uploaded — not evidence of where the GPU drew a soldier's feet. */
+const SEATING_INSPECTION_SCOPE =
+  "every instance of one admitted crowd pose, re-sampled against the installed playable terrain height field; not evidence of drawn GPU feet placement";
+const sameSeating = (
+  a: AdmittedSeatingIdentity | null,
+  b: AdmittedSeatingIdentity | null,
+): boolean =>
+  a !== null &&
+  b !== null &&
+  a.crowdGeneration === b.crowdGeneration &&
+  a.submission === b.submission &&
+  a.terrainGeneration === b.terrainGeneration;
 
 /** Lab-only frontend facade. Every GPU pass belongs to the selected native library;
  * the real menu, Game, ActionTimeline, input, HUD and benchmark remain production. */
@@ -160,8 +179,15 @@ export class BattleRenderer implements BattleRendererApi {
    *  recorded as one record so a camera can never be published beside another
    *  frame's identity. Assigned only where the receipt is produced, so a
    *  preparation in flight, a submission that threw, or a presentation that
-   *  failed after its draw all leave the previous presented frame standing. */
-  private presentedFrame: { view: View; renderedFrameId: number } | null = null;
+   *  failed after its draw all leave the previous presented frame standing.
+   *  `seating` is the pose and terrain generation that frame actually drew, so a
+   *  later seating verdict can never be attributed to a frame whose crowd or
+   *  terrain has since been replaced. Null for a backend that owns no crowd. */
+  private presentedFrame: {
+    view: View;
+    renderedFrameId: number;
+    seating: AdmittedSeatingIdentity | null;
+  } | null = null;
   private frozenKey: string | null = null;
   private invalidation = 0;
   private pendingPresentation: Promise<BattlePresentationReceipt> | null = null;
@@ -593,7 +619,11 @@ export class BattleRenderer implements BattleRendererApi {
             this.startupReady = null;
           }
           this.renderedFrameId++;
-          this.presentedFrame = { view, renderedFrameId: this.renderedFrameId };
+          this.presentedFrame = {
+            view,
+            renderedFrameId: this.renderedFrameId,
+            seating: rawScene(owner.scene)?.admittedSeatingIdentity() ?? null,
+          };
           this.frozenKey = generation === this.invalidation ? key : null;
           this.metrics = {
             renderedFrameId: this.renderedFrameId,
@@ -789,6 +819,56 @@ export class BattleRenderer implements BattleRendererApi {
       if (this.readiness === barrier) this.readiness = null;
     });
     return job;
+  }
+  /** Explicit whole-population seating verification. It belongs to no frame:
+   *  presentation and `stats()` never scan the population, and this adds no GPU
+   *  submission, readback or wait of its own. Ordering follows
+   *  `reloadSoldierAssets` — readiness and a presentation in flight settle first
+   *  — after which the identity comparison and the measurement are one
+   *  synchronous turn, so nothing can replace the crowd or terrain between them.
+   *  The result is returned, never cached: `stats().seating` stays unavailable. */
+  async verifySeating(signal?: AbortSignal): Promise<BattleSeatingInspection> {
+    const prior = this.pendingPresentation,
+      previous = this.readiness;
+    await this.ready;
+    await previous;
+    // Another caller's failed presentation is not a seating failure, and that
+    // caller still receives its own error.
+    await prior?.catch(() => {});
+    this.check(signal);
+    const presented = this.presentedFrame;
+    const report = (
+      measurement: AdmittedSeatingMeasurement | null,
+      unavailable: string | null,
+      installed: AdmittedSeatingIdentity | null,
+    ): BattleSeatingInspection => ({
+      measurement,
+      unavailable,
+      installed,
+      scope: SEATING_INSPECTION_SCOPE,
+      presentedFrameId: presented?.renderedFrameId ?? null,
+      presented: presented?.seating ?? null,
+      expectedSoldiers: this.staticData.soldierUnit.length,
+    });
+    const scene = rawScene(this.owner?.scene);
+    if (!scene)
+      return report(
+        null,
+        `The ${this.backend} comparison backend owns no admitted crowd population to verify`,
+        null,
+      );
+    if (!presented) return report(null, "No frame has presented a pose to verify", null);
+    const installed = scene.admittedSeatingIdentity();
+    // Checked BEFORE measuring: a pose the renderer no longer presents must not
+    // be walked and reported under the last frame that did present.
+    if (!sameSeating(presented.seating, installed))
+      return report(
+        null,
+        "The admitted crowd pose or terrain generation is no longer the one the last presented frame drew",
+        installed,
+      );
+    const verified = scene.verifyAdmittedSeating();
+    return report(verified.measurement, verified.unavailable, verified.installed);
   }
   stats(): BattleRendererStats {
     const scene = this.owner?.scene;

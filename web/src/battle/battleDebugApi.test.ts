@@ -63,3 +63,20 @@ it("reads raw completed frame snapshots without traversing full game or renderer
   expect(api.frameMetrics()!.renderer.renderedFrameId).toBe(1);
   expect(api.stateHash()).toBe("18446744073709551615");
 });
+
+it("forwards an explicit seating inspection and reports null where a renderer owns none", async () => {
+  const install = (renderer: unknown) =>
+    installBattleDebugApi({
+      owners: {},
+      sim: { stride: 35 },
+      frameMetrics: () => null,
+      renderer,
+    } as unknown as Parameters<typeof installBattleDebugApi>[0]);
+  const api = () => window.__game as { verifySeating(): Promise<unknown> };
+  // The source renderer measures nothing it could truthfully publish here.
+  install({});
+  await expect(api().verifySeating()).resolves.toBeNull();
+  const inspection = { measurement: { checked: 4, matches: true }, unavailable: null };
+  install({ verifySeating: async () => inspection });
+  await expect(api().verifySeating()).resolves.toBe(inspection);
+});

@@ -16,5 +16,7 @@ has no water and cannot close this obligation.
 
 The [ocean localization evidence](../assets/m3b-ocean-localization/README.md)
 records the still-red beauty control and bounded diagnostic variants. Passing
-roughness/normal diagnostics are not production fixes. Next inspect captured
-native/source WGSL for the persistent horizon discrepancy.
+roughness/normal diagnostics are not production fixes. Matching the source
+projector and position invariance jointly passes all six diagnostic beauty cases;
+either alone fails. Decide the durable comparison contract without replacing the
+original end-to-end evidence or adopting scratch shader interception.

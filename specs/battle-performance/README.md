@@ -7,11 +7,13 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: implement actual content/depth/memory diagnostics and migrate
-raw scene reads (M9b), preserving the standing content/33ms floor and counting
-distinct completed frame identities. [M9a hardware verification](assets/m9a-frame-timing/README.md)
-passes22 checks; correlated timing and neutral ownership cleanup are integrated.
-Root also fixed and tested unusable events arriving before their receipts.
+Current pickup: Claude Opus implements the [M9b diagnostics producer](slices/m9b-diagnostics.md)
+in `game-battle-scene-diagnostics` at e0f5236e; logs `throwaway/scene-diagnostics-worker/`.
+Root then migrates raw scene reads, preserving content/33ms thresholds and counting
+distinct completed frame identities. [M9a](assets/m9a-frame-timing/README.md) is
+verified at4375effd (22hardware checks); timing and neutral-owner worktrees were
+removed with branches/evidence retained. A read-only Claude evidence audit maps
+M2/M3/M8 exits in `throwaway/migration-evidence-audit/`; no new broad runs yet.
 [The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
 cutover blockers from inherited quality work. Do not copy Three-shaped counters
 or relabel pass sums as a complete frame. Production still constructs Three until

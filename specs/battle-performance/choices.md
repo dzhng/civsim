@@ -789,3 +789,13 @@ the old battle world without deleting this still-used shared geometry policy.
   Reporting those same settings avoids an unrelated label that could stay green
   while rendering changes. Values remain unchanged; missing routed grass/draw
   measurements stay null rather than acquiring a second estimating owner.
+
+## Pre-cutover30k verification route
+
+- **Sound, high confidence — explicit harness route, no product switch.** Before
+  cutover, the same check must exercise the incumbent game and the raw Menu lab
+  build. The caller names source or raw and the report verifies that identity;
+  an unknown name fails at entry. This prevents a raw experiment from silently
+  measuring the incumbent. The plan left harness selection open. The selector
+  and two-owner reads are test scaffolding to remove when M9 leaves one product
+  renderer; they do not expose a legacy renderer option in the game.

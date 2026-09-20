@@ -1,0 +1,32 @@
+[
+  {
+    "name": "dpr1: left-click selects the unit under the cursor",
+    "pass": true,
+    "detail": "clicked (908,656) -> selected [4]"
+  },
+  {
+    "name": "dpr1: drag-box selects the unit inside it",
+    "pass": true,
+    "detail": "box around (908,656) -> selected [4]"
+  },
+  {
+    "name": "dpr2: left-click selects the unit under the cursor",
+    "pass": true,
+    "detail": "clicked (908,656) -> selected [4]"
+  },
+  {
+    "name": "dpr2: drag-box selects the unit inside it",
+    "pass": true,
+    "detail": "box around (908,656) -> selected [4]"
+  },
+  {
+    "name": "snapshot typegpu-blocks",
+    "pass": true,
+    "detail": "baseline created"
+  },
+  {
+    "name": "no page errors",
+    "pass": true,
+    "detail": []
+  }
+]

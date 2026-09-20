@@ -1,0 +1,1 @@
+No actionable regressions were identified in the commit. The focused native GPU telemetry suite passes all 37 tests, covering draw attribution, bundle execution, submission failures, timing modes, and retention limits.

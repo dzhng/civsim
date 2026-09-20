@@ -1,0 +1,706 @@
+{
+  "result": {
+    "atlasSource": "verified-offline",
+    "sourceAtlasComparisons": [
+      {
+        "classId": 0,
+        "exact": false,
+        "differingBytes": 16,
+        "maxByteDifference": 1,
+        "anchorEqual": true
+      },
+      {
+        "classId": 3,
+        "exact": true,
+        "differingBytes": 0,
+        "maxByteDifference": 0,
+        "anchorEqual": true
+      },
+      {
+        "classId": 6,
+        "exact": true,
+        "differingBytes": 0,
+        "maxByteDifference": 0,
+        "anchorEqual": true
+      }
+    ],
+    "texturesAfterBackendDispose": 0,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": ""
+    },
+    "backend": "typegpu",
+    "samples": 1,
+    "canonicalProjection": true,
+    "focused": false,
+    "results": [
+      {
+        "exceptionalPixels": [],
+        "label": "0-oblique",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 96,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.00048828125,
+          "maxRelative": 0.0008598452278589854,
+          "rmse": 5.18160607423879e-07,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 2.0078125,
+          "samples": 1228800
+        },
+        "covered": 3337,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.00048828125,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "0-overhead",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 96,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 6.103515625e-05,
+          "maxRelative": 0.0007077140835102619,
+          "rmse": 1.0231648436851289e-07,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 3.109375,
+          "samples": 1228800
+        },
+        "covered": 1928,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 6.103515625e-05,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "0-overlap",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 91,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.0009765625,
+          "maxRelative": 0.0008795074758135445,
+          "rmse": 9.091548394694906e-07,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 11.6328125,
+          "samples": 1228800
+        },
+        "covered": 7994,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.0009765625,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "0-floor",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 84,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "width",
+            "gap": 9.5367431640625e-07,
+            "allowed": 5.731822966481559e-06,
+            "label": "soldier 0"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1228800
+        },
+        "covered": 70,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "3-oblique",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 96,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.00048828125,
+          "maxRelative": 0.0009587727708533077,
+          "rmse": 5.216342978172835e-07,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.7158203125,
+          "samples": 1228800
+        },
+        "covered": 3888,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.00048828125,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "shader": {},
+        "label": "3-overhead",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 96,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.000244140625,
+          "maxRelative": 0.0008984725965858042,
+          "rmse": 2.792314861736435e-07,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 3.302734375,
+          "samples": 1228800
+        },
+        "covered": 2703,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.000244140625,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "3-overlap",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 89,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.00390625,
+          "maxRelative": 0.0009389671361502347,
+          "rmse": 4.996888838092296e-06,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 6.28125,
+          "samples": 1228800
+        },
+        "covered": 11160,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.00390625,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "3-floor",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 94,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1228800
+        },
+        "covered": 15,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "6-oblique",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 94,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.0001220703125,
+          "maxRelative": 0.000968054211035818,
+          "rmse": 1.5709716002758976e-07,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.974609375,
+          "samples": 1228800
+        },
+        "covered": 8130,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.0001220703125,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "6-overhead",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 94,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.0001220703125,
+          "maxRelative": 0.0008833922261484099,
+          "rmse": 2.694762839187936e-07,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.484375,
+          "samples": 1228800
+        },
+        "covered": 7212,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.0001220703125,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "6-overlap",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 87,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "angle",
+            "gap": 1.1920928955078125e-07,
+            "allowed": 9.986854365706677e-07,
+            "label": "soldier 5"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 0.0009765625,
+          "maxRelative": 0.0008576329331046312,
+          "rmse": 1.0168314815844903e-06,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 2.38671875,
+          "samples": 1228800
+        },
+        "covered": 16368,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 0.0009765625,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      },
+      {
+        "exceptionalPixels": [],
+        "label": "6-floor",
+        "recordControl": {
+          "source": "gpu-derived-readback",
+          "reference": "three-instance-attributes",
+          "tolerance": "f32 arithmetic with WGSL trigonometry",
+          "dotBand": 0.0006905339660024879,
+          "probes": 12,
+          "compared": 108,
+          "exact": 84,
+          "faults": [],
+          "duplicates": [],
+          "ties": [],
+          "nonfinite": [],
+          "worstGap": {
+            "field": "width",
+            "gap": 9.5367431640625e-07,
+            "allowed": 5.731822966481559e-06,
+            "label": "soldier 0"
+          },
+          "passed": true
+        },
+        "shadowFlagsMatch": true,
+        "pixels": {
+          "maxAbs": 1.52587890625e-05,
+          "maxRelative": 0.00030517578125,
+          "rmse": 1.5389853104779786e-08,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1228800
+        },
+        "covered": 52,
+        "coverageMismatch": 0,
+        "different": 0,
+        "maxCovered": 1.52587890625e-05,
+        "passed": true,
+        "width": 640,
+        "height": 480,
+        "mipLevels": 10,
+        "stats": {
+          "instances": 12,
+          "draws": 1,
+          "clipInvariant": false,
+          "castShadow": false,
+          "receiveShadow": false,
+          "atlasSource": "prepared full mip chain"
+        }
+      }
+    ],
+    "lifecycle": [
+      {
+        "classId": 0,
+        "rejectedIncompleteMips": true,
+        "emptyDraw": true,
+        "disposedGuard": true,
+        "borrowedAlive": true
+      },
+      {
+        "classId": 3,
+        "rejectedIncompleteMips": true,
+        "emptyDraw": true,
+        "disposedGuard": true,
+        "borrowedAlive": true
+      },
+      {
+        "classId": 6,
+        "rejectedIncompleteMips": true,
+        "emptyDraw": true,
+        "disposedGuard": true,
+        "borrowedAlive": true
+      }
+    ],
+    "errors": [],
+    "passed": true,
+    "scope": "Identical persisted property bytes across candidate and Three; source-self comparison is separate; full renderer parity pending"
+  },
+  "pageErrors": [],
+  "warnings": []
+}

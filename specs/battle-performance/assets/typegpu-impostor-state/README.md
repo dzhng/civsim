@@ -1,4 +1,4 @@
-# TypeGPU camera-independent impostor candidate — not adopted
+# TypeGPU impostor derivation — integrated for evaluation
 
 Candidatefc446726 compiles actual typed GPU derivation from6 soldier floats plus
 a48-byte view block. Camera-only audience refresh no longer republishes per-soldier
@@ -13,15 +13,27 @@ atlases and1 sample, passes all12 existing cases for classes0/3/6: no coverage
 mismatches or RGB differences over the unchanged1/255 threshold. No timing claim.
 Broader moving camera/LOD/image and net-performance acceptance remain open.
 
-Root found a verification-meaning problem not raised by independent review:
-layer.update returns the CPU packer only to keep the old control interface, so
-packingEqual no longer compares the candidate's actual derived records. The actual
-images above are still GPU render comparisons, and the separate compute control
-runs the real typed function, but neither makes that old field honest. An Opus
-follow-up now replaces the compatibility return with opt-in actual installed
-state/view GPU readback and explicitly migrates the TypeGPU record gate. Raw/vgpu
-packing checks and every existing image/coverage/lifecycle threshold must remain.
-Do not adopt or claim preserved tile decisions from the initial passed flag.
+The initial `packingEqual` field returned a CPU oracle. Correction6b9403f9
+(integrated62ec8728) removes that compatibility path: an opt-in diagnostic reads
+the layer's installed GPU state/view through the same typed derivation used by
+its vertex shader. Normal layers allocate no diagnostic storage/readback resources.
+Both1x and4x physical controls pass12 cases with1101/1296 fields exactly equal to
+Three's instance attributes; remaining values meet the declared float bounds.
+No faults, nonfinite records, duplicate/tied tiles, page errors or warnings occur
+in these physical cases. RGB/coverage gates remain unchanged; this does not erase
+the separate exact-bisector disagreement above. Reports are
+[1x](actual-record-render.json) and [4x](actual-record-render-4x.json).
+
+Fixed actual-game builds020d8db8 and62ec8728 preserve15560 soldiers at the canonical
+tick30/hash at three tactical zooms, with current presented camera/depth and clean
+resize/disposal. The first captures differed only in the minimap rectangle:
+3438–6729 pixels, zero outside the minimap. Unprimed critique independently found
+that mismatch and no visible battlefield differences. `battleLoop` updates the
+minimap on its200ms HUD cadence. Waiting500ms after camera settlement yields
+**pixel-identical full2880x1800 frames** at all three zooms, including the HUD.
+Both initial and settled reports are retained; no image region or threshold was
+excluded. These are fixed-state correctness captures, not moving-camera or timing
+acceptance. Main candidate115 and lab166 tests passed after integration.
 
 Scope correction: the48-byte bound is the layer view setter/final audience refresh,
 not the whole moving-camera path. `CrowdViewState.matches` compares the actual

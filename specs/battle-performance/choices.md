@@ -917,3 +917,24 @@ the old battle world without deleting this still-used shared geometry policy.
   resources independently; final cutover must remove retired backend dispatch.
 - **Verdict:** Sound as a staged conversion; the table does not stand in for physical
   depth/content measurements. **Confidence:** Medium.
+
+## Actual GPU records and offered draw commands
+
+- **Choice:** The impostor diagnostic reads the installed GPU state through the
+  vertex derivation, while normal rendering allocates no diagnostic resources.
+  Exact disagreement remains distinct from acceptable float error. **Gap:** A CPU
+  reference return could falsely certify GPU packing. **Reach:** Controls describe
+  the candidate they actually exercise. **Verdict:** Sound; broader visual and
+  temporal equivalence remain required. **Confidence:** High.
+- **Choice:** Draw observations share the existing submission telemetry owner and
+  count submitted command/bundle invocations, with unknown or left-behind work
+  reported separately. Only a validated presented-frame consumer may promote the
+  count to successful-frame metadata. **Gap:** Scene configuration cannot establish
+  actual per-frame draw work. **Reach:** Adds CPU command interception even when
+  timestamp queries are disabled; final performance must measure that cost.
+  **Verdict:** Provisional pending hardware and overhead checks. **Confidence:** Medium.
+- **Choice:** TypeGPU uses the existing optional debug triangle layer and its
+  depth-off policy. **Gap:** Debug routing was absent in the selected renderer.
+  **Reach:** Debug rectangles can hide bodies, as the original did; ordinary mode
+  gains no extra allocation. **Verdict:** Sound for preserving this diagnostic
+  surface without changing normal gameplay visuals. **Confidence:** High.

@@ -8,81 +8,55 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: actual-record impostor control and submitted draw observation,
-then browser consumer/cutover verification. [Content diagnostics](assets/typegpu-content-state/README.md)
-are integrated asead86de9 after the [scene reload pass](assets/typegpu-scene-state/README.md).
-Main candidate80/80 and facade57/57 pass. Fixed-build Menu identity/content/depth,
-resize/disposal and a direct GPU terrain replacement pass; three screenshot pairs
-are byte-identical after decoding. These are correctness, not timing results.
-The content worker/review are terminal; its worktree and branch were removed
-after preserving scratch and a verified bundle in
-`throwaway/typegpu-content-completed-cleanup/`.
-
-Opus draw observation is active in `/Users/david/dev/game-battle-native-draw-observation`
-(base17433cd1, handle74295), scoped to NativeGpuTelemetry/tests. It must distinguish
-encoded work from queued work and expose a bounded submission-associated count;
-root wires it to validated presented frames after review. Prompt and result paths
-are under that worktree's `throwaway/`. No timing job is active.
-
-Opus optional block-debug routing is active in
-`/Users/david/dev/game-battle-typegpu-block-debug` (basef027d1d6, handle69225),
-scoped to the existing triangle layer, scene/facade and tests. No ordinary-mode
-allocation or new shader/geometry owner is permitted. Prompt/results are under
-its `throwaway/`; root owns selection and unprimed visual checks after review.
-
-[The impostor candidate](assets/typegpu-impostor-state/README.md) atfc446726 has
-GPU arithmetic and12 source-image checks, but remains unadopted. Exact bisector
-tile choices differ, and root found its legacy packingEqual return was a CPU
-oracle rather than actual derived GPU data. Opus is correcting the control to read
-installed state/view buffers in `/Users/david/dev/game-battle-typegpu-impostor-state`
-(handle90032; `throwaway/actual-record-control-prompt.txt`). Preserve image gates
-and expose exact disagreements. The first worker/review are terminal. Check the
-new handle or actual final report before restarting. [High receiver overlap/fade](assets/typegpu-shadow-overlap/README.md)
-is integrated and GPU verified, including valid numerical mutation failures and
-validation/nonfinite rejection. Main candidate77/77 passes. Its worker/review are
-terminal; its worktree and branch were removed after preserving scratch and a
-verified bundle in `throwaway/typegpu-shadow-overlap-cleanup/`. No timing job is active.
+Current pickup: join the [submitted draw observation](assets/native-draw-observation/README.md)
+to validated presented frames, then migrate browser consumer/cutover checks.
+Opus is implementing that narrow facade/API pass in the reused worktree
+`/Users/david/dev/game-battle-native-draw-observation`, branch
+`codex/battle-presented-draw-count`, basebbb9fde4, handle96681. Prompt and output
+are `throwaway/presented-draw-{prompt,result}.txt`. Check the live handle or actual
+final result before restarting. Root owns GPU validation after review.
 
 Current evidence:
 
-- [Scene integration](assets/typegpu-scene-state/README.md): actual GPU early
-  reload and Menu seating/spawn/reload/disposal checks pass after the accepted fix.
+- [Impostor GPU derivation](assets/typegpu-impostor-state/README.md), integrated
+  ce4429d0/62ec8728: actual GPU records and12 physical image cases pass at1x/4x;
+  exact bisector differences remain explicit. Fixed actual-game images at three
+  tactical zooms are pixel-identical once the200ms minimap HUD update settles.
+  Whole moving-camera preparation still scales with population. Performance and
+  motion acceptance remain open. Fixed A/B builds are under
+  `throwaway/typegpu-impostor-evaluation/{control,candidate}/menu`.
+- [TypeGPU block-debug](assets/typegpu-block-debug/README.md), integrated4ec4b3e6:
+  root83 candidate/57 facade tests, independent review, and actual-game click/drag
+  selection at DPR1/2 pass. Opaque depth-off rectangles retain the original debug
+  policy; ordinary mode allocates no extra layer.
+- [Draw observation](assets/native-draw-observation/README.md), integratedbbb9fde4:
+  root37 tests and independent review pass. Observation counts offered commands,
+  not successful frames; the active consumer pass must preserve that distinction.
+- [Content](assets/typegpu-content-state/README.md),
+  [scene reload](assets/typegpu-scene-state/README.md),
+  [typed colours/frame depth](assets/typegpu-first-passes/README.md),
+  [High shadows](assets/typegpu-high/README.md), and
+  [receiver overlap/fade](assets/typegpu-shadow-overlap/README.md) retain their
+  bounded GPU correctness proofs. They do not close final moving-shadow quality.
+- [Snapshot optimization](assets/07-snapshot-copy/README.md) improves shared CPU
+  preparation; its33ms floor is not selected-renderer live60FPS acceptance.
+  [Ocean4x](assets/m3b-aligned-water/README.md) remains red.
 
-- [Typed colours and frame depth](assets/typegpu-first-passes/README.md): typed
-  colour bodies, nonfinite-safe numerical comparison, real frame allocation and
-  resize/disposal checks pass. Other string shader bodies remain untyped.
-- [TypeGPU High shadows](assets/typegpu-high/README.md): Menu single/High/off
-  hardware lifecycle and unchanged single-map source comparison pass. Split/overlap,
-  matched-state readability and moving-shadow performance remain open.
-- [Shared crowd diagnostics](assets/typegpu-crowd-state/README.md): combined
-  candidate47/47, raw audience21/21 and relevant typechecks pass; independent review
-  has no actionable findings. Scene/facade wiring is the active pass.
-- [Snapshot optimization](assets/07-snapshot-copy/README.md) improves raw/shared
-  CPU preparation. Latest changed source/raw30k checks both pass19 unchanged gates;
-  that33ms floor is not selected-renderer live60FPS acceptance.
-- [Component evidence](assets/migration-component-review/README.md) and
-  [water diagnostics](assets/m3b-aligned-water/README.md): ocean4x stays red. Do not
-  turn diagnostic matrix agreement into a proof that the port is correct.
+Priority: selected-renderer capability and visual/motion verification, demonstrated
+CPU savings and simulation throughput, then the full five-minute live/default-shadow
+acceptance. Preserve content, HUD, DPR, assets, behavior and gates. No compatibility,
+migrations or reduced-quality win. Do not repeat unchanged rejected ABBA trials
+merely to seek green. Serialize timing against owned builds, CPU agents and GPU work.
+No timing job is active.
 
-Priority after the active pass: selected-renderer capability and visual/motion
-verification, then demonstrated CPU savings and simulation throughput, then the
-full five-minute live/default-shadow acceptance. Preserve original content, HUD,
-DPR, assets, behavior and gates. No compatibility, migrations or reduced-quality win.
-Do not repeat rejected unchanged ABBA trials merely to seek green; serialize actual
-timing against owned builds, CPU agents and GPU work.
-
-Pending candidates remain unadopted: `codex/battle-gpu-impostor` at1c816fc5 (no GPU
-compile yet) and `codex/battle-water-comparison` atc702e002 (diagnostics, no fix).
-Their worktrees are removed and scratch archived.82 older unoccupied battle branch
-refs were deleted after a verified bundle and name/hash manifest at
-`throwaway/branch-cleanup-20260920-182212/`; active, pending and unrelated refs
-were preserved. Finished TypeGPU High/crowd worktrees and branches were also removed after preserving
-scratch and a verified bundle at `throwaway/typegpu-completed-cleanup-2/`.
-Preserve historical control worktrees.
-
-[The evidence ledger](evidence.md) retains older measurements and component gates;
-[choices](choices.md) records decisions. Keep historical reds distinct from current
-results, and keep this handoff short enough to select one next action.
+The finished impostor worktree and8 older renderer branches were removed after
+preserving scratch and a verified bundle in
+`throwaway/older-branch-cleanup-20260920-194943/`. Earlier cleanup archives remain.
+Keep the block-debug worktree until its evidence/cleanup is completed; the draw
+worktree is active. Preserve historical controls and unrelated worktrees.
+Pending raw GPU-impostor1c816fc5 and water-comparisonc702e002 branches remain
+unadopted references. [The evidence ledger](evidence.md) retains older results;
+[choices](choices.md) records decisions.
 
 - [x] [01 — production motion evidence](slices/01-motion-evidence.md)
 - [x] [01a — menu-launched simulated benchmark](slices/01a-benchmark-run.md)

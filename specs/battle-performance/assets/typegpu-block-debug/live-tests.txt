@@ -1,0 +1,9 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-typegpu-block-debug/apps/battle-perf-lab/src/live
+
+
+ Test Files  4 passed (4)
+      Tests  57 passed (57)
+   Start at  19:52:03
+   Duration  302ms (transform 409ms, setup 0ms, import 522ms, tests 41ms, environment 0ms)
+

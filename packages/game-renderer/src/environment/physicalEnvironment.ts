@@ -18,12 +18,14 @@ export interface PhotorealEnvironmentSpec {
   environmentIntensity: number;
 }
 
-// Verdict-grade constant carried over from the 06 bake-off's winning probe.
+// Verdict-grade constant carried over from the 06 bake-off's winning probe —
+// the default for every preset that does not balance its own sky fill.
 const ENVIRONMENT_INTENSITY = 0.7;
 
 /** The pure preset → physical-parameters mapping (no GPU, no scene mutation).
- *  Sun intensity / exposure / turbidity come from the preset's physical block
- *  (CivsimPhysicalLight) — per-preset knobs on the ONE owner. */
+ *  Sun intensity / exposure / turbidity — and the sky fill, when a preset
+ *  balances its own — come from the preset's physical block
+ *  (CivsimPhysicalLight): per-preset knobs on the ONE owner. */
 export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironmentSpec {
   const cosEl = Math.cos(env.sunElevation);
   const sky = skyModelParams(env);
@@ -38,6 +40,6 @@ export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironme
     sunIntensity: env.physical.sunIntensity,
     exposure: env.physical.exposure,
     turbidity: env.physical.turbidity,
-    environmentIntensity: ENVIRONMENT_INTENSITY,
+    environmentIntensity: env.physical.environmentIntensity ?? ENVIRONMENT_INTENSITY,
   };
 }

@@ -22,6 +22,7 @@ const PRESET_IDS = Object.keys(CIVSIM_ENVIRONMENTS) as (keyof typeof CIVSIM_ENVI
 
 test("photoreal environment: every preset id maps", () => {
   assert.ok(PRESET_IDS.length >= 4, "expected the civsim preset table (incl. noon)");
+  const shared = new Set<number>();
   for (const id of PRESET_IDS) {
     const spec = photorealEnvironment(CIVSIM_ENVIRONMENTS[id]);
     assert.equal(spec.id, id, "spec id must be the preset id, never invented");
@@ -49,7 +50,14 @@ test("photoreal environment: every preset id maps", () => {
       spec.sunIntensity > 0 && spec.exposure > 0 && spec.turbidity > 0,
       `physical fields positive for ${id}`,
     );
+    // The sky fill is preset-owned too, but optional: a preset that balances
+    // sun against sky states it, and the rest share one default.
+    assert.ok(spec.environmentIntensity > 0, `sky fill positive for ${id}`);
+    const owned = env.physical.environmentIntensity;
+    if (owned === undefined) shared.add(spec.environmentIntensity);
+    else assert.equal(spec.environmentIntensity, owned, `sky fill override for ${id}`);
   }
+  assert.equal(shared.size, 1, "presets without their own sky fill share one default");
 });
 
 test("photoreal environment: sun direction round-trips to the preset angles", () => {

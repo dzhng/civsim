@@ -33,6 +33,7 @@
 //   ?gradeSat=N|gradeContrast=N|gradeSplit=N|gradeLift=N
 //                 optional post-grade uniform overrides for look-grade sweeps
 import * as THREE from "three/webgpu";
+import { battleDebugBlockTriangles } from "@packages/game-renderer/src/battle/debugBlockData";
 import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import type { BattleTacticalLineFrame } from "@packages/battle-renderer/src/types";
 import { postGradeUniformsFromParams } from "@packages/game-renderer/src/environment/postParameters";
@@ -526,7 +527,19 @@ export async function route(ctx: LabContext) {
     const arcs = attackArcs();
     world.drawTris(arcs.length > 0 ? arcs : fxArcs(), snapshot);
     if (debugBlocks) {
-      world.uploadDebugBlocks(buildDebugBlockTriangles(game, wasm.memory.buffer));
+      const info = unitInfo();
+      world.uploadDebugBlocks(
+        battleDebugBlockTriangles({
+          positions,
+          alive,
+          count: n,
+          soldierUnit: new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), n),
+          unitTeam: Array.from(
+            { length: game.unit_count() },
+            (_, unit) => info[unit * STRIDE + UNIT_INFO.team],
+          ),
+        }),
+      );
     }
     applyOnly();
     applyClayMode();
@@ -583,54 +596,4 @@ function heightForPhotorealRoute(height: Float32Array, generatedMap: boolean): F
   const scale = 1 / BATTLE_RELIEF_EXAGGERATION;
   for (let i = 0; i < height.length; i++) out[i] = height[i] * scale;
   return out;
-}
-
-// The production ?debug=blocks triangles (renderer.ts buildDebugBlockTriangles).
-function buildDebugBlockTriangles(
-  game: {
-    soldier_count(): number;
-    unit_count(): number;
-    positions_ptr(): number;
-    alive_ptr(): number;
-    soldier_unit_ptr(): number;
-    unit_info_ptr(): number;
-    unit_info_stride(): number;
-  },
-  buffer: ArrayBuffer,
-): Float32Array {
-  const n = game.soldier_count();
-  const positions = new Float32Array(buffer, game.positions_ptr(), n * 2);
-  const alive = new Uint8Array(buffer, game.alive_ptr(), n);
-  const soldierUnit = new Uint32Array(buffer, game.soldier_unit_ptr(), n);
-  const stride = game.unit_info_stride();
-  const info = new Float32Array(buffer, game.unit_info_ptr(), game.unit_count() * stride);
-  const bounds = new Map<
-    number,
-    { x0: number; y0: number; x1: number; y1: number; team: number }
-  >();
-  for (let i = 0; i < n; i++) {
-    if (!alive[i]) continue;
-    const unit = soldierUnit[i];
-    const x = positions[i * 2];
-    const y = positions[i * 2 + 1];
-    const prev = bounds.get(unit);
-    if (prev) {
-      prev.x0 = Math.min(prev.x0, x);
-      prev.y0 = Math.min(prev.y0, y);
-      prev.x1 = Math.max(prev.x1, x);
-      prev.y1 = Math.max(prev.y1, y);
-    } else {
-      bounds.set(unit, { x0: x, y0: y, x1: x, y1: y, team: info[unit * stride + 6] });
-    }
-  }
-  const verts: number[] = [];
-  for (const b of bounds.values()) {
-    const pad = 2.4;
-    const color: [number, number, number, number] =
-      b.team === 1 ? [0.88, 0.2, 0.16, 0.88] : [0.18, 0.44, 1.0, 0.88];
-    const [x0, y0, x1, y1] = [b.x0 - pad, b.y0 - pad, b.x1 + pad, b.y1 + pad];
-    verts.push(x0, y0, ...color, x1, y0, ...color, x1, y1, ...color);
-    verts.push(x0, y0, ...color, x1, y1, ...color, x0, y1, ...color);
-  }
-  return new Float32Array(verts);
 }

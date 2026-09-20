@@ -193,8 +193,8 @@ beforeEach(() => {
   state.triangleLayers.length = 0;
   state.encoded.length = 0;
 });
-async function ready() {
-  const scene = await createRawBattleScene(device, caps, options);
+async function ready(debugBlocks = false) {
+  const scene = await createRawBattleScene(device, caps, { ...options, debugBlocks });
   scene.uploadCrowd([], camera);
   await scene.prepare({ camera, time: 0 });
   return scene;
@@ -235,8 +235,14 @@ test("disposal during an awaited UI upload prevents late readout allocation", as
   expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
 });
 
-test("attack arcs and the block-debug view own separate layers, blocks encoded first", async () => {
+test("ordinary battles allocate no block-debug layer", async () => {
   const scene = await ready();
+  expect(state.triangleLayers).toHaveLength(1);
+  scene.dispose();
+});
+
+test("attack arcs and the block-debug view own separate layers, blocks encoded first", async () => {
+  const scene = await ready(true);
   const blockVerts = new Float32Array([1, 2, 1, 0, 0, 1]);
   scene.uploadDebugBlocks(blockVerts);
   // Every later frame reuploads its arcs, including the empty frames between them.

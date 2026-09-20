@@ -686,3 +686,16 @@ when it is computed. A camera movement must produce its caster view before that
 frame is culled. Source cold/prior-frame cascade lag is not a behavior to preserve.
 The native valid-depth guard also remains on High. These declared differences
 need targeted coverage evidence, not a claim of unconditional pixel identity.
+
+
+## Block debugging
+
+Sound, high confidence: allocate the extra rectangle layer only when block debug
+is requested. Ordinary battles keep their prior GPU resource shape. Debug blocks
+need a separate buffer from attack arcs because clearing arcs must not erase them.
+They remain depth-off overlays, as in the source, rather than new terrain objects.
+
+Sound, high confidence: all three geometry consumers use one shared preparation
+function. The renderer-lab route adapts its packed unit-info data at the call site;
+it no longer owns another bounds/padding/color algorithm. Final cutover can remove
+the old battle world without deleting this still-used shared geometry policy.

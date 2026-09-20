@@ -9,3 +9,11 @@ Reuse hostile-order, standards, readout and complete-scene controls plus debug-b
 Use the shared snapCheck path for visual evidence; inspect actual frames, compare
 matched crops and run unprimed screenshot-critique before accepting visual change.
 Preserve current thresholds and carry inherited failures explicitly.
+
+
+[Block-debug restoration](../assets/m7-block-debug/README.md) now passes actual
+DPR1/2 selection, focused geometry/lifecycle checks and frozen snapCheck review.
+Ordinary scenes allocate no extra debug GPU layer. The source lab's third geometry
+copy also uses the shared owner. This closes the missing debug mode; complete
+opaque/transparent cue ordering and the shared bright contact bands remain separate
+M7 visual obligations, not implicitly accepted by these debug checks.

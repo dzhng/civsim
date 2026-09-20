@@ -38,6 +38,8 @@ export interface BattleSceneOptions extends BattleCrowdAssets {
   /** The user-visible sun tier: `off`, the fitted single map, or High's two
    *  cascades. Explicit — a scene never infers a tier from a boolean. */
   shadows: SunShadowMode;
+  /** Allocate formation-debug resources only for the explicit debug route. */
+  debugBlocks?: boolean;
   grass: boolean;
   farGrass: boolean;
   bloom: boolean;

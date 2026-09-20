@@ -79,16 +79,9 @@ type Scene = Owner["scene"];
 type View = Parameters<Scene["prepare"]>[0];
 /** Crowd assets, replacement and admitted-pose diagnostics belong to the selected
  * raw world; the remaining comparison backends are retired at M9 and never owned them. */
-type CrowdScene = Extract<Scene, { replaceCrowdAssets: unknown }>;
-const crowdScene = (scene: Scene | undefined): CrowdScene | null =>
+type RawScene = Extract<Scene, { replaceCrowdAssets: unknown }>;
+const rawScene = (scene: Scene | undefined): RawScene | null =>
   scene && "replaceCrowdAssets" in scene ? scene : null;
-/** The block-debug view needs the second triangle layer, which only the selected
- * raw world owns. The constructor already refused the other backends. */
-type DebugBlockScene = Extract<Scene, { uploadDebugBlocks: unknown }>;
-const debugBlockScene = (scene: Scene): DebugBlockScene => {
-  if (!("uploadDebugBlocks" in scene)) throw Error("Selected backend owns no debug-block layer");
-  return scene;
-};
 const twoFrames = () =>
   new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
@@ -269,7 +262,7 @@ export class BattleRenderer implements BattleRendererApi {
   /** Every pose the crowd owner is presenting must exist in the replacement, both
    *  when it loads and again at admission: the simulation may submit new poses while
    *  the catalog load and the staged GPU resources wait. */
-  private assertActivePoses(published: BattleCrowdAssets, scene: CrowdScene) {
+  private assertActivePoses(published: BattleCrowdAssets, scene: RawScene) {
     for (const pose of scene.admittedCrowdPoses()) {
       const [classId, clip] = pose.split("\u0000");
       if (!published.assets[Number(classId)]?.animation.clips.some((c) => c.name === clip))
@@ -356,6 +349,7 @@ export class BattleRenderer implements BattleRendererApi {
       samples: 1,
       outputFormat: this.format,
       shadows: resolveSunShadowMode("", this.settings.shadows),
+      debugBlocks: this.blockMode,
       ...this.visibility,
       post: this.post,
       grade: this.grade,
@@ -519,7 +513,7 @@ export class BattleRenderer implements BattleRendererApi {
           await step(() => owner.scene.uploadCrowd(this.instances, view.camera, view.time));
           if (this.blockMode)
             await step(() =>
-              debugBlockScene(owner.scene).uploadDebugBlocks(
+              rawScene(owner.scene)!.uploadDebugBlocks(
                 battleDebugBlockTriangles({
                   positions: c.positions,
                   alive: c.alive,
@@ -738,7 +732,7 @@ export class BattleRenderer implements BattleRendererApi {
   /** The pose the crowd owner actually admitted, not the instance scratch the next
    *  frame rebuilds in place. */
   debugSoldierAnim(index: number) {
-    return crowdScene(this.owner?.scene)?.debugSoldierAnim(index) ?? null;
+    return rawScene(this.owner?.scene)?.debugSoldierAnim(index) ?? null;
   }
   /** Reload the published crowd after a bake. The replacement is staged: a failed
    *  load or admission keeps the last valid world, disposal releases the staged
@@ -752,7 +746,7 @@ export class BattleRenderer implements BattleRendererApi {
       await previous;
       await prior;
       this.check();
-      const scene = crowdScene(this.owner?.scene);
+      const scene = rawScene(this.owner?.scene);
       if (!scene) throw Error(`The ${this.backend} comparison backend does not own crowd assets`);
       const published = await this.assets();
       this.check();

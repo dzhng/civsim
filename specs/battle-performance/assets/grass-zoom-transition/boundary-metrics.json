@@ -1,0 +1,53 @@
+[
+  {
+    "boundary": 15,
+    "baseline": {
+      "patchChangedPixels": 55234,
+      "patchMeanAbs": 1.13154,
+      "patchMax": 160,
+      "nearTierDelta": 27.5,
+      "denseDelta": 27.5
+    },
+    "candidate-checks": {
+      "patchChangedPixels": 55234,
+      "patchMeanAbs": 1.13154,
+      "patchMax": 160,
+      "nearTierDelta": 0.10312478522338608,
+      "denseDelta": 0.10312478522338608
+    }
+  },
+  {
+    "boundary": 30,
+    "baseline": {
+      "patchChangedPixels": 26380,
+      "patchMeanAbs": 0.8217233333333334,
+      "patchMax": 96,
+      "nearTierDelta": -44.5,
+      "denseDelta": 38.5
+    },
+    "candidate-checks": {
+      "patchChangedPixels": 26780,
+      "patchMeanAbs": 0.8446766666666666,
+      "patchMax": 97,
+      "nearTierDelta": -0.16687465176025995,
+      "denseDelta": 0.14437469871393205
+    }
+  },
+  {
+    "boundary": 45,
+    "baseline": {
+      "patchChangedPixels": 25090,
+      "patchMeanAbs": 0.7870133333333333,
+      "patchMax": 121,
+      "nearTierDelta": 0,
+      "denseDelta": 55
+    },
+    "candidate-checks": {
+      "patchChangedPixels": 25090,
+      "patchMeanAbs": 0.7870133333333333,
+      "patchMax": 121,
+      "nearTierDelta": 0,
+      "denseDelta": 0.20624957151305523
+    }
+  }
+]

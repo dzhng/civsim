@@ -17,36 +17,27 @@ checks; no query slots are allocated in disabled mode. The worker and review are
 terminal; its worktree and both branches were removed after preserving scratch and
 a verified bundle at `throwaway/presented-draw-completed-cleanup/`.
 
-Independent CPU-work candidate: Opus is active in
-`/Users/david/dev/game-battle-camera-pose-reuse`, branch
-`codex/battle-camera-pose-reuse`, base969f9d3f, resumed handle35299. Root intentionally stopped the first run
-(handle78107, terminal) after discovering that the actual facade uploads a new
-crowd snapshot on every rendered frame. The resumed prompt/results are
-`throwaway/consumer-correction-{prompt,result}.txt`. It must establish truthful
-producer-owned state identity through the actual presentation path before any
-downstream reuse can count as a game optimization. Do not infer unchanged poses
-from observation tick or borrowed-array identity; interpolation and held playback
-can advance separately. Preserve exact LOD and newly visible poses, and do not
-mark a merely encoded/discarded pose dispatch as successfully computed. Unlike rejected929020f4, this targets downstream derivation/pose dispatch,
-not source-column pooling. No speedup is established; root must measure actual
-work removal, union churn and matched camera performance before adoption.
+Camera-state candidate: `game-battle-camera-pose-reuse` holds c4e555c1 plus
+recovery25034412; Opus handle7582 is terminal. The actual producer/facade now
+reuse unchanged state, and failures invalidate reuse until admission validates.
+Root63 facade tests pass, including deferred GPU rejection and failed camera
+reprojection recovery. No GPU or timing acceptance yet. Ordinary advancing live
+poses still rebuild; paused/repeated states benefit, so do not claim live gains.
 
-Grass zoom-transition candidate: Opus is active in
-`/Users/david/dev/game-battle-grass-zoom-transition`, branch
-`codex/battle-grass-zoom-transition`, basefeabc4d4, handle54964. Its prompt/results
-are under `throwaway/`. The existing complete transition profile jumps at physical
-camera heights15/30/45m. This pass smooths those joins without changing steady
-profiles, source records or residency work. Actual coverage/motion proof is owed.
+Grass candidate8ac39665 in `game-battle-grass-zoom-transition` is unadopted.
+[Actual Menu boundary controls](assets/grass-zoom-transition/README.md) prove
+continuous parameters and rendering changes at two pitches. Temporal image
+metrics are mixed and not a clean pop metric. Continuous ground-sequence review
+and timing remain owed; the worker is terminal.
 
-TypeGPU image sharing: Opus is active in
-`/Users/david/dev/game-battle-typegpu-shared-images`, branch
-`codex/battle-typegpu-shared-images`, base2702bd81, handle28741. Prompt/result are in `throwaway/`.
-Root actual GPU baseline confirms60 bitmap-uploaded2048-square/12-mip material
-textures (20srgb/40linear). The isolated owner must share immutable images while
-keeping per-appearance materials; root wires it only after the camera worker
-finishes, since both would otherwise touch crowd.ts. GPU allocation/visual/lifetime
-acceptance remains owed. Future worktrees must borrow `packages/soldier-assets/assets`
-as well as public/wasm/node_modules; copying those assets filled the disk once.
+TypeGPU image ownerfd41af3c in `game-battle-typegpu-shared-images` passed static
+root/independent review. Opus handle16260 is wiring it into crowd.ts in that
+separate worktree; root will resolve the small preparation/import overlap with
+the finished camera candidate. Prompt/results: `throwaway/wiring-{prompt,result}.txt`.
+Actual GPU baseline confirms60 bitmap-uploaded2048-square/12-mip material
+textures (20srgb/40linear). The owner is not yet hardware-verified: real allocation,
+visual, reload/lifetime and performance checks remain. Future worktrees borrow
+`packages/soldier-assets/assets` as well as public/wasm/node_modules.
 
 Current evidence:
 
@@ -86,7 +77,7 @@ preserving scratch and a verified bundle in
 `throwaway/older-branch-cleanup-20260920-194943/`. Earlier cleanup archives remain.
 The completed block-debug worktree/branch were also removed after a verified
 bundle and scratch archive at `throwaway/typegpu-block-debug-completed-cleanup/`.
-The draw worker is cleaned up; the two optimization worktrees above are active. Historical control checkouts `game-battle-claude-builds` and `game-battle-perf-fixture`
+The draw worker is cleaned up; the candidate worktrees above remain pending verification. Historical control checkouts `game-battle-claude-builds` and `game-battle-perf-fixture`
 were removed at the user's request after confirming no active process/dependent
 link or tracked code change. `throwaway/unused-controls-cleanup/` preserves their
 heads, verified bundle, scratch, and1111 SHA-verified unique captures. Restore

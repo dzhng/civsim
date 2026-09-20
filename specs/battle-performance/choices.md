@@ -732,3 +732,11 @@ the old battle world without deleting this still-used shared geometry policy.
 - **Retained:** preserve the existing Euclidean-distance approximation and
   visibility thresholds; changing to projected depth would be a different visual
   policy. The lab uses the same pure math for its submitted camera.
+
+## Default shadow filtering
+
+- **Retained, bounded visual improvement:** narrow the single-map sampling radius
+  while keeping five taps and High softness. Matched stills favor firmer grounding
+  without obvious new artifacts; full temporal/net-cost acceptance remains open.
+  The scale is an empirical visual choice, not an asserted physical equivalence
+  between single and cascade texels.

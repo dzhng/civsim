@@ -19,7 +19,7 @@ import {
   SHADOW_BIAS,
   SHADOW_MAX_FAR,
   SINGLE_MAP_SIZE,
-  shadowRadiusForTurbidity,
+  sunShadowRadius,
 } from "@packages/game-renderer/src/battle/shadowPolicy";
 import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
 import { PHOTOREAL_FAR_FALLBACK } from "@packages/photoreal-renderer/src/cameraBridge";
@@ -81,6 +81,9 @@ test("native camera packing follows the real Three rig through zoom and terrain 
         expect(value).toBeCloseTo(vp.elements[i], 5),
       );
       expect(data.receiver[17]).toBeCloseTo(sun.shadow.normalBias, 6);
+      // One radius owner: what the source rig set on its Three shadow is what
+      // the native block packs, for whatever this preset's turbidity resolves to.
+      expect(data.receiver[18]).toBe(Math.fround(sun.shadow.radius));
       const count = writes;
       expect(native.update(view)).toBe(data);
       expect(writes).toBe(count);
@@ -112,9 +115,13 @@ test("the fitted single map fills record 0 and leaves the second record unreacha
   expect(data.cascades).toHaveLength(1);
   // The block is float32; the policy constants are float64 literals.
   expect(data.receiver[16]).toBe(Math.fround(SHADOW_BIAS));
+  // The fitted map's texel is a fraction of a cascade texel, so the single tier
+  // packs a DELIBERATELY narrower version of the same turbidity radius (golden:
+  // 1.252 texels at High). Same five taps, same curve, same clamps underneath.
   expect(data.receiver[18]).toBe(
-    Math.fround(shadowRadiusForTurbidity(environment.physical.turbidity)),
+    Math.fround(sunShadowRadius(environment.physical.turbidity, "single")),
   );
+  expect(data.receiver[18]).toBeCloseTo(0.7512, 5);
   // The whole receiver range belongs to the one map; it is sampled directly.
   expect(Array.from(data.receiver.slice(20, 22))).toEqual([0, 1]);
   // Record 1 is initialized and EMPTY, so no code path can select the layer the
@@ -157,6 +164,12 @@ test("High packs two distinct caster cameras and a two-record receiver block", (
   // Depth bias is scaled by the cascade index; the normal bias is not.
   expect(data.receiver[16]).toBe(Math.fround(SHADOW_BIAS));
   expect(data.receiver[SUN_CASCADE_RECORD_FLOATS + 16]).toBe(Math.fround(SHADOW_BIAS * 2));
+  // High keeps the unscaled turbidity radius in both records.
+  expect(data.receiver[18]).toBe(
+    Math.fround(sunShadowRadius(environment.physical.turbidity, "csm")),
+  );
+  expect(data.receiver[18]).toBeCloseTo(1.252, 5);
+  expect(data.receiver[SUN_CASCADE_RECORD_FLOATS + 18]).toBe(data.receiver[18]);
   expect(data.receiver[SUN_CASCADE_RECORD_FLOATS + 17]).toBe(data.receiver[17]);
   // The two intervals partition [0, 1] with no gap.
   expect(data.receiver[20]).toBe(0);

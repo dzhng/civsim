@@ -38,13 +38,16 @@ const FRAMING = "map=gen&seed=8&t=0&ref=1&zoom=6&cx=-560&cy=-380";
 const SCENERY_CROP = { x0: 0.51, y0: 0.5, w: 0.14, h: 0.13 };
 // Formation crop for the golden contact snap (soldier feet on ground).
 const CONTACT_CROP = { x0: 0.22, y0: 0.2, w: 0.13, h: 0.16 };
+// Radii are the SINGLE tier's: the turbidity radius (1 + (t - 2) * 0.28,
+// clamped [1, 3]) narrowed by the fitted map's 0.6 factor. High samples the
+// unscaled radius; equal texel radii do not imply equal world-space softness.
 const PRESETS = [
-  { env: "golden-hour", preset: "golden", radius: 1.168 },
-  { env: "noon", preset: "noon", radius: 1 },
-  { env: "dusk", preset: "dusk", radius: 1.448 },
-  // Turbidity 7.2 keeps ranges readable through haze:
-  // radius = 1 + (7.2 - 2) * 0.28.
-  { env: "overcast-foggy", preset: "overcast-highland", radius: 2.456 },
+  // Golden turbidity 2.9 -> base 1.252.
+  { env: "golden-hour", preset: "golden", radius: 0.7512 },
+  { env: "noon", preset: "noon", radius: 0.6 },
+  { env: "dusk", preset: "dusk", radius: 0.8688 },
+  // Turbidity 7.2 keeps ranges readable through haze: base 2.456.
+  { env: "overcast-foggy", preset: "overcast-highland", radius: 1.4736 },
 ];
 
 export async function run(ctx) {

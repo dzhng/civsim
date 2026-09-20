@@ -12,7 +12,7 @@ import {
   SINGLE_MAP_SIZE,
   SHADOW_BIAS,
   SHADOW_MAX_FAR,
-  shadowRadiusForTurbidity,
+  sunShadowRadius,
 } from "../../game-renderer/src/battle/shadowPolicy";
 import {
   cascadeFits,
@@ -128,7 +128,7 @@ function shadowFrameData(
     fit.far,
   );
   const viewProjection = multiply(projection, view);
-  const radius = shadowRadiusForTurbidity(environment.physical.turbidity);
+  const radius = sunShadowRadius(environment.physical.turbidity, "single");
   const receiver = new Float32Array(SUN_SHADOW_BLOCK_FLOATS);
   // The fitted map owns the whole receiver range; it is sampled directly, so
   // the interval is only evidence of that.
@@ -183,7 +183,7 @@ function cascadeFrameData(
   sun: readonly [number, number, number],
 ): NativeShadowData {
   const frame = cascadeFits({ camera, resolvedFar: PHOTOREAL_FAR_FALLBACK, unitSunDirection: sun });
-  const radius = shadowRadiusForTurbidity(environment.physical.turbidity);
+  const radius = sunShadowRadius(environment.physical.turbidity, "csm");
   const receiver = new Float32Array(SUN_SHADOW_BLOCK_FLOATS);
   const cascades = frame.cascades.map((fit: CascadeFit) => {
     writeRecord(

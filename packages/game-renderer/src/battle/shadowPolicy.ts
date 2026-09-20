@@ -19,9 +19,25 @@ export const SHADOW_NORMAL_BIAS = 0.6;
 export const SHADOW_CAM_NEAR = 1;
 export const SHADOW_CAM_FAR = 2500;
 
-/** Aerosol turbidity broadens the sampling radius without a second light preset. */
-export function shadowRadiusForTurbidity(turbidity: number): number {
+/** Aerosol turbidity broadens the sampling radius without a second light preset.
+ * The base curve every mode starts from; `sunShadowRadius` is what receivers get. */
+function shadowRadiusForTurbidity(turbidity: number): number {
   return Math.min(3, Math.max(1, 1 + (turbidity - 2) * 0.28));
+}
+
+/** A narrower single-map footprint keeps small directional shadows distinct.
+ * High retains its established softness; world-space blur also depends on the
+ * current fit, so this is a visual policy rather than a texel-size equivalence. */
+const SINGLE_SHADOW_RADIUS_SCALE = 0.6;
+
+/** One owner for the PCF radius every receiver reads, in texels: the Three rig
+ * sets it on `shadow.radius`, the native frame packs it into the receiver
+ * block. Mode is explicit at both call sites — a default would let a new
+ * consumer inherit the single-tier narrowing by omission. */
+export function sunShadowRadius(turbidity: number, mode: SunShadowMode): number {
+  if (mode === "off") return 0;
+  const radius = shadowRadiusForTurbidity(turbidity);
+  return mode === "single" ? radius * SINGLE_SHADOW_RADIUS_SCALE : radius;
 }
 
 /** All adapters currently use one soft map; explicit lab overrides select CSM/off. */

@@ -44,3 +44,8 @@ was not measured.
 [Light-separation diagnostics](../assets/08-light-separation/README.md) now motivate
 a bounded key/fill balance candidate. Diagnostic-only output is not a shipped
 visual change, nor a claim that all remaining coverage issues are resolved.
+
+[The narrower default footprint](../assets/08-shadow-filter/README.md) improves
+contact contrast while High/off stay pixel-equivalent. The source grove/preset
+checks pass; broader receiver coverage and complete moving/live acceptance remain
+explicit. Do not infer a fixed single/cascade world-texel ratio from map resolution.

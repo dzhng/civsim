@@ -32,8 +32,9 @@ const depthType = (binding: ShadowMapBinding) =>
 
 /** Pinned Three r185 PCFShadowFilter: five Vogel disk taps with per-pixel IGN.
  * Shadow projection/fit and bias remain inputs, not a second lighting policy.
- * The radius is in TEXELS, so equal turbidity is equal texel softness — not
- * equal world blur across cascade extents or between a 1024 and a 2048 map. */
+ * The radius is in TEXELS, so a given radius is equal texel softness — not
+ * equal world blur across cascade extents or between a 1024 and a 2048 map.
+ * The shared policy supplies the radius for the selected mode and preset. */
 export function shadowPcfWgsl(binding: ShadowMapBinding = "single-map"): string {
   return `(depth:${depthType(binding)}, compare:sampler_comparison, ${layerParam(binding)}uv:vec2f, z:f32, pixel:vec2f, radius:f32)->f32 {
   let phi=fract(52.9829189*fract(dot(pixel,vec2f(0.06711056,0.00583715))))*6.28318530718;

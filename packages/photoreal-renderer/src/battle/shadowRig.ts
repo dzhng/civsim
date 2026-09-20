@@ -11,7 +11,7 @@ import {
   SHADOW_CAM_NEAR,
   SHADOW_CAM_FAR,
   SingleShadowPolicy,
-  shadowRadiusForTurbidity,
+  sunShadowRadius,
   type SunShadowMode,
 } from "../../../game-renderer/src/battle/shadowPolicy";
 import * as THREE from "three/webgpu";
@@ -68,7 +68,7 @@ export function configureSunShadows(
   env: CivsimEnvironment,
   mode: SunShadowMode,
 ): SunShadowRig {
-  const radius = shadowRadiusForTurbidity(env.physical.turbidity);
+  const radius = sunShadowRadius(env.physical.turbidity, mode);
   const identityFor = (
     cascades: number,
     mapSize: number,
@@ -78,7 +78,7 @@ export function configureSunShadows(
     cascades,
     mapSize,
     maxFar: SHADOW_MAX_FAR,
-    radius: mode === "off" ? 0 : radius,
+    radius,
   });
 
   if (mode === "off") {

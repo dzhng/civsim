@@ -1,0 +1,50 @@
+{
+  "horizon-200m": {
+    "control": {
+      "main": 13.663854,
+      "union": 16.42561475,
+      "mainTriangles": 15945302.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 64.0
+    },
+    "pike2k": {
+      "main": 12.87578225,
+      "union": 15.64352175,
+      "mainTriangles": 13961302.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 64.0
+    }
+  },
+  "tactical-200m": {
+    "control": {
+      "main": 13.646531249999999,
+      "union": 16.46475875,
+      "mainTriangles": 15845822.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 56.0
+    },
+    "pike2k": {
+      "main": 12.96733375,
+      "union": 15.738291,
+      "mainTriangles": 13861822.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 56.0
+    }
+  },
+  "wide-600m": {
+    "control": {
+      "main": 9.2694525,
+      "union": 12.26918775,
+      "mainTriangles": 6738100.0,
+      "shadowTriangles": 6207200.0,
+      "draws": 59.0
+    },
+    "pike2k": {
+      "main": 9.17249575,
+      "union": 12.17414725,
+      "mainTriangles": 6738100.0,
+      "shadowTriangles": 6207200.0,
+      "draws": 59.0
+    }
+  }
+}

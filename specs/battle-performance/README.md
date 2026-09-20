@@ -8,16 +8,18 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: test a roughly 2,000-triangle pike intermediate mesh using L1's
-component-preservation settings, then review full materials and motion.
-[Constant-color coverage controls](assets/07-lod-coverage/README.md) confirm that
-existing L2 weakens pike shafts even without lighting; body contrast also changes
-with shading. Eight corrected captures record matching tier counts; the initial
-page-reuse comparison was confounded by hysteresis and is excluded.
-[The original L2 experiment](assets/07-l2-footprint/README.md) saves roughly
-4.5ms main GPU time at 200m but is **not adopted**. Do not trade required weapon
-readability for that gain. [Shading](assets/gpu-crowd-shading/README.md) and
-[layer controls](assets/gpu-layer-attribution/README.md) remain cost attribution.
+Current pickup: broaden the preserved-component intermediate reduction to the
+remaining distinct model sources, keeping L1's omission/floor settings and unchanged
+rig/material/other-tier contracts. [The heavy-pike pilot](assets/07-pike-intermediate/README.md)
+has matched static, sampled zoom and 44 authored-pose reviews without identified
+one-sided loss. Its completed 24-block GPU comparison saves about 0.7–0.8ms main
+GPU time at 200m, with unchanged shadows; this is not live FPS. Raw candidate
+bundles, exact source hashes and runners remain under
+`throwaway/lod-intermediate-preserved/`. No production asset or threshold changed.
+[Existing L2](assets/07-l2-footprint/README.md) remains rejected at L1 footprints;
+[constant-color controls](assets/07-lod-coverage/README.md) prove thinner pike coverage.
+Disabled texture-feature branches are lower priority: only about 2–3% of catalog
+L1 triangles use disabled features, not a measured screen-space cost fraction.
 
 [The combined blend/channel replay](assets/06a-transition-trace/README.md)
 is complete:32 actual late-window updates over15,560 soldiers, exact full state

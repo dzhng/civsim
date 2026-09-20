@@ -980,3 +980,16 @@ No new architecture or interpolation policy is introduced.
   constant-color rendering itself never becomes the player's visual treatment.
   **Verdict:** Sound; preserves the required readability while isolating the
   cause of the observed difference. **Confidence:** High.
+
+## Preserve small components when reducing intermediate meshes
+
+- **When:** Heavy-pike intermediate pilot. **Choice:** Try an intermediate mesh
+  with roughly half the current triangles while retaining the existing rule that
+  keeps small detached parts. For pikes, jumping straight to the existing distant
+  mesh made shafts visibly thinner; a less aggressive reduction keeps the familiar
+  canopy in reviewed poses and views. **Gap:** The plan permits equivalent mesh
+  representations but leaves the reduction method to measured experiments.
+  **Reach:** Wider roster adoption must pass its own visual and deformation checks;
+  this pilot does not authorize reducing every model blindly. No live frame-rate
+  or production-quality gate is waived. **Verdict:** Sound as a bounded pilot,
+  with broader applicability still provisional. **Confidence:** Medium.

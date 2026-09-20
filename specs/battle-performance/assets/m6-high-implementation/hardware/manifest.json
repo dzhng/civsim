@@ -1,0 +1,288 @@
+[
+  {
+    "source": "throwaway/high-shadow-review/hardware/terrain-preview.log",
+    "file": "hardware--terrain-preview.log.gz",
+    "bytes": 76,
+    "sha256": "91cabfee80d17ff61a12130ab0cc4b81b6851f477384bef972d04261d71dcd72"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/outcomes.json",
+    "file": "hardware--outcomes.json.gz",
+    "bytes": 528,
+    "sha256": "e11cb233f43bebdc8082423e166ee7446891e98ec1f779b0a18a945fa4c2dd15"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/shadow-0.json",
+    "file": "hardware--shadow-0.json.gz",
+    "bytes": 16780849,
+    "sha256": "6f3c3d5d2d09553674f0c819f0494f48cbebf27332c63467fb07ce6897d1a967"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/lifecycle-preview.log",
+    "file": "hardware--lifecycle-preview.log.gz",
+    "bytes": 76,
+    "sha256": "91cabfee80d17ff61a12130ab0cc4b81b6851f477384bef972d04261d71dcd72"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/lifecycle-0.json",
+    "file": "hardware--lifecycle-0.json.gz",
+    "bytes": 2594,
+    "sha256": "86a455df40cc5773bd4f5e91ac2880f0cee16dd3f168154cdcd21eb1d6e2317d"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/shadow-preview.log",
+    "file": "hardware--shadow-preview.log.gz",
+    "bytes": 76,
+    "sha256": "91cabfee80d17ff61a12130ab0cc4b81b6851f477384bef972d04261d71dcd72"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/frame-preview.log",
+    "file": "hardware--frame-preview.log.gz",
+    "bytes": 76,
+    "sha256": "91cabfee80d17ff61a12130ab0cc4b81b6851f477384bef972d04261d71dcd72"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/terrain-1.json",
+    "file": "hardware--terrain-1.json.gz",
+    "bytes": 37757932,
+    "sha256": "e6df966fcc68d61b4acd9f5a8ad7378d32bcb32cb8e6a1d78ddb3b3e80747be4"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/frame-0.json",
+    "file": "hardware--frame-0.json.gz",
+    "bytes": 25171315,
+    "sha256": "fbe09bd1310a356858b23e40203d7a39d04deea8840e3f268bf8ea472c2d190d"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/frame-1.json",
+    "file": "hardware--frame-1.json.gz",
+    "bytes": 25171370,
+    "sha256": "28ed34ff9bb2ee3487fe18e96f76cf4d90c27602409759c24f9fe6867940167f"
+  },
+  {
+    "source": "throwaway/high-shadow-review/hardware/terrain-0.json",
+    "file": "hardware--terrain-0.json.gz",
+    "bytes": 37757942,
+    "sha256": "a255cae7cd2574fc07107d30e3a554074bf6bac5d057cdcd2ecf5983c21a90ae"
+  },
+  {
+    "source": "throwaway/high-shadow-review/reference-hardware/terrain-preview.log",
+    "file": "reference-hardware--terrain-preview.log.gz",
+    "bytes": 76,
+    "sha256": "91cabfee80d17ff61a12130ab0cc4b81b6851f477384bef972d04261d71dcd72"
+  },
+  {
+    "source": "throwaway/high-shadow-review/reference-hardware/outcomes.json",
+    "file": "reference-hardware--outcomes.json.gz",
+    "bytes": 161,
+    "sha256": "aaf35887f2e61a6f8c8274233173fe5e407b08f23c3023481cf0269150744279"
+  },
+  {
+    "source": "throwaway/high-shadow-review/reference-hardware/terrain-1.json",
+    "file": "reference-hardware--terrain-1.json.gz",
+    "bytes": 37757932,
+    "sha256": "e6df966fcc68d61b4acd9f5a8ad7378d32bcb32cb8e6a1d78ddb3b3e80747be4"
+  },
+  {
+    "source": "throwaway/high-shadow-review/reference-hardware/terrain-0.json",
+    "file": "reference-hardware--terrain-0.json.gz",
+    "bytes": 37757942,
+    "sha256": "a255cae7cd2574fc07107d30e3a554074bf6bac5d057cdcd2ecf5983c21a90ae"
+  },
+  {
+    "source": "throwaway/high-shadow-review/menu-hardware/outcomes.json",
+    "file": "menu-hardware--outcomes.json.gz",
+    "bytes": 147,
+    "sha256": "df59951a4702f7aaf7d61b05741c75591d5de75f0927dfba8aec12786cdecffa"
+  },
+  {
+    "source": "throwaway/high-shadow-review/menu-hardware/off.json",
+    "file": "menu-hardware--off.json.gz",
+    "bytes": 155560,
+    "sha256": "0c5603d7f4c317fa9b03a5a65c97437ec0d0fae17dd221fb9e1514d6466e2ede"
+  },
+  {
+    "source": "throwaway/high-shadow-review/menu-hardware/csm.json",
+    "file": "menu-hardware--csm.json.gz",
+    "bytes": 156158,
+    "sha256": "f1c364425602f94b5b4df2e792f3a2077dd6c7fcf7745a0f2dda7bf31f669b25"
+  },
+  {
+    "source": "throwaway/high-shadow-review/menu-hardware/single.json",
+    "file": "menu-hardware--single.json.gz",
+    "bytes": 156126,
+    "sha256": "34c6d3df49d528896f793f9fa3b3fa2b56fd18c0cdcb4e2e7773f4c5b24ab6ae"
+  },
+  {
+    "source": "throwaway/high-shadow-review/root-typecheck.log",
+    "file": "root-typecheck.log.gz",
+    "bytes": 15,
+    "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+  },
+  {
+    "source": "throwaway/high-shadow-review/stderr.log",
+    "file": "stderr.log.gz",
+    "bytes": 314710,
+    "sha256": "58b8b6875dd58922f5a7e1f262e0dd3b5f4f43abf0c5eea2217ffbf7dc72d005"
+  },
+  {
+    "source": "throwaway/high-shadow-review/terrain-pre-post.json",
+    "file": "terrain-pre-post.json.gz",
+    "bytes": 3281,
+    "sha256": "2978b4c2888108f9f31ccfa7fc1ef5ff280ea9c5e4d3b0e5d8702b32a0236563"
+  },
+  {
+    "source": "throwaway/high-shadow-review/run-menu.log",
+    "file": "run-menu.log.gz",
+    "bytes": 30,
+    "sha256": "d3498e4481a190d353367998fd76f5a1bf2ef181e33a6be72fe7abdc54a29e4c"
+  },
+  {
+    "source": "throwaway/high-shadow-review/scene.log",
+    "file": "scene.log.gz",
+    "bytes": 3414,
+    "sha256": "7ee5fab0a8970e1e261e48eb15ff6953911762f26146ddcc82cf485b031d02b7"
+  },
+  {
+    "source": "throwaway/high-shadow-review/run-reference-terrain.log",
+    "file": "run-reference-terrain.log.gz",
+    "bytes": 112,
+    "sha256": "25b46132d3c220557b893c1f853159ac4c2b614f46c8ce7264a40a569161d564"
+  },
+  {
+    "source": "throwaway/high-shadow-review/scene-pre-post.json",
+    "file": "scene-pre-post.json.gz",
+    "bytes": 975,
+    "sha256": "3a0a0e32e03a19e7798c01b74058c5b4e0b9790006ba7e0a5df2ce1f4b7f3593"
+  },
+  {
+    "source": "throwaway/high-shadow-review/run-reference-terrain.mjs",
+    "file": "run-reference-terrain.mjs.gz",
+    "bytes": 2561,
+    "sha256": "cc25a24b4ceccf5f4e48bd886dc5b8865e6c0311a96a10c586a75c35e7ce3f72"
+  },
+  {
+    "source": "throwaway/high-shadow-review/run-menu.mjs",
+    "file": "run-menu.mjs.gz",
+    "bytes": 3070,
+    "sha256": "0d5dbd7e3eb893e3eeae5da19401a9cb56577e860492f1567eaa4e8839e4e8c0"
+  },
+  {
+    "source": "throwaway/high-shadow-review/reference-terrain-build.log",
+    "file": "reference-terrain-build.log.gz",
+    "bytes": 715,
+    "sha256": "3560e71a208d5101d3b5dafee37539cc633990559ace3a6927942baf3e00e714"
+  },
+  {
+    "source": "throwaway/high-shadow-review/root-live.log",
+    "file": "root-live.log.gz",
+    "bytes": 260,
+    "sha256": "adb361ee95ff494fea2b7f1fc60c797ae0c972955c70207a27ce10d4f23e8e19"
+  },
+  {
+    "source": "throwaway/high-shadow-review/run-controls.mjs",
+    "file": "run-controls.mjs.gz",
+    "bytes": 2517,
+    "sha256": "09450babe2a17acc75caa3e962cebed51cd007351bd2cc82f75e45d36e9c19f4"
+  },
+  {
+    "source": "throwaway/high-shadow-review/build-controls.py",
+    "file": "build-controls.py.gz",
+    "bytes": 1606,
+    "sha256": "fba9c99cae11c2d8161664bf2b48a8c66d6696d65be4eeed54dbf624ff836cd5"
+  },
+  {
+    "source": "throwaway/high-shadow-review/root-focused.log",
+    "file": "root-focused.log.gz",
+    "bytes": 412,
+    "sha256": "5e31d3aefb04fac2d09088e2cdfca4af962f64af4926894e913c3f3917680d0a"
+  },
+  {
+    "source": "throwaway/high-shadow-review/build-controls.log",
+    "file": "build-controls.log.gz",
+    "bytes": 54,
+    "sha256": "f144e3f70a63aaa2e1c9462aa31e05c07d2cce75cf929d58d075e3ce81f98b79"
+  },
+  {
+    "source": "throwaway/high-shadow-review/run-controls.log",
+    "file": "run-controls.log.gz",
+    "bytes": 399,
+    "sha256": "fcd88b00e0d2f55dfe817827c1cf9f2ccbc6b61f0d2d91e2a5c7f05aba30464f"
+  },
+  {
+    "source": "throwaway/high-shadow-review/scene/report.json",
+    "file": "scene--report.json.gz",
+    "bytes": 845039,
+    "sha256": "211903b1527ee5e1a33fb0b2cbc92c26dc142e856f57ea72ecf5b048ea0e5dd6"
+  },
+  {
+    "file": "csm-tactical.png",
+    "bytes": 4436489,
+    "sha256": "d99816db468e8a93e60de084d57c58bcbbece073934c308e8b8ba111bf1f98bd"
+  },
+  {
+    "file": "csm-wide.png",
+    "bytes": 2345187,
+    "sha256": "7c6acdbcbb36a1db376c7224d529a7014492cedf54d0712201e59e93add74c63"
+  },
+  {
+    "file": "csm-reverse.png",
+    "bytes": 3285763,
+    "sha256": "cb9bbba0324303a1c1c6e018b900c4558d188368231e255388e66d8bd35f03c7"
+  },
+  {
+    "file": "single-tactical.png",
+    "bytes": 4513619,
+    "sha256": "db7c0a8556b098a746c82fb5ed91dd11944fc9df3ad8534eaf6c5aaca984ef19"
+  },
+  {
+    "file": "off-tactical.png",
+    "bytes": 4248188,
+    "sha256": "64520de50375874aefbe17330c54cdf9a2219fb548f1fafaf282251cc066dc5c"
+  },
+  {
+    "file": "critique.txt.gz",
+    "bytes": 600,
+    "sha256": "f7edbd5842468fe189133ec84a7a63b895bbc1be8b75e8a7d86e36fc535b1202"
+  },
+  {
+    "file": "shadow-pair/csm.png",
+    "bytes": 4516691,
+    "sha256": "0774917087874f57956a0a8d9b4c26d6d7b4768165cd8ed187006ce3132bc52c"
+  },
+  {
+    "file": "shadow-pair/off.png",
+    "bytes": 4324432,
+    "sha256": "c2bbdf90c88454257270b09176080116f1c4897fea405cd980a9f041360a6c94"
+  },
+  {
+    "file": "shadow-pair/off.json.gz",
+    "bytes": 25870,
+    "sha256": "d1c31f7c09287bfde0ced38ff8ed5b0c3bde2b1e1b435f1e9cf34ed358c822d5"
+  },
+  {
+    "file": "shadow-pair/contrast.json.gz",
+    "bytes": 1064,
+    "sha256": "1fdb2145d0d94103357d8b2758ae2ab0365b9fbe276cdff6652ccb2c76bceaf6"
+  },
+  {
+    "file": "shadow-pair/records.json.gz",
+    "bytes": 82840,
+    "sha256": "775d0c9271b238a0a3c09771c11585517e759ca4083e02383fba1639fb580b4a"
+  },
+  {
+    "file": "shadow-pair/single.png",
+    "bytes": 4498708,
+    "sha256": "a9e262f4db05e95e8cdb30eb0792ea97f3b78362e8c9f5c4a37db99d072ac3cb"
+  },
+  {
+    "file": "shadow-pair/csm.json.gz",
+    "bytes": 25981,
+    "sha256": "45138cce65625f218bdbc71623e0565abb1bbff1673112441e0962b2461a6a17"
+  },
+  {
+    "file": "shadow-pair/single.json.gz",
+    "bytes": 25943,
+    "sha256": "3399a8ef99ddb6dd49ce296bfd3666a875a36e7c6312d7f2fe6b6d555d6231a5"
+  }
+]

@@ -34,3 +34,6 @@ Three further frame tests were added, alongside pure cascade, resource and scene
 coverage. Existing nativeSceneLifecycle, TypeGPU lifecycle and vgpuScene fixtures
 changed their off-mode input from false to "off"; their outcome assertions stayed
 unchanged. No simulation stat, golden or pixel threshold changed.
+
+[Hardware controls](hardware/README.md) now verify binding/default preservation and
+route lifetimes. Readability, complete High coverage and performance remain open.

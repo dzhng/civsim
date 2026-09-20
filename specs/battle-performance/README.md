@@ -13,23 +13,16 @@ The existing raw work is reusable evidence and algorithms; the older TypeGPU
 candidate lacks subsequent fixes and must not replace it wholesale. Claude's
 conversion scoping is complete; read [the conversion plan](slices/typegpu-conversion.md)
 and [review disposition](assets/typegpu-conversion/README.md).
-An independent first typed-shader pass is active in
-`/Users/david/dev/game-battle-typegpu-colors` (base f1912eb1): convert the actual
-TypeGPU soldier/impostor colour helpers from WGSL strings into typed function
-bodies, preserving canonical palette and formulas. Claude owns GPU correctness
-for this pass; no timing overlaps. Root prompt: `throwaway/typegpu-colors/prompt.txt`.
-Compile-time rejection checks and old-WGSL versus typed GPU numerical comparison
-are required before adoption. This does not claim the whole renderer is typed.
-High-shadow capability conversion is active in `/Users/david/dev/game-battle-typegpu-high`,
-base81f847b7, CPU-only while the colour worker owns GPU correctness. Its initial
-checkout exhausted disk copying historical evidence; it was removed and recreated
-without specs/assets, retaining originals in main. Do not duplicate those assets.
-Root prompt: `throwaway/typegpu-high/prompt.txt`.
-A third independent CPU-only pass in `/Users/david/dev/game-battle-typegpu-frame`
-(base2829e13b) connects the frame to canonical depth policy and reports actual
-installed attachment diagnostics. It preserves existing admission/root/encoder
-contracts and edits only frame plus focused tests; the other workers own scene,
-shadow and shader consumers. Root prompt: `throwaway/typegpu-frame/prompt.txt`.
+[First TypeGPU passes](assets/typegpu-first-passes/README.md) are integrated:
+typed colour helpers plus nonfinite-safe numerical checks, and shared frame depth
+policy/attachment diagnostics. Combined candidate suite26/26 passes. Root GPU
+colour control matches306 words and rejects equal-NaN corruption. Full consumer
+pipeline hardware and frame depthStats wiring remain open.
+
+High-shadow conversion remains active in `/Users/david/dev/game-battle-typegpu-high`,
+base81f847b7, CPU-only. Root prompt: `throwaway/typegpu-high/prompt.txt`.
+Colour and frame workers/reviews are terminal; their worktrees still hold review
+evidence. Root now owns the free GPU correctness lane. No timing job is active.
 
 GPU impostor candidate1c816fc5 is committed on `codex/battle-gpu-impostor`
 but unadopted; its finished worktree is removed; its WGSL has not yet

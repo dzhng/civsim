@@ -8,16 +8,19 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: review the active TypeGPU identity/component diagnostics pass after the
-[scene integration](assets/typegpu-scene-state/README.md), then consumer/cutover
-verification. Scene worker and both independent reviews are terminal. Initial
-reload-before-prepare failure is corrected and GPU verified at9c496b47; main
-integration ends3fc961ba. Combined candidate64/64 and live57/57 pass. The finished
-scene worktree and branch are removed after preserving scratch and a verified
-bundle at `throwaway/typegpu-scene-completed-cleanup/`. The next Opus CPU pass is
-active in `/Users/david/dev/game-battle-typegpu-content-state`, basea6112e4a,
-handle21089; its `throwaway/content-state-prompt.txt` scopes actual owner reports
-and facade integration, excluding impostor/shadow-check work. No timing job is active.
+Current pickup: actual-record impostor control and submitted draw observation,
+then browser consumer/cutover verification. [Content diagnostics](assets/typegpu-content-state/README.md)
+are integrated asead86de9 after the [scene reload pass](assets/typegpu-scene-state/README.md).
+Main candidate80/80 and facade57/57 pass. Fixed-build Menu identity/content/depth,
+resize/disposal and a direct GPU terrain replacement pass; three screenshot pairs
+are byte-identical after decoding. These are correctness, not timing results.
+The content worker/review are terminal; its worktree is pending scratch cleanup.
+
+Opus draw observation is active in `/Users/david/dev/game-battle-native-draw-observation`
+(base17433cd1, handle74295), scoped to NativeGpuTelemetry/tests. It must distinguish
+encoded work from queued work and expose a bounded submission-associated count;
+root wires it to validated presented frames after review. Prompt and result paths
+are under that worktree's `throwaway/`. No timing job is active.
 
 [The impostor candidate](assets/typegpu-impostor-state/README.md) atfc446726 has
 GPU arithmetic and12 source-image checks, but remains unadopted. Exact bisector

@@ -904,3 +904,16 @@ the old battle world without deleting this still-used shared geometry policy.
   moving-shadow quality and performance still require their own evidence.
 - **Verdict:** Sound; it isolates the missing contract without treating a synthetic
   image as final game acceptance. **Confidence:** High.
+
+## TypeGPU declared identity and owned content — ead86de9
+
+- **Choice:** Each renderer declares its own identity, while its installed owners
+  supply content counts. The facade's backend table selects the declaration; a
+  debug-block method no longer decides which terrain or environment exists.
+  For example, TypeGPU can report its real terrain even though it has no optional
+  formation-debug layer.
+- **Gap:** The conversion needed to separate renderer identity from incidental
+  capabilities. **Reach:** Browser checks can verify the actual renderer and its
+  resources independently; final cutover must remove retired backend dispatch.
+- **Verdict:** Sound as a staged conversion; the table does not stand in for physical
+  depth/content measurements. **Confidence:** Medium.

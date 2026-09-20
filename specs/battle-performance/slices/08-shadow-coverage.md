@@ -40,3 +40,7 @@ separates observed map density from missing grass reception and unsupported fram
 claims. The [grass-receiver candidate](../assets/08-grass-receiver/README.md) was not
 adopted after the hardware comparison showed no clear readability gain; its cost
 was not measured.
+
+[Light-separation diagnostics](../assets/08-light-separation/README.md) now motivate
+a bounded key/fill balance candidate. Diagnostic-only output is not a shipped
+visual change, nor a claim that all remaining coverage issues are resolved.

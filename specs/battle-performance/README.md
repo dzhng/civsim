@@ -7,18 +7,20 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: inspect diagnostic shadow visibility and direct/indirect lighting
-at the tactical framing, then resolve readable default shadows and the remaining
-[cutover obligations](migration.md). Scratch captures/builds are in
-`throwaway/shadow-light-diagnosis/`; these change diagnostic output only, not
-production lighting. Root owns hardware verification and serializes timing against
-owned build/test/GPU work.
+Current pickup: verify the isolated golden lighting-balance candidate from Claude
+Opus in `game-battle-light-balance`, baseline c29162e9; parent logs are
+`throwaway/light-balance-worker/`. [Light separation](assets/08-light-separation/README.md)
+shows attached shadow shapes and motivates this test. Candidate values are declared
+in the prompt; do not adopt before matched image/independent readability review.
+It must keep soldiers readable without wholesale darkening, changed fog/exposure,
+materials, geometry or shadow-map quality. Root owns hardware verification and
+serializes timing against owned build/test/GPU work.
 
 Both narrow candidates remain outside production:
 [grass reception](assets/08-grass-receiver/README.md) had no discernible grounding
 gain; [outside-volume sampling](assets/08-shadow-sampling/README.md) preserved
 images but failed its predeclared ABBA screen at both camera poses. No repeat of
-these experiments is planned. No Claude implementation or timing job remains active.
+these experiments is planned. No timing job remains active; the lighting worker is CPU-only.
 
 Completed component evidence, not final acceptance:
 

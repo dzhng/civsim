@@ -46,6 +46,7 @@ vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
       field: () => ({ height: new Float32Array([0, 1, 2, 3]), w: 2, h: 2, cell: 4, ox: 0, oy: 0 }),
       cover: () => "green-grass",
       rect: () => [-100, -100, 200, 200],
+      committedGeneration: () => 1,
       heightAt: () => 0,
       setFrame: vi.fn(),
       drawOpaque: vi.fn(),

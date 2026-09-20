@@ -799,3 +799,15 @@ the old battle world without deleting this still-used shared geometry policy.
   measuring the incumbent. The plan left harness selection open. The selector
   and two-owner reads are test scaffolding to remove when M9 leaves one product
   renderer; they do not expose a legacy renderer option in the game.
+
+
+## Seating inspection lifecycle
+
+- **Sound, high confidence — inspection is a returned observation, not cached truth.**
+  Each explicit call gets detached identity values. It cannot alter the renderer's
+  retained successful-frame record or populate a stale normal-frame seating flag.
+  This keeps callers from becoming hidden owners of presentation state.
+- **Sound, high confidence — disposed inspection rejects like other facade work.**
+  The plan required disposal coverage but did not choose the return convention.
+  Preserve the existing lifecycle error contract; an alive but not yet inspectable
+  scene returns an unavailable observation instead.

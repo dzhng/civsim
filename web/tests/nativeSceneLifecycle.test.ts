@@ -86,6 +86,8 @@ vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
       drawTransparent: vi.fn(),
       drawShadow: vi.fn(),
       stats: () => state.terrainStats,
+      committedGeneration: () =>
+        state.terrainStats.installed ? state.terrainStats.generation : null,
     }),
 }));
 vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({

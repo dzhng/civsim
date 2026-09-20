@@ -11,12 +11,13 @@ Current pickup: the [migrated30k gate](assets/m9b-30k-readers/README.md) exposes
 about30FPS actual raw presentation at the wide stop despite60 browser rAF. Source
 passes19checks; raw passes18/19, collecting74/75required distinct mid GPU samples.
 No threshold/window was weakened and no repeat substitutes for that failure.
-A diagnostic trace attributes the leading cost to CPU crowd-upload preparation;
-root is preparing a source-mapped CPU profile before selecting an optimization.
-The30k worker is finished (d66b0115→9dde7b5c), ready for cleanup.
-Claude Opus implements [M9c on-demand seating inspection](slices/m9c-seating-inspection.md)
-in `game-battle-seating-inspection` at4e80613b; logs `throwaway/seating-inspection-worker/`.
-Temporarily stop its CPU work for timing, always resume afterward. [Diagnostics](assets/m9b-diagnostics/README.md)
+A source-mapped CPU profile identifies admission history as the leading named
+cost. Claude completed [the fixed-field snapshot candidate](slices/07-snapshot-copy-candidate.md)
+at8efe096f in `game-battle-snapshot-copy`; it remains unadopted pending the declared
+ABBA CPU/cadence and camera-motion screen against the fixed control build.
+[M9c seating inspection](assets/m9c-seating/README.md) passes real-game checks;
+its browser consumers and drawn-feet proof remain open. The30k worker was cleaned
+up. [Diagnostics](assets/m9b-diagnostics/README.md)
 and [M9a timing](assets/m9a-frame-timing/README.md) are verified. [Component evidence](assets/migration-component-review/README.md)
 confirms post/sky/PMREM/lake numerical checks; ocean remains strictly red.
 [The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real

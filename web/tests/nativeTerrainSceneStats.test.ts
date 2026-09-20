@@ -106,6 +106,7 @@ test("published content is the committed generation's own", async () => {
   state.vistaRings = ["near", "farFog"];
   await scene.replace(input());
   expect(scene.stats()).toMatchObject({ generation: 2, scenery: 11, vistaBands: 2 });
+  expect(scene.committedGeneration()).toBe(2);
   scene.dispose();
 });
 
@@ -115,12 +116,14 @@ test("a failed replacement keeps reporting the generation still installed", asyn
   state.sceneryFailure = Error("injected scenery failure");
   await expect(scene.replace(input())).rejects.toThrow("injected scenery failure");
   expect(scene.stats()).toMatchObject({ installed: true, generation: 1, scenery: 4 });
+  expect(scene.committedGeneration()).toBe(1);
   scene.dispose();
 });
 
 test("a disposed scene reports no installed terrain rather than an empty map", async () => {
   const scene = await build();
   scene.dispose();
+  expect(scene.committedGeneration()).toBeNull();
   expect(scene.stats()).toEqual({
     installed: false,
     generation: 1,

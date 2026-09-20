@@ -1337,3 +1337,17 @@ test("a scene that refuses to measure is forwarded as refused, not as an absent 
   });
   f.renderer.dispose();
 });
+
+test("an inspection caller cannot mutate the retained presentation identity", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  await f.renderer.present({ ...packet(), fixedTime: 12 });
+  const first = await f.renderer.verifySeating();
+  const identity = { ...first.presented };
+  first.presented!.submission += 100;
+  const second = await f.renderer.verifySeating();
+  expect(second.measurement?.matches).toBe(true);
+  expect(second.presented).toEqual(identity);
+  expect(second.presentedFrameId).toBe(first.presentedFrameId);
+  f.renderer.dispose();
+});

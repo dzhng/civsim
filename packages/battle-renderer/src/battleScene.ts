@@ -180,16 +180,15 @@ export async function createRawBattleScene(
     // the vista apron `heightAt` adds. The crowd builder and every later
     // verification of what it built share this exact sampler.
     const seatingHeightAt = (x: number, y: number) => terrainHeightAt(terrain.field(), x, y);
-    /** Identity of the pose this scene currently has admitted, joined to the terrain
-     *  generation it was seated against. O(1) — every counter is one its owner
+    /** Identity of the current admitted pose and committed terrain generation. O(1) — every counter is one its owner
      *  already keeps — so a consumer may record it on each presented frame. Null
      *  while nothing is admitted, or while no terrain generation is committed. */
     const admittedSeatingIdentity = (): AdmittedSeatingIdentity | null => {
       check();
       const submission = crowd.admittedSubmission();
-      const installed = terrain.stats();
-      if (submission === null || !installed.installed) return null;
-      return { crowdGeneration, submission, terrainGeneration: installed.generation };
+      const terrainGeneration = terrain.committedGeneration();
+      if (submission === null || terrainGeneration === null) return null;
+      return { crowdGeneration, submission, terrainGeneration };
     };
     const wind = createWindUniforms(),
       sun = photorealEnvironment(options.environment).sunDirection;

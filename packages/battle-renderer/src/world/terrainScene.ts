@@ -205,6 +205,8 @@ export async function createRawBattleTerrainScene(
     drawTransparent(pass: GPURenderPassEncoder, camera: GPUBindGroup) {
       for (const layer of current().transparentVista) layer.encode(pass, camera);
     },
+    // Presentation records need only this identity, not aggregated water/scenery stats.
+    committedGeneration: () => (disposed || !active ? null : generation),
     /** Content of the terrain generation currently committed. Every count is a
      *  number its owner already holds, so reading stats never rescans the world.
      *  A disposed or uncommitted scene reports that, not zeros that read as an

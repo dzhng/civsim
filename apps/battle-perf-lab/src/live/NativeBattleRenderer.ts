@@ -820,7 +820,7 @@ export class BattleRenderer implements BattleRendererApi {
     });
     return job;
   }
-  /** Explicit whole-population seating verification. It belongs to no frame:
+  /** Explicit whole-population seating verification, invoked only on request:
    *  presentation and `stats()` never scan the population, and this adds no GPU
    *  submission, readback or wait of its own. Ordering follows
    *  `reloadSoldierAssets` — readiness and a presentation in flight settle first
@@ -847,7 +847,7 @@ export class BattleRenderer implements BattleRendererApi {
       installed,
       scope: SEATING_INSPECTION_SCOPE,
       presentedFrameId: presented?.renderedFrameId ?? null,
-      presented: presented?.seating ?? null,
+      presented: presented?.seating ? { ...presented.seating } : null,
       expectedSoldiers: this.staticData.soldierUnit.length,
     });
     const scene = rawScene(this.owner?.scene);

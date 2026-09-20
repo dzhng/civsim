@@ -12,3 +12,6 @@ but an independent P2 on reload before first preparation is accepted and being f
 seating and staged-reload GPU checks in `throwaway/typegpu-scene-hardware/` for its
 fixed build after review. No post-change browser claim exists yet. These checks
 will not establish drawn-foot placement or camera/performance acceptance.
+
+[Direct GPU regression](pre-prepare-regression/README.md) reproduces the accepted
+preparation-order failure with the actual published crowd assets.

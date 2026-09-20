@@ -33,3 +33,26 @@ accounting mechanism. Construction remains synchronous at the scene boundary;
 measure it where it runs and test actual callers. The existing BattlePresentation
 contract also keeps packet arrays stable until present settles, so moving the
 readout await alone does not demonstrate a packet mutation bug.
+
+## Initial candidate review
+
+7547db35 is committed on the worker branch, not integrated. Claude is correcting
+the extra library snapshots and timing clamp in the same worktree; current logs
+are throwaway/correction-result.txt and correction-stderr.log there. Root will
+review and run hardware only after correction. The initial report is retained.
+
+The [failure-bearing test outputs](initial-test-failures.json.gz) distinguish
+expected oracle recording, missing sparse fixture files, unchanged retired-policy
+checks and corrected test/mocking mistakes from the unresolved full-suite failure.
+One full web run reported1 failure/790 passes, but its shell command discarded
+everything except the last five lines. Its name cannot be recovered from that
+output. Eight subsequent green repeats do not explain it; do not call that a
+resolved failure or repeat unchanged suites to seek green. After the actual
+correction, capture complete focused-test output and exit status, with one
+appropriate merged verification pass and diagnosis of any new failure.
+
+The initial facade timing test supplied an invented positive buildMs without
+spending that much measured CPU time, then motivated a production clamp when
+subtraction went negative. Replace that inaccurate mock with elapsed-work
+accounting under a controlled clock or a real consumer. The arbitrary deferred
+mock used during root review is likewise not proof of a real backend defect.

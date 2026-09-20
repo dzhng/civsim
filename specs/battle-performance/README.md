@@ -8,8 +8,8 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
 Current pickup: review and measure the [single-owner crowd candidate](slices/07-crowd-ownership.md).
-Claude Opus implements in `/Users/david/dev/game-battle-crowd-ownership` from89365503;
-logs are in that worktree's `throwaway/implementation-*`. Root owns integration
+Claude Opus corrects candidate7547db35 in `/Users/david/dev/game-battle-crowd-ownership`;
+current logs are in that worktree's `throwaway/correction-*`. Root owns integration
 and serialized hardware measurement against the adopted snapshot control.
 Root review found the library-copy premise wrong: construction already occurs
 synchronously before the first await. Remove the draft extra snapshots and

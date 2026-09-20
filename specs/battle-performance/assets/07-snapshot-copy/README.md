@@ -38,7 +38,7 @@ All30,560 are main L4 impostors and L3 shadow casters at this stop; single1024
 shadows and24,144,400 shadow triangles are preserved. The static wide stop still
 misses60FPS and its median CPU duration remains above16.67ms. Further preparation
 work remains. This does not close live battle throughput, moving visual quality,
-net-shadow cost, or the original74/75 sample gate; the changed build must run it.
+net-shadow cost, or final default-shadow acceptance.
 
 [Summary](summary.json), compressed per-arm reports, [matched wide image](wide.png),
 and compressed runner preserve the screen. Full process inventories and builds
@@ -61,3 +61,18 @@ The fixed literal makes required future instance fields a compile error until
 handled. A future optional field still needs an explicit copy and test; no second
 field registry or compatibility path is introduced. Frozen readonly pose sources
 remain shared; mutable shells remain isolated.
+
+## Changed-build30k gate
+
+Both updated source and raw builds pass all19 existing checks. The raw mid stop
+now collects75 distinct GPU samples (vista144), with correlated GPU medians7.88ms
+and7.58ms. Pan/zoom/wheel rAFp95 are17.45/18.39/19.70ms, below the unchanged33ms
+floor. Population, foliage, physical camera endpoints and pixel-content assertions
+remain intact. See [raw report](raw-30k-report.json) and
+[source report](source-30k-report.json).
+
+The previous build's74/75 failure remains recorded as the original result;
+this is a changed-build pass, not an unchanged rerun. Exactly75 samples is still
+little headroom and does not establish60FPS; ABBA rendered cadence is the stronger
+cadence evidence. These source/raw runs stop at their own paused ticks and use
+different GPU metric scopes, so their times are not a matched causal comparison.

@@ -7,16 +7,14 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: the [migrated30k gate](assets/m9b-30k-readers/README.md) exposes
-about30FPS actual raw presentation at the wide stop despite60 browser rAF. Source
-passes19checks; raw passes18/19, collecting74/75required distinct mid GPU samples.
-No threshold/window was weakened and no repeat substitutes for that failure.
-The [fixed-field snapshot optimization](assets/07-snapshot-copy/README.md) is
-adopted atcc29b10a: the declared ABBA screen passes, CPU medians fall24% wide/16%
-moving, and rendered cadence improves. Wide still misses60FPS. Next run the
-unchanged source/raw30k assertions on changed builds, then profile the remaining
-wide preparation cost. The prior74/75 failure remains until that changed-build
-check passes. [M9c seating inspection](assets/m9c-seating/README.md) passes real-game checks;
+Current pickup: profile the remaining wide-view CPU preparation cost after the
+[measured snapshot improvement](assets/07-snapshot-copy/README.md), adopted
+atcc29b10a. Both changed source/raw builds now pass all19 unchanged30k checks;
+raw mid GPU samples are75, leaving little headroom. The declared ABBA screen
+shows CPU medians down24% wide/16% moving and better rendered cadence, but wide
+still misses60FPS. Preserve that distinction from final live acceptance.
+Both narrow implementation worktrees are cleaned up; branches/evidence retained.
+[M9c seating inspection](assets/m9c-seating/README.md) passes real-game checks;
 its browser consumers and drawn-feet proof remain open. The30k worker was cleaned
 up. [Diagnostics](assets/m9b-diagnostics/README.md)
 and [M9a timing](assets/m9a-frame-timing/README.md) are verified. [Component evidence](assets/migration-component-review/README.md)

@@ -41,3 +41,13 @@ frustum and projection, so a camera move calls `audience.reproject` and republis
 state for the regrouped audience. Expensive billboard derivation moves to the GPU,
 but CPU preparation and state upload still scale with population. Measure the
 complete scene frame, never infer a constant-time camera from the setter test.
+
+A supplemental continuous camera sweep makes60 requestAnimationFrame-driven
+camera updates per leg through tactical, pan, wide, horizon and return views.
+Both builds retain the canonical tick/hash/population, present the final requested
+camera, resize and dispose without page errors. Endpoint full-frame differences
+are98,105,1,0,0 pixels respectively (max channel gaps100,29,1,0,0). Some differences
+are in HUD or screen-edge content; these remain diagnostic residuals, not a passed
+full-frame equivalence gate. The original tactical settled captures above are
+still exact. This held-state sweep neither measures smoothness nor replaces the
+five-minute live benchmark. Reports are in [camera-motion](camera-motion/checks.json).

@@ -7,13 +7,17 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: finish default shadow readability and moving coverage, then the
-remaining [cutover obligations](migration.md). The [current-camera sizing fix](assets/m7-current-camera/README.md)
+Current pickup: verify the isolated default-single filter-footprint candidate in
+`game-battle-shadow-filter`, baseline6870a77e. Claude Opus is implementing0.6× the
+existing single-mode radius; High stays unchanged. Parent logs:
+`throwaway/shadow-filter-worker/`. Root owes matched stills and a moving-camera
+sequence before adoption. Keep lighting, fits, bias, map size, taps and content fixed;
+then continue the remaining [cutover obligations](migration.md). The [current-camera sizing fix](assets/m7-current-camera/README.md)
 is integrated atb1818420: all six DPR1/2 zoom probes eliminate the first-frame
 banner correction. Independent review and hardware controls pass; all settled
 complete-scene images preserve the comparison. Small initial/HUD differences are
 explicit in the evidence. The combined source30k floor passes all18 checks without
-changing its33ms or content limits. No worker or timing job is active.
+changing its33ms or content limits. Only the CPU-only filter worker is active; no timing job is running.
 
 [Golden light balance](assets/08-light-balance/README.md) is integrated at7423764b:
 independent review prefers grounding and soldier readability but flags a more

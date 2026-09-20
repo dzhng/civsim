@@ -31,7 +31,8 @@ Current prerequisite ledger (capability and final optimization are distinct):
 | --- | --- | --- |
 | M1 | Promotion/API, lifecycle, raw pose and repeated scene controls | Carry documented initial/strict pixel differences |
 | M2 | Promoted terrain/scenery and M6 pre/post terrain controls | Map checks to seating/picking/replacement contract explicitly |
-| M3a/M3b | Complete-scene atmosphere/water controls exist | Map fixed environment and horizon/water proofs to each exit |
+| M3a | Complete-scene atmosphere/frame controls exist | Map fixed environment, lookup initialization and horizon proofs to exits |
+| M3b | Dedicated lake/ocean controls; complete-scene fixture has no water | Current lake passes; ocean strict residual remains open ([evidence](assets/migration-component-review/README.md)) |
 | M4 | Public atlas/reload admission and hostile disposal | Broader posed/LOD/mounted/dead coverage |
 | M5 | Promoted residency/grass and complete-scene controls | Coverage/motion/bounded-work proof; joins04/05 |
 | M6 | Single/High/off hardware and lighting checkpoints | Default receiver/motion quality and net cost |

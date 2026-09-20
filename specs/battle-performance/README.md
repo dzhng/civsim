@@ -12,8 +12,8 @@ in `game-battle-scene-diagnostics` at e0f5236e; logs `throwaway/scene-diagnostic
 Root then migrates raw scene reads, preserving content/33ms thresholds and counting
 distinct completed frame identities. [M9a](assets/m9a-frame-timing/README.md) is
 verified at4375effd (22hardware checks); timing and neutral-owner worktrees were
-removed with branches/evidence retained. A read-only Claude evidence audit maps
-M2/M3/M8 exits in `throwaway/migration-evidence-audit/`; no new broad runs yet.
+removed with branches/evidence retained. [The evidence audit and focused controls](assets/migration-component-review/README.md)
+confirm exact raw post numerics and passing lake coverage; ocean remains red.
 [The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
 cutover blockers from inherited quality work. Do not copy Three-shaped counters
 or relabel pass sums as a complete frame. Production still constructs Three until

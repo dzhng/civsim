@@ -1,0 +1,199 @@
+{
+  "water": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "maxAbs": 0.0029296875
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "maxAbs": 0.004638671875
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "maxAbs": 0.00439453125
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "maxAbs": 0.00244140625
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "maxAbs": 0.00439453125
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "maxAbs": 0.00244140625
+      }
+    ]
+  },
+  "water-lake": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "results": [
+      {
+        "label": "lake-overview-t0",
+        "maxAbs": 0.0009765625
+      },
+      {
+        "label": "lake-overview-t3.25",
+        "maxAbs": 0.0009765625
+      },
+      {
+        "label": "lake-horizon-t0",
+        "maxAbs": 0.0009765625
+      },
+      {
+        "label": "lake-horizon-t3.25",
+        "maxAbs": 0.0009765625
+      },
+      {
+        "label": "lake-horizon-repeat-t0",
+        "maxAbs": 0.0009765625
+      },
+      {
+        "label": "lake-horizon-repeat-t3.25",
+        "maxAbs": 0.0009765625
+      }
+    ]
+  },
+  "post": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "results": [
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "golden",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "dusk",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "noon",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      },
+      {
+        "label": "overcast-highland",
+        "maxAbs": 0
+      }
+    ]
+  }
+}

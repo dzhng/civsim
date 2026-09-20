@@ -9,3 +9,7 @@ Reuse water and complete-scene controls at the raised shoreline/horizon, with fi
 Use the shared snapCheck path for visual evidence; inspect actual frames, compare
 matched crops and run unprimed screenshot-critique before accepting visual change.
 Preserve current thresholds and carry inherited failures explicitly.
+
+[Focused current controls](../assets/migration-component-review/README.md): lake
+passes; ocean remains numerically red at1x. The retained complete-scene fixture
+has no water and cannot close this obligation.

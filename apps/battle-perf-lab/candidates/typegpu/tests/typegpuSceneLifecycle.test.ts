@@ -13,6 +13,9 @@ const state = vi.hoisted(() => ({
   pose: vi.fn(),
   submit: vi.fn(),
   terrainGeneration: 1,
+  /** Scenery the mocked terrain owner has installed, which only a real
+   *  replacement moves: the scene must read the owner, not its own options. */
+  terrainScenery: 7,
   crowdFailure: null as unknown,
   crowdHold: null as Promise<void> | null,
   measurement: null as unknown,
@@ -78,8 +81,18 @@ vi.mock("../terrainScene", () => ({
       replace: async (...args: unknown[]) => {
         await state.replace(...args);
         state.terrainGeneration++;
+        state.terrainScenery += 3;
       },
       committedGeneration: () => state.terrainGeneration,
+      // The committed generation's own content, as the real terrain owner reports it.
+      stats: () => ({
+        installed: true,
+        generation: state.terrainGeneration,
+        replacing: false,
+        scenery: state.terrainScenery,
+        vistaBands: 4,
+        water: { draws: 1, triangles: 2 },
+      }),
       grid: () => ({}),
       field: () => ({}),
       cover: () => "green-grass",
@@ -151,10 +164,22 @@ vi.mock("../standards", () => ({
 vi.mock("../readout", () => ({
   createTypegpuReadout: () => layer({ upload: state.readoutUpload, setCamera: vi.fn() }),
 }));
+/** An overlay layer that reports the vertex count it was actually uploaded, so a
+ *  scene stats read cannot pass while publishing one layer's count under another
+ *  layer's key. */
+function overlayLayer() {
+  let count = 0;
+  return layer({
+    upload: vi.fn(async (vertices: Float32Array) => {
+      count = vertices.length;
+    }),
+    stats: () => ({ count }),
+  });
+}
 vi.mock("../overlay", () => ({
-  createTypegpuLineLayer: async () => layer(),
-  createTypegpuRingLayer: async () => layer(),
-  createTypegpuTriangleLayer: async () => layer(),
+  createTypegpuLineLayer: async () => overlayLayer(),
+  createTypegpuRingLayer: async () => overlayLayer(),
+  createTypegpuTriangleLayer: async () => overlayLayer(),
 }));
 import { createTypegpuBattleScene } from "../battleScene";
 import { battleSceneCamera } from "../../../../../packages/battle-renderer/src/sceneCamera";
@@ -217,6 +242,7 @@ beforeEach(() => {
   state.crowds.length = 0;
   // The terrain owner commits its first generation while the scene is constructed.
   state.terrainGeneration = 1;
+  state.terrainScenery = 7;
   state.crowdFailure = null;
   state.crowdHold = null;
   state.measurement = null;
@@ -583,6 +609,51 @@ test("admitted pose and per-soldier reads come from the installed crowd owner", 
   expect(scene.admittedCrowdPoses()).toEqual(new Set(["0\u0000idle"]));
   expect(scene.debugSoldierAnim(0)).toEqual({ clip: "idle", phase: 0.25 });
   expect(scene.debugSoldierAnim(1)).toBeNull();
+  scene.dispose();
+});
+test("scene stats publish the environment, terrain and cue owners this world installed", async () => {
+  const scene = await ready();
+  await scene.uploadTacticalLines({
+    groundCues: new Float32Array(12),
+    rings: new Float32Array(6),
+    effects: new Float32Array(30),
+  });
+  await scene.uploadTriangles(new Float32Array(9));
+  expect(scene.stats()).toMatchObject({
+    // The environment this scene's owners were actually built from.
+    environment: "golden",
+    terrain: {
+      installed: true,
+      generation: 1,
+      replacing: false,
+      scenery: 7,
+      vistaBands: 4,
+      water: { draws: 1, triangles: 2 },
+    },
+    // Each cue layer answers for itself; a swapped key would report another
+    // layer's upload.
+    tacticalLines: {
+      groundCues: { count: 12 },
+      rings: { count: 6 },
+      effects: { count: 30 },
+      triangles: { count: 9 },
+      // This world installs no formation-debug layer at all.
+      debugBlocks: null,
+    },
+  });
+  // A real terrain replacement moves the committed generation the report names.
+  await scene.replaceTerrain(terrain);
+  expect(scene.stats().terrain).toMatchObject({ generation: 2, scenery: 10 });
+  // A later cue upload replaces only its own layer's count.
+  await scene.uploadTacticalLines({
+    groundCues: new Float32Array(3),
+    rings: new Float32Array(6),
+    effects: new Float32Array(30),
+  });
+  expect(scene.stats().tacticalLines).toMatchObject({
+    groundCues: { count: 3 },
+    triangles: { count: 9 },
+  });
   scene.dispose();
 });
 test("scene stats publish the frame's own depth attachment, re-read after a resize", async () => {

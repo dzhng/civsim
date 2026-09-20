@@ -1,9 +1,19 @@
-/** Who owns the battle frame, published beside the measurements so a check can
- * tell which renderer produced them. The counterpart of the photoreal seam's
- * `{ substrate, projection }`; it names this world, it does not stand in for
- * the depth, content or camera measurements themselves. */
-export const RAW_BATTLE_SUBSTRATE = "raw-webgpu" as const;
+/** Declared ownership identity of one battle world: who produced the physical
+ * measurements published beside it, and the single projector every one of its
+ * passes reads. It is a declaration, not a measurement — it names the world, and
+ * it stands in for none of the depth, content or camera reports it travels with.
+ * The counterpart of the photoreal seam's `{ substrate, projection }`. Each world
+ * declares its own; a candidate that has not named itself declares nothing rather
+ * than borrowing another world's name. */
+export interface BattleWorldIdentity {
+  substrate: string;
+  /** camera3d is the only projector: every pass reads the one camera uniform the
+   *  world writes from `camera3d` params through the shared `frameCamera`. */
+  projection: "camera3d";
+}
 
-/** camera3d is the only projector: every pass reads the one camera uniform this
- * world writes from `camera3d` params through `frameCamera`. */
-export const RAW_BATTLE_PROJECTION = "camera3d" as const;
+/** The raw WebGPU world in this package. */
+export const RAW_BATTLE_IDENTITY = {
+  substrate: "raw-webgpu",
+  projection: "camera3d",
+} as const satisfies BattleWorldIdentity;

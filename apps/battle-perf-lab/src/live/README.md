@@ -51,15 +51,22 @@ Scene diagnostics describe the world actually installed. The expected population
 is the static simulation data, not a number borrowed from the crowd owner; the
 published camera is the frame that actually presented, carried together with the
 identity it presented under, so a newer pose is never labelled with an older
-frame's id; content, depth and cue counts come from the owners that hold them.
-A world that is not installed — before construction, on a retired comparison
-backend, after disposal — reports null rather than an empty shape, and so does a
-world that owns some of these owners and not others: each stat is claimed by
-whoever actually implements it, never borrowed from the world that does. Measurements
-this world cannot make truthfully are named as open obligations beside those
-nulls instead of being approximated: per-instance seating verification, per-frame
-draw calls, and the blade counts the grass field routes on the GPU. No diagnostic
-adds a readback, a wait or a repeated population scan to the presenting path.
+frame's id; environment, terrain, cue, crowd, shadow and depth reports come from
+the owners inside that world which hold them, so a replaced generation or a new
+cue upload moves the report. A world's declared identity is separate from all of
+them: each world [declares its own](../../../../packages/battle-renderer/src/identity.ts),
+and no backend is labelled with a neighbour's name or with a capability another
+world happens to implement — the raw-only debug-block upload buys access to that
+method and nothing else. The terrain and cue reports share one contract in
+[the neutral battle types](../../../../packages/battle-renderer/src/types.ts), so a
+check written against one world migrates to the other unchanged. A world
+that is not installed — before construction, on a retired comparison backend,
+after disposal — reports null rather than an empty shape, and every such null is
+named so it cannot be read as an empty scene. Measurements no world here makes
+truthfully are named as open obligations instead of being approximated:
+per-instance seating verification, per-frame draw calls, and the blade counts the
+grass field routes on the GPU. No diagnostic adds a readback, a wait or a repeated
+population scan to the presenting path.
 
 Seating is verified by asking, never by watching. The explicit inspection walks
 every instance of one admitted crowd pose and re-samples it against the installed

@@ -461,6 +461,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       stats: () => ({
         prepared,
         preparedCamera,
+        environment: options.environment.id,
         depth: frame.depthStats(),
         shadows: shadow?.stats() ?? {
           mode: "off" as const,
@@ -475,6 +476,16 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
         grass: grass.stats(),
         standards: standards.stats(),
         readouts: readouts.stats(),
+        terrain: terrain.stats(),
+        tacticalLines: {
+          groundCues: ground.stats(),
+          rings: rings.stats(),
+          effects: effects.stats(),
+          triangles: triangles.stats(),
+          // This world installs no formation-debug layer at all: the debug-block
+          // view is refused for every non-raw backend before a scene is built.
+          debugBlocks: null,
+        },
       }),
       dispose,
     };

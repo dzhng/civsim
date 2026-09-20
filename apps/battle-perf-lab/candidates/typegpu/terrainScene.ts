@@ -171,6 +171,30 @@ export async function createTypegpuBattleTerrainScene(
     rect: () => current().data.rect as readonly [number, number, number, number],
     // Presentation records need only this identity, not aggregated water/scenery stats.
     committedGeneration: () => (disposed || !active ? null : generation),
+    /** Content of the terrain generation currently committed. Every count is a
+     *  number its owner already holds, so reading stats never rescans the world.
+     *  A disposed or uncommitted scene reports that, not zeros that read as an
+     *  empty map. */
+    stats() {
+      const committed = disposed ? undefined : active;
+      if (!committed)
+        return {
+          installed: false,
+          generation,
+          replacing: pending,
+          scenery: null,
+          vistaBands: null,
+          water: null,
+        };
+      return {
+        installed: true,
+        generation,
+        replacing: pending,
+        scenery: committed.scenery.stats().scenery,
+        vistaBands: committed.opaqueVista.length + committed.transparentVista.length,
+        water: committed.water.stats(),
+      };
+    },
     setFrame(nextZoom: number, terrainDetailStrength: number) {
       check();
       zoom = nextZoom;

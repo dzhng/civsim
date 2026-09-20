@@ -135,8 +135,9 @@ function fixture(
     /** Omit the crowd-replacement seam, as the retired comparison backends do:
      *  their scenes never owned a selected world's content diagnostics. */
     comparisonScene?: boolean;
-    /** A selected world that owns the crowd generation but not the terrain, overlay
-     *  and environment content the conversion has not reached yet. */
+    /** The converted selected world: it owns the same crowd, content and depth
+     *  reports the source world does, and still does not implement the raw-only
+     *  debug-block view. */
     convertedScene?: boolean;
     search?: string;
     /** Render passes the scene encodes per prepared frame, so the observer has
@@ -327,29 +328,26 @@ function fixture(
         },
         shadows: { mode: "single", cascades: 1 },
         grass: { residency: { rebuild: { pending: false } } },
-        // Terrain, overlay and environment content the converted world's owners do
-        // not publish yet. A comparison backend's scene still carries the shape, so
-        // the facade has to refuse it on ownership rather than on its absence.
-        ...(build.convertedScene
-          ? {}
-          : {
-              environment: "aegean-noon",
-              terrain: {
-                installed: true,
-                generation: state.scene.generation,
-                replacing: false,
-                scenery: state.scene.scenery,
-                vistaBands: 4,
-                water: { draws: 1, triangles: 2 },
-              },
-              tacticalLines: {
-                groundCues: { count: state.scene.lines.groundCues },
-                rings: { count: state.scene.lines.rings },
-                effects: { count: state.scene.lines.effects },
-                triangles: { count: 0 },
-                debugBlocks: null,
-              },
-            }),
+        // Terrain, overlay and environment content, which every selected world's
+        // owners publish. A retired comparison backend's scene still carries the
+        // shape, so the facade has to refuse it on ownership rather than on its
+        // absence.
+        environment: "aegean-noon",
+        terrain: {
+          installed: true,
+          generation: state.scene.generation,
+          replacing: false,
+          scenery: state.scene.scenery,
+          vistaBands: 4,
+          water: { draws: 1, triangles: 2 },
+        },
+        tacticalLines: {
+          groundCues: { count: state.scene.lines.groundCues },
+          rings: { count: state.scene.lines.rings },
+          effects: { count: state.scene.lines.effects },
+          triangles: { count: 0 },
+          debugBlocks: null,
+        },
       }),
     },
     submitPresentation: () => {
@@ -1179,7 +1177,10 @@ test("a retired comparison backend keeps its own identity instead of the selecte
   const f = fixture({ backend: "vgpu", comparisonScene: true });
   await f.renderer.ready;
   await f.renderer.present(packet());
-  expect(f.renderer.stats()).toMatchObject({
+  const stats = f.renderer.stats();
+  // Its scene still carries the content shape; owning no selected world is what
+  // refuses it, so none of these may be borrowed from the world that does own them.
+  expect(stats).toMatchObject({
     backend: "vgpu",
     substrate: null,
     projection: null,
@@ -1191,6 +1192,10 @@ test("a retired comparison backend keeps its own identity instead of the selecte
     native: { actual: true },
     presentedFrameId: 1,
   });
+  // Every null above is named, so it cannot be read as an empty installed world.
+  const obligations = stats.openObligations as string[];
+  for (const unowned of ["substrate", "projection", "environment", "terrain", "tacticalLines"])
+    expect(obligations).toContain(unowned);
   f.renderer.dispose();
 });
 
@@ -1382,28 +1387,48 @@ test("an inspection caller cannot mutate the retained presentation identity", as
   f.renderer.dispose();
 });
 
-test("a converted world publishes the owners it has and names the content it does not", async () => {
+test("a converted world publishes its own identity and the content its owners report", async () => {
   const f = fixture({ backend: "typegpu", convertedScene: true });
   await f.renderer.ready;
-  await f.renderer.present(packet());
+  const lines = {
+    groundCues: new Float32Array(12),
+    rings: new Float32Array(6),
+    effects: new Float32Array(),
+  };
+  await f.renderer.present({ ...packet(), tacticalLines: lines });
   const stats = f.renderer.stats();
   expect(stats).toMatchObject({
     backend: "typegpu",
     ready: true,
     presentedFrameId: 1,
-    // Its own frame's attachment, never the raw world's report or its name.
+    // Its own name and its own frame's attachment, never the raw world's.
+    substrate: "typegpu",
+    projection: "camera3d",
     depth: { owner: "typegpu-battle-frame", installed: true, requestedBytes: 1440 * 900 * 4 },
     shadows: { mode: "single", cascades: 1 },
-    // Content owners the conversion has not reached: absent, not an empty world.
-    substrate: null,
-    projection: null,
-    environment: null,
-    terrain: null,
-    tacticalLines: null,
+    // Content from this world's own owners, published without implementing the
+    // raw-only debug-block upload this fixture withholds.
+    environment: "aegean-noon",
+    terrain: { installed: true, generation: 1, scenery: 7, vistaBands: 4 },
+    tacticalLines: {
+      groundCues: { count: 12 },
+      rings: { count: 6 },
+      effects: { count: 0 },
+    },
   });
-  const obligations = stats.openObligations as string[];
-  for (const owed of ["substrate", "projection", "environment", "terrain", "tacticalLines"])
-    expect(obligations).toContain(owed);
+  expect(stats.terrain).toMatchObject({ grass: { residency: { rebuild: { pending: false } } } });
+  // Content is no longer owed; the measurements no world makes truthfully still are.
+  expect(stats.openObligations).toEqual(["seating", "drawCalls", "grassRouting"]);
+  // A real terrain replacement and different cues both move this world's report.
+  f.renderer.setTerrain({ w: 1, h: 1, cell: 4, ox: 0, oy: 0, tint: new Uint8Array(1) });
+  await f.renderer.present({
+    ...packet(),
+    tacticalLines: { ...lines, effects: new Float32Array(30) },
+  });
+  expect(f.renderer.stats()).toMatchObject({
+    terrain: { generation: 2, scenery: 10 },
+    tacticalLines: { effects: { count: 30 } },
+  });
   f.renderer.dispose();
 });
 

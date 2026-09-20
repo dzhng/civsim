@@ -21,6 +21,35 @@ export interface BattleTacticalLineFrame {
   effects: Float32Array;
 }
 
+/** The content one world reports about the terrain generation it has committed.
+ * Every number belongs to an owner that already holds it, so a consumer may read
+ * this without any owner rescanning its world. An uncommitted or disposed scene
+ * reports `installed: false` with its counts unavailable, never zeros that read as
+ * an empty map. Each world measures its own resources; this is the shape they must
+ * agree on, so one check migrates between them unchanged. */
+export interface BattleTerrainSceneContent {
+  installed: boolean;
+  /** Generations committed so far, including the one installed now. */
+  generation: number;
+  /** A staged generation is in flight over the one described here. */
+  replacing: boolean;
+  scenery: number | null;
+  /** Opaque and transparent vista rings together. */
+  vistaBands: number | null;
+  water: { draws: number; triangles: number } | null;
+}
+
+/** What each tactical-cue owner reports about its own last upload. `debugBlocks`
+ * is null wherever no formation-debug layer is installed. Same agreement as
+ * `BattleTerrainSceneContent`: the counts are each owner's, the shape is shared. */
+export interface BattleTacticalLineContent {
+  groundCues: { count: number };
+  rings: { count: number };
+  effects: { count: number };
+  triangles: { count: number };
+  debugBlocks: { count: number } | null;
+}
+
 /** One re-measurement of an admitted crowd against an installed height field.
  * Every field is observed: `matches` is never assigned by construction from the
  * fact that a builder was handed a sampler. */

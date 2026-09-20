@@ -169,6 +169,18 @@ use, and refuses — rather than passing vacuously — while an operation is in 
 with nothing admitted, or over an empty pose. Depth is reported from the frame's own
 installed attachment, so a resized or released buffer is described as it is.
 
+What this world contains is reported the same way: every count in `stats()` is one
+its own owner already holds — the environment it was built from, the committed
+terrain generation with its scenery, vista and water owners, and each cue layer's
+own uploaded count — so reading it rescans nothing and adds no readback. A disposed
+or uncommitted terrain generation says so rather than publishing zeros that read as
+an empty map, and this world installs no formation-debug layer at all. The candidate
+declares its own `{ substrate, projection }` in [identity.ts](identity.ts): it writes
+its camera through the same shared `frameCamera` owner the raw world does, so it
+names the same single projector under its own substrate rather than borrowing that
+world's name. Whole-population seating, per-frame draw calls and routed blade counts
+remain unmeasured here and are named as such by the facade that consumes these.
+
 The dedicated CPU lifecycle tests cover these boundaries, including late GPU
 admission errors and pose-update ordering. Complete-scene browser controls and
 fresh visual review are still pending for this composition; existing component

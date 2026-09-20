@@ -30,8 +30,9 @@ A CPU-only admitted-crowd state pass is active in
 TypeGPU explicit seating/pose diagnostics without per-frame scans. It owns audience
 history/diagnostics and audience consumers only; scene/facade integration follows
 High shadows. Root prompt: `throwaway/typegpu-crowd-state/prompt.txt`.
-Colour and frame workers/reviews are terminal; their worktrees still hold review
-evidence. Root now owns the free GPU correctness lane. No timing job is active.
+Colour and frame workers/reviews are terminal; their completed worktrees and
+branches were removed after preserving scratch and a verified recovery bundle in
+`throwaway/typegpu-completed-cleanup/`. Root now owns the free GPU correctness lane. No timing job is active.
 
 GPU impostor candidate1c816fc5 is committed on `codex/battle-gpu-impostor`
 but unadopted; its finished worktree is removed; its WGSL has not yet

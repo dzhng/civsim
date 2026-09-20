@@ -30,3 +30,9 @@ actual displaced geometry, multiple-camera isolation, a shading mutation that
 fails, lake behavior and disposal. No production camera/global uniform/factory
 option or native shader change belongs in this pass. See the independent-review
 disposition in the localization evidence before implementing.
+
+Current candidate verification lives in [aligned water evidence](../assets/m3b-aligned-water/README.md).
+The aligned lab comparison is implemented on the candidate branch, with a
+fog-free coordinate probe and successful flattening/shading falsifiers. Ocean1x
+and lake1x/4x pass; ocean4x remains red. Next localize that multisample image
+residual; do not reimplement the comparison or claim this slice exited.

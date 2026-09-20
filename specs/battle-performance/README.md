@@ -12,8 +12,7 @@ Current pickup: review and measure the [single-owner crowd candidate](slices/07-
 its ABBA screen and is not adopted: wide CPU improves5.02% (below10%); moving
 CPU worsens3.87% and cadence falls. Correctness tests/review pass, but one of16
 matched scene images differs at250 pixels by one code; retain that unresolved
-residual. Archive and remove its finished worktree, preserving the branch and
-evidence. Do not rerun unchanged. Resume the larger06b/07 live-state/packing
+residual. Its finished worktree is removed; the branch, builds and evidence remain. Do not rerun unchanged. Resume the larger06b/07 live-state/packing
 work from measured costs, without optimizing only a paused fixture.
 
 [Aligned water evidence](assets/m3b-aligned-water/README.md): candidate267949e8 plus

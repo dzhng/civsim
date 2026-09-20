@@ -93,3 +93,9 @@ failed performance screen. Next investigate the existing06b/07 work on live
 state construction, packing and audience updates; do not optimize only the
 paused fixture or discard live animation to obtain a better score. The corrected
 branch, full reports and scratch oracle remain available after worktree cleanup.
+
+All four ABBA wide-view captures are byte-identical; see
+[image comparison](abba-image-comparison.json). The rejected worktree was removed
+after verifying no process owned its cwd, no uncommitted work beyond known
+symlinks/sparse artifacts, and an archived scratch directory. Branch
+codex/battle-crowd-ownership at929020f4 and all main-tree builds/evidence remain.

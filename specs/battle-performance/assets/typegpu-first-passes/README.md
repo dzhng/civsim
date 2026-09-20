@@ -14,8 +14,8 @@ acceptance. Full consumer pipelines have not yet been reverified on hardware.
 
 Frame depth integration4feb835c uses the canonical attachment policy and reports
 installed typed texture properties. Independent review found no regressions. All
-26 tests in the combined candidate suite pass. Frame hardware checks and wiring
-its depthStats into scene/facade consumers remain open; the method alone does
+26 tests in the combined candidate suite pass. [Frame hardware checks](frame-hardware/README.md) pass; wiring
+its depthStats into scene/facade consumers remains open; the method alone does
 not fulfill the live diagnostic contract.
 
 Choices: retain the raw WGSL as an actual reference/other-backend consumer; typed

@@ -8,7 +8,9 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
 Current pickup: Claude Opus implements the [M9b diagnostics producer](slices/m9b-diagnostics.md)
-in `game-battle-scene-diagnostics` at e0f5236e; logs `throwaway/scene-diagnostics-worker/`.
+in `game-battle-scene-diagnostics` at e0f5236e; logs `throwaway/scene-diagnostics-worker/` (corrected-result is the active run).
+Root rejected the rotating seating scan; this pass reports unavailable seating
+until a complete admitted-population check is implemented deliberately.
 Root then migrates raw scene reads, preserving content/33ms thresholds and counting
 distinct completed frame identities. [M9a](assets/m9a-frame-timing/README.md) is
 verified at4375effd (22hardware checks); timing and neutral-owner worktrees were

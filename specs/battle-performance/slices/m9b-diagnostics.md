@@ -19,3 +19,11 @@ integration. Source/raw depth consumers must deliberately identify which route
 is under test, without a production backend switch or legacy fallback. Existing
 seating, tactical cue and draw assertions may not silently disappear: expose
 real producer evidence or record the missing obligation as still open.
+
+Seating is not inferred from a rotating partial scan: moving soldiers make such
+results describe several frames, and a frozen large crowd may never finish the
+scan. This producer pass may report seating unavailable. The remaining complete
+seating assertion must examine an identified admitted population deliberately,
+without adding a repeated telemetry sweep to normal camera frames. Grass routed
+triangle estimates and draw-call totals likewise remain absent until an actual
+owner measures them; missing report columns do not justify invented counters.

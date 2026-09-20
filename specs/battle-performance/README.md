@@ -14,7 +14,9 @@ are integrated asead86de9 after the [scene reload pass](assets/typegpu-scene-sta
 Main candidate80/80 and facade57/57 pass. Fixed-build Menu identity/content/depth,
 resize/disposal and a direct GPU terrain replacement pass; three screenshot pairs
 are byte-identical after decoding. These are correctness, not timing results.
-The content worker/review are terminal; its worktree is pending scratch cleanup.
+The content worker/review are terminal; its worktree and branch were removed
+after preserving scratch and a verified bundle in
+`throwaway/typegpu-content-completed-cleanup/`.
 
 Opus draw observation is active in `/Users/david/dev/game-battle-native-draw-observation`
 (base17433cd1, handle74295), scoped to NativeGpuTelemetry/tests. It must distinguish

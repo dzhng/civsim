@@ -53,7 +53,9 @@ published camera is the frame that actually presented, carried together with the
 identity it presented under, so a newer pose is never labelled with an older
 frame's id; content, depth and cue counts come from the owners that hold them.
 A world that is not installed — before construction, on a retired comparison
-backend, after disposal — reports null rather than an empty shape. Measurements
+backend, after disposal — reports null rather than an empty shape, and so does a
+world that owns some of these owners and not others: each stat is claimed by
+whoever actually implements it, never borrowed from the world that does. Measurements
 this world cannot make truthfully are named as open obligations beside those
 nulls instead of being approximated: per-instance seating verification, per-frame
 draw calls, and the blade counts the grass field routes on the GPU. No diagnostic
@@ -86,9 +88,10 @@ remain part of the measured control. Readback helpers are counted globally but
 never replace final render IDs.
 
 The benchmark's default single shadows, canvas scale, post/grade, grass settings,
-and frozen behavior are retained. High cascades, staged crowd reload and the
-debug-block view belong to the selected raw world; the discarded comparison
-candidates refuse all three. No source renderer is constructed as a fallback.
+and frozen behavior are retained. High cascades and the staged crowd reload belong
+to each selected world; the debug-block view is still the raw world's alone, and
+the discarded comparison candidates refuse all three. No source renderer is
+constructed as a fallback.
 
 CPU verification: native live tests, source crowd/action/presentation/scheduler/
 benchmark tests, typechecks and a production lab build. Independent code review

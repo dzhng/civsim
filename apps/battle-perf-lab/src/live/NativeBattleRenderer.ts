@@ -73,7 +73,10 @@ import type {
   BattleSceneOptions,
   BattleTerrainInput,
 } from "../../../../packages/battle-renderer/src/sceneTypes";
-import { RAW_BATTLE_PROJECTION, RAW_BATTLE_SUBSTRATE } from "../../../../packages/battle-renderer/src/identity";
+import {
+  RAW_BATTLE_PROJECTION,
+  RAW_BATTLE_SUBSTRATE,
+} from "../../../../packages/battle-renderer/src/identity";
 
 declare const __BATTLE_NATIVE_BACKEND__: SceneBackend;
 /** Lab-only comparison override for the published impostor catalog. It is empty in
@@ -85,11 +88,21 @@ const PUBLISHED_IMPOSTOR_CATALOG = "/assets/soldiers/impostors/catalog.json";
 type Owner = Awaited<ReturnType<typeof createSceneBackend>>;
 type Scene = Owner["scene"];
 type View = Parameters<Scene["prepare"]>[0];
-/** Crowd assets, replacement and admitted-pose diagnostics belong to the selected
- * raw world; the remaining comparison backends are retired at M9 and never owned them. */
-type RawScene = Extract<Scene, { replaceCrowdAssets: unknown }>;
-const rawScene = (scene: Scene | undefined): RawScene | null =>
+/** The crowd generation a selected world owns: staged asset replacement plus the
+ * admitted-pose, seating and depth diagnostics this facade joins to its own
+ * presented frames. Both selected worlds own it; the comparison backends retired
+ * at M9 never did. */
+type CrowdWorldScene = Extract<Scene, { replaceCrowdAssets: unknown }>;
+const crowdWorld = (scene: Scene | undefined): CrowdWorldScene | null =>
   scene && "replaceCrowdAssets" in scene ? scene : null;
+/** The raw world, identified by the debug-block upload only it implements. Its
+ * terrain, overlay and environment content — and its own published identity — have
+ * no converted counterpart yet, so they are narrowed separately from the crowd seam
+ * above: each capability is claimed by whoever actually implements it, and this
+ * split collapses on its own once those passes land. */
+type RawWorldScene = Extract<Scene, { uploadDebugBlocks: unknown }>;
+const rawWorld = (scene: Scene | undefined): RawWorldScene | null =>
+  scene && "uploadDebugBlocks" in scene ? scene : null;
 const twoFrames = () =>
   new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
@@ -98,6 +111,16 @@ const twoFrames = () =>
 // Missing measurements stay explicit; the verification contract and rationale
 // live in the live renderer README rather than being copied into each report.
 const OPEN_DIAGNOSTIC_OBLIGATIONS = ["seating", "drawCalls", "grassRouting"] as const;
+/** Every stat below gated on `rawContent`, by the key it is published under;
+ * `terrain` carries the grass grouped with it. An installed world that owns none of
+ * them names them as outstanding, so a null is never read as an empty scene. */
+const UNCONVERTED_CONTENT_OBLIGATIONS = [
+  "substrate",
+  "projection",
+  "environment",
+  "terrain",
+  "tacticalLines",
+] as const;
 /** What an explicit seating inspection examines, and what it therefore does not
  * prove. It is a CPU firewall between the installed height field and the instance
  * data that was uploaded — not evidence of where the GPU drew a soldier's feet. */
@@ -305,7 +328,7 @@ export class BattleRenderer implements BattleRendererApi {
   /** Every pose the crowd owner is presenting must exist in the replacement, both
    *  when it loads and again at admission: the simulation may submit new poses while
    *  the catalog load and the staged GPU resources wait. */
-  private assertActivePoses(published: BattleCrowdAssets, scene: RawScene) {
+  private assertActivePoses(published: BattleCrowdAssets, scene: CrowdWorldScene) {
     for (const pose of scene.admittedCrowdPoses()) {
       const [classId, clip] = pose.split("\u0000");
       if (!published.assets[Number(classId)]?.animation.clips.some((c) => c.name === clip))
@@ -557,7 +580,7 @@ export class BattleRenderer implements BattleRendererApi {
           await step(() => owner.scene.uploadCrowd(this.instances, view.camera, view.time));
           if (this.blockMode)
             await step(() =>
-              rawScene(owner.scene)!.uploadDebugBlocks(
+              rawWorld(owner.scene)!.uploadDebugBlocks(
                 battleDebugBlockTriangles({
                   positions: c.positions,
                   alive: c.alive,
@@ -623,7 +646,7 @@ export class BattleRenderer implements BattleRendererApi {
           this.presentedFrame = {
             view,
             renderedFrameId: this.renderedFrameId,
-            seating: rawScene(owner.scene)?.admittedSeatingIdentity() ?? null,
+            seating: crowdWorld(owner.scene)?.admittedSeatingIdentity() ?? null,
           };
           this.frozenKey = generation === this.invalidation ? key : null;
           this.metrics = {
@@ -777,7 +800,7 @@ export class BattleRenderer implements BattleRendererApi {
   /** The pose the crowd owner actually admitted, not the instance scratch the next
    *  frame rebuilds in place. */
   debugSoldierAnim(index: number) {
-    return rawScene(this.owner?.scene)?.debugSoldierAnim(index) ?? null;
+    return crowdWorld(this.owner?.scene)?.debugSoldierAnim(index) ?? null;
   }
   /** Reload the published crowd after a bake. The replacement is staged: a failed
    *  load or admission keeps the last valid world, disposal releases the staged
@@ -791,7 +814,7 @@ export class BattleRenderer implements BattleRendererApi {
       await previous;
       await prior;
       this.check();
-      const scene = rawScene(this.owner?.scene);
+      const scene = crowdWorld(this.owner?.scene);
       if (!scene) throw Error(`The ${this.backend} comparison backend does not own crowd assets`);
       const published = await this.assets();
       this.check();
@@ -851,7 +874,7 @@ export class BattleRenderer implements BattleRendererApi {
       presented: presented?.seating ? { ...presented.seating } : null,
       expectedSoldiers: this.staticData.soldierUnit.length,
     });
-    const scene = rawScene(this.owner?.scene);
+    const scene = crowdWorld(this.owner?.scene);
     if (!scene)
       return report(
         null,
@@ -873,10 +896,12 @@ export class BattleRenderer implements BattleRendererApi {
   }
   stats(): BattleRendererStats {
     const scene = this.owner?.scene;
-    // Scene content diagnostics belong to the selected raw world; the comparison
-    // backends never owned them and report null rather than a shape.
-    const installed = rawScene(scene)?.stats() ?? null;
-    const native = installed ?? scene?.stats() ?? null;
+    // Crowd, depth, shadow and grass diagnostics belong to whichever world owns the
+    // crowd generation; terrain, overlay and environment content are still the raw
+    // world's alone. A backend that owns neither reports null rather than a shape.
+    const installedWorld = crowdWorld(scene)?.stats() ?? null;
+    const rawContent = rawWorld(scene)?.stats() ?? null;
+    const native = installedWorld ?? scene?.stats() ?? null;
     const gpuFrame = this.frameTiming.correlatedFrame();
     const presented = this.presentedFrame;
     const camera = presented?.view.camera ?? null;
@@ -884,11 +909,12 @@ export class BattleRenderer implements BattleRendererApi {
       // The population the installed static simulation data says must be drawn.
       // `soldiers` below it means the crowd owner is behind, not a smaller army.
       expectedSoldiers: this.staticData.soldierUnit.length,
-      // Identity of the world actually installed. The comparison
-      // backends are not this one and do not borrow its name.
-      substrate: installed ? RAW_BATTLE_SUBSTRATE : null,
-      projection: installed ? RAW_BATTLE_PROJECTION : null,
-      environment: installed?.environment ?? null,
+      // Identity of the world that publishes it. No other backend borrows this
+      // name — not a comparison backend, and not the converted world, which does
+      // not name itself yet and owes the obligation below instead.
+      substrate: rawContent ? RAW_BATTLE_SUBSTRATE : null,
+      projection: rawContent ? RAW_BATTLE_PROJECTION : null,
+      environment: rawContent?.environment ?? null,
       // Detached from the caller's mutable snapshot. NOT the scene's
       // `preparedCamera`, which a preparation still in flight has already moved
       // past this one.
@@ -896,12 +922,14 @@ export class BattleRenderer implements BattleRendererApi {
         ? { ...camera, camera3d: { ...camera.camera3d, target: [...camera.camera3d.target] } }
         : null,
       presentedFrameId: presented?.renderedFrameId ?? null,
-      depth: installed?.depth ?? null,
+      depth: installedWorld?.depth ?? null,
       // Unavailable, never a synthesized pass or a rotating sample presented as
       // a whole-population verdict: see `openObligations`.
       seating: null,
       drawCalls: null,
-      openObligations: OPEN_DIAGNOSTIC_OBLIGATIONS,
+      openObligations: rawContent
+        ? OPEN_DIAGNOSTIC_OBLIGATIONS
+        : [...OPEN_DIAGNOSTIC_OBLIGATIONS, ...UNCONVERTED_CONTENT_OBLIGATIONS],
     };
     return {
       ready: this.soldierAssets !== null && native?.crowd.ready === true,
@@ -912,9 +940,9 @@ export class BattleRenderer implements BattleRendererApi {
       ...diagnostics,
       // Grass is its own owner; it is grouped with the surface it covers because
       // that is the content one check reads, not a copy of another stats tree.
-      terrain: installed ? { ...installed.terrain, grass: installed.grass } : null,
-      tacticalLines: installed?.tacticalLines ?? null,
-      shadows: installed?.shadows ?? null,
+      terrain: rawContent ? { ...rawContent.terrain, grass: rawContent.grass } : null,
+      tacticalLines: rawContent?.tacticalLines ?? null,
+      shadows: installedWorld?.shadows ?? null,
       performance: {
         buildMs: this.metrics.buildMs,
         uploadMs: this.metrics.uploadMs,

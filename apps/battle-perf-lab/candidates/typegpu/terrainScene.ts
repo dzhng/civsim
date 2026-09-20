@@ -28,7 +28,8 @@ export async function createTypegpuBattleTerrainScene(
   let disposed = false,
     pending = false,
     zoom = 1,
-    strength = 1;
+    strength = 1,
+    generation = 0;
   let staging: { dispose(): void } | undefined;
   let active: Awaited<ReturnType<typeof prepare>> | undefined;
   const check = () => {
@@ -128,6 +129,7 @@ export async function createTypegpuBattleTerrainScene(
       next.setFrame(zoom, strength);
       const previous = active;
       active = next;
+      generation++;
       staging = undefined;
       previous?.dispose();
     } catch (error) {
@@ -167,6 +169,8 @@ export async function createTypegpuBattleTerrainScene(
       return battleTerrainHeightAt(d.field, d.vista, d.rect, x, y);
     },
     rect: () => current().data.rect as readonly [number, number, number, number],
+    // Presentation records need only this identity, not aggregated water/scenery stats.
+    committedGeneration: () => (disposed || !active ? null : generation),
     setFrame(nextZoom: number, terrainDetailStrength: number) {
       check();
       zoom = nextZoom;

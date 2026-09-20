@@ -148,6 +148,23 @@ in a dependent owner after terrain commits closes the scene rather than exposing
 mixed terrain generations. Disposal closes the scene immediately and awaits an
 active operation's cleanup through that operation's promise.
 
+A crowd reload is staged the same way and behind one GPU admission: the installed
+generation keeps drawing until the replacement has allocated, carried the admitted
+pose through the last prepared camera and validated, and a rejection or a disposal
+mid-load releases only the stage. Nothing resurrects a scene closed while the stage
+was in flight. Terrain, environment and frame attachments are never rebuilt to
+reload a crowd.
+
+What the scene has admitted is published as identity, not as a scan. The crowd
+epoch, the audience's own submission counter and the committed terrain generation
+form one O(1) record a consumer may take on every presented frame; a replacement
+history restarts its submission counter, so the epoch is what separates two poses
+that both call themselves the first. Whole-population seating is measured only when
+a caller asks, through the shared crowd-audience diagnostics both worlds already
+use, and refuses — rather than passing vacuously — while an operation is in flight,
+with nothing admitted, or over an empty pose. Depth is reported from the frame's own
+installed attachment, so a resized or released buffer is described as it is.
+
 The dedicated CPU lifecycle tests cover these boundaries, including late GPU
 admission errors and pose-update ordering. Complete-scene browser controls and
 fresh visual review are still pending for this composition; existing component

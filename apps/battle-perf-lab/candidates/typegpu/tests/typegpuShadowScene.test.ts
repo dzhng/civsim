@@ -43,6 +43,19 @@ vi.mock("../frame", () => ({
     dispose = vi.fn();
     resize = vi.fn();
     setCamera = vi.fn(() => state.calls.push("setCamera"));
+    /** The depth buffer the real frame owns, reported off this double's own size so
+     *  a scene stats read cannot pass while publishing a size nothing installed. */
+    depthStats = () => ({
+      owner: "typegpu-battle-frame",
+      installed: true,
+      format: "depth32float",
+      samples: 1,
+      width: this.width,
+      height: this.height,
+      clearValue: 0,
+      reversed: true,
+      requestedBytes: this.width * this.height * 4,
+    });
     static async create() {
       return new this();
     }

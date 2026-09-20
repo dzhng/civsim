@@ -133,8 +133,11 @@ function fixture(
     atlasOverride?: string;
     backend?: "raw" | "typegpu" | "vgpu";
     /** Omit the crowd-replacement seam, as the retired comparison backends do:
-     *  their scenes never owned the selected world's content diagnostics. */
+     *  their scenes never owned a selected world's content diagnostics. */
     comparisonScene?: boolean;
+    /** A selected world that owns the crowd generation but not the terrain, overlay
+     *  and environment content the conversion has not reached yet. */
+    convertedScene?: boolean;
     search?: string;
     /** Render passes the scene encodes per prepared frame, so the observer has
      *  real measured work to publish. */
@@ -230,7 +233,7 @@ function fixture(
           terrainGeneration: state.scene.generation,
         }
       : null;
-  const selectedWorld = {
+  const crowdSeam = {
     replaceCrowdAssets: async (published: unknown, admit?: () => void | Promise<void>) => {
       call("replaceCrowd")(published);
       await admit?.();
@@ -239,7 +242,6 @@ function fixture(
     },
     admittedCrowdPoses: () => new Set(["0\u0000idle"]),
     debugSoldierAnim: (index: number) => (index === 0 ? { clip: "idle", phase: 0.25 } : null),
-    uploadDebugBlocks: call("blocks"),
     admittedSeatingIdentity: () => {
       call("seatingIdentity")();
       return seatingIdentity();
@@ -302,14 +304,18 @@ function fixture(
         state.encoded.push(encoder.finish());
       },
       settleGrass: call("settle"),
-      ...(build.comparisonScene ? {} : selectedWorld),
+      // The crowd generation every selected world owns.
+      ...(build.comparisonScene ? {} : crowdSeam),
+      // The debug-block view is still the raw world's alone, like its content stats.
+      ...(build.comparisonScene || build.convertedScene
+        ? {}
+        : { uploadDebugBlocks: call("blocks") }),
       stats: () => ({
         actual: true,
         crowd: { instances: 0, ready: true },
         preparedCamera: state.scene.preparedCamera,
-        environment: "aegean-noon",
         depth: {
-          owner: "raw-battle-frame",
+          owner: build.convertedScene ? "typegpu-battle-frame" : "raw-battle-frame",
           installed: true,
           format: "depth32float",
           samples: 1,
@@ -321,21 +327,29 @@ function fixture(
         },
         shadows: { mode: "single", cascades: 1 },
         grass: { residency: { rebuild: { pending: false } } },
-        terrain: {
-          installed: true,
-          generation: state.scene.generation,
-          replacing: false,
-          scenery: state.scene.scenery,
-          vistaBands: 4,
-          water: { draws: 1, triangles: 2 },
-        },
-        tacticalLines: {
-          groundCues: { count: state.scene.lines.groundCues },
-          rings: { count: state.scene.lines.rings },
-          effects: { count: state.scene.lines.effects },
-          triangles: { count: 0 },
-          debugBlocks: null,
-        },
+        // Terrain, overlay and environment content the converted world's owners do
+        // not publish yet. A comparison backend's scene still carries the shape, so
+        // the facade has to refuse it on ownership rather than on its absence.
+        ...(build.convertedScene
+          ? {}
+          : {
+              environment: "aegean-noon",
+              terrain: {
+                installed: true,
+                generation: state.scene.generation,
+                replacing: false,
+                scenery: state.scene.scenery,
+                vistaBands: 4,
+                water: { draws: 1, triangles: 2 },
+              },
+              tacticalLines: {
+                groundCues: { count: state.scene.lines.groundCues },
+                rings: { count: state.scene.lines.rings },
+                effects: { count: state.scene.lines.effects },
+                triangles: { count: 0 },
+                debugBlocks: null,
+              },
+            }),
       }),
     },
     submitPresentation: () => {
@@ -1097,9 +1111,9 @@ test("the published camera is the frame that presented, paired with the id it pr
   });
   await progress(f.callbacks);
   await expect(pending).rejects.toThrow("device lost during readiness");
-  // The scene did prepare the newer pose, so `preparedCamera` is not a presented one.
-  expect(f.renderer.stats().native.preparedCamera.camera3d.target).toEqual([40, 50, 0]);
   expect(f.renderer.stats()).toMatchObject({
+    // The scene did prepare the newer pose, so `preparedCamera` is not a presented one.
+    native: { preparedCamera: { camera3d: { target: [40, 50, 0] } } },
     presentedFrameId: 1,
     camera: { zoom: 2, camera3d: { target: [1, 2, 0] } },
   });
@@ -1162,11 +1176,11 @@ test("a disposed renderer reports no installed world rather than an empty one", 
 });
 
 test("a retired comparison backend keeps its own identity instead of the selected world's", async () => {
-  const f = fixture({ backend: "typegpu", comparisonScene: true });
+  const f = fixture({ backend: "vgpu", comparisonScene: true });
   await f.renderer.ready;
   await f.renderer.present(packet());
   expect(f.renderer.stats()).toMatchObject({
-    backend: "typegpu",
+    backend: "vgpu",
     substrate: null,
     projection: null,
     environment: null,
@@ -1321,12 +1335,12 @@ test("verification before any presented frame is unavailable rather than an empt
 });
 
 test("a retired comparison backend owns no population to verify and copies no other verdict", async () => {
-  const f = fixture({ backend: "typegpu", comparisonScene: true });
+  const f = fixture({ backend: "vgpu", comparisonScene: true });
   await f.renderer.ready;
   await f.renderer.present(packet());
   const inspection = await f.renderer.verifySeating();
   expect(inspection.measurement).toBeNull();
-  expect(inspection.unavailable).toContain("typegpu");
+  expect(inspection.unavailable).toContain("vgpu");
   expect(inspection).toMatchObject({ presentedFrameId: 1, presented: null, installed: null });
   f.renderer.dispose();
 });
@@ -1365,5 +1379,53 @@ test("an inspection caller cannot mutate the retained presentation identity", as
   expect(second.measurement?.matches).toBe(true);
   expect(second.presented).toEqual(identity);
   expect(second.presentedFrameId).toBe(first.presentedFrameId);
+  f.renderer.dispose();
+});
+
+test("a converted world publishes the owners it has and names the content it does not", async () => {
+  const f = fixture({ backend: "typegpu", convertedScene: true });
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  const stats = f.renderer.stats();
+  expect(stats).toMatchObject({
+    backend: "typegpu",
+    ready: true,
+    presentedFrameId: 1,
+    // Its own frame's attachment, never the raw world's report or its name.
+    depth: { owner: "typegpu-battle-frame", installed: true, requestedBytes: 1440 * 900 * 4 },
+    shadows: { mode: "single", cascades: 1 },
+    // Content owners the conversion has not reached: absent, not an empty world.
+    substrate: null,
+    projection: null,
+    environment: null,
+    terrain: null,
+    tacticalLines: null,
+  });
+  const obligations = stats.openObligations as string[];
+  for (const owed of ["substrate", "projection", "environment", "terrain", "tacticalLines"])
+    expect(obligations).toContain(owed);
+  f.renderer.dispose();
+});
+
+test("a converted world's admitted crowd is reloaded, inspected and read per soldier", async () => {
+  const f = fixture({ backend: "typegpu", convertedScene: true });
+  f.renderer.setStatic(new Uint32Array(3), [0], [0]);
+  await f.renderer.ready;
+  await f.renderer.present(packet());
+  expect(f.renderer.debugSoldierAnim(0)).toEqual({ clip: "idle", phase: 0.25 });
+  expect(await f.renderer.verifySeating()).toMatchObject({
+    measurement: { checked: 3, matches: true },
+    unavailable: null,
+    presentedFrameId: 1,
+    installed: { crowdGeneration: 0, submission: 1, terrainGeneration: 1 },
+  });
+  await f.renderer.reloadSoldierAssets();
+  expect(state.calls.some(([name]) => name === "replaceCrowd")).toBe(true);
+  // The replacement's own epoch leaves the frame that drew the older pose unverified.
+  expect(await f.renderer.verifySeating()).toMatchObject({
+    measurement: null,
+    presented: { crowdGeneration: 0 },
+    installed: { crowdGeneration: 1 },
+  });
   f.renderer.dispose();
 });

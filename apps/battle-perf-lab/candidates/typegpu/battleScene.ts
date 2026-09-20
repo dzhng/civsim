@@ -1,7 +1,11 @@
 import { nativeGpuScope } from "../../../../packages/battle-renderer/src/gpuScope";
+import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import type { TgpuCommandEncoder } from "typegpu";
 import { createSceneLifecycle } from "../../src/sceneLifecycle";
-import type { BattleSceneOptions } from "../../../../packages/battle-renderer/src/sceneTypes";
+import type {
+  BattleCrowdAssets,
+  BattleSceneOptions,
+} from "../../../../packages/battle-renderer/src/sceneTypes";
 import { createTypegpuEnvironment } from "./environment";
 import { TypegpuBattleFrame } from "./frame";
 import { createTypegpuSunShadow } from "./shadow";
@@ -32,6 +36,8 @@ import {
 import type { BattleStandardInstance } from "../../../../packages/game-renderer/src/models/shared/battleStandardData";
 import type { BattleReadoutInstance } from "../../../../packages/game-renderer/src/battle/readoutData";
 import type {
+  AdmittedSeatingIdentity,
+  AdmittedSeatingVerification,
   BattleCameraSnapshot,
   BattleTacticalLineFrame,
 } from "../../../../packages/battle-renderer/src/types";
@@ -46,7 +52,8 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
     options.signal?.throwIfAborted();
     return value;
   };
-  let lastCamera: BattleCameraSnapshot | null = null;
+  let lastCamera: BattleCameraSnapshot | null = null,
+    lastTime = 0;
   let bloom = options.bloom,
     post = options.post;
   let prepared = false;
@@ -97,16 +104,22 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
         options.terrain,
       ),
     );
-    const crowd = own(
-      await createTypegpuCrowdAudience(
+    const newCrowdAudience = (published: BattleCrowdAssets) =>
+      createTypegpuCrowdAudience(
         device,
-        options.assets,
-        options.atlases,
+        published.assets,
+        published.atlases,
         frame.cameraGroup,
         environment,
         options.samples,
-      ),
-    );
+      );
+    // Replaceable, so the release reads the installed generation rather than the first.
+    let crowd = await newCrowdAudience(options);
+    // A replacement history restarts its submission counter at 0, so the submission
+    // alone cannot identify a pose across one. This epoch is what distinguishes them.
+    let crowdGeneration = 0;
+    releases.push(() => crowd.dispose());
+    options.signal?.throwIfAborted();
     const grass = own(
       await createTypegpuGrassField(device, environment, options.grassProfile, options.samples),
     );
@@ -161,6 +174,30 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       },
       ...(shadow?.update(camera.snapshot.camera3d).crowdViews ?? []),
     ];
+    // The last prepared camera, detached from the caller's mutable snapshot. A crowd
+    // replacement reprojects the carried pose through it rather than a second owner.
+    const rememberCamera = (camera: BattleCameraSnapshot, time: number) => {
+      lastCamera = {
+        ...camera,
+        camera3d: { ...camera.camera3d, target: [...camera.camera3d.target] },
+      };
+      lastTime = time;
+    };
+    // The one surface soldiers are seated on: the playable height field, without
+    // the vista apron `heightAt` adds. The crowd builder and every later
+    // verification of what it built share this exact sampler.
+    const seatingHeightAt = (x: number, y: number) => terrainHeightAt(terrain.field(), x, y);
+    /** Identity of the current admitted pose and committed terrain generation. O(1)
+     *  — every counter is one its owner already keeps — so a consumer may record it
+     *  on each presented frame. Null while nothing is admitted, or while no terrain
+     *  generation is committed. */
+    const admittedSeatingIdentity = (): AdmittedSeatingIdentity | null => {
+      check();
+      const submission = crowd.admittedSubmission();
+      const terrainGeneration = terrain.committedGeneration();
+      if (submission === null || terrainGeneration === null) return null;
+      return { crowdGeneration, submission, terrainGeneration };
+    };
     const wind = createWindUniforms(),
       sun = photorealEnvironment(options.environment).sunDirection;
     options.signal?.throwIfAborted();
@@ -171,7 +208,79 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       readGrassDiagnostics: () => grass.readDiagnostics(),
       readGrassRouting: () => grass.readRouting(),
       heightAt: terrain.heightAt,
-      seatingHeightAt: (x: number, y: number) => terrainHeightAt(terrain.field(), x, y),
+      seatingHeightAt,
+      admittedSeatingIdentity,
+      /** Re-measure the whole admitted population against the installed playable
+       *  height field. Verification only: it submits nothing, allocates no army
+       *  copy, and no frame or stats read reaches it. A caller holding a presented
+       *  frame's identity must compare it against `installed` before attributing
+       *  the measurement to that frame. */
+      verifyAdmittedSeating(): AdmittedSeatingVerification {
+        check();
+        const installed = admittedSeatingIdentity();
+        const refuse = (unavailable: string): AdmittedSeatingVerification => ({
+          measurement: null,
+          unavailable,
+          installed,
+        });
+        // A staged operation is mid-flight, so what is admitted now is not what
+        // this scene is about to present.
+        if (lifecycle.busy) return refuse("Battle scene preparation is in flight");
+        if (!installed) return refuse("No admitted crowd pose over a committed terrain generation");
+        const measurement = crowd.verifySeating(seatingHeightAt);
+        // An identified pose that measures nothing is an empty population, which
+        // is an unseated world rather than a world that passed.
+        if (!measurement) return refuse("The admitted crowd pose is empty");
+        return { measurement, unavailable: null, installed };
+      },
+      admittedCrowdPoses: () => crowd.admittedPoses(),
+      debugSoldierAnim: (index: number) => crowd.debugSoldierAnim(index),
+      /** Stage a complete new crowd and atlas generation. A failed load, a rejected
+       * admission or disposal releases the staged resources and keeps the installed
+       * crowd; terrain, environment and frame attachments are never rebuilt. */
+      async replaceCrowdAssets(published: BattleCrowdAssets, validate?: () => void) {
+        return lifecycle.run(async () => {
+          // Replacement is exclusive: keep this scope through every staged upload,
+          // then validate before retiring the last drawable generation.
+          const admitGpu = beginGpuAdmission(device);
+          try {
+            const staged = await newCrowdAudience(published);
+            try {
+              check();
+              validate?.();
+              const carried = crowd.admitted();
+              if (carried && lastCamera) {
+                const camera = battleSceneCamera(
+                  lastCamera,
+                  frame.width,
+                  frame.height,
+                  lastTime,
+                  options.environment,
+                );
+                await staged.upload(carried, crowdViews(camera), camera.impostor);
+                check();
+                const encoder = frame.createCommandEncoder();
+                nativeGpuScope(device, "pose", () =>
+                  staged.precompute(frame.nativeEncoder(encoder)),
+                );
+                encoder.submit();
+              }
+              await admitGpu();
+              validate?.();
+              check();
+            } catch (error) {
+              staged.dispose();
+              throw error;
+            }
+            crowd.dispose();
+            crowd = staged;
+            crowdGeneration++;
+            prepared = false;
+          } finally {
+            await admitGpu().catch(() => {});
+          }
+        });
+      },
       async replaceTerrain(input: BattleTerrainInput) {
         return lifecycle.run(async () => {
           const previousPrepared = prepared;
@@ -304,10 +413,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           );
           check();
           terrain.setFrame(input.camera.zoom, grass.snapshot().terrainDetailStrength);
-          lastCamera = {
-            ...input.camera,
-            camera3d: { ...input.camera.camera3d, target: [...input.camera.camera3d.target] },
-          };
+          rememberCamera(input.camera, input.time);
           prepared = true;
         });
       },
@@ -348,6 +454,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       stats: () => ({
         prepared,
         preparedCamera: lastCamera,
+        depth: frame.depthStats(),
         shadows: shadow?.stats() ?? {
           mode: "off" as const,
           cascades: 0,

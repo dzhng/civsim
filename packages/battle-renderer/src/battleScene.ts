@@ -1,4 +1,5 @@
 import { nativeGpuScope } from "./gpuScope";
+import { beginGpuAdmission } from "./gpuAdmission";
 import type { BattleCrowdAssets, BattleSceneOptions, BattleTerrainInput } from "./sceneTypes";
 import { createRawEnvironment } from "./world/environment";
 import { RawBattleFrame } from "./world/frame";
@@ -14,21 +15,12 @@ import { reverseZFrustumPlanes } from "./crowdFrustum";
 import type { CrowdInstance } from "../../crowd-runtime/src/instanceData";
 import type { CrowdProjectionView } from "../../crowd-runtime/src/visibility";
 import type { GpuDeviceCaps } from "../../renderer-core/src/capabilities";
-import {
-  terrainHeightAt,
-  heightFieldRange,
-} from "../../game-renderer/src/terrain/heightField";
+import { terrainHeightAt, heightFieldRange } from "../../game-renderer/src/terrain/heightField";
 import { photorealEnvironment } from "../../game-renderer/src/environment/physicalEnvironment";
-import {
-  createWindUniforms,
-  updateWindUniforms,
-} from "../../game-renderer/src/battle/windSignal";
+import { createWindUniforms, updateWindUniforms } from "../../game-renderer/src/battle/windSignal";
 import type { BattleStandardInstance } from "../../game-renderer/src/models/shared/battleStandardData";
 import type { BattleReadoutInstance } from "../../game-renderer/src/battle/readoutData";
-import type {
-  BattleCameraSnapshot,
-  BattleTacticalLineFrame,
-} from "./types";
+import type { BattleCameraSnapshot, BattleTacticalLineFrame } from "./types";
 
 /** Complete native scene submission. The caller owns simulation/presentation data,
  * device and canvas; this owner owns every scene resource and final pass ordering. */
@@ -201,20 +193,21 @@ export async function createRawBattleScene(
       /** Stage a complete new crowd and atlas generation. A failed load, a rejected
        * admission or disposal releases the staged resources and keeps the installed
        * crowd; terrain, environment and frame attachments are never rebuilt. */
-      async replaceCrowdAssets(published: BattleCrowdAssets, admit?: () => void | Promise<void>) {
+      async replaceCrowdAssets(published: BattleCrowdAssets, validate?: () => void) {
         check();
         if (busy) throw Error("Battle scene preparation already in flight");
+        // Replacement is exclusive: keep this scope through every staged upload,
+        // then validate before retiring the last drawable generation.
+        const admitGpu = beginGpuAdmission(device);
         busy = true;
         try {
           const staged = await newCrowdAudience(published);
           try {
             check();
-            // Admission runs against the staged resources and the still-installed
-            // pose, so a pose that changed during the wait is still validated.
-            await admit?.();
+            validate?.();
             check();
             const carried = crowd.admitted();
-            if (carried?.length && lastCamera) {
+            if (carried && lastCamera) {
               const camera = battleSceneCamera(
                 lastCamera,
                 frame.width,
@@ -227,6 +220,9 @@ export async function createRawBattleScene(
               nativeGpuScope(device, "pose", () => staged.precompute(encoder));
               device.queue.submit([encoder.finish()]);
             }
+            await admitGpu();
+            validate?.();
+            check();
           } catch (error) {
             staged.dispose();
             throw error;
@@ -235,6 +231,7 @@ export async function createRawBattleScene(
           crowd = staged;
           prepared = false;
         } finally {
+          await admitGpu().catch(() => {});
           busy = false;
         }
       },

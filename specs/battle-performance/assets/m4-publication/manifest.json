@@ -1,0 +1,167 @@
+[
+  {
+    "source": "throwaway/crowd-publication-review/browser-build.log",
+    "file": "crowd-publication-review-browser-build.log.gz",
+    "bytes": 4024,
+    "sha256": "34397fed11c549f706ea22b62b1f0502baf568b0e5f66e633d131c360135916d"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/fix-review-stderr.log",
+    "file": "crowd-publication-review-fix-review-stderr.log.gz",
+    "bytes": 120703,
+    "sha256": "8f79d14c4897798dec3fbcc1c87a7be38c42baf6a3244e8bb788c54d47327d2f"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/fix-review.txt",
+    "file": "crowd-publication-review-fix-review.txt.gz",
+    "bytes": 195,
+    "sha256": "92ae86ace567c42259b1a6c33a8e6e3f1341af8d6068162e147309c9feec0469"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/published-assets.json",
+    "file": "crowd-publication-review-published-assets.json.gz",
+    "bytes": 8506,
+    "sha256": "54b3e6737bde2af5c289f6bb86d2f8b23a871fa889f3ced686767c17f0bbb88a"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/result.txt",
+    "file": "crowd-publication-review-result.txt.gz",
+    "bytes": 1526,
+    "sha256": "dc1a9b9e97e5c8492a40767e8b55755e5d518823bc5c7c33ce359d49c8b42b40"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/root-dispose-red.log",
+    "file": "crowd-publication-review-root-dispose-red.log.gz",
+    "bytes": 1041,
+    "sha256": "e0f724b9f69cd5a5f98fae956a7431bd9da11369d3abb74a3c02d77b1835915e"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/root-format.log",
+    "file": "crowd-publication-review-root-format.log.gz",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/root-live-green.log",
+    "file": "crowd-publication-review-root-live-green.log.gz",
+    "bytes": 260,
+    "sha256": "3f38156271a546a64b744e4fdd5bf6468383544447457788ea378455bef0493c"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/root-reload-green.log",
+    "file": "crowd-publication-review-root-reload-green.log.gz",
+    "bytes": 236,
+    "sha256": "49253d38123a9f3537a06a2009395bd3fcfb5cb572d6d89a75e23d375f1d87d1"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/root-reload-red.log",
+    "file": "crowd-publication-review-root-reload-red.log.gz",
+    "bytes": 2218,
+    "sha256": "00414fbc3ec86d9a2dd534e4a028d67988ef21ffa0a160ef6b4c4d4be8a97190"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/root-typecheck.log",
+    "file": "crowd-publication-review-root-typecheck.log.gz",
+    "bytes": 15,
+    "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+  },
+  {
+    "source": "throwaway/crowd-publication-review/stderr.log",
+    "file": "crowd-publication-review-stderr.log.gz",
+    "bytes": 168015,
+    "sha256": "68e97c10f6d29e3ffc32835872e601021b2014a01d55b663d61a8383db0388ae"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/reload-pixels.json",
+    "file": "crowd-publication-browser-reload-pixels.json.gz",
+    "bytes": 71,
+    "sha256": "084aba1d04d5ff4a057aeb0121a95bf4bf1f9d86a24eb8fdaf01a98691c66b4d"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/report-before-startup-settled.json",
+    "file": "crowd-publication-browser-report-before-startup-settled.json.gz",
+    "bytes": 29087,
+    "sha256": "ac6d58faeb6c7317200bea3e8d530a1d9ec6a860f19bdad17046ce4baa7cc249"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/report-early-admission.json",
+    "file": "crowd-publication-browser-report-early-admission.json.gz",
+    "bytes": 29121,
+    "sha256": "67d565b0e920164122ebe5e23c6403f2aea9acdff2fecb7a3cf5fd6b990b9d64"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/report-initial.json",
+    "file": "crowd-publication-browser-report-initial.json.gz",
+    "bytes": 29080,
+    "sha256": "ac6d909904e4ab57d99adec70ea45efde1b14a31f83397cf2a1ba81b4c4d8c29"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/report.json",
+    "file": "crowd-publication-browser-report.json.gz",
+    "bytes": 29137,
+    "sha256": "18c35e500d2f4fe2040363468534fabbfdf35f6c1088f03d81b1e876f4acdc04"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/run-corrected.log",
+    "file": "crowd-publication-browser-run-corrected.log.gz",
+    "bytes": 268,
+    "sha256": "52546e9716a6c091a7f87d856763b2b1b1d8bf51cd69329723e8a6df3fe3d712"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/run-early-admission.mjs",
+    "file": "crowd-publication-browser-run-early-admission.mjs.gz",
+    "bytes": 4861,
+    "sha256": "1b5e1be42059490640a529aa48e919982db05c721438ecaafc15502a021ad49c"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/run-initial.mjs",
+    "file": "crowd-publication-browser-run-initial.mjs.gz",
+    "bytes": 4559,
+    "sha256": "c8b9016b7ded9f8df5602ce6bda5c5ca23e5fd3c4428be567ac25a774a09ec60"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/run-pose-admission.log",
+    "file": "crowd-publication-browser-run-pose-admission.log.gz",
+    "bytes": 268,
+    "sha256": "52546e9716a6c091a7f87d856763b2b1b1d8bf51cd69329723e8a6df3fe3d712"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/run-settled.log",
+    "file": "crowd-publication-browser-run-settled.log.gz",
+    "bytes": 268,
+    "sha256": "52546e9716a6c091a7f87d856763b2b1b1d8bf51cd69329723e8a6df3fe3d712"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/run.log",
+    "file": "crowd-publication-browser-run.log.gz",
+    "bytes": 268,
+    "sha256": "52546e9716a6c091a7f87d856763b2b1b1d8bf51cd69329723e8a6df3fe3d712"
+  },
+  {
+    "source": "throwaway/crowd-publication-browser/run.mjs",
+    "file": "crowd-publication-browser-run.mjs.gz",
+    "bytes": 5300,
+    "sha256": "f5231873107b413d57430553dc40ad9944e1c7b2e150d8f0770a52f8d82e0c86"
+  },
+  {
+    "source": "throwaway/crowd-publication-worker/result.txt",
+    "file": "crowd-publication-worker-result.txt.gz",
+    "bytes": 6846,
+    "sha256": "90c128c516949d96ee1a9cdb6577fc238e5376181cae8c78ed31e3325fff9802"
+  },
+  {
+    "file": "before.png",
+    "bytes": 4513619,
+    "sha256": "db7c0a8556b098a746c82fb5ed91dd11944fc9df3ad8534eaf6c5aaca984ef19"
+  },
+  {
+    "file": "after.png",
+    "bytes": 4491411,
+    "sha256": "990e8e2f4b6c3961acc0ed5b507542a75fda09df8862b4cdbaac3daea98ab241"
+  },
+  {
+    "file": "before-startup-settled.png",
+    "bytes": 4372405,
+    "sha256": "a133c80c554790c9a217fc60aa95323320940dbbb45e56477613b27c0e13aa93"
+  }
+]

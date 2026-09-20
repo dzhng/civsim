@@ -7,29 +7,31 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: [High cascades](slices/m6a-cascade-contract.md), running with
-Claude Opus in `game-battle-high-cascades` at baseline beea655e. Parent logs:
-`throwaway/high-shadow-worker/`. The [raw-world promotion](assets/m1b-promotion/README.md)
-is integrated at89b2850b with replay-verifier cleanup atbeea655e. TypeScript,
-focused tests and lifecycle pass; seven of eight raw scene captures are exact.
-Initial-frame variability and inherited frame image failures remain documented.
-All24 frame comparisons reproduce byte-for-byte before and after promotion.
-The [raw-pose hardware gate](assets/m1b-promotion/pose/README.md) passes; the
-source30k/shared snapCheck gates remain queued. No timing job is active.
+Current pickup: verify and commit [M4 crowd reload](slices/m4-crowd-assets.md),
+then integrate High shadows. M4 worker abf5f002 is integrated at ddba56f0;
+root corrected GPU admission, empty-crowd replacement and disposal during staging.
+Focused tests and independent review pass. The published atlas is now in public
+(41 byte-verified files, no rebake); the actual raw Menu build needs no atlas override.
+[Hardware reload/failure/disposal verification](assets/m4-publication/README.md) passes,
+with zero tracked resources after disposal. Same-tick reload restarts the frontend
+animation timeline by its existing contract; screenshots are not pixel-equivalent.
+No performance or final visual verdict follows these controls.
+
+Claude High work is complete at c1e78391 in `game-battle-high-cascades`;
+independent review passed, but root integration and GPU verification remain.
+Parent logs: `throwaway/high-shadow-worker/` and `throwaway/high-shadow-review/`.
+Preserve M4 admission/lifetime fixes while integrating overlapping scene/facade edits.
+
+The [raw-world promotion](assets/m1b-promotion/README.md) is integrated.
+All24 inherited frame comparisons reproduce byte-for-byte pre/post; seven of eight
+scene captures are exact, with initial-frame variability documented.
+The raw-pose hardware gate passes; source30k/shared snapCheck gates remain queued.
 
 The independent [native target-preparation candidate](assets/03a-native-target-preparation/README.md)
 is complete at54dae8ea on unadopted c8580623; it remains outside production.
-Root mutation checks and25 parallel/23 serial library tests pass. Four immutable
-native release binaries are ready in `throwaway/native-target-build/`. Before
-running its predeclared serial/one-thread/four-thread ABBA pairs, finish all owned
-CPU/build/test/GPU work. No native timing has started.
-
-[M4 crowd publication/reload](slices/m4-crowd-assets.md) runs concurrently with
-High, in `game-battle-crowd-publication` at b4007d39; parent logs are
-`throwaway/crowd-publication-worker/`. Root prepared41 verified atlas files in
-`throwaway/crowd-publication-assets/` for the production publication step. They
-have not been copied into public yet. Coordinate the two workers' scene/facade
-changes during integration.
+Four immutable native release binaries and the predeclared serial/one-thread/
+four-thread ABBA runner are ready in `throwaway/native-target-build/`.
+Run only after all owned CPU/build/test/GPU jobs finish. No native timing has started.
 
 The [combined CPU ABBA](assets/03a-kernel-input-pair/README.md) finished with all
 hashes intact but failed its adoption rule: early ranges overlap, though both

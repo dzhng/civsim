@@ -12,7 +12,9 @@ Consumers import those owners directly, without forwarding modules.
 
 Resource replacement follows admission and lifetime rules: a failed staged
 replacement cannot publish mixed generations, and disposal must account for
-pending work. Resizing does not imply rebuilding unrelated resources or pipelines.
+pending work. Crowd replacement retains the admitted pose and validates all staged
+GPU uploads before retiring the installed generation. Diagnostics describe that
+admitted pose, so camera-only frames never invent animation progress. Resizing does not imply rebuilding unrelated resources or pipelines.
 
 The world names its GPU work through a per-device scope hook. Installing a timing
 observer belongs to the caller; the world does not depend on lab measurement

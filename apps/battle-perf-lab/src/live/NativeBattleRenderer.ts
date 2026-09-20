@@ -56,7 +56,10 @@ import { createSceneLifecycle } from "../sceneLifecycle";
 import { createTerrainPicking } from "../terrainPicking";
 import { NativeGpuTelemetry, type NativeTimingQueryMode } from "../nativeGpuTelemetry";
 import { trackNativeGpuAllocations } from "../nativeGpuAllocations";
-import { beginGpuAdmission, GpuAdmissionBatch } from "../../../../packages/battle-renderer/src/gpuAdmission";
+import {
+  beginGpuAdmission,
+  GpuAdmissionBatch,
+} from "../../../../packages/battle-renderer/src/gpuAdmission";
 import type {
   BattleCrowdAssets,
   BattleSceneOptions,
@@ -732,9 +735,11 @@ export class BattleRenderer implements BattleRendererApi {
       this.check();
       this.assertActivePoses(published, scene);
       await this.lifecycle.run(async () => {
-        await this.admitted(() =>
-          scene.replaceCrowdAssets(published, () => this.assertActivePoses(published, scene)),
-        );
+        await scene.replaceCrowdAssets(published, () => {
+          this.check();
+          this.assertActivePoses(published, scene);
+        });
+        this.check();
         this.soldierAssets = published.assets;
         // Replacement changes the drawn generation: the retained frozen image is no
         // longer what this crowd would present. Built instances stay, so playback continues.

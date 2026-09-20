@@ -652,3 +652,22 @@ commitment. Root added multi-batch behavioral coverage and rejected the worker's
 native/Menu correspondence claim. Feature/thread-matched controls are required
 because pre-existing parallel weapon repulsion otherwise confounds attribution.
 See [correctness evidence](assets/03a-native-target-preparation/README.md).
+
+
+## Crowd replacement and admitted diagnostics
+
+Sound, high confidence: while replacement assets load, keep the old crowd drawable.
+The crowd owner stages the new GPU resources and current pose, then checks GPU
+admission and caller liveness before swapping. The extra temporary allocation is
+paid only during an explicit reload; failure releases the staged generation.
+A synchronous final caller check prevents disposal during an awaited GPU check
+from publishing into a closed renderer.
+
+Sound, high confidence: diagnostics lazily copy only queried soldiers. A camera
+move preserves the same admitted-pose identity; a new simulation submission or
+asset generation produces a new record. This keeps diagnostic history truthful
+without copying every soldier on every camera frame.
+
+Sound, high confidence: publish the existing validated offline atlas bytes with
+the soldier assets, with no runtime bake or spec-directory dependency. The lab
+may override its catalog for comparison; the selected game path needs no override.

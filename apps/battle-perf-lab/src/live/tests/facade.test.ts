@@ -618,6 +618,31 @@ test("a disposed renderer rejects a later reload without fetching", async () => 
   expect(state.fetched).toEqual([]);
 });
 
+test("disposing during crowd staging prevents the pending generation from installing", async () => {
+  const f = fixture();
+  await f.renderer.ready;
+  let resume!: () => void;
+  const held = new Promise<void>((resolve) => {
+    resume = resolve;
+  });
+  let staging = false,
+    installed = false;
+  state.owner.scene.replaceCrowdAssets = async (_published: unknown, validate?: () => void) => {
+    staging = true;
+    await held;
+    validate?.();
+    installed = true;
+  };
+  const pending = f.renderer.reloadSoldierAssets();
+  await progress(f.callbacks);
+  expect(staging).toBe(true);
+  f.renderer.dispose();
+  resume();
+  await expect(pending).rejects.toThrow("disposed");
+  expect(installed).toBe(false);
+  expect(state.disposed).toHaveBeenCalledOnce();
+});
+
 test("soldier animation diagnostics report the crowd owner's admitted pose", async () => {
   const f = fixture();
   expect(f.renderer.debugSoldierAnim(0)).toBeNull();

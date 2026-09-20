@@ -27,3 +27,12 @@ Next capability pass: High shadows, independently from typed colour helpers.
 Frame/root promotion follows a concrete ownership design, then remaining world
 layers and live facade migrate into the final package. Historical raw checks
 remain evidence for behavior; TypeGPU must run its own affected gates.
+
+Further frame audit: the consultation's claim that TypeGPU resize lacks GPU
+admission is false. `frameResources` opens/awaits `beginGpuAdmission` around
+attachment materialization, then awaits `createTypegpuPost`, whose own resources
+and pipelines are admitted before return. `resize` awaits that entire operation
+before replacement. Do not add a duplicate outer barrier. The existing four
+`typegpuFrameLifecycle` tests pass under the candidate Vitest config, including
+failed replacement and disposal during pending resize. This finite CPU check is
+not hardware validation; depth-policy/diagnostic integration remains open.

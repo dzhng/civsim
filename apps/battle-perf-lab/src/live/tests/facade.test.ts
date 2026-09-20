@@ -135,9 +135,8 @@ function fixture(
     /** Omit the crowd-replacement seam, as the retired comparison backends do:
      *  their scenes never owned a selected world's content diagnostics. */
     comparisonScene?: boolean;
-    /** The converted selected world: it owns the same crowd, content and depth
-     *  reports the source world does, and still does not implement the raw-only
-     *  debug-block view. */
+    /** The converted selected world: it owns the same crowd, content, depth and
+     *  debug-block reports the source world does. */
     convertedScene?: boolean;
     search?: string;
     /** Render passes the scene encodes per prepared frame, so the observer has
@@ -307,10 +306,9 @@ function fixture(
       settleGrass: call("settle"),
       // The crowd generation every selected world owns.
       ...(build.comparisonScene ? {} : crowdSeam),
-      // The debug-block view is still the raw world's alone, like its content stats.
-      ...(build.comparisonScene || build.convertedScene
-        ? {}
-        : { uploadDebugBlocks: call("blocks") }),
+      // Both selected worlds implement the debug-block view; the retired
+      // comparison backends own neither it nor the content stats.
+      ...(build.comparisonScene ? {} : { uploadDebugBlocks: call("blocks") }),
       stats: () => ({
         actual: true,
         crowd: { instances: 0, ready: true },
@@ -852,25 +850,38 @@ const blockPacket = (): BattlePresentation => {
   };
 };
 test("the debug-block view prepares the published association into its own layer", async () => {
-  const f = fixture({ search: "?debug=blocks" });
-  await f.renderer.ready;
-  f.renderer.setStatic(new Uint32Array([0, 1]), [1, 0], [0, 0]);
-  await f.renderer.present(blockPacket());
-  const blocks = state.calls.filter((c) => c[0] === "blocks");
-  expect(blocks).toHaveLength(1);
-  // One rectangle: the live team-one body, padded, in red. The dead one adds none.
-  const verts = blocks[0][1] as Float32Array;
-  expect(verts).toHaveLength(36);
-  expect([...verts.subarray(0, 6)].map((v) => Math.round(v * 1e4) / 1e4)).toEqual([
-    -2.4, -2.4, 0.88, 0.2, 0.16, 0.88,
-  ]);
-  // Attack arcs keep their own uploads; neither layer carries the other's vertices.
-  expect(state.calls.filter((c) => c[0] === "triangles").map((c) => c[1])).not.toContain(verts);
-  f.renderer.dispose();
+  // Both selected worlds are asked for it, through the one shared geometry owner:
+  // the selection decides which scene receives the upload, not what it contains.
+  for (const backend of ["raw", "typegpu"] as const) {
+    state.calls = [];
+    const f = fixture({
+      backend,
+      convertedScene: backend === "typegpu",
+      search: "?debug=blocks",
+    });
+    await f.renderer.ready;
+    // The scene is BUILT with the debug layer, not handed blocks it cannot hold.
+    expect(state.options).toMatchObject({ debugBlocks: true });
+    f.renderer.setStatic(new Uint32Array([0, 1]), [1, 0], [0, 0]);
+    await f.renderer.present(blockPacket());
+    const blocks = state.calls.filter((c) => c[0] === "blocks");
+    expect(blocks).toHaveLength(1);
+    // One rectangle: the live team-one body, padded, in red. The dead one adds none.
+    const verts = blocks[0][1] as Float32Array;
+    expect(verts).toHaveLength(36);
+    expect([...verts.subarray(0, 6)].map((v) => Math.round(v * 1e4) / 1e4)).toEqual([
+      -2.4, -2.4, 0.88, 0.2, 0.16, 0.88,
+    ]);
+    // Attack arcs keep their own uploads; neither layer carries the other's vertices.
+    expect(state.calls.filter((c) => c[0] === "triangles").map((c) => c[1])).not.toContain(verts);
+    f.renderer.dispose();
+  }
 });
 test("an ordinary frame uploads no debug blocks at all", async () => {
   const f = fixture();
   await f.renderer.ready;
+  // The scene is built without the debug layer, so nothing can be uploaded to one.
+  expect(state.options).toMatchObject({ debugBlocks: false });
   f.renderer.setStatic(new Uint32Array([0]), [1], [0]);
   await f.renderer.present(blockPacket());
   expect(state.calls.filter((c) => c[0] === "blocks")).toHaveLength(0);
@@ -1406,8 +1417,7 @@ test("a converted world publishes its own identity and the content its owners re
     projection: "camera3d",
     depth: { owner: "typegpu-battle-frame", installed: true, requestedBytes: 1440 * 900 * 4 },
     shadows: { mode: "single", cascades: 1 },
-    // Content from this world's own owners, published without implementing the
-    // raw-only debug-block upload this fixture withholds.
+    // Content from this world's own owners.
     environment: "aegean-noon",
     terrain: { installed: true, generation: 1, scenery: 7, vistaBands: 4 },
     tacticalLines: {

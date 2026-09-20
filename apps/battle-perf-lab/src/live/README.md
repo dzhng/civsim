@@ -56,8 +56,8 @@ the owners inside that world which hold them, so a replaced generation or a new
 cue upload moves the report. A world's declared identity is separate from all of
 them: each world [declares its own](../../../../packages/battle-renderer/src/identity.ts),
 and no backend is labelled with a neighbour's name or with a capability another
-world happens to implement — the raw-only debug-block upload buys access to that
-method and nothing else. The terrain and cue reports share one contract in
+world happens to implement — the debug-block upload buys access to that method
+and nothing else. The terrain and cue reports share one contract in
 [the neutral battle types](../../../../packages/battle-renderer/src/types.ts), so a
 check written against one world migrates to the other unchanged. A world
 that is not installed — before construction, on a retired comparison backend,
@@ -95,10 +95,9 @@ remain part of the measured control. Readback helpers are counted globally but
 never replace final render IDs.
 
 The benchmark's default single shadows, canvas scale, post/grade, grass settings,
-and frozen behavior are retained. High cascades and the staged crowd reload belong
-to each selected world; the debug-block view is still the raw world's alone, and
-the discarded comparison candidates refuse all three. No source renderer is
-constructed as a fallback.
+and frozen behavior are retained. High cascades, the staged crowd reload and the
+debug-block view all belong to each selected world; the discarded comparison
+candidates refuse all three. No source renderer is constructed as a fallback.
 
 CPU verification: native live tests, source crowd/action/presentation/scheduler/
 benchmark tests, typechecks and a production lab build. Independent code review

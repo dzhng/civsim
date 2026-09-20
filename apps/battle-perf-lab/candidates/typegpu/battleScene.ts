@@ -157,6 +157,11 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
         false,
       ),
     );
+    // Two triangle layers, as the source has: the block-debug view persists across
+    // frames whose attack arcs are empty, so it cannot share the arc layer's buffers.
+    const debugBlocks = options.debugBlocks
+      ? own(await createTypegpuTriangleLayer(device, frame.cameraGroup, options.samples))
+      : null;
     const triangles = own(
       await createTypegpuTriangleLayer(device, frame.cameraGroup, options.samples),
     );
@@ -374,6 +379,13 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           await triangles.upload(vertices);
         });
       },
+      async uploadDebugBlocks(vertices: Float32Array) {
+        return lifecycle.run(async () => {
+          if (!debugBlocks) throw Error("Block-debug rendering was not enabled");
+          prepared = false;
+          await debugBlocks.upload(vertices);
+        });
+      },
       async uploadTacticalLines(lines: BattleTacticalLineFrame) {
         return lifecycle.run(async () => {
           prepared = false;
@@ -452,6 +464,8 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
             ground.draw(pass);
             rings.draw(pass);
             effects.draw(pass);
+            // Source order: formation blocks under the attack arcs, both above the cues.
+            debugBlocks?.draw(pass);
             triangles.draw(pass);
           },
           bloom,
@@ -482,9 +496,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           rings: rings.stats(),
           effects: effects.stats(),
           triangles: triangles.stats(),
-          // This world installs no formation-debug layer at all: the debug-block
-          // view is refused for every non-raw backend before a scene is built.
-          debugBlocks: null,
+          debugBlocks: debugBlocks?.stats() ?? null,
         },
       }),
       dispose,

@@ -12,6 +12,10 @@ const state = vi.hoisted(() => ({
   crowdUpload: vi.fn(),
   pose: vi.fn(),
   submit: vi.fn(),
+  /** Every triangle layer this scene constructed, in order, so the block-debug
+   *  layer can be told apart from the attack-arc layer, and the ids they drew in. */
+  triangleLayers: [] as any[],
+  drawn: [] as number[],
   terrainGeneration: 1,
   /** Scenery the mocked terrain owner has installed, which only a real
    *  replacement moves: the scene must read the owner, not its own options. */
@@ -167,19 +171,28 @@ vi.mock("../readout", () => ({
 /** An overlay layer that reports the vertex count it was actually uploaded, so a
  *  scene stats read cannot pass while publishing one layer's count under another
  *  layer's key. */
-function overlayLayer() {
+function overlayLayer(extra: object = {}) {
   let count = 0;
   return layer({
     upload: vi.fn(async (vertices: Float32Array) => {
       count = vertices.length;
     }),
     stats: () => ({ count }),
+    ...extra,
   });
+}
+/** A triangle layer that names itself when drawn, so the pass order between the
+ *  block-debug and attack-arc layers is read off the draw rather than assumed. */
+function triangleLayer() {
+  const id = state.triangleLayers.length;
+  const value = overlayLayer({ id, draw: vi.fn(() => state.drawn.push(id)) });
+  state.triangleLayers.push(value);
+  return value;
 }
 vi.mock("../overlay", () => ({
   createTypegpuLineLayer: async () => overlayLayer(),
   createTypegpuRingLayer: async () => overlayLayer(),
-  createTypegpuTriangleLayer: async () => overlayLayer(),
+  createTypegpuTriangleLayer: async () => triangleLayer(),
 }));
 import { createTypegpuBattleScene } from "../battleScene";
 import { battleSceneCamera } from "../../../../../packages/battle-renderer/src/sceneCamera";
@@ -240,6 +253,8 @@ const device = {
 beforeEach(() => {
   state.owners.length = 0;
   state.crowds.length = 0;
+  state.triangleLayers.length = 0;
+  state.drawn.length = 0;
   // The terrain owner commits its first generation while the scene is constructed.
   state.terrainGeneration = 1;
   state.terrainScenery = 7;
@@ -273,8 +288,8 @@ const pose: CrowdInstance[] = [
     lod: 0,
   },
 ];
-async function ready(instances: readonly CrowdInstance[] = []) {
-  const scene = await createTypegpuBattleScene(device, options);
+async function ready(instances: readonly CrowdInstance[] = [], debugBlocks = false) {
+  const scene = await createTypegpuBattleScene(device, { ...options, debugBlocks });
   await scene.uploadCrowd(instances, camera);
   await scene.prepare({ camera, time: 0 });
   return scene;
@@ -656,6 +671,63 @@ test("scene stats publish the environment, terrain and cue owners this world ins
   });
   scene.dispose();
 });
+test("ordinary battles allocate no block-debug layer and refuse its upload", async () => {
+  const scene = await ready();
+  expect(state.triangleLayers).toHaveLength(1);
+  await expect(scene.uploadDebugBlocks(new Float32Array(6))).rejects.toThrow(
+    "Block-debug rendering was not enabled",
+  );
+  // A refused upload reaches no layer at all, so the arc layer keeps its own content.
+  expect(state.triangleLayers[0].upload).not.toHaveBeenCalled();
+  scene.dispose();
+});
+
+test("attack arcs and the block-debug view own separate layers, blocks drawn first", async () => {
+  const scene = await ready([], true);
+  const blockVerts = new Float32Array([1, 2, 1, 0, 0, 1]);
+  await scene.uploadDebugBlocks(blockVerts);
+  // Every later frame reuploads its arcs, including the empty frames between them.
+  await scene.uploadTriangles(new Float32Array([3, 4, 0, 1, 0, 1]));
+  await scene.uploadTriangles(new Float32Array());
+  expect(state.triangleLayers).toHaveLength(2);
+  const blocks = state.triangleLayers.find((l) => l.upload.mock.calls[0]?.[0] === blockVerts)!;
+  const arcs = state.triangleLayers.find((l) => l !== blocks)!;
+  expect(blocks.upload.mock.calls).toEqual([[blockVerts]]);
+  expect(arcs.upload).toHaveBeenCalledTimes(2);
+  // The emptied arc frame cannot wipe the block geometry: each layer answers for
+  // its own upload under its own key.
+  expect(scene.stats().tacticalLines).toMatchObject({
+    debugBlocks: { count: 6 },
+    triangles: { count: 0 },
+  });
+  await scene.prepare({ camera, time: 0 });
+  scene.encode({} as TgpuCommandEncoder, {} as GPUTextureView);
+  expect(state.drawn).toEqual([blocks.id, arcs.id]);
+  scene.dispose();
+  expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
+});
+
+test("disposal during an awaited block upload prevents late debug allocation", async () => {
+  const scene = await ready([], true);
+  // Allocated before the arc layer it is drawn under.
+  const blocks = state.triangleLayers[0];
+  let resume!: () => void;
+  blocks.upload.mockReturnValueOnce(
+    new Promise<void>((r) => {
+      resume = r;
+    }),
+  );
+  const pending = scene.uploadDebugBlocks(new Float32Array(6));
+  scene.dispose();
+  expect(state.owners.every((x) => x.dispose.mock.calls.length === 0)).toBe(true);
+  resume();
+  await expect(pending).rejects.toThrow("disposed");
+  expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
+  // A disposed scene refuses the next one outright rather than touching the layer.
+  await expect(scene.uploadDebugBlocks(new Float32Array(6))).rejects.toThrow("disposed");
+  expect(blocks.upload).toHaveBeenCalledOnce();
+});
+
 test("scene stats publish the frame's own depth attachment, re-read after a resize", async () => {
   const scene = await ready();
   expect(scene.stats().depth).toEqual({

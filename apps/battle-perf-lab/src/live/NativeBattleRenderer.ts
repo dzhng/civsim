@@ -99,9 +99,10 @@ type View = Parameters<Scene["prepare"]>[0];
 type SelectedWorldScene = Extract<Scene, { replaceCrowdAssets: unknown }>;
 const selectedWorld = (scene: Scene | undefined): SelectedWorldScene | null =>
   scene && "replaceCrowdAssets" in scene ? scene : null;
-/** The raw world's formation-debug upload, which no other world implements. This
- * narrowing buys access to that one method and nothing else: it is not evidence
- * of who owns an identity or a content report. */
+/** A world's formation-debug upload, which both selected worlds implement and the
+ * retired comparison backends do not. This narrowing buys access to that one
+ * method and nothing else: it is not evidence of who owns an identity or a
+ * content report. */
 type DebugBlockScene = Extract<Scene, { uploadDebugBlocks: unknown }>;
 const debugBlockWorld = (scene: Scene | undefined): DebugBlockScene | null =>
   scene && "uploadDebugBlocks" in scene ? scene : null;
@@ -244,9 +245,10 @@ export class BattleRenderer implements BattleRendererApi {
       throw Error("Invalid native lab backend");
     if (!["enabled", "disabled"].includes(this.timingQueries))
       throw Error("Invalid native lab timing-query mode");
-    // The debug-block view is implemented by the selected raw world only, like High.
+    // The debug-block view is implemented by both selected worlds, like High; the
+    // discarded comparison candidate refuses it.
     this.blockMode = params.get("debug") === "blocks";
-    if (this.blockMode && this.backend !== "raw")
+    if (this.blockMode && this.backend === "vgpu")
       throw Error(`The ${this.backend} candidate does not implement the source debug-block view`);
     this.environmentRequest = params.get("env") ?? options.environment ?? null;
     this.environment = resolveBattleEnvironment(this.environmentRequest).environment;

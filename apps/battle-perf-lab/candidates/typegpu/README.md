@@ -150,10 +150,14 @@ active operation's cleanup through that operation's promise.
 
 A crowd reload is staged the same way and behind one GPU admission: the installed
 generation keeps drawing until the replacement has allocated, carried the admitted
-pose through the last prepared camera and validated, and a rejection or a disposal
-mid-load releases only the stage. Nothing resurrects a scene closed while the stage
-was in flight. Terrain, environment and frame attachments are never rebuilt to
-reload a crowd.
+pose and validated, and a rejection or a disposal mid-load releases only the stage.
+The pose is carried through the latest camera the scene posed the crowd through,
+which is a source upload's when no preparation has completed yet — an upload admits
+a drawable pose, so a reload before the first frame must reproject it rather than
+retire it. An upload camera carries a pose only; the prepared camera a consumer
+reads still names the last completed preparation. Nothing resurrects a scene closed
+while the stage was in flight. Terrain, environment and frame attachments are never
+rebuilt to reload a crowd.
 
 What the scene has admitted is published as identity, not as a scan. The crowd
 epoch, the audience's own submission counter and the committed terrain generation

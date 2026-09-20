@@ -15,8 +15,6 @@ const state = vi.hoisted(() => ({
   terrainGeneration: 1,
   crowdFailure: null as unknown,
   crowdHold: null as Promise<void> | null,
-  /** The pose the crowd owner has admitted, as its shared diagnostics report it. */
-  admitted: null as unknown[] | null,
   measurement: null as unknown,
   gpuError: null as GPUError | null,
   gpuAdmissionHold: null as Promise<void> | null,
@@ -100,17 +98,32 @@ vi.mock("../crowdAudience", () => ({
     // Each audience counts its own admitted submissions, exactly as a fresh history
     // does: a replacement restarts at zero and only the scene's epoch separates them.
     let submission = 0;
+    // The pose this audience has admitted, exactly as a real history reports it: null
+    // until one of its OWN uploads completes, and an empty upload still admits a pose.
+    let admitted: readonly unknown[] | null = null;
+    // A real audience refuses every frame read until it has admitted something, so an
+    // audience that was never uploaded to cannot be reprojected into a frame.
+    const requireFrame = () => {
+      if (!admitted) throw Error("Crowd audience frame is not ready");
+    };
     const owner = layer({
-      upload: vi.fn(async (...args: unknown[]) => {
-        await state.crowdUpload(...args);
+      upload: vi.fn(async (instances: readonly unknown[], ...args: unknown[]) => {
+        await state.crowdUpload(instances, ...args);
         submission++;
+        admitted = instances;
       }),
-      precompute: vi.fn((...args: unknown[]) => state.pose(...args)),
-      reproject: vi.fn(async () => false),
+      precompute: vi.fn((...args: unknown[]) => {
+        requireFrame();
+        return state.pose(...args);
+      }),
+      reproject: vi.fn(async () => {
+        requireFrame();
+        return false;
+      }),
       refreshCamera: vi.fn(),
       // What the shared crowd-audience diagnostics answer off the admitted history.
-      admitted: () => state.admitted,
-      admittedSubmission: () => (state.admitted ? submission : null),
+      admitted: () => admitted,
+      admittedSubmission: () => (admitted ? submission : null),
       admittedPoses: () => new Set(["0\u0000idle"]),
       debugSoldierAnim: (index: number) => (index === 0 ? { clip: "idle", phase: 0.25 } : null),
       verifySeating: vi.fn(() => state.measurement),
@@ -147,6 +160,7 @@ import { createTypegpuBattleScene } from "../battleScene";
 import { battleSceneCamera } from "../../../../../packages/battle-renderer/src/sceneCamera";
 import type { BattleSceneOptions } from "../../../../../packages/battle-renderer/src/sceneTypes";
 import type { TgpuCommandEncoder } from "typegpu";
+import type { CrowdInstance } from "../../../../../packages/crowd-runtime/src/instanceData";
 import { CIVSIM_ENVIRONMENTS } from "../../../../../packages/game-renderer/src/environment/environment";
 import { productionBladeFieldProfile } from "../../../../../packages/game-renderer/src/battle/battleGrassResidency";
 const camera = {
@@ -205,7 +219,6 @@ beforeEach(() => {
   state.terrainGeneration = 1;
   state.crowdFailure = null;
   state.crowdHold = null;
-  state.admitted = null;
   state.measurement = null;
   state.gpuError = null;
   state.gpuAdmissionHold = null;
@@ -217,9 +230,26 @@ beforeEach(() => {
   state.pose.mockReset();
   state.submit.mockReset();
 });
-async function ready() {
+/** One admitted soldier. The scene carries the admitted array by identity, so the
+ *  only thing this has to be is a real instance. */
+const pose: CrowdInstance[] = [
+  {
+    x: 0,
+    y: 0,
+    facing: 0,
+    classId: 0,
+    faction: 0,
+    alive: true,
+    clip: "idle",
+    phase: 0.25,
+    seed: 1,
+    mounted: false,
+    lod: 0,
+  },
+];
+async function ready(instances: readonly CrowdInstance[] = []) {
   const scene = await createTypegpuBattleScene(device, options);
-  await scene.uploadCrowd([], camera);
+  await scene.uploadCrowd(instances, camera);
   await scene.prepare({ camera, time: 0 });
   return scene;
 }
@@ -293,8 +323,7 @@ const published = { assets: {}, atlases: {} };
 const encodeOnce = (scene: Awaited<ReturnType<typeof createTypegpuBattleScene>>) =>
   scene.encode({} as TgpuCommandEncoder, {} as GPUTextureView);
 test("a successful crowd replacement installs the staged generation and carries the admitted pose at the last prepared camera", async () => {
-  const scene = await ready();
-  state.admitted = [{ classId: 0 }];
+  const scene = await ready(pose);
   const [installed] = state.crowds;
   const moved = {
     ...camera,
@@ -306,7 +335,7 @@ test("a successful crowd replacement installs the staged generation and carries 
   expect(state.crowds).toHaveLength(2);
   expect(installed.dispose).toHaveBeenCalledOnce();
   expect(staged.upload).toHaveBeenCalledOnce();
-  expect(staged.upload.mock.lastCall![0]).toBe(state.admitted);
+  expect(staged.upload.mock.lastCall![0]).toBe(pose);
   // Reprojected through the camera the last completed preparation actually wrote,
   // not the camera the scene was constructed with.
   expect(staged.upload.mock.lastCall![2]).toEqual(
@@ -323,16 +352,53 @@ test("a successful crowd replacement installs the staged generation and carries 
   expect(staged.dispose).toHaveBeenCalledOnce();
   expect(installed.dispose).toHaveBeenCalledOnce();
 });
-test("an admitted empty crowd survives replacement without carrying a pose", async () => {
+test("an admitted empty crowd is carried into the replacement rather than dropped", async () => {
   const scene = await ready();
   await scene.replaceCrowdAssets(published);
   const staged = state.crowds[1];
-  expect(staged.upload).not.toHaveBeenCalled();
-  expect(staged.precompute).not.toHaveBeenCalled();
+  // An empty pose is still an admitted one. A replacement that never receives it has
+  // no admitted frame, and the next preparation has nothing to reproject.
+  expect(staged.upload).toHaveBeenCalledOnce();
+  expect(staged.upload.mock.lastCall![0]).toEqual([]);
+  expect(staged.precompute).toHaveBeenCalledOnce();
   await expect(scene.prepare({ camera, time: 0 })).resolves.toBeUndefined();
   expect(() => encodeOnce(scene)).not.toThrow();
   scene.dispose();
 });
+// The pose a source upload admits is drawable before anything has prepared, so a
+// reload in that window has a camera to carry it through and must not retire it
+// unposed. Both admitted populations reach the replacement the same way.
+for (const [label, uploaded] of [
+  ["a populated", pose],
+  ["an empty", [] as CrowdInstance[]],
+] as const) {
+  test(`${label} admitted crowd survives a replacement before the first preparation`, async () => {
+    const scene = await createTypegpuBattleScene(device, options);
+    const moved = {
+      ...camera,
+      camera3d: { ...camera.camera3d, target: [40, 12, 0] as [number, number, number] },
+    };
+    await scene.uploadCrowd(uploaded, moved, 3);
+    // Nothing has prepared a frame, so nothing may be published as one.
+    expect(scene.stats()).toMatchObject({ prepared: false, preparedCamera: null });
+    await scene.replaceCrowdAssets(published);
+    const staged = state.crowds[1];
+    expect(staged.upload).toHaveBeenCalledOnce();
+    expect(staged.upload.mock.lastCall![0]).toBe(uploaded);
+    // Carried through the camera that admitted the pose, the only one this scene has.
+    expect(staged.upload.mock.lastCall![2]).toEqual(
+      battleSceneCamera(moved, 1440, 900, 3, options.environment).impostor,
+    );
+    expect(staged.precompute).toHaveBeenCalledOnce();
+    expect(scene.stats().preparedCamera).toBeNull();
+    // Drawable from the carried pose alone: the caller submits no second source pose.
+    await expect(scene.prepare({ camera, time: 4 })).resolves.toBeUndefined();
+    expect(staged.upload).toHaveBeenCalledOnce();
+    expect(() => encodeOnce(scene)).not.toThrow();
+    expect(scene.stats().preparedCamera).toMatchObject({ camera3d: { target: [0, 0, 0] } });
+    scene.dispose();
+  });
+}
 test("a failed crowd staging retains the last valid world and stages nothing", async () => {
   const scene = await ready();
   const [installed] = state.crowds;
@@ -346,8 +412,7 @@ test("a failed crowd staging retains the last valid world and stages nothing", a
   expect(state.owners.every((x) => x.dispose.mock.calls.length === 1)).toBe(true);
 });
 test("a refused admission releases the staged crowd and keeps presenting the old one", async () => {
-  const scene = await ready();
-  state.admitted = [{ classId: 0 }];
+  const scene = await ready(pose);
   const [installed] = state.crowds;
   await expect(
     scene.replaceCrowdAssets(published, () => {
@@ -362,8 +427,7 @@ test("a refused admission releases the staged crowd and keeps presenting the old
   scene.dispose();
 });
 test("GPU rejection of the carried-pose upload preserves the installed crowd", async () => {
-  const scene = await ready();
-  state.admitted = [{ classId: 0 }];
+  const scene = await ready(pose);
   const [installed] = state.crowds;
   state.submit.mockImplementationOnce(() => {
     state.gpuError = { message: "invalid carried-pose upload" } as GPUError;
@@ -391,8 +455,7 @@ test("disposal while staged crowd preparation waits releases the staged resource
   expect(installed.dispose).toHaveBeenCalledOnce();
 });
 test("disposal while admission waits releases the staged crowd before it can install", async () => {
-  const scene = await ready();
-  state.admitted = [{ classId: 0 }];
+  const scene = await ready(pose);
   let resume!: () => void;
   state.gpuAdmissionHold = new Promise<void>((r) => {
     resume = r;
@@ -423,8 +486,7 @@ test("a crowd replacement cannot overlap another staged scene operation", async 
   scene.dispose();
 });
 test("repeated replacement retires each generation and separates identical submissions by epoch", async () => {
-  const scene = await ready();
-  state.admitted = [{ classId: 0 }];
+  const scene = await ready(pose);
   expect(scene.admittedSeatingIdentity()).toEqual({
     crowdGeneration: 0,
     submission: 1,
@@ -451,20 +513,20 @@ test("an unadmitted pose or an uncommitted terrain generation has no seating ide
   const scene = await createTypegpuBattleScene(device, options);
   // Nothing admitted yet, over a terrain generation that is committed.
   expect(scene.admittedSeatingIdentity()).toBeNull();
-  await scene.uploadCrowd([], camera);
-  state.admitted = [{ classId: 0 }];
+  await scene.uploadCrowd(pose, camera);
   expect(scene.admittedSeatingIdentity()).toMatchObject({ submission: 1 });
   scene.dispose();
   expect(() => scene.admittedSeatingIdentity()).toThrow("disposed");
 });
 test("seating verification measures only when asked, and refuses instead of passing vacuously", async () => {
-  const scene = await ready();
-  expect(scene.verifyAdmittedSeating()).toEqual({
+  const unadmitted = await createTypegpuBattleScene(device, options);
+  expect(unadmitted.verifyAdmittedSeating()).toEqual({
     measurement: null,
     unavailable: "No admitted crowd pose over a committed terrain generation",
     installed: null,
   });
-  state.admitted = [{ classId: 0 }];
+  unadmitted.dispose();
+  const scene = await ready(pose);
   state.measurement = {
     checked: 1,
     matches: true,
@@ -487,8 +549,7 @@ test("seating verification measures only when asked, and refuses instead of pass
   scene.dispose();
 });
 test("a staged operation in flight refuses verification rather than measuring a pose it is replacing", async () => {
-  const scene = await ready();
-  state.admitted = [{ classId: 0 }];
+  const scene = await ready(pose);
   let resume!: () => void;
   state.standardsUpload.mockReturnValueOnce(
     new Promise<void>((r) => {
@@ -506,8 +567,7 @@ test("a staged operation in flight refuses verification rather than measuring a 
   scene.dispose();
 });
 test("preparation, presentation and stats never scan the admitted population", async () => {
-  const scene = await ready();
-  state.admitted = [{ classId: 0 }];
+  const scene = await ready(pose);
   await scene.prepare({ camera, time: 1 });
   encodeOnce(scene);
   scene.stats();

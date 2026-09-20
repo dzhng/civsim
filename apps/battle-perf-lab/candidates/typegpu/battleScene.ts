@@ -52,8 +52,8 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
     options.signal?.throwIfAborted();
     return value;
   };
-  let lastCamera: BattleCameraSnapshot | null = null,
-    lastTime = 0;
+  let posedCamera: { camera: BattleCameraSnapshot; time: number } | null = null,
+    preparedCamera: BattleCameraSnapshot | null = null;
   let bloom = options.bloom,
     post = options.post;
   let prepared = false;
@@ -174,14 +174,18 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       },
       ...(shadow?.update(camera.snapshot.camera3d).crowdViews ?? []),
     ];
-    // The last prepared camera, detached from the caller's mutable snapshot. A crowd
-    // replacement reprojects the carried pose through it rather than a second owner.
-    const rememberCamera = (camera: BattleCameraSnapshot, time: number) => {
-      lastCamera = {
-        ...camera,
-        camera3d: { ...camera.camera3d, target: [...camera.camera3d.target] },
+    // Every camera this scene poses the crowd through, detached from the caller's
+    // mutable snapshot: a source upload admits a drawable pose before anything has
+    // prepared, so a crowd replacement in that window still has a camera to carry it
+    // through. Only a completed preparation also publishes its camera as the prepared
+    // one, so an upload is never reported as a presented frame.
+    const rememberCamera = (input: BattleCameraSnapshot, time: number, completed: boolean) => {
+      const camera: BattleCameraSnapshot = {
+        ...input,
+        camera3d: { ...input.camera3d, target: [...input.camera3d.target] },
       };
-      lastTime = time;
+      posedCamera = { camera, time };
+      if (completed) preparedCamera = camera;
     };
     // The one surface soldiers are seated on: the playable height field, without
     // the vista apron `heightAt` adds. The crowd builder and every later
@@ -249,12 +253,12 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
               check();
               validate?.();
               const carried = crowd.admitted();
-              if (carried && lastCamera) {
+              if (carried && posedCamera) {
                 const camera = battleSceneCamera(
-                  lastCamera,
+                  posedCamera.camera,
                   frame.width,
                   frame.height,
-                  lastTime,
+                  posedCamera.time,
                   options.environment,
                 );
                 await staged.upload(carried, crowdViews(camera), camera.impostor);
@@ -342,6 +346,9 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           grass.update(camera.snapshot.camera3d, frame.height);
           await crowd.upload(instances, crowdViews(camera), camera.impostor);
           check();
+          // This camera admitted a drawable pose, so a replacement before the first
+          // preparation carries it through the same one. No frame was prepared here.
+          rememberCamera(input, time, false);
           // Source pose work belongs to each draw update, including updates before a render.
           const encoder = frame.createCommandEncoder();
           nativeGpuScope(device, "pose", () => crowd.precompute(frame.nativeEncoder(encoder)));
@@ -413,7 +420,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
           );
           check();
           terrain.setFrame(input.camera.zoom, grass.snapshot().terrainDetailStrength);
-          rememberCamera(input.camera, input.time);
+          rememberCamera(input.camera, input.time, true);
           prepared = true;
         });
       },
@@ -453,7 +460,7 @@ export async function createTypegpuBattleScene(device: GPUDevice, options: Battl
       },
       stats: () => ({
         prepared,
-        preparedCamera: lastCamera,
+        preparedCamera,
         depth: frame.depthStats(),
         shadows: shadow?.stats() ?? {
           mode: "off" as const,

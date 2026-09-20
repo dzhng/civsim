@@ -3,116 +3,54 @@
 ## Next Agent Prompt
 
 Work in `/Users/david/dev/game-battle-performance-spec`, branch
-`codex/battle-performance-spec`, based on c924e5ce. Updated2026-09-20.
-**TypeGPU is selected following user feedback on type safety; implementation and final acceptance remain active.**
-Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
+`codex/battle-performance-spec`. Updated2026-09-20.
+**TypeGPU is selected; production still constructs Three and final acceptance is open.**
+Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
+and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: map the latest promoted renderer capabilities into one TypeGPU
-implementation before the next production edit. Read [the revised decision](backend-decision.md).
-The existing raw work is reusable evidence and algorithms; the older TypeGPU
-candidate lacks subsequent fixes and must not replace it wholesale. Claude's
-conversion scoping is complete; read [the conversion plan](slices/typegpu-conversion.md)
-and [review disposition](assets/typegpu-conversion/README.md).
-[First TypeGPU passes](assets/typegpu-first-passes/README.md) are integrated:
-typed colour helpers plus nonfinite-safe numerical checks, and shared frame depth
-policy/attachment diagnostics. Combined candidate suite26/26 passes. Root GPU
-colour control matches306 words and rejects equal-NaN corruption. Full consumer
-pipeline hardware and frame depthStats wiring remain open.
+Current pickup: integrate TypeGPU scene reload and admitted-state diagnostics.
+Claude Opus is implementing this CPU pass in
+`/Users/david/dev/game-battle-typegpu-scene-state`, basef440191a, scoped to the
+TypeGPU scene/terrain and real live facade plus consumer tests. Prompt and runner
+outputs live in that worktree's `throwaway/`. Check its live handle or actual final
+report before restarting. Root owns GPU correctness checks; no timing job is active.
 
-[TypeGPU High shadows](assets/typegpu-high/README.md) are integrated: single/High/off
-Menu hardware lifecycle and the unchanged single-map source comparison pass.
-Combined candidate suite42/42 and type gate pass. Split/overlap correctness,
-matched-state readability and moving-shadow performance remain open. High worker
-and review are terminal; its worktree is retained pending evidence cleanup.
-A CPU-only admitted-crowd state pass is active in
-`/Users/david/dev/game-battle-typegpu-crowd-state` (basea18be0e1), sharing raw and
-TypeGPU explicit seating/pose diagnostics without per-frame scans. It owns audience
-history/diagnostics and audience consumers only; scene/facade integration follows
-High shadows. Root prompt: `throwaway/typegpu-crowd-state/prompt.txt`.
-Colour and frame workers/reviews are terminal; their completed worktrees and
-branches were removed after preserving scratch and a verified recovery bundle in
-`throwaway/typegpu-completed-cleanup/`. Root now owns the free GPU correctness lane. No timing job is active.
+Current evidence:
 
-GPU impostor candidate1c816fc5 is committed on `codex/battle-gpu-impostor`
-but unadopted; its finished worktree is removed; its WGSL has not yet
-passed hardware checks. Transfer the state/view optimization only after verifying
-it in the selected architecture. Water worker atc702e002 returned diagnostics, no
-fix. Its finished worktree is removed; `codex/battle-water-comparison` retains code.
-Both scratch archives and a verified bundle of16 deleted finished branches live
-in `throwaway/worktree-cleanup-2026-09-20-latest/`. Its claims of proven equality/no port defect overreach finite diagnostic
-measurements; ocean4x remains red. Earlier cutover consultation also cites an
-obsolete74-sample failure: latest changed source/raw gates both passed19 checks.
-Preserve historical reds without presenting them as current observations.
+- [Typed colours and frame depth](assets/typegpu-first-passes/README.md): typed
+  colour bodies, nonfinite-safe numerical comparison, real frame allocation and
+  resize/disposal checks pass. Other string shader bodies remain untyped.
+- [TypeGPU High shadows](assets/typegpu-high/README.md): Menu single/High/off
+  hardware lifecycle and unchanged single-map source comparison pass. Split/overlap,
+  matched-state readability and moving-shadow performance remain open.
+- [Shared crowd diagnostics](assets/typegpu-crowd-state/README.md): combined
+  candidate47/47, raw audience21/21 and relevant typechecks pass; independent review
+  has no actionable findings. Scene/facade wiring is the active pass.
+- [Snapshot optimization](assets/07-snapshot-copy/README.md) improves raw/shared
+  CPU preparation. Latest changed source/raw30k checks both pass19 unchanged gates;
+  that33ms floor is not selected-renderer live60FPS acceptance.
+- [Component evidence](assets/migration-component-review/README.md) and
+  [water diagnostics](assets/m3b-aligned-water/README.md): ocean4x stays red. Do not
+  turn diagnostic matrix agreement into a proof that the port is correct.
 
-All three earlier Claude handles are terminal/missing with final reports saved.
-No timing job is active. Keep owned CPU/GPU work out of future timing windows.
+Priority after the active pass: selected-renderer capability and visual/motion
+verification, then demonstrated CPU savings and simulation throughput, then the
+full five-minute live/default-shadow acceptance. Preserve original content, HUD,
+DPR, assets, behavior and gates. No compatibility, migrations or reduced-quality win.
+Do not repeat rejected unchanged ABBA trials merely to seek green; serialize actual
+timing against owned builds, CPU agents and GPU work.
 
-[Validation-wait diagnostics](assets/07-validation-waits/README.md) show sub-ms
-typical waits, so preserve error handling and prioritize CPU preparation. The [impostor packing candidate](assets/07-impostor-packing/README.md)
-failed its declared ABBA ordering screen and is not adopted. Both images and state
-match; large timing variation prevents a reliable gain claim. Do not rerun
-unchanged code merely to seek a pass. Re-scope the next CPU step from the retained
-post-snapshot profile rather than treating this candidate as shipped.
-[Snapshot evidence](assets/07-snapshot-copy/README.md): CPU medians down24% wide/16%
-moving and improved rendered cadence; wide still misses60FPS. Both changed
-source/raw builds pass all19 unchanged30k checks (raw mid75 samples, little
-headroom). The completed seating/snapshot worktrees were removed.
-[M9c seating inspection](assets/m9c-seating/README.md) passes real-game checks;
-its browser consumers and drawn-feet proof remain open. The30k worker was cleaned
-up. [Diagnostics](assets/m9b-diagnostics/README.md)
-and [M9a timing](assets/m9a-frame-timing/README.md) are verified. [Component evidence](assets/migration-component-review/README.md)
-confirms post/sky/PMREM/lake numerical checks; ocean remains strictly red.
-[The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
-cutover blockers from inherited quality work. Do not copy Three-shaped counters
-or relabel pass sums as a complete frame. Production still constructs Three until
-M9; raw is exercised through the real Menu lab seam.
+Pending candidates remain unadopted: `codex/battle-gpu-impostor` at1c816fc5 (no GPU
+compile yet) and `codex/battle-water-comparison` atc702e002 (diagnostics, no fix).
+Their worktrees are removed and scratch archived.82 older unoccupied battle branch
+refs were deleted after a verified bundle and name/hash manifest at
+`throwaway/branch-cleanup-20260920-182212/`; active, pending and unrelated refs
+were preserved. Finished TypeGPU High/crowd worktrees can be removed after their
+remaining scratch is archived. Preserve historical control worktrees.
 
-[Current-camera sizing](assets/m7-current-camera/README.md) is integrated atb1818420:
-all six DPR1/2 zoom probes eliminate the first-frame banner correction. The
-[golden light balance](assets/08-light-balance/README.md) and
-[narrower default filter](assets/08-shadow-filter/README.md) improve grounding;
-High/off are preserved. The latest source30k and per-preset shadow run passes34
-checks without changing33ms/content thresholds. Full selected-renderer/live60fps, receiver and
-moving-shadow/net-cost acceptance remain open. No timing job is running.
-
-Both narrow candidates remain outside production:
-[grass reception](assets/08-grass-receiver/README.md) had no discernible grounding
-gain; [outside-volume sampling](assets/08-shadow-sampling/README.md) preserved
-images but failed its predeclared ABBA screen at both camera poses. No repeat of
-these experiments is planned. No timing job remains active.
-
-Completed component evidence, not final acceptance:
-
-- [M4 public atlases and reload](assets/m4-publication/README.md): staged GPU
-  admission, failure retention and disposal verified. Broader pose/LOD/mounted/dead
-  gates remain; accepted reload restarts the existing frontend animation timeline.
-- [High shadows](assets/m6-high-implementation/hardware/README.md): single/High/off
-  hardware lifecycle works. Inherited strict frame/terrain failures reproduce
-  pre/post; readable grounding and moving-camera cascade stability remain open.
-- [M7 block debugging](assets/m7-block-debug/README.md): shared geometry, optional
-  allocation and actual selection checks pass. Other effects/cues remain open.
-- [Source30k floor](assets/m1b-promotion/source-floor/README.md): all18 checks pass,
-  preserving33ms and content assertions. This is historical source evidence; current raw/source30k checks now both pass
-  after timing and diagnostics consumer migration.
-- [Native CPU pair](assets/03a-native-target-preparation/timing/README.md): serial
-  regresses and four-thread improves on an early-contact fixture. Not adopted;
-  it is not the canonical intense browser workload. Production WASM stays b42782f4….
-- [Held backend comparison](backend-decision.md): raw and TypeGPU conditionally
-  tied; TypeGPU now selected for type safety. All32 tours are functional but fail quiet-host criteria;
-  no broad repeat is planned and these are not live performance acceptance.
-
-Keep shared camera/terrain/environment/pose owners and campaign's separate frame.
-Finish M2–M8 gates before the M9 hard production cutover, then judge the live
-net-shadow savings. Later simulation still misses30Hz; worker publication alone
-is not a throughput fix. No batching/thread-pool/mechanics candidate is adopted.
-The proposed60fps target was not explicitly confirmed; do not lower it or the
-standing30k/33ms floor. Preserve gameplay, assets, framebuffer scale, content,
-audio and default quality. No legacy compatibility or save migration.
-
-Finished M4, High, native CPU and block-debug worktrees were removed with branch
-refs/evidence retained. Clean up only this task's finished worktrees; preserve
-historical controls and unrelated projects. [The evidence ledger](evidence.md)
-and [choices](choices.md) retain earlier component decisions and unresolved gates.
+[The evidence ledger](evidence.md) retains older measurements and component gates;
+[choices](choices.md) records decisions. Keep historical reds distinct from current
+results, and keep this handoff short enough to select one next action.
 
 - [x] [01 — production motion evidence](slices/01-motion-evidence.md)
 - [x] [01a — menu-launched simulated benchmark](slices/01a-benchmark-run.md)

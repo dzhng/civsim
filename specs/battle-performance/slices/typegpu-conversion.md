@@ -6,7 +6,7 @@ raw comparison owners remain lab inputs and leave the production graph at cutove
 No wholesale restoration of the older candidate, production selector or compatibility
 layer. Shared camera, terrain, palette, animation and shadow policies stay shared.
 
-Independent active passes:
+Integrated foundation passes (evidence in the spec hub):
 
 - Typed colour functions: actual shader bodies for soldier and impostor consumers,
   canonical faction palette, negative type checks and independent old-WGSL GPU
@@ -16,7 +16,8 @@ Independent active passes:
   cascade, real caster routing, current single/High/off allocation and lifecycle.
   Reuse existing shadow policies and numerical controls; preserve all thresholds.
 
-Then integrate frame/depth/resize/resource ownership, crowd reload and diagnostics,
+Frame depth and shared audience diagnostics are integrated. The active pass wires
+scene crowd reload, admitted identity and frame diagnostics to real consumers,
 followed by terrain/grass/water/atmosphere/effects/post capability mapping. A shared
 TypeGPU root may simplify resolution and teardown, but must preserve component
 replacement lifetimes. Public encoder interop is supported by installed types;

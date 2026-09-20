@@ -854,3 +854,18 @@ the old battle world without deleting this still-used shared geometry policy.
   Existing WGSL strings are not automatically type-checked by a typed wrapper;
   migration must disclose that boundary and preserve runtime validation. This
   supersedes the earlier dependency-count tie-break, not the performance gates.
+
+## Shared admitted crowd diagnostic reader — f440191a
+
+- **Choice:** Keep inspection separate from publication. When a developer checks
+  where soldiers stand, the reader asks the history for the pose actually admitted
+  for drawing. Both candidate audiences use that reader. It does not expose the
+  history's methods for beginning or committing an upload, and normal frames do
+  not perform the inspection. A copied reader per backend would let their answers
+  drift as later fixes land.
+- **Gap:** The conversion requires capability parity but does not dictate where
+  inspection logic lives.
+- **Reach:** Future scene reload and seating checks consume one published-pose
+  contract while resource ownership remains with each audience.
+- **Verdict:** Sound; this shares existing behavior without exposing publication
+  controls or adding work to each frame. **Confidence:** High.

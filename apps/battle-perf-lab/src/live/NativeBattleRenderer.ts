@@ -64,7 +64,11 @@ import { claimCanvas } from "./canvasOwnership";
 import { createSceneBackend, type SceneBackend } from "../sceneBackend";
 import { createSceneLifecycle } from "../sceneLifecycle";
 import { createTerrainPicking } from "../terrainPicking";
-import { NativeGpuTelemetry, type NativeTimingQueryMode } from "../nativeGpuTelemetry";
+import {
+  NativeGpuTelemetry,
+  type NativeSubmissionMeasurement,
+  type NativeTimingQueryMode,
+} from "../nativeGpuTelemetry";
 import { trackNativeGpuAllocations } from "../nativeGpuAllocations";
 import {
   beginGpuAdmission,
@@ -120,6 +124,8 @@ const twoFrames = () =>
 
 // Missing measurements stay explicit; the verification contract and rationale
 // live in the live renderer README rather than being copied into each report.
+// Draw calls leave this list for a presented frame that carries an honest count
+// of its own; the other two are owed by every frame.
 const OPEN_DIAGNOSTIC_OBLIGATIONS = ["seating", "drawCalls", "grassRouting"] as const;
 /** The identity and content a world publishes only if it is a selected one, by the
  * key each appears under; `terrain` carries the grass grouped with it. A backend
@@ -136,6 +142,27 @@ const UNOWNED_WORLD_DIAGNOSTICS = [
  * data that was uploaded — not evidence of where the GPU drew a soldier's feet. */
 const SEATING_INSPECTION_SCOPE =
   "every instance of one admitted crowd pose, re-sampled against the installed playable terrain height field; not evidence of drawn GPU feet placement";
+/** The draw count one presented frame may publish, or why it may not. Only that
+ * frame's own battle-draw submission answers: its commands are the ones the
+ * renderer validated and the retained image came from, so neither a readiness
+ * render that followed it nor a later frame's work can move the total. A window
+ * that could not count honestly, or that left encoded draws it never offered to
+ * the queue, publishes its reason instead of a lower bound. */
+const presentedDrawCalls = (
+  presented: { submission: NativeSubmissionMeasurement } | null,
+): { count: number | null; unavailable: string | null } => {
+  if (!presented) return { count: null, unavailable: "no-frame-has-presented" };
+  const draws = presented.submission.draws;
+  if (draws.offeredDrawCalls === null)
+    return { count: null, unavailable: draws.reason ?? "draw-observation-unavailable" };
+  // Zero is the only account that leaves nothing behind; null is itself a refusal.
+  if (draws.unsubmittedDrawCalls !== 0)
+    return {
+      count: null,
+      unavailable: draws.unsubmittedReason ?? "draws-encoded-but-never-submitted",
+    };
+  return { count: draws.offeredDrawCalls, unavailable: null };
+};
 const sameSeating = (
   a: AdmittedSeatingIdentity | null,
   b: AdmittedSeatingIdentity | null,
@@ -215,10 +242,14 @@ export class BattleRenderer implements BattleRendererApi {
    *  failed after its draw all leave the previous presented frame standing.
    *  `seating` is the pose and terrain generation that frame actually drew, so a
    *  later seating verdict can never be attributed to a frame whose crowd or
-   *  terrain has since been replaced. Null for a backend that owns no crowd. */
+   *  terrain has since been replaced. Null for a backend that owns no crowd.
+   *  `submission` is that frame's own validated battle draw, carrying the draw
+   *  observation taken when it closed, so the count is never re-read off
+   *  whichever submission happens to be latest. */
   private presentedFrame: {
     view: View;
     renderedFrameId: number;
+    submission: NativeSubmissionMeasurement;
     seating: AdmittedSeatingIdentity | null;
   } | null = null;
   private frozenKey: string | null = null;
@@ -529,8 +560,9 @@ export class BattleRenderer implements BattleRendererApi {
         const submit = async (source: "battle-draw" | "render-only") => {
           await admissions.settle();
           this.check(signal);
-          await sync(() => this.submit(source));
+          const measurement = await sync(() => this.submit(source));
           this.check(signal);
+          return measurement;
         };
         let failed = false;
         try {
@@ -636,7 +668,9 @@ export class BattleRenderer implements BattleRendererApi {
           const drawStart = cpuMs;
           if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("battle-draw");
           await step(() => owner.scene.prepare(view));
-          await submit("battle-draw");
+          // The frame's own draw: taken here, so the readiness renders below and
+          // every later frame leave this measurement alone.
+          const battleDraw = await submit("battle-draw");
           drawMs = cpuMs - drawStart;
           if (this.startupRequested) {
             await this.device.queue.onSubmittedWorkDone();
@@ -657,6 +691,7 @@ export class BattleRenderer implements BattleRendererApi {
           this.presentedFrame = {
             view,
             renderedFrameId: this.renderedFrameId,
+            submission: battleDraw,
             seating: selectedWorld(owner.scene)?.admittedSeatingIdentity() ?? null,
           };
           this.frozenKey = generation === this.invalidation ? key : null;
@@ -720,6 +755,8 @@ export class BattleRenderer implements BattleRendererApi {
       throw error;
     }
   }
+  /** Returns the closed window's own measurement — identity and the draw
+   *  observation taken at the same instant — after its submission validated. */
   private async submit(source: "battle-draw" | "render-only") {
     const telemetry = this.telemetry!;
     if (!telemetry.measuring) telemetry.beginSubmission(source);
@@ -732,6 +769,7 @@ export class BattleRenderer implements BattleRendererApi {
       await validation;
       if (!identity) throw Error("Native presentation submitted no command buffer");
       this.latestSubmission = identity;
+      return identity;
     } catch (error) {
       telemetry.cancelSubmission();
       await admission().catch(() => {});
@@ -929,6 +967,7 @@ export class BattleRenderer implements BattleRendererApi {
     const gpuFrame = this.frameTiming.correlatedFrame();
     const presented = this.presentedFrame;
     const camera = presented?.view.camera ?? null;
+    const drawCalls = presentedDrawCalls(presented);
     const diagnostics: BattleInstalledSceneDiagnostics = {
       // The population the installed static simulation data says must be drawn.
       // `soldiers` below it means the crowd owner is behind, not a smaller army.
@@ -951,10 +990,16 @@ export class BattleRenderer implements BattleRendererApi {
       // Unavailable, never a synthesized pass or a rotating sample presented as
       // a whole-population verdict: see `openObligations`.
       seating: null,
-      drawCalls: null,
-      openObligations: installedWorld
-        ? OPEN_DIAGNOSTIC_OBLIGATIONS
-        : [...OPEN_DIAGNOSTIC_OBLIGATIONS, ...UNOWNED_WORLD_DIAGNOSTICS],
+      // The commands the presented frame handed to the queue, or the reason it
+      // could not be said honestly — never a zero standing in for either.
+      drawCalls: drawCalls.count,
+      drawCallsUnavailable: drawCalls.unavailable,
+      openObligations: [
+        ...OPEN_DIAGNOSTIC_OBLIGATIONS.filter(
+          (obligation) => obligation !== "drawCalls" || drawCalls.unavailable !== null,
+        ),
+        ...(installedWorld ? [] : UNOWNED_WORLD_DIAGNOSTICS),
+      ],
     };
     return {
       ready: this.soldierAssets !== null && native?.crowd.ready === true,

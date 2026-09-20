@@ -144,8 +144,15 @@ export interface BattleInstalledSceneDiagnostics {
   presentedFrameId: number | null;
   depth: BattleDepthDiagnostics | null;
   seating: BattleSeatingStats | null;
-  /** Null where the backend keeps no per-frame draw-call count. */
+  /** Draw commands the frame named by `presentedFrameId` offered to the queue in
+   *  its own validated submission — not a later readiness render's, and not a
+   *  count of draws the GPU is known to have executed. Null where the backend
+   *  keeps no such count, or where that frame's count could not be taken
+   *  honestly; `drawCallsUnavailable` says which. */
   drawCalls: number | null;
+  /** Why `drawCalls` is null, in the reporting backend's own vocabulary. Null
+   *  while a count is published. */
+  drawCallsUnavailable: string | null;
   openObligations: readonly string[];
 }
 

@@ -64,9 +64,23 @@ that is not installed — before construction, on a retired comparison backend,
 after disposal — reports null rather than an empty shape, and every such null is
 named so it cannot be read as an empty scene. Measurements no world here makes
 truthfully are named as open obligations instead of being approximated:
-per-instance seating verification, per-frame draw calls, and the blade counts the
-grass field routes on the GPU. No diagnostic adds a readback, a wait or a repeated
-population scan to the presenting path.
+per-instance seating verification, and the blade counts the grass field routes on
+the GPU. No diagnostic adds a readback, a wait or a repeated population scan to
+the presenting path.
+
+Draw calls are the one such obligation a frame can discharge for itself. The
+published count is the draw commands that frame's own battle draw offered to
+`queue.submit`, taken from the [shared observer](../nativeGpuTelemetry.ts) as that
+submission window closed and kept with the frame, never re-read off whichever
+submission is latest: the readiness renders that follow a startup frame, and every
+later frame, leave it where it was. Only a frame that presented publishes one, so a
+presentation that failed validation, was cancelled, or was cut off by disposal leaves
+the previous frame's count standing instead of claiming its own, exactly as its camera
+and frame id do. Offered is not executed, and a lower bound is not a total: a window
+that could not count honestly, or that left encoded draws it never handed to the queue,
+publishes no number, names the reason beside it, and keeps the obligation open. A
+scene that encoded no drawing publishes zero, which is a measurement and not a
+missing one.
 
 Seating is verified by asking, never by watching. The explicit inspection walks
 every instance of one admitted crowd pose and re-samples it against the installed

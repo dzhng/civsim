@@ -7,6 +7,10 @@ const state = vi.hoisted(() => ({
   calls: [] as any[],
   encoded: [] as any[],
   timestamps: [] as bigint[][],
+  /** Draw commands each encoded pass records, and draws a batch records and never
+   *  offers to the queue, so a frame's drawing is real rather than asserted. */
+  passDraws: 0,
+  droppedDraws: 0,
   fetched: [] as string[],
   catalogFailure: null as unknown,
   /** One-shot failure for the first upload of a presentation, so a frame can fail
@@ -101,6 +105,8 @@ beforeEach(() => {
   state.calls = [];
   state.encoded = [];
   state.timestamps = [];
+  state.passDraws = 0;
+  state.droppedDraws = 0;
   state.fetched = [];
   state.catalogFailure = null;
   state.readoutFailure = null;
@@ -189,7 +195,7 @@ function fixture(
       unmap: vi.fn(),
     })),
     createCommandEncoder: vi.fn(() => ({
-      beginRenderPass: (_descriptor?: unknown) => ({ end() {} }),
+      beginRenderPass: (_descriptor?: unknown) => ({ draw(_vertices: number) {}, end() {} }),
       beginComputePass: (_descriptor?: unknown) => ({ end() {} }),
       resolveQuerySet: vi.fn(),
       copyBufferToBuffer: vi.fn(),
@@ -299,9 +305,18 @@ function fixture(
         call("prepare")(view, ...rest);
         state.scene.preparedCamera = view.camera;
         if (!build.encodePasses) return;
+        type Encoder = ReturnType<typeof device.createCommandEncoder>;
+        const record = (encoder: Encoder, label: string, draws: number) => {
+          const pass = encoder.beginRenderPass({ label });
+          for (let i = 0; i < draws; i++) pass.draw(3);
+          pass.end();
+        };
         const encoder = device.createCommandEncoder();
-        for (const label of build.encodePasses) encoder.beginRenderPass({ label }).end();
+        for (const label of build.encodePasses) record(encoder, label, state.passDraws);
         state.encoded.push(encoder.finish());
+        // A batch this frame builds and never offers to the queue.
+        if (state.droppedDraws)
+          record(device.createCommandEncoder(), "dropped", state.droppedDraws);
       },
       settleGrass: call("settle"),
       // The crowd generation every selected world owns.
@@ -427,6 +442,11 @@ test("disposal during pending submission waits for ownership drain and rejects l
   resume();
   await expect(pending).rejects.toThrow("disposed");
   expect(state.disposed).toHaveBeenCalledTimes(1);
+  // The cut-off frame never presented, so its submitted work publishes no count.
+  expect(f.renderer.stats()).toMatchObject({
+    drawCalls: null,
+    drawCallsUnavailable: "no-frame-has-presented",
+  });
 });
 
 test("aborted external readiness stops before its second submission and does not poison renderer reuse", async () => {
@@ -1153,15 +1173,113 @@ test("a reader cannot mutate the published camera into the next read", async () 
   f.renderer.dispose();
 });
 
-test("seating, draw calls and routed grass triangles are unavailable, each with a named obligation", async () => {
+test("seating and routed grass triangles are unavailable, each with a named obligation", async () => {
   const f = fixture();
   await f.renderer.ready;
   await f.renderer.present(packet());
   const stats = f.renderer.stats();
   expect(stats.seating).toBeNull();
-  expect(stats.drawCalls).toBeNull();
   const obligations = (stats.openObligations as string[]).join("\n");
-  for (const owed of ["seating", "drawCalls", "grass"]) expect(obligations).toContain(owed);
+  for (const owed of ["seating", "grass"]) expect(obligations).toContain(owed);
+  // This scene encodes no drawing at all, which is a real zero for the frame it
+  // presented rather than a measurement it could not take.
+  expect(stats).toMatchObject({ drawCalls: 0, drawCallsUnavailable: null });
+  f.renderer.dispose();
+});
+
+test("the presented frame publishes the draws its own validated submission offered", async () => {
+  const f = fixture({ encodePasses: ["shadow", "main"] });
+  await f.renderer.ready;
+  // Before anything draws the count is withheld with its reason, never a zero.
+  expect(f.renderer.stats()).toMatchObject({
+    drawCalls: null,
+    drawCallsUnavailable: "no-frame-has-presented",
+  });
+  state.passDraws = 4;
+  await f.renderer.present(packet());
+  const stats = f.renderer.stats();
+  expect(stats).toMatchObject({ presentedFrameId: 1, drawCalls: 8, drawCallsUnavailable: null });
+  // Counted, so no longer owed; the measurements no world here makes still are.
+  expect(stats.openObligations).toEqual(["seating", "grassRouting"]);
+  // The next frame's own drawing replaces the count rather than accumulating.
+  state.passDraws = 1;
+  await f.renderer.present(packet());
+  expect(f.renderer.stats()).toMatchObject({ presentedFrameId: 2, drawCalls: 2 });
+  f.renderer.dispose();
+});
+
+test("readiness renders never restate the presented frame's draw count", async () => {
+  const f = fixture({ encodePasses: ["main"] });
+  await f.renderer.ready;
+  state.passDraws = 3;
+  let readiness!: Promise<void>;
+  const pending = f.renderer.present(packet(), undefined, () => {
+    readiness = f.renderer.settlePresentedFrame();
+  });
+  await progress(f.callbacks);
+  const receipt = await pending;
+  await readiness;
+  // A startup frame's final queue identity is a readiness render; the published
+  // count is still the battle draw that presented the frame.
+  expect(receipt.gpuSubmission).toMatchObject({ source: "render-only" });
+  expect(f.renderer.stats()).toMatchObject({ drawCalls: 3, drawCallsUnavailable: null });
+  // A later settle that draws a different amount leaves that frame alone.
+  state.passDraws = 9;
+  const settled = f.renderer.settlePresentedFrame();
+  await progress(f.callbacks);
+  await settled;
+  expect(f.renderer.stats()).toMatchObject({ presentedFrameId: 1, drawCalls: 3 });
+  f.renderer.dispose();
+});
+
+test("a frame whose submission fails validation never publishes its draw count", async () => {
+  const f = fixture({ encodePasses: ["main"] });
+  await f.renderer.ready;
+  state.passDraws = 2;
+  const previous = await f.renderer.present(packet());
+  expect(f.renderer.stats()).toMatchObject({ drawCalls: 2 });
+  // The next frame offers more draws, and its own final validation rejects them.
+  const release: Array<(error: GPUError | null) => void> = [];
+  const submit = state.owner.submitPresentation;
+  state.owner.submitPresentation = () => {
+    submit();
+    f.device.popErrorScope = () => new Promise((resolve) => release.push(resolve));
+  };
+  state.passDraws = 9;
+  const pending = f.renderer.present(packet()).catch((error) => error);
+  await progress(f.callbacks);
+  release.forEach((resolve, i) => resolve(i === 0 ? { message: "bad draw" } : null));
+  expect(await pending).toMatchObject({ message: "bad draw" });
+  expect(f.renderer.stats()).toMatchObject({
+    presentedFrameId: previous.renderedFrameId,
+    drawCalls: 2,
+  });
+  f.renderer.dispose();
+});
+
+test("a frame that leaves drawing unoffered or unobserved publishes no count", async () => {
+  const f = fixture({ encodePasses: ["main"] });
+  await f.renderer.ready;
+  // Draws encoded into a batch the queue never received are not a frame total,
+  // so the count is refused rather than published as the lower bound it is.
+  state.passDraws = 2;
+  state.droppedDraws = 5;
+  await f.renderer.present(packet());
+  expect(f.renderer.stats()).toMatchObject({
+    presentedFrameId: 1,
+    drawCalls: null,
+    drawCallsUnavailable: "draws-encoded-but-never-submitted",
+  });
+  expect(f.renderer.stats().openObligations).toContain("drawCalls");
+  // A batch the observer never encoded refuses in the observer's own words.
+  state.droppedDraws = 0;
+  state.encoded.push({});
+  await f.renderer.present(packet());
+  expect(f.renderer.stats()).toMatchObject({
+    presentedFrameId: 2,
+    drawCalls: null,
+    drawCallsUnavailable: "unobserved-command-buffer",
+  });
   f.renderer.dispose();
 });
 
@@ -1427,8 +1545,9 @@ test("a converted world publishes its own identity and the content its owners re
     },
   });
   expect(stats.terrain).toMatchObject({ grass: { residency: { rebuild: { pending: false } } } });
-  // Content is no longer owed; the measurements no world makes truthfully still are.
-  expect(stats.openObligations).toEqual(["seating", "drawCalls", "grassRouting"]);
+  // Content is no longer owed; the measurements no world makes truthfully still
+  // are. This world's frame counted its own drawing, so that one is not owed.
+  expect(stats.openObligations).toEqual(["seating", "grassRouting"]);
   // A real terrain replacement and different cues both move this world's report.
   f.renderer.setTerrain({ w: 1, h: 1, cell: 4, ox: 0, oy: 0, tint: new Uint8Array(1) });
   await f.renderer.present({

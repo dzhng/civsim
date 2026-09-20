@@ -211,3 +211,100 @@ ramp. Start the lab development server with the candidate config, then run
 slot; let the server settle after an edit, or it will serve the previous module. The report
 lands in `throwaway/typegpu-colors/color-check.json` unless `TYPEGPU_COLOR_REPORT` says
 otherwise. This is correctness evidence for two shader functions — not parity, not timing.
+
+## High cascade-overlap numerical gate
+
+The single-map source comparison prices the PCF, bias and reverse-Z contract
+against the production oracle, and the Menu High lifecycle proves the mode runs.
+Neither can see a **layer index, an overlap weight or the terminal fade**: one
+binds one map and one record, the other reads pixels nobody has a closed form
+for. [shadow-check.ts](shadow-check.ts) is the gate for that gap.
+
+The receiver path is the production one. `createTypegpuSunShadow('csm')` owns
+the depth array and packs the receiver block, `createTypegpuEnvironment` binds
+both through the actual `sunShadowEntries`, and the fragment calls the
+environment's own `sampleSunShadow` — `sunShadowSampleBodyWgsl('csm')`, the
+shared sampler's text. The fit, camera and environment are genuine
+`NativeShadowFrame`, `Camera3DParams` and `CivsimEnvironment` values, not a
+contrived box. Nothing here re-implements the shader.
+
+Only the depth CONTENT is synthetic. Each array layer is cleared by its own
+render pass to its own known constant, so every cascade's comparison collapses
+to a known 0 or 1 and what the fragment returns is the blend weight alone.
+
+### What the expected numbers are
+
+[shadowOverlapFixture.ts](shadowOverlapFixture.ts) places each probe where the
+shared fade collapses to a closed form, and the probe table carries that form.
+Writing `b` for the internal break, `m = 0.25b²` for the margin both cascades
+take there and `M = 0.25` for the last cascade's margin at the capped far:
+
+| probe depth | weights | why |
+| --- | --- | --- |
+| `b/4` | `1, 0` | below the first interval's centre the nearest edge is 0, so the margin is 0 and the ratio is the 0/0 the shader guards |
+| `b ± m/2` | `1,0` / `0,1` | the overlap band's own boundaries |
+| `b ± m/4`, `b` | `¾,¼` / `½,½` / `¼,¾` | inside the band one cascade's distance past the low edge is the other's distance short of the high edge, so the pair sums to **exactly one** |
+| `1 − Mk` | `0, k` | the last cascade fades linearly in the remaining distance, reaching 0 at the capped far |
+| `< 0`, `> 1` | `0, 0` | outside every interval |
+
+`cascadePolicy`'s `cascadeBlendWeight` is checked against these, and is labelled
+in the test for what it is: the CPU **transcription** of the same shader text,
+so agreement proves the closed forms were read off the right formula and nothing
+more. The independent claims are the collapsed forms themselves, plus three
+properties measured on hardware rather than derived again — what each cascade
+removes alone equals what both remove together, the overlap band is wholly
+shadowed with no seam, and unoccluded layers leave the receiver lit.
+
+### Tolerance, fixed before hardware
+
+`2 × 1e-6 / m`. The fragment forms its linear depth as a four-term dot against
+the view row (terms of order 1e3, so ~1e-4 at f32), subtracts the near plane and
+divides by the ~1.5e3 span, leaving ~2e-7; the remaining normalised operations
+add a few ulp, and 1e-6 is that rounded up about threefold. The blend divides
+that error by the narrowest margin in play and two cascades accumulate. At the
+shipped split this is ~1.2e-4 — some 700× below the smallest gap between two
+distinct expected answers, which the CPU test pins so the tolerance cannot mask
+a wrong weight. It is derived from the fit, never widened to admit a reading.
+Readback is `r32float`, so no requantization sits between the two sides.
+
+### Running it
+
+```sh
+web/node_modules/.bin/tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tsconfig.json
+web/node_modules/.bin/tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tests/tsconfig.json
+web/node_modules/.bin/vitest run --config apps/battle-perf-lab/candidates/typegpu/vitest.config.mts
+# Then, with the coordinated GPU slot and the lab server on the candidate config:
+bun run --cwd web vite --config vite.typegpu.config.ts --host 127.0.0.1 --port 5187
+node apps/battle-perf-lab/candidates/typegpu/verify-shadow.mjs
+```
+
+The runner asserts the outcome it asked for, not the outcome it got, because the
+mutations below are expected to FAIL. Reports land in
+`throwaway/typegpu-shadow/` unless `TYPEGPU_SHADOW_REPORT` says otherwise; each
+retains every raw sample beside both oracles. Let the server settle after an
+edit or it will serve the previous module.
+
+### Proving the gate can fail
+
+`TYPEGPU_SHADOW_MUTATION` is opt-in and off by default, and the page refuses an
+unknown request rather than silently baselining.
+
+- `layer-swap` exchanges the two layers' cleared depths. Every probe any cascade
+  weights must move: the fit puts the two cascades' biased receiver depths in
+  disjoint bands and one configuration clears **between** them, which is what
+  keeps the swap visible at the break itself, where the two weights are equal
+  and a symmetric pair would cancel. A probe outside every interval is
+  deliberately unaffected — no layer is read there at all.
+- `receiver-swap` exchanges the two cascade records in the packed block, leaving
+  the control vector alone: a receiver reading cascade 1's matrix, bias and
+  interval as cascade 0's, which is what a mis-ordered pack would do. It has no
+  hand-derived expectation and is judged only by failing to reproduce the
+  correct one.
+
+### What this does not prove
+
+Synthetic cleared layers are not casters. This gate says nothing about caster
+fitting, cascade motion under a moving camera, PCF softness (constant layers
+make the five taps identical, so the filter is bypassed by construction), or
+whether a shadow reads correctly on screen. It is one numerical component gate
+for the receiver's layer binding, overlap blend and terminal fade.

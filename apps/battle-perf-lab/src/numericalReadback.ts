@@ -110,3 +110,31 @@ export async function readU32Buffer(
     b.destroy();
   }
 }
+
+/** Exact single-channel float readback. Numerical gates whose expected values
+ * are closed forms need the raw f32 the fragment wrote, not a half-float
+ * requantization of it; rows keep the same 256-byte padding as above. */
+export async function readF32Texture(device: GPUDevice, target: GPUTexture) {
+  const bytesPerRow = Math.ceil((target.width * 4) / 256) * 256;
+  const buffer = device.createBuffer({
+    size: bytesPerRow * target.height,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  try {
+    const encoder = device.createCommandEncoder();
+    encoder.copyTextureToBuffer({ texture: target }, { buffer, bytesPerRow }, [
+      target.width,
+      target.height,
+    ]);
+    device.queue.submit([encoder.finish()]);
+    await buffer.mapAsync(GPUMapMode.READ);
+    const raw = new Float32Array(buffer.getMappedRange());
+    const stride = bytesPerRow / 4;
+    return Array.from(
+      { length: target.width * target.height },
+      (_, i) => raw[Math.floor(i / target.width) * stride + (i % target.width)],
+    );
+  } finally {
+    buffer.destroy();
+  }
+}

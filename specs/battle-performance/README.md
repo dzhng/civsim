@@ -7,8 +7,13 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 **Raw WebGPU is selected; implementation and final acceptance remain active.**
 Read [the decision](backend-decision.md) and [the concrete cutover graph](migration.md).
 
-Current pickup: implement [M9a correlated frame timing](slices/m9a-frame-timing.md),
-then actual content/depth/memory diagnostics needed by the raw production gates.
+Current pickup: Claude Opus is implementing [M9a correlated frame timing](slices/m9a-frame-timing.md)
+in `game-battle-frame-timing`, baseline556a1a37, logs `throwaway/frame-timing-worker/`.
+An independent CPU-only worker in `game-battle-neutral-owners` (same baseline; logs
+`throwaway/neutral-owners-worker/`) removes obsolete camera-constant/lake-type
+coupling without changing math. Root reviews/integrates both, then verifies real
+GPU correlation and disabled-query nulls. Actual content/depth/memory diagnostics
+needed by raw production gates follow as a separate pass.
 [The readiness audit disposition](assets/m9-readiness/README.md) distinguishes real
 cutover blockers from inherited quality work. Do not copy Three-shaped counters
 or relabel pass sums as a complete frame. Production still constructs Three until

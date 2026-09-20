@@ -25,6 +25,11 @@ base81f847b7, CPU-only while the colour worker owns GPU correctness. Its initial
 checkout exhausted disk copying historical evidence; it was removed and recreated
 without specs/assets, retaining originals in main. Do not duplicate those assets.
 Root prompt: `throwaway/typegpu-high/prompt.txt`.
+A third independent CPU-only pass in `/Users/david/dev/game-battle-typegpu-frame`
+(base2829e13b) connects the frame to canonical depth policy and reports actual
+installed attachment diagnostics. It preserves existing admission/root/encoder
+contracts and edits only frame plus focused tests; the other workers own scene,
+shadow and shader consumers. Root prompt: `throwaway/typegpu-frame/prompt.txt`.
 
 GPU impostor candidate1c816fc5 is committed on `codex/battle-gpu-impostor`
 but unadopted; its finished worktree is removed; its WGSL has not yet

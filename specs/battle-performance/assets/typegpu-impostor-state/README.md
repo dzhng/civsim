@@ -51,3 +51,11 @@ are in HUD or screen-edge content; these remain diagnostic residuals, not a pass
 full-frame equivalence gate. The original tactical settled captures above are
 still exact. This held-state sweep neither measures smoothness nor replaces the
 five-minute live benchmark. Reports are in [camera-motion](camera-motion/checks.json).
+
+Audience comparison locates a limitation of this asynchronous sweep: the first
+endpoint has one soldier in a different mesh tier (4772/26 versus4771/27 in L1/L2),
+with no impostors in either view. Cameras, visible population and shadow-tier
+counts match. Later endpoints have matching main and shadow-tier counts. Thus the
+first image residual cannot certify a pure impostor-shader comparison; accepted
+camera/LOD history must be controlled before attributing it. This observation does
+not change the LOD policy or declare transition quality correct.

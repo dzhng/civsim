@@ -12,6 +12,13 @@ implementation before the next production edit. Read [the revised decision](back
 The existing raw work is reusable evidence and algorithms; the older TypeGPU
 candidate lacks subsequent fixes and must not replace it wholesale. Claude's
 read-only conversion scoping is in `throwaway/typegpu-reselection/`.
+An independent first typed-shader pass is active in
+`/Users/david/dev/game-battle-typegpu-colors` (base f1912eb1): convert the actual
+TypeGPU soldier/impostor colour helpers from WGSL strings into typed function
+bodies, preserving canonical palette and formulas. Claude owns GPU correctness
+for this pass; no timing overlaps. Root prompt: `throwaway/typegpu-colors/prompt.txt`.
+Compile-time rejection checks and old-WGSL versus typed GPU numerical comparison
+are required before adoption. This does not claim the whole renderer is typed.
 
 GPU impostor candidate1c816fc5 is committed in
 `/Users/david/dev/game-battle-gpu-impostor` but unadopted; its WGSL has not yet

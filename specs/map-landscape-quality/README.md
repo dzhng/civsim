@@ -6,21 +6,24 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`.
+Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on `codex/map-landscape-quality`.
 Production uses the shared rendering foundation; overall visual quality still
 falls short of the reference. Keep every open slice below open until its own
 acceptance evidence is complete.
 
-**Current pickup:** compare the forest-edge age/size prototype in
-`/Users/david/dev/game-landscape-understory` (5214) with the retained painted-label
-parent (5213). Both servers were restarted on 2026-09-21. The campaign comparison
-runner is `throwaway/edge-age-campaign-proof.mjs`; do not edit runtime files during
-captures. Prototype scope and CPU evidence are in slice07 and its worktree's
-`throwaway/edge-age-status.md`. Reject it if shrinking trees only loses canopy.
-Then test finer sampling of the accepted mountain field through the existing lab
-`cell` parameter. Production1km trials exceeded the128MiB limit and were rejected;
-slice04 holds the diagnosis. Do not reintroduce them without visible value and a
-bounded allocation design.
+**Current pickup:** test summit/saddle prominence along the existing dominant
+ridge at unchanged2km sampling. The finer-mesh clay comparison is rejected:
+close stair steps improve but regional character does not, at3.5× triangles.
+Evidence is in slice04's accepted-field-sampling/visual folder. Terrain lab camera
+telemetry now proves actual matrices match. Main development server uses5186.
+No production resolution or residency redesign follows this result.
+
+The forest-edge size prototype is rejected: regional Alps inspection and fresh
+review found smaller scattered trees but no material improvement to dense woodland
+boundaries. Three candidate campaign captures completed with no page errors;
+no final ecological acceptance follows. Evidence remains in
+`throwaway/edge-age-campaign/`. The prototype and obsolete comparison worktrees
+are deleted, rather than retained as alternatives.
 
 Next priorities: mountain/forest visual quality, direct label coverage checks,
 coast/water motion and campaign/battle handoff, then full visual and hardware
@@ -34,13 +37,12 @@ exactly. On2026-09-21 all565 frontend tests passed; the previously timed-out
 allocation check also passed independently, with its timeout and budget unchanged.
 Detailed evidence remains in each slice's assets; this is not final acceptance.
 
-Cleanup retained the active prototype and comparison parent. Twelve retired
-worktrees and27 branches were removed; patches/evidence are archived in
-`throwaway/worktree-cleanup-2026-09-21`, with tips under
-`refs/archive/cleanup-2026-09-21/`. Removed worktrees must not be used as live paths.
-Fetched staging66cf9293 is already an ancestor. The original checkout stays untouched.
-Claude previously reached a spending limit; use Opus when available without changing
-billing. Continue autonomously, keep one GPU lane, and preserve all remaining gates.
+Only this task's integrated landscape worktree remains. The four remaining side
+worktrees, their branches, and older backup archives were deleted at the user's
+request. Do not refer to them as available controls. Rejected work must not be
+retained just in case. Fetched staging66cf9293 is already an ancestor.
+Claude previously reached a spending limit; use Opus when available without
+changing billing. Continue autonomously, keep one GPU lane, and preserve all gates.
 
 ### Global TODO
 

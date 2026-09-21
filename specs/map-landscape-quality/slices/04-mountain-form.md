@@ -155,3 +155,11 @@ exceeded the unchanged128MiB allocation ceiling (134,711,391 and136,036,387
 bytes respectively). Neither shipped. Failure logs and the bounded trial patch
 remain in `throwaway/sampling-allocation-probes`. Use the existing lab's `cell`
 parameter to judge visual value before designing another residency change.
+
+The [camera-matched clay comparison](../assets/slice-04/accepted-field-sampling/visual/README.md)
+rejects production refinement:1km smooths close stair steps but leaves the same
+regional mountain character at3.5× the lab triangles. Stop resolution work.
+The next bounded shape hypothesis is to vary prominence along the existing
+dominant crest, producing distinct summits and saddles instead of a uniformly
+high wall. Keep source geography, minor folds and sampling unchanged; judge
+regional silhouette before adding material or vegetation complexity.

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "alps",
+    "cameraExact": true,
+    "changedPixels": 476747,
+    "rgbMAE": 0.5505846354166667,
+    "triangles": [
+      321448,
+      1127798
+    ]
+  },
+  {
+    "name": "alps-close",
+    "cameraExact": true,
+    "changedPixels": 620327,
+    "rgbMAE": 0.944259765625,
+    "triangles": [
+      321448,
+      1127798
+    ]
+  }
+]

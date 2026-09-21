@@ -166,3 +166,10 @@ scatter owner, with no separate lattice, budget, tier schema or LoD switch.
 Battle preserves every site. Campaign can substitute sites because a smaller
 footprint passes existing coastal clearance; the measured prototype substitutes
 59 of32,000 candidates, so it must not claim exact campaign-position preservation.
+
+The age/size prototype was rejected on2026-09-21. In the actual Alpine regional
+frame, smaller scattered trees expose more relief but dense boundaries remain
+abrupt. Fresh review found only a subtle improvement, not enough to justify the
+new policy. No runtime change was integrated. The prototype worktree was deleted;
+future ecological work must address the actual missing transition rather than
+repeat the same size-only policy.

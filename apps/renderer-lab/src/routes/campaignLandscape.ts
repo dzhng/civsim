@@ -138,6 +138,11 @@ export async function route(ctx: LabContext) {
           centerRay: hit,
         },
         ...world.stats(),
+        camera: {
+          pose,
+          worldMatrix: camera.matrixWorld.toArray(),
+          projectionMatrix: camera.projectionMatrix.toArray(),
+        },
         terrainTriangles,
         trees: trees.length,
         mountainProps: 0,

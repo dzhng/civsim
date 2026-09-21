@@ -59,15 +59,23 @@ test("GPU collection matches recorded identities despite out-of-order completion
   const recording = new BenchmarkRecording(300_000);
   recording.start(1000, 10);
   const a = frame(1, 1016);
-  a.renderer.gpuSubmission = { submissionId: 101, threeFrameId: 701, source: "battle-draw" };
+  a.renderer.gpuSubmission = {
+    submissionId: 101,
+    backend: "typegpu" as const,
+    source: "battle-draw",
+  };
   const b = frame(2, 1032);
-  b.renderer.gpuSubmission = { submissionId: 102, threeFrameId: 702, source: "battle-draw" };
+  b.renderer.gpuSubmission = {
+    submissionId: 102,
+    backend: "typegpu" as const,
+    source: "battle-draw",
+  };
   recording.record(a, camera, "tactical", camera);
   recording.record(b, camera, "tactical", camera);
   const result = (submissionId: number, sequence: number) => ({
     submissionId,
     sequence,
-    threeFrameId: 600 + submissionId,
+    backend: "typegpu" as const,
     source: "battle-draw" as const,
     status: "complete" as const,
     reason: null,
@@ -105,9 +113,17 @@ test("GPU cursor gaps and incomplete results remain explicit in partial recordin
   const recording = new BenchmarkRecording(300_000);
   recording.start(1000, 10);
   const a = frame(1, 1016);
-  a.renderer.gpuSubmission = { submissionId: 101, threeFrameId: 701, source: "battle-draw" };
+  a.renderer.gpuSubmission = {
+    submissionId: 101,
+    backend: "typegpu" as const,
+    source: "battle-draw",
+  };
   const b = frame(2, 1032);
-  b.renderer.gpuSubmission = { submissionId: 102, threeFrameId: 702, source: "battle-draw" };
+  b.renderer.gpuSubmission = {
+    submissionId: 102,
+    backend: "typegpu" as const,
+    source: "battle-draw",
+  };
   recording.record(a, camera, "tactical", camera);
   recording.record(b, camera, "tactical", camera);
   const batch = {
@@ -118,7 +134,7 @@ test("GPU cursor gaps and incomplete results remain explicit in partial recordin
       {
         sequence: 21,
         submissionId: 102,
-        threeFrameId: 702,
+        backend: "typegpu" as const,
         source: "battle-draw" as const,
         status: "incomplete" as const,
         reason: "timestamps-unavailable",

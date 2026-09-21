@@ -2,7 +2,7 @@ import { WORLD_CAMERA_WGSL } from "../../../renderer-core/src/cameraWgsl";
 import { terrainMaterialFunctions, type TerrainMaterialOptions } from "./terrainMaterial";
 import { terrainNoiseFunctions } from "./terrainNoise";
 
-/** Pure entrypoints: native and vgpu own separate resources and orchestration. */
+/** Shader entrypoints independent of GPU resource allocation. */
 export function terrainShaders(
   environmentShader: string,
   options: TerrainMaterialOptions,

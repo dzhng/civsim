@@ -25,8 +25,8 @@
     "web/tests/impostorAtlasArtifact.test.ts",
     "web/tests/impostorTransport.test.ts",
     "web/tests/impostorAtlasAuthoring.test.ts",
-    "apps/battle-perf-lab/candidates/typegpu/tests/crowdAudienceAdmission.test.ts",
-    "apps/battle-perf-lab/candidates/typegpu/tests/typegpuSceneLifecycle.test.ts"
+    "web/tests/battle-renderer/crowdAudienceAdmission.test.ts",
+    "web/tests/battle-renderer/typegpuSceneLifecycle.test.ts"
   ],
   "portableVisualCoverage": "Workbench pose/formation/material reload/faction/life-state checks, persisted-atlas far roster, action replay and candidate sheets remain active. Per-pixel far normal/roughness/contact and synthetic tangent-frame screenshots need fresh native equivalents if pursued; numerical tests are not claimed as pixel parity.",
   "retiredLabRoutes": {

@@ -40,5 +40,5 @@ code. Adapted shader algorithms retain their pinned Three attribution.
 
 TypeGPU owns production GPU resources, binding layouts and pass submission. Typed
 shader functions coexist with explicit WGSL bodies; those bodies retain runtime
-shader validation rather than claiming TypeScript checks their contents. Raw and
-vgpu experiments belong to the performance lab, outside the game dependency graph.
+shader validation rather than claiming TypeScript checks their contents. The game maintains one battle implementation; historical renderer comparisons are
+archived evidence, not alternate executable backends.

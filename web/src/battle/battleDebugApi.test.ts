@@ -35,7 +35,7 @@ it("reads raw completed frame snapshots without traversing full game or renderer
     loopCpuMs: 12.345678,
     renderer: {
       renderedFrameId: 1,
-      gpuSubmission: { submissionId: 7, threeFrameId: 17, source: "battle-draw" },
+      gpuSubmission: { submissionId: 7, backend: "typegpu", source: "battle-draw" },
       skippedFrozenFrame: false,
       buildMs: 2.123456,
       uploadMs: 1,

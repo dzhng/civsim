@@ -64,7 +64,7 @@ const receipt = (
 ): BattlePresentationReceipt => ({
   submitted: true,
   renderedFrameId,
-  gpuSubmission: { submissionId, source: "battle-draw", backend: "raw" },
+  gpuSubmission: { submissionId, source: "battle-draw", backend: "typegpu" },
   submittedAtMs: renderedFrameId * 16,
   cpuMs: 3,
   ...overrides,
@@ -183,7 +183,7 @@ test("readiness-only submissions and repeated frozen frames create no sample", (
   // A startup frame's final queue identity is its readiness render, not its draw.
   timing.presented({
     ...receipt(1, 11),
-    gpuSubmission: { submissionId: 11, source: "render-only", backend: "raw" },
+    gpuSubmission: { submissionId: 11, source: "render-only", backend: "typegpu" },
   });
   // A frozen frame resubmits nothing and carries the previous identity forward.
   timing.presented({ ...receipt(1, 11), submitted: false });

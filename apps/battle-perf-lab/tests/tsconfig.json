@@ -1,7 +1,0 @@
-{
-  "extends": "../src/raw/tsconfig.json",
-  "include": ["./*.test.ts", "./*.canonical.ts"],
-  "compilerOptions": {
-    "types": ["@webgpu/types", "node"]
-  }
-}

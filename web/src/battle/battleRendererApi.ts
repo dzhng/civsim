@@ -38,9 +38,7 @@ export interface BattleRendererMemoryInfo {
 export interface BattleSubmissionIdentity {
   submissionId: number;
   source: "battle-draw" | "render-only";
-  /** Present only for source Three submissions. */
-  threeFrameId?: number;
-  backend?: "raw" | "typegpu" | "vgpu";
+  backend?: "typegpu";
 }
 
 export interface BattlePresentationReceipt {
@@ -204,9 +202,7 @@ export interface BattleGpuEvent {
   observedGpuSpanMs?: number | null;
   observedGpuUnionMs?: number | null;
   stages: BattleGpuStage[];
-  /** Present only for source Three submissions. */
-  threeFrameId?: number;
-  backend?: "raw" | "typegpu" | "vgpu";
+  backend?: "typegpu";
   /** Opt-in per-pass detail; order is command encoding order. */
   passes?: {
     kind: BattleGpuQueryKind;

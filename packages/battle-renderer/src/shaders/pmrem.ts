@@ -1,5 +1,5 @@
 /** Pinned Three 0.185.1 PMREM CubeUV/GGX algorithms, MIT (./LICENSE.three).
- * Native candidates share this math; each owns texture allocation and commands. */
+ * Resource allocation and commands belong to the environment owner. */
 export const cubeUvFunctions = {
   cubeFace: `(d:vec3f)->f32 {
   let a=abs(d);

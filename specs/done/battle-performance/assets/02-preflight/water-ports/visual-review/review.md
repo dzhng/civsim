@@ -63,6 +63,6 @@ Native actual comparisons strengthen the source-shared attribution: all four Typ
 - [outliers.json](outliers.json): ocean-4 horizon pixels whose maximum RGB delta exceeds 1, and maximum-difference crop bounds.
 - *-full.png: 16 actual/expected full-resolution panels; *-native-full.png: corresponding native panels.
 - *-3x.png: nearest-neighbor zooms without blur or difference amplification. Some low-angle lake water crops include the near rim/background because the projected water surface is shallow; the full panels and separate interior overview crops supply context.
-- [inspect.cjs](inspect.cjs), [outliers.cjs](outliers.cjs): reproducible offline PNG processing. No browser/GPU execution is involved.
+- inspect.cjs (historical path: `inspect.cjs`), outliers.cjs (historical path: `outliers.cjs`): reproducible offline PNG processing. No browser/GPU execution is involved.
 
 No causal shader diagnosis, animation verdict, device portability claim, or change to committed baselines is warranted from this inspection. For port fidelity these sampled stills are visually equivalent; for finished water quality both sides need the shared lake boundary and finite-plane presentation addressed.

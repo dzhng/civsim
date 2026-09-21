@@ -9,8 +9,7 @@ import {
   GRADE_LIFT,
 } from "../../../game-renderer/src/environment/postParameters";
 
-/** Algorithm shared by native candidates; Three remains the independent numerical
- * reference. AgX/OETF constants follow pinned Three 0.185.1 (MIT, see LICENSE.three). */
+/** AgX/OETF constants follow pinned Three 0.185.1 (MIT, see LICENSE.three). */
 export const gradeColorWgsl = `(input: vec3f, params: Grade) -> vec3f {
   let strength = clamp(params.strength, 0.0, 1.5);
   let base = max(input, vec3f(0));

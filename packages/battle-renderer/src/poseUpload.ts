@@ -16,7 +16,7 @@ type PoseLimits = Pick<
   | "maxComputeWorkgroupsPerDimension"
 >;
 
-/** CPU upload transaction only: candidate adapters own allocation, binding and commands. */
+/** CPU upload transaction only: the GPU owner handles allocation, binding and commands. */
 export class PoseUpload {
   readonly packer: PlaybackPacker;
   readonly staticData: ReturnType<typeof packRigPaletteData>;

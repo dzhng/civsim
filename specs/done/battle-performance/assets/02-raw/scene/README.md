@@ -1,6 +1,6 @@
 # Native scene composition checkpoint
 
-The native owner now composes the prepared component resources into one scene, with distinct crowd updates, UI uploads, camera/grass preparation and final passes. Source draw commands retain their own pose work; render-only commands refresh billboard camera state without advancing crowd history. [The coordinator](../../../../../../apps/battle-perf-lab/src/raw/battleScene.ts) owns resource teardown; the caller owns device, canvas and its GPU-error boundary.
+The native owner now composes the prepared component resources into one scene, with distinct crowd updates, UI uploads, camera/grass preparation and final passes. Source draw commands retain their own pose work; render-only commands refresh billboard camera state without advancing crowd history. The coordinator (historical path: `../../../../../../apps/battle-perf-lab/src/raw/battleScene.ts`) owns resource teardown; the caller owns device, canvas and its GPU-error boundary.
 
 [Initial controls](initial/README.md) and the [ordinary-position controls](ordinary-position/README.md) preserve cold and settled evidence separately. The latter draws all twenty appearances and all 15,560 L3 instances in its far diagnostic. Audiences and cleanup pass, while exact pixel identity and complete live-scene admission remain open. Static review does not prove absence of motion stutter.
 

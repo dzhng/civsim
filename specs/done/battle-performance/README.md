@@ -13,7 +13,9 @@ reversed between measured rounds. TypeGPU was selected for its checked resource
 layouts, binding contracts and shader interfaces. Vgpu offered no sufficient
 advantage to justify its additional integration cost. The historical experiments
 are engineering evidence with explicit workload and host-noise limits, not a
-claim of a universal renderer ranking.
+claim of a universal renderer ranking. Experimental implementations and their
+exclusive dependencies are removed; Git history and retained reports preserve the
+research. The maintained benchmark runs the actual production game.
 
 The production entry is [BattleRenderer](../../../web/src/battle/renderer.ts),
 which presents through [the TypeGPU world](../../../packages/battle-renderer/src/battleScene.ts).
@@ -72,7 +74,7 @@ The [renderer package rationale](../../../packages/battle-renderer/README.md),
 [chart](../../../web/src/ui/benchmark/BenchmarkFrameChart.tsx), and
 [production facade tests](../../../web/tests/battleRenderer.test.ts) own the mechanics.
 
-## Rejected and unshipped work
+## Evidence boundaries
 
 Moving existing coarse meshes closer saved GPU time but weakened pikes and body
 readability; that shortcut was rejected. A later component-preserving intermediate

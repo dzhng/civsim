@@ -1,11 +1,4 @@
-/** Sun-shadow receiver shading. One owner for the sampling math; the only thing
- *  a consumer varies is the RESOURCE SHAPE it reads it through — a lab control
- *  with a single depth map, or the world's cascade array. */
-
-/** How a receiver reaches its depth data. `single-map` is the lab controls'
- *  `texture_depth_2d`; the world always binds the layered array, in both the
- *  fitted single mode and High. */
-export type ShadowMapBinding = "single-map" | "cascade-array";
+/** Sun-shadow receiver shading for the world's layered depth texture. */
 
 /** One cascade's receiver record. Floats: matrix (16), then depth bias, normal
  *  bias, PCF radius, reserved, then interval start, end, reserved, reserved. */
@@ -15,8 +8,7 @@ export const SUN_SHADOW_BLOCK_FLOATS = 52;
 /** Float offset of the control vector: capped far, active count, reserved x2. */
 export const SUN_SHADOW_CONTROL_OFFSET = 48;
 
-/** The record every mode packs. A lab single-map consumer binds one of these on
- *  its own; the world binds the block below, which is made of them. */
+/** The record packed for each active cascade. */
 export const sunCascadeRecordWgsl = `struct SunCascade {matrix:mat4x4f,bias:vec4f,interval:vec4f};`;
 
 /** The world's fixed 208-byte receiver block. The inactive record is initialized
@@ -25,18 +17,13 @@ export const sunCascadeRecordWgsl = `struct SunCascade {matrix:mat4x4f,bias:vec4
 export const sunShadowBlockWgsl = `${sunCascadeRecordWgsl}
 struct SunShadow {cascades:array<SunCascade,2>,control:vec4f};`;
 
-const layerParam = (binding: ShadowMapBinding) => (binding === "cascade-array" ? "layer:i32," : "");
-const layerArg = (binding: ShadowMapBinding) => (binding === "cascade-array" ? "layer," : "");
-const depthType = (binding: ShadowMapBinding) =>
-  binding === "cascade-array" ? "texture_depth_2d_array" : "texture_depth_2d";
-
 /** Pinned Three r185 PCFShadowFilter: five Vogel disk taps with per-pixel IGN.
  * Shadow projection/fit and bias remain inputs, not a second lighting policy.
  * The radius is in TEXELS, so a given radius is equal texel softness — not
  * equal world blur across cascade extents or between a 1024 and a 2048 map.
  * The shared policy supplies the radius for the selected mode and preset. */
-export function shadowPcfWgsl(binding: ShadowMapBinding = "single-map"): string {
-  return `(depth:${depthType(binding)}, compare:sampler_comparison, ${layerParam(binding)}uv:vec2f, z:f32, pixel:vec2f, radius:f32)->f32 {
+export function shadowPcfWgsl(): string {
+  return `(depth:texture_depth_2d_array, compare:sampler_comparison, layer:i32,uv:vec2f, z:f32, pixel:vec2f, radius:f32)->f32 {
   let phi=fract(52.9829189*fract(dot(pixel,vec2f(0.06711056,0.00583715))))*6.28318530718;
   let scale=radius/f32(textureDimensions(depth).x);
   var visibility=0.0;
@@ -44,7 +31,7 @@ export function shadowPcfWgsl(binding: ShadowMapBinding = "single-map"): string 
     let r=sqrt((f32(i)+0.5)/5.0);
     let theta=f32(i)*2.399963229728653+phi;
     let offset=vec2f(cos(theta),sin(theta))*r*scale;
-    visibility+=textureSampleCompareLevel(depth,compare,uv+offset,${layerArg(binding)}z);
+    visibility+=textureSampleCompareLevel(depth,compare,uv+offset,layer,z);
   }
   return visibility*0.2;
 }`;
@@ -56,14 +43,14 @@ export function shadowPcfWgsl(binding: ShadowMapBinding = "single-map"): string 
  * its single tier: without it a receiver past a fitted map's far plane can fail the
  * greater-equal comparison against cleared depth and appear shadowed. Native
  * retains the lower bound in both modes. */
-export function shadowVisibilityWgsl(binding: ShadowMapBinding = "single-map"): string {
-  return `(depth:${depthType(binding)}, compare:sampler_comparison, ${layerParam(binding)}matrix:mat4x4f, settings:vec4f, world:vec3f, normal:vec3f, pixel:vec2f)->f32 {
+export function shadowVisibilityWgsl(): string {
+  return `(depth:texture_depth_2d_array, compare:sampler_comparison, layer:i32,matrix:mat4x4f, settings:vec4f, world:vec3f, normal:vec3f, pixel:vec2f)->f32 {
   let clip=matrix*vec4f(world+normal*settings.y,1);
   let coord=clip.xyz/clip.w;
   let uv=vec2f(coord.x*0.5+0.5,0.5-coord.y*0.5);
   let z=coord.z-settings.x;
   let inside=all(uv>=vec2f(0))&&all(uv<=vec2f(1))&&z>=0&&z<=1;
-  let shade=shadowPcf(depth,compare,${layerArg(binding)}uv,z,pixel,settings.z);
+  let shade=shadowPcf(depth,compare,layer,uv,z,pixel,settings.z);
   return select(1.0,shade,inside);
 }`;
 }
@@ -80,14 +67,10 @@ export function shadowVisibilityWgsl(binding: ShadowMapBinding = "single-map"): 
  *  Requires the environment module's `environment.worldToView` and the world
  *  camera's `cam.znear` — the same admitted frame that produced these fits, not
  *  a second view row or near-plane writer. */
-export function sunShadowSampleWgsl(
-  mode: "single" | "csm",
-  binding: ShadowMapBinding = "cascade-array",
-): string {
-  const layered = binding === "cascade-array";
-  const record = (i: number) => (layered ? `sunShadow.cascades[${i}]` : "sunShadow");
+export function sunShadowSampleWgsl(mode: "single" | "csm"): string {
+  const record = (i: number) => `sunShadow.cascades[${i}]`;
   const sample = (i: number) =>
-    `shadowVisibility(sunDepth,sunCompare,${layered ? `${i},` : ""}${record(i)}.matrix,${record(i)}.bias,world,normal,pixel)`;
+    `shadowVisibility(sunDepth,sunCompare,${i},${record(i)}.matrix,${record(i)}.bias,world,normal,pixel)`;
   if (mode === "single")
     return `fn sampleSunShadow(world:vec3f,normal:vec3f,pixel:vec2f)->f32 {
   return ${sample(0)};

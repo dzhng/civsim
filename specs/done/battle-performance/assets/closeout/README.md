@@ -1,5 +1,9 @@
 # TypeGPU production acceptance
 
+[Post-closeout experimental cleanup](experimental-cleanup.md) records the current
+maintained scope and its verification. The original measurements below remain
+historical acceptance evidence.
+
 This is the final production route, not a backend-selected lab facade. The
 published soldier mesh catalog is unchanged; the promising two-thousand-triangle
 intermediate experiment was not enabled.
@@ -35,6 +39,12 @@ for non-default query flags, not this default measured workload. A separate
 [override check](benchmark-settings.log) verifies the effective settings.
 
 ## Functional and resource evidence
+
+The checks below record the original closeout, including its **833 web tests**;
+they are historical results. After experimental machinery removal, the current
+web suite passes **908 tests**, including production checks moved out of the lab.
+[Experimental test retirement](experimental-test-retirement.md) records the moved
+and removed checks; the change in count is not a claim of 75 newly written tests.
 
 - [833 web tests](unit-reviewed.log), TypeScript and the production build pass.
   Lab replay/mip/TypeGPU builds and TypeGPU/vgpu checks also passed during cleanup.

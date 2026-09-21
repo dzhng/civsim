@@ -67,7 +67,6 @@ import { createTerrainPicking } from "../../../packages/battle-renderer/src/terr
 import {
   NativeGpuTelemetry,
   type NativeSubmissionMeasurement,
-  type NativeTimingQueryMode,
 } from "../../../packages/battle-renderer/src/nativeGpuTelemetry";
 import { trackNativeGpuAllocations } from "../../../packages/battle-renderer/src/nativeGpuAllocations";
 import {
@@ -149,7 +148,6 @@ export class BattleRenderer implements BattleRendererApi {
   preserveFrozenEffects = false;
   private readonly backend = "typegpu" as const;
   private readonly blockMode: boolean;
-  private readonly timingQueries: NativeTimingQueryMode = "enabled";
   private readonly environmentRequest: string | null;
   private readonly settings: GraphicsSettings;
   private visibility: Pick<GraphicsSettings, "grass" | "farGrass" | "bloom">;
@@ -351,9 +349,7 @@ export class BattleRenderer implements BattleRendererApi {
     const allocations = trackNativeGpuAllocations(device);
     this.allocations = allocations;
     this.releases.push(() => allocations.restore());
-    const telemetry = new NativeGpuTelemetry(device, this.backend, {
-      timingQueries: this.timingQueries,
-    });
+    const telemetry = new NativeGpuTelemetry(device, this.backend);
     this.telemetry = telemetry;
     this.releases.push(() => telemetry.dispose());
     void device.lost.then((info) => {

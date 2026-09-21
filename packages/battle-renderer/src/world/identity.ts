@@ -1,8 +1,6 @@
 import type { BattleWorldIdentity } from "../identity";
 
-/** This candidate's own name. It writes its camera through the SAME shared
- * `frameCamera` owner the raw world does, so it declares the same single
- * projector — under its own substrate, never borrowed from that world. */
+/** The TypeGPU world uses camera3d for every pass. */
 export const TYPEGPU_BATTLE_IDENTITY = {
   substrate: "typegpu",
   projection: "camera3d",

@@ -46,7 +46,7 @@ export const sunSamplingLayout = tgpu.bindGroupLayout(sunShadowEntries);
 const shadowPcf = tgpu.fn(
   [d.textureDepth2dArray(), d.comparisonSampler(), d.i32, d.vec2f, d.f32, d.vec2f, d.f32],
   d.f32,
-)(shadowPcfWgsl("cascade-array"));
+)(shadowPcfWgsl());
 export const shadowVisibility = tgpu
   .fn(
     [
@@ -60,7 +60,7 @@ export const shadowVisibility = tgpu
       d.vec2f,
     ],
     d.f32,
-  )(shadowVisibilityWgsl("cascade-array"))
+  )(shadowVisibilityWgsl())
   .$uses({ shadowPcf });
 
 /** INHERITED-WGSL BOUNDARY. This pass types the shadow RESOURCES, not the
@@ -69,16 +69,16 @@ export const shadowVisibility = tgpu
  *
  * That owner writes `sampleSunShadow` against the world's module-scope shadow
  * bindings (`sunShadow`, `sunDepth`, `sunCompare`, `environment`, `cam`), which
- * TypeGPU instead owns inside typed bind group layouts. So the candidate
+ * TypeGPU instead owns inside typed bind group layouts. So the renderer
  * re-heads the SAME function with those five names as parameters and passes the
  * typed resources in; the body — every line of the inherited math — is the
  * shared text verbatim. Only the signature is synthesized, and the guard below
  * fails loudly rather than silently forking if the shared head ever moves. */
 const SHARED_SAMPLE_HEAD = "fn sampleSunShadow(world:vec3f,normal:vec3f,pixel:vec2f)->f32 {";
 export function sunShadowSampleBodyWgsl(mode: NativeShadowMode): string {
-  const shared = sunShadowSampleWgsl(mode, "cascade-array");
+  const shared = sunShadowSampleWgsl(mode);
   if (!shared.startsWith(SHARED_SAMPLE_HEAD))
-    throw Error("Shared sun-shadow sampler no longer has the head this candidate re-heads");
+    throw Error("Shared sun-shadow sampler no longer has the head the renderer re-heads");
   return `(environment:Environment,cam:Camera,sunShadow:SunShadow,sunDepth:texture_depth_2d_array,sunCompare:sampler_comparison,world:vec3f,normal:vec3f,pixel:vec2f)->f32 {${shared.slice(SHARED_SAMPLE_HEAD.length)}`;
 }
 

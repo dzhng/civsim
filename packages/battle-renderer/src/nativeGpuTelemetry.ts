@@ -3,14 +3,9 @@ import {
   type GpuTimestampRange,
 } from "../../renderer-core/src/gpuTimestampRanges";
 import { clearGpuScopeObserver, hasGpuScopeObserver, setGpuScopeObserver } from "./gpuScope";
-export type NativeGpuBackend = "raw" | "typegpu" | "vgpu";
+export type NativeGpuBackend = "typegpu";
 export type NativeGpuSource = "battle-draw" | "render-only";
-/** Lab-only compile-time control over this observer's incremental query work. */
-export type NativeTimingQueryMode = "enabled" | "disabled";
-export type NativeGpuTimingAvailability =
-  | "available"
-  | "disabled-by-lab-control"
-  | "device-unsupported";
+export type NativeGpuTimingAvailability = "available" | "device-unsupported";
 export interface NativeSubmissionIdentity {
   submissionId: number;
   backend: NativeGpuBackend;
@@ -26,8 +21,8 @@ export interface NativeSubmissionIdentity {
  * A count that cannot be taken honestly — an executed bundle this observer never
  * recorded, a submitted command buffer it never encoded, a repeat submission
  * WebGPU rejects — reports `unavailable` with its reason instead of a lower
- * bound. Observation needs no timestamp query and no readback, so the count and
- * its cost are the same under either timing mode. */
+ * bound. Observation needs no timestamp query and no readback, so the count does
+ * not depend on timestamp-query support. */
 export interface NativeDrawObservation {
   status: "counted" | "unavailable";
   reason: string | null;
@@ -153,7 +148,7 @@ const MAX_SLOTS = 8;
 const MAX_EVENTS = 128;
 const MAX_ENCODERS = 256;
 
-/** Lab measurement of standard WebGPU calls, installed before library construction.
+/** Measurement of standard WebGPU calls, installed before renderer construction.
  * Resolve/copy work uses a separate submission and is never included in pass time,
  * the draw count or the returned final-render identity. No readback is awaited by
  * presentation.
@@ -164,12 +159,7 @@ const MAX_ENCODERS = 256;
  * unavailable without them. Draw observation needs neither: it counts the commands
  * offered to the queue as they are encoded and submitted, so it is complete
  * synchronously and carries its own reason when a count cannot be taken honestly.
- *
- * `timingQueries: "disabled"` withholds only this observer's incremental query work:
- * no query set, no injected timestampWrites, no resolve/copy submission and no
- * readback map. Submission counting, identity and draw observation stay installed,
- * so a disabled build is an incremental query/readback overhead control, not an
- * uninstrumented renderer. */
+ */
 export class NativeGpuTelemetry {
   private readonly createEncoder: GPUDevice["createCommandEncoder"];
   private readonly submitQueue: GPUQueue["submit"];
@@ -186,8 +176,6 @@ export class NativeGpuTelemetry {
   private window = 0;
   private outsidePasses = 0;
   readonly supported: boolean;
-  /** Reported so a disabled control never reads as a device limitation. */
-  readonly timingQueries: NativeTimingQueryMode;
   readonly availability: NativeGpuTimingAvailability;
 
   constructor(
@@ -195,19 +183,12 @@ export class NativeGpuTelemetry {
     private readonly backend: NativeGpuBackend,
     private readonly options: {
       passDetails?: boolean;
-      timingQueries?: NativeTimingQueryMode;
     } = {},
   ) {
     if (hasGpuScopeObserver(device)) throw Error("GPU device already has a native telemetry owner");
     const deviceTimestamps = device.features.has("timestamp-query");
-    this.timingQueries = options.timingQueries ?? "enabled";
-    this.supported = this.timingQueries === "enabled" && deviceTimestamps;
-    this.availability =
-      this.timingQueries === "disabled"
-        ? "disabled-by-lab-control"
-        : deviceTimestamps
-          ? "available"
-          : "device-unsupported";
+    this.supported = deviceTimestamps;
+    this.availability = deviceTimestamps ? "available" : "device-unsupported";
     this.createEncoder = device.createCommandEncoder;
     this.submitQueue = device.queue.submit;
     this.createBundleEncoder =
@@ -217,7 +198,7 @@ export class NativeGpuTelemetry {
     const observer = this;
     device.createCommandEncoder = function (descriptor) {
       const encoder = observer.createEncoder.call(this, descriptor);
-      // Installed under either timing mode: draw observation is not query work.
+      // Draw observation does not require timestamp queries.
       if (observer.closed) return encoder;
       const encoded = observer.openEncoder();
       const render = encoder.beginRenderPass;
@@ -244,7 +225,7 @@ export class NativeGpuTelemetry {
           descriptor?.timestampWrites !== undefined,
         );
         // With no writes to inject the backend receives the caller's own argument,
-        // an absent descriptor included, so both timing modes encode identically.
+        // an absent descriptor included, without requiring timestamp-query support.
         const pass = sample?.writes
           ? compute.call(this, { ...descriptor, timestampWrites: sample.writes })
           : compute.call(this, descriptor as GPUComputePassDescriptor);
@@ -433,7 +414,6 @@ export class NativeGpuTelemetry {
   stats() {
     return {
       supported: this.supported,
-      timingQueries: this.timingQueries,
       availability: this.availability,
       submissionCount: this.count,
       outsideSubmissionPasses: this.outsidePasses,
@@ -488,7 +468,7 @@ export class NativeGpuTelemetry {
   }
 
   /** Accumulates the window's draw account and releases its encoders. Runs
-   * whatever the timing mode is, so the count never depends on query support. */
+   * whether timestamp queries are supported or not. */
   private observeDraws(record: Record): NativeDrawObservation {
     let unsubmitted = 0;
     for (const encoded of record.encoded) {

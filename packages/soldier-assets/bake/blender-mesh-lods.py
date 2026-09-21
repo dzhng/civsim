@@ -102,6 +102,16 @@ def reduced_copy(body, target_triangles, min_extent=0, min_triangles=12):
     return result
 
 
+# Mesh tiers, finest first, matching APPEARANCE_MESH_TIERS in appearanceBundle.ts:
+# (name, default triangle target, omitted detached extent metres, island floor).
+TIERS = (
+    ("near", 8000, 0, 12),
+    ("intermediate", 4000, 0, 12),
+    ("mid", 1000, .03, 8),
+    ("far", 800, .15, 4),
+)
+
+
 def export_lods(source, body_name, output, targets, tier="all"):
     source = source.resolve()
     original_hash = hashlib.sha256(source.read_bytes()).hexdigest()
@@ -110,7 +120,7 @@ def export_lods(source, body_name, output, targets, tier="all"):
     anatomy = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(anatomy)
     report = {"source": str(source), "sourceSha256": original_hash, "tiers": []}
-    for name, target, extent, floor in zip(("near", "mid", "far"), targets, (0, .03, .15), (12, 8, 4)):
+    for (name, _, extent, floor), target in zip(TIERS, targets, strict=True):
         if tier != "all" and name != tier:
             continue
         # Reload the original for each tier, never decimate an earlier reduction.
@@ -143,12 +153,12 @@ if __name__ == "__main__":
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--body", required=True)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--tier", choices=("all", "far"), default="all")
-    parser.add_argument("--near-triangles", type=int, default=8000)
-    parser.add_argument("--mid-triangles", type=int, default=1000)
-    parser.add_argument("--far-triangles", type=int, default=800)
+    # A single tier leaves every other saved tier untouched.
+    parser.add_argument("--tier", choices=("all", *(name for name, *_ in TIERS)), default="all")
+    for name, target, *_ in TIERS:
+        parser.add_argument(f"--{name}-triangles", type=int, default=target)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-    if not args.near_triangles > args.mid_triangles > args.far_triangles > 0:
-        parser.error("Require positive, decreasing near/mid/far triangle targets")
-    export_lods(args.source, args.body, args.output,
-                (args.near_triangles, args.mid_triangles, args.far_triangles), args.tier)
+    targets = tuple(getattr(args, f"{name}_triangles") for name, *_ in TIERS)
+    if not all(a > b for a, b in zip(targets, targets[1:])) or targets[-1] <= 0:
+        parser.error("Require positive, decreasing triangle targets for every tier")
+    export_lods(args.source, args.body, args.output, targets, args.tier)

@@ -1,0 +1,26 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-performance-spec/web
+
+ ❯ tests/battleSeatingDiagnostics.test.ts (3 tests | 1 failed) 4ms
+   × normal instance building samples terrain once per soldier and retains seating 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/battleSeatingDiagnostics.test.ts > normal instance building samples terrain once per soldier and retains seating
+AssertionError: expected "vi.fn()" to be called 2 times, but got 4 times
+ ❯ tests/battleSeatingDiagnostics.test.ts:83:20
+     81|   const { world, original, draw } = fixture();
+     82|   draw();
+     83|   expect(original).toHaveBeenCalledTimes(2);
+       |                    ^
+     84|   expect(world.stats().seating).toEqual({ checked: 2, matches: true, s…
+     85|   expect(world.stats().seating).toEqual({ checked: 2, matches: true, s…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  19:13:33
+   Duration  543ms (transform 289ms, setup 87ms, import 378ms, tests 4ms, environment 0ms)
+

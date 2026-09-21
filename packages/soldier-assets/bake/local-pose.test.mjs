@@ -7,7 +7,7 @@ import {
 } from "../src/localPose.ts";
 import { readFile } from "node:fs/promises";
 import { bakeGltf } from "./gltf.mjs";
-import { decodeSoldierMesh } from "../src/appearanceBundle.ts";
+import { APPEARANCE_MESH_TIERS, decodeSoldierMesh } from "../src/appearanceBundle.ts";
 import { poseSoldierMesh } from "../src/skin.ts";
 
 const rig = {
@@ -136,7 +136,7 @@ for (const sample of metadata.samples) {
           sample.seconds / mountedRig.clips.find((clip) => clip.name === sample.clip).duration,
         );
   const matrices = localPoseToJointMatrices(mountedRig, locals);
-  for (let tier = 0; tier < 3; tier++) {
+  for (let tier = 0; tier < APPEARANCE_MESH_TIERS.length; tier++) {
     const mesh = decodeSoldierMesh(await json(`${candidate}tier-${tier}.mesh.json`));
     const posed = poseSoldierMesh(mesh, matrices);
     let offset = 0;

@@ -68,7 +68,8 @@ test("every roster tier carries declared, triangle-coherent authored surfaces", 
         assert.equal(mesh.factionMasks[vertices[0]], mesh.factionMasks[vertices[1]]);
         assert.equal(mesh.factionMasks[vertices[0]], mesh.factionMasks[vertices[2]]);
       }
-      assert.equal(mesh.factionMasks.filter((mask) => mask === 1).length, lod === 2 ? 0 : 24);
+      // Only the far tier drops the arms that carry the faction band.
+      assert.equal(mesh.factionMasks.filter((mask) => mask === 1).length, lod === 3 ? 0 : 24);
     }
   }
   assert.deepEqual([...used].sort(), PLACEHOLDER_MATERIALS.map((material) => material.name).sort());

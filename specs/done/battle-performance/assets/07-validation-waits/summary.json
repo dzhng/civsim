@@ -1,0 +1,52 @@
+{
+  "scope": "Instrumented single diagnostic, not acceptance or a causal speed comparison. Wait wall durations can include unrelated scheduling; do not add nested CPU/await metrics.",
+  "overflow": false,
+  "segments": [
+    {
+      "moving": false,
+      "frames": 349,
+      "renderCpuMs": 24.035000001080334,
+      "uploadMs": 20.344999998807907,
+      "renderAwaitMs": 22.634999999776483,
+      "waits": [
+        {
+          "kind": "batch",
+          "count": 348,
+          "medianMs": 0.41749999998137355,
+          "p95Ms": 1.4050000002607703,
+          "maxMs": 6.2000000001862645
+        },
+        {
+          "kind": "submission",
+          "count": 349,
+          "medianMs": 0.599999999627471,
+          "p95Ms": 1.2400000002235174,
+          "maxMs": 8.995000000111759
+        }
+      ]
+    },
+    {
+      "moving": true,
+      "frames": 483,
+      "renderCpuMs": 15.135000000707805,
+      "uploadMs": 12.494999999180436,
+      "renderAwaitMs": 14.4449999993667,
+      "waits": [
+        {
+          "kind": "batch",
+          "count": 482,
+          "medianMs": 0.26000000070780516,
+          "p95Ms": 0.9900000002235174,
+          "maxMs": 3.3049999997019768
+        },
+        {
+          "kind": "submission",
+          "count": 482,
+          "medianMs": 0.5199999995529652,
+          "p95Ms": 0.909999999217689,
+          "maxMs": 4.65500000026077
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "scope": "Authored-rig exact pose and result-ownership equivalence; no frame timing or full temporal-visual claim",
+  "complete": true,
+  "total": 13824,
+  "appearances": [
+    {
+      "id": 0,
+      "name": "heavy-sword",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "d4af58818e265c9be1ac8e671e2e3772287725ba3ee894289d8c6bcf8b6df76b",
+      "cases": 416
+    },
+    {
+      "id": 1,
+      "name": "light-spear",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "9e7a924aee785a4276186db2a08bacbec053ae53d63bfa6266957442d1115573",
+      "cases": 416
+    },
+    {
+      "id": 2,
+      "name": "longsword",
+      "mounted": false,
+      "bones": 26,
+      "clips": 15,
+      "rigSha256": "50e4e44d4c18dbf3a6202a4c509decdfcb2f0bde9bd7e12b4098825492eab08d",
+      "cases": 480
+    },
+    {
+      "id": 3,
+      "name": "phalanx",
+      "mounted": false,
+      "bones": 26,
+      "clips": 15,
+      "rigSha256": "ecba697f02b9393a7402c3c55861ef3e7c9b9f82349b483947e3142ef1097bb9",
+      "cases": 480
+    },
+    {
+      "id": 4,
+      "name": "archers",
+      "mounted": false,
+      "bones": 29,
+      "clips": 14,
+      "rigSha256": "d60e5f1ebc06dea6c02f97322c9fafde3287c4e82c7d75e7be959eca5cbe316b",
+      "cases": 448
+    },
+    {
+      "id": 5,
+      "name": "skirmishers",
+      "mounted": false,
+      "bones": 28,
+      "clips": 14,
+      "rigSha256": "46ba123fcfbfbec15e752da202be08939865d35dd8e72190690fb643d8a11e8d",
+      "cases": 448
+    },
+    {
+      "id": 6,
+      "name": "shock-cav",
+      "mounted": true,
+      "bones": 47,
+      "clips": 7,
+      "rigSha256": "7bc8a228ea92307e5ec70015201bd93cca69b154751874f38fd998cf5d9a7647",
+      "cases": 2016
+    },
+    {
+      "id": 7,
+      "name": "horse-archers",
+      "mounted": true,
+      "bones": 49,
+      "clips": 8,
+      "rigSha256": "fd3fe4bcf954c2bf6e8f9fe59decdf324f0415a4b09956ca15dd6c47c89bad5d",
+      "cases": 2304
+    },
+    {
+      "id": 8,
+      "name": "artillery-crew",
+      "mounted": false,
+      "bones": 29,
+      "clips": 14,
+      "rigSha256": "d52fdf5862449e309517a6dd3b5d26eec0c77aae059a41b877abaabfbf356be3",
+      "cases": 448
+    },
+    {
+      "id": 9,
+      "name": "peasant",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "d4af58818e265c9be1ac8e671e2e3772287725ba3ee894289d8c6bcf8b6df76b",
+      "cases": 416
+    },
+    {
+      "id": 10,
+      "name": "light-sword",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "d4af58818e265c9be1ac8e671e2e3772287725ba3ee894289d8c6bcf8b6df76b",
+      "cases": 416
+    },
+    {
+      "id": 11,
+      "name": "heavy-spear",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "9060cd8c0328a51eaafd1c50aebc618c707d2279f602bc980d0ad5530b2e4350",
+      "cases": 416
+    },
+    {
+      "id": 12,
+      "name": "medium-infantry",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "d4af58818e265c9be1ac8e671e2e3772287725ba3ee894289d8c6bcf8b6df76b",
+      "cases": 416
+    },
+    {
+      "id": 13,
+      "name": "medium-spear",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "9e7a924aee785a4276186db2a08bacbec053ae53d63bfa6266957442d1115573",
+      "cases": 416
+    },
+    {
+      "id": 14,
+      "name": "medium-phalanx",
+      "mounted": false,
+      "bones": 26,
+      "clips": 15,
+      "rigSha256": "cb647e951fc46a307e2cce33cc1676e7d984d646bc9e44283566d408a4f6d13f",
+      "cases": 480
+    },
+    {
+      "id": 15,
+      "name": "shock-cav-sidearm",
+      "mounted": true,
+      "bones": 47,
+      "clips": 7,
+      "rigSha256": "240d6cb53b124437a336eebdd06de0383ad1efdc65f49e496aa7231ecad1773a",
+      "cases": 2016
+    },
+    {
+      "id": 16,
+      "name": "heavy-phalanx-rest",
+      "mounted": false,
+      "bones": 26,
+      "clips": 15,
+      "rigSha256": "ecba697f02b9393a7402c3c55861ef3e7c9b9f82349b483947e3142ef1097bb9",
+      "cases": 480
+    },
+    {
+      "id": 17,
+      "name": "medium-phalanx-rest",
+      "mounted": false,
+      "bones": 26,
+      "clips": 15,
+      "rigSha256": "cb647e951fc46a307e2cce33cc1676e7d984d646bc9e44283566d408a4f6d13f",
+      "cases": 480
+    },
+    {
+      "id": 18,
+      "name": "heavy-phalanx-sidearm",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "69197c577dc9640cc670f74b9f66613b571e06c550c5737cdc7c7f87cb47feac",
+      "cases": 416
+    },
+    {
+      "id": 19,
+      "name": "medium-phalanx-sidearm",
+      "mounted": false,
+      "bones": 26,
+      "clips": 13,
+      "rigSha256": "6d7460e8629416132bcebdd75b028734c2dcd9bc75c862735f29b99050ec7448",
+      "cases": 416
+    }
+  ]
+}

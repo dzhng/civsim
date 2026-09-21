@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/skirmishers/skirmishers.blend",
+  "sourceSha256": "b985bb7f0e133fb8d74a2a570381baf7c282b50e12f1448c230a5b2013bb055e",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 94612,
+      "triangles": 3964,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "f97bb9255e4d8fa1d91112e9bf994ade22585c94cd40e6fabb428d331fd3c333"
+    }
+  ]
+}

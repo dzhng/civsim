@@ -1,0 +1,7 @@
+FAIL  grass-upload-ranges: one edited record uploads exactly 64 bytes once  ([{"offset":192,"bytes":64},{"offset":0,"bytes":16448},{"offset":0,"bytes":16448}])
+FAIL  grass-upload-ranges: camera-only GPU routing does not reupload records  ([{"offset":0,"bytes":16448},{"offset":0,"bytes":16448},{"offset":0,"bytes":16448}])
+PASS  grass-upload-ranges: the edited value reached GPU storage  (123)
+PASS  grass-upload-ranges: no GPU warnings
+PASS  runner: no page errors
+
+2 FAILURE(S)

@@ -1,0 +1,70 @@
+{
+  "pan-publication-00": {
+    "size": [
+      2880,
+      1800
+    ],
+    "crop_box": [
+      1500,
+      950,
+      2200,
+      1450
+    ],
+    "difference_bbox": [
+      0,
+      0,
+      2880,
+      1800
+    ],
+    "extrema": [
+      [
+        0,
+        132
+      ],
+      [
+        0,
+        97
+      ],
+      [
+        0,
+        137
+      ]
+    ],
+    "mean_absolute_channel_difference": 0.015903227880658437,
+    "pixels_any_channel_over_10_percent": 0.05121527777777778
+  },
+  "horizon-motion-15": {
+    "size": [
+      2880,
+      1800
+    ],
+    "crop_box": [
+      200,
+      900,
+      900,
+      1400
+    ],
+    "difference_bbox": [
+      0,
+      0,
+      2880,
+      1800
+    ],
+    "extrema": [
+      [
+        0,
+        117
+      ],
+      [
+        0,
+        91
+      ],
+      [
+        0,
+        61
+      ]
+    ],
+    "mean_absolute_channel_difference": 0.012115869341563786,
+    "pixels_any_channel_over_10_percent": 0.05152391975308642
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "height": 14.99,
+    "changedPixels": 32012,
+    "max": 166
+  },
+  {
+    "height": 15.01,
+    "changedPixels": 26870,
+    "max": 128
+  },
+  {
+    "height": 29.99,
+    "changedPixels": 45340,
+    "max": 149
+  },
+  {
+    "height": 30.01,
+    "changedPixels": 54313,
+    "max": 154
+  },
+  {
+    "height": 44.99,
+    "changedPixels": 90,
+    "max": 47
+  },
+  {
+    "height": 45.01,
+    "changedPixels": 0,
+    "max": 0
+  }
+]

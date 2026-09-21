@@ -167,7 +167,7 @@ const source = await readFile(
 );
 const options = {
   name: "source-markers",
-  tiers: [source, source, source],
+  tiers: [source, source, source, source],
   loopClips: [],
   presentation: null,
 };

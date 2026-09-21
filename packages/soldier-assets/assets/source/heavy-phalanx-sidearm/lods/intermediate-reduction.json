@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/heavy-phalanx-sidearm/heavy-phalanx-sidearm.blend",
+  "sourceSha256": "fea71deae1a634884aec0deef061230f346bb1b96da6df134b0f370ec7368281",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 151534,
+      "triangles": 4018,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "211cedc876ad4a827675532c953874aa0c69c3ffee73e5a085827544b5db405d"
+    }
+  ]
+}

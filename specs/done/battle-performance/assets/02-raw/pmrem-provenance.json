@@ -1,0 +1,42 @@
+{
+  "baseCommit": "8c07f9b5",
+  "scope": "Component numerical comparison only; no renderer ranking or throughput evidence.",
+  "command": "node apps/battle-perf-lab/src/raw/verify-pmrem.mjs",
+  "build": "web/node_modules/.bin/vite build --config apps/battle-perf-lab/src/raw/pmrem.vite.config.mts",
+  "preview": "web/node_modules/.bin/vite preview --config apps/battle-perf-lab/src/raw/pmrem.vite.config.mts --port 5195 --strictPort",
+  "sources": {
+    "apps/battle-perf-lab/src/raw/pmrem.ts": {
+      "sha256": "b594567e800d10ab20bef3a4c715a7f04bc57617878b3ec7b931a6355940cd0c",
+      "matchesParentWorkingSource": true
+    },
+    "apps/battle-perf-lab/src/shaders/pmrem.ts": {
+      "sha256": "ca3da7b82c4fae460611c2f8b36eb4e8e0f9af694c88b200acab360852061f2b",
+      "matchesParentWorkingSource": true
+    },
+    "apps/battle-perf-lab/src/shaders/physicalSky.ts": {
+      "sha256": "62f9aef9add8329b4b1e766b8c5683adc04636bffa8e009c0fcb1495ddf6eb9e",
+      "matchesParentWorkingSource": true
+    },
+    "apps/battle-perf-lab/src/shared/postShader.ts": {
+      "sha256": "25157230f4a711e1e9095dbb01dbfb424c3ce29c666391861281e88d3fb9f749",
+      "matchesParentWorkingSource": false
+    },
+    "packages/photoreal-renderer/src/atmosphere/skyModel.ts": {
+      "sha256": "fe692a70f37c7ad7cae5f5212c4a81919b5ebdde65f6ed1a3b5b5b5497c6dd70",
+      "matchesParentWorkingSource": true
+    }
+  },
+  "diagnosedCorrections": [
+    "Shared shader WGSL reserved identifier filter renamed filterIndex; no arithmetic or orientation change.",
+    "Three0.185.1 WebGPUTextureUtils.copyTextureToBuffer returns padded rows;336px rgba16 atlas uses2816-byte pitch, with final row unpadded. Control strips padding before coordinate comparisons."
+  ],
+  "gates": [
+    "Identical production sky half-float texels uploaded to native source; pixel-exact upload required.",
+    "All9active LOD rectangles checked independently; stage0 exact for all4presets.",
+    "Whole336x256candidate/reference atlases finite, including unused texels.",
+    "21axis/corner/seam/sun directions x8roughness values per preset, independently sampled with public TSL textureCubeUV.",
+    "Absolute<=0.004 and relative<=0.001 using existing HDR comparison floor0.05; thresholds unchanged.",
+    "Double disposal leaves borrowed source usable and unchanged.",
+    "No GPU errors, page errors or console warnings."
+  ]
+}

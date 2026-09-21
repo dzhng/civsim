@@ -1,0 +1,20 @@
+{
+  "baseCommit": "1b070793adb7b3cec7bb8ef898e79b20fac7fec6",
+  "pins": {
+    "typegpu": "0.12.5",
+    "unplugin-typegpu": "0.12.3",
+    "vgpu": "0.5.0"
+  },
+  "sourceSha256": {
+    "apps/battle-perf-lab/candidates/typegpu/readout.ts": "7273eb28b3845f76dd87f39fe0123bc4ed855e0dd8f2c6d6d3c99a59911bb3b8",
+    "apps/battle-perf-lab/src/vgpu/readout.ts": "959fb91e88a11bd151f214ad5992b3e78d6596ddb51474fb738610cd162ef6e4",
+    "apps/battle-perf-lab/src/readoutPreparation.ts": "64b6cad1f4fde0c96cd90d707b152cbd3092b5e950c677ccdd3cb815fe2762bf",
+    "apps/battle-perf-lab/src/readoutCamera.ts": "7e56cbad6a759fd4401fe7b34360b140712bbee4b2749f7883a49bba83b37a7d",
+    "apps/battle-perf-lab/src/readoutResourceCheck.ts": "f1e05263bc573b14cf51cc141c4269b58303615dc0abb70eaf31ae8485034c12",
+    "apps/battle-perf-lab/src/readoutControlBackend.ts": "aab4d9b2181b35a616ddd670d51ba9aaae49c3a343dbaee4cf1f7db4a2758e2a",
+    "apps/battle-perf-lab/src/raw/readout-check.ts": "a1ae30155dd19635794df48127338e3bacda97ddfcda454a3135eb0c2af58c71",
+    "apps/battle-perf-lab/src/shaders/readout.ts": "690f17c1fedab8769bae96d16c45ef2de010c1d46cfe1dd796e7bf0a65a2b944"
+  },
+  "candidateVsRawPngByteDifferences": 0,
+  "candidatePngComparisons": 36
+}

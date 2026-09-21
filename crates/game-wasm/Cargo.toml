@@ -12,3 +12,7 @@ sim = { path = "../sim" }
 campaign = { path = "../campaign" }
 contract = { path = "../contract" }
 serde_json = "1"
+
+[features]
+# Diagnostic-only stage clocks; never enabled by the production build.
+perf_timing = ["sim/perf_timing"]

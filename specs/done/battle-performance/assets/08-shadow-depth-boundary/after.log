@@ -1,0 +1,6 @@
+PASS  shadow-depth-range: normal depth leaves out-of-range receivers lit  ({"reversedDepthBuffer":false,"unshadowed":[164,164,164],"shadowed":[164,164,164],"receivingDepth":2.9999999999999996})
+PASS  shadow-depth-range: reversed depth leaves out-of-range receivers lit  ({"reversedDepthBuffer":true,"unshadowed":[164,164,164],"shadowed":[164,164,164],"receivingDepth":-1.9999999999999998})
+PASS  shadow-depth-range: no GPU warnings
+PASS  runner: no page errors
+
+ALL CHECKS PASSED

@@ -1,6 +1,7 @@
 import { PNG } from "pngjs";
 import {
   hasBattleWorldDepthContract,
+  hasBattleSeatingInspection,
   hasCampaignWorldDepthContract,
 } from "../_renderer-contract.mjs";
 import { battleRendererReady, campaign, ready } from "../worlds.mjs";
@@ -89,6 +90,12 @@ export async function run(ctx) {
     continueLabel: document.querySelector("#pause-exit")?.textContent ?? "",
     gameoverLabel: document.querySelector("#gameover-menu")?.textContent ?? "",
   }));
+  const seating = await page.evaluate(() => window.__game.verifySeating());
+  ctx.check(
+    "campaign battle seats its entire presented army on the installed generated terrain",
+    hasBattleSeatingInspection(seating),
+    JSON.stringify(seating),
+  );
   const soldierPixels = countFactionSoldierPixels(PNG.sync.read(await page.screenshot()));
   ctx.check(
     "campaign open-field battle opens as a generated WebGPU battle",

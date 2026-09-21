@@ -293,3 +293,49 @@ function assertRecordIsFinite(record: GrassFieldRecord): void {
   assert.ok(record.clumpSeed >= 0 && record.clumpSeed <= 0x00ff_ffff, JSON.stringify(record));
   assert.ok(record.bladeSeed >= 0 && record.bladeSeed <= 0x00ff_ffff, JSON.stringify(record));
 }
+
+test("cell-range sampling reproduces the disc sampler record for every shared cell", () => {
+  const grid = makeGrid(24, 24, 10);
+  const field = terrainHeightField(grid);
+  const config: GrassFieldConfig = {
+    seed: 0x5ea7_2026,
+    focus: { x: 120, y: 120, radius: 60 },
+    fieldCellSize: 2.5,
+    snapCellSize: 20,
+    clumpCellSize: 7,
+    maxRecords: 100000,
+    density: 1,
+    jitter: 0.72,
+    minNormalZ: 0.45,
+  };
+  const disc = sampleGrassField(grid, field, config);
+  assert.ok(disc.records.length > 0);
+
+  // The same world cells, sampled as four independent 20 m ranges.
+  const tiles: GrassFieldRecord[] = [];
+  for (let tx = 0; tx < 12; tx++) {
+    for (let ty = 0; ty < 12; ty++) {
+      const cells = { startX: tx * 8, endX: tx * 8 + 7, startY: ty * 8, endY: ty * 8 + 7 };
+      const snapshot = sampleGrassField(grid, field, {
+        ...config,
+        focus: { x: (cells.startX + 4) * 2.5, y: (cells.startY + 4) * 2.5, radius: 60 },
+        cells,
+      });
+      tiles.push(...snapshot.records);
+    }
+  }
+  // Cell ranges partition the world: no cell is sampled twice.
+  const keys = new Set(tiles.map((r) => `${r.worldCellX}:${r.worldCellY}`));
+  assert.equal(keys.size, tiles.length);
+
+  const byCell = new Map(tiles.map((r) => [`${r.worldCellX}:${r.worldCellY}`, r]));
+  for (const expected of disc.records) {
+    const actual = byCell.get(`${expected.worldCellX}:${expected.worldCellY}`);
+    assert.ok(actual, `cell ${expected.worldCellX}:${expected.worldCellY} missing from ranges`);
+    // Every rendered field is placement-derived, so it must match bit for bit.
+    // `lodTier` bands by the caller's focus and is telemetry only (no shader reads it).
+    const { lodTier: _expectedTier, ...expectedRendered } = expected;
+    const { lodTier: _actualTier, ...actualRendered } = actual!;
+    assert.deepEqual(actualRendered, expectedRendered);
+  }
+});

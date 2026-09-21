@@ -1,0 +1,490 @@
+{
+  "backend": "typegpu",
+  "samples": 1,
+  "shaderModules": [
+    {
+      "bytes": 16296,
+      "invariant": true
+    },
+    {
+      "bytes": 7299,
+      "invariant": true
+    }
+  ],
+  "mutablePublication": {
+    "emptyCounts": true,
+    "emptyCoverage": true,
+    "invalidRejected": true,
+    "stats": {
+      "recordCount": 12000,
+      "capacity": 24000,
+      "pipelineBuilds": 4
+    },
+    "pipelinesUnchanged": true,
+    "passed": true
+  },
+  "disposedGuard": true,
+  "borrowedResourcesAlive": true,
+  "passed": true,
+  "precisionGate": "1/255 HDR RGB on shared coverage, at most 3 occlusion/silhouette precision pixels per 480x320 crop; prepass must preserve native beauty exactly and source holes are reported separately",
+  "results": [
+    {
+      "passed": true,
+      "routingPassed": true,
+      "precisionDifferingPixels": 2,
+      "nativePrepassInvariant": true,
+      "sourcePrepassLosses": 0,
+      "sourcePrepassAddedCoverage": 0,
+      "sourcePrepassChangedRgb": 0,
+      "coverageMismatch": 0,
+      "commonMaxAbs": 0.07373046875,
+      "commonOverCode": 6,
+      "label": "base",
+      "recordCount": 12000,
+      "routes": [
+        {
+          "tier": 0,
+          "actualCommand": [
+            540,
+            58,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            540,
+            58,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 1,
+          "actualCommand": [
+            216,
+            7759,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            216,
+            7759,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 2,
+          "actualCommand": [
+            24,
+            4183,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            24,
+            4183,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        }
+      ],
+      "pixels": {
+        "maxAbs": 0.07373046875,
+        "maxRelative": 0.7360285374554102,
+        "rmse": 0.00014258495235807775,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 614400
+      },
+      "coverage": {
+        "actual": 101381,
+        "expected": 101381
+      },
+      "width": 480,
+      "height": 320
+    },
+    {
+      "passed": true,
+      "routingPassed": true,
+      "precisionDifferingPixels": 1,
+      "nativePrepassInvariant": true,
+      "sourcePrepassLosses": 0,
+      "sourcePrepassAddedCoverage": 0,
+      "sourcePrepassChangedRgb": 0,
+      "coverageMismatch": 0,
+      "commonMaxAbs": 0.175537109375,
+      "commonOverCode": 3,
+      "label": "wind",
+      "recordCount": 12000,
+      "routes": [
+        {
+          "tier": 0,
+          "actualCommand": [
+            540,
+            58,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            540,
+            58,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 1,
+          "actualCommand": [
+            216,
+            7759,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            216,
+            7759,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 2,
+          "actualCommand": [
+            24,
+            4183,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            24,
+            4183,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        }
+      ],
+      "pixels": {
+        "maxAbs": 0.175537109375,
+        "maxRelative": 0.5213923132704859,
+        "rmse": 0.00029295233109902794,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 614400
+      },
+      "coverage": {
+        "actual": 101466,
+        "expected": 101466
+      },
+      "width": 480,
+      "height": 320
+    },
+    {
+      "passed": true,
+      "routingPassed": true,
+      "precisionDifferingPixels": 1,
+      "nativePrepassInvariant": true,
+      "sourcePrepassLosses": 38,
+      "sourcePrepassAddedCoverage": 0,
+      "sourcePrepassChangedRgb": 0,
+      "coverageMismatch": 38,
+      "commonMaxAbs": 0.175537109375,
+      "commonOverCode": 3,
+      "label": "wind-prepass",
+      "recordCount": 12000,
+      "routes": [
+        {
+          "tier": 0,
+          "actualCommand": [
+            540,
+            58,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            540,
+            58,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 1,
+          "actualCommand": [
+            216,
+            7759,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            216,
+            7759,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 2,
+          "actualCommand": [
+            24,
+            4183,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            24,
+            4183,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        }
+      ],
+      "pixels": {
+        "maxAbs": 1,
+        "maxRelative": 20,
+        "rmse": 0.00828912717276408,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 614400
+      },
+      "coverage": {
+        "actual": 101466,
+        "expected": 101428
+      },
+      "width": 480,
+      "height": 320
+    },
+    {
+      "passed": true,
+      "routingPassed": true,
+      "precisionDifferingPixels": 0,
+      "nativePrepassInvariant": true,
+      "sourcePrepassLosses": 0,
+      "sourcePrepassAddedCoverage": 0,
+      "sourcePrepassChangedRgb": 0,
+      "coverageMismatch": 0,
+      "commonMaxAbs": 0.00048828125,
+      "commonOverCode": 0,
+      "label": "mask-wedge",
+      "recordCount": 12000,
+      "routes": [
+        {
+          "tier": 0,
+          "actualCommand": [
+            540,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            540,
+            0,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 1,
+          "actualCommand": [
+            216,
+            3316,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            216,
+            3316,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 2,
+          "actualCommand": [
+            24,
+            999,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            24,
+            999,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        }
+      ],
+      "pixels": {
+        "maxAbs": 0.00048828125,
+        "maxRelative": 0.0019029495718363464,
+        "rmse": 0.0000038838574362391,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 614400
+      },
+      "coverage": {
+        "actual": 77455,
+        "expected": 77455
+      },
+      "width": 480,
+      "height": 320
+    },
+    {
+      "passed": true,
+      "routingPassed": true,
+      "precisionDifferingPixels": 1,
+      "nativePrepassInvariant": true,
+      "sourcePrepassLosses": 0,
+      "sourcePrepassAddedCoverage": 0,
+      "sourcePrepassChangedRgb": 0,
+      "coverageMismatch": 1,
+      "commonMaxAbs": 0.0003662109375,
+      "commonOverCode": 0,
+      "label": "thinning",
+      "recordCount": 12000,
+      "routes": [
+        {
+          "tier": 0,
+          "actualCommand": [
+            540,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            540,
+            0,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 1,
+          "actualCommand": [
+            216,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            216,
+            0,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        },
+        {
+          "tier": 2,
+          "actualCommand": [
+            24,
+            9568,
+            0,
+            0,
+            0
+          ],
+          "expectedCommand": [
+            24,
+            9568,
+            0,
+            0,
+            0
+          ],
+          "membershipEqual": true,
+          "unique": true
+        }
+      ],
+      "pixels": {
+        "maxAbs": 1,
+        "maxRelative": 1,
+        "rmse": 0.0012814071391072024,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 614400
+      },
+      "coverage": {
+        "actual": 51192,
+        "expected": 51193
+      },
+      "width": 480,
+      "height": 320
+    }
+  ],
+  "errors": [],
+  "scope": "Frozen production-sampled grass component; no residency/world integration or directional shadow pass (scalar1), no performance claim",
+  "pageErrors": []
+}

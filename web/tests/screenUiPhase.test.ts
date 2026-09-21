@@ -22,7 +22,11 @@ vi.mock("three/webgpu", async (original) => {
   return {
     ...actual,
     WebGPURenderer: class {
-      backend = { trackTimestamp: false };
+      backend = {
+        trackTimestamp: false,
+        hasTimestamp: false,
+        timestampQueryPool: { render: null, compute: null },
+      };
       shadowMap = {};
       info = { render: { drawCalls: 0, triangles: 0, timestamp: 0 }, compute: { timestamp: 0 } };
       toneMapping = actual.NoToneMapping;

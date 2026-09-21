@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/longsword/longsword.blend",
+  "sourceSha256": "1813f79fa057ae1aaf570d288a409b15de426c8c1e3fe71dc5b274f7702bcdd6",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 150074,
+      "triangles": 3990,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "66c3a03bf1f333cd2cf17e7fb34c3744284eda7fb62453e318f4a26890c24269"
+    }
+  ]
+}

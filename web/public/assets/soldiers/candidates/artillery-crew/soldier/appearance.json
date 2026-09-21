@@ -8,7 +8,8 @@
   "tiers": [
     "tier-0.mesh.json",
     "tier-1.mesh.json",
-    "tier-2.mesh.json"
+    "tier-2.mesh.json",
+    "tier-3.mesh.json"
   ],
   "far": {
     "mesh": "tier-0.mesh.json",
@@ -21,6 +22,6 @@
       0,
       0
     ],
-    "radius": 3.0053515434265137
+    "radius": 3.0052802562713623
   }
 }

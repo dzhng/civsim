@@ -1,8 +1,10 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
 import * as THREE from "three/webgpu";
-import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
-import { joinTerrainMeshEdges } from "@packages/photoreal-renderer/src/battle/terrainSeam";
+import {
+  createGroundMesh,
+  joinTerrainMeshEdges,
+} from "@packages/photoreal-renderer/src/landscape/terrainLayer";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 
 // The ground material requires a rock detail map; this test provisions a bare

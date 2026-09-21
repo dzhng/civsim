@@ -1,472 +1,982 @@
-import type { WorldRay } from "@packages/renderer-core/src/camera3d";
-// Production policy above the photoreal world: frozen frames, debug mode, and CPU timing.
-import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
-import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
-import type { Camera } from "../shared/camera";
-import { roundMs } from "@packages/renderer-core/src/math";
+import type {
+  BattleInstalledSceneDiagnostics,
+  BattlePresentationReceipt,
+  BattleRendererApi,
+  BattleRendererDisposeHook,
+  BattleRendererFrameMetrics,
+  BattleRendererOptions,
+  BattleRendererStats,
+  BattleSeatingInspection,
+  BattleSubmissionIdentity,
+} from "./battleRendererApi";
+import type {
+  AdmittedSeatingIdentity,
+  AdmittedSeatingMeasurement,
+  BattleTacticalLineContent,
+  BattleTerrainSceneContent,
+} from "../../../packages/battle-renderer/src/types";
+import type { BattlePresentation } from "./battlePresentation";
+import { BattleGpuFrameTiming } from "./gpuFrameTiming";
 import {
-  PhotorealBattleWorld,
-  type BattleCameraSnapshot,
-  type BattleTerrainOptions,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
-import {
-  postGradeUniformsFromParams,
-  type BattlePostGradeUniforms,
-} from "@packages/photoreal-renderer/src/post/postChain";
+  cameraSnapshot,
+  cloneTerrainGrid,
+  cloneTerrainOptions,
+  frozenFrameKey,
+  frozenSelectionGroundCues,
+  readoutsKey,
+} from "./battlePresentationPolicy";
 import {
   getGraphicsSettings,
-  graphicsQueryOverrides,
   resolveGraphicsSettings,
+  graphicsQueryOverrides,
   subscribeGraphicsSettings,
   type GraphicsSettings,
 } from "../shared/graphicsSettings";
-import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
-import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
-import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
-import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+import {
+  buildCrowdInstances,
+  type CrowdInstance,
+} from "../../../packages/crowd-runtime/src/instanceData";
+import { assertGameplayAppearances } from "../../../packages/crowd-runtime/src/animationState";
+import {
+  loadAppearanceCatalog,
+  type AppearanceBundle,
+} from "../../../packages/soldier-assets/src/appearanceBundle";
+import {
+  loadImpostorAtlas,
+  type ImpostorAtlasData,
+} from "../../../packages/soldier-assets/src/impostorAtlas";
+import { resolveBattleEnvironment } from "../../../packages/game-renderer/src/environment/environment";
+import {
+  battlePostGrade,
+  postGradeUniformsFromParams,
+} from "../../../packages/game-renderer/src/environment/postParameters";
+import { resolveSunShadowMode } from "../../../packages/game-renderer/src/battle/shadowPolicy";
+import { battleDebugBlockTriangles } from "../../../packages/game-renderer/src/battle/debugBlockData";
+import { productionBladeFieldProfile } from "../../../packages/game-renderer/src/battle/battleGrassResidency";
+import {
+  resolveBattleTerrainOptions,
+  type BattleTerrainOptions,
+} from "../../../packages/game-renderer/src/battle/terrainOptions";
+import type { BattleTerrainGrid } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import type { WorldRay } from "../../../packages/renderer-core/src/camera3d";
+import { claimCanvas } from "./canvasOwnership";
+import { createTypegpuBattleScene } from "../../../packages/battle-renderer/src/battleScene";
+import { createSceneLifecycle } from "../../../packages/battle-renderer/src/sceneLifecycle";
+import { createTerrainPicking } from "../../../packages/battle-renderer/src/terrainPicking";
+import {
+  NativeGpuTelemetry,
+  type NativeSubmissionMeasurement,
+} from "../../../packages/battle-renderer/src/nativeGpuTelemetry";
+import { trackNativeGpuAllocations } from "../../../packages/battle-renderer/src/nativeGpuAllocations";
+import {
+  beginGpuAdmission,
+  GpuAdmissionBatch,
+} from "../../../packages/battle-renderer/src/gpuAdmission";
+import type {
+  BattleCrowdAssets,
+  BattleSceneOptions,
+  BattleTerrainInput,
+} from "../../../packages/battle-renderer/src/sceneTypes";
+import { TYPEGPU_BATTLE_IDENTITY } from "../../../packages/battle-renderer/src/world/identity";
 
-export interface BattleRendererOptions {
-  environment?: BattleEnvironmentId | string | null;
-  shadows?: string | null;
-  post?: string | null;
-  postGrade?: Partial<BattlePostGradeUniforms> | null;
-  graphics?: GraphicsSettings;
-}
+const PUBLISHED_APPEARANCE_CATALOG = "/assets/soldiers/catalog.json";
+const PUBLISHED_IMPOSTOR_CATALOG = "/assets/soldiers/impostors/catalog.json";
+type Scene = Awaited<ReturnType<typeof createTypegpuBattleScene>>;
+type View = Parameters<Scene["prepare"]>[0];
+const twoFrames = () =>
+  new Promise<void>((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
 
-export interface BattleRendererDisposeHook {
-  dispose(): void;
-}
+// Missing measurements stay explicit; the verification contract and rationale
+// live in the live renderer README rather than being copied into each report.
+// Draw calls leave this list for a presented frame that carries an honest count
+// of its own; the other two are owed by every frame.
+const OPEN_DIAGNOSTIC_OBLIGATIONS = ["seating", "drawCalls", "grassRouting"] as const;
+/** The identity and content a world publishes only if it is a selected one, by the
+ * key each appears under; `terrain` carries the grass grouped with it. A backend
+ * that owns none of them names them all, so a null is never read as an empty scene. */
+const UNOWNED_WORLD_DIAGNOSTICS = [
+  "substrate",
+  "projection",
+  "environment",
+  "terrain",
+  "tacticalLines",
+] as const;
+/** What an explicit seating inspection examines, and what it therefore does not
+ * prove. It is a CPU firewall between the installed height field and the instance
+ * data that was uploaded — not evidence of where the GPU drew a soldier's feet. */
+const SEATING_INSPECTION_SCOPE =
+  "every instance of one admitted crowd pose, re-sampled against the installed playable terrain height field; not evidence of drawn GPU feet placement";
+/** The draw count one presented frame may publish, or why it may not. Only that
+ * frame's own battle-draw submission answers: its commands are the ones the
+ * renderer validated and the retained image came from, so neither a readiness
+ * render that followed it nor a later frame's work can move the total. A window
+ * that could not count honestly, or that left encoded draws it never offered to
+ * the queue, publishes its reason instead of a lower bound. */
+const presentedDrawCalls = (
+  presented: { submission: NativeSubmissionMeasurement } | null,
+): { count: number | null; unavailable: string | null } => {
+  if (!presented) return { count: null, unavailable: "no-frame-has-presented" };
+  const draws = presented.submission.draws;
+  if (draws.offeredDrawCalls === null)
+    return { count: null, unavailable: draws.reason ?? "draw-observation-unavailable" };
+  // Zero is the only account that leaves nothing behind; null is itself a refusal.
+  if (draws.unsubmittedDrawCalls !== 0)
+    return {
+      count: null,
+      unavailable: draws.unsubmittedReason ?? "draws-encoded-but-never-submitted",
+    };
+  return { count: draws.offeredDrawCalls, unavailable: null };
+};
+const sameSeating = (
+  a: AdmittedSeatingIdentity | null,
+  b: AdmittedSeatingIdentity | null,
+): boolean =>
+  a !== null &&
+  b !== null &&
+  a.crowdGeneration === b.crowdGeneration &&
+  a.submission === b.submission &&
+  a.terrainGeneration === b.terrainGeneration;
 
-export interface BattleRendererMemoryInfo {
-  geometries: number;
-  textures: number;
-  programs: number | null;
-}
-
-export class BattleRenderer {
+/** Production presentation facade. TypeGPU owns the battle GPU passes. */
+export class BattleRenderer implements BattleRendererApi {
   readonly ready: Promise<void>;
-  get soldierAssets(): Record<number, AppearanceBundle> | null {
-    return this.world?.soldierAssets ?? null;
-  }
+  soldierAssets: Record<number, AppearanceBundle> | null = null;
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
-
-  private world: PhotorealBattleWorld | null = null;
-  private pendingStatic: { soldierUnit: Uint32Array; teams: number[]; classes: number[] } | null =
-    null;
-  private pendingTerrain: { grid: BattleTerrainGrid; options: BattleTerrainOptions } | null = null;
-  private triangleVerts = new Float32Array();
-  private frozenFrameKey: string | null = null;
-  private pendingFrozenFrameKey: string | null = null;
-  private frozenCatalog: Record<number, AppearanceBundle> | null = null;
-  private skipFrozenFrame = false;
-  private blockMode = new URLSearchParams(location.search).get("debug") === "blocks";
-  private framePerf = {
+  private readonly backend = "typegpu" as const;
+  private readonly blockMode: boolean;
+  private readonly environmentRequest: string | null;
+  private readonly settings: GraphicsSettings;
+  private visibility: Pick<GraphicsSettings, "grass" | "farGrass" | "bloom">;
+  private readonly environment;
+  private readonly post: boolean;
+  private readonly grade;
+  private readonly releases: (() => void)[] = [];
+  private readonly lifecycle = createSceneLifecycle(() => {
+    const errors: unknown[] = [];
+    for (const release of this.releases.splice(0).reverse()) {
+      try {
+        release();
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    this.soldierAssets = null;
+    this.picking = null;
+    this.instances = [];
+    if (errors.length) throw new AggregateError(errors, "Native live renderer cleanup failed");
+  });
+  private device!: GPUDevice;
+  private context!: GPUCanvasContext;
+  private owner: Scene | null = null;
+  private format!: GPUTextureFormat;
+  private deviceLabel = "unavailable";
+  private telemetry: NativeGpuTelemetry | null = null;
+  /** Joins presented frames to their own measured submission. It reads the
+   *  observer's existing event stream through its own cursor, so the benchmark's
+   *  raw event collection keeps its own. */
+  private readonly frameTiming = new BattleGpuFrameTiming((after) => this.gpuEventsSince(after));
+  private allocations: ReturnType<typeof trackNativeGpuAllocations> | null = null;
+  private readinessSubmissions = 0;
+  private latestSubmission: BattleSubmissionIdentity | null = null;
+  private renderedFrameId = 0;
+  private metrics: BattleRendererFrameMetrics = {
+    renderedFrameId: 0,
+    gpuSubmission: null,
+    skippedFrozenFrame: false,
     buildMs: 0,
     uploadMs: 0,
     drawMs: 0,
     frameCpuMs: 0,
   };
-  private frameStart = 0;
-  private readoutFrameKey = "";
-  private readonly environmentRequest: string | null;
-  private readonly shadowRequest: GraphicsSettings["shadows"];
-  private readonly grassQualityRequest: GraphicsSettings["grassQuality"];
-  private graphicsUnsubscribe: (() => void) | null = null;
-  private battleAudio: BattleRendererDisposeHook | null = null;
-  private readonly onResize = () => this.resize();
-  private readonly lifecycle = { disposed: false };
-  private disposed = false;
+  private pendingTerrain: BattleTerrainInput | null = null;
+  private terrainAvailable!: () => void;
+  private readonly terrainReady = new Promise<void>((resolve) => {
+    this.terrainAvailable = resolve;
+  });
+  private staticData = { soldierUnit: new Uint32Array(), teams: [] as number[] };
+  private instances: CrowdInstance[] = [];
+  private picking: ReturnType<typeof createTerrainPicking> | null = null;
+  /** The frame that actually presented: its view and the id it presented under,
+   *  recorded as one record so a camera can never be published beside another
+   *  frame's identity. Assigned only where the receipt is produced, so a
+   *  preparation in flight, a submission that threw, or a presentation that
+   *  failed after its draw all leave the previous presented frame standing.
+   *  `seating` is the pose and terrain generation that frame actually drew, so a
+   *  later seating verdict can never be attributed to a frame whose crowd or
+   *  terrain has since been replaced. Null for a backend that owns no crowd.
+   *  `submission` is that frame's own validated battle draw, carrying the draw
+   *  observation taken when it closed, so the count is never re-read off
+   *  whichever submission happens to be latest. */
+  private presentedFrame: {
+    view: View;
+    renderedFrameId: number;
+    submission: NativeSubmissionMeasurement;
+    seating: AdmittedSeatingIdentity | null;
+  } | null = null;
+  private frozenKey: string | null = null;
+  private invalidation = 0;
+  private pendingPresentation: Promise<BattlePresentationReceipt> | null = null;
+  private readiness: Promise<void> | null = null;
+  private startupCallback = false;
+  private startupRequested = false;
+  private startupReady: {
+    resolve(): void;
+    reject(error: unknown): void;
+    promise: Promise<void>;
+  } | null = null;
+  private audio: BattleRendererDisposeHook | null = null;
+  private readonly resized = () => this.resize();
+  private size = { width: 1, height: 1 };
 
   constructor(
-    private canvas: HTMLCanvasElement,
-    private options: BattleRendererOptions = {},
+    private readonly canvas: HTMLCanvasElement,
+    private readonly options: BattleRendererOptions = {},
   ) {
     const params = new URLSearchParams(location.search);
+    this.blockMode = params.get("debug") === "blocks";
     this.environmentRequest = params.get("env") ?? options.environment ?? null;
-    const settings = resolveGraphicsSettings(
+    this.environment = resolveBattleEnvironment(this.environmentRequest).environment;
+    this.settings = resolveGraphicsSettings(
       location.search,
       options.graphics ?? getGraphicsSettings(),
     );
-    this.shadowRequest = settings.shadows;
-    this.grassQualityRequest = settings.grassQuality;
-    this.ready = this.init();
-    window.addEventListener("resize", this.onResize);
-  }
-
-  usesEnvironment(environment: BattleRendererOptions["environment"]): boolean {
-    const params = new URLSearchParams(location.search);
-    return (params.get("env") ?? environment ?? null) === this.environmentRequest;
-  }
-
-  usesGraphicsSettings(settings: GraphicsSettings): boolean {
-    const next = resolveGraphicsSettings(location.search, settings);
-    return next.shadows === this.shadowRequest && next.grassQuality === this.grassQualityRequest;
-  }
-
-  memoryInfo(): BattleRendererMemoryInfo | null {
-    const info = this.world?.world.renderer.info;
-    if (!info) return null;
-    const programs = (info as unknown as { programs?: unknown }).programs;
-    return {
-      geometries: info.memory.geometries,
-      textures: info.memory.textures,
-      programs: Array.isArray(programs) ? programs.length : null,
+    this.visibility = {
+      grass: this.settings.grass,
+      farGrass: this.settings.farGrass,
+      bloom: this.settings.bloom,
     };
-  }
-
-  dispose(): void {
-    if (this.disposed) return;
-    this.disposed = true;
-    this.lifecycle.disposed = true;
-    window.removeEventListener("resize", this.onResize);
-    this.graphicsUnsubscribe?.();
-    this.graphicsUnsubscribe = null;
-    this.battleAudio?.dispose();
-    this.battleAudio = null;
-    this.world?.dispose();
-    this.world = null;
-  }
-
-  setBattleAudio(audio: BattleRendererDisposeHook | null): void {
-    if (this.battleAudio && this.battleAudio !== audio) this.battleAudio.dispose();
-    this.battleAudio = audio;
-  }
-
-  clearBattleAudio(audio: BattleRendererDisposeHook): void {
-    if (this.battleAudio === audio) this.battleAudio = null;
-  }
-
-  resize() {
-    if (!this.world) return;
-    this.world.resize(
-      this.canvas.clientWidth || 1,
-      this.canvas.clientHeight || 1,
-      window.devicePixelRatio || 1,
+    this.post = (params.get("post") ?? options.post) !== "off";
+    this.grade = battlePostGrade(
+      this.environment.id,
+      postGradeUniformsFromParams(params) ?? options.postGrade ?? {},
     );
-  }
-
-  setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[]) {
-    this.frozenFrameKey = null;
-    this.readoutFrameKey = "";
-    this.triangleVerts = new Float32Array();
-    if (this.world) {
-      this.world.setStatic(soldierUnit, teams, classes);
-    } else {
-      this.pendingStatic = {
-        soldierUnit: new Uint32Array(soldierUnit),
-        teams: [...teams],
-        classes: [...classes],
-      };
-    }
-  }
-
-  setTerrain(grid: BattleTerrainGrid, options: BattleTerrainOptions = {}) {
-    if (this.world) {
-      this.world.setTerrain(grid, options);
-    } else {
-      this.pendingTerrain = {
-        grid: cloneTerrainGrid(grid),
-        options: cloneTerrainOptions(options),
-      };
-    }
-  }
-
-  draw(
-    positions: Float32Array,
-    facings: Float32Array,
-    playback: readonly SoldierPlayback[],
-    alive: Float32Array,
-    count: number,
-    camera: Camera,
-    observationTick: number,
-    frameDt = 0,
-  ) {
-    if (!this.world) return;
-    const frameKey =
-      this.fixedTime !== null
-        ? `${frozenFrameKey(camera, count)}|tick=${observationTick}|effects=${this.preserveFrozenEffects ? 1 : 0}`
-        : null;
-    this.pendingFrozenFrameKey = frameKey;
-    if (
-      frameKey &&
-      frameKey === this.frozenFrameKey &&
-      this.frozenCatalog === this.world.soldierAssets
-    ) {
-      this.skipFrozenFrame = true;
-      this.framePerf = { buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 };
-      return;
-    }
-    this.skipFrozenFrame = false;
-    this.frameStart = performance.now();
-    const seconds = this.fixedTime ?? performance.now() / 1000;
-    this.world.setTime(seconds);
-    const cameraState = cameraSnapshot(camera);
-    const buildStart = performance.now();
-    this.world.draw(positions, facings, playback, alive, count, cameraState, frameDt);
-    const buildEnd = performance.now();
-    if (this.blockMode) {
-      this.world.uploadDebugBlocks(this.world.debugBlockTriangles(positions, alive, count));
-    }
-    const uploadEnd = performance.now();
-    this.framePerf = {
-      buildMs: buildEnd - buildStart,
-      uploadMs: uploadEnd - buildEnd,
-      drawMs: 0,
-      frameCpuMs: uploadEnd - this.frameStart,
-    };
-  }
-
-  drawTris(verts: Float32Array, camera: Camera) {
-    if (!this.world) return;
-    this.frozenFrameKey = null;
-    this.skipFrozenFrame = false;
-    const cameraState = cameraSnapshot(camera);
-    this.triangleVerts = new Float32Array(verts);
-    const uploadStart = performance.now();
-    this.world.drawTris(verts, cameraState);
-    this.framePerf.uploadMs += performance.now() - uploadStart;
-  }
-
-  drawTacticalLines(lines: BattleTacticalLineFrame, camera: Camera) {
-    if (!this.world) return;
-    if (this.skipFrozenFrame) return;
-    const cameraState = cameraSnapshot(camera);
-    if (this.frameStart === 0) this.frameStart = performance.now();
-    this.world.setTime(this.fixedTime ?? performance.now() / 1000);
-    const uploadStart = performance.now();
-    // A frame without drawTris clears the previous frame's attack arcs.
-    if (this.triangleVerts.length === 0) this.world.drawTris(this.triangleVerts, cameraState);
-    this.framePerf.uploadMs += performance.now() - uploadStart;
-    const drawStart = performance.now();
-    this.world.drawTacticalLines(
-      {
-        groundCues:
-          this.fixedTime !== null ? frozenSelectionGroundCues(lines.groundCues) : lines.groundCues,
-        rings: lines.rings,
-        effects:
-          this.fixedTime !== null && !this.preserveFrozenEffects
-            ? new Float32Array()
-            : lines.effects,
-      },
-      cameraState,
-    );
-    const done = performance.now();
-    this.framePerf.drawMs = done - drawStart;
-    this.framePerf.frameCpuMs = done - this.frameStart;
-    this.triangleVerts = new Float32Array();
-    if (this.fixedTime !== null) {
-      this.frozenFrameKey = this.pendingFrozenFrameKey;
-      this.frozenCatalog = this.world.soldierAssets;
-    } else {
-      this.frozenFrameKey = null;
-    }
-  }
-
-  /** True-projection pixels-per-world-meter; the chart projection diverges in swoop. */
-  pxPerWorldAt(x: number, y: number, z: number): number {
-    return this.world?.pxPerWorldAt(x, y, z) ?? 0;
-  }
-
-  setUnitReadouts(
-    standards: readonly StandardInstance[],
-    readouts: readonly BattleReadoutInstance[],
-  ) {
-    if (!this.world) return;
-    const key = readoutsKey(standards, readouts);
-    if (key !== this.readoutFrameKey) {
-      this.readoutFrameKey = key;
-      this.frozenFrameKey = null;
-      this.skipFrozenFrame = false;
-    }
-    this.world.uploadUnitReadouts(standards, readouts);
-  }
-
-  stats() {
-    const worldStats = this.world?.stats();
-    const performance = {
-      buildMs: roundMs(this.framePerf.buildMs),
-      uploadMs: roundMs(this.framePerf.uploadMs),
-      drawMs: roundMs(this.framePerf.drawMs),
-      frameCpuMs: roundMs(this.framePerf.frameCpuMs),
-      gpuTimeMs: worldStats?.performance.gpuTimeMs ?? null,
-    };
-    return {
-      ...worldStats,
-      renderer: "gpu" as const,
-      performance,
-    };
-  }
-
-  /** Rendered surface height at a world point — playable terrain inside the
-   *  field, generated vista apron/far-fog terrain outside it. This is the
-   *  camera/anchor contract; soldier seating still uses the playable terrain
-   *  sampler inside PhotorealBattleWorld. */
-  heightAt(x: number, y: number): number {
-    return this.world?.surfaceHeightAt(x, y) ?? 0;
-  }
-
-  raycastGround(ray: WorldRay): [number, number, number] | null {
-    return this.world?.raycastGround(ray) ?? null;
-  }
-
-  debugSoldierAnim(index: number) {
-    return this.world?.debugSoldierAnim(index) ?? null;
-  }
-
-  async reloadSoldierAssets(): Promise<void> {
-    await this.ready;
-    if (!this.world) throw new Error("Battle renderer is not available");
-    await this.world.reloadSoldierAssets();
-  }
-
-  async settlePresentedFrame() {
-    if (!this.world) return;
-    await this.world.settlePresentedFrame();
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-    );
-    await this.world.settlePresentedFrame();
-  }
-
-  private async init() {
-    const params = new URLSearchParams(location.search);
-    const settings = resolveGraphicsSettings(
-      location.search,
-      this.options.graphics ?? getGraphicsSettings(),
-    );
-    const world = await PhotorealBattleWorld.create(this.canvas, {
-      environment: this.environmentRequest,
-      shadows: params.get("shadows") ?? this.options.shadows ?? settings.shadows,
-      post: params.get("post") ?? this.options.post,
-      postGrade: postGradeUniformsFromParams(params) ?? this.options.postGrade ?? null,
-      grassQuality: settings.grassQuality,
-    });
-    if (this.disposed) {
-      world.dispose();
-      return;
-    }
-    world.setGrassVisible(settings.grass);
-    world.setFarGrassVisible(settings.farGrass);
-    world.setBloomEnabled(settings.bloom);
-    this.world = world;
-    const overrides = graphicsQueryOverrides(location.search);
-    this.graphicsUnsubscribe = subscribeGraphicsSettings((nextSettings) => {
-      if (!this.world) return;
-      const next = resolveGraphicsSettings(location.search, nextSettings);
-      if (!overrides.grass) this.world.setGrassVisible(next.grass);
-      if (!overrides.farGrass) this.world.setFarGrassVisible(next.farGrass);
-      if (!overrides.bloom) this.world.setBloomEnabled(next.bloom);
-    });
-    const device = (world.world.renderer.backend as unknown as { device?: GPUDevice }).device;
-    const lifecycle = this.lifecycle;
-    const canvas = this.canvas;
-    void device?.lost?.then((info) => {
-      if (!lifecycle.disposed) {
-        showFatalErrorSurface(canvas, fatalSurfaceFor("device-lost", info.message));
-      }
-    });
-    if (this.pendingStatic) {
-      world.setStatic(
-        this.pendingStatic.soldierUnit,
-        this.pendingStatic.teams,
-        this.pendingStatic.classes,
-      );
-      this.pendingStatic = null;
-    }
-    if (this.pendingTerrain) {
-      world.setTerrain(this.pendingTerrain.grid, this.pendingTerrain.options);
-      this.pendingTerrain = null;
-    }
     this.resize();
-  }
-}
-
-function cloneTerrainGrid(grid: BattleTerrainGrid): BattleTerrainGrid {
-  return {
-    ...grid,
-    tint: new Uint8Array(grid.tint),
-    height: grid.height ? new Float32Array(grid.height) : undefined,
-    rough: grid.rough ? new Float32Array(grid.rough) : undefined,
-    speed: grid.speed ? new Float32Array(grid.speed) : undefined,
-  };
-}
-
-function cloneTerrainOptions(options: BattleTerrainOptions): BattleTerrainOptions {
-  return {
-    ...options,
-    vista: options.vista
-      ? {
-          shape: options.vista.shape,
-          bands: options.vista.bands.map((band) => ({
-            ...band,
-            height: new Float32Array(band.height),
-          })),
+    window.addEventListener("resize", this.resized);
+    this.releases.push(() => window.removeEventListener("resize", this.resized));
+    const overrides = graphicsQueryOverrides(location.search);
+    this.releases.push(
+      subscribeGraphicsSettings((next) => {
+        const value = resolveGraphicsSettings(location.search, next);
+        if (!overrides.grass) this.visibility.grass = value.grass;
+        if (!overrides.farGrass) this.visibility.farGrass = value.farGrass;
+        if (!overrides.bloom) this.visibility.bloom = value.bloom;
+        this.invalidate();
+      }),
+    );
+    const canvasOwner = claimCanvas(canvas);
+    this.releases.unshift(canvasOwner.release);
+    this.ready = this.lifecycle
+      .run(async () => {
+        await canvasOwner.ready;
+        this.check();
+        await this.init();
+      })
+      .catch((error) => {
+        try {
+          this.dispose();
+        } catch (cleanup) {
+          throw new AggregateError(
+            [error, cleanup],
+            "Native renderer initialization and cleanup failed",
+          );
         }
-      : null,
-    lakeSurfaces: options.lakeSurfaces?.map((surface) => ({ ...surface })) ?? null,
-  };
-}
-
-export interface BattleTacticalLineFrame {
-  /** Ground cue lines, (x, y, r, g, b, a) per vertex. */
-  groundCues: Float32Array;
-  /** Per-soldier selection rings, (x, y, radius, r, g, b, a) per instance. */
-  rings: Float32Array;
-  effects: Float32Array;
-}
-
-/** Frozen snapshots keep short unit-anchored cue segments (facing ticks,
- *  queue diamonds, near path legs) but drop cross-field order lines, whose
- *  endpoints churn between runs. Selection rings travel in their own layer
- *  and pass through untouched. */
-function frozenSelectionGroundCues(verts: Float32Array) {
-  const stride = 6;
-  const maxSegmentLength = 12;
-  const out: number[] = [];
-  for (let i = 0; i + stride * 2 <= verts.length; i += stride * 2) {
-    const x0 = verts[i];
-    const y0 = verts[i + 1];
-    const x1 = verts[i + stride];
-    const y1 = verts[i + stride + 1];
-    if (Math.hypot(x1 - x0, y1 - y0) > maxSegmentLength) continue;
-    for (let k = 0; k < stride * 2; k++) out.push(verts[i + k]);
+        throw error;
+      });
   }
-  return new Float32Array(out);
-}
-
-function readoutsKey(
-  standards: readonly StandardInstance[],
-  readouts: readonly BattleReadoutInstance[],
-) {
-  let key = `${standards.length}/${readouts.length}`;
-  for (const standard of standards) {
-    key += `|${standard.unitId}:${Math.round(standard.x * 10)},${Math.round(standard.y * 10)},${Math.round((standard.z ?? 0) * 10)},${Math.round((standard.yaw ?? 0) * 100)},${Math.round((standard.scale ?? 1) * 100)},${standard.factionId},${standard.selected ? 1 : 0}`;
-    key += `:${standard.tier}:${standard.windPhase ?? ""}:${standard.windStrength ?? ""}:${JSON.stringify(standard.livery ?? null)}`;
+  private invalidate() {
+    this.invalidation++;
+    this.frozenKey = null;
   }
-  for (const readout of readouts) {
-    key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;
+  private check(signal?: AbortSignal) {
+    this.lifecycle.check();
+    signal?.throwIfAborted();
   }
-  return key;
-}
-
-function cameraSnapshot(camera: Camera): BattleCameraSnapshot {
-  const [x, y] = camera.viewCenter();
-  return {
-    x,
-    y,
-    zoom: camera.zoom,
-    zoomT: camera.zoomT,
-    camera3d: camera.params(),
-  };
-}
-
-function frozenFrameKey(camera: Camera, count: number) {
-  const p = camera.params();
-  return [...p.target, p.distance, p.pitch, p.yaw, p.fovY, p.aspect, count].map(roundKey).join(":");
-}
-
-function roundKey(value: number) {
-  return Number.isFinite(value) ? value.toFixed(4) : "nan";
+  /** Meshes and offline property atlases must belong to the published catalog. */
+  private async assets(): Promise<BattleCrowdAssets> {
+    const assets = await loadAppearanceCatalog(
+      new URL(PUBLISHED_APPEARANCE_CATALOG, location.href).href,
+    );
+    this.check();
+    assertGameplayAppearances(assets);
+    const url = new URL(PUBLISHED_IMPOSTOR_CATALOG, location.href);
+    const response = await fetch(url);
+    if (!response.ok) throw Error(`Atlas catalog ${response.status}`);
+    const catalog = await response.json();
+    const atlases: Record<number, ImpostorAtlasData> = {};
+    for (const id of Object.keys(assets).map(Number)) {
+      this.check();
+      if (typeof catalog.appearances?.[id] !== "string")
+        throw Error(`Missing prepared atlas ${id}`);
+      atlases[id] = await loadImpostorAtlas(new URL(catalog.appearances[id], url).href, assets[id]);
+    }
+    return { assets, atlases };
+  }
+  /** Every pose the crowd owner is presenting must exist in the replacement, both
+   *  when it loads and again at admission: the simulation may submit new poses while
+   *  the catalog load and the staged GPU resources wait. */
+  private assertActivePoses(published: BattleCrowdAssets, scene: Scene) {
+    for (const pose of scene.admittedCrowdPoses()) {
+      const [classId, clip] = pose.split("\u0000");
+      if (!published.assets[Number(classId)]?.animation.clips.some((c) => c.name === clip))
+        throw Error(`Reload does not contain active appearance ${classId} / clip ${clip}`);
+    }
+  }
+  private async init() {
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    if (!adapter) throw Error("WebGPU adapter unavailable");
+    this.check();
+    this.deviceLabel =
+      [
+        adapter.info.vendor,
+        adapter.info.architecture,
+        adapter.info.device,
+        adapter.info.description,
+      ]
+        .filter(Boolean)
+        .join(" ") || "WebGPU adapter";
+    const device = await adapter.requestDevice({
+      // Requested independently of the timing-query control, so a disabled build
+      // still runs on the same device configuration it is a control for.
+      requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [],
+    });
+    this.device = device;
+    this.releases.push(() => device.destroy());
+    this.check();
+    const allocations = trackNativeGpuAllocations(device);
+    this.allocations = allocations;
+    this.releases.push(() => allocations.restore());
+    const telemetry = new NativeGpuTelemetry(device, this.backend);
+    this.telemetry = telemetry;
+    this.releases.push(() => telemetry.dispose());
+    void device.lost.then((info) => {
+      if (!this.lifecycle.disposed)
+        showFatalErrorSurface(this.canvas, fatalSurfaceFor("device-lost", info.message));
+    });
+    const context = this.canvas.getContext("webgpu");
+    if (!context) throw Error("WebGPU canvas unavailable");
+    this.context = context;
+    this.format = navigator.gpu.getPreferredCanvasFormat();
+    this.canvas.width = this.size.width;
+    this.canvas.height = this.size.height;
+    context.configure({ device, format: this.format, alphaMode: "opaque" });
+    this.releases.push(() => context.unconfigure());
+    const catalog = await this.assets();
+    await this.terrainReady;
+    this.check();
+    const terrain = this.pendingTerrain!;
+    this.pendingTerrain = null;
+    const owner = await createTypegpuBattleScene(device, this.sceneOptions(catalog, terrain));
+    this.owner = owner;
+    this.releases.push(() => {
+      const active = this.owner;
+      this.owner = null;
+      active?.dispose();
+    });
+    this.check();
+    this.picking = createTerrainPicking(owner.pickingMeshes());
+    this.soldierAssets = catalog.assets;
+  }
+  private sceneOptions(
+    catalog: {
+      assets: Record<number, AppearanceBundle>;
+      atlases: Record<number, ImpostorAtlasData>;
+    },
+    terrain: BattleTerrainInput,
+  ): BattleSceneOptions {
+    return {
+      ...catalog,
+      environment: this.environment,
+      terrain,
+      grassProfile: productionBladeFieldProfile(this.settings.grassQuality),
+      width: this.size.width,
+      height: this.size.height,
+      samples: 1,
+      outputFormat: this.format,
+      shadows: resolveSunShadowMode("", this.settings.shadows),
+      debugBlocks: this.blockMode,
+      ...this.visibility,
+      post: this.post,
+      grade: this.grade,
+    };
+  }
+  usesEnvironment(value: BattleRendererOptions["environment"]) {
+    return (
+      (new URLSearchParams(location.search).get("env") ?? value ?? null) === this.environmentRequest
+    );
+  }
+  usesGraphicsSettings(value: GraphicsSettings) {
+    const next = resolveGraphicsSettings(location.search, value);
+    return (
+      next.shadows === this.settings.shadows && next.grassQuality === this.settings.grassQuality
+    );
+  }
+  setBattleAudio(audio: BattleRendererDisposeHook | null) {
+    if (this.audio && this.audio !== audio) this.audio.dispose();
+    this.audio = audio;
+  }
+  clearBattleAudio(audio: BattleRendererDisposeHook) {
+    if (this.audio === audio) this.audio = null;
+  }
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    this.size = {
+      width: Math.floor((this.canvas.clientWidth || 1) * dpr),
+      height: Math.floor((this.canvas.clientHeight || 1) * dpr),
+    };
+    this.invalidate();
+  }
+  setStatic(soldierUnit: Uint32Array, teams: number[], _classes: number[]) {
+    this.check();
+    this.staticData = { soldierUnit: new Uint32Array(soldierUnit), teams: [...teams] };
+    this.instances = [];
+    this.invalidate();
+  }
+  setTerrain(grid: BattleTerrainGrid, options: BattleTerrainOptions = {}) {
+    this.check();
+    const copied = cloneTerrainOptions(options);
+    this.pendingTerrain = { grid: cloneTerrainGrid(grid), ...resolveBattleTerrainOptions(copied) };
+    this.invalidate();
+    this.terrainAvailable();
+  }
+  private async reconcile(signal?: AbortSignal) {
+    const owner = this.owner!;
+    if (this.pendingTerrain) {
+      const input = this.pendingTerrain;
+      this.pendingTerrain = null;
+      await this.admitted(() => owner.replaceTerrain(input));
+      this.picking = createTerrainPicking(owner.pickingMeshes());
+      this.check(signal);
+    }
+    const { width, height } = this.size;
+    if (this.canvas.width !== width || this.canvas.height !== height) {
+      try {
+        await this.admitted(() => owner.resize(width, height));
+        this.check(signal);
+        this.canvas.width = width;
+        this.canvas.height = height;
+      } catch (error) {
+        this.dispose();
+        throw error;
+      }
+    }
+    owner.setVisibility({ ...this.visibility, post: this.post });
+  }
+  present(
+    packet: BattlePresentation,
+    signal?: AbortSignal,
+    startupAfterUploads?: () => void,
+  ): Promise<BattlePresentationReceipt> {
+    if (this.pendingPresentation)
+      return Promise.reject(Error("Native presentation already pending"));
+    const beforeReadiness = this.readiness;
+    const generation = this.invalidation;
+    const task = (async () => {
+      await this.ready;
+      await beforeReadiness;
+      this.check(signal);
+      return this.lifecycle.run(async () => {
+        let cpuMs = 0,
+          buildMs = 0,
+          uploadMs = 0,
+          drawMs = 0;
+        const sync = <T>(f: () => T): T => {
+          const start = performance.now();
+          try {
+            return f();
+          } finally {
+            cpuMs += performance.now() - start;
+          }
+        };
+        const admissions = new GpuAdmissionBatch(this.device);
+        const step = async (f: () => void | Promise<void>) => {
+          await admissions.run(() => sync(f));
+          this.check(signal);
+        };
+        const submit = async (source: "battle-draw" | "render-only") => {
+          await admissions.settle();
+          this.check(signal);
+          const measurement = await sync(() => this.submit(source));
+          this.check(signal);
+          return measurement;
+        };
+        let failed = false;
+        try {
+          this.telemetry!.beginSubmission("battle-draw");
+          await sync(() => this.reconcile(signal));
+          this.check(signal);
+          const c = packet.crowd;
+          if (!c) throw Error("Native presentation requires admitted soldier assets");
+          const key =
+            packet.fixedTime === null
+              ? null
+              : `${frozenFrameKey(packet.camera, c.count)}|tick=${c.observationTick}|effects=${packet.preserveFrozenEffects ? 1 : 0}|${readoutsKey(c.standards, c.readouts)}`;
+          if (key && key === this.frozenKey) {
+            this.telemetry!.cancelSubmission();
+            this.metrics = {
+              ...this.metrics,
+              skippedFrozenFrame: true,
+              buildMs: 0,
+              uploadMs: 0,
+              drawMs: 0,
+              frameCpuMs: cpuMs,
+            };
+            // The retained image carries the previous submission's identity, which
+            // the timing join must not read as a newly presented frame.
+            return this.presented({
+              submitted: false,
+              renderedFrameId: this.renderedFrameId,
+              gpuSubmission: this.latestSubmission,
+              submittedAtMs: performance.now(),
+              cpuMs,
+            });
+          }
+          const view = { camera: cameraSnapshot(packet.camera), time: packet.timeSeconds };
+          const owner = this.owner!;
+          const buildStart = cpuMs;
+          sync(() => {
+            const built = buildCrowdInstances(
+              {
+                positions: c.positions,
+                facings: c.facings,
+                playback: c.playback,
+                alive: c.alive,
+                count: c.count,
+                soldierUnit: this.staticData.soldierUnit,
+                unitTeam: this.staticData.teams,
+                mountedClasses: Object.entries(this.soldierAssets!)
+                  .filter(([, a]) => a.manifest.mounted)
+                  .map(([id]) => Number(id)),
+                terrainHeight: owner.seatingHeightAt,
+              },
+              this.instances,
+            );
+            this.instances = built.instances;
+          });
+          buildMs = cpuMs - buildStart;
+          const uploadStart = cpuMs;
+          await step(() => owner.uploadReadouts(c.standards, c.readouts));
+          await step(() => owner.uploadCrowd(this.instances, view.camera, view.time));
+          if (this.blockMode)
+            await step(() =>
+              owner.uploadDebugBlocks(
+                battleDebugBlockTriangles({
+                  positions: c.positions,
+                  alive: c.alive,
+                  count: c.count,
+                  soldierUnit: this.staticData.soldierUnit,
+                  unitTeam: this.staticData.teams,
+                }),
+              ),
+            );
+          if (c.triangles.length) await step(() => owner.uploadTriangles(c.triangles));
+          this.startupCallback = true;
+          try {
+            sync(() => startupAfterUploads?.());
+          } finally {
+            this.startupCallback = false;
+          }
+          if (this.startupRequested) {
+            // The first startup render closes the pose+initial presentation record.
+            // Later readiness renders have their own render-only measurement.
+            if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
+            await step(() => owner.settleGrass(view.camera));
+            await step(() => owner.prepare(view));
+            await submit("render-only");
+            this.readinessSubmissions++;
+          }
+          if (!c.triangles.length) await step(() => owner.uploadTriangles(c.triangles));
+          const lines = packet.tacticalLines;
+          await step(() =>
+            owner.uploadTacticalLines({
+              groundCues:
+                packet.fixedTime === null
+                  ? lines.groundCues
+                  : frozenSelectionGroundCues(lines.groundCues),
+              rings: lines.rings,
+              effects:
+                packet.fixedTime !== null && !packet.preserveFrozenEffects
+                  ? new Float32Array()
+                  : lines.effects,
+            }),
+          );
+          uploadMs = cpuMs - uploadStart;
+          const drawStart = cpuMs;
+          if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("battle-draw");
+          await step(() => owner.prepare(view));
+          // The frame's own draw: taken here, so the readiness renders below and
+          // every later frame leave this measurement alone.
+          const battleDraw = await submit("battle-draw");
+          drawMs = cpuMs - drawStart;
+          if (this.startupRequested) {
+            await this.device.queue.onSubmittedWorkDone();
+            await twoFrames();
+            this.check(signal);
+            if (!this.telemetry!.measuring) this.telemetry!.beginSubmission("render-only");
+            await step(() => owner.settleGrass(view.camera));
+            await step(() => owner.prepare(view));
+            await submit("render-only");
+            this.readinessSubmissions++;
+            await this.device.queue.onSubmittedWorkDone();
+            this.check(signal);
+            this.startupRequested = false;
+            this.startupReady?.resolve();
+            this.startupReady = null;
+          }
+          this.renderedFrameId++;
+          this.presentedFrame = {
+            view,
+            renderedFrameId: this.renderedFrameId,
+            submission: battleDraw,
+            seating: owner?.admittedSeatingIdentity() ?? null,
+          };
+          this.frozenKey = generation === this.invalidation ? key : null;
+          this.metrics = {
+            renderedFrameId: this.renderedFrameId,
+            gpuSubmission: this.latestSubmission,
+            skippedFrozenFrame: false,
+            buildMs,
+            uploadMs,
+            drawMs,
+            frameCpuMs: cpuMs,
+          };
+          return this.presented({
+            submitted: true,
+            renderedFrameId: this.renderedFrameId,
+            gpuSubmission: this.latestSubmission,
+            submittedAtMs: performance.now(),
+            cpuMs,
+          });
+        } catch (error) {
+          failed = true;
+          throw error;
+        } finally {
+          // Drain before lifecycle ownership can release GPU resources. Keep the
+          // operation/cancellation error if validation also failed during cleanup.
+          if (failed) await admissions.settle().catch(() => {});
+          else await admissions.settle();
+        }
+      });
+    })();
+    this.pendingPresentation = task;
+    void task.then(
+      () => {
+        if (this.pendingPresentation === task) this.pendingPresentation = null;
+      },
+      (error) => {
+        if (this.pendingPresentation === task) this.pendingPresentation = null;
+        this.telemetry?.cancelSubmission();
+        this.startupRequested = false;
+        this.startupReady?.reject(error);
+        this.startupReady = null;
+      },
+    );
+    return task;
+  }
+  /** Every receipt the caller receives reaches the timing join first, so a frame's
+   *  GPU cost is only ever reported under the identity that frame actually presented. */
+  private presented(receipt: BattlePresentationReceipt): BattlePresentationReceipt {
+    this.frameTiming.presented(receipt);
+    return receipt;
+  }
+  private async admitted<T>(work: () => T | Promise<T>): Promise<T> {
+    const admission = beginGpuAdmission(this.device);
+    try {
+      const pending = work();
+      const accepted = admission();
+      const [result] = await Promise.all([pending, accepted]);
+      return result;
+    } catch (error) {
+      await admission().catch(() => {});
+      throw error;
+    }
+  }
+  /** Returns the closed window's own measurement — identity and the draw
+   *  observation taken at the same instant — after its submission validated. */
+  private async submit(source: "battle-draw" | "render-only") {
+    const telemetry = this.telemetry!;
+    if (!telemetry.measuring) telemetry.beginSubmission(source);
+    const admission = beginGpuAdmission(this.device);
+    try {
+      const encoder = this.owner!.createCommandEncoder();
+      this.owner!.encode(encoder, this.context.getCurrentTexture().createView());
+      const pending = encoder.submit();
+      const accepted = admission();
+      const validation = Promise.all([pending, accepted]);
+      const identity = telemetry.endSubmission(validation);
+      await validation;
+      if (!identity) throw Error("Native presentation submitted no command buffer");
+      this.latestSubmission = identity;
+      return identity;
+    } catch (error) {
+      telemetry.cancelSubmission();
+      await admission().catch(() => {});
+      throw error;
+    }
+  }
+  settlePresentedFrame(signal?: AbortSignal): Promise<void> {
+    if (this.startupCallback) {
+      this.startupRequested = true;
+      if (!this.startupReady) {
+        let resolve!: () => void, reject!: (error: unknown) => void;
+        const promise = new Promise<void>((yes, no) => {
+          resolve = yes;
+          reject = no;
+        });
+        this.startupReady = { promise, resolve, reject };
+      }
+      return this.startupReady.promise;
+    }
+    const prior = this.pendingPresentation,
+      previous = this.readiness;
+    const job = (async () => {
+      await this.ready;
+      await previous;
+      await prior;
+      this.check(signal);
+      if (!this.presentedFrame) return;
+      await this.lifecycle.run(async () => {
+        const { view } = this.presentedFrame!;
+        for (let i = 0; i < 2; i++) {
+          this.check(signal);
+          this.telemetry!.beginSubmission("render-only");
+          await this.admitted(() => this.owner!.settleGrass(view.camera));
+          this.check(signal);
+          await this.admitted(() => this.owner!.prepare(view));
+          this.check(signal);
+          await this.submit("render-only");
+          this.readinessSubmissions++;
+          await this.device.queue.onSubmittedWorkDone();
+          this.check(signal);
+          if (i === 0) await twoFrames();
+        }
+      });
+    })();
+    // This is an ownership barrier, not the old scene's cancellation result.
+    // The original returned job still reports its failure to its caller.
+    const barrier = job.then(
+      () => {},
+      () => {
+        this.telemetry?.cancelSubmission();
+      },
+    );
+    this.readiness = barrier;
+    const clear = () => {
+      if (this.readiness === barrier) this.readiness = null;
+    };
+    void barrier.then(clear);
+    return job;
+  }
+  heightAt(x: number, y: number) {
+    return this.picking?.surfaceHeightAt(x, y, (x, y) => this.owner?.heightAt(x, y) ?? 0) ?? 0;
+  }
+  raycastGround(ray: WorldRay) {
+    return this.picking?.raycast(ray) ?? null;
+  }
+  frameMetrics() {
+    return { ...this.metrics, gpuSubmission: this.latestSubmission };
+  }
+  gpuEventsSince(sequence: number) {
+    return this.telemetry?.eventsSince(sequence) ?? null;
+  }
+  memoryInfo() {
+    const value = this.allocations?.snapshot();
+    return value
+      ? {
+          scope: "requested-webgpu-resources" as const,
+          buffers: value.buffers.liveCount,
+          textures: value.textures.liveCount,
+          bufferBytes: value.buffers.currentBytes,
+          textureBytes: value.textures.currentBytes,
+          totalBytes: value.currentBytes,
+        }
+      : null;
+  }
+  /** The pose the crowd owner actually admitted, not the instance scratch the next
+   *  frame rebuilds in place. */
+  debugSoldierAnim(index: number) {
+    return this.owner?.debugSoldierAnim(index) ?? null;
+  }
+  /** Reload the published crowd after a bake. The replacement is staged: a failed
+   *  load or admission keeps the last valid world, disposal releases the staged
+   *  resources, and success keeps the current playback while invalidating the frozen
+   *  presentation so the next frame actually resubmits. */
+  reloadSoldierAssets(): Promise<void> {
+    const prior = this.pendingPresentation,
+      previous = this.readiness;
+    const job = (async () => {
+      await this.ready;
+      await previous;
+      await prior;
+      this.check();
+      const scene = this.owner;
+      if (!scene) throw Error("Battle scene is unavailable");
+      const published = await this.assets();
+      this.check();
+      this.assertActivePoses(published, scene);
+      await this.lifecycle.run(async () => {
+        await scene.replaceCrowdAssets(published, () => {
+          this.check();
+          this.assertActivePoses(published, scene);
+        });
+        this.check();
+        this.soldierAssets = published.assets;
+        // Replacement changes the drawn generation: the retained frozen image is no
+        // longer what this crowd would present. Built instances stay, so playback continues.
+        this.invalidate();
+      });
+    })();
+    // Published synchronously, as in settlePresentedFrame: presentations started
+    // from here on park on this barrier instead of racing the replacement into
+    // scene ownership, and they do not inherit its failure.
+    const barrier = job.then(
+      () => {},
+      () => {},
+    );
+    this.readiness = barrier;
+    void barrier.then(() => {
+      if (this.readiness === barrier) this.readiness = null;
+    });
+    return job;
+  }
+  /** Explicit whole-population seating verification, invoked only on request:
+   *  presentation and `stats()` never scan the population, and this adds no GPU
+   *  submission, readback or wait of its own. Ordering follows
+   *  `reloadSoldierAssets` — readiness and a presentation in flight settle first
+   *  — after which the identity comparison and the measurement are one
+   *  synchronous turn, so nothing can replace the crowd or terrain between them.
+   *  The result is returned, never cached: `stats().seating` stays unavailable. */
+  async verifySeating(signal?: AbortSignal): Promise<BattleSeatingInspection> {
+    const prior = this.pendingPresentation,
+      previous = this.readiness;
+    await this.ready;
+    await previous;
+    // Another caller's failed presentation is not a seating failure, and that
+    // caller still receives its own error.
+    await prior?.catch(() => {});
+    this.check(signal);
+    const presented = this.presentedFrame;
+    const report = (
+      measurement: AdmittedSeatingMeasurement | null,
+      unavailable: string | null,
+      installed: AdmittedSeatingIdentity | null,
+    ): BattleSeatingInspection => ({
+      measurement,
+      unavailable,
+      installed,
+      scope: SEATING_INSPECTION_SCOPE,
+      presentedFrameId: presented?.renderedFrameId ?? null,
+      presented: presented?.seating ? { ...presented.seating } : null,
+      expectedSoldiers: this.staticData.soldierUnit.length,
+    });
+    const scene = this.owner;
+    if (!scene) return report(null, "Battle scene is unavailable", null);
+    if (!presented) return report(null, "No frame has presented a pose to verify", null);
+    const installed = scene.admittedSeatingIdentity();
+    // Checked BEFORE measuring: a pose the renderer no longer presents must not
+    // be walked and reported under the last frame that did present.
+    if (!sameSeating(presented.seating, installed))
+      return report(
+        null,
+        "The admitted crowd pose or terrain generation is no longer the one the last presented frame drew",
+        installed,
+      );
+    const verified = scene.verifyAdmittedSeating();
+    return report(verified.measurement, verified.unavailable, verified.installed);
+  }
+  stats(): BattleRendererStats {
+    const scene = this.owner;
+    const installedWorld = scene?.stats() ?? null;
+    const native = installedWorld;
+    const identity = scene ? TYPEGPU_BATTLE_IDENTITY : null;
+    const terrainContent: (BattleTerrainSceneContent & { grass: unknown }) | null = installedWorld
+      ? { ...installedWorld.terrain, grass: installedWorld.grass }
+      : null;
+    const cueContent: BattleTacticalLineContent | null = installedWorld?.tacticalLines ?? null;
+    const gpuFrame = this.frameTiming.correlatedFrame();
+    const presented = this.presentedFrame;
+    const camera = presented?.view.camera ?? null;
+    const drawCalls = presentedDrawCalls(presented);
+    const diagnostics: BattleInstalledSceneDiagnostics = {
+      // The population the installed static simulation data says must be drawn.
+      // `soldiers` below it means the crowd owner is behind, not a smaller army.
+      expectedSoldiers: this.staticData.soldierUnit.length,
+      substrate: identity?.substrate ?? null,
+      projection: identity?.projection ?? null,
+      // Measured, not declared: the id of the environment its owner installed.
+      environment: installedWorld?.environment ?? null,
+      // Detached from the caller's mutable snapshot. NOT the scene's
+      // `preparedCamera`, which a preparation still in flight has already moved
+      // past this one.
+      camera: camera
+        ? { ...camera, camera3d: { ...camera.camera3d, target: [...camera.camera3d.target] } }
+        : null,
+      presentedFrameId: presented?.renderedFrameId ?? null,
+      depth: installedWorld?.depth ?? null,
+      // Unavailable, never a synthesized pass or a rotating sample presented as
+      // a whole-population verdict: see `openObligations`.
+      seating: null,
+      // The commands the presented frame handed to the queue, or the reason it
+      // could not be said honestly — never a zero standing in for either.
+      drawCalls: drawCalls.count,
+      drawCallsUnavailable: drawCalls.unavailable,
+      openObligations: [
+        ...OPEN_DIAGNOSTIC_OBLIGATIONS.filter(
+          (obligation) => obligation !== "drawCalls" || drawCalls.unavailable !== null,
+        ),
+        ...(installedWorld ? [] : UNOWNED_WORLD_DIAGNOSTICS),
+      ],
+    };
+    return {
+      ready: this.soldierAssets !== null && native?.crowd.ready === true,
+      soldiers: native?.crowd.instances ?? 0,
+      renderer: "gpu",
+      device: this.deviceLabel,
+      backend: this.backend,
+      ...diagnostics,
+      terrain: terrainContent,
+      tacticalLines: cueContent,
+      shadows: installedWorld?.shadows ?? null,
+      performance: {
+        buildMs: this.metrics.buildMs,
+        uploadMs: this.metrics.uploadMs,
+        drawMs: this.metrics.drawMs,
+        frameCpuMs: this.metrics.frameCpuMs,
+        // The last presented frame whose own submission completed: its observed
+        // span, gaps and compute included. Not a sum of overlapping passes, and
+        // not the frame currently in flight — `gpuFrame` identifies which frame
+        // it is. Null while nothing has completed.
+        gpuTimeMs: gpuFrame?.observedGpuSpanMs ?? null,
+        gpuTimeMetric: gpuFrame ? "correlated-complete-submission-span" : null,
+        gpuFrame,
+      },
+      native,
+      submission: {
+        actualQueueSubmissions: this.telemetry?.submissionCount ?? 0,
+        readinessSubmissions: this.readinessSubmissions,
+        latest: this.latestSubmission,
+      },
+      gpuTiming: this.telemetry?.stats() ?? { supported: false },
+      gpuCorrelation: this.frameTiming.status(),
+      allocations: this.allocations
+        ? {
+            scope: "requested buffer and texture bytes, including telemetry; not physical VRAM",
+            ...this.allocations.snapshot(),
+          }
+        : null,
+      cpuCoverage:
+        "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+      picking: { triangles: this.picking?.triangles ?? 0 },
+    };
+  }
+  dispose() {
+    this.terrainAvailable();
+    this.frameTiming.dispose();
+    this.lifecycle.dispose();
+    this.audio?.dispose();
+    this.audio = null;
+  }
 }

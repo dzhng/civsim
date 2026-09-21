@@ -1,7 +1,7 @@
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
-import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
+import { createGroundMesh } from "@packages/photoreal-renderer/src/landscape/terrainLayer";
 import {
   createLandscapeGroundMaterial,
   createLandscapeGroundMesh,

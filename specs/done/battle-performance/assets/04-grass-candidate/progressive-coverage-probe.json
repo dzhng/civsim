@@ -1,0 +1,32 @@
+{
+  "scope": "Hardware camera motion correctness probe; screenshots interrupt cadence, not a performance measurement",
+  "date": "2026-09-16",
+  "candidateBase": "e02bad5a",
+  "frames": 180,
+  "partialCoverageFrames": 79,
+  "nonresidentActiveCoverageFrames": 0,
+  "publishedRadiusM": {
+    "min": 47.9375,
+    "max": 279.9375
+  },
+  "consoleMessages": [
+    "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+  ],
+  "tests": {
+    "focusedGrassTests": 38,
+    "files": 6,
+    "webTypeScript": "pass"
+  },
+  "remaining": [
+    "Temporal motion acceptance and upload/frame-time comparison.",
+    "No performance comparison.",
+    "Not integrated."
+  ],
+  "candidateCommit": "fbbef362",
+  "review": "Independent review found off-terrain stale retention; reproduced and fixed with a new regression test.",
+  "visualReview": {
+    "scope": "six before/after still pairs",
+    "findings": "No conspicuous new holes, rectangular boundaries, stripes or broken perspective; subtle distant-density differences. Shared flat olive ground and needlelike blades remain.",
+    "limits": "Stills cannot establish transient popping, shimmer, animation smoothness or FPS."
+  }
+}

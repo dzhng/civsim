@@ -1,0 +1,18 @@
+{
+  "saved": [
+    0,
+    255,
+    0,
+    255
+  ],
+  "live": [
+    255,
+    0,
+    0,
+    255
+  ],
+  "passed": true,
+  "sequence": "submit green; immediately toBlob with no GPU wait; submit red; await original blob; next animation callback submit red; wait GPU completion; second toBlob",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "readback": "Both colors read from decoded PNG blobs; direct drawImage(canvas) returned a stale bitmap in this Chrome build."
+}

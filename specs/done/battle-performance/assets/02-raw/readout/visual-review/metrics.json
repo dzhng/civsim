@@ -1,0 +1,708 @@
+{
+  "pairOrder": "actual above expected; before above current for before-current",
+  "zoom": "nearest-neighbor 3x, no smoothing",
+  "metrics": [
+    {
+      "samples": 1,
+      "name": "chips",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 34,
+        "pixels": 5929
+      },
+      "expectedBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 34,
+        "pixels": 5929
+      },
+      "crop": {
+        "x": 228,
+        "y": 164,
+        "width": 326,
+        "height": 42
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 1,
+      "name": "growth",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 7,
+        "y": 130,
+        "width": 754,
+        "height": 186,
+        "pixels": 12528
+      },
+      "expectedBounds": {
+        "x": 7,
+        "y": 130,
+        "width": 754,
+        "height": 186,
+        "pixels": 12528
+      },
+      "crop": {
+        "x": 3,
+        "y": 126,
+        "width": 762,
+        "height": 194
+      },
+      "actualVsExpected": {
+        "changedPixels": 17,
+        "totalPixels": 393216,
+        "changedRatio": 0.000043233235677083336,
+        "rgbaMAE": 0.000025431315104166668,
+        "maxChannelDelta": 1,
+        "grayMAE": 0.00003104502360026042,
+        "grayRMSE": 0.005237669390455783,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": {
+          "x": 96,
+          "y": 175,
+          "width": 550,
+          "height": 138
+        }
+      }
+    },
+    {
+      "samples": 1,
+      "name": "growth",
+      "comparison": "source-before expected vs current expected",
+      "beforeBounds": {
+        "x": 7,
+        "y": 130,
+        "width": 735,
+        "height": 186,
+        "pixels": 9009
+      },
+      "currentBounds": {
+        "x": 7,
+        "y": 130,
+        "width": 754,
+        "height": 186,
+        "pixels": 12528
+      },
+      "decodedDiff": {
+        "changedPixels": 12155,
+        "totalPixels": 393216,
+        "changedRatio": 0.030911763509114582,
+        "rgbaMAE": 1.0510616302490234,
+        "maxChannelDelta": 225,
+        "grayMAE": 1.3923977289835818,
+        "grayRMSE": 10.70193268804402,
+        "grayDiffRatio16": 0.022844950358072918,
+        "grayDiffRatio32": 0.01522064208984375,
+        "grayDiffRatio64": 0.007558186848958333,
+        "bounds": {
+          "x": 7,
+          "y": 130,
+          "width": 754,
+          "height": 186
+        }
+      }
+    },
+    {
+      "samples": 1,
+      "name": "shrink",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 16,
+        "pixels": 522
+      },
+      "expectedBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 16,
+        "pixels": 522
+      },
+      "crop": {
+        "x": 263,
+        "y": 182,
+        "width": 41,
+        "height": 24
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 1,
+      "name": "shrink",
+      "comparison": "source-before expected vs current expected",
+      "beforeBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 16,
+        "pixels": 452
+      },
+      "currentBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 16,
+        "pixels": 522
+      },
+      "decodedDiff": {
+        "changedPixels": 528,
+        "totalPixels": 393216,
+        "changedRatio": 0.0013427734375,
+        "rgbaMAE": 0.046735127766927086,
+        "maxChannelDelta": 184,
+        "grayMAE": 0.06150636342366534,
+        "grayRMSE": 2.34911911701926,
+        "grayDiffRatio16": 0.0008799235026041666,
+        "grayDiffRatio32": 0.0006306966145833334,
+        "grayDiffRatio64": 0.0003611246744791667,
+        "bounds": {
+          "x": 267,
+          "y": 186,
+          "width": 33,
+          "height": 16
+        }
+      }
+    },
+    {
+      "samples": 1,
+      "name": "restore",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 34,
+        "pixels": 5929
+      },
+      "expectedBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 34,
+        "pixels": 5929
+      },
+      "crop": {
+        "x": 228,
+        "y": 164,
+        "width": 326,
+        "height": 42
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 1,
+      "name": "rotate",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 275,
+        "y": 160,
+        "width": 261,
+        "height": 52,
+        "pixels": 6017
+      },
+      "expectedBounds": {
+        "x": 275,
+        "y": 160,
+        "width": 261,
+        "height": 52,
+        "pixels": 6017
+      },
+      "crop": {
+        "x": 271,
+        "y": 156,
+        "width": 269,
+        "height": 60
+      },
+      "actualVsExpected": {
+        "changedPixels": 1,
+        "totalPixels": 393216,
+        "changedRatio": 0.0000025431315104166665,
+        "rgbaMAE": 6.357828776041666e-7,
+        "maxChannelDelta": 1,
+        "grayMAE": 0.0000018188476562499998,
+        "grayRMSE": 0.0011405436614834172,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": {
+          "x": 534,
+          "y": 177,
+          "width": 1,
+          "height": 1
+        }
+      }
+    },
+    {
+      "samples": 1,
+      "name": "bright",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 34,
+        "pixels": 5929
+      },
+      "expectedBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 34,
+        "pixels": 5929
+      },
+      "crop": {
+        "x": 228,
+        "y": 164,
+        "width": 326,
+        "height": 42
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 1,
+      "name": "behind",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "bounds": null,
+        "pixels": 0
+      },
+      "expectedBounds": {
+        "bounds": null,
+        "pixels": 0
+      },
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 32
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 4,
+      "name": "chips",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 35,
+        "pixels": 6015
+      },
+      "expectedBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 35,
+        "pixels": 6015
+      },
+      "crop": {
+        "x": 228,
+        "y": 164,
+        "width": 326,
+        "height": 43
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 4,
+      "name": "growth",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 7,
+        "y": 130,
+        "width": 754,
+        "height": 186,
+        "pixels": 12748
+      },
+      "expectedBounds": {
+        "x": 7,
+        "y": 130,
+        "width": 754,
+        "height": 186,
+        "pixels": 12748
+      },
+      "crop": {
+        "x": 3,
+        "y": 126,
+        "width": 762,
+        "height": 194
+      },
+      "actualVsExpected": {
+        "changedPixels": 17,
+        "totalPixels": 393216,
+        "changedRatio": 0.000043233235677083336,
+        "rgbaMAE": 0.000019709269205729168,
+        "maxChannelDelta": 1,
+        "grayMAE": 0.00003067067464192708,
+        "grayRMSE": 0.0051116175654022065,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": {
+          "x": 96,
+          "y": 175,
+          "width": 550,
+          "height": 138
+        }
+      }
+    },
+    {
+      "samples": 4,
+      "name": "growth",
+      "comparison": "source-before expected vs current expected",
+      "beforeBounds": {
+        "x": 6,
+        "y": 130,
+        "width": 737,
+        "height": 186,
+        "pixels": 10526
+      },
+      "currentBounds": {
+        "x": 7,
+        "y": 130,
+        "width": 754,
+        "height": 186,
+        "pixels": 12748
+      },
+      "decodedDiff": {
+        "changedPixels": 13735,
+        "totalPixels": 393216,
+        "changedRatio": 0.034929911295572914,
+        "rgbaMAE": 1.0355091094970703,
+        "maxChannelDelta": 225,
+        "grayMAE": 1.371102166239454,
+        "grayRMSE": 10.440634374057508,
+        "grayDiffRatio16": 0.023653666178385418,
+        "grayDiffRatio32": 0.0140838623046875,
+        "grayDiffRatio64": 0.00695037841796875,
+        "bounds": {
+          "x": 6,
+          "y": 130,
+          "width": 755,
+          "height": 186
+        }
+      }
+    },
+    {
+      "samples": 4,
+      "name": "shrink",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 17,
+        "pixels": 548
+      },
+      "expectedBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 17,
+        "pixels": 548
+      },
+      "crop": {
+        "x": 263,
+        "y": 182,
+        "width": 41,
+        "height": 25
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 4,
+      "name": "shrink",
+      "comparison": "source-before expected vs current expected",
+      "beforeBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 16,
+        "pixels": 452
+      },
+      "currentBounds": {
+        "x": 267,
+        "y": 186,
+        "width": 33,
+        "height": 17,
+        "pixels": 548
+      },
+      "decodedDiff": {
+        "changedPixels": 554,
+        "totalPixels": 393216,
+        "changedRatio": 0.0014088948567708333,
+        "rgbaMAE": 0.04575347900390625,
+        "maxChannelDelta": 184,
+        "grayMAE": 0.060398748779296955,
+        "grayRMSE": 2.3310535464515527,
+        "grayDiffRatio16": 0.00087738037109375,
+        "grayDiffRatio32": 0.0005467732747395834,
+        "grayDiffRatio64": 0.0003611246744791667,
+        "bounds": {
+          "x": 267,
+          "y": 186,
+          "width": 33,
+          "height": 17
+        }
+      }
+    },
+    {
+      "samples": 4,
+      "name": "restore",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 35,
+        "pixels": 6015
+      },
+      "expectedBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 35,
+        "pixels": 6015
+      },
+      "crop": {
+        "x": 228,
+        "y": 164,
+        "width": 326,
+        "height": 43
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 4,
+      "name": "rotate",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 275,
+        "y": 159,
+        "width": 261,
+        "height": 53,
+        "pixels": 6255
+      },
+      "expectedBounds": {
+        "x": 275,
+        "y": 159,
+        "width": 261,
+        "height": 53,
+        "pixels": 6255
+      },
+      "crop": {
+        "x": 271,
+        "y": 155,
+        "width": 269,
+        "height": 61
+      },
+      "actualVsExpected": {
+        "changedPixels": 1,
+        "totalPixels": 393216,
+        "changedRatio": 0.0000025431315104166665,
+        "rgbaMAE": 6.357828776041666e-7,
+        "maxChannelDelta": 1,
+        "grayMAE": 0.0000018188476562499998,
+        "grayRMSE": 0.0011405436614834172,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": {
+          "x": 534,
+          "y": 177,
+          "width": 1,
+          "height": 1
+        }
+      }
+    },
+    {
+      "samples": 4,
+      "name": "bright",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 35,
+        "pixels": 6015
+      },
+      "expectedBounds": {
+        "x": 232,
+        "y": 168,
+        "width": 318,
+        "height": 35,
+        "pixels": 6015
+      },
+      "crop": {
+        "x": 228,
+        "y": 164,
+        "width": 326,
+        "height": 43
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    },
+    {
+      "samples": 4,
+      "name": "behind",
+      "width": 768,
+      "height": 512,
+      "actualBounds": {
+        "bounds": null,
+        "pixels": 0
+      },
+      "expectedBounds": {
+        "bounds": null,
+        "pixels": 0
+      },
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 32
+      },
+      "actualVsExpected": {
+        "changedPixels": 0,
+        "totalPixels": 393216,
+        "changedRatio": 0,
+        "rgbaMAE": 0,
+        "maxChannelDelta": 0,
+        "grayMAE": 0,
+        "grayRMSE": 0,
+        "grayDiffRatio16": 0,
+        "grayDiffRatio32": 0,
+        "grayDiffRatio64": 0,
+        "bounds": null
+      }
+    }
+  ]
+}

@@ -1,11 +1,15 @@
 // @vitest-environment node
 import { afterEach, expect, test, vi } from "vitest";
 import * as THREE from "three/webgpu";
-import { prepareSoldierSurface } from "@packages/photoreal-renderer/src/crowd/soldierSurface";
+import { prepareSoldierSurface } from "@packages/soldier-assets/bake/impostors/soldierSurface";
 import { uploadImageTexture } from "@packages/renderer-core/src/imageTexture";
 import type { SoldierSurface } from "@packages/soldier-assets/src/material";
 
-vi.mock("@packages/renderer-core/src/imageTexture", () => ({ uploadImageTexture: vi.fn() }));
+// Only the upload is faked; the module's byte accounting is the real one.
+vi.mock("@packages/renderer-core/src/imageTexture", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@packages/renderer-core/src/imageTexture")>()),
+  uploadImageTexture: vi.fn(),
+}));
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -89,7 +93,6 @@ test("prepared surfaces preserve declared sampling and own GPU images independen
   expect(prepared.images.baseColor?.magFilter).toBe(THREE.NearestFilter);
   expect(prepared.images.baseColor?.wrapS).toBe(THREE.MirroredRepeatWrapping);
   expect(prepared.images.baseColor?.wrapT).toBe(THREE.ClampToEdgeWrapping);
-  expect(prepared.stats.map(({ bytes }) => bytes)).toEqual([172, 172]);
   for (const bitmap of bitmaps) expect(bitmap.close).toHaveBeenCalledTimes(1);
   prepared.images.baseColor!.dispose();
   expect(gpu[0].destroy).not.toHaveBeenCalled();

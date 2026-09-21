@@ -75,8 +75,8 @@ export async function run(ctx) {
     "WebGPU battle minimap scene uses sim-sourced terrain and shared depth contract",
     state.renderer === "gpu" &&
       hasBattleWorldDepthContract(state.renderStats) &&
-      state.renderStats?.terrain?.fixture === "sim-tint" &&
-      state.renderStats.terrain.layer === "photoreal-battle-ground" &&
+      state.renderStats?.terrain?.installed === true &&
+      state.renderStats.terrain.generation > 0 &&
       state.renderStats.terrain.groundTriangles > 1000 &&
       state.renderStats.terrain.scenery > 0,
     JSON.stringify(state.renderStats),

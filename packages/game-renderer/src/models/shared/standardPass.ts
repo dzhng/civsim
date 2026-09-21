@@ -1,16 +1,21 @@
 import { standardInstanceAppearance, type StandardInstance } from "./standardInstance";
-import type { RawFrameShell, WorldRenderPass } from '../../../../renderer-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../../renderer-core/src/cameraWgsl';
-import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from '../../../../renderer-core/src/gpuBuffers';
-import { cameraOnlyPipeline } from '../../../../renderer-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from "../../../../renderer-core/src/frameShell";
+import { WORLD_CAMERA_WGSL } from "../../../../renderer-core/src/cameraWgsl";
+import {
+  GrowableBuffer,
+  makeIndexBuffer,
+  makeVertexBuffer,
+} from "../../../../renderer-core/src/gpuBuffers";
+import { cameraOnlyPipeline } from "../../../../renderer-core/src/pipelineContracts";
 import {
   buildStandardMesh,
   STANDARD_SIZE_TIER_IDS,
   STANDARD_VERTEX_STRIDE_FLOATS,
   STANDARD_WAVE_BACK_LOBE,
+  STANDARD_WAVE,
   type StandardMeshData,
   type StandardSizeTier,
-} from './standardAsset';
+} from "./standardAsset";
 
 const STANDARD_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -26,9 +31,9 @@ struct VsOut {
 // back lobe (toward the pole) is quarter-amplitude so the cloth never swings
 // back far enough to pierce the pole it hangs in front of.
 fn clothWave(local: vec3f, weight: f32, phase: f32, strength: f32) -> f32 {
-  let primary = sin(cam.time * 2.15 + phase + local.x * 5.2 + local.z * 1.25);
-  let secondary = sin(cam.time * 3.1 + phase * 0.71 + local.x * 9.4 - local.z * 0.52);
-  let wave = primary * 0.74 + secondary * 0.26;
+  let primary = sin(cam.time * ${STANDARD_WAVE.primaryTime} + phase + local.x * ${STANDARD_WAVE.primaryX} + local.z * ${STANDARD_WAVE.primaryZ});
+  let secondary = sin(cam.time * ${STANDARD_WAVE.secondaryTime} + phase * ${STANDARD_WAVE.secondaryPhase} + local.x * ${STANDARD_WAVE.secondaryX} - local.z * ${STANDARD_WAVE.secondaryZ});
+  let wave = primary * ${STANDARD_WAVE.primaryMix} + secondary * ${STANDARD_WAVE.secondaryMix};
   let shaped = select(wave, wave * ${STANDARD_WAVE_BACK_LOBE}, wave > 0.0);
   return weight * strength * shaped;
 }
@@ -124,12 +129,19 @@ export class SharedStandardPass {
   constructor(shell: RawFrameShell) {
     this.shell = shell;
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'shared-standard-wgsl', code: STANDARD_WGSL });
-    this.opaquePipeline = this.makePipeline(module, 'opaque');
-    this.shadowPipeline = this.makePipeline(module, 'shadow');
+    const module = device.createShaderModule({
+      label: "shared-standard-wgsl",
+      code: STANDARD_WGSL,
+    });
+    this.opaquePipeline = this.makePipeline(module, "opaque");
+    this.shadowPipeline = this.makePipeline(module, "shadow");
     this.meshes = standardTierRecord((tier) => buildStandardMesh(tier));
     this.vertexBuffers = standardTierRecord((tier) =>
-      makeVertexBuffer(device, `shared-standard-${tier}-vertices`, this.meshes[tier].opaque.vertices),
+      makeVertexBuffer(
+        device,
+        `shared-standard-${tier}-vertices`,
+        this.meshes[tier].opaque.vertices,
+      ),
     );
     this.indexBuffers = standardTierRecord((tier) =>
       makeIndexBuffer(device, `shared-standard-${tier}-indices`, this.meshes[tier].opaque.indices),
@@ -142,10 +154,20 @@ export class SharedStandardPass {
       ),
     );
     this.shadowIndexBuffers = standardTierRecord((tier) =>
-      makeIndexBuffer(device, `shared-standard-${tier}-shadow-indices`, this.meshes[tier].shadow.indices),
+      makeIndexBuffer(
+        device,
+        `shared-standard-${tier}-shadow-indices`,
+        this.meshes[tier].shadow.indices,
+      ),
     );
-    this.instanceBuffers = standardTierRecord((tier) =>
-      new GrowableBuffer(device, `shared-standard-${tier}-instances`, GPUBufferUsage.VERTEX, 32 * 16 * 4),
+    this.instanceBuffers = standardTierRecord(
+      (tier) =>
+        new GrowableBuffer(
+          device,
+          `shared-standard-${tier}-instances`,
+          GPUBufferUsage.VERTEX,
+          32 * 16 * 4,
+        ),
     );
     this.counts = standardTierRecord(() => 0);
   }
@@ -179,43 +201,44 @@ export class SharedStandardPass {
       meshIndexCountByTier: standardTierRecord(
         (tier) => this.meshes[tier].opaque.indexCount + this.meshes[tier].shadow.indexCount,
       ),
-      weightChannel: 'uvWeightMaterial.z: 0 rigid hardware, >0 cloth/trim/emblem',
-      materialChannel: 'uvWeightMaterial.w: pole/gold/cloth/trim/emblem/shadow',
-      liveryContract: 'instance livery overrides field/trim/emblem; battle faction table remains default',
-      waveContract: 'cam.time + deterministic per-instance phase + strength',
-      layer: 'shared-3d-standard-asset',
+      weightChannel: "uvWeightMaterial.z: 0 rigid hardware, >0 cloth/trim/emblem",
+      materialChannel: "uvWeightMaterial.w: pole/gold/cloth/trim/emblem/shadow",
+      liveryContract:
+        "instance livery overrides field/trim/emblem; battle faction table remains default",
+      waveContract: "cam.time + deterministic per-instance phase + strength",
+      layer: "shared-3d-standard-asset",
     };
   }
 
-  private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
+  private makePipeline(module: GPUShaderModule, material: "opaque" | "shadow") {
     return cameraOnlyPipeline(this.shell, {
       label:
-        material === 'opaque'
-          ? 'shared-standard-opaque-depth-pipeline'
-          : 'shared-standard-shadow-decal-pipeline',
+        material === "opaque"
+          ? "shared-standard-opaque-depth-pipeline"
+          : "shared-standard-shadow-decal-pipeline",
       module,
       buffers: [
-          {
-            arrayStride: STANDARD_VERTEX_STRIDE_FLOATS * 4,
-            attributes: [
-              { shaderLocation: 0, offset: 0, format: 'float32x3' },
-              { shaderLocation: 1, offset: 12, format: 'float32x3' },
-              { shaderLocation: 2, offset: 24, format: 'float32x4' },
-            ],
-          },
-          {
-            arrayStride: 64,
-            stepMode: 'instance',
-            attributes: [
-              { shaderLocation: 3, offset: 0, format: 'float32x4' },
-              { shaderLocation: 4, offset: 16, format: 'float32x4' },
-              { shaderLocation: 5, offset: 32, format: 'float32x4' },
-              { shaderLocation: 6, offset: 48, format: 'float32x4' },
-            ],
-          },
+        {
+          arrayStride: STANDARD_VERTEX_STRIDE_FLOATS * 4,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 1, offset: 12, format: "float32x3" },
+            { shaderLocation: 2, offset: 24, format: "float32x4" },
+          ],
+        },
+        {
+          arrayStride: 64,
+          stepMode: "instance",
+          attributes: [
+            { shaderLocation: 3, offset: 0, format: "float32x4" },
+            { shaderLocation: 4, offset: 16, format: "float32x4" },
+            { shaderLocation: 5, offset: 32, format: "float32x4" },
+            { shaderLocation: 6, offset: 48, format: "float32x4" },
+          ],
+        },
       ],
-      target: material === 'opaque' ? 'opaque' : 'alpha',
-      depth: material === 'opaque' ? 'read-write' : 'read',
+      target: material === "opaque" ? "opaque" : "alpha",
+      depth: material === "opaque" ? "read-write" : "read",
     });
   }
 
@@ -228,12 +251,12 @@ export class SharedStandardPass {
       const mesh = this.meshes[tier];
       if (shadow) {
         pass.setVertexBuffer(0, this.shadowVertexBuffers[tier]);
-        pass.setIndexBuffer(this.shadowIndexBuffers[tier], 'uint16');
+        pass.setIndexBuffer(this.shadowIndexBuffers[tier], "uint16");
         pass.setVertexBuffer(1, this.instanceBuffers[tier].buffer);
         pass.drawIndexed(mesh.shadow.indexCount, count);
       } else {
         pass.setVertexBuffer(0, this.vertexBuffers[tier]);
-        pass.setIndexBuffer(this.indexBuffers[tier], 'uint16');
+        pass.setIndexBuffer(this.indexBuffers[tier], "uint16");
         pass.setVertexBuffer(1, this.instanceBuffers[tier].buffer);
         pass.drawIndexed(mesh.opaque.indexCount, count);
       }

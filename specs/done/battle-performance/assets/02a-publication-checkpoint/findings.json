@@ -1,0 +1,2746 @@
+[
+  {
+    "name": "origin-motion-00",
+    "window": "origin-motion",
+    "elapsedMs": 0,
+    "frameId": 21,
+    "simTick": 9000,
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 200.00000054171505,
+        "fovY": 0.6103773738604016,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          75,
+          -120,
+          -3.7355256974697113
+        ],
+        "yaw": -1.57
+      },
+      "x": 75,
+      "y": -120,
+      "zoom": 7.7797319521043,
+      "zoomT": 0.9676826802315189
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          339657,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          260910,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          339657,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          260910,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 5349,
+      "l1": 580,
+      "l2": 0,
+      "l3": 979
+    },
+    "replayCrowd": {
+      "l0": 5349,
+      "l1": 580,
+      "l2": 0,
+      "l3": 979
+    },
+    "frameHash": "35f99c2efe8a088adfeaab3863a47989d3527dd2ea9c8f2868007d1078ab8dca"
+  },
+  {
+    "name": "origin-motion-01",
+    "window": "origin-motion",
+    "elapsedMs": 0,
+    "frameId": 22,
+    "simTick": 9002,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 199.99852286312762,
+        "fovY": 0.6103781328395328,
+        "near": 1,
+        "pitch": 0.6499970459636745,
+        "target": [
+          75.00088621089768,
+          -119.99911378910232,
+          -3.7354995835842715
+        ],
+        "yaw": -1.5699929103128187
+      },
+      "x": 75.00088621089768,
+      "y": -119.99911378910232,
+      "zoom": 7.779732843955953,
+      "zoomT": 0.9676828110823407
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 5355,
+      "l1": 578,
+      "l2": 0,
+      "l3": 972
+    },
+    "replayCrowd": {
+      "l0": 5355,
+      "l1": 578,
+      "l2": 0,
+      "l3": 972
+    },
+    "frameHash": "e8dbdd18ffefaebf82f4dbecebecb93c2319d223e06bac349d7d4ce0d9baf883"
+  },
+  {
+    "name": "origin-motion-02",
+    "window": "origin-motion",
+    "elapsedMs": 66.6649999999936,
+    "frameId": 23,
+    "simTick": 9006,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 199.9845035750668,
+        "fovY": 0.6103853338992793,
+        "near": 1,
+        "pitch": 0.649969008397045,
+        "target": [
+          75.00929748088652,
+          -119.99070251911348,
+          -3.7352517295557277
+        ],
+        "yaw": -1.569925620152908
+      },
+      "x": 75.00929748088652,
+      "y": -119.99070251911348,
+      "zoom": 7.779741305438189,
+      "zoomT": 0.9676840525353327
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 5366,
+      "l1": 577,
+      "l2": 0,
+      "l3": 965
+    },
+    "replayCrowd": {
+      "l0": 5366,
+      "l1": 577,
+      "l2": 0,
+      "l3": 965
+    },
+    "frameHash": "dfa0d06b8a57be576a6a9ded6d59b862dacffa4c99c35cf143b8e370ed2adc03"
+  },
+  {
+    "name": "origin-motion-03",
+    "window": "origin-motion",
+    "elapsedMs": 216.65499999999884,
+    "frameId": 24,
+    "simTick": 9010,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 199.90743985758309,
+        "fovY": 0.6104249290045665,
+        "near": 1,
+        "pitch": 0.6498148812972212,
+        "target": [
+          75.05553561083366,
+          -119.94446438916634,
+          -3.733889235331617
+        ],
+        "yaw": -1.5695557151133308
+      },
+      "x": 75.05553561083366,
+      "y": -119.94446438916634,
+      "zoom": 7.779787822960457,
+      "zoomT": 0.9676908774999898
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 5379,
+      "l1": 576,
+      "l2": 0,
+      "l3": 953
+    },
+    "replayCrowd": {
+      "l0": 5379,
+      "l1": 576,
+      "l2": 0,
+      "l3": 953
+    },
+    "frameHash": "b1f5b64c00846eb8c97ede5bf716aa6cbe5300cb05f47e785fbaf82e6c14ff1c"
+  },
+  {
+    "name": "origin-motion-04",
+    "window": "origin-motion",
+    "elapsedMs": 533.3099999999977,
+    "frameId": 25,
+    "simTick": 9014,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 199.8187652442548,
+        "fovY": 0.6104705128786383,
+        "near": 1,
+        "pitch": 0.64963752849946,
+        "target": [
+          75.108741450162,
+          -119.891258549838,
+          -3.732321424331076
+        ],
+        "yaw": -1.569130068398704
+      },
+      "x": 75.108741450162,
+      "y": -119.891258549838,
+      "zoom": 7.779841359450455,
+      "zoomT": 0.9676987322745841
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 5385,
+      "l1": 572,
+      "l2": 0,
+      "l3": 942
+    },
+    "replayCrowd": {
+      "l0": 5385,
+      "l1": 572,
+      "l2": 0,
+      "l3": 942
+    },
+    "frameHash": "c3bce4d673c9e238bae2f29374e802d2b085a9048fc86f9d9929fca160717ce5"
+  },
+  {
+    "name": "origin-motion-05",
+    "window": "origin-motion",
+    "elapsedMs": 749.9700000000012,
+    "frameId": 26,
+    "simTick": 9018,
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 199.70192289156967,
+        "fovY": 0.610530614416376,
+        "near": 1,
+        "pitch": 0.6494038455846239,
+        "target": [
+          75.17884632461283,
+          -119.82115367538717,
+          -3.730255651198945
+        ],
+        "yaw": -1.5685692294030975
+      },
+      "x": 75.17884632461283,
+      "y": -119.82115367538717,
+      "zoom": 7.779911918881178,
+      "zoomT": 0.9677090846234933
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          339669,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          217,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          217,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          31997,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          31997,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          260755,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          339669,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          217,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          217,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          31997,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          31997,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          260755,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 5396,
+      "l1": 570,
+      "l2": 0,
+      "l3": 928
+    },
+    "replayCrowd": {
+      "l0": 5396,
+      "l1": 570,
+      "l2": 0,
+      "l3": 928
+    },
+    "frameHash": "f4b85d5545cfeff714b5335bdc58e614645fcae0ebca1ff9e90579f4eef9c39a"
+  },
+  {
+    "name": "pan-crossing-00",
+    "window": "pan-crossing",
+    "elapsedMs": 34598.61499999999,
+    "frameId": 170,
+    "simTick": 9594,
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 212.4736542057476,
+        "fovY": 0.6042060041830783,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          27.895192272088615,
+          -92.57903845441773,
+          -4.449699172222267
+        ],
+        "yaw": -1.6145257692734938
+      },
+      "x": 27.895192272088615,
+      "y": -92.57903845441773,
+      "zoom": 7.772309385004182,
+      "zoomT": 0.9665936549426986
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          341317,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35512,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35512,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          261984,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          341317,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          221,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35512,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35512,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          261984,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 7845,
+      "l1": 987,
+      "l2": 0,
+      "l3": 356
+    },
+    "replayCrowd": {
+      "l0": 7845,
+      "l1": 987,
+      "l2": 0,
+      "l3": 356
+    },
+    "frameHash": "53ec31cb6391b2a28070e6fd508f826a57c712cb6e9546215885ba8b160eae8a"
+  },
+  {
+    "name": "pan-crossing-01",
+    "window": "pan-crossing",
+    "elapsedMs": 34865.26999999999,
+    "frameId": 171,
+    "simTick": 9598,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 212.695631418645,
+        "fovY": 0.6041002826713789,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          24.565523223238735,
+          -91.91310464464775,
+          -4.4350293493958475
+        ],
+        "yaw": -1.6185213721321137
+      },
+      "x": 24.565523223238735,
+      "y": -91.91310464464775,
+      "zoom": 7.7721791492719925,
+      "zoomT": 0.9665745469974352
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 7943,
+      "l1": 1008,
+      "l2": 0,
+      "l3": 377
+    },
+    "replayCrowd": {
+      "l0": 7943,
+      "l1": 1008,
+      "l2": 0,
+      "l3": 377
+    },
+    "frameHash": "95534a9218740a11cc186973784deafcf99830db1fe6c1c194987f5b9a0f09e1"
+  },
+  {
+    "name": "pan-crossing-02",
+    "window": "pan-crossing",
+    "elapsedMs": 35115.264999999985,
+    "frameId": 172,
+    "simTick": 9602,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 212.9075950664128,
+        "fovY": 0.6039994590759785,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          21.38606851736148,
+          -91.2772137034723,
+          -4.422791590857798
+        ],
+        "yaw": -1.6223367177791663
+      },
+      "x": 21.38606851736148,
+      "y": -91.2772137034723,
+      "zoom": 7.772054847051071,
+      "zoomT": 0.9665563096059486
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 7996,
+      "l1": 1026,
+      "l2": 0,
+      "l3": 383
+    },
+    "replayCrowd": {
+      "l0": 7996,
+      "l1": 1026,
+      "l2": 0,
+      "l3": 383
+    },
+    "frameHash": "273658f2aae77ea67c74cbb22f8244d5a71438f8285ca656b9d2eaca5c81087e"
+  },
+  {
+    "name": "pan-crossing-03",
+    "window": "pan-crossing",
+    "elapsedMs": 35348.58499999999,
+    "frameId": 173,
+    "simTick": 9606,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 213.13931332935817,
+        "fovY": 0.6038893825193505,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          17.910313282004147,
+          -90.58206265640084,
+          -4.409695431820182
+        ],
+        "yaw": -1.626507624061595
+      },
+      "x": 17.910313282004147,
+      "y": -90.58206265640084,
+      "zoom": 7.771919025344112,
+      "zoomT": 0.9665363820968196
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8051,
+      "l1": 1044,
+      "l2": 0,
+      "l3": 390
+    },
+    "replayCrowd": {
+      "l0": 8051,
+      "l1": 1044,
+      "l2": 0,
+      "l3": 390
+    },
+    "frameHash": "98e5973a7c04e82d3be979037a722308277b131c9f8658414003e2243c2773da"
+  },
+  {
+    "name": "pan-crossing-04",
+    "window": "pan-crossing",
+    "elapsedMs": 35598.57499999998,
+    "frameId": 174,
+    "simTick": 9610,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 213.3594053407278,
+        "fovY": 0.6037849675820636,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          14.608914724511955,
+          -89.92178294490239,
+          -4.417547019549772
+        ],
+        "yaw": -1.6304693023305856
+      },
+      "x": 14.608914724511955,
+      "y": -89.92178294490239,
+      "zoom": 7.771790081368587,
+      "zoomT": 0.9665174636757
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8117,
+      "l1": 1053,
+      "l2": 0,
+      "l3": 386
+    },
+    "replayCrowd": {
+      "l0": 8117,
+      "l1": 1053,
+      "l2": 0,
+      "l3": 386
+    },
+    "frameHash": "9ae29d71cd00cf985e7ca738150a0dd06ba71a61578991733c3220904082e16c"
+  },
+  {
+    "name": "pan-crossing-05",
+    "window": "pan-crossing",
+    "elapsedMs": 35831.899999999994,
+    "frameId": 175,
+    "simTick": 9614,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 213.6148658553716,
+        "fovY": 0.6036639423053359,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          10.777007855758164,
+          -89.15540157115163,
+          -4.425485927272575
+        ],
+        "yaw": -1.6350675905730903
+      },
+      "x": 10.777007855758164,
+      "y": -89.15540157115163,
+      "zoom": 7.771640493090288,
+      "zoomT": 0.9664955163607373
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8196,
+      "l1": 1056,
+      "l2": 0,
+      "l3": 393
+    },
+    "replayCrowd": {
+      "l0": 8196,
+      "l1": 1056,
+      "l2": 0,
+      "l3": 393
+    },
+    "frameHash": "f6c1321e22b262cb5e2ea307ad05a87dc6b2de90530ee195fd7b017ed983513b"
+  },
+  {
+    "name": "pan-crossing-06",
+    "window": "pan-crossing",
+    "elapsedMs": 36098.55499999999,
+    "frameId": 176,
+    "simTick": 9618,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 213.85759196350637,
+        "fovY": 0.6035491178634061,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          7.136122331616491,
+          -88.4272244663233,
+          -4.433722719376874
+        ],
+        "yaw": -1.6394366532020603
+      },
+      "x": 7.136122331616491,
+      "y": -88.4272244663233,
+      "zoom": 7.771498437943303,
+      "zoomT": 0.9664746742928398
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8283,
+      "l1": 1054,
+      "l2": 0,
+      "l3": 379
+    },
+    "replayCrowd": {
+      "l0": 8283,
+      "l1": 1054,
+      "l2": 0,
+      "l3": 379
+    },
+    "frameHash": "872b69223ff16f85dfc00a8e1f1e5035004aece85a76c09314a98f9b49531ebc"
+  },
+  {
+    "name": "pan-crossing-07",
+    "window": "pan-crossing",
+    "elapsedMs": 36348.544999999984,
+    "frameId": 177,
+    "simTick": 9622,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 214.11931080870545,
+        "fovY": 0.6034254915474409,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          3.2103541063830363,
+          -87.6420708212766,
+          -4.442722414528362
+        ],
+        "yaw": -1.6441475750723404
+      },
+      "x": 3.2103541063830363,
+      "y": -87.6420708212766,
+      "zoom": 7.771345350496153,
+      "zoomT": 0.9664522135863082
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8328,
+      "l1": 1052,
+      "l2": 0,
+      "l3": 368
+    },
+    "replayCrowd": {
+      "l0": 8328,
+      "l1": 1052,
+      "l2": 0,
+      "l3": 368
+    },
+    "frameHash": "0adb4b90cb90765a684768c81e0dfc95047a68009ae66293a438da8bfdce97e4"
+  },
+  {
+    "name": "pan-crossing-08",
+    "window": "pan-crossing",
+    "elapsedMs": 36615.20499999999,
+    "frameId": 178,
+    "simTick": 9626,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 214.36671012527495,
+        "fovY": 0.6033088033201194,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -0.5006638498494596,
+          -86.89986723003011,
+          -4.453963717793897
+        ],
+        "yaw": -1.6486007966198195
+      },
+      "x": -0.5006638498494596,
+      "y": -86.89986723003011,
+      "zoom": 7.771200718183537,
+      "zoomT": 0.9664309934014456
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8347,
+      "l1": 1050,
+      "l2": 0,
+      "l3": 350
+    },
+    "replayCrowd": {
+      "l0": 8347,
+      "l1": 1050,
+      "l2": 0,
+      "l3": 350
+    },
+    "frameHash": "e698291f47446ce63e6d6a7af399f558ed140ca6d8a324b3af82c361a73d8d20"
+  },
+  {
+    "name": "pan-crossing-09",
+    "window": "pan-crossing",
+    "elapsedMs": 36865.19500000001,
+    "frameId": 179,
+    "simTick": 9630,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 214.71531173013364,
+        "fovY": 0.6031446684858933,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -5.729678911826824,
+          -85.85406421763463,
+          -4.4737648197850035
+        ],
+        "yaw": -1.6548756146941923
+      },
+      "x": -5.729678911826824,
+      "y": -85.85406421763463,
+      "zoom": 7.770997052273933,
+      "zoomT": 0.9664011119166388
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": false,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8339,
+      "l1": 1050,
+      "l2": 0,
+      "l3": 323
+    },
+    "replayCrowd": {
+      "l0": 8339,
+      "l1": 1050,
+      "l2": 0,
+      "l3": 323
+    },
+    "frameHash": "62644c8283fe50dbd24f9209371d248914a0de6ae89c5e917eb8308982508898"
+  },
+  {
+    "name": "pan-crossing-10",
+    "window": "pan-crossing",
+    "elapsedMs": 37215.17499999999,
+    "frameId": 180,
+    "simTick": 9634,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 214.9818359756705,
+        "fovY": 0.6030194042067334,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -9.727525532786927,
+          -85.05449489344261,
+          -4.503427294864423
+        ],
+        "yaw": -1.6596730306393443
+      },
+      "x": -9.727525532786927,
+      "y": -85.05449489344261,
+      "zoom": 7.7708414416165885,
+      "zoomT": 0.9663782810093836
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": true,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 0,
+      "lastSampleMs": 249.41,
+      "lastSlices": 138,
+      "pending": true,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8309,
+      "l1": 1046,
+      "l2": 0,
+      "l3": 308
+    },
+    "replayCrowd": {
+      "l0": 8309,
+      "l1": 1046,
+      "l2": 0,
+      "l3": 308
+    },
+    "frameHash": "2955cfebad22ffb6a4dc7b81fff4e0c39618d9cede64db9a7ab7cf3c2fe1c4bc"
+  },
+  {
+    "name": "pan-crossing-11",
+    "window": "pan-crossing",
+    "elapsedMs": 37481.83499999999,
+    "frameId": 181,
+    "simTick": 9638,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 215.2483980831903,
+        "fovY": 0.602894317014359,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -13.725986126077004,
+          -84.2548027747846,
+          -4.5333827839479
+        ],
+        "yaw": -1.6644711833512924
+      },
+      "x": -13.725986126077004,
+      "y": -84.2548027747846,
+      "zoom": 7.770685897610076,
+      "zoomT": 0.966355459881015
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 4.05,
+      "lastSampleMs": 249.41,
+      "lastSlices": 1,
+      "pending": true,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 4.05,
+      "lastSampleMs": 249.41,
+      "lastSlices": 1,
+      "pending": true,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8288,
+      "l1": 1044,
+      "l2": 0,
+      "l3": 288
+    },
+    "replayCrowd": {
+      "l0": 8288,
+      "l1": 1044,
+      "l2": 0,
+      "l3": 288
+    },
+    "frameHash": "42d42a540ab49eeda5f879c1eec48aa59dc63b0767fc7baf1115739e322c3ccd"
+  },
+  {
+    "name": "pan-crossing-12",
+    "window": "pan-crossing",
+    "elapsedMs": 37748.48999999999,
+    "frameId": 182,
+    "simTick": 9642,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 215.51433366259835,
+        "fovY": 0.602769717579276,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -17.71502333063438,
+          -83.45699533387312,
+          -4.568265970035213
+        ],
+        "yaw": -1.6692580279967613
+      },
+      "x": -17.71502333063438,
+      "y": -83.45699533387312,
+      "zoom": 7.770530807464017,
+      "zoomT": 0.966332705342211
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 4.09,
+      "lastSampleMs": 249.41,
+      "lastSlices": 2,
+      "pending": true,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 4.09,
+      "lastSampleMs": 249.41,
+      "lastSlices": 2,
+      "pending": true,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8207,
+      "l1": 1044,
+      "l2": 0,
+      "l3": 270
+    },
+    "replayCrowd": {
+      "l0": 8207,
+      "l1": 1044,
+      "l2": 0,
+      "l3": 270
+    },
+    "frameHash": "d2dcd6cc2f5c8ab114ca9e892b7c28be7bbcd65c49bda24de1fc9ce210ac5a57"
+  },
+  {
+    "name": "pan-crossing-13",
+    "window": "pan-crossing",
+    "elapsedMs": 38015.14499999999,
+    "frameId": 183,
+    "simTick": 9646,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 215.81192608460742,
+        "fovY": 0.6026305147785951,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -22.178881672827544,
+          -82.5642236654345,
+          -4.607170842929065
+        ],
+        "yaw": -1.674614658007393
+      },
+      "x": -22.178881672827544,
+      "y": -82.5642236654345,
+      "zoom": 7.770357359773603,
+      "zoomT": 0.9663072574185209
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 6.005,
+      "lastSampleMs": 249.41,
+      "lastSlices": 3,
+      "pending": true,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 6.005,
+      "lastSampleMs": 249.41,
+      "lastSlices": 3,
+      "pending": true,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 8031,
+      "l1": 1038,
+      "l2": 0,
+      "l3": 250
+    },
+    "replayCrowd": {
+      "l0": 8031,
+      "l1": 1038,
+      "l2": 0,
+      "l3": 250
+    },
+    "frameHash": "576b4fbb0861fb6b0e59ff694febb7c5fb42183fa6173db5b1fa85f474f449a9"
+  },
+  {
+    "name": "pan-crossing-14",
+    "window": "pan-crossing",
+    "elapsedMs": 38315.13499999998,
+    "frameId": 184,
+    "simTick": 9650,
+    "changedPixels": null,
+    "rgbMae": null,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 216.12319526041574,
+        "fovY": 0.6024851725002618,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -26.847908723867548,
+          -81.63041825522649,
+          -4.648099178526934
+        ],
+        "yaw": -1.680217490468641
+      },
+      "x": -26.847908723867548,
+      "y": -81.63041825522649,
+      "zoom": 7.770176058393095,
+      "zoomT": 0.9662806572159753
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 6.005,
+      "lastSampleMs": 249.41,
+      "lastSlices": 4,
+      "pending": true,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": null,
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 6.005,
+      "lastSampleMs": 249.41,
+      "lastSlices": 4,
+      "pending": true,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 7842,
+      "l1": 1033,
+      "l2": 0,
+      "l3": 234
+    },
+    "replayCrowd": {
+      "l0": 7842,
+      "l1": 1033,
+      "l2": 0,
+      "l3": 234
+    },
+    "frameHash": "863ac6a05015904b42875454ef9ebe6a40fca704a0db26c34090e2e88b25bd36"
+  },
+  {
+    "name": "pan-crossing-15",
+    "window": "pan-crossing",
+    "elapsedMs": 38631.785,
+    "frameId": 185,
+    "simTick": 9654,
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDifference": 0,
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 216.3983179874308,
+        "fovY": 0.6023569273001816,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          -30.974755852389478,
+          -80.80504882952211,
+          -4.686307254819383
+        ],
+        "yaw": -1.6851697070228675
+      },
+      "x": -30.974755852389478,
+      "y": -80.80504882952211,
+      "zoom": 7.7700159107181745,
+      "zoomT": 0.9662571606459098
+    },
+    "sourceGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 6.005,
+      "lastSampleMs": 249.41,
+      "lastSlices": 5,
+      "pending": true,
+      "rebuilds": 2,
+      "shaderCompileCount": 5,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000
+    },
+    "grassDrawsMatch": true,
+    "sourceGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          342482,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          224,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          224,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35508,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35508,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          263930,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replayGrassDraws": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          342482,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          224,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          224,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          35508,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          35508,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          263930,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "sourceGrassRecordHash": "e891a94b+400e3bec",
+    "replayGrassRecordHash": "e891a94b+400e3bec",
+    "grassRecordHashMatches": true,
+    "replayGrass": {
+      "activeRecordBudget": 2000000,
+      "areaBudgetScale": 1,
+      "lastMaxSliceMs": 6.005,
+      "lastSampleMs": 249.41,
+      "lastSlices": 5,
+      "pending": true,
+      "rebuilds": 2,
+      "strategy": "static-whole-map+camera-focus-ring",
+      "vistaRecordBudget": 160000,
+      "shaderCompileCount": 5
+    },
+    "cameraMatches": true,
+    "crowdMatches": true,
+    "sourceShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadowCrowd": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "sourceCrowd": {
+      "l0": 7644,
+      "l1": 1026,
+      "l2": 0,
+      "l3": 218
+    },
+    "replayCrowd": {
+      "l0": 7644,
+      "l1": 1026,
+      "l2": 0,
+      "l3": 218
+    },
+    "frameHash": "796b6d267506918d74012d430911825631f77c3a29359433f6ac8ce699c990f6"
+  }
+]

@@ -5,9 +5,10 @@ import * as THREE from "three/webgpu";
 import { farAdmissionCamera } from "../scenes/models/_far-inspection";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
-import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/crowd/crowdLod";
+import { planCrowdLods } from "@packages/crowd-runtime/src/visibility";
+import { IMPOSTOR_LEVEL } from "@packages/crowd-runtime/src/lod";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import type { BattleCameraSnapshot } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleCameraSnapshot } from "@packages/battle-renderer/src/types";
 
 test("far inspection admits real projected impostors without changing the magnified reference", () => {
   const near: BattleCameraSnapshot = {
@@ -38,7 +39,7 @@ test("far inspection admits real projected impostors without changing the magnif
       camera.projectionMatrix,
       camera.matrixWorldInverse,
     );
-    return planPhotorealCrowdLods(
+    return planCrowdLods(
       instances,
       [
         {
@@ -62,7 +63,11 @@ test("far inspection admits real projected impostors without changing the magnif
   };
   assert.equal(plan(near).levels[0], 0);
   assert.equal(plan(far).visibility[0], 1);
-  assert.equal(plan(far).levels[0], 3, "scalar zoom alone cannot change projected admission");
+  assert.equal(
+    plan(far).levels[0],
+    IMPOSTOR_LEVEL,
+    "scalar zoom alone cannot change projected admission",
+  );
   assert.ok(plan(far).screenSizes[0] <= 2.5);
   assert.deepEqual(near, original);
   assert.deepEqual(far.camera3d.target, near.camera3d.target);

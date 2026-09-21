@@ -52,14 +52,19 @@ try {
       ),
     );
     assert.deepEqual(encodeLocalAnimation(bundle.animation), generated.out);
-    for (let tier = 0; tier < 3; tier++) {
+    for (let tier = 0; tier < bundle.tiers.length; tier++) {
       assert.equal(
         JSON.stringify(encodeSoldierMesh(bundle.tiers[tier])),
         JSON.stringify(encodeSoldierMesh(source[id][tier])),
       );
     }
-    assert.ok(bundle.tiers[0].indices.length > bundle.tiers[1].indices.length);
-    assert.ok(bundle.tiers[1].indices.length > bundle.tiers[2].indices.length);
+    // Mid drops helmet and blanket, so only a bare or hooded foot soldier ties intermediate.
+    const { look } = generated.descriptors[id];
+    const ties = !look.mounted && ["bare", "hood"].includes(look.helmet);
+    const triangles = bundle.tiers.map((mesh) => mesh.indices.length);
+    assert.equal(triangles.length, 4);
+    assert.ok(triangles[0] > triangles[1] && triangles[2] > triangles[3], `${triangles}`);
+    assert.ok(ties ? triangles[1] === triangles[2] : triangles[1] > triangles[2], `${triangles}`);
     assert.equal(
       JSON.stringify(encodeSoldierMesh(bundle.farMesh)),
       JSON.stringify(encodeSoldierMesh(source[id][0])),

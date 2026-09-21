@@ -1,0 +1,33 @@
+Done — committed as `fbf891de` on `codex/battle-deferred-friend-bearing` (worktree `/Users/david/dev/game-battle-deferred-friend-bearing`, baseline `ce75a315`).
+
+## What changed
+
+**`crates/sim/src/combat.rs:123-170`** — one record split into two, each with a single owner:
+
+- `ScannedFriend { owner, offset: Vec2, distance, fighting, priority }` — what the scan holds while a friend can still be dropped. `record_friend` is unchanged apart from the type; selection never read an angle, so nothing about the cap or the mounted two-body dedup moves.
+- `NearbyFriend { bearing, distance, fighting }` — what the three consumers read (blocked frontage, cover, swing obstruction). `owner`/`priority` are selection-only bookkeeping and are gone from the consumed record.
+- `ScannedFriend::resolve()` computes `offset.y.atan2(offset.x)` — the same expression on the same inputs the eager code used, from the offset the scan captured (never a re-read of positions).
+
+**`crates/sim/src/combat/targeting.rs:105, 149-156, 228-232`** — the scan fills `scanned`, storing `to` verbatim instead of `bearing()`. Past the `nearest < 0 || nearest_d > DISENGAGE_DIST` return, one `std::array::from_fn` maps the kept slots to resolved records, before the `blocked` check (so the disengaged path, which needs those bearings, still gets them). `friends_len`, slot order and every consumer expression are untouched. The enemy-side `bearing()` closure (rider wheel cost, strike candidates) is unchanged.
+
+Choices I made and stand behind: two records rather than a lazy cell or a second bearing list (no parallel arrays, no cache across searches or ticks); resolution at exactly one point with `friends_len` still the single length; the consumed record trimmed to the three fields anyone reads.
+
+## Test results (all with `CARGO_TARGET_DIR=/Users/david/dev/game-battle-performance-spec/target`)
+
+- `cargo test -p sim --lib` — 17 passed. The three `record_friend` tests keep their original behavioral assertions, restated on `ScannedFriend` with offsets in place of bearings.
+- New `combat::tests::deferred_bearings_are_the_eager_scan_bearings` (`crates/sim/src/combat.rs:609-716`) — differential against an eager reference (bearing taken at offer time, before anything can be dropped), compared with `to_bits()`, over: nontrivial angles in all four quadrants / both sides of ±π / tiny-x, crowded past the 24-cap, the mounted duplicate in both orders, and 25 offers at tied priority *and* distance. Mutation-checked: a 1e-7 perturbation of the y input fails it (3 ULP).
+- New `crates/sim/tests/mechanics_targeting.rs:97` `a_search_with_no_target_reads_nothing_off_its_comrades` — two dense blocks 30 m apart (inside the coarse unit gate, comrades within recording range, no foe in engage range); pins that a targetless search leaves `awareness`/`front_clear`/`target` untouched. Mutation-checked: closing the blocks to contact fails it.
+- `--test golden` — `0x68f4569d1cc8116f`, unmoved.
+- Also green: `mechanics_melee` (97 s), `mechanics_targeting`, `mechanics_formation`, `mechanics_gang_cap`, `mechanics_disengage`, `mechanics_charge`, `mechanics_impact`, `mechanics_pressure`, `mechanics_symmetry`, `mechanics_weave`, `mechanics_trample`, `mechanics_fatigue`, `mechanics_survivability`, `mechanics_settle`, `mechanics_morale`, `scenario_combat`.
+- `cargo fmt -p sim --check` clean; `cargo clippy -p sim --all-targets` adds no new hit in the touched files (the two remaining, `too_many_arguments` at `combat.rs:211` and `items_after_test_module` at `combat.rs:446`, are pre-existing).
+
+No timing run, no WASM build, no browser. **I make no speedup claim** — the counters say ~22.2M of 57.3M friend atan2 calls are spent by searches that find no target and ~20.5M more by friends a returned search drops, but that is work removed, not time measured.
+
+## Hazards for root integration
+
+- All three types are private to `crates/sim/src/combat`, so nothing outside the crate sees the change; but `record_friend`'s signature and the `NearbyFriend` field set both moved — any in-flight branch that touches `combat.rs`, `combat/targeting.rs` or `combat/resolution.rs` will conflict textually even though the semantics don't.
+- The single remaining constraint to preserve in any future edit: the resolution point must stay *after* the no-target return and *before* the `blocked` check. Moving it earlier reintroduces the waste; moving it later strands the disengaged path.
+- Adoption still needs root's same-build ABBA plus hashes 9000, 9300, 9308, 12000, 12308 and the 309 worker/direct ticks.
+- Process note, not a code defect: restoring a test file with `mv file.bak file` preserves the old mtime, so cargo reran a stale binary and reported a phantom failure. Touch the file after any such restore.
+
+I saved a memory (`deferred-friend-bearing-candidate`) recording the branch, its exactness argument, and that it is unadopted pending root's ABBA.

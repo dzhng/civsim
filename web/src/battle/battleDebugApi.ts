@@ -1,3 +1,4 @@
+import type { BenchmarkStatus } from "./benchmark/benchmarkRun";
 import { eyePosition } from "@packages/renderer-core/src/camera3d";
 import {
   UNIT_INFO,
@@ -7,16 +8,36 @@ import {
 import {
   vistaSurfaceHeightAt,
   type BattleVistaGrid,
-} from "@packages/photoreal-renderer/src/battle/battleWorld";
-import type { Game, InitOutput } from "../wasm/game_wasm.js";
+} from "@packages/game-renderer/src/battle/vistaSurface";
 import type { Camera } from "../shared/camera";
-import type { BattleRenderer } from "./renderer";
+import type { BattleRendererApi, BattleRendererFrameMetrics } from "./battleRendererApi";
 import type { BattleAmbientAudio } from "./battleAudio";
-import type { SimClock } from "../shared/simClock";
-import { createBattleViews, MOTOR_TRAVEL } from "./battleViews";
+import type { BattleSimClient, BattleSimTelemetry } from "./sim/battleSimClient";
+
+/** Latest completed loop iteration, with raw CPU durations in milliseconds.
+ * intervalMs is unclamped rAF cadence, not proof of a presented frame.
+ * renderCpuMs includes crowd observation/preparation through submission;
+ * renderer.frameCpuMs is nested within it and must not be added to it.
+ * simCpuMs is the authority's own tick cost for the newest completed tick, which
+ * this frame did not spend: it is reported, not paid, on this thread. */
+export interface BattleLoopFrameMetrics {
+  frameId: number;
+  timestampMs: number;
+  intervalMs: number;
+  ready: boolean;
+  simTick: number;
+  ticksAdvanced: number;
+  simCpuMs: number;
+  renderCpuMs: number;
+  renderAwaitMs: number;
+  renderWallMs: number;
+  loopCpuMs: number;
+  renderer: BattleRendererFrameMetrics;
+}
 
 interface DebugOwners {
-  advance(n: number): void;
+  benchmark?: { status(): BenchmarkStatus; cancel(): void; report(): unknown };
+  advance(n: number): Promise<void>;
   freeze(on?: boolean): void;
   freezeAtTick(target: number, options?: { effects?: boolean }): Promise<void>;
   groupAttack(units: number[], target: number): void;
@@ -34,61 +55,78 @@ interface DebugOwners {
   selected(): number[];
   soldierStartOf(unit: number): number;
   terrainDebug(): unknown;
-  tickCount(): number;
   disposeRenderer(): void;
 }
 
 export function installBattleDebugApi({
   audio,
   camera,
-  game,
   generatedVista,
+  frameMetrics,
   metrics,
   owners,
   renderer,
-  stride,
-  unitInfo,
-  wasm,
+  sim,
 }: {
   audio: BattleAmbientAudio;
   camera: Camera;
-  game: Game;
   generatedVista: BattleVistaGrid | null;
+  frameMetrics: () => BattleLoopFrameMetrics | null;
   metrics: () => {
     tickMs: number;
     audioUpdateMs: number;
     fps: number;
-    clock: Pick<SimClock, "alpha" | "paused" | "frozen">;
+    clock: { alpha: number; paused: boolean; frozen: boolean };
   };
   owners: DebugOwners;
-  renderer: BattleRenderer;
-  stride: number;
-  unitInfo: () => Float32Array;
-  wasm: InitOutput;
+  renderer: BattleRendererApi;
+  sim: BattleSimClient;
 }): void {
-  const positions = () =>
-    new Float32Array(wasm.memory.buffer, game.positions_ptr(), game.soldier_count() * 2);
-  const views = createBattleViews(game, wasm.memory);
+  const stride = sim.stride;
+  const unitInfo = () => sim.unitInfo();
   window.__game = {
+    benchmark: owners.benchmark,
+    frameMetrics: () => {
+      const sample = frameMetrics();
+      return sample
+        ? {
+            ...sample,
+            renderer: {
+              ...sample.renderer,
+              gpuSubmission: sample.renderer.gpuSubmission
+                ? { ...sample.renderer.gpuSubmission }
+                : null,
+            },
+          }
+        : null;
+    },
+    stateHash: () => sim.stateHash(),
     stats: () => ({
-      soldiers: game.soldier_count(),
-      units: game.unit_count(),
+      soldiers: sim.soldierCount(),
+      units: sim.unitCount(),
       ...metrics(),
-      victor: game.victor(),
+      victor: sim.victor(),
       renderer: "gpu",
       renderStats: renderer.stats(),
     }),
-    setOrder: (u: number, x: number, y: number) => game.set_move_order(u, x, y),
+    /** How the battle authority is actually behaving: published cadence, how old
+     * the shown state is, and what the seam is holding. */
+    simTelemetry: (): BattleSimTelemetry => sim.telemetry(performance.now()),
+    setOrder: (u: number, x: number, y: number) =>
+      sim.send({ kind: "move", unit: u, x, y, facing: null }),
     select: owners.select,
     selected: owners.selected,
-    generatedManifest: () => JSON.parse(game.generated_map_manifest()),
-    setPace: (u: number, pace: number) => game.set_pace(u, pace),
-    attackOrder: (u: number, enemy: number) => game.set_attack_order(u, enemy),
-    attackMove: (u: number, x: number, y: number) => game.set_attack_move_order(u, x, y),
-    disengage: (u: number, x: number, y: number) => game.set_disengage_order(u, x, y),
+    generatedManifest: () => JSON.parse(sim.identity.generatedMapManifest ?? "null"),
+    setPace: (u: number, pace: number) => sim.send({ kind: "pace", unit: u, pace }),
+    attackOrder: (u: number, enemy: number) => sim.send({ kind: "attack", unit: u, target: enemy }),
+    attackMove: (u: number, x: number, y: number) =>
+      sim.send({ kind: "attackMove", unit: u, x, y }),
+    disengage: (u: number, x: number, y: number) => sim.send({ kind: "disengage", unit: u, x, y }),
     enqueue: (u: number, mode: number, x: number, y: number, facing: number, hasFacing: number) =>
-      game.enqueue(u, mode, x, y, facing, hasFacing),
-    queuedOrders: (u: number) => Array.from(game.queued_orders(u)),
+      sim.send({ kind: "enqueue", unit: u, mode, x, y, facing, hasFacing }),
+    /** Answers from the newest publication that carried the queued-order overlay,
+     * which the battle only asks for while it is drawing the path chain. */
+    queuedOrders: (u: number) => Array.from(sim.queuedOrders(u)),
     previewDebug: owners.previewDebug,
     formationDebug: (u: number) => {
       const info = unitInfo();
@@ -102,18 +140,21 @@ export function installBattleDebugApi({
       };
     },
     terrainDebug: owners.terrainDebug,
+    /** Resolves once the requested ticks have run in the authority AND the
+     * resulting tick has been consumed here, so a caller that awaits it reads the
+     * state it asked for. */
     advance: owners.advance,
-    projectileCount: () => game.projectile_count(),
-    tickCount: owners.tickCount,
+    projectileCount: () => sim.projectileCount(),
+    tickCount: () => Math.max(0, sim.tick()),
     freezeAtTick: owners.freezeAtTick,
     freezeAtTickWithEffects: (target: number) => owners.freezeAtTick(target, { effects: true }),
     freeze: owners.freeze,
     reviewFrame: owners.reviewFrame,
     reviewFrameClear: owners.reviewFrameClear,
     groupMove: owners.groupMove,
-    setFiles: (u: number, files: number) => game.set_files(u, files),
+    setFiles: (u: number, files: number) => sim.send({ kind: "files", unit: u, files }),
     spawnUnit: (x: number, y: number, facing: number, count: number, files: number, team: number) =>
-      game.spawn_unit(x, y, facing, count, files, 1.0, 1.2, team, 0.7),
+      sim.send({ kind: "spawnUnit", x, y, facing, count, files, team }),
     spawnClass: (
       x: number,
       y: number,
@@ -122,26 +163,33 @@ export function installBattleDebugApi({
       files: number,
       cls: number,
       team: number,
-    ) => game.spawn_class(x, y, facing, count, files, cls, team),
+    ) => sim.send({ kind: "spawnClass", x, y, facing, count, files, classId: cls, team }),
     groupAttack: owners.groupAttack,
     unitInfo: (u: number) => Array.from(unitInfo().slice(u * stride, u * stride + stride)),
     soldierStartOf: owners.soldierStartOf,
     soldierPos: (i: number) => {
-      const pos = positions();
+      const pos = sim.positions();
       return [pos[2 * i], pos[2 * i + 1]];
     },
-    soldierAlive: (i: number) => {
-      const alive = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
-      return alive[i] ?? 0;
-    },
+    soldierAlive: (i: number) => sim.alive()[i] ?? 0,
     debugSoldierAnim: (i: number) => renderer.debugSoldierAnim(i),
-    soldierMotorPath: (i: number) =>
-      views.motorTravel()[i * MOTOR_TRAVEL.stride + MOTOR_TRAVEL.path],
+    soldierMotorPath: (i: number) => sim.motorPath(i),
     reloadSoldierAssets: () => renderer.reloadSoldierAssets(),
-    rendererMemoryInfo: () => ({
-      ...renderer.memoryInfo(),
-      wasmMemoryBytes: wasm.memory.buffer.byteLength,
-    }),
+    /** Explicit whole-population seating verification, asked for by a caller and
+     * answered once: no frame or stats read scans the population. Null from a
+     * renderer that owns no such measurement, never another backend's assignment. */
+    verifySeating: async () => (await renderer.verifySeating?.()) ?? null,
+    rendererMemoryInfo: () => {
+      const memory = renderer.memoryInfo();
+      if (!memory) return null;
+      return {
+        ...memory,
+        // The battle's WASM heap now lives in the authority worker. What this thread
+        // owns of the simulation is the publication seam, so that is what it reports.
+        publicationCapacityBytes: sim.identity.publicationCapacityBytes,
+        publicationPool: sim.telemetry(performance.now()).publicationPool,
+      };
+    },
     disposeRenderer: owners.disposeRenderer,
     audio: () => audio.inspect(),
     heightAt: (x: number, y: number) => renderer.heightAt(x, y),

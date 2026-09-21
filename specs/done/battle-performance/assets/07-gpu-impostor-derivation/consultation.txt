@@ -1,0 +1,118 @@
+I read the 06b/07 slices and the 07 evidence, then traced the raw crowd path end to end. No files were changed.
+
+## Answer to the question
+
+**Yes for impostors, and the missing data is small.** The impostor record is a pure function of six per-soldier values and the camera; nothing else. Everything else in the 12-float record is derived arithmetic that the vertex stage can do.
+
+`impostorData.ts:16-71` reads exactly: `src.x`, `src.y`, `src.elevation`, `src.facing`, `src.faction`, `corpsePresentationStrength(src)`. It does **not** read `seed`, `classId` (that is the layer identity), `clip`, `phase`, `mounted` or `lod`. Everything else — the rotated anchor, `tile`, `span`, `angle` — is derived from those six plus `atlas.center/worldSpan/columns/rows` and `view.right/up/eye/fovY`.
+
+**What already exists on the GPU and what is missing:**
+
+| Needed by impostors | Already GPU-resident? |
+|---|---|
+| x, y, facing, faction | Yes — `shaders/soldier.ts:55,86-88` reads `inst0 = (x, y, facing, faction)` |
+| elevation, corpse fade | Yes — `inst2 = (elevation, ·, corpse, ·)` |
+| …but only for soldiers in a mesh bucket | **No** — `crowdData.ts:110` skips any instance that is impostor-in-main and not a shadow caster |
+| view right/up | Yes — 32-byte uniform, `world/impostor.ts:151-155` |
+| eye, tan(fovY/2), atlas center/worldSpan | **No** — the uniform carries only right/up; these are the missing far data |
+| tile-direction table | **No** on GPU (64 × vec3, CPU `Float64Array`) |
+
+So the "missing far data" is one `vec4` of eye+tanHalf, one `vec4` of atlas center+worldSpan, and a 64-entry direction table — all per-layer or per-camera, none per-soldier.
+
+**Redundant materialization is structural, not incidental.** `crowdData.ts:35-57` writes the *same twelve floats* for a given soldier into the main bucket and the shadow bucket (`append(inst, slot)` is audience-independent; `slot` comes from `rigIndices` and is per-soldier). At the pinned camera the m9b evidence says all 30,560 are main-view impostors **and** L3 shadow casters, so that frame materializes each soldier three times on the GPU side (impostor 48 B + shadow mesh 48 B + 80 B playback controls) after two CPU object copies (`buildCrowdInstances` → `CrowdFrameSnapshot.capture`) and one object-allocating `ActionTimeline.sample`.
+
+**Audiences: not yet.** Drawing mesh audiences from shared state is the same idea but is blocked by three things I could not design away in a bounded step: pose-slot compaction still needs a CPU pass because the palette kernel indexes compacted slots (`world/crowd.ts:319-326`); `stats()` and the standing gate report real per-audience draw/triangle counts, and 07-crowd-visibility forbids GPU→CPU readback for draw counts; and the 48-byte layout is pinned by tests plus the vgpu/typegpu comparison arms. Step 1 below is deliberately shaped so step 2 is a widening rather than a redesign.
+
+---
+
+## Proposed first step
+
+**Split the raw impostor layer into state and view, and derive the record in the vertex shader.**
+
+`createRawImpostors(...).update(source, view)` (`world/impostor.ts:146-157`) becomes two entry points that mirror the state/camera split the history already has (`crowdAudienceHistory.ts:82` vs `:141`):
+
+- `updateState(source)` — writes 6 floats per instance into a retained staging `Float32Array`, then one `writeBuffer`. No trig, no tile search, no per-call allocation.
+- `setView(view)` — writes 48 bytes into the (widened) uniform. O(1), independent of population.
+
+Record layout, 24 B stride: `float32x4` at 0 = `(x, y, facing, faction)`, `float32x2` at 16 = `(elevation, living)`. Field order matches the first six slots of the eventual per-soldier record so step 2 appends `scale, slot` rather than reshuffling.
+
+Uniform, 64 B: `right.xyz|0`, `up.xyz|0`, `eye.xyz|tanHalf`, `center.xyz|worldSpan`. Keep center/worldSpan in the uniform rather than baking WGSL literals — the pipeline is already per-atlas (`world/impostor.ts:117-119`), but a uniform avoids adding a new pipeline-invalidation coupling on atlas reload for no gain.
+
+The vertex shader then does, in this order (matching `impostorData.ts:24-68` exactly): `angle = facing - 1.5707964`; anchor rotation by `atlas.center`; `d = eye - (x, y, elevation)`, `divisor = select(dist, 1.0, dist == 0.0)`; rotate into local; renormalise with the same `|| 1` guard; `nearestHemiOctTile`; then the min-screen-fraction span.
+
+**Resources, frequency, lifetime**
+
+| Resource | Owner | Written | Lifetime |
+|---|---|---|---|
+| `impostor instances` `GrowableBuffer` (floor `512*24`) | one per class layer | once per admitted submission | layer; destroyed on dispose/atlas reload |
+| impostor view uniform, 64 B | one per class layer | per submission **and** per camera-only refresh; atlas half once at creation | layer |
+| CPU staging `Float32Array` | layer | grown by the existing `growableBufferCapacity` policy | layer; contents valid only until the next `updateState` — the same contract `crowdData.ts:59` already states for the packer |
+
+No new pipeline, bind group, compute pass, indirect draw, or readback on the production path.
+
+**Real consumers**
+
+- `world/crowdAudience.ts:66` (`upload`) and `:159` (`refreshCamera`) — the only production callers. `refreshCamera` becomes a 48-byte write instead of a full re-pack.
+- `apps/battle-perf-lab/src/raw/impostor-check.ts:249,386,391` — hardware parity check; must change (see falsifiers).
+- `apps/battle-perf-lab/src/impostorControlBackend.ts:23` — the `ImpostorControlLayer` interface declares `update(...): Float32Array`; the raw arm's return contract changes, the typegpu/vgpu arms do not.
+- `packImpostors` stays exported, unchanged, as the CPU oracle for the parity check and for the held vgpu/typegpu comparison arms (`vgpu/impostor.ts:125`, `candidates/typegpu/impostor.ts:198`). It must become **unreachable from the raw production route** — assert that, so it cannot quietly become a fallback path. That is the line between "retained comparison consumer" (which 07-crowd-ownership says not to delete) and the parallel legacy fast path you ruled out.
+
+**Contracts preserved, and where:** live interpolated positions and continuously advancing animation (state is still written per submission from the admitted snapshot — nothing is cached across submissions); faction/elevation ride the record; `seed` is not read by this path today; appearance selects the layer; impostors are main-audience-only (`crowdAudience.ts:169`) so the shadow audience is untouched; `assertLive()` on both entry points; empty input still yields `draws === 0` (asserted at `impostor-check.ts:386`); the group array is consumed synchronously before any await, as today.
+
+---
+
+## Quantized tile boundaries — treated, not hidden
+
+`nearestHemiOctTile` (`impostorTile.ts:57-92`) is a discrete argmax over dot products, computed on CPU in `f64` against an `f64` direction table. In WGSL it will be `f32`. Two tiles whose dots differ by less than the `f32` error can therefore swap. Three specific things follow:
+
+1. **The span floor is safe.** At `screenFraction == 0.008` the factor `0.008/screenFraction` is exactly 1, so the branch in `impostorData.ts:48-51` is continuous. `f32` rounding can move *which side* a soldier lands on but cannot produce a visible jump. This one I am confident about; state it and move on.
+
+2. **The anchor is safe within measurement.** `f32` rotation of `atlas.center` differs from the `f64` result by ~1e-7 relative; the value is already stored as `f32` today. Bound it by measurement rather than assertion.
+
+3. **The tile choice is the real risk, and it is a *motion* risk, not a static one.** A one-tile disagreement samples a neighbouring baked view, which by construction is nearly identical at the boundary — a static frame will not show it. The hazard is boundary oscillation under camera motion. Note the CPU path already re-picks every frame with no hysteresis, so boundary flicker is an existing property; `f32` can only move where the boundary sits. **That is a hypothesis, not a finding** — the motion falsifier below is what decides it.
+
+Also unresolved: `impostorTile.ts:5-8` relies on folded corner centres landing *bit-for-bit* on interior centres for an even grid, which is what makes duplicate tiles interchangeable. Whether that survives rounding the table to `f32` is unknown and must be checked before implementation, not after.
+
+The `z < 0` fallback (`impostorTile.ts:65`) scans all 64 tiles. In a vertex shader that runs 6× per impostor and is divergent. Start in the vertex shader anyway (~3.3M dot3/frame at 30,560 impostors is small); if the GPU timeline moves, the fix is a tile-only compute prepass, which is a later step, not part of this one.
+
+---
+
+## Falsifiers
+
+**CPU work counts** (use the probe technique proven in 06b-billboard-refresh, which already counts "raw billboard record queue writes" and "raw record bytes passed to writeBuffer"):
+- Per-soldier float writes in the impostor path: 12 → 6 on state frames; 12 → 0 on camera-only frames.
+- `writeBuffer` bytes on the labelled impostor instance buffer over a fixed 120-frame seeded camera sweep: exactly 50 % of baseline on state frames, zero on camera-only frames.
+- Zero per-frame `Float32Array` allocation from the impostor owner — assert staging-array identity is stable across frames. (Baseline allocates `instances.length * 12` floats *per call*: 1.47 MB per frame at 30,560.)
+
+**Byte/numerical parity:** replace `packingEqual` in `impostor-check.ts:292-303` with a readback of the GPU-derived record from an `rgba32float` diagnostic target (precedent: `createRawCrowd`'s `format: "rgba32float"` diagnostic option), compared against `packImpostors` as the oracle *and* against Three's attributes. The current sample — 12 instances × 4 cameras, facings `i·π/6` — is far too sparse to cross tile boundaries; extend to a dense facing × eye-direction sweep plus below-horizon eyes (the 64-tile fallback), zero distance, absent and negative elevation, corpse fade, and the existing `floor` case at distance 900. **For every mismatch, report the dot margin between the GPU tile and the CPU tile**; accept only if every mismatch is a near-tie under a pre-declared epsilon.
+
+**GPU image:** the existing exact gate in `impostor-check.ts:365-371` (`coverageMismatch === 0 && different === 0` at 1/255, all classes × 4 cameras) must stay green. This is an independent oracle you already own: raw-GPU-derived versus Three-CPU-derived.
+
+**GPU time:** the raw route's own GPU medians (m9b records 9.10/9.69 ms) must not rise on the wide view, where impostor count peaks. Declare the threshold before the run — the whole point is not to trade CPU for GPU.
+
+**Motion:** over a slow continuous orbit at a fixed tick, count per-impostor tile changes per frame in both implementations. A candidate that flips materially more is rejected regardless of speed. Then the slice's normal frame-sequence/video and unprimed critique pass.
+
+**Live:** the screen must include a segment where the sim is actually advancing. This candidate removes per-soldier arithmetic rather than caching state, so it should appear in both paused and live segments — if it appears *only* in the paused segment, that is a signal to stop and diagnose, not to adopt.
+
+---
+
+## Unknowns to measure before writing code
+
+1. **Which clock the pinned 30k screen runs.** `battleLoop.ts:395-398` branches between `crowd.prepareHeld(elapsed…)` — which explicitly advances poses on wall-elapsed time — and `crowd.prepare(presentationTick, frozen…)`, where `frozen` pins `tick` to `right.tick` (`battleCrowd.ts:79`). These give completely different per-frame state. Read the retained runner and per-frame reports; do not infer it from `observationTick`.
+2. **Whether the screen's frames are frozen-key-skipped.** A skipped frame reports `skippedFrozenFrame: true` and `uploadMs: 0` (`NativeBattleRenderer.ts:511-520`). The retained summaries show `uploadMs` medians of 14–17 ms, which suggests not, but confirm per-frame rather than from medians.
+3. **The screen's resolving power.** In the impostor-packing run the two *controls* differed 31.50 vs 38.67 FPS wide and 41.08 vs 56.50 moving. Two candidates in a row have now been undecidable at this variance. Establish control-vs-control repeatability and the minimum effect the screen can resolve **before** running a third candidate through it — otherwise the measurement, not the work, decides the outcome again.
+4. **Impostor population at the tactical framing you actually play**, not only the pinned wide view. This win scales linearly with impostor count.
+5. **The f32 duplicate-tile property** (point 3 above).
+6. **Composition of `history.begin`'s 314 ms self**: how much is `planCrowdLods` versus the per-frame `new Map(ids.map(...))` plus 30,560 array pushes at `crowdAudienceHistory.ts:102-107`. That decides whether retaining and clearing those group arrays is worth folding in as an adjacent cheap fix — it needs care, because `commit` retains `publication.groups` as `selected` for `refreshImpostors`.
+
+---
+
+## On a smaller owner change
+
+I did look for one and I do **not** recommend the obvious candidate.
+
+Nothing above the frozen-frame key short-circuits unchanged crowd state: `history.begin` always sees `instances !== snapshot.instances` (the facade passes its own array, `NativeBattleRenderer.ts:549-551`), so `snapshot.capture` re-runs every frame; `ActionTimeline.sample` allocates a fresh playback object graph every frame unconditionally (`actionTimeline.ts:318-325`). Adding change detection there would be a few lines and would gut the paused benchmark. But in live play the presentation tick is continuous, so positions are interpolated per frame and pose phases advance per frame — exactly the invariant you told me to preserve. That change would win the benchmark and do essentially nothing for live rendering. It is the trap, not the fix.
+
+The impostor step is the better first move precisely because what it removes — ~30 flops, up to 18 dot products, a 12-element array allocation and 12 float writes per soldier, plus a 1.47 MB allocation per call — is removed on live frames too, and the camera-only path goes O(n) → O(1) as a bonus rather than as the justification.
+
+One honest caveat on magnitude: the rejected abeafbf6 candidate removed a *subset* of the same per-soldier cost and produced pooled improvements of 8.2 % / 6.4 % that the screen could not resolve. This step removes strictly more, but it is the same order of magnitude. Unknown 3 is therefore not optional bookkeeping — it is the gating item.

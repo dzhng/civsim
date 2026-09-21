@@ -93,7 +93,7 @@ blades, so vegetation does not make human figures appear miniature or hide
 their equipment. Judge the complete blade after height variation and shader
 shaping, rather than the sampler's base height alone.
 
-The [production grass profile](../packages/photoreal-renderer/src/battle/battleGrassField.ts)
+The [production grass profile](../packages/game-renderer/src/battle/battleGrassResidency.ts)
 owns blade dimensions for both the whole-map field and the camera's denser
 focus ring. Quality settings change sampling and geometry detail without
 substituting broad leaves. The shader preserves those widths instead of

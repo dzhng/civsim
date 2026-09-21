@@ -1,0 +1,42 @@
+{
+  "backend": "raw",
+  "buildCommit": "58b2a9bd",
+  "functional": {
+    "eligible": true,
+    "issues": []
+  },
+  "ranking": {
+    "eligible": false,
+    "issues": [
+      "pre observation at 2026-09-16T19:49:13.819Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 39.2% cannot be split between this trial and anything else",
+      "periodic observation at 2026-09-16T19:50:13.848Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 26.5% cannot be split between this trial and anything else",
+      "periodic observation at 2026-09-16T19:51:13.878Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 45.5% cannot be split between this trial and anything else",
+      "5 further unattributable observation(s)",
+      "pre observation at 2026-09-16T19:49:13.819Z was not quiet (busiest other process 115.5%, load 3.35791015625)",
+      "periodic observation at 2026-09-16T19:51:13.878Z was not quiet (busiest other process 434.1%, load 6.29833984375)",
+      "periodic observation at 2026-09-16T19:52:13.932Z was not quiet (busiest other process 10.8%, load 6.3076171875)",
+      "4 further busy observation(s)"
+    ]
+  },
+  "createdAt": "2026-09-16T19:55:29.385Z",
+  "summary": {
+    "validCount": 4328,
+    "invalidCount": 0,
+    "durationMs": 300154.659999999,
+    "averageFps": 14.419233071377318,
+    "low1PercentFps": 5.312065753715637,
+    "low01PercentFps": 4.054212935371685,
+    "minFps": 3.158011084619209,
+    "maxFps": 59.98800239957875,
+    "p50FrameMs": 66.66499999997905,
+    "p95FrameMs": 116.6649999999936,
+    "p99FrameMs": 166.6599999999744,
+    "maxFrameMs": 316.65499999996973,
+    "spikes": {
+      "over25Ms": 4327,
+      "over33_33Ms": 4322,
+      "over50Ms": 2625
+    }
+  },
+  "simulatedSeconds": 199.83333333333334
+}

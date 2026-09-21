@@ -1,0 +1,2251 @@
+{
+  "backend": "typegpu",
+  "sampleCount": 1,
+  "invariantPosition": false,
+  "limits": {
+    "material": 0.001,
+    "beauty": 0.005
+  },
+  "groundPassed": true,
+  "horizonPassed": false,
+  "visualReview": false,
+  "canonicalProjection": false,
+  "passed": false,
+  "results": [
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.000732421875,
+      "maxRelative": 0.005076142131979695,
+      "rmse": 0.000005968133295163691,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.00048828125,
+      "maxRelative": 0.0016460905349794238,
+      "rmse": 0.0000014305995952653877,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.0009765625,
+      "maxRelative": 0.004651162790697674,
+      "rmse": 0.000010429109847591841,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012674271229404308,
+      "rmse": 0.000004629592936960198,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.004638671875,
+      "maxRelative": 0.017341040462427744,
+      "rmse": 0.00002210538748263481,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 1
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "expected": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 0.5883580705009277,
+      "rmse": 0.000523946712715613,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 1.4292957746478874,
+      "rmse": 0.0010478268753986387,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 12
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.09075927734375,
+            0.08013916015625,
+            0.04388427734375,
+            1
+          ],
+          "expected": [
+            0.1512451171875,
+            0.126220703125,
+            0.0638427734375,
+            1
+          ],
+          "error": 0.06048583984375,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.06048583984375,
+      "maxRelative": 0.39991928974979823,
+      "rmse": 0.00017680418250326903,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012674271229404308,
+      "rmse": 0.000004629592936960198,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.1661376953125,
+            0.1361083984375,
+            0.0694580078125,
+            1
+          ],
+          "expected": [
+            0.10589599609375,
+            0.09039306640625,
+            0.0496826171875,
+            1
+          ],
+          "error": 0.06024169921875,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.1702880859375,
+            0.1396484375,
+            0.071533203125,
+            1
+          ],
+          "expected": [
+            0.11016845703125,
+            0.09405517578125,
+            0.051849365234375,
+            1
+          ],
+          "error": 0.06011962890625,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.174072265625,
+            0.142822265625,
+            0.073486328125,
+            1
+          ],
+          "expected": [
+            0.1141357421875,
+            0.09735107421875,
+            0.0538330078125,
+            1
+          ],
+          "error": 0.0599365234375,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.1749267578125,
+            0.1435546875,
+            0.0738525390625,
+            1
+          ],
+          "expected": [
+            0.11505126953125,
+            0.09814453125,
+            0.05426025390625,
+            1
+          ],
+          "error": 0.05987548828125,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "golden",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.06024169921875,
+      "maxRelative": 0.5688760806916426,
+      "rmse": 0.00035026583547336323,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 13
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.000732421875,
+      "maxRelative": 0.005076142131979695,
+      "rmse": 0.000005968133295163691,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.00048828125,
+      "maxRelative": 0.0016460905349794238,
+      "rmse": 0.0000014305995952653877,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.0006103515625,
+      "maxRelative": 0.0037593984962406013,
+      "rmse": 0.000007130080076871884,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.0001220703125,
+      "maxRelative": 0.0009487666034155598,
+      "rmse": 0.0000030393967885528976,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.0032958984375,
+      "maxRelative": 0.016816816816816817,
+      "rmse": 0.000014491250205900673,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "expected": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 0.5883580705009277,
+      "rmse": 0.000523946712715613,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 1.4292957746478874,
+      "rmse": 0.0010478268753986387,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 12
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.08544921875,
+            0.06463623046875,
+            0.0296630859375,
+            1
+          ],
+          "expected": [
+            0.15625,
+            0.111572265625,
+            0.046722412109375,
+            1
+          ],
+          "error": 0.07080078125,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.07080078125,
+      "maxRelative": 0.453125,
+      "rmse": 0.00019464202927968076,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.0001220703125,
+      "maxRelative": 0.0009487666034155598,
+      "rmse": 0.0000030393967885528976,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.1717529296875,
+            0.1209716796875,
+            0.050689697265625,
+            1
+          ],
+          "expected": [
+            0.10101318359375,
+            0.07415771484375,
+            0.03369140625,
+            1
+          ],
+          "error": 0.07073974609375,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.174072265625,
+            0.122802734375,
+            0.05169677734375,
+            1
+          ],
+          "expected": [
+            0.1033935546875,
+            0.0760498046875,
+            0.03472900390625,
+            1
+          ],
+          "error": 0.0706787109375,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.17626953125,
+            0.12451171875,
+            0.0526123046875,
+            1
+          ],
+          "expected": [
+            0.10565185546875,
+            0.07781982421875,
+            0.03570556640625,
+            1
+          ],
+          "error": 0.07061767578125,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.1767578125,
+            0.1248779296875,
+            0.052825927734375,
+            1
+          ],
+          "expected": [
+            0.10614013671875,
+            0.07818603515625,
+            0.035919189453125,
+            1
+          ],
+          "error": 0.07061767578125,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "dusk",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.07073974609375,
+      "maxRelative": 0.7003021148036254,
+      "rmse": 0.00038814866476887195,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 12
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.000732421875,
+      "maxRelative": 0.005076142131979695,
+      "rmse": 0.000005968133295163691,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.00048828125,
+      "maxRelative": 0.0016460905349794238,
+      "rmse": 0.0000014305995952653877,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.00146484375,
+      "maxRelative": 0.009401709401709401,
+      "rmse": 0.000011422845558284116,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.00048828125,
+      "maxRelative": 0.0014652014652014652,
+      "rmse": 0.0000072959421281673706,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.00146484375,
+      "maxRelative": 0.008191126279863481,
+      "rmse": 0.00001002637704348073,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "expected": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 0.5883580705009277,
+      "rmse": 0.000523946712715613,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 1.4292957746478874,
+      "rmse": 0.0010478268753986387,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 12
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.0562744140625,
+            0.060455322265625,
+            0.043212890625,
+            1
+          ],
+          "expected": [
+            0.09808349609375,
+            0.10052490234375,
+            0.06597900390625,
+            1
+          ],
+          "error": 0.04180908203125,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.04180908203125,
+      "maxRelative": 0.42626011200995645,
+      "rmse": 0.00014190721084914238,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.00048828125,
+      "maxRelative": 0.0014652014652014652,
+      "rmse": 0.0000072959421281673706,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.0987548828125,
+            0.10125732421875,
+            0.0667724609375,
+            1
+          ],
+          "expected": [
+            0.05694580078125,
+            0.061279296875,
+            0.044097900390625,
+            1
+          ],
+          "error": 0.04180908203125,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.09893798828125,
+            0.1015625,
+            0.067138671875,
+            1
+          ],
+          "expected": [
+            0.057159423828125,
+            0.0616455078125,
+            0.044525146484375,
+            1
+          ],
+          "error": 0.041778564453125,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.09912109375,
+            0.10186767578125,
+            0.0675048828125,
+            1
+          ],
+          "expected": [
+            0.057373046875,
+            0.06195068359375,
+            0.044891357421875,
+            1
+          ],
+          "error": 0.041748046875,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.09912109375,
+            0.1019287109375,
+            0.06756591796875,
+            1
+          ],
+          "expected": [
+            0.057403564453125,
+            0.06201171875,
+            0.044952392578125,
+            1
+          ],
+          "error": 0.041717529296875,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "noon",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.04180908203125,
+      "maxRelative": 0.7341907824222936,
+      "rmse": 0.00027871854207650994,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 12
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.000732421875,
+      "maxRelative": 0.005076142131979695,
+      "rmse": 0.000005968133295163691,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": false,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.00048828125,
+      "maxRelative": 0.0016460905349794238,
+      "rmse": 0.0000014305995952653877,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.00048828125,
+      "maxRelative": 0.004418262150220913,
+      "rmse": 0.000004382173749291103,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.0001220703125,
+      "maxRelative": 0.001183431952662722,
+      "rmse": 0.000003691461736325421,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": false,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.000732421875,
+      "maxRelative": 0.00663716814159292,
+      "rmse": 0.000004234542876756456,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "expected": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "tactical",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 0.5883580705009277,
+      "rmse": 0.000523946712715613,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "seam-close",
+      "maxAbs": 0.000244140625,
+      "maxRelative": 0.0012195121951219512,
+      "rmse": 0.000006587260245283266,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.26318359375,
+            0.23291015625,
+            0.187255859375,
+            0.919921875
+          ],
+          "expected": [
+            0.10833740234375,
+            0.096435546875,
+            0.078369140625,
+            0.919921875
+          ],
+          "error": 0.15484619140625,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": true,
+      "mode": "material",
+      "pose": "horizon",
+      "maxAbs": 0.15484619140625,
+      "maxRelative": 1.4292957746478874,
+      "rmse": 0.0010478268753986387,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 12
+    },
+    {
+      "worst": [
+        {
+          "x": 254,
+          "y": 28,
+          "actual": [
+            0.1480712890625,
+            0.1522216796875,
+            0.1641845703125,
+            1
+          ],
+          "expected": [
+            0.2127685546875,
+            0.2103271484375,
+            0.2117919921875,
+            1
+          ],
+          "error": 0.064697265625,
+          "coplanarWallCap": {
+            "world": [
+              330.965830494979,
+              183.10076993002184,
+              22.838869094848576
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 1,
+      "localizedWallCapPixels": 1,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "tactical",
+      "maxAbs": 0.064697265625,
+      "maxRelative": 0.30407343660355707,
+      "rmse": 0.00022261173543877759,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 3
+    },
+    {
+      "worst": [],
+      "failingPixels": 0,
+      "localizedWallCapPixels": 0,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "seam-close",
+      "maxAbs": 0.0001220703125,
+      "maxRelative": 0.001183431952662722,
+      "rmse": 0.000003691461736325421,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 0
+    },
+    {
+      "worst": [
+        {
+          "x": 191,
+          "y": 169,
+          "actual": [
+            0.2174072265625,
+            0.2156982421875,
+            0.218505859375,
+            1
+          ],
+          "expected": [
+            0.1534423828125,
+            0.1580810546875,
+            0.1715087890625,
+            1
+          ],
+          "error": 0.06396484375,
+          "coplanarWallCap": {
+            "world": [
+              312.50918269046986,
+              -251.53818860503125,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 175,
+          "y": 180,
+          "actual": [
+            0.219970703125,
+            0.218505859375,
+            0.22216796875,
+            1
+          ],
+          "expected": [
+            0.15625,
+            0.1612548828125,
+            0.1754150390625,
+            1
+          ],
+          "error": 0.063720703125,
+          "coplanarWallCap": {
+            "world": [
+              311.0276314380502,
+              -272.48397799843167,
+              22.838869094848633
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 161,
+          "y": 189,
+          "actual": [
+            0.2218017578125,
+            0.2205810546875,
+            0.2247314453125,
+            1
+          ],
+          "expected": [
+            0.1583251953125,
+            0.16357421875,
+            0.17822265625,
+            1
+          ],
+          "error": 0.0634765625,
+          "coplanarWallCap": {
+            "world": [
+              309.5662731807308,
+              -287.47251455472366,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        },
+        {
+          "x": 158,
+          "y": 191,
+          "actual": [
+            0.22216796875,
+            0.2210693359375,
+            0.225341796875,
+            1
+          ],
+          "expected": [
+            0.15869140625,
+            0.1640625,
+            0.1788330078125,
+            1
+          ],
+          "error": 0.0634765625,
+          "coplanarWallCap": {
+            "world": [
+              309.3197617512702,
+              -290.4825364491081,
+              22.838869094848647
+            ],
+            "baseTriangle": 401,
+            "bodyTriangle": 413,
+            "baseColor": [
+              0.3630000054836273,
+              0.3431999981403351,
+              0.3102000057697296
+            ],
+            "bodyColor": [
+              0.550000011920929,
+              0.5199999809265137,
+              0.4699999988079071
+            ]
+          }
+        }
+      ],
+      "failingPixels": 4,
+      "localizedWallCapPixels": 4,
+      "unlocalizedFailurePixels": 0,
+      "preset": "overcast-highland",
+      "includeHorizon": true,
+      "mode": "beauty",
+      "pose": "horizon",
+      "maxAbs": 0.06396484375,
+      "maxRelative": 0.41686555290373906,
+      "rmse": 0.0004378151572317573,
+      "nonfinite": 0,
+      "coverageMismatch": 0,
+      "overTolerance": 12
+    }
+  ],
+  "errors": [],
+  "framebuffer": [
+    257,
+    193
+  ],
+  "geometry": {
+    "groundIndices": 28800,
+    "horizonIndices": 1488
+  },
+  "scope": "base playable terrain and sealed opaque horizon; excludes sky background/background quads/vista/ocean/lake/grass/scenery/shadow-map generation",
+  "pageErrors": []
+}

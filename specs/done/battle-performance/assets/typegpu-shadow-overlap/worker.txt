@@ -1,0 +1,51 @@
+Committed as `3d922bb7`. Here is the handoff.
+
+## What landed
+
+Eight files, 1142 insertions, no deletions — nothing outside the candidate directory except one addition to the lab's existing readback owner.
+
+| file | role |
+|---|---|
+| `candidates/typegpu/shadowOverlapFixture.ts` | genuine fit + probe table + **independent hand-derived oracle** |
+| `candidates/typegpu/shadow-check.ts` | GPU entry; also exports `probeReceiverShader` so the shader resolves device-free |
+| `candidates/typegpu/shadow-check.{html,entry.ts}` | addressable page, mutation read from the URL |
+| `candidates/typegpu/verify-shadow.mjs` | runner |
+| `candidates/typegpu/tests/shadowCascadeOverlap.test.ts` | 13 CPU tests |
+| `src/numericalReadback.ts` | `readF32Texture` added to the existing owner (no second private helper) |
+| `candidates/typegpu/README.md` | derivation table, recipe, boundaries |
+
+No new Vite config: `web/vite.typegpu.config.ts` already roots at the candidate directory and serves `*.html` in dev, and its default build input is unchanged, so no existing gate moved.
+
+## Run recipe for root
+
+```sh
+# CPU (already green here)
+web/node_modules/.bin/tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tsconfig.json
+web/node_modules/.bin/tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tests/tsconfig.json
+web/node_modules/.bin/vitest run --config apps/battle-perf-lab/candidates/typegpu/vitest.config.mts
+
+# Hardware — needs the coordinated GPU slot
+bun run --cwd web vite --config vite.typegpu.config.ts --host 127.0.0.1 --port 5187
+node apps/battle-perf-lab/candidates/typegpu/verify-shadow.mjs                              # exit 0
+TYPEGPU_SHADOW_MUTATION=layer-swap    node .../verify-shadow.mjs                            # exit 0
+TYPEGPU_SHADOW_MUTATION=receiver-swap node .../verify-shadow.mjs                            # exit 0
+```
+
+The runner asserts **the outcome it asked for**: `report.passed === (mutation === "none")`. A mutated run that *passes* the comparison exits 1 — that is the gate failing to be a gate. Reports land in `throwaway/typegpu-shadow/shadow-check-<mutation>.json` with every raw sample retained. Let the dev server settle after an edit or it serves the stale module.
+
+## Verified here (CPU only, no GPU or timing)
+
+Typechecks clean (both projects); 60/60 candidate tests and 162/162 lab tests pass; the probe fragment **resolves to WGSL** through the real High sampler, reaching `texture_depth_2d_array`, `shadowVisibility(sunDepth,sunCompare,0,` and `…,1,`, `environment.worldToView` and `cam.znear`; the whole module graph transforms and serves 200 under the candidate Vite config; `numericalReadback.ts` is oxfmt-clean.
+
+## Decisions worth your audit
+
+- **Expected values are closed forms, not recordings.** Probes sit where the fade collapses — the first cascade's unfaded near half (which exercises the zero-width-margin `select` guard, the NaN path), both overlap boundaries, the band's quarter points and midpoint, the second cascade's interior, `1 − 0.25k` on the terminal fade, and depths outside every interval. `cascadeBlendWeight` is checked against them but is labelled in the test as a **transcription of the same shader text** — it agrees, it does not corroborate. The independent claims are the collapsed forms plus three properties measured on hardware: per-cascade additivity, a covered receiver being fully shadowed, and the lit floor.
+- **Tolerance fixed before hardware:** `2 × 1e-6 / m` where `m = 0.25·b²` (≈1.2e-4 at the shipped split), derived from the f32 dot-product error budget and the blend's division by the narrowest margin. A test pins that it is ~700× below the smallest gap between two distinct expected answers, so it cannot mask a wrong weight. Readback is `r32float` — no requantization.
+- **The layer-swap symmetry trap.** My first configuration set was two exact mirrors, which cancels precisely at the break where both weights are ½ — a swap would have been invisible at the most important probe. Fixed by clearing one configuration **between** the two cascades' disjoint receiver-depth bands (0.62). A test now proves every probe any cascade weights moves under the swap; probes outside every interval deliberately do not, since no layer is read there.
+- **Constant layers bypass PCF by construction** (all five taps identical), which is what makes the output the blend weight alone — and is also a stated limitation.
+
+## Limitations — please read before trusting a green run
+
+Synthetic cleared layers are not casters. This proves **nothing** about caster fitting, cascade motion under a moving camera, PCF softness, or whether a shadow reads correctly on screen. It is one numerical component gate for the receiver's layer binding, overlap blend and terminal fade.
+
+Separately: I could not execute the GPU path, so a handful of WebGPU/TypeGPU runtime assumptions are unproven — the array-form `colorAttachments` with `targets: {format}`, `r32float` as a render target, and `probeBuffer.write(vec4f[])`. All three follow idioms already used elsewhere in this candidate, and any failure surfaces as a captured validation or page error rather than a silent pass.

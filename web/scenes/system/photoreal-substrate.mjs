@@ -1,25 +1,19 @@
 import { PNG } from "pngjs";
 
-// Both three.js routes must render
-// non-blank on the camera3d spine, publish the ownership identity fields
-// { substrate, projection, environment } plus renderer.info-backed stats, hold
-// the 06 bake-off count floors, and — the determinism rule — two snaps at the
-// same fixed setTime are byte-identical. On a hardware adapter
-// (VERIFY_GPU_ADAPTER=hardware) it also runs the crowd frame-time gate that
-// opens the ladder's perf ledger (budget 33 ms; 06 baseline ~6 ms).
+// The retained Three material authoring route must be nonblank, publish its
+// ownership and renderer stats, and remain deterministic at a fixed time.
 export const meta = {
   name: "photoreal-substrate",
   kind: "visual",
   world: "none",
   tier: "full",
-  snapshots: ["photoreal-pbr", "photoreal-crowd-mid"],
-  describe: "Photoreal three.js WebGPU routes: identity fields, count floors, byte-determinism.",
+  snapshots: ["photoreal-pbr"],
+  describe: "Photoreal material authoring: identity, sphere grid and byte-determinism.",
 };
 
 const SUBSTRATE = "threejs-webgpu-tsl";
 const PROJECTION = "camera3d";
 const FIXED_TIME = 0.6;
-const PERF_BUDGET_MS = 33;
 
 function countNonBlank(png) {
   let nonBlank = 0;
@@ -92,9 +86,6 @@ async function fixedTimeChecks(ctx, page, label, extraStatsOk) {
     statsShapeOk(stats) && extraStatsOk(stats.stats),
     JSON.stringify(stats?.stats),
   );
-  // Clipped page screenshots, not locator.screenshot(): the element-stability
-  // wait needs consecutive fast rAF ticks, and one full-scale crowd frame costs
-  // ~30 s of SwiftShader software rasterization (hence the long timeout too).
   const clip = await page.locator("#renderer-canvas").boundingBox();
   const shotA = await page.screenshot({ clip, timeout: 120000 });
   const pixels = countNonBlank(PNG.sync.read(shotA));
@@ -121,63 +112,6 @@ export async function run(ctx) {
     const shot = await fixedTimeChecks(ctx, page, "photoreal-pbr", (s) => s.spheres === 49);
     // Baselines are SwiftShader artifacts; a hardware run must not diff them.
     if (!hardware) await ctx.snap(page, "photoreal-pbr", { shot });
-    await page.close();
-  }
-
-  // --- /renderer/photoreal-crowd (mid): the 30,400 + foliage count floors ----
-  {
-    const page = await openRoute(ctx, "photoreal-crowd", `?t=${FIXED_TIME}`, "photoreal-crowd-mid");
-    const shot = await fixedTimeChecks(
-      ctx,
-      page,
-      "photoreal-crowd mid",
-      (s) =>
-        s.cameraPreset === "mid" &&
-        s.soldiers >= 30400 &&
-        s.soldierRenderer === "production-crowd" &&
-        s.soldierAssets === "complete-catalog" &&
-        s.appearanceIds.join(",") === "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19" &&
-        s.crowd.visibleTierHistogram.l0 >= 30400 &&
-        s.grassBlades >= 200000 &&
-        s.trees >= 3000,
-    );
-    if (!hardware) await ctx.snap(page, "photoreal-crowd-mid", { shot });
-    await page.close();
-  }
-
-  // --- /renderer/photoreal-crowd (vista): second contract camera -------------
-  {
-    const page = await openRoute(
-      ctx,
-      "photoreal-crowd",
-      `?cam=vista&t=${FIXED_TIME}`,
-      "photoreal-crowd-vista",
-    );
-    await fixedTimeChecks(ctx, page, "photoreal-crowd vista", (s) => s.cameraPreset === "vista");
-    await page.close();
-  }
-
-  // --- Hardware frame-time gate (the ladder's perf ledger) -------------------
-  if (hardware) {
-    const page = await openRoute(ctx, "photoreal-crowd", "", "photoreal-crowd-perf");
-    await page.waitForFunction(
-      () =>
-        window.__rendererLabStats?.stats?.frames >= 120 &&
-        window.__rendererLabStats?.stats?.gpuTimeMs !== null,
-      undefined,
-      { timeout: 30000 },
-    );
-    const s = await page.evaluate(() => window.__rendererLabStats.stats);
-    ctx.check(
-      `photoreal-crowd perf: median rAF and GPU ms within the ${PERF_BUDGET_MS} ms budget`,
-      s.medianMs !== null && s.medianMs <= PERF_BUDGET_MS && s.gpuTimeMs <= PERF_BUDGET_MS,
-      JSON.stringify({
-        medianMs: s.medianMs,
-        p95Ms: s.p95Ms,
-        gpuTimeMs: s.gpuTimeMs,
-        drawCalls: s.drawCalls,
-      }),
-    );
     await page.close();
   }
 }

@@ -1,0 +1,487 @@
+[
+  {
+    "source": "throwaway/ocean-msaa-samples/candidate-ocean-4.json.gz",
+    "sourceSha256": "03e9e34405be8be4cee93ea6f7f1c29c6d08a394bbda517153c204fd8eb84380",
+    "numericReport": "ocean-msaa-samples-candidate-ocean-4.json.gz",
+    "omittedLargeStrings": [
+      {
+        "path": ".report.results[0].actualRgba",
+        "characters": 2097152,
+        "sha256": "48d9a2c3066ea22378c41f920850c8b27f4b9c61dec969c60fa794e29450f6ab"
+      },
+      {
+        "path": ".report.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "91a6face5e8bf3162c6f39892a806c84b69715c986beff890170850caac67371"
+      },
+      {
+        "path": ".report.results[1].actualRgba",
+        "characters": 2097152,
+        "sha256": "d0726c40220517ca95112be7d3e99ccc136e9326e2b432907aa41e90ab5c4c83"
+      },
+      {
+        "path": ".report.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "9fd48d836a7de60db7ad514d7c245d3a91861041ebf684f48025cc0f86b81e36"
+      },
+      {
+        "path": ".report.results[2].actualRgba",
+        "characters": 2097152,
+        "sha256": "36e0d8c9934d89b8af93149707150097a8b51575f3aab0d929856ec506ff9bb7"
+      },
+      {
+        "path": ".report.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[3].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f53b4511f9bcdab2e11947ac334ba7e9b4eec7ef8af6f10d07976413a708f9a"
+      },
+      {
+        "path": ".report.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.results[4].actualRgba",
+        "characters": 2097152,
+        "sha256": "36e0d8c9934d89b8af93149707150097a8b51575f3aab0d929856ec506ff9bb7"
+      },
+      {
+        "path": ".report.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[5].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f53b4511f9bcdab2e11947ac334ba7e9b4eec7ef8af6f10d07976413a708f9a"
+      },
+      {
+        "path": ".report.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.aligned.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "0016e078500f264a5810a371ce41834ed454ba0f8ff8bf07a08d64fe3fce830d"
+      },
+      {
+        "path": ".report.aligned.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "0ce78659f480a98c5a61a658e56c951a20902180b420a64e74105da0ea1aa5a4"
+      },
+      {
+        "path": ".report.aligned.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "7221ed7061d60ec701fb556b37b5d804003223b0f2b2e300ee71436c85e06560"
+      },
+      {
+        "path": ".report.aligned.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "c596dd0fc22e580e0a301d3c20bdb516cc7bead9126ea97d6f1441e362c16e17"
+      },
+      {
+        "path": ".report.aligned.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "7221ed7061d60ec701fb556b37b5d804003223b0f2b2e300ee71436c85e06560"
+      },
+      {
+        "path": ".report.aligned.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "c596dd0fc22e580e0a301d3c20bdb516cc7bead9126ea97d6f1441e362c16e17"
+      }
+    ]
+  },
+  {
+    "source": "throwaway/ocean-msaa-samples/fixed-candidate-ocean-4.json.gz",
+    "sourceSha256": "d4d2485fce49b40c9c66bd418e86e63c392c08b1b3b2f19fc13176ea060ad38b",
+    "numericReport": "ocean-msaa-samples-fixed-candidate-ocean-4.json.gz",
+    "omittedLargeStrings": [
+      {
+        "path": ".report.results[0].actualRgba",
+        "characters": 2097152,
+        "sha256": "48d9a2c3066ea22378c41f920850c8b27f4b9c61dec969c60fa794e29450f6ab"
+      },
+      {
+        "path": ".report.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "91a6face5e8bf3162c6f39892a806c84b69715c986beff890170850caac67371"
+      },
+      {
+        "path": ".report.results[1].actualRgba",
+        "characters": 2097152,
+        "sha256": "d0726c40220517ca95112be7d3e99ccc136e9326e2b432907aa41e90ab5c4c83"
+      },
+      {
+        "path": ".report.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "9fd48d836a7de60db7ad514d7c245d3a91861041ebf684f48025cc0f86b81e36"
+      },
+      {
+        "path": ".report.results[2].actualRgba",
+        "characters": 2097152,
+        "sha256": "36e0d8c9934d89b8af93149707150097a8b51575f3aab0d929856ec506ff9bb7"
+      },
+      {
+        "path": ".report.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[3].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f53b4511f9bcdab2e11947ac334ba7e9b4eec7ef8af6f10d07976413a708f9a"
+      },
+      {
+        "path": ".report.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.results[4].actualRgba",
+        "characters": 2097152,
+        "sha256": "36e0d8c9934d89b8af93149707150097a8b51575f3aab0d929856ec506ff9bb7"
+      },
+      {
+        "path": ".report.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[5].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f53b4511f9bcdab2e11947ac334ba7e9b4eec7ef8af6f10d07976413a708f9a"
+      },
+      {
+        "path": ".report.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.aligned.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "0016e078500f264a5810a371ce41834ed454ba0f8ff8bf07a08d64fe3fce830d"
+      },
+      {
+        "path": ".report.aligned.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "0ce78659f480a98c5a61a658e56c951a20902180b420a64e74105da0ea1aa5a4"
+      },
+      {
+        "path": ".report.aligned.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "7221ed7061d60ec701fb556b37b5d804003223b0f2b2e300ee71436c85e06560"
+      },
+      {
+        "path": ".report.aligned.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "c596dd0fc22e580e0a301d3c20bdb516cc7bead9126ea97d6f1441e362c16e17"
+      },
+      {
+        "path": ".report.aligned.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "7221ed7061d60ec701fb556b37b5d804003223b0f2b2e300ee71436c85e06560"
+      },
+      {
+        "path": ".report.aligned.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "c596dd0fc22e580e0a301d3c20bdb516cc7bead9126ea97d6f1441e362c16e17"
+      }
+    ]
+  },
+  {
+    "source": "throwaway/ocean-msaa-samples/fixed-flat-ocean-4.json.gz",
+    "sourceSha256": "e5272b6734612bf321514038ae1fab0df1f5f8f8ae00513e1b6d80425d20a797",
+    "numericReport": "ocean-msaa-samples-fixed-flat-ocean-4.json.gz",
+    "omittedLargeStrings": [
+      {
+        "path": ".report.results[0].actualRgba",
+        "characters": 2097152,
+        "sha256": "48d9a2c3066ea22378c41f920850c8b27f4b9c61dec969c60fa794e29450f6ab"
+      },
+      {
+        "path": ".report.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "91a6face5e8bf3162c6f39892a806c84b69715c986beff890170850caac67371"
+      },
+      {
+        "path": ".report.results[1].actualRgba",
+        "characters": 2097152,
+        "sha256": "d0726c40220517ca95112be7d3e99ccc136e9326e2b432907aa41e90ab5c4c83"
+      },
+      {
+        "path": ".report.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "9fd48d836a7de60db7ad514d7c245d3a91861041ebf684f48025cc0f86b81e36"
+      },
+      {
+        "path": ".report.results[2].actualRgba",
+        "characters": 2097152,
+        "sha256": "36e0d8c9934d89b8af93149707150097a8b51575f3aab0d929856ec506ff9bb7"
+      },
+      {
+        "path": ".report.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[3].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f53b4511f9bcdab2e11947ac334ba7e9b4eec7ef8af6f10d07976413a708f9a"
+      },
+      {
+        "path": ".report.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.results[4].actualRgba",
+        "characters": 2097152,
+        "sha256": "36e0d8c9934d89b8af93149707150097a8b51575f3aab0d929856ec506ff9bb7"
+      },
+      {
+        "path": ".report.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[5].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f53b4511f9bcdab2e11947ac334ba7e9b4eec7ef8af6f10d07976413a708f9a"
+      },
+      {
+        "path": ".report.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.aligned.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "73d5b29e2c76b55f6f36c58b7a250353c5309666d97aaa8df3c84f1f904506d2"
+      },
+      {
+        "path": ".report.aligned.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "db689227a30947c9058cab2a54ef246274c71d05a010d2a9763edcb0ed9ab1a9"
+      },
+      {
+        "path": ".report.aligned.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "ca5ef3eeeec1dc78ba0e0db3aac9117e3f34af1b065de4dd2c5369a5e495fc29"
+      },
+      {
+        "path": ".report.aligned.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "d05055e7bc25f891628fc9ac1842c7663f4da4cb7d0055c7878711d7238dd82a"
+      },
+      {
+        "path": ".report.aligned.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "ca5ef3eeeec1dc78ba0e0db3aac9117e3f34af1b065de4dd2c5369a5e495fc29"
+      },
+      {
+        "path": ".report.aligned.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "d05055e7bc25f891628fc9ac1842c7663f4da4cb7d0055c7878711d7238dd82a"
+      }
+    ]
+  },
+  {
+    "source": "throwaway/ocean-msaa-position/candidate-ocean-4.json.gz",
+    "sourceSha256": "9a8271142118aa96657559747182663527e66a46bc3b1951cd262798bf129b6e",
+    "numericReport": "ocean-msaa-position-candidate-ocean-4.json.gz",
+    "omittedLargeStrings": [
+      {
+        "path": ".report.results[0].actualRgba",
+        "characters": 2097152,
+        "sha256": "2643a14b6c8b7a182abf5a0e34f8e322bb981ef3a2b58723aa2e05f67b090d1d"
+      },
+      {
+        "path": ".report.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "772a7064d3bf5e508fd6b3dd2b63257983e536453a759f842dda318c36568904"
+      },
+      {
+        "path": ".report.results[1].actualRgba",
+        "characters": 2097152,
+        "sha256": "3e1e8e915f65269cd7268333b905f110d0524ad990bdf6e9c16488de1988b95f"
+      },
+      {
+        "path": ".report.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "76db3a810291417aeb8079754a1f6d6136f2ebd0952c451d603bd8a903f832ee"
+      },
+      {
+        "path": ".report.results[2].actualRgba",
+        "characters": 2097152,
+        "sha256": "748464178c15144a98e8af25759b34399e2429e11a6e9cf411cf2a8ddd13b07f"
+      },
+      {
+        "path": ".report.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "85a61c484b9dc888d8a173ca62f5fce843e4dbf963ca06f6c1e212a26eee5e6f"
+      },
+      {
+        "path": ".report.results[3].actualRgba",
+        "characters": 2097152,
+        "sha256": "17be14478aafd65960f9565da0927bbcb2316f622c7b18cd0adb45aa04ee631b"
+      },
+      {
+        "path": ".report.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "4027685a3c157d07894d52ab06d34fc6a4eaa9667f244b7037e52e9769550c61"
+      },
+      {
+        "path": ".report.results[4].actualRgba",
+        "characters": 2097152,
+        "sha256": "748464178c15144a98e8af25759b34399e2429e11a6e9cf411cf2a8ddd13b07f"
+      },
+      {
+        "path": ".report.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "85a61c484b9dc888d8a173ca62f5fce843e4dbf963ca06f6c1e212a26eee5e6f"
+      },
+      {
+        "path": ".report.results[5].actualRgba",
+        "characters": 2097152,
+        "sha256": "17be14478aafd65960f9565da0927bbcb2316f622c7b18cd0adb45aa04ee631b"
+      },
+      {
+        "path": ".report.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "4027685a3c157d07894d52ab06d34fc6a4eaa9667f244b7037e52e9769550c61"
+      },
+      {
+        "path": ".report.aligned.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "97dcbdc928395e0166711eb5f944d12d1b256339f55e9214931ff14196aaae7e"
+      },
+      {
+        "path": ".report.aligned.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "780c8b609b9f58cf298589690728c44816683034dd39ed67d9ee61b69a975b0a"
+      },
+      {
+        "path": ".report.aligned.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "7b2a3a33e307d61eb2ae11c881b948b732bc737466eef48e6d773ea34b4800f1"
+      },
+      {
+        "path": ".report.aligned.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "e7bd14db25bc3295e3b1a6440d7f1a93f027b84f9c81e9b7b121da63ee418226"
+      },
+      {
+        "path": ".report.aligned.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "7b2a3a33e307d61eb2ae11c881b948b732bc737466eef48e6d773ea34b4800f1"
+      },
+      {
+        "path": ".report.aligned.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "e7bd14db25bc3295e3b1a6440d7f1a93f027b84f9c81e9b7b121da63ee418226"
+      }
+    ]
+  },
+  {
+    "source": "throwaway/ocean-centroid/candidate-ocean-4.json.gz",
+    "sourceSha256": "857a0dcdbf45889a1f83ecd469ef77d61e2f07e4a8799b44c49b127f36217c60",
+    "numericReport": "ocean-centroid-candidate-ocean-4.json.gz",
+    "omittedLargeStrings": [
+      {
+        "path": ".report.results[0].actualRgba",
+        "characters": 2097152,
+        "sha256": "26bad42e6b4aeadd42a31c9c58cf103050c218737a11ad8ed934616b6edb4747"
+      },
+      {
+        "path": ".report.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "91a6face5e8bf3162c6f39892a806c84b69715c986beff890170850caac67371"
+      },
+      {
+        "path": ".report.results[1].actualRgba",
+        "characters": 2097152,
+        "sha256": "ea56f51ea388764c9d4fe9b609efbd7b155322c4a28afb50a7956caf2f73698c"
+      },
+      {
+        "path": ".report.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "9fd48d836a7de60db7ad514d7c245d3a91861041ebf684f48025cc0f86b81e36"
+      },
+      {
+        "path": ".report.results[2].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f9933f154eb573e4a936c251f8f5076df6dbe764c3e53d09a9dc94743eb2a0e"
+      },
+      {
+        "path": ".report.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[3].actualRgba",
+        "characters": 2097152,
+        "sha256": "fc609e385d466139d2991adce998e83612ac85ca9043338086bd9e1b4919498c"
+      },
+      {
+        "path": ".report.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.results[4].actualRgba",
+        "characters": 2097152,
+        "sha256": "3f9933f154eb573e4a936c251f8f5076df6dbe764c3e53d09a9dc94743eb2a0e"
+      },
+      {
+        "path": ".report.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "f4c2bc628c10f73f5c8701be47af5cc92a5ebd488fdd72f47fb0861c74bc18c3"
+      },
+      {
+        "path": ".report.results[5].actualRgba",
+        "characters": 2097152,
+        "sha256": "fc609e385d466139d2991adce998e83612ac85ca9043338086bd9e1b4919498c"
+      },
+      {
+        "path": ".report.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b6a0c0942a9396cc70c770b6695b404ed0430fa49ebb7e641605e77a07a5b995"
+      },
+      {
+        "path": ".report.aligned.results[0].expectedRgba",
+        "characters": 2097152,
+        "sha256": "4cc23dcd75cfe3cec6d06097471a094c7299c967c374f45dc858a156bf0ca7a3"
+      },
+      {
+        "path": ".report.aligned.results[1].expectedRgba",
+        "characters": 2097152,
+        "sha256": "b377c0a611bbdc6378acf144130a524b370d1c3d7cc6e97d16d562e442d524c4"
+      },
+      {
+        "path": ".report.aligned.results[2].expectedRgba",
+        "characters": 2097152,
+        "sha256": "a856895652671c639063c959f4058831407ed56c12e47d7df37e9777b6ff2ab8"
+      },
+      {
+        "path": ".report.aligned.results[3].expectedRgba",
+        "characters": 2097152,
+        "sha256": "92b8171ba1f86bb61108ca40c38a952b12f14caa4197b69ac05148ab5e7f33de"
+      },
+      {
+        "path": ".report.aligned.results[4].expectedRgba",
+        "characters": 2097152,
+        "sha256": "a856895652671c639063c959f4058831407ed56c12e47d7df37e9777b6ff2ab8"
+      },
+      {
+        "path": ".report.aligned.results[5].expectedRgba",
+        "characters": 2097152,
+        "sha256": "92b8171ba1f86bb61108ca40c38a952b12f14caa4197b69ac05148ab5e7f33de"
+      }
+    ]
+  }
+]

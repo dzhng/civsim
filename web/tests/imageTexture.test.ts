@@ -84,3 +84,17 @@ it.each(["copy", "admission"] as const)(
     expect(b.destroyed()).toBe(1);
   },
 );
+
+it("rejects truncated packed RGBA before opening GPU admission scopes", async () => {
+  const device = { limits: { maxTextureDimension2D: 64 } } as GPUDevice;
+  await expect(
+    uploadImageTexture(
+      device,
+      { width: 2, height: 2, data: new Uint8Array(15) },
+      {
+        colorSpace: "linear",
+        generateMipmaps: true,
+      },
+    ),
+  ).rejects.toThrow("exactly four bytes per pixel");
+});

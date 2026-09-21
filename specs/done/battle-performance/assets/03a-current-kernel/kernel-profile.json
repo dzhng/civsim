@@ -1,0 +1,1724 @@
+{
+  "kind": "current-wasm-contact-profile",
+  "pair": 1,
+  "arm": "profile",
+  "wasmDirectory": "/Users/david/dev/game-battle-performance-spec/web/src/wasm",
+  "hostBefore": {
+    "utc": "2026-09-16T11:29:11.915Z",
+    "loadAverage": [
+      4.19091796875,
+      4.412109375,
+      4.24658203125
+    ]
+  },
+  "hostAfter": {
+    "utc": "2026-09-16T11:30:29.393Z",
+    "loadAverage": [
+      3.72998046875,
+      4.2578125,
+      4.203125
+    ]
+  },
+  "artifactUnchanged": true,
+  "diagnosticOnly": true,
+  "hostCondition": "Serialized fresh Node processes in coordinated CPU window. Host load recorded; diagnostic feasibility evidence, not a release timing gate.",
+  "createdAt": "2026-09-16T11:30:29.394Z",
+  "source": "/Users/david/dev/game-battle-performance-spec",
+  "identity": {
+    "node": "v24.14.0",
+    "v8": "13.6.233.17-node.41",
+    "execArgv": [],
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5 Pro",
+    "loadAverage": [
+      3.72998046875,
+      4.2578125,
+      4.203125
+    ],
+    "wasmBytes": 1086627,
+    "wasmSha256": "1b9eb9d5e4b4cf02ae10bfb6778c231a71659f99f98f3a295a60226b9993ffaa",
+    "productionBuildCommandForReference": "CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 RUSTFLAGS='-C target-feature=+simd128' wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
+    "cargoProfile": "[workspace]\nmembers = [\"crates/contract\", \"crates/sim\", \"crates/game-wasm\", \"crates/mapgen\", \"crates/campaign\"]\nresolver = \"2\"\n\n[profile.release]\nopt-level = 3\nlto = \"thin\"\n\n# Tests simulate minutes of battle at 30Hz: optimize them. (IEEE float\n# semantics are opt-level-independent in Rust, so the golden hash holds.)\n[profile.test]\nopt-level = 2\n"
+  },
+  "orders": [
+    {
+      "tick": 0,
+      "unit": 0,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 1,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 2,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 3,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 4,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 5,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 6,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 7,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 8,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 9,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 10,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 11,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 12,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 13,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 14,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 15,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 16,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 17,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 18,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 19,
+      "target": 20
+    }
+  ],
+  "initial": {
+    "tick": 0,
+    "hash": "1610507740289060947",
+    "alive": 15560,
+    "engaged": 0,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "prepared": {
+    "tick": 9000,
+    "hash": "9928381812590497427",
+    "alive": 15529,
+    "engaged": 540,
+    "projectiles": 70,
+    "victor": -1
+  },
+  "final": {
+    "tick": 9308,
+    "hash": "13217042291758616190",
+    "alive": 15488,
+    "engaged": 1005,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "preparationMs": 68906.987625,
+  "elapsedMs": 8363.321875000009,
+  "summary": {
+    "batchTicks": 1,
+    "batchCount": 308,
+    "averageBatchMs": 27.15285647077973,
+    "p95BatchMs": 28.713833000001614,
+    "averageTickMs": 27.15285647077973,
+    "minBatchMs": 25.221000000005006,
+    "maxBatchMs": 35.64008300000569
+  },
+  "measurement": "Synchronous Game.advance_ticks(1), including commander AI and one unit/posture export refresh. No renderer, browser, V8 tuning flags, or gameplay changes. Profile arm uses Node inspector sampling; control arm does not. Batch cost includes unchanged simulation, AI, and export refresh; not isolated Sim::tick alone.",
+  "batches": [
+    {
+      "tick": 9001,
+      "ticks": 1,
+      "elapsedMs": 28.100417000008747
+    },
+    {
+      "tick": 9002,
+      "ticks": 1,
+      "elapsedMs": 26.492459000000963
+    },
+    {
+      "tick": 9003,
+      "ticks": 1,
+      "elapsedMs": 27.239999999990687
+    },
+    {
+      "tick": 9004,
+      "ticks": 1,
+      "elapsedMs": 27.75029199999699
+    },
+    {
+      "tick": 9005,
+      "ticks": 1,
+      "elapsedMs": 26.215500000005704
+    },
+    {
+      "tick": 9006,
+      "ticks": 1,
+      "elapsedMs": 26.602624999999534
+    },
+    {
+      "tick": 9007,
+      "ticks": 1,
+      "elapsedMs": 31.289624999990338
+    },
+    {
+      "tick": 9008,
+      "ticks": 1,
+      "elapsedMs": 33.78095800000301
+    },
+    {
+      "tick": 9009,
+      "ticks": 1,
+      "elapsedMs": 35.64008300000569
+    },
+    {
+      "tick": 9010,
+      "ticks": 1,
+      "elapsedMs": 33.8472080000065
+    },
+    {
+      "tick": 9011,
+      "ticks": 1,
+      "elapsedMs": 32.37562500000058
+    },
+    {
+      "tick": 9012,
+      "ticks": 1,
+      "elapsedMs": 27.885250000006636
+    },
+    {
+      "tick": 9013,
+      "ticks": 1,
+      "elapsedMs": 26.418999999994412
+    },
+    {
+      "tick": 9014,
+      "ticks": 1,
+      "elapsedMs": 26.461708000002545
+    },
+    {
+      "tick": 9015,
+      "ticks": 1,
+      "elapsedMs": 25.464124999998603
+    },
+    {
+      "tick": 9016,
+      "ticks": 1,
+      "elapsedMs": 25.812292000002344
+    },
+    {
+      "tick": 9017,
+      "ticks": 1,
+      "elapsedMs": 25.351875000007567
+    },
+    {
+      "tick": 9018,
+      "ticks": 1,
+      "elapsedMs": 25.391666000010446
+    },
+    {
+      "tick": 9019,
+      "ticks": 1,
+      "elapsedMs": 25.397624999997788
+    },
+    {
+      "tick": 9020,
+      "ticks": 1,
+      "elapsedMs": 25.447417000003043
+    },
+    {
+      "tick": 9021,
+      "ticks": 1,
+      "elapsedMs": 25.295708000005106
+    },
+    {
+      "tick": 9022,
+      "ticks": 1,
+      "elapsedMs": 26.199666999993497
+    },
+    {
+      "tick": 9023,
+      "ticks": 1,
+      "elapsedMs": 25.398915999991004
+    },
+    {
+      "tick": 9024,
+      "ticks": 1,
+      "elapsedMs": 25.754165999998804
+    },
+    {
+      "tick": 9025,
+      "ticks": 1,
+      "elapsedMs": 25.512333000006038
+    },
+    {
+      "tick": 9026,
+      "ticks": 1,
+      "elapsedMs": 25.221000000005006
+    },
+    {
+      "tick": 9027,
+      "ticks": 1,
+      "elapsedMs": 25.795166999989306
+    },
+    {
+      "tick": 9028,
+      "ticks": 1,
+      "elapsedMs": 25.379291999997804
+    },
+    {
+      "tick": 9029,
+      "ticks": 1,
+      "elapsedMs": 25.949957999997423
+    },
+    {
+      "tick": 9030,
+      "ticks": 1,
+      "elapsedMs": 25.938832999992883
+    },
+    {
+      "tick": 9031,
+      "ticks": 1,
+      "elapsedMs": 26.148000000001048
+    },
+    {
+      "tick": 9032,
+      "ticks": 1,
+      "elapsedMs": 25.58687500000815
+    },
+    {
+      "tick": 9033,
+      "ticks": 1,
+      "elapsedMs": 25.584542000011425
+    },
+    {
+      "tick": 9034,
+      "ticks": 1,
+      "elapsedMs": 25.43850000000384
+    },
+    {
+      "tick": 9035,
+      "ticks": 1,
+      "elapsedMs": 25.520083000010345
+    },
+    {
+      "tick": 9036,
+      "ticks": 1,
+      "elapsedMs": 25.50533300000825
+    },
+    {
+      "tick": 9037,
+      "ticks": 1,
+      "elapsedMs": 25.436000000001513
+    },
+    {
+      "tick": 9038,
+      "ticks": 1,
+      "elapsedMs": 25.37120799999684
+    },
+    {
+      "tick": 9039,
+      "ticks": 1,
+      "elapsedMs": 25.677791999987676
+    },
+    {
+      "tick": 9040,
+      "ticks": 1,
+      "elapsedMs": 25.319625000003725
+    },
+    {
+      "tick": 9041,
+      "ticks": 1,
+      "elapsedMs": 25.573709000003873
+    },
+    {
+      "tick": 9042,
+      "ticks": 1,
+      "elapsedMs": 25.609666000003926
+    },
+    {
+      "tick": 9043,
+      "ticks": 1,
+      "elapsedMs": 25.48445800000627
+    },
+    {
+      "tick": 9044,
+      "ticks": 1,
+      "elapsedMs": 25.549582999999984
+    },
+    {
+      "tick": 9045,
+      "ticks": 1,
+      "elapsedMs": 25.50929199998791
+    },
+    {
+      "tick": 9046,
+      "ticks": 1,
+      "elapsedMs": 25.603750000009313
+    },
+    {
+      "tick": 9047,
+      "ticks": 1,
+      "elapsedMs": 25.52925000000687
+    },
+    {
+      "tick": 9048,
+      "ticks": 1,
+      "elapsedMs": 25.63620799999626
+    },
+    {
+      "tick": 9049,
+      "ticks": 1,
+      "elapsedMs": 25.305500000002212
+    },
+    {
+      "tick": 9050,
+      "ticks": 1,
+      "elapsedMs": 25.68499999999767
+    },
+    {
+      "tick": 9051,
+      "ticks": 1,
+      "elapsedMs": 25.425124999994296
+    },
+    {
+      "tick": 9052,
+      "ticks": 1,
+      "elapsedMs": 25.50233400000434
+    },
+    {
+      "tick": 9053,
+      "ticks": 1,
+      "elapsedMs": 25.348875000010594
+    },
+    {
+      "tick": 9054,
+      "ticks": 1,
+      "elapsedMs": 25.533458999998402
+    },
+    {
+      "tick": 9055,
+      "ticks": 1,
+      "elapsedMs": 25.453584000002593
+    },
+    {
+      "tick": 9056,
+      "ticks": 1,
+      "elapsedMs": 25.371415999994497
+    },
+    {
+      "tick": 9057,
+      "ticks": 1,
+      "elapsedMs": 25.542084000000614
+    },
+    {
+      "tick": 9058,
+      "ticks": 1,
+      "elapsedMs": 25.388208999997005
+    },
+    {
+      "tick": 9059,
+      "ticks": 1,
+      "elapsedMs": 25.61974999999802
+    },
+    {
+      "tick": 9060,
+      "ticks": 1,
+      "elapsedMs": 26.235124999991967
+    },
+    {
+      "tick": 9061,
+      "ticks": 1,
+      "elapsedMs": 26.147083000003477
+    },
+    {
+      "tick": 9062,
+      "ticks": 1,
+      "elapsedMs": 25.965792000002693
+    },
+    {
+      "tick": 9063,
+      "ticks": 1,
+      "elapsedMs": 25.964374999995925
+    },
+    {
+      "tick": 9064,
+      "ticks": 1,
+      "elapsedMs": 26.052790999994613
+    },
+    {
+      "tick": 9065,
+      "ticks": 1,
+      "elapsedMs": 25.933791999996174
+    },
+    {
+      "tick": 9066,
+      "ticks": 1,
+      "elapsedMs": 25.776624999998603
+    },
+    {
+      "tick": 9067,
+      "ticks": 1,
+      "elapsedMs": 25.537417000014102
+    },
+    {
+      "tick": 9068,
+      "ticks": 1,
+      "elapsedMs": 25.674250000010943
+    },
+    {
+      "tick": 9069,
+      "ticks": 1,
+      "elapsedMs": 25.81133399999817
+    },
+    {
+      "tick": 9070,
+      "ticks": 1,
+      "elapsedMs": 25.54229199999827
+    },
+    {
+      "tick": 9071,
+      "ticks": 1,
+      "elapsedMs": 25.83833300000697
+    },
+    {
+      "tick": 9072,
+      "ticks": 1,
+      "elapsedMs": 26.00654200000281
+    },
+    {
+      "tick": 9073,
+      "ticks": 1,
+      "elapsedMs": 25.965832999994745
+    },
+    {
+      "tick": 9074,
+      "ticks": 1,
+      "elapsedMs": 25.960000000006403
+    },
+    {
+      "tick": 9075,
+      "ticks": 1,
+      "elapsedMs": 25.907957999996142
+    },
+    {
+      "tick": 9076,
+      "ticks": 1,
+      "elapsedMs": 26.053416999988258
+    },
+    {
+      "tick": 9077,
+      "ticks": 1,
+      "elapsedMs": 25.900583000009647
+    },
+    {
+      "tick": 9078,
+      "ticks": 1,
+      "elapsedMs": 26.120249999992666
+    },
+    {
+      "tick": 9079,
+      "ticks": 1,
+      "elapsedMs": 26.047667000006186
+    },
+    {
+      "tick": 9080,
+      "ticks": 1,
+      "elapsedMs": 25.805374999996275
+    },
+    {
+      "tick": 9081,
+      "ticks": 1,
+      "elapsedMs": 26.304917000001296
+    },
+    {
+      "tick": 9082,
+      "ticks": 1,
+      "elapsedMs": 26.050499999997555
+    },
+    {
+      "tick": 9083,
+      "ticks": 1,
+      "elapsedMs": 26.46295800000371
+    },
+    {
+      "tick": 9084,
+      "ticks": 1,
+      "elapsedMs": 26.491792000000714
+    },
+    {
+      "tick": 9085,
+      "ticks": 1,
+      "elapsedMs": 26.25779100001091
+    },
+    {
+      "tick": 9086,
+      "ticks": 1,
+      "elapsedMs": 25.942332999999053
+    },
+    {
+      "tick": 9087,
+      "ticks": 1,
+      "elapsedMs": 29.979999999995925
+    },
+    {
+      "tick": 9088,
+      "ticks": 1,
+      "elapsedMs": 28.597959000006085
+    },
+    {
+      "tick": 9089,
+      "ticks": 1,
+      "elapsedMs": 28.296249999999418
+    },
+    {
+      "tick": 9090,
+      "ticks": 1,
+      "elapsedMs": 27.957874999992782
+    },
+    {
+      "tick": 9091,
+      "ticks": 1,
+      "elapsedMs": 28.199958000011975
+    },
+    {
+      "tick": 9092,
+      "ticks": 1,
+      "elapsedMs": 28.20433399999456
+    },
+    {
+      "tick": 9093,
+      "ticks": 1,
+      "elapsedMs": 27.92370800000208
+    },
+    {
+      "tick": 9094,
+      "ticks": 1,
+      "elapsedMs": 28.119166999997105
+    },
+    {
+      "tick": 9095,
+      "ticks": 1,
+      "elapsedMs": 27.831791999997222
+    },
+    {
+      "tick": 9096,
+      "ticks": 1,
+      "elapsedMs": 27.839500000001863
+    },
+    {
+      "tick": 9097,
+      "ticks": 1,
+      "elapsedMs": 27.497999999992317
+    },
+    {
+      "tick": 9098,
+      "ticks": 1,
+      "elapsedMs": 27.014792000001762
+    },
+    {
+      "tick": 9099,
+      "ticks": 1,
+      "elapsedMs": 27.55433400000038
+    },
+    {
+      "tick": 9100,
+      "ticks": 1,
+      "elapsedMs": 27.18187499999476
+    },
+    {
+      "tick": 9101,
+      "ticks": 1,
+      "elapsedMs": 27.82254200000898
+    },
+    {
+      "tick": 9102,
+      "ticks": 1,
+      "elapsedMs": 27.575542000005953
+    },
+    {
+      "tick": 9103,
+      "ticks": 1,
+      "elapsedMs": 27.064375000001746
+    },
+    {
+      "tick": 9104,
+      "ticks": 1,
+      "elapsedMs": 26.54641700000502
+    },
+    {
+      "tick": 9105,
+      "ticks": 1,
+      "elapsedMs": 26.823999999993248
+    },
+    {
+      "tick": 9106,
+      "ticks": 1,
+      "elapsedMs": 26.443333999995957
+    },
+    {
+      "tick": 9107,
+      "ticks": 1,
+      "elapsedMs": 27.054791000002297
+    },
+    {
+      "tick": 9108,
+      "ticks": 1,
+      "elapsedMs": 26.960999999995693
+    },
+    {
+      "tick": 9109,
+      "ticks": 1,
+      "elapsedMs": 27.32370800001081
+    },
+    {
+      "tick": 9110,
+      "ticks": 1,
+      "elapsedMs": 27.141124999994645
+    },
+    {
+      "tick": 9111,
+      "ticks": 1,
+      "elapsedMs": 27.23841600000742
+    },
+    {
+      "tick": 9112,
+      "ticks": 1,
+      "elapsedMs": 27.747707999995328
+    },
+    {
+      "tick": 9113,
+      "ticks": 1,
+      "elapsedMs": 26.852499999993597
+    },
+    {
+      "tick": 9114,
+      "ticks": 1,
+      "elapsedMs": 26.887082999994163
+    },
+    {
+      "tick": 9115,
+      "ticks": 1,
+      "elapsedMs": 26.230833000008715
+    },
+    {
+      "tick": 9116,
+      "ticks": 1,
+      "elapsedMs": 26.605749999987893
+    },
+    {
+      "tick": 9117,
+      "ticks": 1,
+      "elapsedMs": 26.518500000005588
+    },
+    {
+      "tick": 9118,
+      "ticks": 1,
+      "elapsedMs": 26.747792000009213
+    },
+    {
+      "tick": 9119,
+      "ticks": 1,
+      "elapsedMs": 26.473832999996375
+    },
+    {
+      "tick": 9120,
+      "ticks": 1,
+      "elapsedMs": 26.62879200000316
+    },
+    {
+      "tick": 9121,
+      "ticks": 1,
+      "elapsedMs": 26.384083999990253
+    },
+    {
+      "tick": 9122,
+      "ticks": 1,
+      "elapsedMs": 26.464042000006884
+    },
+    {
+      "tick": 9123,
+      "ticks": 1,
+      "elapsedMs": 26.20054099999834
+    },
+    {
+      "tick": 9124,
+      "ticks": 1,
+      "elapsedMs": 26.218416000003344
+    },
+    {
+      "tick": 9125,
+      "ticks": 1,
+      "elapsedMs": 26.39208299999882
+    },
+    {
+      "tick": 9126,
+      "ticks": 1,
+      "elapsedMs": 26.44858299999032
+    },
+    {
+      "tick": 9127,
+      "ticks": 1,
+      "elapsedMs": 26.811415999996825
+    },
+    {
+      "tick": 9128,
+      "ticks": 1,
+      "elapsedMs": 26.433709000004455
+    },
+    {
+      "tick": 9129,
+      "ticks": 1,
+      "elapsedMs": 26.412458000006154
+    },
+    {
+      "tick": 9130,
+      "ticks": 1,
+      "elapsedMs": 26.332042000009096
+    },
+    {
+      "tick": 9131,
+      "ticks": 1,
+      "elapsedMs": 26.68354199999885
+    },
+    {
+      "tick": 9132,
+      "ticks": 1,
+      "elapsedMs": 26.326499999995576
+    },
+    {
+      "tick": 9133,
+      "ticks": 1,
+      "elapsedMs": 26.67941700000665
+    },
+    {
+      "tick": 9134,
+      "ticks": 1,
+      "elapsedMs": 26.56408399999782
+    },
+    {
+      "tick": 9135,
+      "ticks": 1,
+      "elapsedMs": 26.316959000003408
+    },
+    {
+      "tick": 9136,
+      "ticks": 1,
+      "elapsedMs": 26.57920799999556
+    },
+    {
+      "tick": 9137,
+      "ticks": 1,
+      "elapsedMs": 26.508582999987993
+    },
+    {
+      "tick": 9138,
+      "ticks": 1,
+      "elapsedMs": 26.428916999997455
+    },
+    {
+      "tick": 9139,
+      "ticks": 1,
+      "elapsedMs": 26.50908299999719
+    },
+    {
+      "tick": 9140,
+      "ticks": 1,
+      "elapsedMs": 26.379833000013605
+    },
+    {
+      "tick": 9141,
+      "ticks": 1,
+      "elapsedMs": 26.36395800000173
+    },
+    {
+      "tick": 9142,
+      "ticks": 1,
+      "elapsedMs": 26.558749999996508
+    },
+    {
+      "tick": 9143,
+      "ticks": 1,
+      "elapsedMs": 26.5075419999921
+    },
+    {
+      "tick": 9144,
+      "ticks": 1,
+      "elapsedMs": 26.341042000000016
+    },
+    {
+      "tick": 9145,
+      "ticks": 1,
+      "elapsedMs": 26.596541000006255
+    },
+    {
+      "tick": 9146,
+      "ticks": 1,
+      "elapsedMs": 26.574832999991486
+    },
+    {
+      "tick": 9147,
+      "ticks": 1,
+      "elapsedMs": 26.439749999990454
+    },
+    {
+      "tick": 9148,
+      "ticks": 1,
+      "elapsedMs": 30.502250000005006
+    },
+    {
+      "tick": 9149,
+      "ticks": 1,
+      "elapsedMs": 26.749665999988792
+    },
+    {
+      "tick": 9150,
+      "ticks": 1,
+      "elapsedMs": 26.761624999999185
+    },
+    {
+      "tick": 9151,
+      "ticks": 1,
+      "elapsedMs": 26.38341599999694
+    },
+    {
+      "tick": 9152,
+      "ticks": 1,
+      "elapsedMs": 26.61729199999536
+    },
+    {
+      "tick": 9153,
+      "ticks": 1,
+      "elapsedMs": 27.26487499999348
+    },
+    {
+      "tick": 9154,
+      "ticks": 1,
+      "elapsedMs": 26.678541999994195
+    },
+    {
+      "tick": 9155,
+      "ticks": 1,
+      "elapsedMs": 26.902750000008382
+    },
+    {
+      "tick": 9156,
+      "ticks": 1,
+      "elapsedMs": 26.71258300000045
+    },
+    {
+      "tick": 9157,
+      "ticks": 1,
+      "elapsedMs": 26.58537499999511
+    },
+    {
+      "tick": 9158,
+      "ticks": 1,
+      "elapsedMs": 26.72775000000547
+    },
+    {
+      "tick": 9159,
+      "ticks": 1,
+      "elapsedMs": 26.882375000001048
+    },
+    {
+      "tick": 9160,
+      "ticks": 1,
+      "elapsedMs": 26.537666999996873
+    },
+    {
+      "tick": 9161,
+      "ticks": 1,
+      "elapsedMs": 27.225124999997206
+    },
+    {
+      "tick": 9162,
+      "ticks": 1,
+      "elapsedMs": 26.963833000001614
+    },
+    {
+      "tick": 9163,
+      "ticks": 1,
+      "elapsedMs": 26.79450000000361
+    },
+    {
+      "tick": 9164,
+      "ticks": 1,
+      "elapsedMs": 26.85483299999032
+    },
+    {
+      "tick": 9165,
+      "ticks": 1,
+      "elapsedMs": 27.122000000003027
+    },
+    {
+      "tick": 9166,
+      "ticks": 1,
+      "elapsedMs": 26.78541700000642
+    },
+    {
+      "tick": 9167,
+      "ticks": 1,
+      "elapsedMs": 26.814709000012954
+    },
+    {
+      "tick": 9168,
+      "ticks": 1,
+      "elapsedMs": 26.839041999992332
+    },
+    {
+      "tick": 9169,
+      "ticks": 1,
+      "elapsedMs": 26.80104200000642
+    },
+    {
+      "tick": 9170,
+      "ticks": 1,
+      "elapsedMs": 26.7838330000086
+    },
+    {
+      "tick": 9171,
+      "ticks": 1,
+      "elapsedMs": 27.139334000006784
+    },
+    {
+      "tick": 9172,
+      "ticks": 1,
+      "elapsedMs": 27.213375000006636
+    },
+    {
+      "tick": 9173,
+      "ticks": 1,
+      "elapsedMs": 27.278791000004276
+    },
+    {
+      "tick": 9174,
+      "ticks": 1,
+      "elapsedMs": 27.458874999996624
+    },
+    {
+      "tick": 9175,
+      "ticks": 1,
+      "elapsedMs": 27.102209000004223
+    },
+    {
+      "tick": 9176,
+      "ticks": 1,
+      "elapsedMs": 26.949874999991152
+    },
+    {
+      "tick": 9177,
+      "ticks": 1,
+      "elapsedMs": 27.293957999994745
+    },
+    {
+      "tick": 9178,
+      "ticks": 1,
+      "elapsedMs": 27.29933300000266
+    },
+    {
+      "tick": 9179,
+      "ticks": 1,
+      "elapsedMs": 27.026708999997936
+    },
+    {
+      "tick": 9180,
+      "ticks": 1,
+      "elapsedMs": 26.93933300000208
+    },
+    {
+      "tick": 9181,
+      "ticks": 1,
+      "elapsedMs": 27.18604200000118
+    },
+    {
+      "tick": 9182,
+      "ticks": 1,
+      "elapsedMs": 26.924957999988692
+    },
+    {
+      "tick": 9183,
+      "ticks": 1,
+      "elapsedMs": 26.941334000002826
+    },
+    {
+      "tick": 9184,
+      "ticks": 1,
+      "elapsedMs": 26.996375000002445
+    },
+    {
+      "tick": 9185,
+      "ticks": 1,
+      "elapsedMs": 27.367250000010245
+    },
+    {
+      "tick": 9186,
+      "ticks": 1,
+      "elapsedMs": 27.574208000005456
+    },
+    {
+      "tick": 9187,
+      "ticks": 1,
+      "elapsedMs": 27.292540999987978
+    },
+    {
+      "tick": 9188,
+      "ticks": 1,
+      "elapsedMs": 27.254750000007334
+    },
+    {
+      "tick": 9189,
+      "ticks": 1,
+      "elapsedMs": 27.200542000005953
+    },
+    {
+      "tick": 9190,
+      "ticks": 1,
+      "elapsedMs": 27.15229199999885
+    },
+    {
+      "tick": 9191,
+      "ticks": 1,
+      "elapsedMs": 27.143791000009514
+    },
+    {
+      "tick": 9192,
+      "ticks": 1,
+      "elapsedMs": 27.348333999994793
+    },
+    {
+      "tick": 9193,
+      "ticks": 1,
+      "elapsedMs": 27.268665999989025
+    },
+    {
+      "tick": 9194,
+      "ticks": 1,
+      "elapsedMs": 27.15937500000291
+    },
+    {
+      "tick": 9195,
+      "ticks": 1,
+      "elapsedMs": 27.023665999993682
+    },
+    {
+      "tick": 9196,
+      "ticks": 1,
+      "elapsedMs": 27.208582999999635
+    },
+    {
+      "tick": 9197,
+      "ticks": 1,
+      "elapsedMs": 27.251666000011028
+    },
+    {
+      "tick": 9198,
+      "ticks": 1,
+      "elapsedMs": 27.065500000011525
+    },
+    {
+      "tick": 9199,
+      "ticks": 1,
+      "elapsedMs": 27.145959000001312
+    },
+    {
+      "tick": 9200,
+      "ticks": 1,
+      "elapsedMs": 27.2065419999999
+    },
+    {
+      "tick": 9201,
+      "ticks": 1,
+      "elapsedMs": 27.181792000003043
+    },
+    {
+      "tick": 9202,
+      "ticks": 1,
+      "elapsedMs": 27.102708000005805
+    },
+    {
+      "tick": 9203,
+      "ticks": 1,
+      "elapsedMs": 27.425250000000233
+    },
+    {
+      "tick": 9204,
+      "ticks": 1,
+      "elapsedMs": 27.357208000001265
+    },
+    {
+      "tick": 9205,
+      "ticks": 1,
+      "elapsedMs": 27.393708000003244
+    },
+    {
+      "tick": 9206,
+      "ticks": 1,
+      "elapsedMs": 27.0659169999999
+    },
+    {
+      "tick": 9207,
+      "ticks": 1,
+      "elapsedMs": 27.354749999998603
+    },
+    {
+      "tick": 9208,
+      "ticks": 1,
+      "elapsedMs": 27.425291000006837
+    },
+    {
+      "tick": 9209,
+      "ticks": 1,
+      "elapsedMs": 27.153333000009297
+    },
+    {
+      "tick": 9210,
+      "ticks": 1,
+      "elapsedMs": 27.352207999996608
+    },
+    {
+      "tick": 9211,
+      "ticks": 1,
+      "elapsedMs": 27.3981669999921
+    },
+    {
+      "tick": 9212,
+      "ticks": 1,
+      "elapsedMs": 27.46554100001231
+    },
+    {
+      "tick": 9213,
+      "ticks": 1,
+      "elapsedMs": 27.185542000006535
+    },
+    {
+      "tick": 9214,
+      "ticks": 1,
+      "elapsedMs": 27.271749999999884
+    },
+    {
+      "tick": 9215,
+      "ticks": 1,
+      "elapsedMs": 27.299207999996725
+    },
+    {
+      "tick": 9216,
+      "ticks": 1,
+      "elapsedMs": 27.330457999996725
+    },
+    {
+      "tick": 9217,
+      "ticks": 1,
+      "elapsedMs": 27.120999999999185
+    },
+    {
+      "tick": 9218,
+      "ticks": 1,
+      "elapsedMs": 27.443333000002895
+    },
+    {
+      "tick": 9219,
+      "ticks": 1,
+      "elapsedMs": 27.656750000009197
+    },
+    {
+      "tick": 9220,
+      "ticks": 1,
+      "elapsedMs": 27.39962499999092
+    },
+    {
+      "tick": 9221,
+      "ticks": 1,
+      "elapsedMs": 27.247292000000016
+    },
+    {
+      "tick": 9222,
+      "ticks": 1,
+      "elapsedMs": 27.426832999990438
+    },
+    {
+      "tick": 9223,
+      "ticks": 1,
+      "elapsedMs": 27.271708000000217
+    },
+    {
+      "tick": 9224,
+      "ticks": 1,
+      "elapsedMs": 27.233500000002095
+    },
+    {
+      "tick": 9225,
+      "ticks": 1,
+      "elapsedMs": 27.210041999991518
+    },
+    {
+      "tick": 9226,
+      "ticks": 1,
+      "elapsedMs": 27.421667000002344
+    },
+    {
+      "tick": 9227,
+      "ticks": 1,
+      "elapsedMs": 27.17316700000083
+    },
+    {
+      "tick": 9228,
+      "ticks": 1,
+      "elapsedMs": 27.437250000002678
+    },
+    {
+      "tick": 9229,
+      "ticks": 1,
+      "elapsedMs": 27.30616700000246
+    },
+    {
+      "tick": 9230,
+      "ticks": 1,
+      "elapsedMs": 27.509250000002794
+    },
+    {
+      "tick": 9231,
+      "ticks": 1,
+      "elapsedMs": 27.85829200000444
+    },
+    {
+      "tick": 9232,
+      "ticks": 1,
+      "elapsedMs": 27.9163750000007
+    },
+    {
+      "tick": 9233,
+      "ticks": 1,
+      "elapsedMs": 27.92500000000291
+    },
+    {
+      "tick": 9234,
+      "ticks": 1,
+      "elapsedMs": 27.7554999999993
+    },
+    {
+      "tick": 9235,
+      "ticks": 1,
+      "elapsedMs": 27.56941700000607
+    },
+    {
+      "tick": 9236,
+      "ticks": 1,
+      "elapsedMs": 27.44375000000582
+    },
+    {
+      "tick": 9237,
+      "ticks": 1,
+      "elapsedMs": 27.449124999999185
+    },
+    {
+      "tick": 9238,
+      "ticks": 1,
+      "elapsedMs": 27.369665999998688
+    },
+    {
+      "tick": 9239,
+      "ticks": 1,
+      "elapsedMs": 27.464916000011726
+    },
+    {
+      "tick": 9240,
+      "ticks": 1,
+      "elapsedMs": 27.209249999999884
+    },
+    {
+      "tick": 9241,
+      "ticks": 1,
+      "elapsedMs": 27.37104199999885
+    },
+    {
+      "tick": 9242,
+      "ticks": 1,
+      "elapsedMs": 27.507874999995693
+    },
+    {
+      "tick": 9243,
+      "ticks": 1,
+      "elapsedMs": 27.56245799998578
+    },
+    {
+      "tick": 9244,
+      "ticks": 1,
+      "elapsedMs": 27.204083999997238
+    },
+    {
+      "tick": 9245,
+      "ticks": 1,
+      "elapsedMs": 28.713833000001614
+    },
+    {
+      "tick": 9246,
+      "ticks": 1,
+      "elapsedMs": 27.879916999998386
+    },
+    {
+      "tick": 9247,
+      "ticks": 1,
+      "elapsedMs": 27.714500000001863
+    },
+    {
+      "tick": 9248,
+      "ticks": 1,
+      "elapsedMs": 27.714875000005122
+    },
+    {
+      "tick": 9249,
+      "ticks": 1,
+      "elapsedMs": 27.845667000001413
+    },
+    {
+      "tick": 9250,
+      "ticks": 1,
+      "elapsedMs": 27.797500000000582
+    },
+    {
+      "tick": 9251,
+      "ticks": 1,
+      "elapsedMs": 27.867417000001296
+    },
+    {
+      "tick": 9252,
+      "ticks": 1,
+      "elapsedMs": 27.439125000004424
+    },
+    {
+      "tick": 9253,
+      "ticks": 1,
+      "elapsedMs": 27.881374999997206
+    },
+    {
+      "tick": 9254,
+      "ticks": 1,
+      "elapsedMs": 27.872208000000683
+    },
+    {
+      "tick": 9255,
+      "ticks": 1,
+      "elapsedMs": 27.985916999998153
+    },
+    {
+      "tick": 9256,
+      "ticks": 1,
+      "elapsedMs": 27.951874999998836
+    },
+    {
+      "tick": 9257,
+      "ticks": 1,
+      "elapsedMs": 28.073499999998603
+    },
+    {
+      "tick": 9258,
+      "ticks": 1,
+      "elapsedMs": 27.956500000000233
+    },
+    {
+      "tick": 9259,
+      "ticks": 1,
+      "elapsedMs": 28.210166999997455
+    },
+    {
+      "tick": 9260,
+      "ticks": 1,
+      "elapsedMs": 28.685167000003275
+    },
+    {
+      "tick": 9261,
+      "ticks": 1,
+      "elapsedMs": 28.65654200001154
+    },
+    {
+      "tick": 9262,
+      "ticks": 1,
+      "elapsedMs": 28.51608299999498
+    },
+    {
+      "tick": 9263,
+      "ticks": 1,
+      "elapsedMs": 28.5570000000007
+    },
+    {
+      "tick": 9264,
+      "ticks": 1,
+      "elapsedMs": 28.55683400000271
+    },
+    {
+      "tick": 9265,
+      "ticks": 1,
+      "elapsedMs": 28.347125000000233
+    },
+    {
+      "tick": 9266,
+      "ticks": 1,
+      "elapsedMs": 28.127875000005588
+    },
+    {
+      "tick": 9267,
+      "ticks": 1,
+      "elapsedMs": 28.307792000006884
+    },
+    {
+      "tick": 9268,
+      "ticks": 1,
+      "elapsedMs": 28.30083300000115
+    },
+    {
+      "tick": 9269,
+      "ticks": 1,
+      "elapsedMs": 28.47500000000582
+    },
+    {
+      "tick": 9270,
+      "ticks": 1,
+      "elapsedMs": 28.39900000000489
+    },
+    {
+      "tick": 9271,
+      "ticks": 1,
+      "elapsedMs": 28.29937500000233
+    },
+    {
+      "tick": 9272,
+      "ticks": 1,
+      "elapsedMs": 28.148874999998952
+    },
+    {
+      "tick": 9273,
+      "ticks": 1,
+      "elapsedMs": 28.136999999987893
+    },
+    {
+      "tick": 9274,
+      "ticks": 1,
+      "elapsedMs": 28.25458300000173
+    },
+    {
+      "tick": 9275,
+      "ticks": 1,
+      "elapsedMs": 28.327625000005355
+    },
+    {
+      "tick": 9276,
+      "ticks": 1,
+      "elapsedMs": 28.210999999995693
+    },
+    {
+      "tick": 9277,
+      "ticks": 1,
+      "elapsedMs": 28.043332999994163
+    },
+    {
+      "tick": 9278,
+      "ticks": 1,
+      "elapsedMs": 28.37454200000502
+    },
+    {
+      "tick": 9279,
+      "ticks": 1,
+      "elapsedMs": 28.301707999999053
+    },
+    {
+      "tick": 9280,
+      "ticks": 1,
+      "elapsedMs": 28.56745800000499
+    },
+    {
+      "tick": 9281,
+      "ticks": 1,
+      "elapsedMs": 28.459958000006736
+    },
+    {
+      "tick": 9282,
+      "ticks": 1,
+      "elapsedMs": 28.44749999999476
+    },
+    {
+      "tick": 9283,
+      "ticks": 1,
+      "elapsedMs": 28.384124999996857
+    },
+    {
+      "tick": 9284,
+      "ticks": 1,
+      "elapsedMs": 28.4021250000078
+    },
+    {
+      "tick": 9285,
+      "ticks": 1,
+      "elapsedMs": 28.631165999991936
+    },
+    {
+      "tick": 9286,
+      "ticks": 1,
+      "elapsedMs": 28.501250000001164
+    },
+    {
+      "tick": 9287,
+      "ticks": 1,
+      "elapsedMs": 28.467208000001847
+    },
+    {
+      "tick": 9288,
+      "ticks": 1,
+      "elapsedMs": 28.498749999998836
+    },
+    {
+      "tick": 9289,
+      "ticks": 1,
+      "elapsedMs": 28.405959000010625
+    },
+    {
+      "tick": 9290,
+      "ticks": 1,
+      "elapsedMs": 28.512999999991735
+    },
+    {
+      "tick": 9291,
+      "ticks": 1,
+      "elapsedMs": 28.50212499999907
+    },
+    {
+      "tick": 9292,
+      "ticks": 1,
+      "elapsedMs": 28.631792000000132
+    },
+    {
+      "tick": 9293,
+      "ticks": 1,
+      "elapsedMs": 28.542166999992332
+    },
+    {
+      "tick": 9294,
+      "ticks": 1,
+      "elapsedMs": 28.399959000002127
+    },
+    {
+      "tick": 9295,
+      "ticks": 1,
+      "elapsedMs": 28.514709000010043
+    },
+    {
+      "tick": 9296,
+      "ticks": 1,
+      "elapsedMs": 28.33262499999546
+    },
+    {
+      "tick": 9297,
+      "ticks": 1,
+      "elapsedMs": 28.607334000000264
+    },
+    {
+      "tick": 9298,
+      "ticks": 1,
+      "elapsedMs": 28.601250000006985
+    },
+    {
+      "tick": 9299,
+      "ticks": 1,
+      "elapsedMs": 28.773874999998952
+    },
+    {
+      "tick": 9300,
+      "ticks": 1,
+      "elapsedMs": 28.548374999998487
+    },
+    {
+      "tick": 9301,
+      "ticks": 1,
+      "elapsedMs": 28.63674999999057
+    },
+    {
+      "tick": 9302,
+      "ticks": 1,
+      "elapsedMs": 28.914208000001963
+    },
+    {
+      "tick": 9303,
+      "ticks": 1,
+      "elapsedMs": 28.758333999998285
+    },
+    {
+      "tick": 9304,
+      "ticks": 1,
+      "elapsedMs": 28.71866699999373
+    },
+    {
+      "tick": 9305,
+      "ticks": 1,
+      "elapsedMs": 29.0034169999999
+    },
+    {
+      "tick": 9306,
+      "ticks": 1,
+      "elapsedMs": 28.829208000010112
+    },
+    {
+      "tick": 9307,
+      "ticks": 1,
+      "elapsedMs": 28.918207999988226
+    },
+    {
+      "tick": 9308,
+      "ticks": 1,
+      "elapsedMs": 28.93416600000637
+    }
+  ]
+}

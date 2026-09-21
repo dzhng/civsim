@@ -1,0 +1,576 @@
+{
+  "kind": "battle-benchmark-trial-host-observations",
+  "runId": "raw-enabled-full-1",
+  "policy": {
+    "otherProcessCpuPercent": 25,
+    "loadAverage1m": 4,
+    "retainedProcesses": 8,
+    "maxObservationGapMs": 90000,
+    "sharedSystemProcesses": [
+      "WindowServer",
+      "kernel_task"
+    ]
+  },
+  "externalEvidence": null,
+  "hardware": {
+    "machine": "Mac17,9 / Apple M5 Pro",
+    "os": "ProductName: macOS; ProductVersion: 26.6.2; BuildVersion: 25G83",
+    "power": "Now drawing from 'AC Power'",
+    "display": "Display Type: Built-in Liquid Retina XDR Display; Resolution: 3024 x 1964 Retina; Main Display: Yes; Resolution: 5120 x 2880 (5K/UHD+ - Ultra High Definition Plus); UI Looks like: 2560 x 1440 @ 60.00Hz",
+    "unavailable": []
+  },
+  "observations": [
+    {
+      "label": "pre",
+      "at": "2026-09-15T10:50:28.704Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 7.11279296875,
+      "busiestOtherPercent": 50.3,
+      "otherProcesses": [
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 50.3,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 15.9,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 49089,
+          "parentPid": 49071,
+          "cpuPercent": 13.7,
+          "command": "/Applications/Grok Bot.app/Contents/Frameworks/Grok Bot Helper (Renderer).app/Contents/MacOS/Grok Bot Helper (Renderer)"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 10.6,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 8.9,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 49085,
+          "parentPid": 49071,
+          "cpuPercent": 8.6,
+          "command": "/Applications/Grok Bot.app/Contents/Frameworks/Grok Bot Helper.app/Contents/MacOS/Grok Bot Helper"
+        },
+        {
+          "pid": 593,
+          "parentPid": 1,
+          "cpuPercent": 6.9,
+          "command": "/usr/libexec/corebrightnessd"
+        },
+        {
+          "pid": 741,
+          "parentPid": 1,
+          "cpuPercent": 4.3,
+          "command": "/System/Library/DriverExtensions/AppleCentauriAlpha.dext/AppleCentauriAlpha"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 18.4,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": null,
+      "quiet": false
+    },
+    {
+      "label": "periodic",
+      "at": "2026-09-15T10:51:28.737Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 5.40966796875,
+      "busiestOtherPercent": 92.5,
+      "otherProcesses": [
+        {
+          "pid": 90670,
+          "parentPid": 1,
+          "cpuPercent": 92.5,
+          "command": "/Applications/CodexRunway.app/Contents/MacOS/CodexRunway"
+        },
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 41.5,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 12.3,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 49089,
+          "parentPid": 49071,
+          "cpuPercent": 12.1,
+          "command": "/Applications/Grok Bot.app/Contents/Frameworks/Grok Bot Helper (Renderer).app/Contents/MacOS/Grok Bot Helper (Renderer)"
+        },
+        {
+          "pid": 49085,
+          "parentPid": 49071,
+          "cpuPercent": 8.4,
+          "command": "/Applications/Grok Bot.app/Contents/Frameworks/Grok Bot Helper.app/Contents/MacOS/Grok Bot Helper"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 8,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 6.1,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        },
+        {
+          "pid": 1447,
+          "parentPid": 1,
+          "cpuPercent": 4.4,
+          "command": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 18.6,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": null,
+      "quiet": false
+    },
+    {
+      "label": "periodic",
+      "at": "2026-09-15T10:52:28.772Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 4.85986328125,
+      "busiestOtherPercent": 66.2,
+      "otherProcesses": [
+        {
+          "pid": 61318,
+          "parentPid": 1447,
+          "cpuPercent": 66.2,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 52.1,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 1447,
+          "parentPid": 1,
+          "cpuPercent": 15.2,
+          "command": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 12.7,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 1590,
+          "parentPid": 1447,
+          "cpuPercent": 12.3,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 49089,
+          "parentPid": 49071,
+          "cpuPercent": 11.7,
+          "command": "/Applications/Grok Bot.app/Contents/Frameworks/Grok Bot Helper (Renderer).app/Contents/MacOS/Grok Bot Helper (Renderer)"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 11.5,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 8.3,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 25,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": null,
+      "quiet": false
+    },
+    {
+      "label": "periodic",
+      "at": "2026-09-15T10:53:28.813Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 4.8779296875,
+      "busiestOtherPercent": 57.4,
+      "otherProcesses": [
+        {
+          "pid": 18529,
+          "parentPid": 18400,
+          "cpuPercent": 57.4,
+          "command": ".build/arm64-apple-macosx/debug/ScreenRecorderCaptureTests"
+        },
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 41.1,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 49089,
+          "parentPid": 49071,
+          "cpuPercent": 18.1,
+          "command": "/Applications/Grok Bot.app/Contents/Frameworks/Grok Bot Helper (Renderer).app/Contents/MacOS/Grok Bot Helper (Renderer)"
+        },
+        {
+          "pid": 61318,
+          "parentPid": 1447,
+          "cpuPercent": 15.9,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 1447,
+          "parentPid": 1,
+          "cpuPercent": 15.7,
+          "command": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 11.1,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 10.4,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 8.6,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 24.6,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": null,
+      "quiet": false
+    },
+    {
+      "label": "periodic",
+      "at": "2026-09-15T10:54:28.851Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 5.2138671875,
+      "busiestOtherPercent": 41.4,
+      "otherProcesses": [
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 41.4,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 25.9,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 23.7,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        },
+        {
+          "pid": 15751,
+          "parentPid": 1,
+          "cpuPercent": 16.2,
+          "command": "/System/Library/ExtensionKit/Extensions/TGOnDeviceInferenceProviderService.appex/Contents/MacOS/TGOnDeviceInferenceProviderService"
+        },
+        {
+          "pid": 27935,
+          "parentPid": 1,
+          "cpuPercent": 14.4,
+          "command": "/System/Library/PrivateFrameworks/ModelCatalogRuntime.framework/Versions/A/modelcatalogd"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 13.6,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 1447,
+          "parentPid": 1,
+          "cpuPercent": 10.9,
+          "command": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        },
+        {
+          "pid": 61318,
+          "parentPid": 1447,
+          "cpuPercent": 9.7,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 23.6,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": null,
+      "quiet": false
+    },
+    {
+      "label": "periodic",
+      "at": "2026-09-15T10:55:28.896Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 6.4140625,
+      "busiestOtherPercent": 251.1,
+      "otherProcesses": [
+        {
+          "pid": 20489,
+          "parentPid": 20478,
+          "cpuPercent": 251.1,
+          "command": "/Users/david/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+        },
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 46.2,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 86597,
+          "parentPid": 1,
+          "cpuPercent": 24.8,
+          "command": "/System/Library/Frameworks/Contacts.framework/Support/contactsd"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 14.9,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 10.1,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 20492,
+          "parentPid": 20478,
+          "cpuPercent": 7.3,
+          "command": "/Users/david/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 7.1,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        },
+        {
+          "pid": 1022,
+          "parentPid": 1,
+          "cpuPercent": 6.9,
+          "command": "/System/Library/Frameworks/Accounts.framework/Versions/A/Support/accountsd"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 25.7,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": "shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 25.7% cannot be split between this trial and anything else",
+      "quiet": false
+    },
+    {
+      "label": "periodic",
+      "at": "2026-09-15T10:56:28.936Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 13.09814453125,
+      "busiestOtherPercent": 1349.9,
+      "otherProcesses": [
+        {
+          "pid": 20489,
+          "parentPid": 20478,
+          "cpuPercent": 1349.9,
+          "command": "/Users/david/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+        },
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 40.8,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 14.2,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 11.4,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 89311,
+          "parentPid": 1447,
+          "cpuPercent": 8.5,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 8.5,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        },
+        {
+          "pid": 824,
+          "parentPid": 1,
+          "cpuPercent": 5.8,
+          "command": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Support/mds_stores"
+        },
+        {
+          "pid": 617,
+          "parentPid": 1,
+          "cpuPercent": 5,
+          "command": "/usr/sbin/coreaudiod"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 22.4,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": null,
+      "quiet": false
+    },
+    {
+      "label": "post",
+      "at": "2026-09-15T10:57:06.669Z",
+      "available": true,
+      "unavailable": null,
+      "loadAverage1m": 17.32958984375,
+      "busiestOtherPercent": 903.1,
+      "otherProcesses": [
+        {
+          "pid": 20489,
+          "parentPid": 20478,
+          "cpuPercent": 903.1,
+          "command": "/Users/david/Library/Caches/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+        },
+        {
+          "pid": 21999,
+          "parentPid": 90109,
+          "cpuPercent": 158.9,
+          "command": "node"
+        },
+        {
+          "pid": 90670,
+          "parentPid": 1,
+          "cpuPercent": 94.6,
+          "command": "/Applications/CodexRunway.app/Contents/MacOS/CodexRunway"
+        },
+        {
+          "pid": 1586,
+          "parentPid": 1447,
+          "cpuPercent": 42.6,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        },
+        {
+          "pid": 78785,
+          "parentPid": 1447,
+          "cpuPercent": 11.9,
+          "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+        },
+        {
+          "pid": 89650,
+          "parentPid": 89641,
+          "cpuPercent": 11.9,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+        },
+        {
+          "pid": 90120,
+          "parentPid": 89641,
+          "cpuPercent": 11.7,
+          "command": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)"
+        },
+        {
+          "pid": 617,
+          "parentPid": 1,
+          "cpuPercent": 9,
+          "command": "/usr/sbin/coreaudiod"
+        }
+      ],
+      "sharedProcesses": [
+        {
+          "pid": 598,
+          "parentPid": 1,
+          "cpuPercent": 25.6,
+          "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+        }
+      ],
+      "competing": true,
+      "attribution": "shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 25.6% cannot be split between this trial and anything else",
+      "quiet": false
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import type { BattlePresentationReceipt } from "../src/battle/battleRendererApi";
+import type { BattleCrowdPresentation, BattlePresentation } from "../src/battle/battlePresentation";
 // @vitest-environment node
 import { readFile } from "node:fs/promises";
 import { beforeAll, expect, test, vi } from "vitest";
@@ -5,6 +7,7 @@ import initWasm, { Game } from "../src/wasm/game_wasm.js";
 import { BattleCrowd } from "../src/battle/battleCrowd";
 import { BattleUnitPresentation } from "../src/battle/battleUnitPresentation";
 import { createBattleViews } from "../src/battle/battleViews";
+import { liveBattleSim } from "./support/liveBattleSim";
 import type { BattleWorld } from "../src/battle/battleWorld";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
@@ -14,7 +17,7 @@ import { SimClock } from "../src/shared/simClock";
 import { BattleFreeze } from "../src/battle/battleFreeze";
 import * as THREE from "three/webgpu";
 import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
-import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/crowd/crowdLod";
+import { planCrowdLods } from "@packages/crowd-runtime/src/visibility";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
 
@@ -38,50 +41,62 @@ beforeAll(async () => {
   vi.stubGlobal("location", { search: "" });
 });
 
+function body({ positions, facings, playback, alive, count }: BattleCrowdPresentation) {
+  return { positions, facings, playback, alive, count };
+}
+
 function fixture(unitClass = 0) {
   const game = new Game(37);
   game.spawn_class(0, 0, 0, 1, 1, unitClass, 0);
   const views = createBattleViews(game, wasm.memory);
   views.positions().fill(0);
   views.unitInfo()[UNIT_INFO.atEase] = 1;
-  const frames: Parameters<BattleWorld["renderer"]["draw"]>[] = [];
-  const labels: Parameters<BattleWorld["renderer"]["setUnitReadouts"]>[] = [];
-  const arcs: Float32Array[] = [];
+  const frames: BattleCrowdPresentation[] = [];
   const renderer = {
     soldierAssets: { 0: bundle } as Record<number, AppearanceBundle>,
-    draw: (...args: Parameters<BattleWorld["renderer"]["draw"]>) =>
-      frames.push([
-        new Float32Array(args[0]),
-        new Float32Array(args[1]),
-        structuredClone(args[2]),
-        new Float32Array(args[3]),
-        args[4],
-        args[5],
-        args[6],
-        args[7],
-      ]),
-    setUnitReadouts: (...args: Parameters<BattleWorld["renderer"]["setUnitReadouts"]>) =>
-      labels.push(structuredClone(args)),
-    drawTris: (vertices: Float32Array) => arcs.push(new Float32Array(vertices)),
+    present: (packet: BattlePresentation): BattlePresentationReceipt => {
+      frames.push(structuredClone(packet.crowd!));
+      return {
+        submitted: true,
+        renderedFrameId: frames.length,
+        gpuSubmission: null,
+        submittedAtMs: 0,
+        cpuMs: 0,
+      };
+    },
     heightAt: () => 0,
-    pxPerWorldAt: () => 80,
   };
+  const sim = liveBattleSim(game, wasm.memory);
   const world = {
-    game,
-    memory: wasm.memory,
-    cfg: { wasm },
+    sim,
     ...views,
     renderer,
     stride: game.unit_info_stride(),
-    camera: { zoom: 2, yaw: 0 },
+    camera: { zoom: 2, yaw: 0, pxPerWorldSampler: () => () => 80 },
   } as unknown as BattleWorld;
   // Real adapter, timeline and attached standard owner; only the GPU edge records submissions.
   const crowd = new BattleCrowd(world, new BattleUnitPresentation(world));
+  // Completed ticks are consumed as they land; the frame then samples between them.
   const draw = (tick: number, alpha = 0, frozen = false) => {
-    crowd.draw(tick, frozen, alpha, 0, []);
+    sim.setTick(tick);
+    crowd.observeTick(tick);
+    const frame = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
+    renderer.present({
+      crowd: frame,
+      camera: world.camera,
+      timeSeconds: tick / 30,
+      clock: "wall",
+      fixedTime: frozen ? tick / 30 : null,
+      preserveFrozenEffects: false,
+      tacticalLines: {
+        groundCues: new Float32Array(),
+        rings: new Float32Array(),
+        effects: new Float32Array(),
+      },
+    });
     return frames.at(-1)!;
   };
-  return { game, views, renderer, world, crowd, draw, frames, labels, arcs };
+  return { game, views, renderer, sim, world, crowd, draw, frames };
 }
 
 test("live crowd uses one completed batch for root and measured gait at fractional time", () => {
@@ -91,13 +106,13 @@ test("live crowd uses one completed batch for root and measured gait at fraction
     f.views.positions()[0] = 4 / 30;
     f.views.motorTravel().set([4 / 30, 0, 4 / 30]);
     const frame = f.draw(4, 0.5);
-    expect(frame[0][0]).toBeCloseTo(3.5 / 30, 7);
+    expect(frame.positions[0]).toBeCloseTo(3.5 / 30, 7);
     const walk = bundle.animation.clips.find(
       (clip) => clip.name === bundle.manifest.presentation!.actions.walk!.clip,
     )!;
-    expect(frame[2][0].base.destination.clip).toBe(walk.name);
-    expect(frame[2][0].base.destination.phase).toBeCloseTo(3.5 / 30 / walk.strideMeters!, 12);
-    expect(f.labels.at(-1)![0][0].x).toBe(frame[0][0]);
+    expect(frame.playback[0].base.destination.clip).toBe(walk.name);
+    expect(frame.playback[0].base.destination.phase).toBeCloseTo(3.5 / 30 / walk.strideMeters!, 12);
+    expect(f.frames.at(-1)!.standards[0].x).toBe(frame.positions[0]);
   } finally {
     f.game.free();
   }
@@ -112,7 +127,7 @@ test("attached standards, chips and attack arcs keep preceding life and weapon u
     new Uint8Array(wasm.memory.buffer, f.game.fighting_ptr(), 1)[0] = 1;
     f.views.unitInfo()[UNIT_INFO.mode] = 1;
     f.draw(0);
-    expect(f.arcs.at(-1)![0]).toBe(0);
+    expect(f.frames.at(-1)!.triangles[0]).toBe(0);
     f.views.positions()[0] = 4;
     f.views.unitInfo()[UNIT_INFO.routing] = 1;
     f.views.unitInfo()[UNIT_INFO.alive] = 0;
@@ -120,16 +135,16 @@ test("attached standards, chips and attack arcs keep preceding life and weapon u
     new Uint8Array(wasm.memory.buffer, f.game.alive_ptr(), 1)[0] = 0;
     new Uint8Array(wasm.memory.buffer, f.game.cur_weapon_ptr(), 1)[0] = 255;
     const delayed = f.draw(1, 0.25);
-    expect(delayed[3][0]).toBe(1);
-    expect(f.labels.at(-1)![0][0].x).toBe(1);
-    expect(f.labels.at(-1)![1][0].chips.map((chip) => chip.text)).toContain("ATK");
-    expect(f.labels.at(-1)![1][0].chips.map((chip) => chip.text)).not.toContain("ROUT");
-    expect(f.arcs.at(-1)![0]).toBe(1);
+    expect(delayed.alive[0]).toBe(1);
+    expect(f.frames.at(-1)!.standards[0].x).toBe(1);
+    expect(f.frames.at(-1)!.readouts[0].chips.map((chip) => chip.text)).toContain("ATK");
+    expect(f.frames.at(-1)!.readouts[0].chips.map((chip) => chip.text)).not.toContain("ROUT");
+    expect(f.frames.at(-1)!.triangles[0]).toBe(1);
     const endpoint = f.draw(1, 0.25, true);
-    expect(endpoint[3][0]).toBe(0);
-    expect(f.labels.at(-1)).toEqual([[], []]);
-    expect(f.draw(1, 0.25)[2]).toEqual(delayed[2]);
-    expect(f.labels.at(-1)![0][0].x).toBe(1);
+    expect(endpoint.alive[0]).toBe(0);
+    expect(f.frames.at(-1)).toMatchObject({ standards: [], readouts: [] });
+    expect(f.draw(1, 0.25).playback).toEqual(delayed.playback);
+    expect(f.frames.at(-1)!.standards[0].x).toBe(1);
   } finally {
     f.game.free();
   }
@@ -144,10 +159,10 @@ test("selection rings follow the presented body while destination cues stay auth
     const clock = new SimClock({ tickHz: 30, maxTicksPerFrame: 4 });
     const input = { selected: [0] } as Parameters<typeof createBattleOrders>[0]["input"];
     const orders = createBattleOrders({
-      clock,
       freeze: new BattleFreeze(clock, f.world.renderer, () => {}),
       input,
       myUnits: (units) => units,
+      time: clock,
       unitCenter: () => [0, 0],
       unitInfo: f.views.unitInfo,
       unitSnap: () => {
@@ -178,17 +193,17 @@ test("real clock pause preserves delayed presentation and freeze selects the aut
     f.views.positions()[0] = 1 / 30;
     f.views.motorTravel().set([1 / 30, 0, 1 / 30]);
     f.views.facings()[0] = -Math.PI + 0.1;
-    const sample = () => f.draw(clock.tick, clock.alpha, clock.frozen).slice(0, 5);
+    const sample = () => body(f.draw(clock.tick, clock.alpha, clock.frozen));
     const delayed = sample();
-    expect(f.frames.at(-1)![0][0]).toBeCloseTo(0.5 / 30, 7);
-    expect(f.frames.at(-1)![1][0]).toBeCloseTo(Math.PI, 6);
+    expect(f.frames.at(-1)!.positions[0]).toBeCloseTo(0.5 / 30, 7);
+    expect(f.frames.at(-1)!.facings[0]).toBeCloseTo(Math.PI, 6);
     clock.paused = true;
     expect(clock.advance(1050)).toBe(0);
     expect(sample()).toEqual(delayed);
     freeze.doFreeze();
     const authoritative = sample();
-    expect(f.frames.at(-1)![0][0]).toBeCloseTo(1 / 30, 7);
-    expect(f.frames.at(-1)![1][0]).toBe(f.views.facings()[0]);
+    expect(f.frames.at(-1)!.positions[0]).toBeCloseTo(1 / 30, 7);
+    expect(f.frames.at(-1)!.facings[0]).toBe(f.views.facings()[0]);
     expect(authoritative).not.toEqual(delayed);
     freeze.doFreeze(false);
     expect(clock.paused).toBe(true);
@@ -212,9 +227,11 @@ test("a disabled left boundary transports the body without inventing gait before
     f.views.positions()[0] = 4 / 30;
     f.views.motorTravel().set([4 / 30, 0, 4 / 30]);
     const delayed = f.draw(4, 0.5);
-    expect(delayed[0][0]).toBeCloseTo(3.5 / 30, 7);
-    expect(delayed[2][0].base.destination.clip).toBe(initial[2][0].base.destination.clip);
-    const recovered = f.draw(4, 0.5, true)[2][0];
+    expect(delayed.positions[0]).toBeCloseTo(3.5 / 30, 7);
+    expect(delayed.playback[0].base.destination.clip).toBe(
+      initial.playback[0].base.destination.clip,
+    );
+    const recovered = f.draw(4, 0.5, true).playback[0];
     expect(recovered.base.destination.clip).toBe(bundle.manifest.presentation!.actions.walk!.clip);
     expect(recovered.base.destination.phase).toBe(0);
     f.views.positions()[0] = 5 / 30;
@@ -224,8 +241,11 @@ test("a disabled left boundary transports the body without inventing gait before
     const walk = bundle.animation.clips.find(
       (clip) => clip.name === recovered.base.destination.clip,
     )!;
-    expect(interrupted[2][0].base.destination.phase).toBeCloseTo(0.5 / 30 / walk.strideMeters!, 12);
-    expect(f.draw(5, 0.5, true)[2][0].base.destination.phase).toBeCloseTo(
+    expect(interrupted.playback[0].base.destination.phase).toBeCloseTo(
+      0.5 / 30 / walk.strideMeters!,
+      12,
+    );
+    expect(f.draw(5, 0.5, true).playback[0].base.destination.phase).toBeCloseTo(
       1 / 30 / walk.strideMeters!,
       12,
     );
@@ -243,25 +263,27 @@ test("append anchors only new soldiers while catalog replacement, rewind and shr
     f.game.spawn_class(20, 0, 0, 1, 1, 0, 0);
     f.views.positions()[0] = 9;
     const appended = f.draw(1, 0.25);
-    expect(appended[0][0]).toBe(old[0][0]);
-    expect(appended[2][0]).toEqual(old[2][0]);
-    expect(Array.from(appended[0].slice(2))).toEqual(Array.from(f.views.positions().slice(2)));
-    expect(f.labels.at(-1)![0].map((standard) => standard.x)).toEqual([1, 20]);
+    expect(appended.positions[0]).toBe(old.positions[0]);
+    expect(appended.playback[0]).toEqual(old.playback[0]);
+    expect(Array.from(appended.positions.slice(2))).toEqual(
+      Array.from(f.views.positions().slice(2)),
+    );
+    expect(f.frames.at(-1)!.standards.map((standard) => standard.x)).toEqual([1, 20]);
     f.renderer.soldierAssets = { 0: structuredClone(bundle) };
     const replaced = f.draw(1, 0.25);
-    expect(Array.from(replaced[0])).toEqual(Array.from(f.views.positions()));
-    expect(replaced[2][0].base.destination.phase).toBe(0);
+    expect(Array.from(replaced.positions)).toEqual(Array.from(f.views.positions()));
+    expect(replaced.playback[0].base.destination.phase).toBe(0);
     f.views.positions()[0] = 12;
     const rewound = f.draw(0, 0.25);
-    expect(rewound[0][0]).toBe(12);
-    expect(rewound[2][0].base.destination.phase).toBe(0);
+    expect(rewound.positions[0]).toBe(12);
+    expect(rewound.playback[0].base.destination.phase).toBe(0);
     const count = vi.spyOn(f.game, "soldier_count").mockReturnValue(1);
     try {
       f.views.positions()[0] = 15;
       const shrunk = f.draw(1, 0.25);
-      expect(Array.from(shrunk[0])).toEqual([15, 0]);
-      expect(shrunk[2][0].base.destination.phase).toBe(0);
-      expect(f.labels.at(-1)![0].map((standard) => standard.unitId)).toEqual([0]);
+      expect(Array.from(shrunk.positions)).toEqual([15, 0]);
+      expect(shrunk.playback[0].base.destination.phase).toBe(0);
+      expect(f.frames.at(-1)!.standards.map((standard) => standard.unitId)).toEqual([0]);
     } finally {
       count.mockRestore();
     }
@@ -279,10 +301,10 @@ test("production instance seating and visibility consume the delayed root, not t
     const build = (positions: Float32Array) =>
       buildCrowdInstances({
         positions,
-        facings: frame[1],
-        playback: frame[2],
-        alive: frame[3],
-        count: frame[4],
+        facings: frame.facings,
+        playback: frame.playback,
+        alive: frame.alive,
+        count: frame.count,
         terrainHeight: (x) => x * 0.1,
       }).instances;
     const camera = new THREE.PerspectiveCamera();
@@ -310,16 +332,12 @@ test("production instance seating and visibility consume the delayed root, not t
       ),
       shadow: false,
     };
-    const visible = build(frame[0]);
+    const visible = build(frame.positions);
     expect(visible[0].x).toBe(1);
     expect(visible[0].elevation).toBe(0.1);
-    expect(Array.from(planPhotorealCrowdLods(visible, [view], { 0: bundle }).visibility)).toEqual([
-      1,
-    ]);
+    expect(Array.from(planCrowdLods(visible, [view], { 0: bundle }).visibility)).toEqual([1]);
     expect(
-      Array.from(
-        planPhotorealCrowdLods(build(f.views.positions()), [view], { 0: bundle }).visibility,
-      ),
+      Array.from(planCrowdLods(build(f.views.positions()), [view], { 0: bundle }).visibility),
     ).toEqual([0]);
   } finally {
     f.game.free();
@@ -338,25 +356,25 @@ test("a newly selected direction cannot retroactively change the preceding gait 
     f.draw(0);
     f.views.positions()[0] = 1;
     f.views.motorTravel().set([1, 0, 1]);
-    const forward = f.draw(30, 0, true)[2][0].base.destination;
+    const forward = f.draw(30, 0, true).playback[0].base.destination;
     f.views.positions()[1] = 1;
     f.views.motorTravel().set([1, 1, 2]);
     const delayed = f.draw(60, 0.5);
     const walk = diagnostic.animation.clips.find((clip) => clip.name === actions.walk!.clip)!;
     const lateral = diagnostic.animation.clips.find((clip) => clip.name === actions.run!.clip)!;
     expect(walk.strideMeters).not.toBe(lateral.strideMeters);
-    expect(delayed[0][1]).toBeCloseTo(29.5 / 30, 7);
-    expect(delayed[2][0].base.destination.clip).toBe(walk.name);
-    expect(delayed[2][0].base.destination.phase).toBeCloseTo(
+    expect(delayed.positions[1]).toBeCloseTo(29.5 / 30, 7);
+    expect(delayed.playback[0].base.destination.clip).toBe(walk.name);
+    expect(delayed.playback[0].base.destination.phase).toBeCloseTo(
       (forward.phase + 29.5 / 30 / walk.strideMeters!) % 1,
       12,
     );
-    const endpoint = f.draw(60, 0.5, true)[2][0].base.destination;
+    const endpoint = f.draw(60, 0.5, true).playback[0].base.destination;
     expect(endpoint.clip).toBe(lateral.name);
     expect(endpoint.phase).toBeCloseTo((forward.phase + 1 / walk.strideMeters!) % 1, 12);
     f.views.positions()[1] = 2;
     f.views.motorTravel().set([1, 2, 3]);
-    expect(f.draw(90, 0.5)[2][0].base.destination.phase).toBeCloseTo(
+    expect(f.draw(90, 0.5).playback[0].base.destination.phase).toBeCloseTo(
       (endpoint.phase + 29.5 / 30 / lateral.strideMeters!) % 1,
       12,
     );
@@ -392,34 +410,58 @@ test("equipment and death switch at the same endpoint as facing, root and attach
     f.views.unitInfo()[UNIT_INFO.atEase] = 0;
     new Uint8Array(wasm.memory.buffer, f.game.cur_weapon_ptr(), 1)[0] = hedge;
     const initial = f.draw(0);
-    const oldAppearance = initial[2][0].appearanceId;
+    const oldAppearance = initial.playback[0].appearanceId;
     f.views.positions()[0] = 4;
     f.views.facings()[0] = 1.2;
     new Uint8Array(wasm.memory.buffer, f.game.cur_weapon_ptr(), 1)[0] = sidearm;
     new Uint8Array(wasm.memory.buffer, f.game.alive_ptr(), 1)[0] = 0;
     f.views.unitInfo()[UNIT_INFO.alive] = 0;
     const delayed = f.draw(1, 0.25);
-    expect(delayed[2][0].appearanceId).toBe(oldAppearance);
-    expect(delayed[2][0].base.destination.clip).toBe(initial[2][0].base.destination.clip);
-    expect(delayed[0][0]).toBe(1);
-    expect(delayed[1][0]).toBeCloseTo(0.3, 6);
-    expect(delayed[3][0]).toBe(1);
-    expect(f.labels.at(-1)![0][0].x).toBe(1);
+    expect(delayed.playback[0].appearanceId).toBe(oldAppearance);
+    expect(delayed.playback[0].base.destination.clip).toBe(
+      initial.playback[0].base.destination.clip,
+    );
+    expect(delayed.positions[0]).toBe(1);
+    expect(delayed.facings[0]).toBeCloseTo(0.3, 6);
+    expect(delayed.alive[0]).toBe(1);
+    expect(f.frames.at(-1)!.standards[0].x).toBe(1);
     const endpoint = f.draw(1, 0.25, true);
     const sidearmId = APPEARANCE_DESCRIPTORS.findIndex(
       (descriptor) =>
         descriptor.selection.unitClass === 3 && descriptor.selection.state === "sidearm",
     );
-    expect(endpoint[2][0].appearanceId).toBe(sidearmId);
-    expect(endpoint[2][0].base.destination.clip).toBe(
+    expect(endpoint.playback[0].appearanceId).toBe(sidearmId);
+    expect(endpoint.playback[0].base.destination.clip).toBe(
       catalog[sidearmId].manifest.presentation!.actions.death!.clip,
     );
-    expect(endpoint[2][0].base.destination.phase).toBe(0);
-    expect(endpoint[0][0]).toBe(4);
-    expect(endpoint[1][0]).toBe(f.views.facings()[0]);
-    expect(endpoint[3][0]).toBe(0);
-    expect(f.labels.at(-1)).toEqual([[], []]);
-    expect(f.draw(1, 0.25).slice(0, 5)).toEqual(delayed.slice(0, 5));
+    expect(endpoint.playback[0].base.destination.phase).toBe(0);
+    expect(endpoint.positions[0]).toBe(4);
+    expect(endpoint.facings[0]).toBe(f.views.facings()[0]);
+    expect(endpoint.alive[0]).toBe(0);
+    expect(f.frames.at(-1)).toMatchObject({ standards: [], readouts: [] });
+    expect(body(f.draw(1, 0.25))).toEqual(body(delayed));
+  } finally {
+    f.game.free();
+  }
+});
+
+test("ticks consumed without a drawn frame still become adjacent interpolation endpoints", () => {
+  const f = fixture();
+  try {
+    f.draw(0);
+    // A non-linear walk so interpolating across the whole gap would read
+    // differently from interpolating between the two ticks that actually bound it.
+    const path = [0, 10, 10, 10, 10, 11];
+    for (let tick = 1; tick <= 5; tick++) {
+      f.views.positions()[0] = path[tick];
+      f.views.motorTravel().set([path[tick], 0, path[tick]]);
+      f.sim.setTick(tick);
+      f.crowd.observeTick(tick);
+    }
+    const frame = f.crowd.prepare(4.5, false, 0, [])!;
+    expect(frame.observationTick).toBe(5);
+    // Halfway between tick 4 and tick 5, not nine tenths of the way across 0 to 5.
+    expect(frame.positions[0]).toBeCloseTo(10.5, 6);
   } finally {
     f.game.free();
   }

@@ -1,0 +1,80 @@
+[
+  {
+    "archive": "three/checkpoints.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-three/checkpoints.json",
+    "bytes": 4861244,
+    "sha256": "de1c83ac1909eff6d634eef4e3eaa015e7b5524bbd813a29e288da8689c97dff"
+  },
+  {
+    "archive": "three/menu-export.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-three/menu-export.json",
+    "bytes": 15653374,
+    "sha256": "82e77edf4b4a91451407b38d61985351f4afb53ec1d3a6bec7b77d27122ae4b2"
+  },
+  {
+    "archive": "three/scenario-report.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-three/scenario-report.json",
+    "bytes": 2281,
+    "sha256": "d4b7be34936a1731d314fb143605a3f83bd5fc9ea67ab6b3eefd44d53c36409a"
+  },
+  {
+    "archive": "raw/checkpoints.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-raw/checkpoints.json",
+    "bytes": 191722,
+    "sha256": "682d84ae71ce1999e973f13c6327292191f23fea2a6d8d8d1e386bee341c4e65"
+  },
+  {
+    "archive": "raw/menu-export.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-raw/menu-export.json",
+    "bytes": 17214541,
+    "sha256": "7a6fc2d4d8721c0b454a31e086b5b002823919ef6f9bc061783f38baad7226df"
+  },
+  {
+    "archive": "raw/scenario-report.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-raw/scenario-report.json",
+    "bytes": 2281,
+    "sha256": "0be3cdbce032fc9f6481ba052b8dc2e08af40fdfc627e4fd08ff52479c93dda5"
+  },
+  {
+    "archive": "typegpu/checkpoints.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-typegpu/checkpoints.json",
+    "bytes": 180993,
+    "sha256": "e251d5a4d61eeaa680b0c12bdc84037a6814d414ee53b182cf10529d06a632c4"
+  },
+  {
+    "archive": "typegpu/menu-export.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-typegpu/menu-export.json",
+    "bytes": 17147189,
+    "sha256": "2b14b3a88685fe53ae58262cb2c41397ea8e402bae77ceffd075354a73f13f11"
+  },
+  {
+    "archive": "typegpu/scenario-report.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-typegpu/scenario-report.json",
+    "bytes": 2281,
+    "sha256": "0d20225589b6b3c607b6a69595be92e811d985e9abad5183c9ee762bbd565975"
+  },
+  {
+    "archive": "vgpu/checkpoints.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-vgpu/checkpoints.json",
+    "bytes": 182473,
+    "sha256": "c4117118b11292d1c9be4bcdd7d8719ddbcf9587fefa53afecaa202f2e7cfdf1"
+  },
+  {
+    "archive": "vgpu/menu-export.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-vgpu/menu-export.json",
+    "bytes": 12503046,
+    "sha256": "9672ab0f254703ad7eca89ba3bd87687cd6282c963f639433208ee74ab395d58"
+  },
+  {
+    "archive": "vgpu/scenario-report.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-vgpu/scenario-report.json",
+    "bytes": 2281,
+    "sha256": "b70cb0351f3c28b8d0e0a7fa6a046ca67190712a9188792ab757364fd149c79f"
+  },
+  {
+    "archive": "comparison.json.gz",
+    "source": "/Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/checkpoints/9000-comparison.json",
+    "bytes": 60672,
+    "sha256": "5cfa5062191bdd8547cd0335ca6170c5801fe54ac730199c694dfcc1d53a6e96"
+  }
+]

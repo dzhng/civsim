@@ -101,7 +101,11 @@ export async function battleRendererReady(page, timeoutMs = 60000) {
           (window.__ready === true &&
             stats?.renderer === "gpu" &&
             stats.renderStats?.ready === true &&
-            stats.renderStats.soldiers === stats.soldiers)
+            stats.renderStats.soldiers === stats.soldiers &&
+            stats.renderStats.expectedSoldiers === stats.soldiers &&
+            stats.renderStats.substrate === "typegpu" &&
+            stats.renderStats.presentedFrameId > 0 &&
+            stats.renderStats.drawCalls > 0)
         );
       },
       undefined,

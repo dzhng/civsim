@@ -1,0 +1,554 @@
+[
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "label": "tactical-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17302,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 17144,
+      "overOneCodePixels": 14257,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "label": "tactical-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17303,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 298,
+      "overOneCodePixels": 33,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 24
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "label": "tactical-repeat-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17303,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 298,
+      "overOneCodePixels": 33,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 24
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "label": "tactical-repeat-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17303,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 298,
+      "overOneCodePixels": 33,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 24
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "label": "horizon-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2538,
+      "overOneCodePixels": 2248,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 70
+    },
+    "onVsThree": {
+      "changedRgbPixels": 290,
+      "overOneCodePixels": 8,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 58
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "label": "horizon-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2535,
+      "overOneCodePixels": 2248,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 69
+    },
+    "onVsThree": {
+      "changedRgbPixels": 325,
+      "overOneCodePixels": 7,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 57
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "label": "tactical-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 17157,
+      "overOneCodePixels": 14620,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 52
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "label": "tactical-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 233,
+      "overOneCodePixels": 1,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 5
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "label": "tactical-repeat-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 233,
+      "overOneCodePixels": 1,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 5
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "label": "tactical-repeat-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 233,
+      "overOneCodePixels": 1,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 5
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "label": "horizon-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2837,
+      "overOneCodePixels": 2503,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 64
+    },
+    "onVsThree": {
+      "changedRgbPixels": 281,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "label": "horizon-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2824,
+      "overOneCodePixels": 2500,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 64
+    },
+    "onVsThree": {
+      "changedRgbPixels": 312,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "label": "tactical-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17302,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 17167,
+      "overOneCodePixels": 14266,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "label": "tactical-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17303,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 289,
+      "overOneCodePixels": 28,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 24
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "label": "tactical-repeat-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17303,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 289,
+      "overOneCodePixels": 28,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 24
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "label": "tactical-repeat-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19047,
+      "overOneCodePixels": 17303,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 72
+    },
+    "onVsThree": {
+      "changedRgbPixels": 289,
+      "overOneCodePixels": 28,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 24
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "label": "horizon-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2538,
+      "overOneCodePixels": 2248,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 70
+    },
+    "onVsThree": {
+      "changedRgbPixels": 301,
+      "overOneCodePixels": 8,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 58
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "label": "horizon-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2535,
+      "overOneCodePixels": 2248,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 69
+    },
+    "onVsThree": {
+      "changedRgbPixels": 333,
+      "overOneCodePixels": 7,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 57
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "label": "tactical-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 17160,
+      "overOneCodePixels": 14621,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 52
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "label": "tactical-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 235,
+      "overOneCodePixels": 2,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 21
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "label": "tactical-repeat-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 235,
+      "overOneCodePixels": 2,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 21
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "label": "tactical-repeat-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 19673,
+      "overOneCodePixels": 17826,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 54
+    },
+    "onVsThree": {
+      "changedRgbPixels": 235,
+      "overOneCodePixels": 2,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 21
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "label": "horizon-plain",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2837,
+      "overOneCodePixels": 2503,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 64
+    },
+    "onVsThree": {
+      "changedRgbPixels": 290,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "label": "horizon-bloom",
+    "offVsPrior": {
+      "changedRgbPixels": 0,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 0
+    },
+    "shadowEffect": {
+      "changedRgbPixels": 2824,
+      "overOneCodePixels": 2500,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 64
+    },
+    "onVsThree": {
+      "changedRgbPixels": 319,
+      "overOneCodePixels": 0,
+      "changedAlphaPixels": 0,
+      "maxCodeDifference": 1
+    }
+  }
+]

@@ -1,4 +1,7 @@
-import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appearanceBundle";
+import type {
+  AppearanceBundle,
+  MeshTiers,
+} from "../../../packages/soldier-assets/src/appearanceBundle";
 import type { ActionObservation } from "../../../packages/crowd-runtime/src/actionTimeline";
 import type { SoldierMeshData } from "../../../packages/soldier-assets/src/mesh";
 import { mountedTemporalFixture } from "./_mounted-temporal-fixture";
@@ -79,8 +82,8 @@ export function staggeredBudgetObservations(
 }
 
 export interface SyntheticBudgetOptions {
-  /** Midpoint passes per mesh tier; far geometry stays fixed. */
-  subdivisions?: [number, number, number];
+  /** Midpoint passes per mesh tier; impostor geometry stays fixed. */
+  subdivisions?: MeshTiers<number>;
   /** Total equivalent joints per weighted seed joint, including the original. */
   jointCopies?: number;
   /** Four changes palette-address locality, not the fixed four-slot shader. */
@@ -149,7 +152,7 @@ export function syntheticBudgetFixture(
   options: SyntheticBudgetOptions = {},
 ): AppearanceBundle {
   const fixture = mountedTemporalFixture(source);
-  const subdivisions = options.subdivisions ?? [0, 0, 0];
+  const subdivisions = options.subdivisions ?? fixture.tiers.map(() => 0);
   for (const [tier, passes] of subdivisions.entries()) {
     if (!Number.isSafeInteger(passes) || passes < 0)
       throw new Error("Subdivision passes must be nonnegative integers");

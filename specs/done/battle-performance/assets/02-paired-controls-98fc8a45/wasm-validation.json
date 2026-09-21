@@ -1,0 +1,53 @@
+{
+  "expected": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069",
+  "checks": [
+    {
+      "mode": "enabled",
+      "backend": "three",
+      "path": "throwaway/matched-current-98fc8a45/enabled/three/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    },
+    {
+      "mode": "enabled",
+      "backend": "raw",
+      "path": "throwaway/matched-current-98fc8a45/enabled/raw/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    },
+    {
+      "mode": "enabled",
+      "backend": "typegpu",
+      "path": "throwaway/matched-current-98fc8a45/enabled/typegpu/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    },
+    {
+      "mode": "enabled",
+      "backend": "vgpu",
+      "path": "throwaway/matched-current-98fc8a45/enabled/vgpu/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    },
+    {
+      "mode": "disabled",
+      "backend": "three",
+      "path": "throwaway/matched-current-98fc8a45/disabled/three/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    },
+    {
+      "mode": "disabled",
+      "backend": "raw",
+      "path": "throwaway/matched-current-98fc8a45/disabled/raw/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    },
+    {
+      "mode": "disabled",
+      "backend": "typegpu",
+      "path": "throwaway/matched-current-98fc8a45/disabled/typegpu/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    },
+    {
+      "mode": "disabled",
+      "backend": "vgpu",
+      "path": "throwaway/matched-current-98fc8a45/disabled/vgpu/assets/game_wasm_bg-DzcN8uDX.wasm",
+      "sha256": "2657fca8283cf9c15762728a985bc9fad3ac8e1794546209e4bfcae016478069"
+    }
+  ]
+}

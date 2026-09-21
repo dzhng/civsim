@@ -1,0 +1,54 @@
+[
+  {
+    "classId": 0,
+    "label": "heavy-sword-2k",
+    "unchanged": [
+      "skeleton.json",
+      "animation.json",
+      "materials.json",
+      "tier-0.mesh.json",
+      "tier-2.mesh.json"
+    ],
+    "candidateGLBSha256": "cec530fedc3f72eeb30ee644a8736b030c4a5b498c2d81d43d3c89efe77e944e",
+    "meshTriangles": 1958
+  },
+  {
+    "classId": 0,
+    "label": "heavy-sword-4k",
+    "unchanged": [
+      "skeleton.json",
+      "animation.json",
+      "materials.json",
+      "tier-0.mesh.json",
+      "tier-2.mesh.json"
+    ],
+    "candidateGLBSha256": "5a3927d4bc24695ca298745488a8e48fd3d8b4c3d165d64cf12bbe023f856273",
+    "meshTriangles": 3960
+  },
+  {
+    "classId": 1,
+    "label": "light-spear-2k",
+    "unchanged": [
+      "skeleton.json",
+      "animation.json",
+      "materials.json",
+      "tier-0.mesh.json",
+      "tier-2.mesh.json"
+    ],
+    "candidateGLBSha256": "3980083409bbbf414541d14efbad2366c8b8b0521215c9b586fd8a350ec2e300",
+    "meshTriangles": 1970
+  },
+  {
+    "classId": 1,
+    "label": "light-spear-4k",
+    "unchanged": [
+      "skeleton.json",
+      "animation.json",
+      "materials.json",
+      "tier-0.mesh.json",
+      "tier-2.mesh.json"
+    ],
+    "candidateGLBSha256": "df17744a3a67e57115f1af8f0126a5b7e3fbde69eb37ea596251656501e848cc",
+    "meshTriangles": 3964
+  }
+]

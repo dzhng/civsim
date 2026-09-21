@@ -1,0 +1,32 @@
+{
+  "native": {
+    "frames": 120,
+    "sameCameras": true,
+    "sameFinalRecordFingerprints": true,
+    "sameCrowdSignature": true,
+    "baseline": {
+      "calls": 1854,
+      "bytes": 145684224
+    },
+    "candidate": {
+      "calls": 927,
+      "bytes": 72842112
+    }
+  },
+  "source": {
+    "frames": 120,
+    "sameCameras": true,
+    "sameFinalMetadataFingerprints": true,
+    "sameStateHash": true,
+    "baseline": {
+      "calls": 4800,
+      "updates": 2160,
+      "instancesProcessed": 3035088
+    },
+    "candidate": {
+      "calls": 4800,
+      "updates": 1080,
+      "instancesProcessed": 1517544
+    }
+  }
+}

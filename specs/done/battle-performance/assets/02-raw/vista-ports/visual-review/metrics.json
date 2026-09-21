@@ -1,0 +1,674 @@
+[
+  {
+    "id": "vista-raw-1-overview",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-1/overview-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-1/overview-plain-expectedRgba.png",
+    "crop": [
+      240,
+      150,
+      300,
+      100
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 339,
+    "changedRatio": 0.00086212158203125,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.0002695719401041667,
+      0.0001983642578125,
+      0.0004323323567708333,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      1,
+      0,
+      766,
+      511
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85030364990234,
+        140.72138468424478,
+        56.68718719482422
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85032399495442,
+        140.72137959798178,
+        56.68715159098307
+      ]
+    }
+  },
+  {
+    "id": "vista-raw-1-horizon",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-1/horizon-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-1/horizon-plain-expectedRgba.png",
+    "crop": [
+      100,
+      155,
+      460,
+      65
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 7292,
+    "changedRatio": 0.018544514973958332,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.007731119791666667,
+      0.00339508056640625,
+      0.007776896158854167,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      0,
+      0,
+      767,
+      510
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.0976537068685,
+        164.4818878173828,
+        110.62452952067058
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.0921147664388,
+        164.48087310791016,
+        110.63050587972005
+      ]
+    }
+  },
+  {
+    "id": "vista-raw-4-overview",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-4/overview-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-4/overview-plain-expectedRgba.png",
+    "crop": [
+      240,
+      150,
+      300,
+      100
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 339,
+    "changedRatio": 0.00086212158203125,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.0002695719401041667,
+      0.0001983642578125,
+      0.00042724609375,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      1,
+      0,
+      766,
+      511
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85061136881511,
+        140.7218017578125,
+        56.687609354654946
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85063171386719,
+        140.72178649902344,
+        56.68759409586588
+      ]
+    }
+  },
+  {
+    "id": "vista-raw-4-horizon",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-4/horizon-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/vista-ports/samples-4/horizon-plain-expectedRgba.png",
+    "crop": [
+      100,
+      155,
+      460,
+      65
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 7306,
+    "changedRatio": 0.018580118815104168,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.007748921712239583,
+      0.0033976236979166665,
+      0.007794698079427083,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      0,
+      0,
+      767,
+      510
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.10693868001303,
+        164.48687998453775,
+        110.62304433186848
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.1013971964518,
+        164.48586781819662,
+        110.62900797526042
+      ]
+    }
+  },
+  {
+    "id": "vista-typegpu-1-overview",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-1/overview-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-1/overview-plain-expectedRgba.png",
+    "crop": [
+      240,
+      150,
+      300,
+      100
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 95,
+    "changedRatio": 0.00024159749348958334,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      5.8492024739583336e-05,
+      6.103515625e-05,
+      0.00014241536458333334,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      3,
+      0,
+      764,
+      511
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.8502909342448,
+        140.72138468424478,
+        56.687171936035156
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85032399495442,
+        140.72137959798178,
+        56.68715159098307
+      ]
+    }
+  },
+  {
+    "id": "vista-typegpu-1-horizon",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-1/horizon-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-1/horizon-plain-expectedRgba.png",
+    "crop": [
+      100,
+      155,
+      460,
+      65
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 7368,
+    "changedRatio": 0.01873779296875,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.007794698079427083,
+      0.0034154256184895835,
+      0.007898966471354166,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      0,
+      0,
+      767,
+      501
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.0976765950521,
+        164.48186238606772,
+        110.6244633992513
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.0921147664388,
+        164.48087310791016,
+        110.63050587972005
+      ]
+    }
+  },
+  {
+    "id": "vista-typegpu-4-overview",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-4/overview-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-4/overview-plain-expectedRgba.png",
+    "crop": [
+      240,
+      150,
+      300,
+      100
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 93,
+    "changedRatio": 0.00023651123046875,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      5.5948893229166664e-05,
+      6.103515625e-05,
+      0.0001373291015625,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      3,
+      0,
+      764,
+      511
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85060119628906,
+        140.72179158528647,
+        56.68760426839193
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85063171386719,
+        140.72178649902344,
+        56.68759409586588
+      ]
+    }
+  },
+  {
+    "id": "vista-typegpu-4-horizon",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-4/horizon-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/vista-ports/samples-4/horizon-plain-expectedRgba.png",
+    "crop": [
+      100,
+      155,
+      460,
+      65
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 7380,
+    "changedRatio": 0.018768310546875,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.0078125,
+      0.00344085693359375,
+      0.0078887939453125,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      0,
+      0,
+      767,
+      501
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.10696156819662,
+        164.48684692382812,
+        110.62296549479167
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.1013971964518,
+        164.48586781819662,
+        110.62900797526042
+      ]
+    }
+  },
+  {
+    "id": "vista-vgpu-1-overview",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-1/overview-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-1/overview-plain-expectedRgba.png",
+    "crop": [
+      240,
+      150,
+      300,
+      100
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 92,
+    "changedRatio": 0.00023396809895833334,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      5.5948893229166664e-05,
+      5.8492024739583336e-05,
+      0.00013987223307291666,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      3,
+      0,
+      764,
+      511
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.8502934773763,
+        140.7213872273763,
+        56.68716939290365
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85032399495442,
+        140.72137959798178,
+        56.68715159098307
+      ]
+    }
+  },
+  {
+    "id": "vista-vgpu-1-horizon",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-1/horizon-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-1/horizon-plain-expectedRgba.png",
+    "crop": [
+      100,
+      155,
+      460,
+      65
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 7365,
+    "changedRatio": 0.01873016357421875,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.007779439290364583,
+      0.00341033935546875,
+      0.007914225260416666,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      0,
+      0,
+      767,
+      501
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.09767150878906,
+        164.4818572998047,
+        110.62444814046223
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.0921147664388,
+        164.48087310791016,
+        110.63050587972005
+      ]
+    }
+  },
+  {
+    "id": "vista-vgpu-4-overview",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-4/overview-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-4/overview-plain-expectedRgba.png",
+    "crop": [
+      240,
+      150,
+      300,
+      100
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 89,
+    "changedRatio": 0.00022633870442708334,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      5.340576171875e-05,
+      5.5948893229166664e-05,
+      0.00013478597005208334,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      3,
+      0,
+      764,
+      511
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85060373942058,
+        140.72179667154947,
+        56.687601725260414
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        122.85063171386719,
+        140.72178649902344,
+        56.68759409586588
+      ]
+    }
+  },
+  {
+    "id": "vista-vgpu-4-horizon",
+    "a": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-4/horizon-plain-actualRgba.png",
+    "b": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/vista-ports/samples-4/horizon-plain-expectedRgba.png",
+    "crop": [
+      100,
+      155,
+      460,
+      65
+    ],
+    "width": 768,
+    "height": 512,
+    "pixels": 393216,
+    "changed": 7377,
+    "changedRatio": 0.01876068115234375,
+    "over8": 0,
+    "alphaDiff": 0,
+    "maeRGBA": [
+      0.0077972412109375,
+      0.0034357706705729165,
+      0.007904052734375,
+      0
+    ],
+    "maxRGBA": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "differenceBounds": [
+      0,
+      0,
+      767,
+      501
+    ],
+    "actual": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.1069564819336,
+        164.4868418375651,
+        110.62295023600261
+      ]
+    },
+    "expected": {
+      "alphaHistogram": {
+        "255": 393216
+      },
+      "meanRGB": [
+        143.1013971964518,
+        164.48586781819662,
+        110.62900797526042
+      ]
+    }
+  }
+]

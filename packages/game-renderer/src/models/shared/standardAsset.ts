@@ -143,13 +143,24 @@ export function standardWindStrength(tier: StandardSizeTier): number {
 // presses the banner forward (away from the pole), so the cloth can never
 // swing back far enough to pierce the pole it hangs in front of.
 export const STANDARD_WAVE_BACK_LOBE = 0.25;
+export const STANDARD_WAVE = {
+  primaryTime: 2.15, primaryX: 5.2, primaryZ: 1.25,
+  secondaryTime: 3.1, secondaryPhase: 0.71, secondaryX: 9.4, secondaryZ: 0.52,
+  primaryMix: 0.74, secondaryMix: 0.26,
+} as const;
 
 export function standardWaveDisplacement(input: StandardWaveInput): number {
   if (input.weight <= 0 || input.strength === 0) return 0;
   const [x, , z] = input.local;
-  const primary = Math.sin(input.timeSeconds * 2.15 + input.phase + x * 5.2 + z * 1.25);
-  const secondary = Math.sin(input.timeSeconds * 3.1 + input.phase * 0.71 + x * 9.4 - z * 0.52);
-  const wave = primary * 0.74 + secondary * 0.26;
+  const primary = Math.sin(
+    input.timeSeconds * STANDARD_WAVE.primaryTime + input.phase +
+    x * STANDARD_WAVE.primaryX + z * STANDARD_WAVE.primaryZ,
+  );
+  const secondary = Math.sin(
+    input.timeSeconds * STANDARD_WAVE.secondaryTime + input.phase * STANDARD_WAVE.secondaryPhase +
+    x * STANDARD_WAVE.secondaryX - z * STANDARD_WAVE.secondaryZ,
+  );
+  const wave = primary * STANDARD_WAVE.primaryMix + secondary * STANDARD_WAVE.secondaryMix;
   const shaped = wave > 0 ? wave * STANDARD_WAVE_BACK_LOBE : wave;
   return input.weight * input.strength * shaped;
 }

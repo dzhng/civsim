@@ -1,8 +1,11 @@
+import { startSceneFrames } from "./shared/sceneFrames";
+import { BATTLE_BENCHMARK_SCENARIO } from "./battle/benchmark/benchmarkScenario";
 import init, { Campaign, Game, type InitOutput } from "./wasm/game_wasm.js";
 import { currentScene, switchScene } from "./scene";
 import { MenuScene } from "./menu/scene";
 import { QUICK_BATTLE_GENERATED_MAP_ID, type QuickBattleConfig } from "./battle/quickBattleCatalog";
-import { BattleScene, type BattleKind, type GeneratedBattleMapDescriptor } from "./battle/scene";
+import { BattleScene, type BattleKind } from "./battle/scene";
+import type { BattleSimSetup, BattleStart } from "./battle/sim/battleSetup";
 import { CampaignScene } from "./campaign/scene";
 import { loadCampaignData, type CampaignData } from "./campaign/data";
 import {
@@ -14,7 +17,6 @@ import { readCampaignSave } from "./campaign/save";
 import { checkGpuSupport, type GpuSupportState } from "@packages/game-renderer/src/appShell";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
 import { setActiveFactions } from "@packages/game-renderer/src/battle/factionColors";
-import { generatedBattleMapEntry } from "@packages/game-renderer/src/battle/mapCatalog";
 
 import { quickBattleUrl, readQuickBattleUrl } from "./battle/quickBattleUrl";
 
@@ -45,84 +47,96 @@ async function main() {
     ai: params.get("ai") === "on",
   };
 
-  function createGame(kind: BattleKind): Game {
-    const game = new Game(BATTLE_SEED);
-    if (kind === "duel") {
-      game.start_duel(duel.a, duel.b);
-      if (duel.ai) game.set_ai_team(1);
-      return game;
-    }
-    if (kind === "5v5") game.start_sandbox(1);
-    else if (kind === "surround") game.start_sandbox(4);
-    else if (kind === "flank") game.start_sandbox(5);
-    else if (kind === "gen") game.start_battle_generated(generatedSeed);
-    else game.start_battle(kind === "mapB" ? 1 : 0);
-    if (AI_ON) game.set_ai_team(1);
-    return game;
+  /** How a battle begins, as data the authority builds its one `Game` from. */
+  function describeBattle(kind: BattleKind): BattleSimSetup {
+    if (kind === "duel")
+      return {
+        source: "shell",
+        simSeed: BATTLE_SEED,
+        start: { kind: "duel", a: duel.a, b: duel.b },
+        aiTeams: duel.ai ? [1] : [],
+        openingOrders: "none",
+      };
+    const start: BattleStart =
+      kind === "5v5"
+        ? { kind: "sandbox", variant: 1 }
+        : kind === "surround"
+          ? { kind: "sandbox", variant: 4 }
+          : kind === "flank"
+            ? { kind: "sandbox", variant: 5 }
+            : kind === "gen"
+              ? { kind: "generated", mapSeed: generatedSeed.toString() }
+              : { kind: "authored", map: kind === "mapB" ? 1 : 0 };
+    return {
+      source: "shell",
+      simSeed: BATTLE_SEED,
+      start,
+      aiTeams: AI_ON ? [1] : [],
+      openingOrders: "none",
+    };
+  }
+
+  function launchBenchmark() {
+    const scenario = BATTLE_BENCHMARK_SCENARIO;
+    setActiveFactions();
+    switchScene(
+      new BattleScene({
+        setup: {
+          source: "shell",
+          simSeed: scenario.simSeed,
+          start: { kind: "generated", mapSeed: scenario.mapSeed },
+          aiTeams: [1],
+          openingOrders: "player-nearest-enemy",
+        },
+        kind: "gen",
+        benchmark: scenario,
+        environment: DEFAULT_BATTLE_ENVIRONMENT,
+        onExit: () => location.assign("/"),
+        onLaunch: launchBattle,
+        restart: () => location.reload(),
+      }),
+    );
   }
 
   function launchBattle(kind: BattleKind) {
     setActiveFactions();
     switchScene(
-      (() => {
-        const game = createGame(kind);
-        const generatedMap =
-          kind === "gen"
-            ? ({
-                ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
-                defaultEnvironment: DEFAULT_BATTLE_ENVIRONMENT,
-              } satisfies GeneratedBattleMapDescriptor)
-            : undefined;
-        return new BattleScene({
-          wasm,
-          game,
-          kind,
-          wasmMapId: kind === "mapA" ? 0 : kind === "mapB" ? 1 : undefined,
-          generatedMap,
-          onExit: () => location.assign("/"),
-          onLaunch: launchBattle,
-        });
-      })(),
+      new BattleScene({
+        setup: describeBattle(kind),
+        kind,
+        wasmMapId: kind === "mapA" ? 0 : kind === "mapB" ? 1 : undefined,
+        environment: kind === "gen" ? DEFAULT_BATTLE_ENVIRONMENT : undefined,
+        onExit: () => location.assign("/"),
+        onLaunch: launchBattle,
+      }),
     );
   }
 
-  function createQuickBattleGame(cfg: QuickBattleConfig): Game {
-    setActiveFactions(cfg.factions);
-    const game = new Game(BATTLE_SEED);
-    if (cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID) {
-      game.load_generated_map(parseGeneratedSeed(cfg.generatedSeed ?? "0"));
-    } else {
-      game.load_map(cfg.mapId);
-    }
-    cfg.teams.forEach((picks, team) => {
-      const units = picks.flatMap((p) => Array.from({ length: p.count }, () => p.classId));
-      game.deploy_custom_army(team, new Uint32Array(units));
-    });
-    if (AI_ON) game.set_ai_team(1);
-    return game;
-  }
-
   function launchQuickBattle(cfg: QuickBattleConfig) {
+    setActiveFactions(cfg.factions);
     const generated = cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID;
-    const environment = cfg.environment ?? DEFAULT_BATTLE_ENVIRONMENT;
-    const game = createQuickBattleGame(cfg);
-    const generatedMap = generated
-      ? ({
-          ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
-          defaultEnvironment: environment,
-        } satisfies GeneratedBattleMapDescriptor)
-      : undefined;
-    const generatedEntry = generated
-      ? generatedBattleMapEntry(game.generated_map_manifest())
-      : null;
     switchScene(
       new BattleScene({
-        wasm,
-        game,
+        setup: {
+          source: "shell",
+          simSeed: BATTLE_SEED,
+          start: {
+            kind: "custom",
+            map: generated
+              ? { kind: "generated", seed: parseGeneratedSeed(cfg.generatedSeed ?? "0").toString() }
+              : { kind: "authored", id: cfg.mapId },
+            teams: cfg.teams.map((picks) =>
+              picks.flatMap((p) => Array.from({ length: p.count }, () => p.classId)),
+            ),
+          },
+          aiTeams: AI_ON ? [1] : [],
+          openingOrders: "none",
+        },
         kind: generated ? "gen" : "mapA",
-        wasmMapId: generatedEntry?.wasmMapId ?? cfg.mapId,
-        environment,
-        generatedMap,
+        // A generated quick battle takes its authored map id from the manifest the
+        // sim publishes; an authored one already knows it.
+        wasmMapId: generated ? undefined : cfg.mapId,
+        environment: cfg.environment ?? DEFAULT_BATTLE_ENVIRONMENT,
         restart: () => location.reload(),
         onExit: () => location.assign(quickBattleUrl("/battle", cfg)),
         onLaunch: launchBattle,
@@ -158,21 +172,25 @@ async function main() {
       data,
       mapJson,
       onExit: () => location.assign("/"),
-      onBattle: (game, done) => {
+      // The campaign describes the encounter; the authority builds its one `Game`
+      // from that description in the worker and reports the outcome back here.
+      onBattle: (handoff, report) => {
         setActiveFactions();
-        switchScene(
-          new BattleScene({
-            wasm,
-            game,
-            kind: "mapA", // cosmetic only; relaunch buttons are neutered below
-            inCampaign: true,
-            onExit: () => {
-              done();
-              switchScene(scene);
-            },
-            onLaunch: () => {}, // campaign battles can't be swapped for sandboxes
-          }),
-        );
+        const battle: BattleScene = new BattleScene({
+          setup: { source: "campaign", handoff },
+          kind: "mapA", // cosmetic only; relaunch buttons are neutered below
+          inCampaign: true,
+          onExit: () => {
+            // The result has to be asked for before the scene switch disposes the
+            // authority. A battle that cannot state its outcome keeps its own error
+            // surface and leaves the encounter outstanding rather than resolving it.
+            void battle.battleResult().then((result) => {
+              if (report(result)) switchScene(scene);
+            });
+          },
+          onLaunch: () => {}, // campaign battles can't be swapped for sandboxes
+        });
+        switchScene(battle);
       },
     });
     switchScene(scene);
@@ -196,6 +214,7 @@ async function main() {
     },
     classSpecs: quickBattleClasses,
     onNewCampaign: () => location.assign("/campaign"),
+    onBenchmark: () => location.assign("/benchmark"),
     onLoadCampaign: () => location.assign("/campaign?load=1"),
     hasSave: () => readCampaignSave() !== null,
     gpuStatus: gpuStatus!,
@@ -206,6 +225,7 @@ async function main() {
   const sandbox = params.get("battle");
   const wantsCampaign = params.has("campaign") || location.pathname === "/campaign";
   const wantsBattle =
+    location.pathname === "/benchmark" ||
     location.pathname === "/battle/run" ||
     sandbox === "duel" ||
     sandbox === "5v5" ||
@@ -214,6 +234,7 @@ async function main() {
     params.has("map") ||
     params.has("battle");
   if (!gpuStatus!.ok && (wantsCampaign || wantsBattle)) switchScene(menu);
+  else if (location.pathname === "/benchmark") launchBenchmark();
   else if (location.pathname === "/battle/run" && routeConfig) launchQuickBattle(routeConfig);
   else if (battleSetup) switchScene(menu);
   else if (params.get("campaign") === "test") void launchCampaign(false, await buildTestCampaign());
@@ -229,11 +250,11 @@ async function main() {
     launchBattle(map === "gen" ? "gen" : params.get("map") === "B" ? "mapB" : "mapA");
   } else switchScene(menu);
 
-  function frame(now: number) {
-    currentScene()?.frame(now);
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
+  startSceneFrames(
+    (now) => currentScene()?.frame(now),
+    (callback) => requestAnimationFrame(callback),
+    (error) => window.reportError(error),
+  );
 }
 
 function parseGeneratedSeed(raw: string): bigint {

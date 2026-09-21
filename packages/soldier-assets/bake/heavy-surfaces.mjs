@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 
 const {
@@ -13,7 +14,7 @@ const source = await readFile(
 const bundle = bakeAppearance({
   name: "heavy-surfaces",
   mounted: false,
-  tiers: [source, source, source],
+  tiers: APPEARANCE_MESH_TIERS.map(() => source),
   loopClips: [],
   presentation: null,
 });

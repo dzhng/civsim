@@ -15,6 +15,9 @@ interface CivsimPhysicalLight {
   exposure: number;
   /** Atmospheric turbidity drives the physical sky model. */
   turbidity: number;
+  /** IBL (sky) contribution multiplier. Omitted ⇒ the shared default; a preset
+   *  sets it only to re-balance direct sun against indirect sky fill. */
+  environmentIntensity?: number;
   /** Preset-owned aerial curve knobs for the single scene.fogNode owner. */
   aerial?: CivsimAerialAtmosphere;
 }
@@ -98,9 +101,12 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     hazeColor: [0.86, 0.82, 0.68],
     exposure: 1.16,
     physical: {
-      sunIntensity: 3.75,
+      // Balance direct sun against sky fill so directional shadows remain
+      // distinct while shaded troops keep their indirect illumination.
+      sunIntensity: 6.0,
       exposure: 1.06,
       turbidity: 2.9,
+      environmentIntensity: 0.35,
       aerial: {
         distanceScale: 4.6,
         clearRadiusM: 70,

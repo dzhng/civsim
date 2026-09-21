@@ -1,14 +1,16 @@
 import type { CrowdInstance } from "./instanceData";
 import { projectedSpanPixels, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
+import { APPEARANCE_MESH_TIERS, type MeshTiers } from "../../soldier-assets/src/appearanceBundle";
 
-export type LodLevel = 0 | 1 | 2 | 3;
-/** All mesh tiers cast; impostors do not. Planner and draw producer share this boundary. */
-export const COARSEST_SHADOW_LOD: LodLevel = 2;
+/** 0 through the tier count: levels below `IMPOSTOR_LEVEL` index an appearance's mesh tiers. */
+export type LodLevel = Partial<MeshTiers<unknown>>["length"];
+export const IMPOSTOR_LEVEL: LodLevel = APPEARANCE_MESH_TIERS.length;
+/** All mesh tiers cast; impostors do not. Planner and draw producers share this boundary. */
+export const COARSEST_SHADOW_LOD = (IMPOSTOR_LEVEL - 1) as LodLevel;
 
 export interface LodPolicy {
-  l0Pixels: number;
-  l1Pixels: number;
-  l2Pixels: number;
+  /** Least projected pixels drawing each mesh tier; smaller bodies draw the impostor. */
+  meshPixels: MeshTiers<number>;
   minScreenPixels: number;
 }
 
@@ -17,26 +19,28 @@ export interface LodAssignment {
   screenSize: number;
 }
 
-export interface LodCounts {
-  l0: number;
-  l1: number;
-  l2: number;
-  l3: number;
+export type LodCounts = Record<`l${LodLevel}`, number>;
+
+/** Count keys by level, so per-instance tallies avoid building strings. */
+export const LOD_COUNT_KEYS = Array.from(
+  { length: IMPOSTOR_LEVEL + 1 },
+  (_, level) => `l${level}` as keyof LodCounts,
+);
+
+export function emptyLodCounts(): LodCounts {
+  return Object.fromEntries(LOD_COUNT_KEYS.map((key) => [key, 0])) as LodCounts;
 }
 
 export const DEFAULT_LOD_POLICY: LodPolicy = {
-  l0Pixels: 18,
-  l1Pixels: 9,
-  l2Pixels: 4,
+  meshPixels: [32, 18, 9, 4],
   minScreenPixels: 2.25,
 };
 
 export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_POLICY): LodLevel {
   const size = Math.max(screenSize, policy.minScreenPixels);
-  if (size >= policy.l0Pixels) return 0;
-  if (size >= policy.l1Pixels) return 1;
-  if (size >= policy.l2Pixels) return 2;
-  return 3;
+  for (let level = 0; level < IMPOSTOR_LEVEL; level++)
+    if (size >= policy.meshPixels[level]) return level as LodLevel;
+  return IMPOSTOR_LEVEL;
 }
 
 export function instanceScreenSize(
@@ -64,13 +68,15 @@ export function lodWithHysteresis(
 ): LodLevel {
   const raw = assignLodForScreenSize(screenSize, policy);
   if (raw === prevLevel) return prevLevel;
-  const boundaryIndex = raw < prevLevel ? raw : raw - 1;
-  const boundary =
-    boundaryIndex === 0 ? policy.l0Pixels : boundaryIndex === 1 ? policy.l1Pixels : policy.l2Pixels;
-  if (raw < prevLevel) {
-    return screenSize >= boundary + margin ? raw : prevLevel;
-  }
-  return screenSize <= boundary - margin ? raw : prevLevel;
+  // Walk one boundary at a time toward the raw level, committing each edge the
+  // size has genuinely cleared and stopping at the first still inside its
+  // deadband. Testing only the destination's own edge let a large jump stall on
+  // a tier the body had left several boundaries behind.
+  let level: number = prevLevel;
+  if (raw < prevLevel)
+    while (level > raw && screenSize >= policy.meshPixels[level - 1] + margin) level--;
+  else while (level < raw && screenSize <= policy.meshPixels[level] - margin) level++;
+  return level as LodLevel;
 }
 
 /** Each audience uses the same thresholds, but only shadow demand has a mesh floor. */
@@ -133,18 +139,7 @@ export function assignCrowdLods(
 }
 
 export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
-  // Plain counters, not a template-string key per instance: this runs over
-  // the whole crowd every frame.
-  let l0 = 0;
-  let l1 = 0;
-  let l2 = 0;
-  let l3 = 0;
-  for (let i = 0; i < count; i++) {
-    const level = levels[i];
-    if (level === 0) l0++;
-    else if (level === 1) l1++;
-    else if (level === 2) l2++;
-    else l3++;
-  }
-  return { l0, l1, l2, l3 };
+  const counts = emptyLodCounts();
+  for (let i = 0; i < count; i++) counts[LOD_COUNT_KEYS[levels[i]]]++;
+  return counts;
 }

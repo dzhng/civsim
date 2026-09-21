@@ -29,7 +29,7 @@ export async function run(ctx) {
         window.__rendererLabStats?.ok === true &&
         window.__rendererLabStats?.route === "photoreal-battle" &&
         window.__rendererLabStats?.stats?.renderStats?.terrain &&
-        window.__rendererLabStats?.stats?.renderStats?.camera?.camera3d,
+        window.__rendererLabStats?.stats?.renderStats?.preparedCamera?.camera3d,
       undefined,
       { timeout: 180000 },
     );
@@ -54,20 +54,27 @@ export async function run(ctx) {
     );
     ctx.check(
       "clay route uses the real photoreal battle ground and strips grass/scenery/sea layers",
-      stats?.renderer === "gpu" &&
+      stats?.substrate === "typegpu" &&
         stats?.projection === "camera3d" &&
-        stats?.terrain?.layer === "photoreal-battle-ground" &&
+        stats?.terrain?.installed === true &&
+        stats?.terrain?.groundStyle === "clay" &&
+        stats?.reviewVisibility?.ground === true &&
+        stats?.reviewVisibility?.vista === false &&
+        stats?.reviewVisibility?.scenery === false &&
+        stats?.reviewVisibility?.water === false &&
+        stats?.grass?.visibility?.base === false &&
+        stats?.grass?.visibility?.ring === false &&
         stats?.terrain?.groundCover === "green-grass",
       JSON.stringify({
         terrain: stats?.terrain,
-        renderer: stats?.renderer,
+        substrate: stats?.substrate,
         projection: stats?.projection,
       }),
     );
 
     const horizon = await page.evaluate(
       ({ rect, viewport }) => {
-        const camera3d = window.__rendererLabStats?.stats?.renderStats?.camera?.camera3d;
+        const camera3d = window.__rendererLabStats?.stats?.renderStats?.preparedCamera?.camera3d;
         const ratios = [];
         for (let i = 0; i <= 64; i++) {
           const t = i / 64;

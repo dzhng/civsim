@@ -7,9 +7,24 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 ## Next Agent Prompt
 
 Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on `codex/map-landscape-quality`.
-Production uses the shared rendering foundation; overall visual quality still
-falls short of the reference. Keep every open slice below open until its own
+Production shares terrain and appearance policy across two backends; overall
+visual quality still falls short of the reference. Keep every open slice below open until its own
 acceptance evidence is complete.
+
+**Main integration boundary:** latest main (`fa2e11bf`) replaces the production
+Three battle with TypeGPU and moves the authoritative battle simulation into a
+worker. Campaign retains its Three world. Keep shared CPU terrain, signed-shore
+inputs, scenery, environment and asset policy in neutral owners; do not restore
+the retired battle backend to satisfy the original single-substrate plan.
+The vista reader and worker transfer now carry signed shore distances, and the
+neutral vista mesh converts them through the shared shoreline signal.
+
+Battle adoption remains open: the new battle shader still needs assessment of
+categorical terrain coverage, bitmap rock response and geometric dry normals
+against the accepted landscape behavior. Earlier screenshots, lifetime results
+and performance numbers below describe the pre-merge runtime, not acceptance of
+this integration. Re-run merged campaign/battle and handoff evidence before
+closing those gates; main's performance evidence has its own scope.
 
 **Current pickup:** correct campaign road width inflation on steep cross-slopes.
 The saddle/label checkpoint is verified:565 frontend tests, typecheck, two code

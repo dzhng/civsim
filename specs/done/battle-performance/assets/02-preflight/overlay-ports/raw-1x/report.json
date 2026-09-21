@@ -1,0 +1,660 @@
+{
+  "backend": "raw",
+  "concurrentUploadRejected": null,
+  "samples": 1,
+  "results": [
+    {
+      "label": "upload-initial",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 2,
+          "lineSegments": 1
+        },
+        "effect": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "triangle": {
+          "vertices": 0,
+          "triangles": 0
+        },
+        "ring": {
+          "rings": 0
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 2,
+          "capacityBytes": 384
+        },
+        "effect": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "triangle": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "ring": {
+          "count": 0,
+          "capacityBytes": 32
+        }
+      }
+    },
+    {
+      "label": "concurrent-growth",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 12,
+          "lineSegments": 6
+        },
+        "effect": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "triangle": {
+          "vertices": 0,
+          "triangles": 0
+        },
+        "ring": {
+          "rings": 0
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 12,
+          "capacityBytes": 640
+        },
+        "effect": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "triangle": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "ring": {
+          "count": 0,
+          "capacityBytes": 32
+        }
+      }
+    },
+    {
+      "label": "ground",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 44,
+          "lineSegments": 22
+        },
+        "effect": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "triangle": {
+          "vertices": 0,
+          "triangles": 0
+        },
+        "ring": {
+          "rings": 0
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 44,
+          "capacityBytes": 1312
+        },
+        "effect": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "triangle": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "ring": {
+          "count": 0,
+          "capacityBytes": 32
+        }
+      }
+    },
+    {
+      "label": "effect",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "effect": {
+          "vertices": 2,
+          "lineSegments": 1
+        },
+        "triangle": {
+          "vertices": 0,
+          "triangles": 0
+        },
+        "ring": {
+          "rings": 0
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 0,
+          "capacityBytes": 1312
+        },
+        "effect": {
+          "count": 2,
+          "capacityBytes": 384
+        },
+        "triangle": {
+          "count": 0,
+          "capacityBytes": 28
+        },
+        "ring": {
+          "count": 0,
+          "capacityBytes": 32
+        }
+      }
+    },
+    {
+      "label": "triangle",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "effect": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "triangle": {
+          "vertices": 3,
+          "triangles": 1
+        },
+        "ring": {
+          "rings": 0
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 0,
+          "capacityBytes": 1312
+        },
+        "effect": {
+          "count": 0,
+          "capacityBytes": 384
+        },
+        "triangle": {
+          "count": 3,
+          "capacityBytes": 256
+        },
+        "ring": {
+          "count": 0,
+          "capacityBytes": 32
+        }
+      }
+    },
+    {
+      "label": "ring",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "effect": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "triangle": {
+          "vertices": 0,
+          "triangles": 0
+        },
+        "ring": {
+          "rings": 3
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 0,
+          "capacityBytes": 1312
+        },
+        "effect": {
+          "count": 0,
+          "capacityBytes": 384
+        },
+        "triangle": {
+          "count": 0,
+          "capacityBytes": 256
+        },
+        "ring": {
+          "count": 3,
+          "capacityBytes": 256
+        }
+      }
+    },
+    {
+      "label": "composed",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 44,
+          "lineSegments": 22
+        },
+        "effect": {
+          "vertices": 2,
+          "lineSegments": 1
+        },
+        "triangle": {
+          "vertices": 3,
+          "triangles": 1
+        },
+        "ring": {
+          "rings": 3
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 44,
+          "capacityBytes": 1312
+        },
+        "effect": {
+          "count": 2,
+          "capacityBytes": 384
+        },
+        "triangle": {
+          "count": 3,
+          "capacityBytes": 256
+        },
+        "ring": {
+          "count": 3,
+          "capacityBytes": 256
+        }
+      }
+    },
+    {
+      "label": "unoccluded",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 44,
+          "lineSegments": 22
+        },
+        "effect": {
+          "vertices": 2,
+          "lineSegments": 1
+        },
+        "triangle": {
+          "vertices": 3,
+          "triangles": 1
+        },
+        "ring": {
+          "rings": 3
+        }
+      },
+      "occluderVertices": 6,
+      "counts": {
+        "ground": {
+          "count": 44,
+          "capacityBytes": 1312
+        },
+        "effect": {
+          "count": 2,
+          "capacityBytes": 384
+        },
+        "triangle": {
+          "count": 3,
+          "capacityBytes": 256
+        },
+        "ring": {
+          "count": 3,
+          "capacityBytes": 256
+        }
+      }
+    },
+    {
+      "label": "growth",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 13200,
+          "lineSegments": 6600
+        },
+        "effect": {
+          "vertices": 600,
+          "lineSegments": 300
+        },
+        "triangle": {
+          "vertices": 900,
+          "triangles": 300
+        },
+        "ring": {
+          "rings": 900
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 13200,
+          "capacityBytes": 369600
+        },
+        "effect": {
+          "count": 600,
+          "capacityBytes": 16800
+        },
+        "triangle": {
+          "count": 900,
+          "capacityBytes": 25200
+        },
+        "ring": {
+          "count": 900,
+          "capacityBytes": 28800
+        }
+      }
+    },
+    {
+      "label": "shrink",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 44,
+          "lineSegments": 22
+        },
+        "effect": {
+          "vertices": 2,
+          "lineSegments": 1
+        },
+        "triangle": {
+          "vertices": 3,
+          "triangles": 1
+        },
+        "ring": {
+          "rings": 3
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 44,
+          "capacityBytes": 369600
+        },
+        "effect": {
+          "count": 2,
+          "capacityBytes": 16800
+        },
+        "triangle": {
+          "count": 3,
+          "capacityBytes": 25200
+        },
+        "ring": {
+          "count": 3,
+          "capacityBytes": 28800
+        }
+      }
+    },
+    {
+      "label": "empty",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0028702640642939152,
+        "rmse": 0.00003888821464393546,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "effect": {
+          "vertices": 0,
+          "lineSegments": 0
+        },
+        "triangle": {
+          "vertices": 0,
+          "triangles": 0
+        },
+        "ring": {
+          "rings": 0
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 0,
+          "capacityBytes": 369600
+        },
+        "effect": {
+          "count": 0,
+          "capacityBytes": 16800
+        },
+        "triangle": {
+          "count": 0,
+          "capacityBytes": 25200
+        },
+        "ring": {
+          "count": 0,
+          "capacityBytes": 28800
+        }
+      }
+    },
+    {
+      "label": "horizon",
+      "countsMatch": true,
+      "width": 640,
+      "height": 400,
+      "comparison": {
+        "maxAbs": 0.001220703125,
+        "maxRelative": 0.0032938076416337285,
+        "rmse": 0.00006415817295417377,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1024000
+      },
+      "sourceCounts": {
+        "ground": {
+          "vertices": 44,
+          "lineSegments": 22
+        },
+        "effect": {
+          "vertices": 2,
+          "lineSegments": 1
+        },
+        "triangle": {
+          "vertices": 3,
+          "triangles": 1
+        },
+        "ring": {
+          "rings": 3
+        }
+      },
+      "occluderVertices": 18,
+      "counts": {
+        "ground": {
+          "count": 44,
+          "capacityBytes": 369600
+        },
+        "effect": {
+          "count": 2,
+          "capacityBytes": 16800
+        },
+        "triangle": {
+          "count": 3,
+          "capacityBytes": 25200
+        },
+        "ring": {
+          "count": 3,
+          "capacityBytes": 28800
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "liveTextures": 0,
+  "liveBuffers": 0,
+  "passed": true,
+  "pageErrors": []
+}

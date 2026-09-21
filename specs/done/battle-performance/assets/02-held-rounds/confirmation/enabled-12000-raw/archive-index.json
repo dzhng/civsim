@@ -1,0 +1,26 @@
+[
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-12000-raw/menu-export.json",
+    "archive": "menu-export.json.gz",
+    "sha256": "820f521290041b74c7a19940f6e4907cb9cd121141088f4405a38834da352c0e",
+    "bytes": 18505604
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-12000-raw/trial.json",
+    "archive": "trial.json.gz",
+    "sha256": "38602d8bd5e655c5079c65ea5c9df03b8bb6e2b274b839099741241598bd045b",
+    "bytes": 63045
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-12000-raw/host-observations.json",
+    "archive": "host-observations.json.gz",
+    "sha256": "379fde7d6bd7a9c45482f98d7c38c17266d73127afad7c2ef5cdd01daef476ae",
+    "bytes": 25745
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-12000-raw/scenario-report.json",
+    "archive": "scenario-report.json.gz",
+    "sha256": "ba988491a1a60176f311caf6245f2cb852f65977e960f877d8feed4d744bd655",
+    "bytes": 2281
+  }
+]

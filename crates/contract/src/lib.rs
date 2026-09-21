@@ -511,6 +511,17 @@ pub struct BattleSetup {
     pub reinforcements: Vec<Reinforcement>,
 }
 
+/// One encounter handed to the battle layer as data, so the battle can be built
+/// wherever the authoritative `Game` lives instead of only in the address space that
+/// owns the campaign. `ai_teams` is the campaign's answer to which sides the sim
+/// commander drives; the player's side, when the player is in this fight, is not
+/// among them.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BattleHandoff {
+    pub setup: BattleSetup,
+    pub ai_teams: Vec<u32>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UnitResult {
     pub id: u64,

@@ -40,10 +40,10 @@ vi.mock("@packages/photoreal-renderer/src/campaign/tiledTerrain", async (importO
   }
   return { ...actual, PhotorealTiledTerrain: FaultingTiledTerrain };
 });
-vi.mock("@packages/photoreal-renderer/src/battle/terrainLayer", async (importOriginal) => {
+vi.mock("@packages/photoreal-renderer/src/landscape/terrainLayer", async (importOriginal) => {
   const actual =
     await importOriginal<
-      typeof import("../../packages/photoreal-renderer/src/battle/terrainLayer")
+      typeof import("../../packages/photoreal-renderer/src/landscape/terrainLayer")
     >();
   return {
     ...actual,

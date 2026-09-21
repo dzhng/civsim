@@ -1,0 +1,1231 @@
+{
+  "status": "diagnostic-red",
+  "runtimeCommit": "183baccd",
+  "archive": {
+    "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour",
+    "manifestSha256": "b26b98ca8520ef21d1be917f4a674cd90ee7c9ea7fcf807f365659f027b07780"
+  },
+  "framebuffer": [
+    2880,
+    1800
+  ],
+  "sourceRecaptured": false,
+  "sourceImagesCopied": false,
+  "backends": {
+    "raw": {
+      "output": "/Users/david/dev/game-battle-performance-spec/throwaway/raw-shared-replay-1",
+      "history": {
+        "frames": 433,
+        "failedFrames": 0,
+        "failures": [],
+        "publications": [
+          {
+            "frameId": 1,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 2,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                0,
+                -672
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "base",
+              "ring"
+            ]
+          },
+          {
+            "frameId": 12,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 2,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                0,
+                -672
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 13,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 3,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 180,
+            "elapsedMs": 37165.17999999999,
+            "baseRevision": 2,
+            "ringRevision": 3,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 203,
+            "elapsedMs": 43698.255000000005,
+            "baseRevision": 2,
+            "ringRevision": 4,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 251,
+            "elapsedMs": 58780.98000000001,
+            "baseRevision": 2,
+            "ringRevision": 4,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 337,
+            "elapsedMs": 98379.4,
+            "baseRevision": 2,
+            "ringRevision": 5,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 376,
+            "elapsedMs": 119695.215,
+            "baseRevision": 2,
+            "ringRevision": 5,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 409,
+            "elapsedMs": 142777.625,
+            "baseRevision": 2,
+            "ringRevision": 6,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          }
+        ]
+      },
+      "errors": [],
+      "findingsSha256": "4077c9dfa614a14acd519c1f0658b11063131d29b27df512d68ecc46e8676037",
+      "endpoints": [
+        {
+          "name": "pan-publication-00",
+          "frameId": 176,
+          "elapsedMs": 36048.55499999999,
+          "changedPixels": 32602,
+          "rgbMae": 0.015903227880658437,
+          "maxChannelDifference": 137,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "raw",
+            "counts": {
+              "commands": 1036,
+              "crowdUploads": 172,
+              "readoutUploads": 172,
+              "triangleUploads": 172,
+              "tacticalUploads": 172,
+              "presentations": 176,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "400e3bec"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/pan-publication-00-source.png",
+            "sha256": "5de3335173ce108a97f143a0ef0734b59b4d89d93b92ad8fecd4bb9498e9bb1e"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/raw-shared-replay-1/pan-publication-00-replay.png",
+            "sha256": "ded81a32329b7cc9dc4f952f41bed7dc1d7badd4b3e0a94eb0b059829d9c2495"
+          }
+        },
+        {
+          "name": "pan-publication-29",
+          "frameId": 205,
+          "elapsedMs": 44431.56,
+          "changedPixels": 29169,
+          "rgbMae": 0.017636895576131687,
+          "maxChannelDifference": 125,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "raw",
+            "counts": {
+              "commands": 1210,
+              "crowdUploads": 201,
+              "readoutUploads": 201,
+              "triangleUploads": 201,
+              "tacticalUploads": 201,
+              "presentations": 205,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/pan-publication-29-source.png",
+            "sha256": "5574adef4a7920572bda4851c525f99427bf89326ea966c73cd138abc2bfcb1f"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/raw-shared-replay-1/pan-publication-29-replay.png",
+            "sha256": "7e155e7341ca15df71ed5a3b12fd10c0d089aefbf9b0ccf175328b7073e80f51"
+          }
+        },
+        {
+          "name": "zoom-crossing-00",
+          "frameId": 331,
+          "elapsedMs": 95296.19,
+          "changedPixels": 37551,
+          "rgbMae": 0.021646604938271606,
+          "maxChannelDifference": 115,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "raw",
+            "counts": {
+              "commands": 1966,
+              "crowdUploads": 327,
+              "readoutUploads": 327,
+              "triangleUploads": 327,
+              "tacticalUploads": 327,
+              "presentations": 331,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/zoom-crossing-00-source.png",
+            "sha256": "a32168195dfcf57694051f2a650e366421c5f452d59a71233c80a5d8729e4aff"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/raw-shared-replay-1/zoom-crossing-00-replay.png",
+            "sha256": "009b0d664e4d43e58354a6d98950f9805d36dc3a5aa0282807a904fa25da313c"
+          }
+        },
+        {
+          "name": "zoom-crossing-23",
+          "frameId": 354,
+          "elapsedMs": 107662.35999999999,
+          "changedPixels": 27658,
+          "rgbMae": 0.013564557613168724,
+          "maxChannelDifference": 121,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "raw",
+            "counts": {
+              "commands": 2104,
+              "crowdUploads": 350,
+              "readoutUploads": 350,
+              "triangleUploads": 350,
+              "tacticalUploads": 350,
+              "presentations": 354,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "400e3bec"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/zoom-crossing-23-source.png",
+            "sha256": "25e6ed4244deeab72d78f1b825fa2ffba6fe09e9dec351d158446f354939bd18"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/raw-shared-replay-1/zoom-crossing-23-replay.png",
+            "sha256": "b08ff91f10191fef39b76c741eef4694b7b7000072c1b5af1bfb330a4ecd8eda"
+          }
+        },
+        {
+          "name": "horizon-motion-00",
+          "frameId": 418,
+          "elapsedMs": 150094,
+          "changedPixels": 21107,
+          "rgbMae": 0.009354359567901234,
+          "maxChannelDifference": 151,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "raw",
+            "counts": {
+              "commands": 2488,
+              "crowdUploads": 414,
+              "readoutUploads": 414,
+              "triangleUploads": 414,
+              "tacticalUploads": 414,
+              "presentations": 418,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/horizon-motion-00-source.png",
+            "sha256": "f842e8e22cd0648d95a2472a1e2ac030f0c1912e8866c99a0671d62cb32d74a6"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/raw-shared-replay-1/horizon-motion-00-replay.png",
+            "sha256": "57d8a1725d9ab021c0682254e04f34ee5f11c13740f38a4bf1161e07204e2304"
+          }
+        },
+        {
+          "name": "horizon-motion-15",
+          "frameId": 433,
+          "elapsedMs": 163326.8,
+          "changedPixels": 26981,
+          "rgbMae": 0.012115676440329218,
+          "maxChannelDifference": 117,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "raw",
+            "counts": {
+              "commands": 2578,
+              "crowdUploads": 429,
+              "readoutUploads": 429,
+              "triangleUploads": 429,
+              "tacticalUploads": 429,
+              "presentations": 433,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/horizon-motion-15-source.png",
+            "sha256": "259a48ad2372e0509050f6b22823f20f59cc6ea8f964f8f61acbad16cd6298f9"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/raw-shared-replay-1/horizon-motion-15-replay.png",
+            "sha256": "4d9dc7b2a996b2e92410af1f7d14456ae3cf31803008ea98dfb21cd60ffdf007"
+          }
+        }
+      ]
+    },
+    "typegpu": {
+      "output": "/Users/david/dev/game-battle-performance-spec/throwaway/typegpu-shared-replay-1",
+      "history": {
+        "frames": 433,
+        "failedFrames": 0,
+        "failures": [],
+        "publications": [
+          {
+            "frameId": 1,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 2,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                0,
+                -672
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "base",
+              "ring"
+            ]
+          },
+          {
+            "frameId": 12,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 2,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                0,
+                -672
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 13,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 3,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 180,
+            "elapsedMs": 37165.17999999999,
+            "baseRevision": 2,
+            "ringRevision": 3,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 203,
+            "elapsedMs": 43698.255000000005,
+            "baseRevision": 2,
+            "ringRevision": 4,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 251,
+            "elapsedMs": 58780.98000000001,
+            "baseRevision": 2,
+            "ringRevision": 4,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 337,
+            "elapsedMs": 98379.4,
+            "baseRevision": 2,
+            "ringRevision": 5,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 376,
+            "elapsedMs": 119695.215,
+            "baseRevision": 2,
+            "ringRevision": 5,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 409,
+            "elapsedMs": 142777.625,
+            "baseRevision": 2,
+            "ringRevision": 6,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          }
+        ]
+      },
+      "errors": [],
+      "findingsSha256": "8a10eeb7bdcd2748eb5a820d09a2f396503d60d0b3c6fbfc91e1cd67e1db7311",
+      "endpoints": [
+        {
+          "name": "pan-publication-00",
+          "frameId": 176,
+          "elapsedMs": 36048.55499999999,
+          "changedPixels": 31604,
+          "rgbMae": 0.015600630144032922,
+          "maxChannelDifference": 146,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "typegpu",
+            "counts": {
+              "commands": 1036,
+              "crowdUploads": 172,
+              "readoutUploads": 172,
+              "triangleUploads": 172,
+              "tacticalUploads": 172,
+              "presentations": 176,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "400e3bec"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/pan-publication-00-source.png",
+            "sha256": "5de3335173ce108a97f143a0ef0734b59b4d89d93b92ad8fecd4bb9498e9bb1e"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/typegpu-shared-replay-1/pan-publication-00-replay.png",
+            "sha256": "5e5d3505dfb65fda98130d27bdf38e17c54217be3108d5f32928e7eeea2ae680"
+          }
+        },
+        {
+          "name": "pan-publication-29",
+          "frameId": 205,
+          "elapsedMs": 44431.56,
+          "changedPixels": 27498,
+          "rgbMae": 0.017146347736625513,
+          "maxChannelDifference": 135,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "typegpu",
+            "counts": {
+              "commands": 1210,
+              "crowdUploads": 201,
+              "readoutUploads": 201,
+              "triangleUploads": 201,
+              "tacticalUploads": 201,
+              "presentations": 205,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/pan-publication-29-source.png",
+            "sha256": "5574adef4a7920572bda4851c525f99427bf89326ea966c73cd138abc2bfcb1f"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/typegpu-shared-replay-1/pan-publication-29-replay.png",
+            "sha256": "587ae23f3184aa991ad64a06e7cd72d408101e7da53a7bc9664a3f55c0b8b3ca"
+          }
+        },
+        {
+          "name": "zoom-crossing-00",
+          "frameId": 331,
+          "elapsedMs": 95296.19,
+          "changedPixels": 35825,
+          "rgbMae": 0.021268647119341563,
+          "maxChannelDifference": 128,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "typegpu",
+            "counts": {
+              "commands": 1966,
+              "crowdUploads": 327,
+              "readoutUploads": 327,
+              "triangleUploads": 327,
+              "tacticalUploads": 327,
+              "presentations": 331,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/zoom-crossing-00-source.png",
+            "sha256": "a32168195dfcf57694051f2a650e366421c5f452d59a71233c80a5d8729e4aff"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/typegpu-shared-replay-1/zoom-crossing-00-replay.png",
+            "sha256": "b0a7059acb5fd4faaffdec520f323e1deb86dcd20b0dd25112caf9c7f72d3334"
+          }
+        },
+        {
+          "name": "zoom-crossing-23",
+          "frameId": 354,
+          "elapsedMs": 107662.35999999999,
+          "changedPixels": 26515,
+          "rgbMae": 0.013149691358024691,
+          "maxChannelDifference": 115,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "typegpu",
+            "counts": {
+              "commands": 2104,
+              "crowdUploads": 350,
+              "readoutUploads": 350,
+              "triangleUploads": 350,
+              "tacticalUploads": 350,
+              "presentations": 354,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "400e3bec"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/zoom-crossing-23-source.png",
+            "sha256": "25e6ed4244deeab72d78f1b825fa2ffba6fe09e9dec351d158446f354939bd18"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/typegpu-shared-replay-1/zoom-crossing-23-replay.png",
+            "sha256": "c3cfe1c9aae5255ccb701d321d59e4e3440d353d6414a0aaf34e8f15ccd1decd"
+          }
+        },
+        {
+          "name": "horizon-motion-00",
+          "frameId": 418,
+          "elapsedMs": 150094,
+          "changedPixels": 20957,
+          "rgbMae": 0.00925045010288066,
+          "maxChannelDifference": 151,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "typegpu",
+            "counts": {
+              "commands": 2488,
+              "crowdUploads": 414,
+              "readoutUploads": 414,
+              "triangleUploads": 414,
+              "tacticalUploads": 414,
+              "presentations": 418,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/horizon-motion-00-source.png",
+            "sha256": "f842e8e22cd0648d95a2472a1e2ac030f0c1912e8866c99a0671d62cb32d74a6"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/typegpu-shared-replay-1/horizon-motion-00-replay.png",
+            "sha256": "2aa8f0e4eab04cd7a6f1300d00967679b98f377d557147d05b75c9057233af81"
+          }
+        },
+        {
+          "name": "horizon-motion-15",
+          "frameId": 433,
+          "elapsedMs": 163326.8,
+          "changedPixels": 26373,
+          "rgbMae": 0.011782536008230452,
+          "maxChannelDifference": 117,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "typegpu",
+            "counts": {
+              "commands": 2578,
+              "crowdUploads": 429,
+              "readoutUploads": 429,
+              "triangleUploads": 429,
+              "tacticalUploads": 429,
+              "presentations": 433,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/horizon-motion-15-source.png",
+            "sha256": "259a48ad2372e0509050f6b22823f20f59cc6ea8f964f8f61acbad16cd6298f9"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/typegpu-shared-replay-1/horizon-motion-15-replay.png",
+            "sha256": "152bddd7a96ae855492c1d13b71b006f7e3de7c17b178a56a558d10ade0dd443"
+          }
+        }
+      ]
+    },
+    "vgpu": {
+      "output": "/Users/david/dev/game-battle-performance-spec/throwaway/vgpu-shared-replay-1",
+      "history": {
+        "frames": 433,
+        "failedFrames": 0,
+        "failures": [],
+        "publications": [
+          {
+            "frameId": 1,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 2,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                0,
+                -672
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "base",
+              "ring"
+            ]
+          },
+          {
+            "frameId": 12,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 2,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                0,
+                -672
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 13,
+            "elapsedMs": 0,
+            "baseRevision": 2,
+            "ringRevision": 3,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 180,
+            "elapsedMs": 37165.17999999999,
+            "baseRevision": 2,
+            "ringRevision": 3,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 203,
+            "elapsedMs": 43698.255000000005,
+            "baseRevision": 2,
+            "ringRevision": 4,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 251,
+            "elapsedMs": 58780.98000000001,
+            "baseRevision": 2,
+            "ringRevision": 4,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 337,
+            "elapsedMs": 98379.4,
+            "baseRevision": 2,
+            "ringRevision": 5,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          },
+          {
+            "frameId": 376,
+            "elapsedMs": 119695.215,
+            "baseRevision": 2,
+            "ringRevision": 5,
+            "pending": true,
+            "baseCircle": {
+              "center": [
+                48,
+                -144
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": []
+          },
+          {
+            "frameId": 409,
+            "elapsedMs": 142777.625,
+            "baseRevision": 2,
+            "ringRevision": 6,
+            "pending": false,
+            "baseCircle": {
+              "center": [
+                -48,
+                -96
+              ],
+              "enabled": true,
+              "radiusSq": 78400
+            },
+            "publishedLayers": [
+              "ring"
+            ]
+          }
+        ]
+      },
+      "errors": [],
+      "findingsSha256": "b2490d90c84e817e4860621bdabcb0646521811544f9483af10ebb061c8df768",
+      "endpoints": [
+        {
+          "name": "pan-publication-00",
+          "frameId": 176,
+          "elapsedMs": 36048.55499999999,
+          "changedPixels": 32586,
+          "rgbMae": 0.015902199074074076,
+          "maxChannelDifference": 137,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "vgpu",
+            "counts": {
+              "commands": 1036,
+              "crowdUploads": 172,
+              "readoutUploads": 172,
+              "triangleUploads": 172,
+              "tacticalUploads": 172,
+              "presentations": 176,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "400e3bec"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/pan-publication-00-source.png",
+            "sha256": "5de3335173ce108a97f143a0ef0734b59b4d89d93b92ad8fecd4bb9498e9bb1e"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/vgpu-shared-replay-1/pan-publication-00-replay.png",
+            "sha256": "945da2717317f4b87ac2901f97ec59fd78e15baf410d3880bea11dde224492d9"
+          }
+        },
+        {
+          "name": "pan-publication-29",
+          "frameId": 205,
+          "elapsedMs": 44431.56,
+          "changedPixels": 29201,
+          "rgbMae": 0.017656635802469137,
+          "maxChannelDifference": 125,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "vgpu",
+            "counts": {
+              "commands": 1210,
+              "crowdUploads": 201,
+              "readoutUploads": 201,
+              "triangleUploads": 201,
+              "tacticalUploads": 201,
+              "presentations": 205,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/pan-publication-29-source.png",
+            "sha256": "5574adef4a7920572bda4851c525f99427bf89326ea966c73cd138abc2bfcb1f"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/vgpu-shared-replay-1/pan-publication-29-replay.png",
+            "sha256": "c8833700dc2b81c06943a9e035eb89729c4582191c44f8ad98898d9175c8ce4b"
+          }
+        },
+        {
+          "name": "zoom-crossing-00",
+          "frameId": 331,
+          "elapsedMs": 95296.19,
+          "changedPixels": 37539,
+          "rgbMae": 0.021645833333333333,
+          "maxChannelDifference": 115,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "vgpu",
+            "counts": {
+              "commands": 1966,
+              "crowdUploads": 327,
+              "readoutUploads": 327,
+              "triangleUploads": 327,
+              "tacticalUploads": 327,
+              "presentations": 331,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/zoom-crossing-00-source.png",
+            "sha256": "a32168195dfcf57694051f2a650e366421c5f452d59a71233c80a5d8729e4aff"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/vgpu-shared-replay-1/zoom-crossing-00-replay.png",
+            "sha256": "49a26f7e923f7e92635fc4b1115a77649ef5f7c439e6a09f01cd5ac4cecb4326"
+          }
+        },
+        {
+          "name": "zoom-crossing-23",
+          "frameId": 354,
+          "elapsedMs": 107662.35999999999,
+          "changedPixels": 27639,
+          "rgbMae": 0.013561921296296296,
+          "maxChannelDifference": 121,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "vgpu",
+            "counts": {
+              "commands": 2104,
+              "crowdUploads": 350,
+              "readoutUploads": 350,
+              "triangleUploads": 350,
+              "tacticalUploads": 350,
+              "presentations": 354,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "400e3bec"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/zoom-crossing-23-source.png",
+            "sha256": "25e6ed4244deeab72d78f1b825fa2ffba6fe09e9dec351d158446f354939bd18"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/vgpu-shared-replay-1/zoom-crossing-23-replay.png",
+            "sha256": "7508873e81cd430749389357eac1cde88510f727fe54651ea967103b58fa0e4c"
+          }
+        },
+        {
+          "name": "horizon-motion-00",
+          "frameId": 418,
+          "elapsedMs": 150094,
+          "changedPixels": 21163,
+          "rgbMae": 0.009368634259259259,
+          "maxChannelDifference": 151,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "vgpu",
+            "counts": {
+              "commands": 2488,
+              "crowdUploads": 414,
+              "readoutUploads": 414,
+              "triangleUploads": 414,
+              "tacticalUploads": 414,
+              "presentations": 418,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/horizon-motion-00-source.png",
+            "sha256": "f842e8e22cd0648d95a2472a1e2ac030f0c1912e8866c99a0671d62cb32d74a6"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/vgpu-shared-replay-1/horizon-motion-00-replay.png",
+            "sha256": "dafc125319ea6feba9c59849fa18498a0dbb281a81d9d32f3a28f81a623b4d76"
+          }
+        },
+        {
+          "name": "horizon-motion-15",
+          "frameId": 433,
+          "elapsedMs": 163326.8,
+          "changedPixels": 26975,
+          "rgbMae": 0.012115740740740741,
+          "maxChannelDifference": 117,
+          "cameraMatches": true,
+          "crowdMatches": true,
+          "grassRecordHashMatches": true,
+          "grassDrawsMatch": true,
+          "native": {
+            "backend": "vgpu",
+            "counts": {
+              "commands": 2578,
+              "crowdUploads": 429,
+              "readoutUploads": 429,
+              "triangleUploads": 429,
+              "tacticalUploads": 429,
+              "presentations": 433,
+              "settles": 4
+            },
+            "recordHashSource": "resolved owned records",
+            "gpuRecordHashes": [
+              "e891a94b",
+              "015a0d5a"
+            ],
+            "gpuRecordsMatch": true,
+            "errors": []
+          },
+          "sourceImage": {
+            "path": "/Users/david/dev/game-battle-perf-fixture/specs/battle-performance/assets/02a-spool-corrected-tour/horizon-motion-15-source.png",
+            "sha256": "259a48ad2372e0509050f6b22823f20f59cc6ea8f964f8f61acbad16cd6298f9"
+          },
+          "nativeImage": {
+            "path": "/Users/david/dev/game-battle-performance-spec/throwaway/vgpu-shared-replay-1/horizon-motion-15-replay.png",
+            "sha256": "60ba6e13917a9dfd766b5163212303b59a37674daa069793a7edbfac35771330"
+          }
+        }
+      ]
+    }
+  },
+  "limits": {
+    "packetInflateBytes": 134217728,
+    "outputBytes": 1073741824,
+    "initializationMs": 180000,
+    "replayMs": 600000
+  }
+}

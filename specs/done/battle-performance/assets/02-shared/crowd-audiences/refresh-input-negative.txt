@@ -1,0 +1,34 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-raw-post-verification/apps/battle-perf-lab
+
+ ❯ tests/crowdAudience.test.ts (14 tests | 2 failed | 12 skipped) 5ms
+   × typegpu: camera refresh cannot move or alter a committed corpse when caller reuses input objects 4ms
+   × vgpu: camera refresh cannot move or alter a committed corpse when caller reuses input objects 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/crowdAudience.test.ts > typegpu: camera refresh cannot move or alter a committed corpse when caller reuses input objects
+ FAIL  tests/crowdAudience.test.ts > vgpu: camera refresh cannot move or alter a committed corpse when caller reuses input objects
+AssertionError: expected 77 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 77
+
+ ❯ tests/crowdAudience.test.ts:120:24
+    118|     owner.refreshCamera({ ...camera, eye: [200,0,30] });
+    119|     const retained = state.layers[0].update.mock.lastCall![0][0];
+    120|     expect(retained.x).toBe(0); expect(retained.facing).toBe(0);
+       |                        ^
+    121|     expect(retained.playback.base.weight).toBe(0.25);
+    122|     owner.dispose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 12 skipped (14)
+   Start at  13:02:00
+   Duration  103ms (transform 34ms, setup 0ms, import 44ms, tests 5ms, environment 0ms)

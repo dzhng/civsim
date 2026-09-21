@@ -25,18 +25,26 @@ import {
   corpsePresentationStrength,
   type CrowdInstance,
 } from "../../../crowd-runtime/src/instanceData";
-import { COARSEST_SHADOW_LOD, type LodCounts } from "../../../crowd-runtime/src/lod";
+import {
+  COARSEST_SHADOW_LOD,
+  IMPOSTOR_LEVEL,
+  emptyLodCounts,
+  type LodCounts,
+} from "../../../crowd-runtime/src/lod";
 import { soldierMaterialIdentity } from "../../../soldier-assets/src/material";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
 import { decodeLocalSample, resolveLocalSample } from "../../../soldier-assets/src/localAnimation";
 import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose";
 import { viewNormalNode } from "../landscape/shaderNodes";
-import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
+import { OctahedralImpostorLayer } from "./impostorLayer";
+import { createSoldierImpostorAtlas } from "../../../soldier-assets/bake/impostors/atlas";
+import { createSoldierImageOwner } from "../../../soldier-assets/bake/impostors/soldierImages";
+import { soldierFactionAccent } from "./factionAccent";
 import {
   createCrowdLodBuffers,
-  planPhotorealCrowdLods,
+  planCrowdLods,
   type CrowdProjectionView,
-} from "./crowdLod";
+} from "../../../crowd-runtime/src/visibility";
 import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
 
 import { weightedPaletteColumns } from "./skinNodes";
@@ -45,11 +53,10 @@ import { soldierGeometry } from "./meshGeometry";
 import {
   prepareSoldierSurface,
   type PreparedSoldierSurface,
-  soldierFactionAccent,
   soldierSurfaceNodes,
   soldierContactOcclusion,
   soldierUnitDirection,
-} from "./soldierSurface";
+} from "../../../soldier-assets/bake/impostors/soldierSurface";
 
 interface ClassBucket {
   audience: CrowdAudience;
@@ -111,10 +118,6 @@ interface CrowdCullingStats {
   shadowOnly: number;
 }
 
-function emptyLodCounts(): LodCounts {
-  return { l0: 0, l1: 0, l2: 0, l3: 0 };
-}
-
 /** Actual draw producer: shadow eligibility is shared with projected LOD planning. */
 export function createCrowdDrawMesh(
   classId: number,
@@ -139,6 +142,7 @@ export class PhotorealCrowd {
   private buckets: Record<number, Record<CrowdAudience, ClassBucket[]>> = {};
   private readonly impostors: Record<number, OctahedralImpostorLayer> = {};
   private readonly groups: PaletteGroup[] = [];
+  private readonly imageOwner = createSoldierImageOwner();
   private readonly surfaces = new Set<PreparedSoldierSurface>();
   private instanceCount = 0;
   private readonly materialIdentity = soldierMaterialIdentity();
@@ -192,7 +196,7 @@ export class PhotorealCrowd {
     ): Promise<PreparedSoldierSurface> => {
       let surface = surfaces.get(source);
       if (!surface) {
-        surface = await prepareSoldierSurface(renderer, source, assertUsable);
+        surface = await prepareSoldierSurface(renderer, source, assertUsable, this.imageOwner);
         surfaces.set(source, surface);
         this.surfaces.add(surface);
       }
@@ -333,7 +337,7 @@ export class PhotorealCrowd {
       );
     // Separate output keeps a failed plan from partly replacing the preceding history.
     const plan = scope
-      ? planPhotorealCrowdLods(
+      ? planCrowdLods(
           instances,
           scope.views,
           this.assets,
@@ -347,7 +351,7 @@ export class PhotorealCrowd {
           levels: this.lodBuffers.levels.fill(0, 0, instances.length),
           shadowLevels: this.lodBuffers.shadowLevels,
           shadowCounts: emptyLodCounts(),
-          counts: { l0: instances.length, l1: 0, l2: 0, l3: 0 },
+          counts: { ...emptyLodCounts(), l0: instances.length },
           visibility: this.lodBuffers.visibility.fill(1, 0, instances.length),
           viewVisible: instances.length,
           shadowOnly: 0,
@@ -385,11 +389,13 @@ export class PhotorealCrowd {
       const mainVisible = (plan.visibility[i] & 1) !== 0;
       if (mainVisible) {
         this.visibleCounts[`l${level}` as keyof LodCounts]++;
-        if (level === 3) impostors[inst.classId].push(inst);
+        if (level === IMPOSTOR_LEVEL) impostors[inst.classId].push(inst);
       }
       queueCrowdInstance(
         inst,
-        mainVisible && level !== 3 ? this.buckets[inst.classId].main[level] : undefined,
+        mainVisible && level !== IMPOSTOR_LEVEL
+          ? this.buckets[inst.classId].main[level]
+          : undefined,
         plan.visibility[i] & 2
           ? this.buckets[inst.classId].shadow[plan.shadowLevels[i]]
           : undefined,
@@ -526,7 +532,7 @@ export class PhotorealCrowd {
       culling: { ...this.culling },
       impostors,
       material: this.materialIdentity,
-      surfaceImages: [...this.surfaces].flatMap((surface) => surface.stats),
+      surfaceImages: this.imageOwner.stats().allocated,
       palettes: this.groups.map((group) => group.palette.stats()),
       uploadFailed: this.uploadFailed,
     };

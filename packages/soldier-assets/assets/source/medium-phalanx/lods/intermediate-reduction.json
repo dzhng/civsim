@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/medium-phalanx/medium-phalanx.blend",
+  "sourceSha256": "8580938b9a6f082f57218492071c4e95a426de60de8bd557f92742b54991735e",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 155190,
+      "triangles": 4002,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "8843c2419c4b1c8591e6b2db5d433468eecb2b64e23a058d59f2a3fd427efe41"
+    }
+  ]
+}

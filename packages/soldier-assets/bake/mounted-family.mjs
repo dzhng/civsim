@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 import {
   mountedLoopClips,
@@ -23,9 +24,12 @@ const variants = [
   [7, "horse-archer"],
 ];
 for (const [id, name] of variants) {
+  // The unreduced export is near; coarser tiers are the one runtime reduction chain.
   const tiers = await Promise.all(
-    [`${name}.glb`, `${name}/mid.glb`, `${name}/far.glb`].map((path) =>
-      readFile(`${values.directory}/${path}`),
+    APPEARANCE_MESH_TIERS.map((tier) =>
+      readFile(
+        `${values.directory}/${tier === "near" ? `${name}.glb` : `${name}/runtime/${tier}.glb`}`,
+      ),
     ),
   );
   const bundle = bakeAppearance({

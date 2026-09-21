@@ -120,6 +120,23 @@ seam. For the vitest / node-test web suites:
   always sets — fix the harness, don't just fix the bug. (The stale-wasm story
   above is one instance.)
 
+## Tests run on your machine, not a CI box
+
+A suite that grabs the desktop is a suite you stop running. Whatever a check
+needs, it takes the least intrusive form of it:
+
+- **Never take focus.** The browser harness is headless by default — leave it
+  that way. `VERIFY_HEADFUL=1` and `VERIFY_SLOW_MO` exist for a human watching
+  ONE scene by hand; a committed check never sets them, never raises a window,
+  never moves the pointer, and never plays audio. Shot evidence is the page's
+  own capture, not a grab of the screen.
+- **Write nowhere you keep your own state.** Everything a run produces that
+  isn't a committed baseline goes to the gitignored `throwaway/` (or
+  `$CLAUDE_JOB_DIR/tmp`) — never the home directory, never a real config.
+- **Leave nothing running.** Every browser, vite server, and temp file a run
+  started is closed and removed, INCLUDING on failure; a leaked headless
+  chromium eats a core for the rest of the session.
+
 ## Validate, don't assume — in a sim EVERYTHING is measurable
 
 It is a deterministic simulation: every claim about a MECHANISM — what causes

@@ -1,0 +1,37 @@
+{
+  "commits": [
+    "fea12281",
+    "c7a88be1"
+  ],
+  "date": "2026-09-16",
+  "browser": "Chrome hardware Apple Metal",
+  "browserChecks": [
+    "PASS  campaign-handoff: handoff fixture opens in the default WebGPU campaign renderer",
+    "PASS  campaign-handoff: campaign contact produces a pending player battle",
+    "PASS  campaign-handoff: fightReady launches the pending encounter",
+    "PASS  campaign-handoff: campaign open-field battle opens as a generated WebGPU battle",
+    "PASS  campaign-handoff: Continue returns to the same WebGPU campaign and clears battle state",
+    "PASS  campaign-reinforcements: found a reinforcement approach to an independent city near Roma",
+    "PASS  campaign-reinforcements: split detaches and stages a nearby reinforcement stack",
+    "PASS  campaign-reinforcements: campaign forms a pending battle with reinforcements",
+    "PASS  campaign-reinforcements: initiation modal announces reinforcements",
+    "PASS  campaign-reinforcements: reinforcement column arrives and renders in the WebGPU battle",
+    "PASS  battle-benchmark-flow: preparation advances real ticks",
+    "PASS  battle-benchmark-flow: preparation retains the ready frame instead of redrawing skipped history",
+    "PASS  battle-benchmark-flow: manual pan zoom and pause cannot alter the benchmark",
+    "PASS  battle-benchmark-flow: cancelled preparation has no invented FPS",
+    "PASS  battle-benchmark-flow: export preserves partial status and raw empty recording",
+    "PASS  battle-benchmark-flow: returns to actual menu",
+    "PASS  runner: no page errors"
+  ],
+  "browserCompleted": true,
+  "focusedTests": {
+    "files": 9,
+    "passed": 99
+  },
+  "limitations": [
+    "No full five-minute benchmark or performance verdict.",
+    "No new visual acceptance claim."
+  ],
+  "fixedBaselineWasmSha256": "ffd7a918715590608f2bfbbc9281c3da8d0d9e2842d76f520818940616a9de95"
+}

@@ -1,0 +1,1 @@
+No actionable regressions were found. The diagnostics consistently read the selected world's owners, and all 81 tests across the three affected test files passed.

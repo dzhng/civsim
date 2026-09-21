@@ -11,7 +11,7 @@ import { PNG } from "pngjs";
 import {
   createGroundMesh,
   createVistaMesh,
-} from "@packages/photoreal-renderer/src/battle/terrainLayer";
+} from "@packages/photoreal-renderer/src/landscape/terrainLayer";
 import { createLandscapeGroundMaterial } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { CAMPAIGN_TERRAIN_PROFILE } from "@packages/game-renderer/src/terrain/materialProfile";

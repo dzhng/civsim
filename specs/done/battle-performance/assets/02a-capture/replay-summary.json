@@ -1,0 +1,502 @@
+{
+  "grassDraws": {
+    "source": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          339657,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          260910,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "replay": [
+      {
+        "name": "battle-grass-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          339657,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near",
+        "visible": true,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-near-depth-prepass",
+        "visible": false,
+        "command": [
+          144,
+          214,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid",
+        "visible": true,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-mid-depth-prepass",
+        "visible": false,
+        "command": [
+          72,
+          31992,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "battle-grass-ring-blades-far",
+        "visible": true,
+        "command": [
+          24,
+          260910,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "groundIdentity": {
+    "source": "96f20f269da5983844cc912cdf3fec856bbb3b79d36ea5b7fd9aac7ccbdd296a",
+    "replay": "96f20f269da5983844cc912cdf3fec856bbb3b79d36ea5b7fd9aac7ccbdd296a"
+  },
+  "provisional": true,
+  "parity": "unverified",
+  "frame": 19,
+  "frameCount": 19,
+  "frameId": 19,
+  "simTick": 9000,
+  "source": {
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 200.00000054171505,
+        "fovY": 0.6103773738604016,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          75,
+          -120,
+          -3.7355256974697113
+        ],
+        "yaw": -1.57
+      },
+      "x": 75,
+      "y": -120,
+      "zoom": 7.7797319521043,
+      "zoomT": 0.9676826802315189
+    },
+    "terrainEnvironment": {
+      "exposure": 1.16,
+      "fillColor": [
+        0.42,
+        0.53,
+        0.72
+      ],
+      "hazeColor": [
+        0.86,
+        0.82,
+        0.68
+      ],
+      "id": "golden-hour",
+      "keyColor": [
+        1,
+        0.88,
+        0.66
+      ],
+      "sharedPreset": "golden",
+      "source": "CIVSIM_ENVIRONMENTS.golden",
+      "sunAzimuth": 3.1416,
+      "sunElevation": 0.35,
+      "waterAlias": "CIVSIM_ENVIRONMENTS.golden"
+    },
+    "groundCover": "green-grass",
+    "width": 2880,
+    "height": 1800,
+    "soldiers": 15560,
+    "expectedSoldiers": 15560,
+    "reportedTriangleCapacityEstimate": 188575733,
+    "reportedFrameDrawCalls": 61
+  },
+  "replay": {
+    "camera": {
+      "camera3d": {
+        "aspect": 1.6,
+        "distance": 200.00000054171505,
+        "fovY": 0.6103773738604016,
+        "near": 1,
+        "pitch": 0.65,
+        "target": [
+          75,
+          -120,
+          -3.7355256974697113
+        ],
+        "yaw": -1.57
+      },
+      "x": 75,
+      "y": -120,
+      "zoom": 7.7797319521043,
+      "zoomT": 0.9676826802315189
+    },
+    "terrainEnvironment": {
+      "id": "golden-hour",
+      "source": "CIVSIM_ENVIRONMENTS.golden",
+      "sharedPreset": "golden",
+      "waterAlias": "CIVSIM_ENVIRONMENTS.golden",
+      "sunAzimuth": 3.1416,
+      "sunElevation": 0.35,
+      "keyColor": [
+        1,
+        0.88,
+        0.66
+      ],
+      "fillColor": [
+        0.42,
+        0.53,
+        0.72
+      ],
+      "hazeColor": [
+        0.86,
+        0.82,
+        0.68
+      ],
+      "exposure": 1.16
+    },
+    "groundCover": "green-grass",
+    "width": 2880,
+    "height": 1800,
+    "soldiers": 15560,
+    "expectedSoldiers": 15560,
+    "reportedTriangleCapacityEstimate": 188575733,
+    "reportedFrameDrawCalls": 61
+  },
+  "grass": {
+    "source": {
+      "hash": "e891a94b+400e3bec",
+      "records": 1610110,
+      "cachedCpuTriangleEstimate": 6022264,
+      "tiers": {
+        "far": {
+          "bladesPerRecord": 2,
+          "candidateRecords": 1162604,
+          "droppedByThinning": 522729,
+          "lodTier": 2,
+          "maxDistanceM": 1250,
+          "minDistanceM": 64,
+          "records": 639875,
+          "segments": 2,
+          "triangles": 5119000,
+          "vertices": 7678500
+        },
+        "mid": {
+          "bladesPerRecord": 6,
+          "candidateRecords": 37144,
+          "droppedByThinning": 0,
+          "lodTier": 1,
+          "maxDistanceM": 64,
+          "minDistanceM": 5,
+          "records": 37144,
+          "segments": 2,
+          "triangles": 891456,
+          "vertices": 1337184
+        },
+        "near": {
+          "bladesPerRecord": 6,
+          "candidateRecords": 246,
+          "droppedByThinning": 0,
+          "lodTier": 0,
+          "maxDistanceM": 5,
+          "minDistanceM": 0,
+          "records": 246,
+          "segments": 4,
+          "triangles": 11808,
+          "vertices": 14760
+        }
+      },
+      "cull": {
+        "center": [
+          48,
+          -144
+        ],
+        "enabled": true,
+        "radiusSq": 78400
+      },
+      "transition": {
+        "denseBladeEndM": 143,
+        "edgeSinkStartM": 1120,
+        "farGrassEndM": 1250,
+        "farGrassStartM": 260,
+        "farSoftWidthScale": 3,
+        "lowerFarWidthEndM": 112,
+        "lowerFarWidthScale": 1.35,
+        "midTierEndM": 64,
+        "nearCoverageWidthScale": 1,
+        "nearTierEndM": 5,
+        "terrainDetailStrength": 1
+      }
+    },
+    "replay": {
+      "hash": "e891a94b+400e3bec",
+      "records": 1610110,
+      "cachedCpuTriangleEstimate": 6022264,
+      "tiers": {
+        "near": {
+          "lodTier": 0,
+          "segments": 4,
+          "minDistanceM": 0,
+          "maxDistanceM": 5,
+          "bladesPerRecord": 6,
+          "candidateRecords": 246,
+          "records": 246,
+          "droppedByThinning": 0,
+          "triangles": 11808,
+          "vertices": 14760
+        },
+        "mid": {
+          "lodTier": 1,
+          "segments": 2,
+          "minDistanceM": 5,
+          "maxDistanceM": 64,
+          "bladesPerRecord": 6,
+          "candidateRecords": 37144,
+          "records": 37144,
+          "droppedByThinning": 0,
+          "triangles": 891456,
+          "vertices": 1337184
+        },
+        "far": {
+          "lodTier": 2,
+          "segments": 2,
+          "minDistanceM": 64,
+          "maxDistanceM": 1250,
+          "bladesPerRecord": 2,
+          "candidateRecords": 1162604,
+          "records": 639875,
+          "droppedByThinning": 522729,
+          "triangles": 5119000,
+          "vertices": 7678500
+        }
+      },
+      "cull": {
+        "enabled": true,
+        "center": [
+          48,
+          -144
+        ],
+        "radiusSq": 78400
+      },
+      "transition": {
+        "denseBladeEndM": 143,
+        "farGrassStartM": 260,
+        "farGrassEndM": 1250,
+        "nearTierEndM": 5,
+        "midTierEndM": 64,
+        "farSoftWidthScale": 3,
+        "nearCoverageWidthScale": 1,
+        "lowerFarWidthScale": 1.35,
+        "lowerFarWidthEndM": 112,
+        "terrainDetailStrength": 1,
+        "edgeSinkStartM": 1120
+      }
+    }
+  },
+  "crowd": {
+    "source": {
+      "l0": 5349,
+      "l1": 579,
+      "l2": 0,
+      "l3": 979
+    },
+    "replay": {
+      "l0": 5349,
+      "l1": 579,
+      "l2": 0,
+      "l3": 979
+    },
+    "sourceShadow": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    },
+    "replayShadow": {
+      "l0": 0,
+      "l1": 0,
+      "l2": 15560,
+      "l3": 0
+    }
+  },
+  "triangleVertices": 0,
+  "readouts": 0,
+  "standards": 40,
+  "assetsHash": "d71dbbabc4b97c7335982558a845e1d7f5d850d8c7c6abc08b1540ff1664c93a"
+}

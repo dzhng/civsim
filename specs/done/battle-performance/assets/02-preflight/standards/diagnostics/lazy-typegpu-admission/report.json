@@ -1,0 +1,315 @@
+{
+  "initializedBuffers": 2,
+  "buffersAfterDispose": 0,
+  "texturesAfterDispose": 0,
+  "backend": "typegpu",
+  "samples": 4,
+  "errors": [],
+  "disposedGuard": true,
+  "concurrentUploadRejected": true,
+  "passed": false,
+  "results": [
+    {
+      "name": "overlap",
+      "pixels": {
+        "maxAbs": 0.00048828125,
+        "maxRelative": 0.0009569377990430622,
+        "rmse": 0.0000016815976362561674,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 2.181640625,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.00048828125,
+      "covered": 6175,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "front",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009398496240601503,
+        "rmse": 0.0000020621024918548976,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.6708984375,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13681,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "wave",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009624639076034649,
+        "rmse": 0.000002061734915650221,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.6708984375,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13685,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "reverse",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009689922480620155,
+        "rmse": 7.116039087992453e-7,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.5380859375,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13989,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "selected",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009624639076034649,
+        "rmse": 0.0000016106347067986608,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.6708984375,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 13685,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 3,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "legibility",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009487666034155598,
+        "rmse": 0.000001101713568030848,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 4.0078125,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 6021,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 32,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "growth",
+      "pixels": {
+        "maxAbs": 0.000244140625,
+        "maxRelative": 0.0009596928982725527,
+        "rmse": 0.0000014986588064739615,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.7490234375,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.000244140625,
+      "covered": 7293,
+      "counts": true,
+      "stats": {
+        "count": 40,
+        "selected": 13,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "shrink",
+      "pixels": {
+        "maxAbs": 0.00048828125,
+        "maxRelative": 0.0009569377990430622,
+        "rmse": 0.0000016815976362561674,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 2.181640625,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0.00048828125,
+      "covered": 6175,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "hidden",
+      "pixels": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 0,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0,
+      "covered": 0,
+      "counts": true,
+      "stats": {
+        "count": 3,
+        "selected": 1,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "empty",
+      "pixels": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 0,
+        "samples": 1228800
+      },
+      "coverageMismatch": 0,
+      "shadeMismatch": 0,
+      "outliers": [],
+      "maxCovered": 0,
+      "covered": 0,
+      "counts": true,
+      "stats": {
+        "count": 0,
+        "selected": 0,
+        "capacity": 64,
+        "pipelines": 1
+      },
+      "passed": true,
+      "width": 640,
+      "height": 480
+    }
+  ],
+  "scope": "Battle standards component: authored wave, livery, selection and legibility scale; no shadow, no full-scene/performance claim",
+  "pageErrors": []
+}

@@ -60,7 +60,7 @@ export async function captureHeavyBackward(ctx, page) {
         );
         const h = window.__battleModels,
           w = h.world;
-        const camera = structuredClone(w.stats().camera);
+        const camera = structuredClone(w.stats().preparedCamera);
         const source = modelInstances(h.stats().pose, w.soldierAssets);
         const routeFrame = h.stats().frame;
         const duration = w.soldierAssets[0].animation.clips.find((c) => c.name === clip).duration;
@@ -83,10 +83,10 @@ export async function captureHeavyBackward(ctx, page) {
             y: s.y + Math.sin(s.facing) * forward + Math.cos(s.facing) * lateral,
           }));
           w.setTime(0);
-          w.drawInstances(instances, camera);
-          await w.settlePresentedFrame();
-          w.render();
-          await w.world.settlePresentedFrame();
+          await w.drawInstances(instances, camera);
+
+          await w.render();
+
           return {
             seconds,
             forward,

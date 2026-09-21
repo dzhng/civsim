@@ -25,10 +25,11 @@ in TypeScript.
 - `packages` — the TypeScript rendering stack, shared by battle and campaign.
   `renderer-core` owns the one real 3D perspective camera (`camera3d`:
   view/projection matrices, reverse-Z `depth32float` engine-wide, ray-cast
-  picking) and the GPU contracts every pass obeys. `photoreal-renderer` is the
-  production battle and campaign worlds, sharing three.js WebGPU, TSL materials
-  and frame composition. `game-renderer` owns the terrain/scenery data pipeline
-  both worlds sample and the environment presets (`CIVSIM_ENVIRONMENTS`).
+  picking) and the GPU contracts every pass obeys. `battle-renderer` owns the
+  production TypeGPU battle, while `photoreal-renderer` owns the three.js WebGPU
+  campaign and renderer lab. Shared terrain/scenery data, environment policy,
+  crowd visibility and soldier assets stay outside those backend adapters so
+  matching landscape character does not require one rendering backend.
   Remaining legacy passes and final visual acceptance are tracked in the
   [shared landscape migration](specs/map-landscape-quality/README.md). The conversion rationale and
   the in-flight ladder live in
@@ -37,7 +38,10 @@ in TypeScript.
   rendering machinery itself lives in `packages`. How battle terrain becomes a
   place — rolling ground, sealed edges, shared scenery, and the seating
   contract — is documented in
-  [docs/battle-terrain.md](docs/battle-terrain.md).
+  [docs/battle-terrain.md](docs/battle-terrain.md). A battle's authoritative
+  `Game` runs in a worker and publishes completed ticks to the drawing thread;
+  the ownership, ordering and honesty rules of that seam are in
+  [docs/battle-authority.md](docs/battle-authority.md).
 - `web/scene.mjs` and `web/scenes/*.mjs` — Playwright browser scenes for
   addressable battle/campaign checks and screenshots; baselines are committed
   under `web/shots/` (see [Screenshot baselines](#screenshot-baselines)).
@@ -62,6 +66,11 @@ A battle does not spend simulation time while assets and the first rendered
 frame are being prepared. The scene owns its loading cover and readiness;
 leaving it also cancels its pending UI callbacks. Loading errors use the same
 fatal-error surface as renderer startup errors.
+
+The menu's Battle Benchmark runs an isolated, seeded fight with an automatic
+camera tour. Preparation is outside the timed window; cancellation and
+interruptions retain partial results instead of inventing a completed score.
+[Benchmark measurements](docs/battle-benchmark.md) explains the frame-time report.
 
 Appearance directories are content-versioned and safe to cache immutably.
 The catalog must revalidate so a new deployment can select new versions.
@@ -467,7 +476,12 @@ ticks the same generated battle natively for a sampling profiler and ends in
 mode is how a physics-pass speedup proves itself bit-identical in melee.
 
 The native fighting-tick budget is enforced by `scripts/test-perf`. Stage
-timers are opt-in diagnostics behind `sim`'s `perf_timing` feature; the budget
+timers are opt-in diagnostics behind `sim`'s `perf_timing` feature. The matching
+`game-wasm` feature installs the WASM host's monotonic clock at module startup;
+reset after preparation and read stage averages over a nonempty measured window.
+These scopes include instrumentation overhead and must never supply release
+budget numbers. Verify scenario fingerprints on the measured target before using
+native results to explain WASM behavior. The budget
 uses an uninstrumented native build with `parallel` enabled and eight Rayon
 workers. Ordinary and wasm builds remain serial. The [measurement contract and evidence](specs/done/sim-perf/README.md)
 distinguish army size, actual combat participation, and machine variation.

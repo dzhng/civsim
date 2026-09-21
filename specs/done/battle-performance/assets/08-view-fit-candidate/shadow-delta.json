@@ -1,0 +1,17 @@
+{
+  "full": {
+    "pixels": 574496,
+    "max": 79,
+    "meanAbsoluteRgbDelta": 0.9667307098765432
+  },
+  "frontRank": {
+    "pixels": 207932,
+    "max": 69,
+    "meanAbsoluteRgbDelta": 3.4631603313840156
+  },
+  "middleRank": {
+    "pixels": 100915,
+    "max": 75,
+    "meanAbsoluteRgbDelta": 3.8592274509803923
+  }
+}

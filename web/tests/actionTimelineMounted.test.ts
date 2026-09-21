@@ -5,10 +5,13 @@ import {
   ActionTimeline,
   evaluatePlaybackPose,
   type ActionObservation,
+  type ClipSample,
+  type PoseSource,
   type SoldierPlayback,
 } from "@packages/crowd-runtime/src/actionTimeline";
 import {
   blendLocalPoses,
+  composeMaskedLocals,
   localPoseToJointMatrices,
   mat4Identity,
   sampleRigLocalPose,
@@ -325,4 +328,144 @@ test("mounted injury interrupts the composed pose and returns continuously to ga
   timeline.update(45, [injured]);
   const recovered = timeline.sample()[0];
   continuous(pose(recovered), sampleRigLocalPose(rig, "run", recovered.base.destination.phase));
+});
+
+test("exact rider and injury boundaries keep authored joints and independently owned outputs", () => {
+  const timeline = new ActionTimeline({ 0: appearance });
+  timeline.update(0, [observation()]);
+  timeline.update(3, [observation({ releaseTtl: 0.5 })]);
+  const onset = timeline.sample()[0];
+  assert.equal(onset.riderUpperBody!.weight, 0);
+  assert.deepEqual(pose(onset), sampleRigLocalPose(rig, "walk", 3 / 30));
+
+  timeline.update(8, [observation({ releaseTtl: 0.5 - 5 / 30 })]);
+  const settled = timeline.sample()[0];
+  assert.equal(settled.riderUpperBody!.weight, 1);
+  const expected = sampleRigLocalPose(rig, "walk", 8 / 30);
+  const released = sampleRigLocalPose(rig, "release", 0.2 + (8 / 30 - 3 / 30));
+  expected.set(released.subarray(20, 30), 20);
+  assert.deepEqual(pose(settled), expected, "only the upper joint takes the released pose");
+
+  const interrupted = sampleRigLocalPose(rig, "walk", 9 / 30);
+  const upper = sampleRigLocalPose(rig, "release", 0.2 + (9 / 30 - 3 / 30));
+  interrupted.set(upper.subarray(20, 30), 20);
+  timeline.update(9, [observation({ health: 90, releaseTtl: 0.3 })]);
+  const injury = timeline.sample()[0];
+  assert.equal(injury.base.weight, 0);
+  assert.equal(injury.riderUpperBody, undefined);
+  assert.deepEqual(pose(injury), interrupted, "injury starts at the complete composed endpoint");
+
+  const retained = [onset, settled, injury];
+  const retainedValues = structuredClone(retained);
+  const retainedPoses = retained.map(pose);
+  for (const playback of retained) pose(playback).fill(-1000);
+  timeline.update(15, [observation({ health: 90 })]);
+  for (let index = 0; index < retained.length; index++) {
+    assert.deepEqual(retained[index], retainedValues[index]);
+    assert.deepEqual(pose(retained[index]), retainedPoses[index]);
+  }
+});
+
+/** The recipe endpoint evaluation replaced: blend both lanes unconditionally, then compose. */
+function alwaysBlended(playback: SoldierPlayback): LocalPose {
+  const sampled = (clip: ClipSample) => sampleRigLocalPose(rig, clip.clip, clip.phase);
+  const source = (value: PoseSource) =>
+    value.kind === "frozen" ? Float64Array.from(value.locals) : sampled(value.sample);
+  const base = blendLocalPoses(
+    source(playback.base.source),
+    sampled(playback.base.destination),
+    playback.base.weight,
+  );
+  const upper = playback.riderUpperBody;
+  if (!upper) return base;
+  const destination = "kind" in upper.destination ? base : sampled(upper.destination);
+  return composeMaskedLocals(
+    base,
+    blendLocalPoses(source(upper.source), destination, upper.weight),
+    presentation.riderUpperBodyJoints!.map((name) =>
+      rig.bones.findIndex((bone) => bone.name === name),
+    ),
+  );
+}
+const frozenSource = (clip: string, phase: number) =>
+  Object.freeze({
+    kind: "frozen" as const,
+    locals: Object.freeze(Array.from(sampleRigLocalPose(rig, clip, phase))),
+  });
+const sourceKinds: PoseSource[] = [
+  { kind: "clip", sample: { clip: "ready", phase: 0.25 } },
+  frozenSource("hit", 0.4),
+];
+
+test("endpoint evaluation reproduces the unconditional blend for every source kind and weight", () => {
+  const overlays = [undefined, { clip: "release", phase: 0.6 }, { kind: "base" as const }];
+  for (const baseSource of sourceKinds)
+    for (const baseWeight of [0, 0.25, 0.5, 1])
+      for (const upperSource of sourceKinds)
+        for (const upperWeight of [0, 0.25, 0.5, 1])
+          for (const destination of overlays) {
+            const playback: SoldierPlayback = {
+              appearanceId: 0,
+              base: {
+                source: baseSource,
+                destination: { clip: "walk", phase: 0.7 },
+                weight: baseWeight,
+              },
+              ...(destination && {
+                riderUpperBody: { source: upperSource, destination, weight: upperWeight },
+              }),
+            };
+            const label = `${baseSource.kind} ${baseWeight} over ${upperSource.kind} ${upperWeight} to ${
+              destination ? ("kind" in destination ? "base" : "clip") : "none"
+            }`;
+            const observed = structuredClone(playback);
+            assert.deepEqual(pose(playback), alwaysBlended(playback), label);
+            assert.deepEqual(playback, observed, `${label} evaluates without editing its playback`);
+          }
+});
+
+test("endpoint evaluation owns its result and never writes through a retained source", () => {
+  const frozen = frozenSource("hit", 0.4);
+  const captured = Array.from(frozen.locals);
+  const walk: ClipSample = { clip: "walk", phase: 0.3 };
+  const settled = { source: { kind: "clip" as const, sample: walk }, destination: walk, weight: 1 };
+  const playbacks: SoldierPlayback[] = [
+    { appearanceId: 0, base: { source: frozen, destination: walk, weight: 0 } },
+    { appearanceId: 0, base: { source: frozen, destination: walk, weight: 1 } },
+    // The exiting overlay aliases the evaluated base as its own destination.
+    ...[0, 1].map((weight) => ({
+      appearanceId: 0,
+      base: settled,
+      riderUpperBody: { source: frozen, destination: { kind: "base" as const }, weight },
+    })),
+    {
+      appearanceId: 0,
+      base: settled,
+      riderUpperBody: { source: frozen, destination: { clip: "release", phase: 0.6 }, weight: 1 },
+    },
+  ];
+  for (const playback of playbacks) {
+    const first = pose(playback);
+    const expected = Float64Array.from(first);
+    first.fill(-1000);
+    const second = pose(playback);
+    assert.notEqual(second, first, "each evaluation returns its own storage");
+    assert.deepEqual(second, expected, "a mutated result cannot reach a later evaluation");
+    assert.deepEqual(Array.from(frozen.locals), captured, "the frozen source is never written to");
+  }
+});
+
+test("a frozen source that does not fit the skeleton is refused wherever it is read", () => {
+  const short = Object.freeze({ kind: "frozen" as const, locals: Object.freeze([1, 2, 3]) });
+  const walk: ClipSample = { clip: "walk", phase: 0.3 };
+  const refused = (playback: SoldierPlayback) => assert.throws(() => pose(playback), /skeleton/);
+  // Weight one settles onto the destination, so the source is not a pose the output carries.
+  for (const weight of [0, 0.5]) {
+    refused({ appearanceId: 0, base: { source: short, destination: walk, weight } });
+    refused({
+      appearanceId: 0,
+      base: { source: { kind: "clip", sample: walk }, destination: walk, weight: 1 },
+      riderUpperBody: { source: short, destination: { kind: "base" }, weight },
+    });
+  }
 });

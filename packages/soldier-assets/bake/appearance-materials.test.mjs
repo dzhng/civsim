@@ -7,7 +7,7 @@ import { editGlb } from './test-harness/glb.mjs';
 
 const human = await readFile(new URL('../assets/test/blender-reference/human.glb', import.meta.url));
 const { PNG } = createRequire(new URL('../../../web/package.json', import.meta.url))('pngjs');
-const bake = (tiers = [human, human, human]) => bakeAppearance({ presentation: null, name: 'texture-diagnostic', tiers, fps: 1, loopClips: [] });
+const bake = (tiers = [human, human, human, human]) => bakeAppearance({ presentation: null, name: 'texture-diagnostic', tiers, fps: 1, loopClips: [] });
 const files = bake();
 const surface = files['materials.json'];
 assert.equal(surface.materials.find((material) => material.name === 'neutral-checker').textures.baseColor, true);
@@ -26,16 +26,16 @@ const reindexed = editGlb(human, (json) => {
   json.textures[1] = { source: 1, sampler: 1 };
   json.materials[1].pbrMetallicRoughness.baseColorTexture.index = 1;
 });
-assert.deepEqual(bake([human, reindexed, human])['materials.json'], surface, 'GLB indices and export metadata do not define image or material identity');
+assert.deepEqual(bake([human, reindexed, human, human])['materials.json'], surface, 'GLB indices and export metadata do not define image or material identity');
 const defaultSampler = editGlb(human, (json) => { delete json.textures[0].sampler; });
-assert.deepEqual(bake([defaultSampler, defaultSampler, defaultSampler])['materials.json'].textures.baseColor.sampler,
+assert.deepEqual(bake([defaultSampler, defaultSampler, defaultSampler, defaultSampler])['materials.json'].textures.baseColor.sampler,
   { magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', wrapS: 'repeat', wrapT: 'repeat' });
 const independent = editGlb(human, (json) => {
   json.materials[0].pbrMetallicRoughness.metallicRoughnessTexture = { index: 0 };
   json.materials[1].occlusionTexture = { index: 0, strength: .35 };
   json.materials[1].normalTexture = { index: 0, scale: .7 };
 });
-const independentSurface = bake([independent, independent, independent])['materials.json'];
+const independentSurface = bake([independent, independent, independent, independent])['materials.json'];
 assert.deepEqual(independentSurface.materials[0].textures, { metallicRoughness: true });
 assert.deepEqual(independentSurface.materials[1].textures, { baseColor: true, normal: true, occlusion: true });
 assert.equal(independentSurface.materials[1].normalScale, .7);
@@ -47,7 +47,7 @@ const encoded = PNG.sync.write({ width: 3, height: 2, data: pixels });
 const channelCoded = editGlb(independent, (json) => {
   json.images[0] = { uri: `data:image/png;base64,${encoded.toString('base64')}` };
 });
-const codedFiles = bake([channelCoded, channelCoded, channelCoded]);
+const codedFiles = bake([channelCoded, channelCoded, channelCoded, channelCoded]);
 for (const channel of ['baseColor', 'normal', 'orm']) {
   const actual = codedFiles[codedFiles['materials.json'].textures[channel].image];
   assert.deepEqual(actual, encoded);
@@ -64,7 +64,7 @@ for (const path of ['skeleton.json', 'animation.json', 'appearance.json']) asser
 
 const reject = (edit, pattern, source = human) => {
   const invalid = editGlb(source, edit);
-  assert.throws(() => bake([invalid, invalid, invalid]), pattern);
+  assert.throws(() => bake([invalid, invalid, invalid, invalid]), pattern);
 };
 for (const mode of ['BLEND', 'MASK']) reject((json) => { json.materials[0].alphaMode = mode; }, /transparency unsupported/);
 reject((json) => { json.materials[0].emissiveFactor = [.1, 0, 0]; }, /emissive materials unsupported/);
@@ -96,12 +96,12 @@ reject((json) => {
   json.materials[1].occlusionTexture.index = 1;
 }, /orm: conflicting image bytes or samplers/, independent);
 const otherBytes = editGlb(human, (json) => { json.images[0] = { uri: `data:image/png;base64,${encoded.toString('base64')}` }; });
-assert.throws(() => bake([human, otherBytes, human]), /baseColor: conflicting image bytes or samplers/, 'different tier images are not silently chosen or repacked');
+assert.throws(() => bake([human, otherBytes, human, human]), /baseColor: conflicting image bytes or samplers/, 'different tier images are not silently chosen or repacked');
 const otherSampler = editGlb(human, (json) => { json.samplers[0].wrapS = 33071; });
-assert.throws(() => bake([human, otherSampler, human]), /conflicting image bytes or samplers/);
+assert.throws(() => bake([human, otherSampler, human, human]), /conflicting image bytes or samplers/);
 for (const [minFilter, expected] of [[9728, ['nearest', 'none']], [9729, ['linear', 'none']], [9984, ['nearest', 'nearest']], [9985, ['linear', 'nearest']], [9986, ['nearest', 'linear']], [9987, ['linear', 'linear']]]) {
   const input = editGlb(human, (json) => { json.samplers[0] = { minFilter, wrapS: 33071, wrapT: 33648 }; });
-  assert.deepEqual(bake([input, input, input])['materials.json'].textures.baseColor.sampler,
+  assert.deepEqual(bake([input, input, input, input])['materials.json'].textures.baseColor.sampler,
     { magFilter: 'linear', minFilter: expected[0], mipmapFilter: expected[1], wrapS: 'clamp-to-edge', wrapT: 'mirror-repeat' });
 }
 console.log('appearance texture material transport passed');

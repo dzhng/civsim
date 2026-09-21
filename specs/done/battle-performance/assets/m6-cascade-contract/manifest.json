@@ -1,0 +1,18 @@
+[
+  {
+    "file": "result.txt.gz",
+    "sha256": "7ebf7e223f89d5b095f0d59cec69346a5e396926b70121612f0100798ff713e8"
+  },
+  {
+    "file": "root-disposition.md.gz",
+    "sha256": "8a399d12e4bffd34fe5f71807e058a3d82b180aeb589f1bedd035d573b7111c4"
+  },
+  {
+    "file": "source-oracle.mjs.gz",
+    "sha256": "dd2a6408c0d2164312718fa336f2c55535d5c51812c0e21c75b5f733a5257c19"
+  },
+  {
+    "file": "source-oracle.json.gz",
+    "sha256": "f374e3e1817526bc155bb1dba579c9ac8fa4e731a5dd07ae17c17bd8264e0ebb"
+  }
+]

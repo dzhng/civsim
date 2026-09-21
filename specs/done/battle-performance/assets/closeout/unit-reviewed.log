@@ -1,0 +1,12 @@
+$ vitest run
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-performance-spec/web
+
+{"bodies":3,"distinctPosedMeshes":5,"snapshotSlots":6,"controllerSnapshotBytes":5280}
+{"bodies":9,"distinctPosedMeshes":5,"snapshotSlots":18,"controllerSnapshotBytes":15840}
+
+ Test Files  138 passed (138)
+      Tests  833 passed (833)
+   Start at  20:13:49
+   Duration  5.44s (transform 8.94s, setup 9.32s, import 13.70s, tests 19.10s, environment 5.45s)
+

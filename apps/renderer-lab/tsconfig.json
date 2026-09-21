@@ -1,4 +1,16 @@
 {
   "extends": "../../web/tsconfig.json",
-  "include": ["src", "../../web/src/renderer-globals.d.ts", "../../web/src/vite-env.d.ts"]
+  "include": ["src", "../../web/src/vite-env.d.ts"],
+  "compilerOptions": {
+    "types": ["@webgpu/types"],
+    "typeRoots": ["../../web/node_modules/@types", "../../web/node_modules"],
+    "paths": {
+      "@packages/*": ["../../packages/*"],
+      "typegpu": ["../../web/node_modules/typegpu/index.d.ts"],
+      "three": ["../../web/node_modules/@types/three/index.d.ts"],
+      "three/webgpu": ["../../web/node_modules/@types/three/build/three.webgpu.d.ts"],
+      "three/tsl": ["../../web/node_modules/@types/three/build/three.tsl.d.ts"],
+      "three/examples/jsm/*": ["../../web/node_modules/@types/three/examples/jsm/*"]
+    }
+  }
 }

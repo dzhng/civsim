@@ -1,0 +1,23 @@
+[
+  {
+    "mode": "single",
+    "pixels": 11569,
+    "max": 47,
+    "meanAbsRgb": 0.025613609641387418,
+    "meanDarkening": 0.02261794532627866
+  },
+  {
+    "mode": "off",
+    "pixels": 0,
+    "max": 0,
+    "meanAbsRgb": 0,
+    "meanDarkening": 0
+  },
+  {
+    "mode": "csm",
+    "pixels": 13378,
+    "max": 43,
+    "meanAbsRgb": 0.029241163286302174,
+    "meanDarkening": 0.02575001837154615
+  }
+]

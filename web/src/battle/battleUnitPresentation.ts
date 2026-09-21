@@ -1,8 +1,8 @@
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { factionForTeam } from "@packages/game-renderer/src/battle/factionColors";
 import { STANDARD_SIZE_TIERS } from "@packages/game-renderer/src/models/shared/standardAsset";
-import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
-import type { StandardInstance } from "@packages/game-renderer/src/models/shared/standardInstance";
+import type { BattleReadoutInstance } from "@packages/game-renderer/src/battle/readoutData";
+import type { BattleStandardInstance } from "@packages/game-renderer/src/models/shared/battleStandardData";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "./classData";
 import { READOUT_GALLERY, type BannerChip } from "./readoutState";
 import type { BattleWorld } from "./battleWorld";
@@ -63,11 +63,14 @@ export class BattleUnitPresentation {
     }
   }
 
-  update(selectedUnits: number[], info: Float32Array): void {
+  build(selectedUnits: number[], info: Float32Array) {
     const { camera, renderer, stride } = this.world;
     const selected = selectedUnits.length > 0 ? selectedUnits[0] : -1;
     const showReadouts = camera.zoom > READOUT_TACTICAL_ZOOM;
-    const standards: StandardInstance[] = [];
+    // Terrain comes from the renderer, the projection from the camera this
+    // build is for, so sizing tracks a pan or zoom in the frame it happens.
+    const pxPerWorldAt = camera.pxPerWorldSampler();
+    const standards: BattleStandardInstance[] = [];
     const readouts: BattleReadoutInstance[] = [];
     for (let unit = 0; unit < info.length / stride; unit++) {
       const offset = unit * stride;
@@ -80,12 +83,11 @@ export class BattleUnitPresentation {
       const team = info[offset + UNIT_INFO.team];
       const groundZ = renderer.heightAt(anchorX, anchorY);
       const tier = STANDARD_SIZE_TIERS["battle-unit"];
-      const pxPerWorld = renderer.pxPerWorldAt(anchorX, anchorY, groundZ);
+      const pxPerWorld = pxPerWorldAt(anchorX, anchorY, groundZ);
       const pxPerClothWidth = pxPerWorld * tier.clothWidth;
       const scale = standardScale(pxPerClothWidth, isSelected);
       if (pxPerClothWidth * STANDARD_MIN_SCALE > STANDARD_NEAR_HIDE_PX) continue;
       standards.push({
-        tier: "battle-unit",
         unitId: unit,
         x: anchorX,
         y: anchorY,
@@ -109,7 +111,7 @@ export class BattleUnitPresentation {
         chips,
       });
     }
-    renderer.setUnitReadouts(standards, readouts);
+    return { standards, readouts };
   }
 }
 

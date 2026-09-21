@@ -1,0 +1,80 @@
+[
+  {
+    "label": "ocean-overview-t0",
+    "actualRgba": {
+      "bytes": 1572864,
+      "changedBytes": 0,
+      "maxCodeDifference": 0
+    },
+    "expectedRgba": {
+      "bytes": 1572864,
+      "changedBytes": 204,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "label": "ocean-overview-t3.25",
+    "actualRgba": {
+      "bytes": 1572864,
+      "changedBytes": 0,
+      "maxCodeDifference": 0
+    },
+    "expectedRgba": {
+      "bytes": 1572864,
+      "changedBytes": 180,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "label": "ocean-horizon-t0",
+    "actualRgba": {
+      "bytes": 1572864,
+      "changedBytes": 0,
+      "maxCodeDifference": 0
+    },
+    "expectedRgba": {
+      "bytes": 1572864,
+      "changedBytes": 102,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "label": "ocean-horizon-t3.25",
+    "actualRgba": {
+      "bytes": 1572864,
+      "changedBytes": 0,
+      "maxCodeDifference": 0
+    },
+    "expectedRgba": {
+      "bytes": 1572864,
+      "changedBytes": 120,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "label": "ocean-horizon-repeat-t0",
+    "actualRgba": {
+      "bytes": 1572864,
+      "changedBytes": 0,
+      "maxCodeDifference": 0
+    },
+    "expectedRgba": {
+      "bytes": 1572864,
+      "changedBytes": 102,
+      "maxCodeDifference": 1
+    }
+  },
+  {
+    "label": "ocean-horizon-repeat-t3.25",
+    "actualRgba": {
+      "bytes": 1572864,
+      "changedBytes": 0,
+      "maxCodeDifference": 0
+    },
+    "expectedRgba": {
+      "bytes": 1572864,
+      "changedBytes": 120,
+      "maxCodeDifference": 1
+    }
+  }
+]

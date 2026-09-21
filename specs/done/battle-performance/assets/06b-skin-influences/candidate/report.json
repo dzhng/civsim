@@ -1,0 +1,4610 @@
+{
+  "scope": "Frozen production-assets main and shadow pixels across infantry/pike/mounted canonical poses; source shader capture, not timing",
+  "rows": [
+    {
+      "classId": 0,
+      "action": "ready",
+      "clip": "ready",
+      "phase": 0,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25122564,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 0,
+      "action": "melee",
+      "clip": "sword-effort",
+      "phase": 0.4,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25122564,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 0,
+      "action": "run",
+      "clip": "run",
+      "phase": 0.4,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25122564,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 0,
+      "action": "death",
+      "clip": "death",
+      "phase": 1,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25122564,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 3,
+      "action": "ready",
+      "clip": "pike-ready",
+      "phase": 0,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25127820,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 3,
+      "action": "melee",
+      "clip": "pike-thrust",
+      "phase": 0.4,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25127820,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 3,
+      "action": "run",
+      "clip": "run",
+      "phase": 0.4,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25127820,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 3,
+      "action": "death",
+      "clip": "death",
+      "phase": 1,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            0.9
+          ],
+          "distance": 24.857310617223874,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25127820,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": false,
+        "differentPixels": 3,
+        "maxChannelDelta": 1
+      }
+    },
+    {
+      "classId": 6,
+      "action": "ready",
+      "clip": "ready",
+      "phase": 0,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            1.305
+          ],
+          "distance": 36.043100394974616,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25133736,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 6,
+      "action": "melee",
+      "clip": "melee",
+      "phase": 0.4,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            1.305
+          ],
+          "distance": 36.043100394974616,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25133736,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 6,
+      "action": "run",
+      "clip": "run",
+      "phase": 0.4,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            1.305
+          ],
+          "distance": 36.043100394974616,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25133736,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    },
+    {
+      "classId": 6,
+      "action": "death",
+      "clip": "death",
+      "phase": 1,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 190,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            0,
+            1.305
+          ],
+          "distance": 36.043100394974616,
+          "pitch": 0.65,
+          "yaw": 0.8,
+          "fovY": 0.85,
+          "aspect": 1.6,
+          "near": 0.07461539922005293,
+          "far": 4000
+        }
+      },
+      "crowd": {
+        "instances": 1,
+        "visible": 1,
+        "culled": 0,
+        "drawCalls": 1,
+        "meshDrawCalls": 1,
+        "shadowMeshDrawCalls": 1,
+        "shadowGeometryBytes": 25133736,
+        "impostorDrawCalls": 0,
+        "meshVariants": 60,
+        "shadowMeshVariants": 60,
+        "shadowTierHistogram": {
+          "l0": 0,
+          "l1": 1,
+          "l2": 0,
+          "l3": 0
+        },
+        "tierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "visibleTierHistogram": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "culling": {
+          "input": 1,
+          "visible": 1,
+          "culled": 0,
+          "viewFrusta": 1,
+          "shadowFrusta": 1,
+          "viewVisible": 1,
+          "shadowOnly": 0
+        },
+        "impostors": {
+          "impostorInstances": 0,
+          "impostorDrawCalls": 0,
+          "appearances": 20,
+          "atlasAllocatedBytes": 235929120,
+          "atlasBakeMs": 143.9800000190735,
+          "atlasBakeDrawCalls": 40
+        },
+        "material": {
+          "identity": "soldier-assets-explicit-materials",
+          "channels": [
+            "albedo",
+            "normal",
+            "orm",
+            "factionMask"
+          ],
+          "mapping": {
+            "albedo": "linear vertex color times base-color factor and optional sRGB image",
+            "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+            "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+            "factionMask": "explicit vertex factionMask, independent of color"
+          }
+        },
+        "surfaceImages": {
+          "allocated": [
+            {
+              "channel": "orm",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "baseColor",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            },
+            {
+              "channel": "normal",
+              "width": 2048,
+              "height": 2048,
+              "mipLevels": 12,
+              "bytes": 22369620,
+              "references": 20
+            }
+          ],
+          "allocatedImages": 3,
+          "allocatedBytes": 67108860,
+          "references": 60,
+          "referencedBytes": 1342177200
+        },
+        "palettes": [
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 28,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1548608,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 49,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1557512,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 29,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1603184,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1334520,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 47,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1424652,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 970312,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 26,
+            "visible": 0,
+            "capacity": 256,
+            "snapshotCapacity": 2,
+            "snapshotBankCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 1408152,
+            "uploadedBytes": 0,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "uploadFailed": false
+      },
+      "parity": {
+        "exact": true,
+        "differentPixels": 0,
+        "maxChannelDelta": 0
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "0/ready near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "0/ready frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-0-ready",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "0/melee near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "0/melee frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-0-melee",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "0/run near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "0/run frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-0-run",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "0/death near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "0/death frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-0-death",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "3/ready near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "3/ready frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-3-ready",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "3/melee near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "3/melee frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-3-melee",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "3/run near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "3/run frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-3-run",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "3/death near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "3/death frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-3-death",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "6/ready near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "6/ready frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-6-ready",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "6/melee near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "6/melee frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-6-melee",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "6/run near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "6/run frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-6-run",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "6/death near",
+      "ok": true,
+      "detail": "{\"l0\":1,\"l1\":0,\"l2\":0,\"l3\":0}"
+    },
+    {
+      "name": "6/death frozen",
+      "ok": true,
+      "detail": "repeat PNG"
+    },
+    {
+      "name": "snapshot class-6-death",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "shaderModules": 138
+}

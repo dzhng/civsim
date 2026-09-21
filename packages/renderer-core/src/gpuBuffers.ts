@@ -1,3 +1,4 @@
+import { alignedBufferBytes, growableBufferCapacity } from "./bufferCapacity";
 export class GrowableBuffer {
   private currentBuffer: GPUBuffer;
   private currentCapacityBytes: number;
@@ -11,7 +12,7 @@ export class GrowableBuffer {
     floorBytes: number,
   ) {
     this.usage = usage | GPUBufferUsage.COPY_DST;
-    this.currentCapacityBytes = alignedBytes(floorBytes);
+    this.currentCapacityBytes = alignedBufferBytes(floorBytes);
     this.currentBuffer = this.allocate(this.currentCapacityBytes);
   }
 
@@ -26,10 +27,10 @@ export class GrowableBuffer {
   /** true when reallocated — rebuild any bind group that holds it */
   write(data: ArrayBufferView): boolean {
     if (this.disposed) throw new Error(`${this.label} is disposed`);
-    const requiredBytes = alignedBytes(data.byteLength);
+    const requiredBytes = alignedBufferBytes(data.byteLength);
     const reallocated = requiredBytes > this.currentCapacityBytes;
     if (reallocated) {
-      const capacity = Math.max(requiredBytes, this.currentCapacityBytes * 2, 128);
+      const capacity = growableBufferCapacity(this.currentCapacityBytes, requiredBytes);
       const replacement = this.allocate(capacity);
       // Previously submitted GPU work retains its resources; callers must rebuild
       // bind groups before submitting new work, as the return contract requires.
@@ -73,7 +74,7 @@ function makeStaticBuffer(
   data: ArrayBufferView,
   usage: GPUBufferUsageFlags,
 ): GPUBuffer {
-  const buffer = device.createBuffer({ label, size: alignedBytes(data.byteLength), usage });
+  const buffer = device.createBuffer({ label, size: alignedBufferBytes(data.byteLength), usage });
   try {
     if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
   } catch (error) {
@@ -81,8 +82,4 @@ function makeStaticBuffer(
     throw error;
   }
   return buffer;
-}
-
-function alignedBytes(byteLength: number): number {
-  return Math.max(4, Math.ceil(byteLength / 4) * 4);
 }

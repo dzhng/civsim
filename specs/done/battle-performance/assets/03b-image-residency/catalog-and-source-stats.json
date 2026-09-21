@@ -1,0 +1,472 @@
+{
+  "scope": "Catalog definitions and current upload ownership only, not a measured memory or frame-time saving",
+  "appearances": 20,
+  "textureDefinitions": 60,
+  "distinctChannelImageSamplerDefinitions": 3,
+  "groups": [
+    {
+      "channel": "baseColor",
+      "image": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "references": 20
+    },
+    {
+      "channel": "normal",
+      "image": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "references": 20
+    },
+    {
+      "channel": "orm",
+      "image": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "sampler": {
+        "magFilter": "linear",
+        "minFilter": "linear",
+        "mipmapFilter": "linear",
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "references": 20
+    }
+  ],
+  "retainedSourceStats": {
+    "path": "specs/battle-performance/assets/02-live/source-range-tap/frozen/report.json",
+    "mode": "off",
+    "surfaceImageEntries": 60,
+    "reportedLogicalBytes": 1342177200,
+    "entries": [
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "orm",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "baseColor",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      },
+      {
+        "channel": "normal",
+        "width": 2048,
+        "height": 2048,
+        "mipLevels": 12,
+        "bytes": 22369620
+      }
+    ]
+  }
+}

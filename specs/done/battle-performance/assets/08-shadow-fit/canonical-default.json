@@ -1,0 +1,21 @@
+{
+  "scope": "Canonical generated terrain and current shared shadow-fit extent; CPU-only, no shadow pixels or GPU timing measured",
+  "seed": "0x5eedc0de",
+  "mapSeed": 7,
+  "wasmSha256": "ffd7a918715590608f2bfbbc9281c3da8d0d9e2842d76f520818940616a9de95",
+  "terrainRect": [
+    -1200,
+    -800,
+    2400,
+    1600
+  ],
+  "shadowMapSize": 1024,
+  "lightSpaceExtent": 2964.4410203711914,
+  "worldUnitsPerShadowTexel": 2.8949619339562416,
+  "normalBiasWorldUnits": 0.6,
+  "notes": [
+    "The fit extent is independent of sunlight direction; a unit Z direction is used only to read its width.",
+    "Terrain is queried at initialization; no expensive combat pre-roll or simulation timing is claimed.",
+    "Readability, projected shadow footprint and temporal stability remain image/motion verification requirements."
+  ]
+}

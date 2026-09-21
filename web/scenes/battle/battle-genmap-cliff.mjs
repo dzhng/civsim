@@ -94,7 +94,7 @@ async function loadCliffFrame(ctx, page, env, camera) {
       window.__rendererLabStats?.ok === true &&
       window.__rendererLabStats?.route === "photoreal-battle" &&
       window.__rendererLabStats?.stats?.renderStats?.terrain?.slopeBands &&
-      window.__rendererLabStats?.stats?.renderStats?.camera?.camera3d,
+      window.__rendererLabStats?.stats?.renderStats?.preparedCamera?.camera3d,
     undefined,
     { timeout: 180000 },
   );
@@ -139,12 +139,10 @@ function assertRouteStats(ctx, env, stats) {
   const slopeBands = stats?.terrain?.slopeBands;
   ctx.check(
     `${env}: generated photoreal route publishes terrain and slope bands`,
-    stats?.renderer === "gpu" &&
+    stats?.substrate === "typegpu" &&
       stats?.projection === "camera3d" &&
-      // Route stats report the shared preset name; the alias id lives on
-      // terrain.environment.id.
-      stats?.terrain?.environment?.id === env &&
-      stats?.terrain?.fixture === "sim-tint" &&
+      stats?.environment === (env === "golden-hour" ? "golden" : "overcast-highland") &&
+      stats?.terrain?.installed === true &&
       stats?.terrain?.groundCover === "green-grass" &&
       stats?.terrain?.groundTriangles > 100000 &&
       // f32 -> f64 JSON roundtrip adds float noise; compare with epsilon.
@@ -152,7 +150,7 @@ function assertRouteStats(ctx, env, stats) {
       Math.abs(slopeBands?.cliffMin - 0.32) < 1e-4 &&
       Math.abs(slopeBands?.rollingMax - 0.115) < 1e-4,
     JSON.stringify({
-      renderer: stats?.renderer,
+      substrate: stats?.substrate,
       projection: stats?.projection,
       environment: stats?.environment,
       expectedSeed7HashCoveredBy: SEED7_HASH,

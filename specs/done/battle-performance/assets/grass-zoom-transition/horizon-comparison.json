@@ -1,0 +1,44 @@
+[
+  {
+    "boundary": 15,
+    "sameHeightChanged": 83666,
+    "bbox": [
+      0,
+      328,
+      2879,
+      1781
+    ],
+    "worldTemporalMeanAbs": {
+      "baseline": 4.731238995726495,
+      "candidate": 4.76121826923077
+    }
+  },
+  {
+    "boundary": 30,
+    "sameHeightChanged": 68684,
+    "bbox": [
+      0,
+      290,
+      2879,
+      1799
+    ],
+    "worldTemporalMeanAbs": {
+      "baseline": 3.579328418803419,
+      "candidate": 3.5402462606837606
+    }
+  },
+  {
+    "boundary": 45,
+    "sameHeightChanged": 8393,
+    "bbox": [
+      0,
+      276,
+      2879,
+      661
+    ],
+    "worldTemporalMeanAbs": {
+      "baseline": 2.8557193376068377,
+      "candidate": 2.855947329059829
+    }
+  }
+]

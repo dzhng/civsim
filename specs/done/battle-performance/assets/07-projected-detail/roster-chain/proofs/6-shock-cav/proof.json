@@ -1,0 +1,182 @@
+{
+  "id": 6,
+  "name": "shock-cav",
+  "selection": {
+    "unitClass": 6,
+    "state": "primary"
+  },
+  "pass": true,
+  "failures": [],
+  "catalogEntry": "/@fs/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/appearances/6-shock-cav/appearance.json",
+  "productionAppearance": "/Users/david/dev/game-battle-lod-prototypes/web/public/assets/soldiers/appearances/shock-cav/f3e14396bd793d9b",
+  "source": {
+    "key": "shock-cavalry",
+    "blend": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/shock-cavalry.blend",
+    "body": "shock-cavalry-Deform",
+    "scene": "FootVariant-rider-heavy",
+    "sha256": "7ec91a3be051cf1cf9c367a68033a1229b5d270495e19af2027deff27c0b0173",
+    "savedSourceRecordSha256": "7ec91a3be051cf1cf9c367a68033a1229b5d270495e19af2027deff27c0b0173",
+    "triangles": 132432,
+    "vertices": 66312
+  },
+  "candidate": {
+    "mode": "reduce",
+    "glb": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/shock-cavalry/near.glb",
+    "reduction": {
+      "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/shock-cavalry.blend",
+      "sourceSha256": "7ec91a3be051cf1cf9c367a68033a1229b5d270495e19af2027deff27c0b0173",
+      "tiers": [
+        {
+          "name": "near",
+          "targetTriangles": 4000,
+          "sourceTriangles": 132432,
+          "triangles": 3918,
+          "omittedBelowMetres": 0,
+          "retainedIslandTriangleFloor": 12,
+          "glbSha256": "ac7850210a009de4d59bbb780b510920370f5ee056fc5177450f3a529299e605"
+        }
+      ]
+    }
+  },
+  "tiers": [
+    {
+      "role": "original near",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/shock-cavalry/runtime/near.glb",
+      "sha256": "4af30ab196720f6ae39f3a3d4fe37a23e08531b03086f14e31bf0f0bfd7145d0",
+      "glb": {
+        "triangles": 7920,
+        "vertices": 8152,
+        "primitives": 15
+      },
+      "mesh": {
+        "triangles": 7920,
+        "vertices": 8152
+      }
+    },
+    {
+      "role": "candidate 4k",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/shock-cavalry/near.glb",
+      "sha256": "ac7850210a009de4d59bbb780b510920370f5ee056fc5177450f3a529299e605",
+      "glb": {
+        "triangles": 3918,
+        "vertices": 4734,
+        "primitives": 15
+      },
+      "mesh": {
+        "triangles": 3918,
+        "vertices": 4734
+      }
+    },
+    {
+      "role": "original mid",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/mounted-family/shock-cavalry/runtime/mid.glb",
+      "sha256": "4c6809e915d16005d70c70a07c651d8ea03534e65d8af980e323409cfc104d21",
+      "glb": {
+        "triangles": 986,
+        "vertices": 1649,
+        "primitives": 15
+      },
+      "mesh": {
+        "triangles": 986,
+        "vertices": 1649
+      }
+    }
+  ],
+  "productionTier1Mesh": {
+    "triangles": 986,
+    "vertices": 1649
+  },
+  "identity": [
+    {
+      "candidate": "skeleton.json",
+      "production": "skeleton.json",
+      "equal": true,
+      "sha256": "7bc8a228ea92307e5ec70015201bd93cca69b154751874f38fd998cf5d9a7647"
+    },
+    {
+      "candidate": "animation.json",
+      "production": "animation.json",
+      "equal": true,
+      "sha256": "43c710b8767a1670c88697270808b787e12a39d0e93e974cb252968c37dd472e"
+    },
+    {
+      "candidate": "materials.json",
+      "production": "materials.json",
+      "equal": true,
+      "sha256": "78589462ebc98ae2691d56f18d7212bff02ff81089b2dc96e0415681060a07c1"
+    },
+    {
+      "candidate": "tier-0.mesh.json",
+      "production": "tier-0.mesh.json",
+      "equal": true,
+      "sha256": "17f10cc0853e666b312677cc2116fd14c397b74238d9e8fef3ef16cb7e919e4a"
+    },
+    {
+      "candidate": "tier-2.mesh.json",
+      "production": "tier-1.mesh.json",
+      "equal": true,
+      "sha256": "4bb2e025e7522fcd2e4f0b4258adb5617a87f9a46b2ff5a91f56299607bc6fca"
+    },
+    {
+      "candidate": "source/tier-0.glb",
+      "production": "source/tier-0.glb",
+      "equal": true,
+      "sha256": "4af30ab196720f6ae39f3a3d4fe37a23e08531b03086f14e31bf0f0bfd7145d0"
+    },
+    {
+      "candidate": "source/tier-2.glb",
+      "production": "source/tier-1.glb",
+      "equal": true,
+      "sha256": "4c6809e915d16005d70c70a07c651d8ea03534e65d8af980e323409cfc104d21"
+    },
+    {
+      "candidate": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "production": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "equal": true,
+      "sha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1"
+    },
+    {
+      "candidate": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "production": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "equal": true,
+      "sha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb"
+    },
+    {
+      "candidate": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "production": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "equal": true,
+      "sha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765"
+    }
+  ],
+  "appearanceJson": {
+    "differingFields": [],
+    "bounds": {
+      "candidate": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 5.198248863220215
+      },
+      "production": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 5.198248863220215
+      }
+    },
+    "far": {
+      "mesh": "tier-0.mesh.json",
+      "clip": "ready",
+      "phase": 0
+    }
+  },
+  "lodContract": {
+    "log": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/logs/invariants/shock-cavalry.log",
+    "pass": true,
+    "result": "{\"triangles\":[7920,3918,986],\"clips\":[\"death\",\"hit\",\"idle\",\"melee\",\"ready\",\"run\",\"walk\"],\"invariant\":\"exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export\"}"
+  }
+}

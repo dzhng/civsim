@@ -1,0 +1,34 @@
+Committed as `9c496b47`.
+
+## Mechanism
+
+`rememberCamera` was written only by `prepare`, so a scene that had uploaded a crowd but not yet prepared held an admitted, drawable pose with no camera on record. `replaceCrowdAssets` then took the `carried && lastCamera` branch as false, skipped the staged upload, and still disposed the installed audience — the replacement was installed unready, and the next `prepare` hit `crowd.reproject()` → `Crowd audience frame is not ready`, unrecoverable without another source upload.
+
+The fix gives the carry one owner (`apps/battle-perf-lab/candidates/typegpu/battleScene.ts:184`): `rememberCamera(input, time, completed)` detaches the snapshot once, always records it as `posedCamera` (the latest camera this scene posed the crowd through), and additionally publishes it as `preparedCamera` only when a preparation completed. `uploadCrowd` calls it with `completed: false` right after the upload is admitted; `prepare` calls it with `true` as before. The reload carries through `posedCamera`, so the pre-first-prepare window now reprojects instead of retiring. No duplicated policy and no second detach site; `stats().preparedCamera` still names the last completed preparation and an upload-only camera is never published as one (pinned by the new tests).
+
+## Tests
+
+The existing crowd-audience double could not express this bug: `reproject` always resolved `false` and `admitted()` read a global toggle, so an unready audience looked fine. It now models a real history — each audience reports the pose its *own* upload admitted (an empty upload still admits one) and refuses `reproject`/`precompute` before that. Tests that needed an admitted pose now upload a real `CrowdInstance` rather than setting a global.
+
+New regression, both admitted populations: `{populated, empty} admitted crowd survives a replacement before the first preparation` — create scene, `uploadCrowd` at a moved camera, replace with no prepare, then prepare/draw with no second source upload; asserts the staged audience received the carried pose through the *upload* camera's impostor view, that `preparedCamera` is null across the reload, and that it becomes the prepare camera afterwards.
+
+`an admitted empty crowd survives replacement without carrying a pose` was asserting the opposite of real behavior (it passed only because the double reported `null` for an empty admitted pose); it is rewritten as `…is carried into the replacement rather than dropped`. That is a test-fidelity correction — production behavior for the post-prepare empty case is unchanged, since the real audience already returned a truthy `[]` there.
+
+## Commands and exits
+
+| command | exit |
+|---|---|
+| `vitest run --config vitest.config.mts tests/typegpuSceneLifecycle.test.ts` with `battleScene.ts` at 2da55ab2 (red evidence) | **1** — 2 failed \| 20 passed, exactly the two new cases |
+| `vitest run --config vitest.config.mts` (candidates/typegpu, after fix) | 0 — 11 files, 64 passed (was 62) |
+| `tsc -p candidates/typegpu/tsconfig.json --noEmit` | 0 |
+| `tsc -p candidates/typegpu/tests/tsconfig.json --noEmit` | 0 |
+| `vitest run --root apps/battle-perf-lab/src/live` | 0 — 4 files, 57 passed (matches root's baseline) |
+
+Red evidence was produced by writing `git show HEAD:…battleScene.ts` over the file and copying the fixed one back (verified byte-identical afterwards) — no stash/reset/checkout/merge. Logs in `throwaway/first-prepare-{red,green,live}.log`.
+
+## Limitations
+
+- CPU-only, against doubles. No GPU, browser or timing run; the real reload path is unexercised here beyond root's earlier hardware pass at 2da55ab2.
+- `packages/battle-renderer/src/battleScene.ts` (the raw world) has the identical defect — `lastCamera` written only by `prepare`, same `carried && lastCamera` guard. Out of scope (no raw changes), so it is untouched and still loses a pre-first-prepare pose on reload.
+- Unrelated to this fix but now enforced by the double: the scene contract requires a crowd upload before the first `prepare` (a never-uploaded audience cannot reproject). That is pre-existing at HEAD, not introduced here.
+- The web typecheck adds no signal for this diff — `web/tsconfig.json` includes only `src` and `tests`, and every changed file is under `apps/`.

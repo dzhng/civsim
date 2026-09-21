@@ -1,0 +1,26 @@
+[
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-9000-typegpu/menu-export.json",
+    "archive": "menu-export.json.gz",
+    "sha256": "b88364ecc23b8b39cd9346dc8d4979483160ff84857d446f5a2bf9329a13c75b",
+    "bytes": 15676402
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-9000-typegpu/trial.json",
+    "archive": "trial.json.gz",
+    "sha256": "b8886640b9be42aa32cc8d416db45ef36834b6c3b7344b7c999be1aa753227cf",
+    "bytes": 58688
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-9000-typegpu/host-observations.json",
+    "archive": "host-observations.json.gz",
+    "sha256": "8cb51fbf8396b34cbe6717a652107f89b03f6cc2a4d872f9ff6b02745f6d10cf",
+    "bytes": 21703
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/enabled-9000-typegpu/scenario-report.json",
+    "archive": "scenario-report.json.gz",
+    "sha256": "7141338d704f22a790008883846a686806019e4662feafe7b1c1ca38fb7bb828",
+    "bytes": 2281
+  }
+]

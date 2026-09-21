@@ -1,0 +1,15 @@
+{
+  "columns": 8,
+  "rows": 8,
+  "tileSize": 96,
+  "center": [
+    0.2826766073703766,
+    0.6199998557567596,
+    0.8678510189056396
+  ],
+  "worldSpan": 3.4867105026334198,
+  "inputHash": "9698205e887e71a672d476d681f2586c1b2ddf668f829dc11d84b1d654c92221",
+  "contentHash": "3d1da6893f40fe0a2633001a81d8b3646a797dd68e18a3e2f1b38bcd80be3ff2",
+  "policy": "three-property-atlas-1",
+  "payload": "3d1da6893f40fe0a2633001a81d8b3646a797dd68e18a3e2f1b38bcd80be3ff2.atlas"
+}

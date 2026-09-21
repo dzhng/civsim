@@ -1,4 +1,4 @@
-import type { BattleCameraSnapshot } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleCameraSnapshot } from "../../../packages/battle-renderer/src/types";
 
 /** Admission and magnified property inspection are deliberately different views. */
 export function farAdmissionCamera(camera: BattleCameraSnapshot): BattleCameraSnapshot {

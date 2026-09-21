@@ -1,0 +1,240 @@
+[
+  {
+    "samples": 1,
+    "case": "composed",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 930,
+    "changedFraction": 0.0036328125,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.00123828125,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 1,
+    "case": "unoccluded",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 930,
+    "changedFraction": 0.0036328125,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.00123828125,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 1,
+    "case": "ground",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 952,
+    "changedFraction": 0.00371875,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0012669270833333332,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 1,
+    "case": "ring",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 952,
+    "changedFraction": 0.00371875,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0012669270833333332,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 1,
+    "case": "horizon",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 2354,
+    "changedFraction": 0.0091953125,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0031302083333333334,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      639,
+      397
+    ]
+  },
+  {
+    "samples": 1,
+    "case": "marker",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 1089,
+    "changedFraction": 0.00425390625,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0014505208333333334,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 1,
+    "case": "marker-occluded",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 952,
+    "changedFraction": 0.00371875,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0012669270833333332,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "case": "composed",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 926,
+    "changedFraction": 0.0036171875,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0012330729166666666,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "case": "unoccluded",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 926,
+    "changedFraction": 0.0036171875,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0012330729166666666,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "case": "ground",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 948,
+    "changedFraction": 0.003703125,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.00126171875,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "case": "ring",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 948,
+    "changedFraction": 0.003703125,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.00126171875,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "case": "horizon",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 2361,
+    "changedFraction": 0.00922265625,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0031393229166666666,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      639,
+      397
+    ]
+  },
+  {
+    "samples": 4,
+    "case": "marker",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 1089,
+    "changedFraction": 0.00425390625,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.0014505208333333334,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  },
+  {
+    "samples": 4,
+    "case": "marker-occluded",
+    "width": 640,
+    "height": 400,
+    "changedPixels": 948,
+    "changedFraction": 0.003703125,
+    "pixelsMaxChannelDeltaOver16": 0,
+    "meanAbsoluteRGBDelta": 0.00126171875,
+    "maxRGBAChannelDelta": 1,
+    "diffBoundsInclusive": [
+      0,
+      0,
+      638,
+      399
+    ]
+  }
+]

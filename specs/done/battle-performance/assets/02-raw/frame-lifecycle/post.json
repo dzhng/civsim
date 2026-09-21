@@ -1,0 +1,1422 @@
+{
+  "passed": true,
+  "reports": [
+    {
+      "passed": true,
+      "backend": "raw",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "framebuffer": [
+        127,
+        95
+      ],
+      "results": [
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.81396484375,
+            "expected": 0.81396484375
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.75732421875,
+            "expected": 0.75732421875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7919921875,
+            "expected": 0.7919921875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.8095703125,
+            "expected": 0.8095703125
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.755859375,
+            "expected": 0.755859375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.830078125,
+            "expected": 0.830078125
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.78076171875,
+            "expected": 0.78076171875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": true,
+          "enabled": false,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0,
+            "expected": 0
+          }
+        }
+      ],
+      "errors": [],
+      "disposedGuard": true,
+      "scope": "synthetic HDR numerical control against actual BattlePostChain; no battle visual or performance claim",
+      "pageErrors": [],
+      "warnings": []
+    },
+    {
+      "passed": true,
+      "backend": "typegpu",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "framebuffer": [
+        127,
+        95
+      ],
+      "results": [
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.81396484375,
+            "expected": 0.81396484375
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.75732421875,
+            "expected": 0.75732421875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7919921875,
+            "expected": 0.7919921875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.8095703125,
+            "expected": 0.8095703125
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.755859375,
+            "expected": 0.755859375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.830078125,
+            "expected": 0.830078125
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.78076171875,
+            "expected": 0.78076171875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        }
+      ],
+      "errors": [],
+      "disposedGuard": true,
+      "scope": "synthetic HDR numerical control against actual BattlePostChain; no battle visual or performance claim",
+      "pageErrors": [],
+      "warnings": []
+    },
+    {
+      "passed": true,
+      "backend": "vgpu",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "framebuffer": [
+        127,
+        95
+      ],
+      "results": [
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.81396484375,
+            "expected": 0.81396484375
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.796875,
+            "expected": 0.796875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.75732421875,
+            "expected": 0.75732421875
+          }
+        },
+        {
+          "preset": "golden",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.73681640625,
+            "expected": 0.73681640625
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7919921875,
+            "expected": 0.7919921875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.77685546875,
+            "expected": 0.77685546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "dusk",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.71435546875,
+            "expected": 0.71435546875
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.8095703125,
+            "expected": 0.8095703125
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7958984375,
+            "expected": 0.7958984375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.755859375,
+            "expected": 0.755859375
+          }
+        },
+        {
+          "preset": "noon",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.7353515625,
+            "expected": 0.7353515625
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.830078125,
+            "expected": 0.830078125
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": false,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.818359375,
+            "expected": 0.818359375
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": true,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.78076171875,
+            "expected": 0.78076171875
+          }
+        },
+        {
+          "preset": "overcast-highland",
+          "changed": true,
+          "bloom": false,
+          "enabled": true,
+          "maxAbs": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "overOneDisplayCode": 0,
+          "worst": {
+            "x": 0,
+            "y": 0,
+            "channel": 0,
+            "actual": 0.76123046875,
+            "expected": 0.76123046875
+          }
+        }
+      ],
+      "errors": [],
+      "disposedGuard": true,
+      "scope": "synthetic HDR numerical control against actual BattlePostChain; no battle visual or performance claim",
+      "pageErrors": [],
+      "warnings": []
+    }
+  ]
+}

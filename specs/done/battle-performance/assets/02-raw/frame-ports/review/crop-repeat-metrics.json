@@ -1,0 +1,134 @@
+[
+  {
+    "backend": "raw",
+    "samples": 1,
+    "mode": "plain",
+    "repeatChangedPixels": 783,
+    "repeatMaxDelta": 36
+  },
+  {
+    "backend": "raw",
+    "samples": 1,
+    "mode": "bloom",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "raw",
+    "samples": 4,
+    "mode": "plain",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "raw",
+    "samples": 4,
+    "mode": "bloom",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "mode": "plain",
+    "repeatChangedPixels": 783,
+    "repeatMaxDelta": 36
+  },
+  {
+    "backend": "typegpu",
+    "samples": 1,
+    "mode": "bloom",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "mode": "plain",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "typegpu",
+    "samples": 4,
+    "mode": "bloom",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "mode": "plain",
+    "repeatChangedPixels": 814,
+    "repeatMaxDelta": 36
+  },
+  {
+    "backend": "vgpu",
+    "samples": 1,
+    "mode": "bloom",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "mode": "plain",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "backend": "vgpu",
+    "samples": 4,
+    "mode": "bloom",
+    "repeatChangedPixels": 0,
+    "repeatMaxDelta": 0
+  },
+  {
+    "crop": "units",
+    "bounds": [
+      255,
+      150,
+      510,
+      310
+    ],
+    "rgbMAE": 0.024076797385620914,
+    "maxDelta": 36.0,
+    "changedPixels": 786
+  },
+  {
+    "crop": "horizon",
+    "bounds": [
+      300,
+      200,
+      475,
+      280
+    ],
+    "rgbMAE": 0.006523809523809524,
+    "maxDelta": 58.0,
+    "changedPixels": 19
+  },
+  {
+    "crop": "shadow-local",
+    "bounds": [
+      340,
+      228,
+      768,
+      290
+    ],
+    "rgbMAE": 0.0002637925836599337,
+    "maxDelta": 1.0,
+    "changedPixels": 7
+  },
+  {
+    "crop": "shadow-whole",
+    "bounds": [
+      330,
+      225,
+      768,
+      320
+    ],
+    "rgbMAE": 0.001033405431386686,
+    "maxDelta": 1.0,
+    "changedPixels": 43
+  }
+]

@@ -1,6 +1,6 @@
-import { MeshBuilder } from '../models/shared/meshBuilder';
-import type { BattleEdgeRole, BattleEdgeRoles } from './terrainFeatures';
-import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
+import { MeshBuilder } from "../models/shared/meshBuilder";
+import type { BattleEdgeRole, BattleEdgeRoles } from "./terrainFeatures";
+import { terrainHeightAt, type TerrainHeightField } from "../terrain/heightField";
 
 // The sealed-side backdrop: the west/east edges read at a glance as the blocker
 // the sim already enforces — cliffs/mountains as a tall stone ridge, a wall as a
@@ -9,12 +9,37 @@ import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField
 // passability lives in the terrain masks.
 
 const STONE: [number, number, number] = [0.47, 0.44, 0.39];
-const STONE_TOP: [number, number, number] = [0.60, 0.57, 0.51];
+const STONE_TOP: [number, number, number] = [0.6, 0.57, 0.51];
 const WALL: [number, number, number] = [0.55, 0.52, 0.47];
 const WALL_TOP: [number, number, number] = [0.64, 0.61, 0.55];
 // Neutral light-grey atmospheric haze the distant blockers dissolve into. Kept
 // off-blue so far peaks read as hazy stone, not as slivers of water or sky.
-const HAZE: [number, number, number] = [0.80, 0.81, 0.83];
+const HAZE: [number, number, number] = [0.8, 0.81, 0.83];
+
+/** Envelope of the sealed-edge blocker mesh, relative to the edge line and the
+ *  edge's ground datum. The mesh is a shadow RECEIVER as well as a caster
+ *  (terrainLayer's createHorizonBlockerMesh), and its peaks stand an order of
+ *  magnitude higher than anything on the field — so the shadow fit
+ *  (battle/shadowPolicy.ts) carries this band as a receiver domain of its own
+ *  rather than stretching the field's slab up to reach it.
+ *
+ *  `reach` stops at the outermost peak. Past it the apron is a receding quad
+ *  graded into HAZE, which is vista rather than shadowed ground — the same call
+ *  createVistaMesh makes for the vista bands, and the same ground the shipped
+ *  whole-map fit has never covered either. Only the west and east edges are
+ *  ever built; north/south dissolve into fog. */
+export const BATTLE_HORIZON_BOUNDS = {
+  /** Outward from the edge line, past the far row's widest peak ring. */
+  reach: 600,
+  /** Inward past the edge line — the near row's skirt laps onto the field. */
+  lap: 140,
+  /** Above the edge datum: the tallest jittered peak. */
+  ceiling: 300,
+  /** Below the edge datum, within `reach`: the apron falling away. */
+  drop: 60,
+  /** Past the field's y ends, where the apron and the peak rows overrun. */
+  overhang: 400,
+} as const;
 
 // The ocean edge runs from the shoreline out past the horizon; the plane laps 24 m
 // into the field so it meets the on-field water with no gap.
@@ -43,16 +68,38 @@ export function buildBattleHorizonLayout(
   field: TerrainHeightField,
 ): BattleHorizonLayout {
   const builder = new MeshBuilder();
-  const layout: BattleHorizonLayout = { mesh: { vertices: new Float32Array(), indices: new Uint16Array() }, oceanPlanes: [], builtEdges: [] };
+  const layout: BattleHorizonLayout = {
+    mesh: { vertices: new Float32Array(), indices: new Uint16Array() },
+    oceanPlanes: [],
+    builtEdges: [],
+  };
   const x0 = bounds.ox;
   const x1 = bounds.ox + bounds.w * bounds.cell;
   const y0 = bounds.oy;
   const y1 = bounds.oy + bounds.h * bounds.cell;
   const midY = (y0 + y1) * 0.5;
-  buildHorizonEdge(builder, layout, edges.west, 'west', x0, y0, y1, terrainHeightAt(field, x0, midY));
-  buildHorizonEdge(builder, layout, edges.east, 'east', x1, y0, y1, terrainHeightAt(field, x1, midY));
+  buildHorizonEdge(
+    builder,
+    layout,
+    edges.west,
+    "west",
+    x0,
+    y0,
+    y1,
+    terrainHeightAt(field, x0, midY),
+  );
+  buildHorizonEdge(
+    builder,
+    layout,
+    edges.east,
+    "east",
+    x1,
+    y0,
+    y1,
+    terrainHeightAt(field, x1, midY),
+  );
   // North/south stay open — they read as fog against the scene clear colour.
-  const mesh = builder.finish('battle horizon');
+  const mesh = builder.finish("battle horizon");
   layout.mesh = { vertices: mesh.opaque.vertices, indices: mesh.opaque.indices };
   return layout;
 }
@@ -67,15 +114,15 @@ function buildHorizonEdge(
   y1: number,
   baseZ: number,
 ) {
-  if (role === 'open-fog') return;
+  if (role === "open-fog") return;
   layout.builtEdges.push({ side, role });
-  const outward = side === 'west' ? -1 : 1;
+  const outward = side === "west" ? -1 : 1;
   const span = y1 - y0;
   const midY = (y0 + y1) * 0.5;
   const yLo = y0 - 400;
   const yHi = y1 + 400;
 
-  if (role === 'ocean') {
+  if (role === "ocean") {
     // The open sea uses the shared animated water plane, seated at
     // the shoreline height datum and keyed on distance-from-shore (shoreX = edgeX)
     // so it meets the on-field water in the same shallow→deep grade — the shoreline
@@ -85,7 +132,13 @@ function buildHorizonEdge(
     // own pipeline so it draws after the blocker mesh in the same world pass.
     const inner = edgeX - outward * OCEAN_LAP;
     const outer = edgeX + outward * OCEAN_FAR;
-    const rect = { x0: Math.min(inner, outer), y0: yLo, x1: Math.max(inner, outer), y1: yHi, res: OCEAN_RES };
+    const rect = {
+      x0: Math.min(inner, outer),
+      y0: yLo,
+      x1: Math.max(inner, outer),
+      y1: yHi,
+      res: OCEAN_RES,
+    };
     layout.oceanPlanes.push({ rect, baseZ, shoreX: edgeX });
     return;
   }
@@ -96,16 +149,26 @@ function buildHorizonEdge(
   const apronNear = edgeX + outward * 12;
   const apronFar = edgeX + outward * 2600;
 
-  if (role === 'wall') {
+  if (role === "wall") {
     builder.gradQuad(
-      [apronNear, yLo, baseZ - 2], [apronFar, yLo, baseZ - 120], [apronFar, yHi, baseZ - 120], [apronNear, yHi, baseZ - 2],
-      mix3(STONE, HAZE, 0.4), HAZE);
+      [apronNear, yLo, baseZ - 2],
+      [apronFar, yLo, baseZ - 120],
+      [apronFar, yHi, baseZ - 120],
+      [apronNear, yHi, baseZ - 2],
+      mix3(STONE, HAZE, 0.4),
+      HAZE,
+    );
     // A solid coursed rampart lapping the turf edge: a darker base course under
     // a lighter wall face so it reads as masonry with depth, capped by merlons —
     // a wall you cannot cross, not a flat band with a dotted edge.
     const wallX = edgeX + outward * 20;
     const wallH = 120;
-    builder.box([wallX, midY, baseZ - 4 + wallH * 0.18], [70, span + 220, wallH * 0.36], mix3(WALL, [0, 0, 0], 0.34), 1);
+    builder.box(
+      [wallX, midY, baseZ - 4 + wallH * 0.18],
+      [70, span + 220, wallH * 0.36],
+      mix3(WALL, [0, 0, 0], 0.34),
+      1,
+    );
     builder.box([wallX, midY, baseZ - 4 + wallH / 2], [62, span + 220, wallH], WALL, 1);
     const merlons = Math.max(10, Math.round(span / 90));
     for (let k = 0; k <= merlons; k += 2) {
@@ -120,9 +183,14 @@ function buildHorizonEdge(
   // sharp near peaks break it, so the range reads with real depth — not a flat
   // sawtooth fence.
   builder.gradQuad(
-    [apronNear, yLo, baseZ - 6], [apronFar, yLo, baseZ - 200], [apronFar, yHi, baseZ - 200], [apronNear, yHi, baseZ - 6],
-    mix3(STONE, HAZE, 0.25), HAZE);
-  const sideSalt = side === 'west' ? 11 : 23;
+    [apronNear, yLo, baseZ - 6],
+    [apronFar, yLo, baseZ - 200],
+    [apronFar, yHi, baseZ - 200],
+    [apronNear, yHi, baseZ - 6],
+    mix3(STONE, HAZE, 0.25),
+    HAZE,
+  );
+  const sideSalt = side === "west" ? 11 : 23;
   // `gap` sets spacing as a multiple of radius: near row sparse for a varied
   // skyline, far row dense so its overlapping peaks form an unbroken seal.
   const rows = [
@@ -145,7 +213,11 @@ function buildHorizonEdge(
   }
 }
 
-function mix3(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
+function mix3(
+  a: [number, number, number],
+  b: [number, number, number],
+  t: number,
+): [number, number, number] {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 }
 

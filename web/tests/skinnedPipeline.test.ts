@@ -7,6 +7,8 @@ import { bakeLocalAnimation } from "@packages/soldier-assets/src/localAnimation"
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
+import { COARSEST_SHADOW_LOD, IMPOSTOR_LEVEL } from "@packages/crowd-runtime/src/lod";
+import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 
 test("class clip lookup follows appearances, not their flattened LOD resources", async () => {
   vi.stubGlobal("GPUBufferUsage", { COPY_DST: 1, VERTEX: 2, INDEX: 4, UNIFORM: 8, STORAGE: 16 });
@@ -131,7 +133,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
         skeleton: "rig.json",
         animation: "animation.json",
         materials: "materials.json",
-        tiers: ["near.json", "mid.json", "far.json"],
+        tiers: ["near.json", "intermediate.json", "mid.json", "far.json"],
         far: { mesh: "far.json", clip: "idle", phase: 0 },
         bounds: { center: [0, 0, 0], radius: 1 },
       },
@@ -149,7 +151,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
           },
         ],
       },
-      tiers: [mesh, mesh, { ...mesh, indices: new Uint32Array([0, 1, 2, 2, 1, 0]) }],
+      tiers: [mesh, mesh, mesh, { ...mesh, indices: new Uint32Array([0, 1, 2, 2, 1, 0]) }],
       farMesh: mesh,
     });
     const crowd = await SkinnedCrowdPipeline.create(shell, { 0: appearance(0), 5: appearance(5) });
@@ -188,7 +190,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     assert.throws(() => crowd.classClip(1, "idle"), /appearance 1 is not loaded/);
     assert.throws(() => crowd.classClip(0.5, "idle"), /appearance 0.5 is not loaded/);
     const [instance] = generatedFormation(1, { clip: "idle" });
-    crowd.upload([{ ...instance, x: 19, classId: 5, lod: 2, clip: "idle" }]);
+    crowd.upload([{ ...instance, x: 19, classId: 5, lod: COARSEST_SHADOW_LOD, clip: "idle" }]);
     const draws: number[][] = [];
     const indexFormats: GPUIndexFormat[] = [];
     let instanceValues: Float32Array | undefined;
@@ -212,7 +214,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     assert.deepEqual(
       draws,
       [[6, 1, 19, 0]],
-      "sparse class 5 / L2 uses its own geometry, rig palette slot and submitted world position",
+      "sparse class 5 far tier uses its own geometry, rig palette slot and submitted world position",
     );
     assert.deepEqual(indexFormats, ["uint32"]);
     assert.deepEqual(
@@ -220,6 +222,31 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       ["skinned-material-bg-1"],
       "sparse appearance selects its own material table",
     );
+    // Campaign stacks draw only the near tier; this pipeline has no impostor, so
+    // an impostor level resolves to the coarsest mesh.
+    const stack = buildStackCrowd([0, 0, 0, 0, 0, 1], {
+      unitCount: 1,
+      stackUnitCap: 1,
+      maxFigures: 1,
+      x: 7,
+      y: 0,
+      faction: 0,
+      seed: 1,
+      clipForClass: () => "idle",
+    });
+    for (const [lod, indices] of [
+      [undefined, 3],
+      [IMPOSTOR_LEVEL, 6],
+    ] as const) {
+      draws.length = 0;
+      crowd.upload(stack.map((figure) => ({ ...figure, lod: lod ?? figure.lod })));
+      crowd.draw(pass);
+      assert.deepEqual(
+        draws,
+        [[indices, 1, Math.fround(stack[0].x), 0]],
+        `stack figure lod ${lod ?? "campaign"}`,
+      );
+    }
     for (const alive of [false, true]) {
       for (const weight of [0, 0.5, 1]) {
         crowd.upload([
@@ -246,16 +273,16 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
         );
       }
     }
-    crowd.upload([{ ...instance, classId: 5, lod: 2, alive: false }]);
+    crowd.upload([{ ...instance, classId: 5, lod: COARSEST_SHADOW_LOD, alive: false }]);
     crowd.draw(pass);
     assert.equal(instanceValues![10], 1, "manual corpses retain full styling");
-    crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "idle", phase: 1 }]);
+    crowd.upload([{ ...instance, classId: 5, lod: COARSEST_SHADOW_LOD, clip: "idle", phase: 1 }]);
     assert.deepEqual(
       Array.from(writes.get("skinned-pose-1-controls")!.slice(8, 12)),
       [6, 6, 0, 1],
       "explicit phase one in a looping manual clip keeps its authored endpoint",
     );
-    crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "attack", phase: 1 }]);
+    crowd.upload([{ ...instance, classId: 5, lod: COARSEST_SHADOW_LOD, clip: "attack", phase: 1 }]);
     crowd.draw(pass);
     assert.deepEqual(
       Array.from(writes.get("skinned-pose-1-controls")!.slice(8, 12)),
@@ -283,7 +310,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       beforeSuppressedDraw,
       "caught upload failure must not submit a mixed-rig crowd",
     );
-    crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "idle" }]);
+    crowd.upload([{ ...instance, classId: 5, lod: COARSEST_SHADOW_LOD, clip: "idle" }]);
     crowd.draw(pass);
     assert.equal(
       draws.length,

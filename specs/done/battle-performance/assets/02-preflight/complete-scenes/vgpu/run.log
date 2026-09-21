@@ -1,0 +1,132 @@
+scene:vgpu:load-assets
+scene:vgpu:source-create
+scene:vgpu:candidate-create
+scene:vgpu:candidate-ready
+scene:vgpu:tactical:source-upload
+scene:vgpu:tactical:candidate-upload
+scene:vgpu:tactical:candidate-prepare
+scene:vgpu:tactical:source-settle
+scene:vgpu:tactical:candidate-settle
+scene:vgpu:tactical:candidate-prepare
+scene:vgpu:tactical:candidate-prepare
+scene:vgpu:wide:source-upload
+scene:vgpu:wide:candidate-upload
+scene:vgpu:wide:candidate-prepare
+scene:vgpu:wide:source-settle
+scene:vgpu:wide:candidate-settle
+scene:vgpu:wide:candidate-prepare
+scene:vgpu:wide:candidate-prepare
+scene:vgpu:horizon:source-upload
+scene:vgpu:horizon:candidate-upload
+scene:vgpu:horizon:candidate-prepare
+scene:vgpu:horizon:source-settle
+scene:vgpu:horizon:candidate-settle
+scene:vgpu:horizon:candidate-prepare
+scene:vgpu:horizon:candidate-prepare
+scene:vgpu:far-lod:source-upload
+scene:vgpu:far-lod:candidate-upload
+scene:vgpu:far-lod:candidate-prepare
+scene:vgpu:far-lod:source-settle
+scene:vgpu:far-lod:candidate-settle
+scene:vgpu:far-lod:candidate-prepare
+scene:vgpu:far-lod:candidate-prepare
+scene:vgpu:dispose
+{
+  "errors": [],
+  "pageErrors": [],
+  "remaining": {
+    "textures": 0,
+    "buffers": 0
+  },
+  "instances": 15560,
+  "frames": [
+    {
+      "label": "tactical-initial",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 870384,
+        "maximumChannelDifference": 106,
+        "meanChannelDifference": 0.6909821566358024,
+        "nonzeroRgb": 15552000
+      }
+    },
+    {
+      "label": "tactical-settled",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 30327,
+        "maximumChannelDifference": 114,
+        "meanChannelDifference": 0.012197820216049383,
+        "nonzeroRgb": 15552000
+      }
+    },
+    {
+      "label": "wide-initial",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 15916,
+        "maximumChannelDifference": 138,
+        "meanChannelDifference": 0.0013506462191358024,
+        "nonzeroRgb": 15552000
+      }
+    },
+    {
+      "label": "wide-settled",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 15916,
+        "maximumChannelDifference": 138,
+        "meanChannelDifference": 0.0013506462191358024,
+        "nonzeroRgb": 15552000
+      }
+    },
+    {
+      "label": "horizon-initial",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 17561,
+        "maximumChannelDifference": 51,
+        "meanChannelDifference": 0.0008608217592592593,
+        "nonzeroRgb": 15552000
+      }
+    },
+    {
+      "label": "horizon-settled",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 17561,
+        "maximumChannelDifference": 51,
+        "meanChannelDifference": 0.0008608217592592593,
+        "nonzeroRgb": 15552000
+      }
+    },
+    {
+      "label": "far-lod-initial",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 232950,
+        "maximumChannelDifference": 31,
+        "meanChannelDifference": 0.011561246141975309,
+        "nonzeroRgb": 15552000
+      }
+    },
+    {
+      "label": "far-lod-settled",
+      "image": {
+        "width": 2880,
+        "height": 1800,
+        "changedPixels": 232950,
+        "maximumChannelDifference": 31,
+        "meanChannelDifference": 0.011561246141975309,
+        "nonzeroRgb": 15552000
+      }
+    }
+  ]
+}

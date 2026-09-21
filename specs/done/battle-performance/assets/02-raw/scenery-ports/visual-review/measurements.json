@@ -1,0 +1,684 @@
+{
+  "manifest": [
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-1/tactical-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6907913ecba06e969e8ae0bc19412e908cab951a9c8601e8b1e3b1d332d563f4"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-1/tactical-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "8a7e3bb045309ffe7861fc1c44ad034d3bab4557392dca9081396fe3cb1c6051"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-1/tactical-repeat-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "3e201da45975a40dac9c042ccbda9d57a2082e04bbbc20cab9f4a5bed6f411c9"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-1/tactical-repeat-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6c7ff0df1340e3a807dc2785259aa2c914b1e4521b213788886a4abb1768d19d"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-1/horizon-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "aaff37d9c6696d5cc6e46dbf3fd557035acc9a7b9b39fc39cf233001c03bc1f0"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-1/horizon-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "b6a8ee2820106a27a2261426f6c8375d7ead3a18fee7f35b69eab5c56bc63d57"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-4/tactical-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "58397f30aae122cf7522f80c3fd26734154e2917205fb72bda135a224ab20e09"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-4/tactical-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6d777537a4841f8103dde78a5fd53b7d3e2a637abe166e4f5c9b41353277d33b"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-4/tactical-repeat-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "09de4837df878affa84c1855bc28e62167ccda02f08b855ec44594d1c1d1e53a"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-4/tactical-repeat-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "ca3077a845f96786e55bb0d608e280970ff8a52a2b7d0a74ab33cbbab8b132df"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-4/horizon-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "b57344f79f14e84007a00ea4a7b005ea3498d696af0df109268abed2b12344b7"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-raw/scenery-ports/on/samples-4/horizon-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "5c2df04622d6c54ab269909fd33b2e5ee30170505455b63e9e733dee29c56cfb"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-1/tactical-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "93c6188d0a279c5e9aa4be071fc8f0e96bf43a64ccd991996f4b3e249d1e1dec"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-1/tactical-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "8a7e3bb045309ffe7861fc1c44ad034d3bab4557392dca9081396fe3cb1c6051"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-1/tactical-repeat-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6df111a3400e4c5fbb2122990670c086cbcf3ac37ecfc007b275f315879dd445"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-1/tactical-repeat-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6c7ff0df1340e3a807dc2785259aa2c914b1e4521b213788886a4abb1768d19d"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-1/horizon-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "9d97394d5e5b3521c8e5e741b1dd13c3478669271d5ef874096a100e40578d82"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-1/horizon-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "b6a8ee2820106a27a2261426f6c8375d7ead3a18fee7f35b69eab5c56bc63d57"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-4/tactical-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "4cdf64245772549068631cd9de51d1adb26da498f285af19df72af0ce567e1d9"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-4/tactical-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6d777537a4841f8103dde78a5fd53b7d3e2a637abe166e4f5c9b41353277d33b"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-4/tactical-repeat-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "55c0a84341f3149520aa3d89eb09e4de3b5f53d5779f3d86655c3287933152d0"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-4/tactical-repeat-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "ca3077a845f96786e55bb0d608e280970ff8a52a2b7d0a74ab33cbbab8b132df"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-4/horizon-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "bd270b18a1c875af61f268c56f1e0ed6b0bc4835b4d5fca1870fab826f5e7f2b"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-typegpu/scenery-ports/on/samples-4/horizon-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "5c2df04622d6c54ab269909fd33b2e5ee30170505455b63e9e733dee29c56cfb"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-1/tactical-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "9036985ccf2fdf23aca0f50af1b3f2b118ccc2079192324cd02a65352ea4de99"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-1/tactical-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "8a7e3bb045309ffe7861fc1c44ad034d3bab4557392dca9081396fe3cb1c6051"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-1/tactical-repeat-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "795b806be522f22cf04ec2f80b319569bc1b55a929dd949a406c4f33da5ff733"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-1/tactical-repeat-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6c7ff0df1340e3a807dc2785259aa2c914b1e4521b213788886a4abb1768d19d"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-1/horizon-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "197511318d98be642495d816e318588db04cc1ea53006aed8c1a35dd239db8c1"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-1/horizon-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "b6a8ee2820106a27a2261426f6c8375d7ead3a18fee7f35b69eab5c56bc63d57"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-4/tactical-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "5aa3e383e4016705014dc546e06ea18b10742bb64b5823fcb01a83713fb9fe77"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-4/tactical-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6d777537a4841f8103dde78a5fd53b7d3e2a637abe166e4f5c9b41353277d33b"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-4/tactical-repeat-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "6fbe259441df33ed3b13f450f0b479a84524329791e792f050b1fa1af3394f13"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-4/tactical-repeat-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "ca3077a845f96786e55bb0d608e280970ff8a52a2b7d0a74ab33cbbab8b132df"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-4/horizon-plain-actualRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "2605e8ae002976cf561702a2fac455132985b574927bcf3d0466b5cea34bd18a"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-performance-spec/specs/battle-performance/assets/02-vgpu/scenery-ports/on/samples-4/horizon-plain-expectedRgba.png",
+      "width": 768,
+      "height": 512,
+      "rgbaSha256": "5c2df04622d6c54ab269909fd33b2e5ee30170505455b63e9e733dee29c56cfb"
+    }
+  ],
+  "comparisons": {
+    "pairs": [
+      {
+        "b": "raw",
+        "s": 1,
+        "scene": "tactical-plain",
+        "pixels": 16372,
+        "maxChannelDelta": 77,
+        "meanAbsoluteChannelDelta": 0.3966693878173828
+      },
+      {
+        "b": "raw",
+        "s": 1,
+        "scene": "tactical-repeat-plain",
+        "pixels": 967,
+        "maxChannelDelta": 77,
+        "meanAbsoluteChannelDelta": 0.0010776519775390625
+      },
+      {
+        "b": "raw",
+        "s": 1,
+        "scene": "horizon-plain",
+        "pixels": 1304,
+        "maxChannelDelta": 162,
+        "meanAbsoluteChannelDelta": 0.0011425018310546875
+      },
+      {
+        "b": "raw",
+        "s": 4,
+        "scene": "tactical-plain",
+        "pixels": 17660,
+        "maxChannelDelta": 78,
+        "meanAbsoluteChannelDelta": 0.40091578165690106
+      },
+      {
+        "b": "raw",
+        "s": 4,
+        "scene": "tactical-repeat-plain",
+        "pixels": 931,
+        "maxChannelDelta": 78,
+        "meanAbsoluteChannelDelta": 0.0010356903076171875
+      },
+      {
+        "b": "raw",
+        "s": 4,
+        "scene": "horizon-plain",
+        "pixels": 1314,
+        "maxChannelDelta": 162,
+        "meanAbsoluteChannelDelta": 0.0011571248372395833
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "tactical-plain",
+        "pixels": 16372,
+        "maxChannelDelta": 77,
+        "meanAbsoluteChannelDelta": 0.3966712951660156
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "tactical-repeat-plain",
+        "pixels": 969,
+        "maxChannelDelta": 77,
+        "meanAbsoluteChannelDelta": 0.001079559326171875
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "horizon-plain",
+        "pixels": 1304,
+        "maxChannelDelta": 162,
+        "meanAbsoluteChannelDelta": 0.0011418660481770833
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "tactical-plain",
+        "pixels": 17661,
+        "maxChannelDelta": 78,
+        "meanAbsoluteChannelDelta": 0.4008954366048177
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "tactical-repeat-plain",
+        "pixels": 934,
+        "maxChannelDelta": 78,
+        "meanAbsoluteChannelDelta": 0.0010140736897786458
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "horizon-plain",
+        "pixels": 1313,
+        "maxChannelDelta": 162,
+        "meanAbsoluteChannelDelta": 0.0011564890543619792
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "tactical-plain",
+        "pixels": 16370,
+        "maxChannelDelta": 77,
+        "meanAbsoluteChannelDelta": 0.3966681162516276
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "tactical-repeat-plain",
+        "pixels": 962,
+        "maxChannelDelta": 77,
+        "meanAbsoluteChannelDelta": 0.0010668436686197917
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "horizon-plain",
+        "pixels": 1317,
+        "maxChannelDelta": 162,
+        "meanAbsoluteChannelDelta": 0.0011583964029947917
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "tactical-plain",
+        "pixels": 17658,
+        "maxChannelDelta": 78,
+        "meanAbsoluteChannelDelta": 0.4009145100911458
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "tactical-repeat-plain",
+        "pixels": 929,
+        "maxChannelDelta": 78,
+        "meanAbsoluteChannelDelta": 0.0010344187418619792
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "horizon-plain",
+        "pixels": 1327,
+        "maxChannelDelta": 162,
+        "meanAbsoluteChannelDelta": 0.0011660257975260417
+      }
+    ],
+    "repeat": [
+      {
+        "b": "raw",
+        "s": 1,
+        "k": "actual",
+        "pixels": 90,
+        "maxChannelDelta": 21,
+        "meanAbsoluteChannelDelta": 0.0002504984537760417
+      },
+      {
+        "b": "raw",
+        "s": 1,
+        "k": "expected",
+        "pixels": 15557,
+        "maxChannelDelta": 53,
+        "meanAbsoluteChannelDelta": 0.39544423421223956
+      },
+      {
+        "b": "raw",
+        "s": 4,
+        "k": "actual",
+        "pixels": 1,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 6.357828776041666e-7
+      },
+      {
+        "b": "raw",
+        "s": 4,
+        "k": "expected",
+        "pixels": 16957,
+        "maxChannelDelta": 52,
+        "meanAbsoluteChannelDelta": 0.3999443054199219
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "k": "actual",
+        "pixels": 90,
+        "maxChannelDelta": 21,
+        "meanAbsoluteChannelDelta": 0.0002504984537760417
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "k": "expected",
+        "pixels": 15557,
+        "maxChannelDelta": 53,
+        "meanAbsoluteChannelDelta": 0.39544423421223956
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "k": "actual",
+        "pixels": 1,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 6.357828776041666e-7
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "k": "expected",
+        "pixels": 16957,
+        "maxChannelDelta": 52,
+        "meanAbsoluteChannelDelta": 0.3999443054199219
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "k": "actual",
+        "pixels": 91,
+        "maxChannelDelta": 21,
+        "meanAbsoluteChannelDelta": 0.0002587636311848958
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "k": "expected",
+        "pixels": 15557,
+        "maxChannelDelta": 53,
+        "meanAbsoluteChannelDelta": 0.39544423421223956
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "k": "actual",
+        "pixels": 1,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 6.357828776041666e-7
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "k": "expected",
+        "pixels": 16957,
+        "maxChannelDelta": 52,
+        "meanAbsoluteChannelDelta": 0.3999443054199219
+      }
+    ],
+    "backends": [
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "tactical-plain",
+        "k": "actual",
+        "pixels": 8,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.0000057220458984375
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "tactical-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "tactical-repeat-plain",
+        "k": "actual",
+        "pixels": 8,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.0000057220458984375
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "tactical-repeat-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "horizon-plain",
+        "k": "actual",
+        "pixels": 2,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.0000019073486328125
+      },
+      {
+        "b": "typegpu",
+        "s": 1,
+        "scene": "horizon-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "tactical-plain",
+        "k": "actual",
+        "pixels": 9,
+        "maxChannelDelta": 25,
+        "meanAbsoluteChannelDelta": 0.000030517578125
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "tactical-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "tactical-repeat-plain",
+        "k": "actual",
+        "pixels": 9,
+        "maxChannelDelta": 25,
+        "meanAbsoluteChannelDelta": 0.000030517578125
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "tactical-repeat-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "horizon-plain",
+        "k": "actual",
+        "pixels": 3,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.0000019073486328125
+      },
+      {
+        "b": "typegpu",
+        "s": 4,
+        "scene": "horizon-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "tactical-plain",
+        "k": "actual",
+        "pixels": 2,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.0000012715657552083333
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "tactical-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "tactical-repeat-plain",
+        "k": "actual",
+        "pixels": 5,
+        "maxChannelDelta": 4,
+        "meanAbsoluteChannelDelta": 0.000010808308919270834
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "tactical-repeat-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "horizon-plain",
+        "k": "actual",
+        "pixels": 17,
+        "maxChannelDelta": 6,
+        "meanAbsoluteChannelDelta": 0.0000209808349609375
+      },
+      {
+        "b": "vgpu",
+        "s": 1,
+        "scene": "horizon-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "tactical-plain",
+        "k": "actual",
+        "pixels": 2,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.0000012715657552083333
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "tactical-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "tactical-repeat-plain",
+        "k": "actual",
+        "pixels": 2,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.0000012715657552083333
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "tactical-repeat-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "horizon-plain",
+        "k": "actual",
+        "pixels": 15,
+        "maxChannelDelta": 1,
+        "meanAbsoluteChannelDelta": 0.000010172526041666666
+      },
+      {
+        "b": "vgpu",
+        "s": 4,
+        "scene": "horizon-plain",
+        "k": "expected",
+        "pixels": 0,
+        "maxChannelDelta": 0,
+        "meanAbsoluteChannelDelta": 0
+      }
+    ]
+  }
+}

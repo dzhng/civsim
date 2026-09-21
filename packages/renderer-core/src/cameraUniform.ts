@@ -73,7 +73,7 @@ function realParams(camera: CameraSnapshot): Camera3DParams {
 
 export function cameraUniformData(
   camera: CameraSnapshot & Required<Pick<CameraSnapshot, 'sunAzimuth' | 'sunElevation'>>,
-): Float32Array {
+): Float32Array<ArrayBuffer> {
   const data = new Float32Array(CAMERA_UNIFORM_FLOATS);
   const params = realParams(camera);
   data.set(viewProjMatrix(params), VIEW_PROJ_OFFSET);

@@ -99,7 +99,7 @@ export async function captureMediumMotion(ctx, page) {
             );
             const h = window.__battleModels,
               w = h.world;
-            const camera = structuredClone(w.stats().camera);
+            const camera = structuredClone(w.stats().preparedCamera);
             const source = modelInstances(h.stats().pose, w.soldierAssets);
             const clip = w.soldierAssets[14].animation.clips.find(
               (clip) => clip.name === motion.clip,
@@ -117,14 +117,14 @@ export async function captureMediumMotion(ctx, page) {
                     }))
                   : travelInstances(source, seconds, motion.speed, motion.duration);
               w.setTime(0);
-              w.drawInstances(instances, camera);
-              await w.settlePresentedFrame();
-              w.render();
-              await w.world.settlePresentedFrame();
+              await w.drawInstances(instances, camera);
+
+              await w.render();
+
               return {
                 instance: instances[0],
                 sampled: w.debugSoldierAnim(0),
-                count: w.stats().soldiers,
+                count: w.stats().crowd.instances,
               };
             };
           },
@@ -221,9 +221,9 @@ export async function captureMediumMotion(ctx, page) {
       return frame;
     }, pitch);
     await page.waitForFunction((frame) => window.__battleModels.stats().frame > frame, previous);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     const shot = await page.screenshot({ clip: { x: 128, y: 96, width: 1024, height: 640 } });
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     ctx.check(
       `${snapshot}: frozen formation repeats`,
       shot.equals(await page.screenshot({ clip: { x: 128, y: 96, width: 1024, height: 640 } })),

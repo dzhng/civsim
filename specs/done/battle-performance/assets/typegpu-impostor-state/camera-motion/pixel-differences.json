@@ -1,0 +1,37 @@
+[
+  {
+    "phase": "tactical",
+    "changedPixels": 98,
+    "maxChannelDifference": 100,
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "phase": "pan",
+    "changedPixels": 105,
+    "maxChannelDifference": 29,
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "phase": "wide",
+    "changedPixels": 1,
+    "maxChannelDifference": 1,
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "phase": "horizon",
+    "changedPixels": 0,
+    "maxChannelDifference": 0,
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "phase": "return",
+    "changedPixels": 0,
+    "maxChannelDifference": 0,
+    "width": 2880,
+    "height": 1800
+  }
+]

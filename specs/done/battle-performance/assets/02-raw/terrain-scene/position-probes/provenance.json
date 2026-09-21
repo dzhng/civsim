@@ -1,0 +1,10 @@
+{
+  "checkpoint": "4df54f61",
+  "diagnosticSourceSha256": {
+    "throwaway/terrain-shadow-scene.ts": "26a54309a8f6f902ea531232535170ce50c6b6254c37e909d3128822bf81b698",
+    "throwaway/terrain-shadow-check.ts": "8770affdbf39d786e8dcca09304964a06b290bf431ee2ea88c1b62e184561a18",
+    "throwaway/terrain-shadow.config.mts": "7d810a9d83482f17bbf50003cff1e142a325afd1eb9439ffb9060112a00dceee"
+  },
+  "noCasterScope": "source Mesh.castShadow=false and empty native caster callback; shadow-enabled lights and receiver shader policy retained",
+  "ordinaryPositionScope": "existing invariantPosition=false on terrain-scene ground/horizon/vista constructors only"
+}

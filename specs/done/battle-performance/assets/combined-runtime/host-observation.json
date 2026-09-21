@@ -1,0 +1,69 @@
+{
+  "label": "pre",
+  "at": "2026-09-16T11:19:30.177Z",
+  "available": true,
+  "unavailable": null,
+  "loadAverage1m": 2.83203125,
+  "busiestOtherPercent": 73.8,
+  "otherProcesses": [
+    {
+      "pid": 62812,
+      "parentPid": 62805,
+      "cpuPercent": 73.8,
+      "command": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    },
+    {
+      "pid": 62825,
+      "parentPid": 62812,
+      "cpuPercent": 72.8,
+      "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.48/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+    },
+    {
+      "pid": 62805,
+      "parentPid": 98482,
+      "cpuPercent": 37.1,
+      "command": "node"
+    },
+    {
+      "pid": 62820,
+      "parentPid": 62812,
+      "cpuPercent": 31.3,
+      "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.48/Helpers/Google Chrome Helper (GPU).app/Contents/MacOS/Google Chrome Helper (GPU)"
+    },
+    {
+      "pid": 56083,
+      "parentPid": 98482,
+      "cpuPercent": 30.9,
+      "command": "node"
+    },
+    {
+      "pid": 62824,
+      "parentPid": 62812,
+      "cpuPercent": 30.3,
+      "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.48/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+    },
+    {
+      "pid": 62821,
+      "parentPid": 62812,
+      "cpuPercent": 26.5,
+      "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.48/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+    },
+    {
+      "pid": 61318,
+      "parentPid": 1447,
+      "cpuPercent": 18.3,
+      "command": "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/153.0.8010.36/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)"
+    }
+  ],
+  "sharedProcesses": [
+    {
+      "pid": 598,
+      "parentPid": 1,
+      "cpuPercent": 61.9,
+      "command": "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"
+    }
+  ],
+  "competing": true,
+  "attribution": "shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 61.9% cannot be split between this trial and anything else",
+  "quiet": false
+}

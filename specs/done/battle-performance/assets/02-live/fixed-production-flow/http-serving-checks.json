@@ -1,0 +1,293 @@
+{
+  "scope": "HTTP only: no JavaScript execution, no browser, no GPU, no gameplay or timing verification",
+  "previewConfig": "/Users/david/dev/game-battle-claude-builds/throwaway/fixed-menu-builds/preview.config.mts",
+  "serialized": "one preview server at a time; each terminated before the next started",
+  "allServersStopped": true,
+  "failures": [],
+  "checks": [
+    {
+      "backend": "three",
+      "port": 5270,
+      "command": [
+        "web/node_modules/.bin/vite",
+        "preview",
+        "--config",
+        "throwaway/fixed-menu-builds/preview.config.mts",
+        "--outDir",
+        "/Users/david/dev/game-battle-claude-builds/throwaway/fixed-menu-builds/three",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5270",
+        "--strictPort"
+      ],
+      "assets": [
+        {
+          "url": "/fonts/Cinzel.ttf",
+          "status": 200,
+          "bytes": 125468,
+          "sha256": "f4d83d34d1f6c741193e4acf4b3dff9531e5a67b6aa65228d00a7db72a4e0f34",
+          "contentType": "font/ttf"
+        },
+        {
+          "url": "/assets/soldiers/catalog.json",
+          "status": 200,
+          "bytes": 1455,
+          "sha256": "a5c782407b9077066d91a966ff42dda4e9540d53e6597738f6d27ed49c6b4b1e",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/catalog.json",
+          "status": 200,
+          "bytes": 1676,
+          "sha256": "fd22bc271a61824f0757470f10caf993c3d6c78ca5799c9779e2e3a72e911300",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/be225594288c91daf76dc924eadac5cf7161e95c6218a1d5a06f0270a36c7544.json",
+          "status": 200,
+          "bytes": 471,
+          "sha256": "76802916ae778e9c7da869ff67885c83ec57290fa6940a8737624d661e2f9a96",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/cafa9a2b1267e352d3dfe8ddcaf14c53606fdbba076679e51c2d0f2c8b00f89c.atlas",
+          "status": 200,
+          "bytes": 583851,
+          "sha256": "b3e3e2c01c2e691f38a8fd5c1343b97b8f796f056dace61bc8ef6bb69e0f466d",
+          "contentType": ""
+        }
+      ],
+      "failures": [],
+      "rootStatus": 200,
+      "rootIsHtml": true,
+      "spaRoute": {
+        "path": "/benchmark",
+        "status": 200,
+        "isHtml": true,
+        "sameAsRoot": true
+      },
+      "isolationHeaders": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp"
+      },
+      "isolationHeadersCorrect": true,
+      "atlasApplicable": false,
+      "serverStopped": true,
+      "serverExitCode": 143
+    },
+    {
+      "backend": "raw",
+      "port": 5271,
+      "command": [
+        "web/node_modules/.bin/vite",
+        "preview",
+        "--config",
+        "throwaway/fixed-menu-builds/preview.config.mts",
+        "--outDir",
+        "/Users/david/dev/game-battle-claude-builds/throwaway/fixed-menu-builds/raw",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5271",
+        "--strictPort"
+      ],
+      "assets": [
+        {
+          "url": "/fonts/Cinzel.ttf",
+          "status": 200,
+          "bytes": 125468,
+          "sha256": "f4d83d34d1f6c741193e4acf4b3dff9531e5a67b6aa65228d00a7db72a4e0f34",
+          "contentType": "font/ttf"
+        },
+        {
+          "url": "/assets/soldiers/catalog.json",
+          "status": 200,
+          "bytes": 1455,
+          "sha256": "a5c782407b9077066d91a966ff42dda4e9540d53e6597738f6d27ed49c6b4b1e",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/catalog.json",
+          "status": 200,
+          "bytes": 1676,
+          "sha256": "fd22bc271a61824f0757470f10caf993c3d6c78ca5799c9779e2e3a72e911300",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/be225594288c91daf76dc924eadac5cf7161e95c6218a1d5a06f0270a36c7544.json",
+          "status": 200,
+          "bytes": 471,
+          "sha256": "76802916ae778e9c7da869ff67885c83ec57290fa6940a8737624d661e2f9a96",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/cafa9a2b1267e352d3dfe8ddcaf14c53606fdbba076679e51c2d0f2c8b00f89c.atlas",
+          "status": 200,
+          "bytes": 583851,
+          "sha256": "b3e3e2c01c2e691f38a8fd5c1343b97b8f796f056dace61bc8ef6bb69e0f466d",
+          "contentType": ""
+        }
+      ],
+      "failures": [],
+      "rootStatus": 200,
+      "rootIsHtml": true,
+      "spaRoute": {
+        "path": "/benchmark",
+        "status": 200,
+        "isHtml": true,
+        "sameAsRoot": true
+      },
+      "isolationHeaders": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp"
+      },
+      "isolationHeadersCorrect": true,
+      "atlasApplicable": true,
+      "serverStopped": true,
+      "serverExitCode": 143
+    },
+    {
+      "backend": "typegpu",
+      "port": 5272,
+      "command": [
+        "web/node_modules/.bin/vite",
+        "preview",
+        "--config",
+        "throwaway/fixed-menu-builds/preview.config.mts",
+        "--outDir",
+        "/Users/david/dev/game-battle-claude-builds/throwaway/fixed-menu-builds/typegpu",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5272",
+        "--strictPort"
+      ],
+      "assets": [
+        {
+          "url": "/fonts/Cinzel.ttf",
+          "status": 200,
+          "bytes": 125468,
+          "sha256": "f4d83d34d1f6c741193e4acf4b3dff9531e5a67b6aa65228d00a7db72a4e0f34",
+          "contentType": "font/ttf"
+        },
+        {
+          "url": "/assets/soldiers/catalog.json",
+          "status": 200,
+          "bytes": 1455,
+          "sha256": "a5c782407b9077066d91a966ff42dda4e9540d53e6597738f6d27ed49c6b4b1e",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/catalog.json",
+          "status": 200,
+          "bytes": 1676,
+          "sha256": "fd22bc271a61824f0757470f10caf993c3d6c78ca5799c9779e2e3a72e911300",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/be225594288c91daf76dc924eadac5cf7161e95c6218a1d5a06f0270a36c7544.json",
+          "status": 200,
+          "bytes": 471,
+          "sha256": "76802916ae778e9c7da869ff67885c83ec57290fa6940a8737624d661e2f9a96",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/cafa9a2b1267e352d3dfe8ddcaf14c53606fdbba076679e51c2d0f2c8b00f89c.atlas",
+          "status": 200,
+          "bytes": 583851,
+          "sha256": "b3e3e2c01c2e691f38a8fd5c1343b97b8f796f056dace61bc8ef6bb69e0f466d",
+          "contentType": ""
+        }
+      ],
+      "failures": [],
+      "rootStatus": 200,
+      "rootIsHtml": true,
+      "spaRoute": {
+        "path": "/benchmark",
+        "status": 200,
+        "isHtml": true,
+        "sameAsRoot": true
+      },
+      "isolationHeaders": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp"
+      },
+      "isolationHeadersCorrect": true,
+      "atlasApplicable": true,
+      "serverStopped": true,
+      "serverExitCode": 143
+    },
+    {
+      "backend": "vgpu",
+      "port": 5273,
+      "command": [
+        "web/node_modules/.bin/vite",
+        "preview",
+        "--config",
+        "throwaway/fixed-menu-builds/preview.config.mts",
+        "--outDir",
+        "/Users/david/dev/game-battle-claude-builds/throwaway/fixed-menu-builds/vgpu",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5273",
+        "--strictPort"
+      ],
+      "assets": [
+        {
+          "url": "/fonts/Cinzel.ttf",
+          "status": 200,
+          "bytes": 125468,
+          "sha256": "f4d83d34d1f6c741193e4acf4b3dff9531e5a67b6aa65228d00a7db72a4e0f34",
+          "contentType": "font/ttf"
+        },
+        {
+          "url": "/assets/soldiers/catalog.json",
+          "status": 200,
+          "bytes": 1455,
+          "sha256": "a5c782407b9077066d91a966ff42dda4e9540d53e6597738f6d27ed49c6b4b1e",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/catalog.json",
+          "status": 200,
+          "bytes": 1676,
+          "sha256": "fd22bc271a61824f0757470f10caf993c3d6c78ca5799c9779e2e3a72e911300",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/be225594288c91daf76dc924eadac5cf7161e95c6218a1d5a06f0270a36c7544.json",
+          "status": 200,
+          "bytes": 471,
+          "sha256": "76802916ae778e9c7da869ff67885c83ec57290fa6940a8737624d661e2f9a96",
+          "contentType": "application/json"
+        },
+        {
+          "url": "/benchmark-atlas/cafa9a2b1267e352d3dfe8ddcaf14c53606fdbba076679e51c2d0f2c8b00f89c.atlas",
+          "status": 200,
+          "bytes": 583851,
+          "sha256": "b3e3e2c01c2e691f38a8fd5c1343b97b8f796f056dace61bc8ef6bb69e0f466d",
+          "contentType": ""
+        }
+      ],
+      "failures": [],
+      "rootStatus": 200,
+      "rootIsHtml": true,
+      "spaRoute": {
+        "path": "/benchmark",
+        "status": 200,
+        "isHtml": true,
+        "sameAsRoot": true
+      },
+      "isolationHeaders": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp"
+      },
+      "isolationHeadersCorrect": true,
+      "atlasApplicable": true,
+      "serverStopped": true,
+      "serverExitCode": 143
+    }
+  ]
+}

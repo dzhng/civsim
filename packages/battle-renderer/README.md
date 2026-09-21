@@ -1,0 +1,44 @@
+# battle-renderer
+
+The TypeGPU battle world consumes renderer-neutral presentation data. Its
+caller owns the device, canvas, error boundary and authoritative simulation
+inputs. The world owns its allocated scene resources and pass ordering; the
+caller owns final canvas acquisition and submission.
+
+GPU layers live under `src/world`; shared preparation and frame contracts live
+beside the world entry, and shared shader bodies live under `src/shaders`. Terrain, environment,
+camera math, grass residency and soldier assets retain their domain owners.
+Consumers import those owners directly, without forwarding modules.
+
+Resource replacement follows admission and lifetime rules: a failed staged
+replacement cannot publish mixed generations, and disposal must account for
+pending work. Crowd replacement retains the admitted pose and validates all staged
+GPU uploads before retiring the installed generation. Diagnostics describe that
+admitted pose, so camera-only frames never invent animation progress. Resizing does not imply rebuilding unrelated resources or pipelines.
+
+Whole-population verification is an operation a caller asks for, never something
+a frame does. The world re-measures the admitted pose against the surface it was
+seated on and hands back the answer, refusing rather than passing where nothing
+is admitted, the population is empty, no terrain generation is committed or a
+staged operation is in flight. It identifies what it measured with counters the
+crowd history and terrain already keep, plus a crowd epoch — a replacement
+restarts the submission counter, so the submission alone cannot tell two
+generations apart.
+
+One depth decision covers the frame's attachment and every world pipeline's
+declared state, so the published depth diagnostics are a reading of installed
+resources rather than a constant kept beside them; reverse-Z follows from the
+clear value and the compare direction together. The world publishes the
+committed terrain generation's own content and reports an uncommitted or
+disposed scene as such. Its camera is the last *preparation*, which moves before
+anything reaches the queue — a presented camera belongs to the caller's own
+presentation record, never to this one.
+
+The world names its GPU work through a per-device scope hook. Installing a timing
+observer belongs to the caller; the world does not depend on lab measurement
+code. Adapted shader algorithms retain their pinned Three attribution.
+
+TypeGPU owns production GPU resources, binding layouts and pass submission. Typed
+shader functions coexist with explicit WGSL bodies; those bodies retain runtime
+shader validation rather than claiming TypeScript checks their contents. The game maintains one battle implementation; historical renderer comparisons are
+archived evidence, not alternate executable backends.

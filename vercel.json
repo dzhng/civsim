@@ -30,6 +30,10 @@
   ],
   "rewrites": [
     {
+      "source": "/benchmark",
+      "destination": "/index.html"
+    },
+    {
       "source": "/battle",
       "destination": "/index.html"
     },

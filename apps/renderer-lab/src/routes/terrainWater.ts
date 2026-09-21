@@ -3,7 +3,7 @@ import { vec4, vec2, float } from "three/tsl";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
-import { createGroundMesh } from "@packages/photoreal-renderer/src/battle/terrainLayer";
+import { createGroundMesh } from "@packages/photoreal-renderer/src/landscape/terrainLayer";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import { loadRockDetailMap } from "@packages/photoreal-renderer/src/landscape/rockDetailMap";
 import { fieldWaterSurfaceNodes } from "@packages/photoreal-renderer/src/landscape/waterMaterial";

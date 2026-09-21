@@ -1,6 +1,6 @@
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
-import type { BattleCameraSnapshot } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleCameraSnapshot } from "@packages/battle-renderer/src/types";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 
 export interface BattleModelPose {

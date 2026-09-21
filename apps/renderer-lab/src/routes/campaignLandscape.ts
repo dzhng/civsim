@@ -125,7 +125,11 @@ export async function route(ctx: LabContext) {
         height,
       );
       pose.aspect = width / height;
-      pose.target = [center[0], center[1], surface.sampleRendered(...center)!.position[2]];
+      pose.target = [
+        center[0],
+        center[1],
+        numberParam(ctx.params, "targetZ", surface.sampleRendered(...center)!.position[2]),
+      ];
       applyCamera3d(camera, pose);
       scenery.prepareRender(camera, height);
       world.setTime(0);

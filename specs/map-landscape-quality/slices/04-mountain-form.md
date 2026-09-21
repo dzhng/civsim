@@ -163,3 +163,8 @@ The next bounded shape hypothesis is to vary prominence along the existing
 dominant crest, producing distinct summits and saddles instead of a uniformly
 high wall. Keep source geography, minor folds and sampling unchanged; judge
 regional silhouette before adding material or vegetation complexity.
+
+The [crest prominence control](../assets/slice-04/crest-prominence/README.md)
+produces clearer summits in clay and natural color, but amplifies walls and fins.
+The original formula is restored. Next test only lowering saddle segments; do
+not raise the accepted crest envelope or introduce a new synthesis owner.

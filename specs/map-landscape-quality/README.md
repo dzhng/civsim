@@ -11,12 +11,17 @@ Production uses the shared rendering foundation; overall visual quality still
 falls short of the reference. Keep every open slice below open until its own
 acceptance evidence is complete.
 
-**Current pickup:** test summit/saddle prominence along the existing dominant
-ridge at unchanged2km sampling. The finer-mesh clay comparison is rejected:
-close stair steps improve but regional character does not, at3.5× triangles.
-Evidence is in slice04's accepted-field-sampling/visual folder. Terrain lab camera
-telemetry now proves actual matrices match. Main development server uses5186.
-No production resolution or residency redesign follows this result.
+**Current pickup:** test a downward-only saddle variation along the dominant
+ridge, holding all heights at or below the parent. The previous crest prominence
+control improved summit distinction but amplified walls/fins; it is not adopted.
+The original runtime formula is restored. Evidence and exact rejected formula
+are in slice04's `crest-prominence` folder. No alternate worktree is retained.
+The lab `targetZ` parameter pins the actual camera during shape changes. Use the
+same real Alps regional/close clay and natural frames before broader validation.
+
+The finer-mesh clay comparison is rejected: close stair steps improve but regional
+character does not, at3.5× triangles. Evidence is in slice04's
+accepted-field-sampling/visual folder. No resolution/residency redesign follows.
 
 The forest-edge size prototype is rejected: regional Alps inspection and fresh
 review found smaller scattered trees but no material improvement to dense woodland

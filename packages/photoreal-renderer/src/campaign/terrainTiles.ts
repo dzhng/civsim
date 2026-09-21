@@ -26,7 +26,7 @@ export function terrainTilePayloadBytes(data: TerrainTileData): number {
   const buffers = new Set([data.mesh.vertices.buffer, data.mesh.indices.buffer]);
   if (data.mesh.shoreDistance) buffers.add(data.mesh.shoreDistance.buffer);
   if (data.mesh.surfaceColor) buffers.add(data.mesh.surfaceColor.buffer);
-  if (data.mesh.tint) buffers.add(data.mesh.tint.buffer);
+  if (data.mesh.coverage) buffers.add(data.mesh.coverage.buffer);
   if (data.mesh.cellTriangles) buffers.add(data.mesh.cellTriangles.buffer);
   if (data.mesh.waterCoverage) buffers.add(data.mesh.waterCoverage.buffer);
   return [...buffers].reduce((bytes, buffer) => bytes + buffer.byteLength, 0);

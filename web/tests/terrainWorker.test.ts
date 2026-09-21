@@ -98,7 +98,7 @@ describe("campaign terrain worker transport", () => {
           Array.from(new Uint8Array(expected.surface.mesh[field]!.buffer)),
         );
       }
-      expect(result.mesh.tint).toBeUndefined();
+      expect(result.mesh.coverage).toBeUndefined();
       expect(result.mesh.surfaceColor).toBeUndefined();
       expect(result.mesh.triangles).toBe(expected.surface.mesh.triangles);
       expect(result.domain).toEqual(expected.surface.domain);

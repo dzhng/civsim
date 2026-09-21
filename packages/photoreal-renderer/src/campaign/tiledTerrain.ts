@@ -266,10 +266,10 @@ function updateGround(geometry: THREE.BufferGeometry, surface: RenderedSurface) 
       geometry.getAttribute("gSurfaceColor") as THREE.BufferAttribute,
       surface.mesh.surfaceColor,
     );
-  if (surface.mesh.tint)
+  if (surface.mesh.coverage)
     bytes += updateArray(
-      geometry.getAttribute("gTint") as THREE.BufferAttribute,
-      surface.mesh.tint,
+      geometry.getAttribute("gCover") as THREE.BufferAttribute,
+      surface.mesh.coverage,
     );
   return bytes;
 }
@@ -298,7 +298,9 @@ function geometryBytes(geometry: THREE.BufferGeometry) {
 /** Arrays copied by morphTileSurface; topology and wet coverage stay shared. */
 function mutableBytes(mesh: RenderedSurface["mesh"]) {
   return (
-    mesh.vertices.byteLength + (mesh.surfaceColor?.byteLength ?? 0) + (mesh.tint?.byteLength ?? 0)
+    mesh.vertices.byteLength +
+    (mesh.surfaceColor?.byteLength ?? 0) +
+    (mesh.coverage?.byteLength ?? 0)
   );
 }
 
@@ -306,7 +308,7 @@ function addMeshBuffers(buffers: Set<ArrayBufferLike>, mesh: RenderedSurface["me
   for (const array of [
     mesh.vertices,
     mesh.surfaceColor,
-    mesh.tint,
+    mesh.coverage,
     mesh.indices,
     mesh.cellTriangles,
     mesh.waterCoverage,

@@ -41,7 +41,7 @@ export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
  let value=clamp(1.0+(canopy-0.5)*${f(TURF_CONTRAST.canopy.valueSpread)}+(fine-0.5)*${f(TURF_CONTRAST.canopy.fineSpread)},${f(TURF_CONTRAST.canopy.valueMinimum)},${f(TURF_CONTRAST.canopy.valueMaximum)});
  return quiet*value;
 }`,
-    terrainSurface: `(position:vec3f,normal:vec3f,surfaceColor:vec3f,tint:f32,water:f32,time:f32,focus:vec2f,farStrength:f32,earthSdf:texture_2d<f32>,linear:sampler)->vec4f {
+    terrainSurface: `(position:vec3f,normal:vec3f,surfaceColor:vec3f,coverage:vec3f,water:f32,time:f32,focus:vec2f,farStrength:f32,earthSdf:texture_2d<f32>,linear:sampler)->vec4f {
  let world=position.xy;let rawWater=clamp(water,0.0,1.0);let waterBlend=smoothstep(0.08,0.55,rawWater);
  var unionDistance=${f(-(sdf?.rangeMeters ?? 1))};var roadDistance=unionDistance;
  ${
@@ -62,14 +62,15 @@ export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
  let mudInterior=smoothstep(${f(TURF_CONTRAST.edge.mudInteriorStartMeters)},${f(TURF_CONTRAST.edge.mudInteriorEndMeters)},unionDistance)*(1.0-roadInterior);
  let nz=clamp(normalize(normal).z,0.0,1.0);
  let tintDither=(terrainHash(floor(world*1.7))-0.5)*0.5+(terrainFbm(world*0.12)-0.5)*0.24;
- let forest=1.0-smoothstep(0.18,0.95,abs(tint-4.0+tintDither));
- let screeTint=(1.0-smoothstep(0.18,0.95,abs(tint-6.0+tintDither)))*(1.0-roadEdge);
+ let coverDetail=1.0-smoothstep(0.18,0.95,abs(tintDither));
+ let forest=coverage.y*coverDetail;
+ let screeTint=(coverage.z*coverDetail)*(1.0-roadEdge);
  var screeMask=screeTint*0.95*(1.0-waterBlend);var rockMask=0.0;var slopeRock=0.0;
  ${
    bands
      ? `slopeRock=1.0-smoothstep(${f(cliff)},${f(slow)},nz);
  let slowSlope=1.0-smoothstep(${f(slow)},${f(rolling)},nz);
- let rockTint=1.0-smoothstep(0.18,0.95,abs(tint-2.0+tintDither));
+ let rockTint=coverage.x*coverDetail;
  rockMask=clamp(rockTint+slopeRock,0.0,1.0)*(1.0-waterBlend);
  screeMask=clamp(screeTint*0.95+slowSlope*(1.0-rockTint)*0.42,0.0,1.0)*(1.0-waterBlend);`
      : ""

@@ -57,7 +57,7 @@ const device = {
 const ground = {
   triangles: 1,
   vertices: new Float32Array(30),
-  tint: new Float32Array(3),
+  coverage: new Float32Array(9),
   surfaceColor: new Float32Array(9),
   indices: new Uint32Array([0, 1, 2]),
 };

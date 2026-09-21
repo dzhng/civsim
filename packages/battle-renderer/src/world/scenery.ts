@@ -160,10 +160,6 @@ export async function createTypegpuScenery(
         }),
       );
     });
-    const casterAlgorithm = tgpu.fn(
-      [d.f32],
-      d.vec4f,
-    )("(alpha:f32)->vec4f{if(alpha<=0.5){discard;}return vec4f(0);}");
     const state = {
       attribs: {
         ...meshLayout.attrib,
@@ -182,12 +178,22 @@ export async function createTypegpuScenery(
       multisample: { count: samples },
     });
     // Pinned TypeGPU cannot emit an empty fragment output. Forward rasterized depth
-    // through its public depth builtin while retaining source vertex-alpha discard.
+    // through its public depth builtin after the same leaf cutout as the visible pass.
     const depthFragment = tgpu.fragmentFn({ in: varying, out: { depth: d.builtin.fragDepth } })((
       v,
     ) => {
       "use gpu";
-      casterAlgorithm(v.color.a);
+      leafColor(
+        V({
+          clip: v.clip,
+          world: v.world,
+          normal: v.normal,
+          color: v.color,
+          uv: v.uv,
+          shade: v.shade,
+          geometryNormalView: v.geometryNormalView,
+        }),
+      );
       return { depth: v.clip.z };
     });
     const shadow = root.createRenderPipeline({
@@ -268,7 +274,7 @@ export async function createTypegpuScenery(
           let pipe =
             audience === "main"
               ? beauty.with(leafGroup).with(environment.group)
-              : shadow.with(environment.casterGroup);
+              : shadow.with(leafGroup).with(environment.casterGroup);
           pipe
             .with(cam)
             .with(meshLayout, vertices)

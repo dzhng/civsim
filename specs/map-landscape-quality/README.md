@@ -11,12 +11,15 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 implementations or create sibling project folders. The integrated server uses5186.
 Inspect live processes and keep source edits out of the single GPU capture lane.
 
-**Current pickup: restore categorical battle terrain coverage.** In 13, convert
-source material IDs to rock/forest/scree weights before both CPU vista joins and
-GPU interpolation. Grass-to-forest blends must never invent rock. Keep source
-simulation grids unchanged and make Three/TypeGPU consume the same neutral
-coverage recipe. Use the production CPU seam test before pixel verification.
-Scenery integration in 06 is independent; keep shared API seams on one owner.
+**Current pickup: port bitmap rock response.**
+Categorical rock/forest/scree weights now precede CPU joins and GPU interpolation
+in both adapters; TypeGPU leaf shadows share the visible atlas cutout. Six isolated
+production-world views repeat exactly, 1,066 tests/typecheck/build pass, and fresh
+review favors the bounded fixes. All three canonical character views preserve their intended layer coverage and repeat exactly.
+Evidence and remaining visual defects: `assets/slice-13/coverage-shadow/`.
+Do not mark06 or13 complete. Next, share the accepted rock bitmap/policy with
+TypeGPU using one terrain-scene texture lifetime; authored visual slope defaults
+must not fabricate gameplay metadata. Follow the resource plan in13.
 
 The road surface-width pass is complete: 1,064 frontend tests and typecheck pass;
 three production views repeat exactly on final code; both canonical geography
@@ -37,8 +40,7 @@ not final art or hardware performance.
 
 **Priority after roads:**
 
-1. Restore missing battle appearance contracts: categorical coverage before CPU
-   seams/GPU interpolation, then common rock/water response. Dry beauty normals
+1. Finish battle appearance adoption with common rock/water response. Dry beauty normals
    already come from geometry. The current patch plan is in13.
 2. Restore battle tree variants, projected detail selection and a common visible/
    shadow leaf mask in 06. Campaign crown work remains accepted; the new battle

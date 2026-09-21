@@ -12,7 +12,7 @@ export function buildVistaGroundMesh(
 ): Omit<PhotorealBattleGroundMesh, "earthDistance"> {
   const base = GROUND_COVER_COLOR[cover];
   const verts = new Float32Array(band.w * band.h * 10);
-  const tint = new Float32Array(band.w * band.h);
+  const coverage = new Float32Array(band.w * band.h * 3);
   const surfaceColor = new Float32Array(band.w * band.h * 3);
   const zAt = (i: number, j: number): number => {
     const y = band.oy + j * band.cell;
@@ -59,7 +59,7 @@ export function buildVistaGroundMesh(
       surfaceColor[tv * 3] = base[0];
       surfaceColor[tv * 3 + 1] = base[1];
       surfaceColor[tv * 3 + 2] = base[2];
-      tint[tv++] = 0;
+      tv++;
     }
   }
   const indices: number[] = [];
@@ -83,7 +83,7 @@ export function buildVistaGroundMesh(
   }
   return {
     vertices: verts,
-    tint,
+    coverage,
     surfaceColor,
     indices: new Uint32Array(indices),
     triangles: indices.length / 3,
@@ -106,7 +106,7 @@ function groundEdgeView(mesh: Omit<PhotorealBattleGroundMesh, "earthDistance">) 
     gNormal: normal,
     normal,
     gWater: attribute(mesh.vertices, 10, 9, 1),
-    gTint: attribute(mesh.tint, 1, 0, 1),
+    gCover: attribute(mesh.coverage, 3, 0, 3),
     gSurfaceColor: attribute(mesh.surfaceColor, 3, 0, 3),
   };
   return {
@@ -147,7 +147,7 @@ export function buildBattleVistaGeometry(
     }
     inner = {
       vertices,
-      tint: a.gTint.values,
+      coverage: a.gCover.values,
       surfaceColor: a.gSurfaceColor.values,
       indices: frontSideGroundIndices(joined.indices),
       triangles: joined.indices.length / 3,

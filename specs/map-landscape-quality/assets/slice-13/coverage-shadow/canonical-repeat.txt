@@ -1,0 +1,25 @@
+(node:96142) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game/.worktrees/map-landscape-quality/packages/game-renderer/src/battle/unitInfoLayout.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game/.worktrees/map-landscape-quality/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS  battle-landscape-character: authored-A: production TypeGPU renderer  (typegpu)
+PASS  battle-landscape-character: authored-A: requested camera is not clamped  ({"zoom":7.8,"yaw":-1.5707963267948966,"center":[380,-180]})
+PASS  battle-landscape-character: authored-A: terrain is installed with its original cover and slope policy  ({"cover":"green-grass","slopes":null})
+PASS  battle-landscape-character: authored-A: intended terrain and scenery layers are visible  ({"ground":true,"vista":true,"water":false,"scenery":true,"crowd":false})
+PASS  battle-landscape-character: authored-A: clean GPU validation
+PASS  battle-landscape-character: snapshot landscape-character/authored-A  (0 px differ (0.0000%))
+PASS  battle-landscape-character: authored-C: production TypeGPU renderer  (typegpu)
+PASS  battle-landscape-character: authored-C: requested camera is not clamped  ({"zoom":7.8,"yaw":-1.5707963267948966,"center":[540,260]})
+PASS  battle-landscape-character: authored-C: terrain is installed with its original cover and slope policy  ({"cover":"yellow-grass","slopes":null})
+PASS  battle-landscape-character: authored-C: intended terrain and scenery layers are visible  ({"ground":true,"vista":true,"water":false,"scenery":true,"crowd":false})
+PASS  battle-landscape-character: authored-C: clean GPU validation
+PASS  battle-landscape-character: snapshot landscape-character/authored-C  (0 px differ (0.0000%))
+PASS  battle-landscape-character: generated-forest-edge: production TypeGPU renderer  (typegpu)
+PASS  battle-landscape-character: generated-forest-edge: requested camera is not clamped  ({"zoom":7.8,"yaw":-1.5707963267948966,"center":[344,8]})
+PASS  battle-landscape-character: generated-forest-edge: terrain is installed with its original cover and slope policy  ({"cover":"green-grass","slopes":{"cliffDilateCells":6,"cliffMin":0.3199999928474426,"flatMax":0.03500000014901161,"highlandCapMinM":35,"rollingMax":0.11500000208616257,"slowMin":0.13500000536441803}})
+PASS  battle-landscape-character: generated-forest-edge: intended terrain and scenery layers are visible  ({"ground":true,"vista":true,"water":false,"scenery":false,"crowd":false})
+PASS  battle-landscape-character: generated-forest-edge: clean GPU validation
+PASS  battle-landscape-character: snapshot landscape-character/generated-forest-edge  (0 px differ (0.0000%))
+PASS  runner: no page errors
+
+ALL CHECKS PASSED

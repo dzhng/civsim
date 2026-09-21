@@ -29,7 +29,7 @@ export function battleGroundInputs(ground: ReturnType<typeof buildBattleTerrainD
   return {
     vertices: ground.vertices,
     indices: frontSideGroundIndices(ground.indices),
-    tint: ground.tint,
+    coverage: ground.coverage,
     surfaceColor: ground.surfaceColor,
     earthDistance: {
       data: sdf.data,

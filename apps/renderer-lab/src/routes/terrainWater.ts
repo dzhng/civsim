@@ -32,7 +32,7 @@ export async function route(ctx: LabContext) {
       {
         vertices,
         indices: new Uint32Array([0, 2, 1, 1, 2, 3]),
-        tint: new Float32Array(4),
+        coverage: new Float32Array(4 * 3),
         surfaceColor: new Float32Array(12),
         triangles: 2,
       },

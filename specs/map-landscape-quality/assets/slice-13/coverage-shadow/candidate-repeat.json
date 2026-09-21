@@ -1,0 +1,4075 @@
+{
+  "target": "http://127.0.0.1:5188",
+  "errors": [],
+  "warnings": [],
+  "checks": [
+    {
+      "name": "snapshot generated-forest-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot forest-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot authored-rock-a",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot authored-rock-c",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot leaf-shadow",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot leaf-unshadowed",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    }
+  ],
+  "frames": [
+    {
+      "name": "generated-forest-edge",
+      "params": "map=gen&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=344&cy=8&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon&seed=8",
+      "camera": {
+        "center": [
+          344,
+          8
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "framebuffer": {
+          "width": 1280,
+          "height": 800
+        },
+        "prepared": true,
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": false,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 344,
+          "y": 8,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              344,
+              8,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "environment": "golden",
+        "depth": {
+          "owner": "typegpu-battle-frame",
+          "installed": true,
+          "format": "depth32float",
+          "samples": 1,
+          "width": 1280,
+          "height": 800,
+          "clearValue": 0,
+          "loadOp": "clear",
+          "storeOp": "store",
+          "reversed": true,
+          "requestedBytes": 4096000
+        },
+        "shadows": {
+          "mode": "single",
+          "cascades": 1,
+          "mapSize": 1024,
+          "layers": 1,
+          "depthBytes": 4194304,
+          "cameraBuffers": 1,
+          "receiverBytes": 208
+        },
+        "crowd": {
+          "instances": 15560,
+          "mainVisible": 0,
+          "shadowOnly": 0,
+          "ready": true,
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "shadowTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "mesh": {
+            "clipInvariant": false,
+            "mainTriangles": 0,
+            "shadowTriangles": 0,
+            "mainDraws": 0,
+            "shadowDraws": 0,
+            "impostorsPending": 0,
+            "pose": [
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              }
+            ],
+            "images": {
+              "allocated": [
+                {
+                  "channel": "baseColor",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm-srgb",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "normal",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "orm",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                }
+              ],
+              "allocatedImages": 3,
+              "allocatedBytes": 67108860,
+              "references": 60,
+              "referencedBytes": 1342177200
+            }
+          },
+          "impostors": {
+            "0": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "1": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "2": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "3": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "4": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "5": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "6": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "7": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "8": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "9": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "10": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "11": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "12": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "13": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "14": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "15": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "16": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "17": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "18": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "19": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            }
+          }
+        },
+        "grass": {
+          "residency": {
+            "productionSamplingProfile": {
+              "quality": "standard",
+              "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+              "seed": 1588011046,
+              "vistaVisibleRadiusM": 260,
+              "vistaTransitionDefaults": {
+                "edgeSinkStartM": 380,
+                "denseBladeEndM": 143,
+                "farGrassStartM": 260,
+                "farGrassEndM": 480,
+                "farSoftWidthScale": 1.6
+              },
+              "closeVisibleRadiusM": 40,
+              "rebuildMarginM": 48,
+              "fieldCellSize": 0.42,
+              "snapCellSize": 48,
+              "clumpCellSize": 1.55,
+              "maxRecords": 160000,
+              "minActiveRecords": 18000,
+              "closeDensityReferenceRecords": 42000,
+              "closeDensityReferenceRadiusM": 64,
+              "lodStratifiedBudget": true,
+              "density": 1,
+              "jitter": 0.72,
+              "minNormalZ": 0.45,
+              "lodNearRadiusM": 5,
+              "lodMidRadiusM": 20,
+              "baseHeight": 0.26,
+              "heightJitter": 0.62,
+              "baseWidth": 0.004,
+              "widthJitter": 0.2,
+              "baseBend": 0.62,
+              "bendJitter": 0.45,
+              "tiers": [
+                {
+                  "id": "near",
+                  "lodTier": 0,
+                  "segments": 4,
+                  "minDistanceM": 0,
+                  "maxDistanceM": 5
+                },
+                {
+                  "id": "mid",
+                  "lodTier": 1,
+                  "segments": 2,
+                  "minDistanceM": 5,
+                  "maxDistanceM": 20
+                },
+                {
+                  "id": "far",
+                  "lodTier": 2,
+                  "segments": 2,
+                  "minDistanceM": 20,
+                  "maxDistanceM": 480
+                }
+              ]
+            },
+            "detail": {
+              "bladePixels": 2.1862332850628503,
+              "baseMinPixels": 0.5,
+              "ringMinPixels": 1.5,
+              "ringReleasePixels": 1,
+              "focusRingActive": false
+            },
+            "transitionOwner": "battleGrassResidency.update",
+            "activeTransition": {
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 1250,
+              "nearTierEndM": 5,
+              "midTierEndM": 64,
+              "farSoftWidthScale": 3,
+              "nearCoverageWidthScale": 1,
+              "lowerFarWidthScale": 1.35,
+              "lowerFarWidthEndM": 112,
+              "terrainDetailStrength": 1,
+              "edgeSinkStartM": 1120
+            },
+            "sample": null,
+            "baseSample": null,
+            "focusSample": null,
+            "rebuild": {
+              "strategy": "static-whole-map+camera-focus-tiles",
+              "activeRecordBudget": 160000,
+              "vistaRecordBudget": 160000,
+              "areaBudgetScale": 1,
+              "pending": false,
+              "rebuilds": 0,
+              "lastSampleMs": 0,
+              "lastSlices": 0,
+              "lastMaxSliceMs": 0,
+              "requestedGeneration": 0,
+              "activeGeneration": 0,
+              "pendingAgeMs": 0,
+              "requiredTiles": 0,
+              "residentTiles": 0,
+              "missingTiles": 0,
+              "publishTilesPerStep": 8,
+              "tileSlotRecords": 1600,
+              "tileCells": 1600,
+              "slotCapacity": 640,
+              "retainedRecordBytes": 65536000,
+              "sampledTiles": 0,
+              "sampledCells": 0,
+              "publishedRecords": 0,
+              "publishedBytes": 0,
+              "evictedTiles": 0,
+              "cancelledTiles": 0,
+              "cancelledCells": 0,
+              "retiredFocusGenerations": 0,
+              "coverageTileM": 24,
+              "coverageRadiusM": 0,
+              "coverageSampledRadiusM": 0.03125,
+              "publishedCoverageTiles": 0,
+              "activeCoverageResident": true
+            }
+          },
+          "packedStrideFloats": 16,
+          "visibility": {
+            "base": false,
+            "ring": false,
+            "far": true
+          },
+          "uploads": [
+            1,
+            1
+          ],
+          "ringRecordRanges": 0,
+          "layers": [
+            {
+              "recordCount": 0,
+              "capacity": 1,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            },
+            {
+              "recordCount": 0,
+              "capacity": 1024000,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            }
+          ]
+        },
+        "standards": {
+          "count": 0,
+          "selected": 0,
+          "capacity": 32,
+          "pipelines": 1,
+          "anchors": []
+        },
+        "readouts": {
+          "readouts": 0,
+          "chips": 0,
+          "atlasWidth": 1,
+          "atlasHeight": 1,
+          "atlasUploads": 0,
+          "atlasUploadBytes": 0,
+          "instanceUploadBytes": 0,
+          "instanceBufferBytes": 0
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 3495,
+          "vistaBands": 2,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "slopeBands": {
+            "cliffDilateCells": 6,
+            "cliffMin": 0.3199999928474426,
+            "flatMax": 0.03500000014901161,
+            "highlandCapMinM": 35,
+            "rollingMax": 0.11500000208616257,
+            "slowMin": 0.13500000536441803
+          },
+          "vista": {
+            "shape": "two full vertex-sample height bands; renderer cuts the inner rect per band",
+            "bands": [
+              {
+                "name": "vista",
+                "w": 301,
+                "h": 201,
+                "cell": 16,
+                "ox": -2400,
+                "oy": -1600,
+                "innerHalfW": 1200,
+                "innerHalfH": 800,
+                "outerHalfW": 2400,
+                "outerHalfH": 1600
+              },
+              {
+                "name": "farFog",
+                "w": 133,
+                "h": 90,
+                "cell": 64,
+                "ox": -4208,
+                "oy": -2848,
+                "innerHalfW": 2400,
+                "innerHalfH": 1600,
+                "outerHalfW": 4200,
+                "outerHalfH": 2800
+              }
+            ]
+          },
+          "water": {
+            "draws": 0,
+            "triangles": 0,
+            "surfaces": [],
+            "ownedBuffers": 0,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        },
+        "tacticalLines": {
+          "groundCues": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "rings": {
+            "count": 0,
+            "capacityBytes": 32
+          },
+          "effects": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "triangles": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "debugBlocks": null
+        },
+        "authoringMeshesOnly": false
+      }
+    },
+    {
+      "name": "forest-edge",
+      "params": "map=A&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=500&cy=280&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon",
+      "camera": {
+        "center": [
+          500,
+          280
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "framebuffer": {
+          "width": 1280,
+          "height": 800
+        },
+        "prepared": true,
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": false,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 500,
+          "y": 280,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              500,
+              280,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "environment": "golden",
+        "depth": {
+          "owner": "typegpu-battle-frame",
+          "installed": true,
+          "format": "depth32float",
+          "samples": 1,
+          "width": 1280,
+          "height": 800,
+          "clearValue": 0,
+          "loadOp": "clear",
+          "storeOp": "store",
+          "reversed": true,
+          "requestedBytes": 4096000
+        },
+        "shadows": {
+          "mode": "single",
+          "cascades": 1,
+          "mapSize": 1024,
+          "layers": 1,
+          "depthBytes": 4194304,
+          "cameraBuffers": 1,
+          "receiverBytes": 208
+        },
+        "crowd": {
+          "instances": 15560,
+          "mainVisible": 0,
+          "shadowOnly": 0,
+          "ready": true,
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "shadowTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "mesh": {
+            "clipInvariant": false,
+            "mainTriangles": 0,
+            "shadowTriangles": 0,
+            "mainDraws": 0,
+            "shadowDraws": 0,
+            "impostorsPending": 0,
+            "pose": [
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              }
+            ],
+            "images": {
+              "allocated": [
+                {
+                  "channel": "baseColor",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm-srgb",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "normal",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "orm",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                }
+              ],
+              "allocatedImages": 3,
+              "allocatedBytes": 67108860,
+              "references": 60,
+              "referencedBytes": 1342177200
+            }
+          },
+          "impostors": {
+            "0": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "1": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "2": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "3": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "4": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "5": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "6": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "7": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "8": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "9": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "10": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "11": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "12": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "13": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "14": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "15": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "16": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "17": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "18": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "19": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            }
+          }
+        },
+        "grass": {
+          "residency": {
+            "productionSamplingProfile": {
+              "quality": "standard",
+              "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+              "seed": 1588011046,
+              "vistaVisibleRadiusM": 260,
+              "vistaTransitionDefaults": {
+                "edgeSinkStartM": 380,
+                "denseBladeEndM": 143,
+                "farGrassStartM": 260,
+                "farGrassEndM": 480,
+                "farSoftWidthScale": 1.6
+              },
+              "closeVisibleRadiusM": 40,
+              "rebuildMarginM": 48,
+              "fieldCellSize": 0.42,
+              "snapCellSize": 48,
+              "clumpCellSize": 1.55,
+              "maxRecords": 160000,
+              "minActiveRecords": 18000,
+              "closeDensityReferenceRecords": 42000,
+              "closeDensityReferenceRadiusM": 64,
+              "lodStratifiedBudget": true,
+              "density": 1,
+              "jitter": 0.72,
+              "minNormalZ": 0.45,
+              "lodNearRadiusM": 5,
+              "lodMidRadiusM": 20,
+              "baseHeight": 0.26,
+              "heightJitter": 0.62,
+              "baseWidth": 0.004,
+              "widthJitter": 0.2,
+              "baseBend": 0.62,
+              "bendJitter": 0.45,
+              "tiers": [
+                {
+                  "id": "near",
+                  "lodTier": 0,
+                  "segments": 4,
+                  "minDistanceM": 0,
+                  "maxDistanceM": 5
+                },
+                {
+                  "id": "mid",
+                  "lodTier": 1,
+                  "segments": 2,
+                  "minDistanceM": 5,
+                  "maxDistanceM": 20
+                },
+                {
+                  "id": "far",
+                  "lodTier": 2,
+                  "segments": 2,
+                  "minDistanceM": 20,
+                  "maxDistanceM": 480
+                }
+              ]
+            },
+            "detail": {
+              "bladePixels": 2.1862334466225395,
+              "baseMinPixels": 0.5,
+              "ringMinPixels": 1.5,
+              "ringReleasePixels": 1,
+              "focusRingActive": false
+            },
+            "transitionOwner": "battleGrassResidency.update",
+            "activeTransition": {
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 1250,
+              "nearTierEndM": 5,
+              "midTierEndM": 64,
+              "farSoftWidthScale": 3,
+              "nearCoverageWidthScale": 1,
+              "lowerFarWidthScale": 1.35,
+              "lowerFarWidthEndM": 112,
+              "terrainDetailStrength": 1,
+              "edgeSinkStartM": 1120
+            },
+            "sample": null,
+            "baseSample": null,
+            "focusSample": null,
+            "rebuild": {
+              "strategy": "static-whole-map+camera-focus-tiles",
+              "activeRecordBudget": 160000,
+              "vistaRecordBudget": 160000,
+              "areaBudgetScale": 1,
+              "pending": false,
+              "rebuilds": 0,
+              "lastSampleMs": 0,
+              "lastSlices": 0,
+              "lastMaxSliceMs": 0,
+              "requestedGeneration": 0,
+              "activeGeneration": 0,
+              "pendingAgeMs": 0,
+              "requiredTiles": 0,
+              "residentTiles": 0,
+              "missingTiles": 0,
+              "publishTilesPerStep": 8,
+              "tileSlotRecords": 1600,
+              "tileCells": 1600,
+              "slotCapacity": 640,
+              "retainedRecordBytes": 65536000,
+              "sampledTiles": 0,
+              "sampledCells": 0,
+              "publishedRecords": 0,
+              "publishedBytes": 0,
+              "evictedTiles": 0,
+              "cancelledTiles": 0,
+              "cancelledCells": 0,
+              "retiredFocusGenerations": 0,
+              "coverageTileM": 24,
+              "coverageRadiusM": 0,
+              "coverageSampledRadiusM": 0.03125,
+              "publishedCoverageTiles": 0,
+              "activeCoverageResident": true
+            }
+          },
+          "packedStrideFloats": 16,
+          "visibility": {
+            "base": false,
+            "ring": false,
+            "far": true
+          },
+          "uploads": [
+            1,
+            1
+          ],
+          "ringRecordRanges": 0,
+          "layers": [
+            {
+              "recordCount": 0,
+              "capacity": 1,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            },
+            {
+              "recordCount": 0,
+              "capacity": 1024000,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            }
+          ]
+        },
+        "standards": {
+          "count": 0,
+          "selected": 0,
+          "capacity": 32,
+          "pipelines": 1,
+          "anchors": []
+        },
+        "readouts": {
+          "readouts": 0,
+          "chips": 0,
+          "atlasWidth": 1,
+          "atlasHeight": 1,
+          "atlasUploads": 0,
+          "atlasUploadBytes": 0,
+          "instanceUploadBytes": 0,
+          "instanceBufferBytes": 0
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 1282,
+          "vistaBands": 0,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "slopeBands": null,
+          "vista": null,
+          "water": {
+            "draws": 1,
+            "triangles": 387200,
+            "surfaces": [
+              {
+                "kind": "ocean",
+                "level": 0,
+                "surfaceLevel": 0,
+                "triangles": 387200
+              }
+            ],
+            "ownedBuffers": 4,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        },
+        "tacticalLines": {
+          "groundCues": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "rings": {
+            "count": 0,
+            "capacityBytes": 32
+          },
+          "effects": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "triangles": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "debugBlocks": null
+        },
+        "authoringMeshesOnly": false
+      }
+    },
+    {
+      "name": "authored-rock-a",
+      "params": "map=A&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=380&cy=-180&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon",
+      "camera": {
+        "center": [
+          380,
+          -180
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "framebuffer": {
+          "width": 1280,
+          "height": 800
+        },
+        "prepared": true,
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": false,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 380,
+          "y": -180,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              380,
+              -180,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "environment": "golden",
+        "depth": {
+          "owner": "typegpu-battle-frame",
+          "installed": true,
+          "format": "depth32float",
+          "samples": 1,
+          "width": 1280,
+          "height": 800,
+          "clearValue": 0,
+          "loadOp": "clear",
+          "storeOp": "store",
+          "reversed": true,
+          "requestedBytes": 4096000
+        },
+        "shadows": {
+          "mode": "single",
+          "cascades": 1,
+          "mapSize": 1024,
+          "layers": 1,
+          "depthBytes": 4194304,
+          "cameraBuffers": 1,
+          "receiverBytes": 208
+        },
+        "crowd": {
+          "instances": 15560,
+          "mainVisible": 0,
+          "shadowOnly": 0,
+          "ready": true,
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "shadowTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "mesh": {
+            "clipInvariant": false,
+            "mainTriangles": 0,
+            "shadowTriangles": 0,
+            "mainDraws": 0,
+            "shadowDraws": 0,
+            "impostorsPending": 0,
+            "pose": [
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              }
+            ],
+            "images": {
+              "allocated": [
+                {
+                  "channel": "baseColor",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm-srgb",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "normal",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "orm",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                }
+              ],
+              "allocatedImages": 3,
+              "allocatedBytes": 67108860,
+              "references": 60,
+              "referencedBytes": 1342177200
+            }
+          },
+          "impostors": {
+            "0": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "1": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "2": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "3": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "4": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "5": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "6": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "7": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "8": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "9": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "10": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "11": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "12": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "13": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "14": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "15": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "16": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "17": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "18": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "19": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            }
+          }
+        },
+        "grass": {
+          "residency": {
+            "productionSamplingProfile": {
+              "quality": "standard",
+              "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+              "seed": 1588011046,
+              "vistaVisibleRadiusM": 260,
+              "vistaTransitionDefaults": {
+                "edgeSinkStartM": 380,
+                "denseBladeEndM": 143,
+                "farGrassStartM": 260,
+                "farGrassEndM": 480,
+                "farSoftWidthScale": 1.6
+              },
+              "closeVisibleRadiusM": 40,
+              "rebuildMarginM": 48,
+              "fieldCellSize": 0.42,
+              "snapCellSize": 48,
+              "clumpCellSize": 1.55,
+              "maxRecords": 160000,
+              "minActiveRecords": 18000,
+              "closeDensityReferenceRecords": 42000,
+              "closeDensityReferenceRadiusM": 64,
+              "lodStratifiedBudget": true,
+              "density": 1,
+              "jitter": 0.72,
+              "minNormalZ": 0.45,
+              "lodNearRadiusM": 5,
+              "lodMidRadiusM": 20,
+              "baseHeight": 0.26,
+              "heightJitter": 0.62,
+              "baseWidth": 0.004,
+              "widthJitter": 0.2,
+              "baseBend": 0.62,
+              "bendJitter": 0.45,
+              "tiers": [
+                {
+                  "id": "near",
+                  "lodTier": 0,
+                  "segments": 4,
+                  "minDistanceM": 0,
+                  "maxDistanceM": 5
+                },
+                {
+                  "id": "mid",
+                  "lodTier": 1,
+                  "segments": 2,
+                  "minDistanceM": 5,
+                  "maxDistanceM": 20
+                },
+                {
+                  "id": "far",
+                  "lodTier": 2,
+                  "segments": 2,
+                  "minDistanceM": 20,
+                  "maxDistanceM": 480
+                }
+              ]
+            },
+            "detail": {
+              "bladePixels": 2.1862332373293105,
+              "baseMinPixels": 0.5,
+              "ringMinPixels": 1.5,
+              "ringReleasePixels": 1,
+              "focusRingActive": false
+            },
+            "transitionOwner": "battleGrassResidency.update",
+            "activeTransition": {
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 1250,
+              "nearTierEndM": 5,
+              "midTierEndM": 64,
+              "farSoftWidthScale": 3,
+              "nearCoverageWidthScale": 1,
+              "lowerFarWidthScale": 1.35,
+              "lowerFarWidthEndM": 112,
+              "terrainDetailStrength": 1,
+              "edgeSinkStartM": 1120
+            },
+            "sample": null,
+            "baseSample": null,
+            "focusSample": null,
+            "rebuild": {
+              "strategy": "static-whole-map+camera-focus-tiles",
+              "activeRecordBudget": 160000,
+              "vistaRecordBudget": 160000,
+              "areaBudgetScale": 1,
+              "pending": false,
+              "rebuilds": 0,
+              "lastSampleMs": 0,
+              "lastSlices": 0,
+              "lastMaxSliceMs": 0,
+              "requestedGeneration": 0,
+              "activeGeneration": 0,
+              "pendingAgeMs": 0,
+              "requiredTiles": 0,
+              "residentTiles": 0,
+              "missingTiles": 0,
+              "publishTilesPerStep": 8,
+              "tileSlotRecords": 1600,
+              "tileCells": 1600,
+              "slotCapacity": 640,
+              "retainedRecordBytes": 65536000,
+              "sampledTiles": 0,
+              "sampledCells": 0,
+              "publishedRecords": 0,
+              "publishedBytes": 0,
+              "evictedTiles": 0,
+              "cancelledTiles": 0,
+              "cancelledCells": 0,
+              "retiredFocusGenerations": 0,
+              "coverageTileM": 24,
+              "coverageRadiusM": 0,
+              "coverageSampledRadiusM": 0.03125,
+              "publishedCoverageTiles": 0,
+              "activeCoverageResident": true
+            }
+          },
+          "packedStrideFloats": 16,
+          "visibility": {
+            "base": false,
+            "ring": false,
+            "far": true
+          },
+          "uploads": [
+            1,
+            1
+          ],
+          "ringRecordRanges": 0,
+          "layers": [
+            {
+              "recordCount": 0,
+              "capacity": 1,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            },
+            {
+              "recordCount": 0,
+              "capacity": 1024000,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            }
+          ]
+        },
+        "standards": {
+          "count": 0,
+          "selected": 0,
+          "capacity": 32,
+          "pipelines": 1,
+          "anchors": []
+        },
+        "readouts": {
+          "readouts": 0,
+          "chips": 0,
+          "atlasWidth": 1,
+          "atlasHeight": 1,
+          "atlasUploads": 0,
+          "atlasUploadBytes": 0,
+          "instanceUploadBytes": 0,
+          "instanceBufferBytes": 0
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 1282,
+          "vistaBands": 0,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "slopeBands": null,
+          "vista": null,
+          "water": {
+            "draws": 1,
+            "triangles": 387200,
+            "surfaces": [
+              {
+                "kind": "ocean",
+                "level": 0,
+                "surfaceLevel": 0,
+                "triangles": 387200
+              }
+            ],
+            "ownedBuffers": 4,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        },
+        "tacticalLines": {
+          "groundCues": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "rings": {
+            "count": 0,
+            "capacityBytes": 32
+          },
+          "effects": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "triangles": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "debugBlocks": null
+        },
+        "authoringMeshesOnly": false
+      }
+    },
+    {
+      "name": "authored-rock-c",
+      "params": "map=C&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=540&cy=260&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon",
+      "camera": {
+        "center": [
+          540,
+          260
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "framebuffer": {
+          "width": 1280,
+          "height": 800
+        },
+        "prepared": true,
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": false,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 540,
+          "y": 260,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              540,
+              260,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "environment": "golden",
+        "depth": {
+          "owner": "typegpu-battle-frame",
+          "installed": true,
+          "format": "depth32float",
+          "samples": 1,
+          "width": 1280,
+          "height": 800,
+          "clearValue": 0,
+          "loadOp": "clear",
+          "storeOp": "store",
+          "reversed": true,
+          "requestedBytes": 4096000
+        },
+        "shadows": {
+          "mode": "single",
+          "cascades": 1,
+          "mapSize": 1024,
+          "layers": 1,
+          "depthBytes": 4194304,
+          "cameraBuffers": 1,
+          "receiverBytes": 208
+        },
+        "crowd": {
+          "instances": 15560,
+          "mainVisible": 0,
+          "shadowOnly": 0,
+          "ready": true,
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "shadowTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "mesh": {
+            "clipInvariant": false,
+            "mainTriangles": 0,
+            "shadowTriangles": 0,
+            "mainDraws": 0,
+            "shadowDraws": 0,
+            "impostorsPending": 0,
+            "pose": [
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              }
+            ],
+            "images": {
+              "allocated": [
+                {
+                  "channel": "baseColor",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm-srgb",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "normal",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "orm",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                }
+              ],
+              "allocatedImages": 3,
+              "allocatedBytes": 67108860,
+              "references": 60,
+              "referencedBytes": 1342177200
+            }
+          },
+          "impostors": {
+            "0": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "1": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "2": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "3": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "4": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "5": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "6": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "7": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "8": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "9": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "10": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "11": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "12": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "13": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "14": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "15": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "16": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "17": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "18": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "19": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            }
+          }
+        },
+        "grass": {
+          "residency": {
+            "productionSamplingProfile": {
+              "quality": "standard",
+              "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+              "seed": 1588011046,
+              "vistaVisibleRadiusM": 260,
+              "vistaTransitionDefaults": {
+                "edgeSinkStartM": 380,
+                "denseBladeEndM": 143,
+                "farGrassStartM": 260,
+                "farGrassEndM": 480,
+                "farSoftWidthScale": 1.6
+              },
+              "closeVisibleRadiusM": 40,
+              "rebuildMarginM": 48,
+              "fieldCellSize": 0.42,
+              "snapCellSize": 48,
+              "clumpCellSize": 1.55,
+              "maxRecords": 160000,
+              "minActiveRecords": 18000,
+              "closeDensityReferenceRecords": 42000,
+              "closeDensityReferenceRadiusM": 64,
+              "lodStratifiedBudget": true,
+              "density": 1,
+              "jitter": 0.72,
+              "minNormalZ": 0.45,
+              "lodNearRadiusM": 5,
+              "lodMidRadiusM": 20,
+              "baseHeight": 0.26,
+              "heightJitter": 0.62,
+              "baseWidth": 0.004,
+              "widthJitter": 0.2,
+              "baseBend": 0.62,
+              "bendJitter": 0.45,
+              "tiers": [
+                {
+                  "id": "near",
+                  "lodTier": 0,
+                  "segments": 4,
+                  "minDistanceM": 0,
+                  "maxDistanceM": 5
+                },
+                {
+                  "id": "mid",
+                  "lodTier": 1,
+                  "segments": 2,
+                  "minDistanceM": 5,
+                  "maxDistanceM": 20
+                },
+                {
+                  "id": "far",
+                  "lodTier": 2,
+                  "segments": 2,
+                  "minDistanceM": 20,
+                  "maxDistanceM": 480
+                }
+              ]
+            },
+            "detail": {
+              "bladePixels": 2.186233450294351,
+              "baseMinPixels": 0.5,
+              "ringMinPixels": 1.5,
+              "ringReleasePixels": 1,
+              "focusRingActive": false
+            },
+            "transitionOwner": "battleGrassResidency.update",
+            "activeTransition": {
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 1250,
+              "nearTierEndM": 5,
+              "midTierEndM": 64,
+              "farSoftWidthScale": 3,
+              "nearCoverageWidthScale": 1,
+              "lowerFarWidthScale": 1.35,
+              "lowerFarWidthEndM": 112,
+              "terrainDetailStrength": 1,
+              "edgeSinkStartM": 1120
+            },
+            "sample": null,
+            "baseSample": null,
+            "focusSample": null,
+            "rebuild": {
+              "strategy": "static-whole-map+camera-focus-tiles",
+              "activeRecordBudget": 160000,
+              "vistaRecordBudget": 160000,
+              "areaBudgetScale": 1,
+              "pending": false,
+              "rebuilds": 0,
+              "lastSampleMs": 0,
+              "lastSlices": 0,
+              "lastMaxSliceMs": 0,
+              "requestedGeneration": 0,
+              "activeGeneration": 0,
+              "pendingAgeMs": 0,
+              "requiredTiles": 0,
+              "residentTiles": 0,
+              "missingTiles": 0,
+              "publishTilesPerStep": 8,
+              "tileSlotRecords": 1600,
+              "tileCells": 1600,
+              "slotCapacity": 640,
+              "retainedRecordBytes": 65536000,
+              "sampledTiles": 0,
+              "sampledCells": 0,
+              "publishedRecords": 0,
+              "publishedBytes": 0,
+              "evictedTiles": 0,
+              "cancelledTiles": 0,
+              "cancelledCells": 0,
+              "retiredFocusGenerations": 0,
+              "coverageTileM": 24,
+              "coverageRadiusM": 0,
+              "coverageSampledRadiusM": 0.03125,
+              "publishedCoverageTiles": 0,
+              "activeCoverageResident": true
+            }
+          },
+          "packedStrideFloats": 16,
+          "visibility": {
+            "base": false,
+            "ring": false,
+            "far": true
+          },
+          "uploads": [
+            1,
+            1
+          ],
+          "ringRecordRanges": 0,
+          "layers": [
+            {
+              "recordCount": 0,
+              "capacity": 1,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            },
+            {
+              "recordCount": 0,
+              "capacity": 1024000,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            }
+          ]
+        },
+        "standards": {
+          "count": 0,
+          "selected": 0,
+          "capacity": 32,
+          "pipelines": 1,
+          "anchors": []
+        },
+        "readouts": {
+          "readouts": 0,
+          "chips": 0,
+          "atlasWidth": 1,
+          "atlasHeight": 1,
+          "atlasUploads": 0,
+          "atlasUploadBytes": 0,
+          "instanceUploadBytes": 0,
+          "instanceBufferBytes": 0
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 74,
+          "vistaBands": 0,
+          "groundCover": "yellow-grass",
+          "groundStyle": "beauty",
+          "slopeBands": null,
+          "vista": null,
+          "water": {
+            "draws": 1,
+            "triangles": 387200,
+            "surfaces": [
+              {
+                "kind": "ocean",
+                "level": 0,
+                "surfaceLevel": 0,
+                "triangles": 387200
+              }
+            ],
+            "ownedBuffers": 4,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        },
+        "tacticalLines": {
+          "groundCues": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "rings": {
+            "count": 0,
+            "capacityBytes": 32
+          },
+          "effects": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "triangles": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "debugBlocks": null
+        },
+        "authoringMeshesOnly": false
+      }
+    },
+    {
+      "name": "leaf-shadow",
+      "params": "map=A&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=640&cy=280&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon%2Cbattle-scenery",
+      "camera": {
+        "center": [
+          640,
+          280
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "framebuffer": {
+          "width": 1280,
+          "height": 800
+        },
+        "prepared": true,
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": true,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 640,
+          "y": 280,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              640,
+              280,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "environment": "golden",
+        "depth": {
+          "owner": "typegpu-battle-frame",
+          "installed": true,
+          "format": "depth32float",
+          "samples": 1,
+          "width": 1280,
+          "height": 800,
+          "clearValue": 0,
+          "loadOp": "clear",
+          "storeOp": "store",
+          "reversed": true,
+          "requestedBytes": 4096000
+        },
+        "shadows": {
+          "mode": "single",
+          "cascades": 1,
+          "mapSize": 1024,
+          "layers": 1,
+          "depthBytes": 4194304,
+          "cameraBuffers": 1,
+          "receiverBytes": 208
+        },
+        "crowd": {
+          "instances": 15560,
+          "mainVisible": 0,
+          "shadowOnly": 0,
+          "ready": true,
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "shadowTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "mesh": {
+            "clipInvariant": false,
+            "mainTriangles": 0,
+            "shadowTriangles": 0,
+            "mainDraws": 0,
+            "shadowDraws": 0,
+            "impostorsPending": 0,
+            "pose": [
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              }
+            ],
+            "images": {
+              "allocated": [
+                {
+                  "channel": "baseColor",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm-srgb",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "normal",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "orm",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                }
+              ],
+              "allocatedImages": 3,
+              "allocatedBytes": 67108860,
+              "references": 60,
+              "referencedBytes": 1342177200
+            }
+          },
+          "impostors": {
+            "0": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "1": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "2": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "3": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "4": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "5": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "6": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "7": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "8": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "9": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "10": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "11": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "12": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "13": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "14": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "15": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "16": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "17": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "18": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "19": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            }
+          }
+        },
+        "grass": {
+          "residency": {
+            "productionSamplingProfile": {
+              "quality": "standard",
+              "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+              "seed": 1588011046,
+              "vistaVisibleRadiusM": 260,
+              "vistaTransitionDefaults": {
+                "edgeSinkStartM": 380,
+                "denseBladeEndM": 143,
+                "farGrassStartM": 260,
+                "farGrassEndM": 480,
+                "farSoftWidthScale": 1.6
+              },
+              "closeVisibleRadiusM": 40,
+              "rebuildMarginM": 48,
+              "fieldCellSize": 0.42,
+              "snapCellSize": 48,
+              "clumpCellSize": 1.55,
+              "maxRecords": 160000,
+              "minActiveRecords": 18000,
+              "closeDensityReferenceRecords": 42000,
+              "closeDensityReferenceRadiusM": 64,
+              "lodStratifiedBudget": true,
+              "density": 1,
+              "jitter": 0.72,
+              "minNormalZ": 0.45,
+              "lodNearRadiusM": 5,
+              "lodMidRadiusM": 20,
+              "baseHeight": 0.26,
+              "heightJitter": 0.62,
+              "baseWidth": 0.004,
+              "widthJitter": 0.2,
+              "baseBend": 0.62,
+              "bendJitter": 0.45,
+              "tiers": [
+                {
+                  "id": "near",
+                  "lodTier": 0,
+                  "segments": 4,
+                  "minDistanceM": 0,
+                  "maxDistanceM": 5
+                },
+                {
+                  "id": "mid",
+                  "lodTier": 1,
+                  "segments": 2,
+                  "minDistanceM": 5,
+                  "maxDistanceM": 20
+                },
+                {
+                  "id": "far",
+                  "lodTier": 2,
+                  "segments": 2,
+                  "minDistanceM": 20,
+                  "maxDistanceM": 480
+                }
+              ]
+            },
+            "detail": {
+              "bladePixels": 2.1862334466225395,
+              "baseMinPixels": 0.5,
+              "ringMinPixels": 1.5,
+              "ringReleasePixels": 1,
+              "focusRingActive": false
+            },
+            "transitionOwner": "battleGrassResidency.update",
+            "activeTransition": {
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 1250,
+              "nearTierEndM": 5,
+              "midTierEndM": 64,
+              "farSoftWidthScale": 3,
+              "nearCoverageWidthScale": 1,
+              "lowerFarWidthScale": 1.35,
+              "lowerFarWidthEndM": 112,
+              "terrainDetailStrength": 1,
+              "edgeSinkStartM": 1120
+            },
+            "sample": null,
+            "baseSample": null,
+            "focusSample": null,
+            "rebuild": {
+              "strategy": "static-whole-map+camera-focus-tiles",
+              "activeRecordBudget": 160000,
+              "vistaRecordBudget": 160000,
+              "areaBudgetScale": 1,
+              "pending": false,
+              "rebuilds": 0,
+              "lastSampleMs": 0,
+              "lastSlices": 0,
+              "lastMaxSliceMs": 0,
+              "requestedGeneration": 0,
+              "activeGeneration": 0,
+              "pendingAgeMs": 0,
+              "requiredTiles": 0,
+              "residentTiles": 0,
+              "missingTiles": 0,
+              "publishTilesPerStep": 8,
+              "tileSlotRecords": 1600,
+              "tileCells": 1600,
+              "slotCapacity": 640,
+              "retainedRecordBytes": 65536000,
+              "sampledTiles": 0,
+              "sampledCells": 0,
+              "publishedRecords": 0,
+              "publishedBytes": 0,
+              "evictedTiles": 0,
+              "cancelledTiles": 0,
+              "cancelledCells": 0,
+              "retiredFocusGenerations": 0,
+              "coverageTileM": 24,
+              "coverageRadiusM": 0,
+              "coverageSampledRadiusM": 0.03125,
+              "publishedCoverageTiles": 0,
+              "activeCoverageResident": true
+            }
+          },
+          "packedStrideFloats": 16,
+          "visibility": {
+            "base": false,
+            "ring": false,
+            "far": true
+          },
+          "uploads": [
+            1,
+            1
+          ],
+          "ringRecordRanges": 0,
+          "layers": [
+            {
+              "recordCount": 0,
+              "capacity": 1,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            },
+            {
+              "recordCount": 0,
+              "capacity": 1024000,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            }
+          ]
+        },
+        "standards": {
+          "count": 0,
+          "selected": 0,
+          "capacity": 32,
+          "pipelines": 1,
+          "anchors": []
+        },
+        "readouts": {
+          "readouts": 0,
+          "chips": 0,
+          "atlasWidth": 1,
+          "atlasHeight": 1,
+          "atlasUploads": 0,
+          "atlasUploadBytes": 0,
+          "instanceUploadBytes": 0,
+          "instanceBufferBytes": 0
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 1282,
+          "vistaBands": 0,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "slopeBands": null,
+          "vista": null,
+          "water": {
+            "draws": 1,
+            "triangles": 387200,
+            "surfaces": [
+              {
+                "kind": "ocean",
+                "level": 0,
+                "surfaceLevel": 0,
+                "triangles": 387200
+              }
+            ],
+            "ownedBuffers": 4,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        },
+        "tacticalLines": {
+          "groundCues": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "rings": {
+            "count": 0,
+            "capacityBytes": 32
+          },
+          "effects": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "triangles": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "debugBlocks": null
+        },
+        "authoringMeshesOnly": false
+      }
+    },
+    {
+      "name": "leaf-unshadowed",
+      "params": "map=A&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=640&cy=280&camYaw=-1.5707963267948966&shadows=off&only=battle-ground%2Cbattle-horizon%2Cbattle-scenery",
+      "camera": {
+        "center": [
+          640,
+          280
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "framebuffer": {
+          "width": 1280,
+          "height": 800
+        },
+        "prepared": true,
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": true,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 640,
+          "y": 280,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              640,
+              280,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "environment": "golden",
+        "depth": {
+          "owner": "typegpu-battle-frame",
+          "installed": true,
+          "format": "depth32float",
+          "samples": 1,
+          "width": 1280,
+          "height": 800,
+          "clearValue": 0,
+          "loadOp": "clear",
+          "storeOp": "store",
+          "reversed": true,
+          "requestedBytes": 4096000
+        },
+        "shadows": {
+          "mode": "off",
+          "cascades": 0,
+          "mapSize": 0,
+          "layers": 0,
+          "depthBytes": 0,
+          "cameraBuffers": 0,
+          "receiverBytes": 0
+        },
+        "crowd": {
+          "instances": 15560,
+          "mainVisible": 0,
+          "shadowOnly": 0,
+          "ready": true,
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "shadowTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0,
+            "l4": 0
+          },
+          "mesh": {
+            "clipInvariant": false,
+            "mainTriangles": 0,
+            "shadowTriangles": 0,
+            "mainDraws": 0,
+            "shadowDraws": 0,
+            "impostorsPending": 0,
+            "pose": [
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              },
+              {
+                "instances": 0,
+                "residentSnapshots": 0,
+                "snapshotUploadBytes": 0,
+                "controlBytes": 16,
+                "snapshotBytes": 32,
+                "paletteBytes": 64
+              }
+            ],
+            "images": {
+              "allocated": [
+                {
+                  "channel": "baseColor",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm-srgb",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "normal",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                },
+                {
+                  "channel": "orm",
+                  "width": 2048,
+                  "height": 2048,
+                  "mipLevels": 12,
+                  "format": "rgba8unorm",
+                  "bytes": 22369620,
+                  "references": 20
+                }
+              ],
+              "allocatedImages": 3,
+              "allocatedBytes": 67108860,
+              "references": 60,
+              "referencedBytes": 1342177200
+            }
+          },
+          "impostors": {
+            "0": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "1": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "2": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "3": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "4": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "5": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "6": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "7": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "8": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "9": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "10": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "11": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "12": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "13": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "14": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "15": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "16": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "17": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "18": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            },
+            "19": {
+              "instances": 0,
+              "draws": 0,
+              "clipInvariant": false,
+              "castShadow": false,
+              "receiveShadow": false,
+              "atlasSource": "prepared full mip chain"
+            }
+          }
+        },
+        "grass": {
+          "residency": {
+            "productionSamplingProfile": {
+              "quality": "standard",
+              "source": "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
+              "seed": 1588011046,
+              "vistaVisibleRadiusM": 260,
+              "vistaTransitionDefaults": {
+                "edgeSinkStartM": 380,
+                "denseBladeEndM": 143,
+                "farGrassStartM": 260,
+                "farGrassEndM": 480,
+                "farSoftWidthScale": 1.6
+              },
+              "closeVisibleRadiusM": 40,
+              "rebuildMarginM": 48,
+              "fieldCellSize": 0.42,
+              "snapCellSize": 48,
+              "clumpCellSize": 1.55,
+              "maxRecords": 160000,
+              "minActiveRecords": 18000,
+              "closeDensityReferenceRecords": 42000,
+              "closeDensityReferenceRadiusM": 64,
+              "lodStratifiedBudget": true,
+              "density": 1,
+              "jitter": 0.72,
+              "minNormalZ": 0.45,
+              "lodNearRadiusM": 5,
+              "lodMidRadiusM": 20,
+              "baseHeight": 0.26,
+              "heightJitter": 0.62,
+              "baseWidth": 0.004,
+              "widthJitter": 0.2,
+              "baseBend": 0.62,
+              "bendJitter": 0.45,
+              "tiers": [
+                {
+                  "id": "near",
+                  "lodTier": 0,
+                  "segments": 4,
+                  "minDistanceM": 0,
+                  "maxDistanceM": 5
+                },
+                {
+                  "id": "mid",
+                  "lodTier": 1,
+                  "segments": 2,
+                  "minDistanceM": 5,
+                  "maxDistanceM": 20
+                },
+                {
+                  "id": "far",
+                  "lodTier": 2,
+                  "segments": 2,
+                  "minDistanceM": 20,
+                  "maxDistanceM": 480
+                }
+              ]
+            },
+            "detail": {
+              "bladePixels": 2.1862334466225395,
+              "baseMinPixels": 0.5,
+              "ringMinPixels": 1.5,
+              "ringReleasePixels": 1,
+              "focusRingActive": false
+            },
+            "transitionOwner": "battleGrassResidency.update",
+            "activeTransition": {
+              "denseBladeEndM": 143,
+              "farGrassStartM": 260,
+              "farGrassEndM": 1250,
+              "nearTierEndM": 5,
+              "midTierEndM": 64,
+              "farSoftWidthScale": 3,
+              "nearCoverageWidthScale": 1,
+              "lowerFarWidthScale": 1.35,
+              "lowerFarWidthEndM": 112,
+              "terrainDetailStrength": 1,
+              "edgeSinkStartM": 1120
+            },
+            "sample": null,
+            "baseSample": null,
+            "focusSample": null,
+            "rebuild": {
+              "strategy": "static-whole-map+camera-focus-tiles",
+              "activeRecordBudget": 160000,
+              "vistaRecordBudget": 160000,
+              "areaBudgetScale": 1,
+              "pending": false,
+              "rebuilds": 0,
+              "lastSampleMs": 0,
+              "lastSlices": 0,
+              "lastMaxSliceMs": 0,
+              "requestedGeneration": 0,
+              "activeGeneration": 0,
+              "pendingAgeMs": 0,
+              "requiredTiles": 0,
+              "residentTiles": 0,
+              "missingTiles": 0,
+              "publishTilesPerStep": 8,
+              "tileSlotRecords": 1600,
+              "tileCells": 1600,
+              "slotCapacity": 640,
+              "retainedRecordBytes": 65536000,
+              "sampledTiles": 0,
+              "sampledCells": 0,
+              "publishedRecords": 0,
+              "publishedBytes": 0,
+              "evictedTiles": 0,
+              "cancelledTiles": 0,
+              "cancelledCells": 0,
+              "retiredFocusGenerations": 0,
+              "coverageTileM": 24,
+              "coverageRadiusM": 0,
+              "coverageSampledRadiusM": 0.03125,
+              "publishedCoverageTiles": 0,
+              "activeCoverageResident": true
+            }
+          },
+          "packedStrideFloats": 16,
+          "visibility": {
+            "base": false,
+            "ring": false,
+            "far": true
+          },
+          "uploads": [
+            1,
+            1
+          ],
+          "ringRecordRanges": 0,
+          "layers": [
+            {
+              "recordCount": 0,
+              "capacity": 1,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            },
+            {
+              "recordCount": 0,
+              "capacity": 1024000,
+              "pipelineBuilds": 4,
+              "drawIndirect": true
+            }
+          ]
+        },
+        "standards": {
+          "count": 0,
+          "selected": 0,
+          "capacity": 32,
+          "pipelines": 1,
+          "anchors": []
+        },
+        "readouts": {
+          "readouts": 0,
+          "chips": 0,
+          "atlasWidth": 1,
+          "atlasHeight": 1,
+          "atlasUploads": 0,
+          "atlasUploadBytes": 0,
+          "instanceUploadBytes": 0,
+          "instanceBufferBytes": 0
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 1282,
+          "vistaBands": 0,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "slopeBands": null,
+          "vista": null,
+          "water": {
+            "draws": 1,
+            "triangles": 387200,
+            "surfaces": [
+              {
+                "kind": "ocean",
+                "level": 0,
+                "surfaceLevel": 0,
+                "triangles": 387200
+              }
+            ],
+            "ownedBuffers": 4,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        },
+        "tacticalLines": {
+          "groundCues": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "rings": {
+            "count": 0,
+            "capacityBytes": 32
+          },
+          "effects": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "triangles": {
+            "count": 0,
+            "capacityBytes": 28
+          },
+          "debugBlocks": null
+        },
+        "authoringMeshesOnly": false
+      }
+    }
+  ]
+}

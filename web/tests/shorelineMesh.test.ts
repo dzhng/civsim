@@ -27,7 +27,7 @@ function grid(cell: number, ox = 0, oy = 0, size = 8) {
       vertices,
       indices,
       surfaceColor: new Float32Array(n * n * 3),
-      tint: new Float32Array(n * n),
+      coverage: new Float32Array(n * n * 3),
       triangles: indices.length / 3,
     },
     { ox, oy, cell, columns: n, rows: n, units: "kilometers" },

@@ -18,7 +18,18 @@ export function createTerrainSurface(options: TerrainMaterialOptions) {
   const turfCanopy = tgpu.fn([d.f32, d.f32, d.f32], d.vec3f)(bodies.turfCanopy);
   return tgpu
     .fn(
-      [d.vec3f, d.vec3f, d.vec3f, d.f32, d.f32, d.f32, d.vec2f, d.f32, d.texture2d(), d.sampler()],
+      [
+        d.vec3f,
+        d.vec3f,
+        d.vec3f,
+        d.vec3f,
+        d.f32,
+        d.f32,
+        d.vec2f,
+        d.f32,
+        d.texture2d(),
+        d.sampler(),
+      ],
       d.vec4f,
     )(bodies.terrainSurface)
     .$uses({ terrainHash, terrainFbm, terrainRidge, terrainWaterNoise, terrainLinear, turfCanopy });

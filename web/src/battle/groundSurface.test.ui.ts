@@ -87,9 +87,11 @@ describe("photoreal battle ground surfaces", () => {
     expect(Array.from(mesh.surfaceColor.slice(center * 3, center * 3 + 3))).not.toEqual(
       Array.from(mesh.vertices.slice(center * 10 + 6, center * 10 + 9)),
     );
-    expect(mesh.tint[center]).toBe(0);
-    expect(mesh.tint[roadCenter]).toBe(0);
-    expect(mesh.tint[screeCenter]).toBe(6);
+    expect(Array.from(mesh.coverage.slice(center * 3, center * 3 + 3))).toEqual([0, 0, 0]);
+    expect(Array.from(mesh.coverage.slice(roadCenter * 3, roadCenter * 3 + 3))).toEqual([0, 0, 0]);
+    expect(Array.from(mesh.coverage.slice(screeCenter * 3, screeCenter * 3 + 3))).toEqual([
+      0, 0, 1,
+    ]);
     const decode = (index: number, channel: 0 | 1) =>
       (mesh.earthDistance.data[index * 2 + channel] / 255 - 0.5) *
       2 *

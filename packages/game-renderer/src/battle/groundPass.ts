@@ -1,3 +1,4 @@
+import { groundCoverage } from './groundCoverage';
 import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
 import { GROUND_COVER_COLOR, MEADOW, type Rgb } from './meadowPalette';
@@ -40,7 +41,9 @@ interface BattleGroundMesh {
   triangles: number;
 }
 
-export interface PhotorealBattleGroundMesh extends BattleGroundMesh {
+export interface PhotorealBattleGroundMesh extends Omit<BattleGroundMesh, "tint"> {
+  /** Interpolable rock/forest/scree weights, three floats per vertex. */
+  coverage: Float32Array;
   /** Photoreal base surface before mud/road albedo is composed. */
   surfaceColor: Float32Array;
   /** Signed earthy-union/road distance in compact RG8, positive inside each surface. */
@@ -135,11 +138,10 @@ export function buildPhotorealBattleGroundMesh(
   cover: BattleGroundCover,
   step = 2,
 ): PhotorealBattleGroundMesh {
-  const mesh = buildBattleGroundMesh(grid, field, cover, step);
+  const { tint, ...mesh } = buildBattleGroundMesh(grid, field, cover, step);
   const base = GROUND_COVER_COLOR[cover];
   const nx = Math.floor(grid.w / step) + 1;
   const ny = Math.floor(grid.h / step) + 1;
-  const photorealTint = new Float32Array(mesh.tint);
   const surfaceColor = new Float32Array(nx * ny * 3);
   let vertex = 0;
   for (let j = 0; j < ny; j++) {
@@ -151,7 +153,7 @@ export function buildPhotorealBattleGroundMesh(
         grid.tint[sourceIndex] === 5 ||
         isBattleRoadSurface(grid.tint[sourceIndex], grid.rough?.[sourceIndex], grid.speed?.[sourceIndex])
       ) {
-        photorealTint[vertex] = 0;
+        tint[vertex] = 0;
       }
       let r = 0;
       let g = 0;
@@ -181,7 +183,7 @@ export function buildPhotorealBattleGroundMesh(
   }
   return {
     ...mesh,
-    tint: photorealTint,
+    coverage: groundCoverage(tint),
     surfaceColor,
     earthDistance: buildPhotorealEarthDistance(grid),
   };

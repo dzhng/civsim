@@ -32,9 +32,12 @@ export async function route(ctx: LabContext) {
       aerialObserver: vec3(frame.focus, 0),
     });
     const mesh = materialRamp();
-    if (ctx.params.get("tint") === "rock") mesh.tint!.fill(2);
+    if (ctx.params.get("tint") === "rock")
+      mesh.coverage!.forEach((_, i, values) => {
+        values[i] = i % 3 === 0 ? 1 : 0;
+      });
     const originalVertices = mesh.vertices.slice();
-    const originalTint = mesh.tint!.slice();
+    const originalCoverage = mesh.coverage!.slice();
     const consumer = ctx.params.get("consumer") === "battle" ? "battle" : "campaign";
     let ground: THREE.Mesh;
     if (consumer === "battle") {
@@ -81,7 +84,7 @@ export async function route(ctx: LabContext) {
         consumer,
         sourceUnchanged:
           mesh.vertices.every((v, i) => v === originalVertices[i]) &&
-          mesh.tint!.every((v, i) => v === originalTint[i]),
+          mesh.coverage!.every((v, i) => v === originalCoverage[i]),
         terrainTriangles: mesh.triangles,
         profile: CAMPAIGN_TERRAIN_PROFILE,
       });
@@ -101,7 +104,7 @@ function materialRamp(): LandscapeMesh {
     cell = 2;
   const vertices = new Float32Array(columns * rows * 10),
     surfaceColor = new Float32Array(columns * rows * 3),
-    tint = new Float32Array(columns * rows);
+    coverage = new Float32Array(columns * rows * 3);
   const indices = new Uint32Array((columns - 1) * (rows - 1) * 6);
   const heightAt = (x: number, y: number) =>
     20 * (1 + Math.tanh((x + 15 + Math.sin(y / 30) * 8) / 9));
@@ -135,5 +138,5 @@ function materialRamp(): LandscapeMesh {
           (j * (columns - 1) + i) * 6,
         );
     }
-  return { vertices, surfaceColor, tint, indices, triangles: indices.length / 3 };
+  return { vertices, surfaceColor, coverage, indices, triangles: indices.length / 3 };
 }

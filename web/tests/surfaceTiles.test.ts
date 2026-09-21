@@ -36,7 +36,7 @@ function grid(
       vertices: v,
       indices,
       surfaceColor: colors,
-      tint: new Float32Array(n * n),
+      coverage: new Float32Array(n * n * 3),
       triangles: indices.length / 3,
     },
     { ox, oy, columns: n, rows: n, cell, units: "kilometers" },
@@ -96,13 +96,13 @@ it("keeps shared vertices identical at a concave three-tile corner", () => {
 
 it.each([false, true])("preserves coarse edge interpolation with packed color %s", (packed) => {
   const coarse = grid(0, 0, 16, 4, (x, y) => x * y * 0.02, "coarse");
-  for (let k = 0; k < coarse.mesh.tint!.length; k++) {
+  for (let k = 0; k < coarse.mesh.coverage!.length / 3; k++) {
     const x = coarse.mesh.vertices[k * 10],
       y = coarse.mesh.vertices[k * 10 + 1];
     coarse.mesh.vertices.set([x / 20, y / 20, 0.5], k * 10 + 3);
     coarse.mesh.vertices[k * 10 + 9] = y / 16;
     coarse.mesh.surfaceColor!.set([x / 16, y / 16, 0.7], k * 3);
-    coarse.mesh.tint![k] = y / 4;
+    coarse.mesh.coverage!.set([0, y / 16, 0], k * 3);
   }
   const fine = grid(4, 4, 8, 1, () => 9, "fine");
   if (packed) delete fine.mesh.surfaceColor;
@@ -117,7 +117,9 @@ it.each([false, true])("preserves coarse edge interpolation with packed color %s
     expect(mesh.vertices[k * 10 + 5]).toBeCloseTo(0.5, 6);
     expect(mesh.vertices[k * 10 + 9]).toBeCloseTo(y / 16, 6);
     expect(mesh.surfaceColor?.[k * 3 + 1] ?? mesh.vertices[k * 10 + 7]).toBeCloseTo(y / 16, 6);
-    expect(mesh.tint![k]).toBeCloseTo(y / 4, 6);
+    expect(mesh.coverage![k * 3]).toBe(0);
+    expect(mesh.coverage![k * 3 + 1]).toBeCloseTo(y / 16, 6);
+    expect(mesh.coverage![k * 3 + 2]).toBe(0);
   }
 });
 

@@ -1,6 +1,6 @@
 import { battleWorldDepth } from "../worldDepth";
 import { beginGpuAdmission } from "../gpuAdmission";
-import { vistaOpacityWgsl } from "../shaders/terrain";
+import { vistaOpacityWgsl } from "../shaders/vistaOpacity";
 import { typegpuTextureBytes } from "./textureUpload";
 import { tgpu, d, std, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
 import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
@@ -21,14 +21,14 @@ const terrainLayout = tgpu
 const geometry = tgpu.vertexLayout(
   d.disarrayOf(d.unstruct({ position: d.vec3f, normal: d.vec3f, color: d.vec3f, water: d.f32 })),
 );
-const tintVertices = tgpu.vertexLayout(d.disarrayOf(d.f32)),
+const coverageVertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f)),
   colorVertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
 const Varyings = {
   clip: d.builtin.position,
   position: d.vec3f,
   normal: d.vec3f,
   color: d.vec3f,
-  tint: d.f32,
+  coverage: d.vec3f,
   water: d.f32,
   // Three normalizes this in the vertex stage before interpolated fragment derivatives.
   viewNormalGeometry: d.vec3f,
@@ -38,7 +38,7 @@ const FragmentIn = {
   position: d.vec3f,
   normal: d.vec3f,
   color: d.vec3f,
-  tint: d.f32,
+  coverage: d.vec3f,
   water: d.f32,
   viewNormalGeometry: d.vec3f,
 };
@@ -133,7 +133,7 @@ export async function createTypegpuTerrain(
             v.position,
             v.normal,
             v.color,
-            v.tint,
+            v.coverage,
             v.water,
             cameraLayout.$.cam.time,
             cameraLayout.$.cam.focus,
@@ -159,7 +159,7 @@ export async function createTypegpuTerrain(
       return d.vec4f(lit.rgb, farFog ? vistaOpacity(v.position, cameraLayout.$.cam.eye) : lit.a);
     });
     const vertex = tgpu.vertexFn({
-      in: { position: d.vec3f, normal: d.vec3f, color: d.vec3f, tint: d.f32, water: d.f32 },
+      in: { position: d.vec3f, normal: d.vec3f, color: d.vec3f, coverage: d.vec3f, water: d.f32 },
       out: Varyings,
     })((v) => {
       "use gpu";
@@ -168,7 +168,7 @@ export async function createTypegpuTerrain(
         position: v.position,
         normal: v.normal,
         color: v.color,
-        tint: v.tint,
+        coverage: v.coverage,
         water: v.water,
         viewNormalGeometry: std.normalize(
           std.mul(environmentLayout.$.data.worldToView, d.vec4f(v.normal, 0)).xyz,
@@ -209,7 +209,7 @@ export async function createTypegpuTerrain(
         position: geometry.attrib.position,
         normal: geometry.attrib.normal,
         water: geometry.attrib.water,
-        tint: tintVertices.attrib,
+        coverage: coverageVertices.attrib,
         color: colorVertices.attrib,
       },
       vertex,
@@ -218,14 +218,16 @@ export async function createTypegpuTerrain(
     const vertices = root
         .createBuffer(geometry.schemaForCount(ground.vertices.length / 10))
         .$usage("vertex"),
-      tints = root.createBuffer(tintVertices.schemaForCount(ground.tint.length)).$usage("vertex"),
+      coverage = root
+        .createBuffer(coverageVertices.schemaForCount(ground.coverage.length / 3))
+        .$usage("vertex"),
       colors = root
         .createBuffer(colorVertices.schemaForCount(ground.surfaceColor.length / 3))
         .$usage("vertex"),
       indices = root.createBuffer(d.arrayOf(d.u32, ground.indices.length)).$usage("index");
-    owned.push(vertices, tints, colors, indices);
+    owned.push(vertices, coverage, colors, indices);
     vertices.write(bytes(ground.vertices));
-    tints.write(bytes(ground.tint));
+    coverage.write(bytes(ground.coverage));
     colors.write(bytes(ground.surfaceColor));
     indices.write(bytes(frontSideGroundIndices(ground.indices)));
     const boundGround = groundPipeline
@@ -233,7 +235,7 @@ export async function createTypegpuTerrain(
       .with(group)
       .with(environment.group)
       .with(geometry, vertices)
-      .with(tintVertices, tints)
+      .with(coverageVertices, coverage)
       .with(colorVertices, colors)
       .withIndexBuffer(indices);
     const draws: ((pass: TgpuRenderPass) => void)[] = [
@@ -264,7 +266,7 @@ export async function createTypegpuTerrain(
           position: v.position,
           normal: v.normal,
           color: v.color,
-          tint: 0,
+          coverage: d.vec3f(0),
           water: 0,
           viewNormalGeometry: std.normalize(
             std.mul(environmentLayout.$.data.worldToView, d.vec4f(v.normal, 0)).xyz,
@@ -324,7 +326,7 @@ export async function createTypegpuTerrain(
           .drawIndexed(h.indices.length);
     }
     root.unwrap(vertices);
-    root.unwrap(tints);
+    root.unwrap(coverage);
     root.unwrap(colors);
     root.unwrap(indices);
     root.unwrap(cameraGroup);

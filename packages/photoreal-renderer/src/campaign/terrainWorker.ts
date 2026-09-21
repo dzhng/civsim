@@ -125,7 +125,7 @@ export function campaignTerrainWorkerHandler(
         buffers(
           data.mesh.vertices,
           ...(data.mesh.surfaceColor ? [data.mesh.surfaceColor] : []),
-          ...(data.mesh.tint ? [data.mesh.tint] : []),
+          ...(data.mesh.coverage ? [data.mesh.coverage] : []),
           data.mesh.indices,
           ...(data.mesh.shoreDistance ? [data.mesh.shoreDistance] : []),
           ...(data.mesh.cellTriangles ? [data.mesh.cellTriangles] : []),

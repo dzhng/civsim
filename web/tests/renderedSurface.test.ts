@@ -20,7 +20,7 @@ it("samples both diagonals and hits the actual raised triangle through tilted ra
       vertices,
       indices: Uint32Array.from(indices),
       surfaceColor: new Float32Array(12),
-      tint: new Float32Array(4),
+      coverage: new Float32Array(4 * 3),
       triangles: 2,
     };
     const surface = createRenderedSurface(
@@ -63,7 +63,7 @@ it("falls back to coarse terrain outside detail and ignores hidden coarse ray hi
         vertices,
         indices: Uint32Array.from([0, 2, 1, 1, 2, 3]),
         surfaceColor: new Float32Array(12),
-        tint: new Float32Array(4),
+        coverage: new Float32Array(4 * 3),
         triangles: 2,
       },
       { ox: 0, oy: 0, columns: 2, rows: 2, cell, units: "meters" },

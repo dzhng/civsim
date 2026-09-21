@@ -12,7 +12,7 @@ function data(): TerrainTileData {
     mesh: {
       vertices: new Float32Array(90),
       surfaceColor: new Float32Array(36),
-      tint: new Float32Array(9),
+      coverage: new Float32Array(9 * 3),
       indices: new Uint32Array(24),
       triangles: 8,
     },
@@ -232,7 +232,7 @@ describe("bounded terrain scheduling", () => {
     const shared = new Float32Array(100);
     tile.mesh.vertices = shared.subarray(0, 90);
     tile.mesh.surfaceColor = shared.subarray(0, 36);
-    tile.mesh.tint = shared.subarray(0, 9);
+    tile.mesh.coverage = shared.subarray(0, 27);
     tile.mesh.shoreDistance = shared.subarray(0, 9);
     expect(terrainTilePayloadBytes(tile)).toBe(shared.byteLength + tile.mesh.indices.byteLength);
   });

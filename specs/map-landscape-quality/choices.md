@@ -279,3 +279,37 @@ GPU attributes. The explicit copy keeps reseating independent of caller mutation
 a borrowed source/index representation could reduce memory but would change that
 ownership contract. Fog refreshes upload whole affected region buffers so a local
 road update cannot truncate a full visibility refresh in the same frame.
+
+
+## Battle coverage and leaf-mask checkpoint
+
+### Sound — medium confidence: carry three material weights through CPU meshes
+
+When a grass vertex touches forest, the render mesh now carries separate rock,
+forest and scree amounts instead of interpolating category numbers. This uses
+eight more bytes per classified vertex, but it also makes intermediate vertices
+honest and lets both renderers share the same result. The plan required correct
+classification but left the storage shape open. A packed representation could
+save memory at the cost of conversion and precision rules at every join. Keep
+three floats for the existing mesh pipeline; campaign meshes without these
+categories allocate nothing. This constrains future join/worker code to preserve
+three independent amounts, not reconstruct category IDs.
+
+### Sound — high confidence: share the visible leaf sampling in the caster
+
+When sunlight passes through a tree crown, the shadow pass now samples the same
+leaf atlas and applies the same cutoff as the visible tree. It borrows the existing
+texture/sampler group, so there is no second mask asset or GPU allocation to keep
+in sync. The plan required silhouette consistency but did not prescribe whether
+to duplicate the sampling code; sharing the existing function makes future leaf
+mask edits apply to both passes. Solid geometry keeps its negative-UV exemption.
+
+### Sound — high confidence: isolate the generated boundary, retain authored props
+
+The new generated terrain control draws ground and horizon without trees, so
+crowns cannot hide the material boundary being tested. Existing authored A/C
+views retain their scenery coverage, using the current TypeGPU visibility name.
+All cases verify actual camera and renderer identity. The old scene had retired
+readiness/stats hooks after main's renderer migration. The gap was how to maintain
+that gate without losing what it previously showed; isolated diagnostic captures
+supplement the authored views, and never replace composed battle acceptance.

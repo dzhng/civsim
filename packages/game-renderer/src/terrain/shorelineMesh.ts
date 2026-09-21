@@ -15,7 +15,7 @@ export function conformShoreline(
     throw new Error(`Invalid shoreline geometry budget: ${maxBytes}`);
   if (!Number.isFinite(additionalVertexBytes) || additionalVertexBytes < 0)
     throw new Error("Additional shoreline vertex storage must be finite and nonnegative");
-  const vertexBytes = 41 + (base.mesh.surfaceColor ? 12 : 0) + (base.mesh.tint ? 4 : 0);
+  const vertexBytes = 41 + (base.mesh.surfaceColor ? 12 : 0) + (base.mesh.coverage ? 12 : 0);
   const height = heightAt ?? ((x: number, y: number) => base.sampleRendered(x, y)!.position[2]);
   const d = base.domain;
   const cellCount = (d.columns - 1) * (d.rows - 1);
@@ -290,7 +290,7 @@ export function conformShoreline(
   const mesh: LandscapeMesh = {
     vertices: new Float32Array(verticesCount * 10),
     surfaceColor: base.mesh.surfaceColor ? new Float32Array(verticesCount * 3) : undefined,
-    tint: base.mesh.tint ? new Float32Array(verticesCount) : undefined,
+    coverage: base.mesh.coverage ? new Float32Array(verticesCount * 3) : undefined,
     indices: new Uint32Array(triangles * 3),
     triangles,
     cellTriangles: new Uint32Array(cellCount + 1),
@@ -302,7 +302,7 @@ export function conformShoreline(
     const hit = base.sampleRendered(x, y)!;
     for (let c = 6; c < 9; c++) mesh.vertices[k * 10 + c] = 0;
     mesh.surfaceColor?.fill(0, k * 3, k * 3 + 3);
-    if (mesh.tint) mesh.tint[k] = 0;
+    mesh.coverage?.fill(0, k * 3, k * 3 + 3);
     for (let corner = 0; corner < 3; corner++) {
       const n = base.mesh.indices[hit.triangle * 3 + corner],
         weight = hit.barycentric[corner];
@@ -311,7 +311,8 @@ export function conformShoreline(
         if (mesh.surfaceColor)
           mesh.surfaceColor[k * 3 + c] += base.mesh.surfaceColor![n * 3 + c] * weight;
       }
-      if (mesh.tint) mesh.tint[k] += base.mesh.tint![n] * weight;
+      for (let c = 0; mesh.coverage && c < 3; c++)
+        mesh.coverage[k * 3 + c] += base.mesh.coverage![n * 3 + c] * weight;
     }
     mesh.vertices.set([x, y, z, 0, 0, 0], k * 10);
     mesh.vertices[k * 10 + 9] = water ? 1 : 0;

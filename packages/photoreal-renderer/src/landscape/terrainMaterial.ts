@@ -49,7 +49,7 @@ export function createTerrainGeometry(mesh: LandscapeMesh) {
   geo.setAttribute("gWater", new THREE.InterleavedBufferAttribute(buffer, 1, 9));
   if (mesh.shoreDistance)
     geo.setAttribute("gShore", new THREE.BufferAttribute(mesh.shoreDistance, 1));
-  if (mesh.tint) geo.setAttribute("gTint", new THREE.BufferAttribute(mesh.tint, 1));
+  if (mesh.coverage) geo.setAttribute("gCover", new THREE.BufferAttribute(mesh.coverage, 3));
   geo.setAttribute(
     "gSurfaceColor",
     mesh.surfaceColor

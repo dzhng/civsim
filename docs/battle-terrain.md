@@ -86,6 +86,16 @@ features. Battle's *policy* over that stream (how dense a wood, how big a tree,
 edge-weighted scatter for gameplay clarity) lives in `battle/terrainScenery.ts`,
 seated through the height field; the meshes it places are the shared ones below.
 
+## Render cover is a mixture, not a category number
+
+Simulation tint IDs describe discrete terrain categories. Before the rendering
+mesh is joined or interpolated, the shared ground builder converts them into
+separate rock, forest and scree amounts. A grass-to-forest blend can then contain
+only those surfaces; it cannot accidentally pass through another category's
+numeric ID. Both backend adapters consume these same weights. Mud and roads
+retain their signed earth-distance owner; rendering does not rewrite simulation
+categories.
+
 ## Grass uses the soldiers' world scale
 
 Ordinary battle grass stays below a standing soldier's knees and has thin
@@ -111,9 +121,10 @@ Trees, rocks, mountains, and carts are the same models whether they dress a
 campaign road or a battlefield, so the builder list lives once in
 `models/shared/sceneryPropRegistry.ts` and every surface places a prop by id.
 Geometry stays in `sceneryPropModels.ts`; the registry names it and carries the
-scale hints and the model-sheet review groups. The instanced renderer
-(`campaign/sceneryPass.ts`) is shared too — it takes a world-depth selector so
-the same pass sorts props against the campaign ground or the battle ground.
+scale hints and the model-sheet review groups. Campaign and battle retain their
+own Three and TypeGPU draw adapters. Shared assets and placement policy do not
+require shared GPU objects. In battle, the visible and shadow passes use the same
+leaf atlas and cutout, so transparent leaf borders do not cast opaque cards.
 
 ## Where the pieces live
 

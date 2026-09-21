@@ -7,8 +7,8 @@ export interface LandscapeMesh {
   vertices: Float32Array;
   /** Optional albedo override; absent uses packed vertex RGB. */
   surfaceColor?: Float32Array;
-  /** Physical battle tint IDs; campaign ground needs no tint buffer. */
-  tint?: Float32Array;
+  /** Interpolable rock/forest/scree weights; absent for unclassified campaign ground. */
+  coverage?: Float32Array;
   indices: Uint32Array;
   triangles: number;
   /** Optional triangle prefix offsets per XY cell; absent means two triangles per cell. */

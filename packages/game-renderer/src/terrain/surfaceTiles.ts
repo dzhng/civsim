@@ -70,7 +70,7 @@ export function morphTileSurface(
   if (!nearby.length) return fine.mesh;
   const vertices = fine.mesh.vertices.slice(),
     surfaceColor = fine.mesh.surfaceColor?.slice(),
-    tint = fine.mesh.tint?.slice();
+    coverage = fine.mesh.coverage?.slice();
   for (let k = 0; k < vertices.length / 10; k++) {
     const x = vertices[k * 10],
       y = vertices[k * 10 + 1];
@@ -106,10 +106,12 @@ export function morphTileSurface(
     }
     // Preserve interpolated normals: normalizing each fine vertex here would
     // change the coarse edge interpolation. The material normalizes per pixel.
-    let coarseTint = 0;
-    for (let i = 0; i < 3; i++)
-      coarseTint += (coarse.mesh.tint?.[offsets[i]] ?? 0) * hit.barycentric[i];
-    if (tint) tint[k] += (coarseTint - tint[k]) * blend;
+    for (let c = 0; coverage && c < 3; c++) {
+      let target = 0;
+      for (let i = 0; i < 3; i++)
+        target += (coarse.mesh.coverage?.[offsets[i] * 3 + c] ?? 0) * hit.barycentric[i];
+      coverage[k * 3 + c] += (target - coverage[k * 3 + c]) * blend;
+    }
     for (let c = 0; surfaceColor && c < 3; c++) {
       let target = 0;
       for (let i = 0; i < 3; i++)
@@ -119,5 +121,5 @@ export function morphTileSurface(
       surfaceColor[k * 3 + c] += (target - surfaceColor[k * 3 + c]) * blend;
     }
   }
-  return { ...fine.mesh, vertices, surfaceColor, tint };
+  return { ...fine.mesh, vertices, surfaceColor, coverage };
 }

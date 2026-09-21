@@ -4,9 +4,9 @@ This defines the intended end state, not APIs already implemented. File names be
 
 ## Share appearance, preserve each world's meaning
 
-The campaign keeps strategic geography and kilometre coordinates. Battle keeps metre-based physical terrain, movement, deployment space, and existing site-derived recipes. Both render through `PhotorealWorld`, `camera3d`/`cameraBridge`, the physical environment owner, and common surface/material/scenery code. A shared aesthetic does not require a shared map generator or identical detail budgets.
+The campaign keeps strategic geography and kilometre coordinates. Battle keeps metre-based physical terrain, movement, deployment space, and existing site-derived recipes. Campaign composes through `PhotorealWorld`; battle uses the TypeGPU renderer adopted by main. Share neutral CPU terrain, water signals, scenery assets and environment policy. Each backend owns its GPU resources and shader expression of that policy. Matching character does not require a shared backend, map generator or detail budget; do not restore the retired Three battle renderer.
 
-No new save version, campaign locale schema, battle recipe format, backend, package dependency, or library upgrade is required. The existing source raster remains the geographic input. Its palette classifier is a single source adapter, not a second material palette. Generated offline material assets, if needed, are checked in and have provenance; no runtime asset API is introduced.
+This landscape work requires no new save version, campaign locale schema, battle recipe format, additional backend, package dependency, or library upgrade. The existing source raster remains the geographic input. Its palette classifier is a single source adapter, not a second material palette. Generated offline material assets, if needed, are checked in and have provenance; no runtime asset API is introduced.
 
 ## Canonical owners
 
@@ -15,19 +15,17 @@ No new save version, campaign locale schema, battle recipe format, backend, pack
 | Input geography | Campaign data adapter and `crates/sim` battle terrain | Strategic range/coast identity versus physical playable terrain |
 | Surface domain and mesh/query contract | `packages/game-renderer/src/terrain/surface.ts` | Source units and transforms, not duplicated interpolation math |
 | Campaign relief generation | `packages/game-renderer/src/terrain/campaignLandscape.ts`, redesigned | Geographic range envelope, ridge hierarchy, city approach constraints |
-| Shared shader vocabulary and frame uniforms | `photoreal-renderer/src/landscape/shaderNodes.ts` | Each world updates its own camera focus and clock |
-| Common physical terrain response | `packages/photoreal-renderer/src/landscape/terrainMaterial.ts` | Battle road/mud/trample masks and campaign cover profiles |
-| Water response | `packages/photoreal-renderer/src/landscape/waterMaterial.ts` | Ocean, river, lake shape/displacement and world-scale shore ramps |
+| Terrain and water appearance policy | Neutral `game-renderer/src/terrain/` and `water/` owners | Three node materials and TypeGPU shaders express the same inputs with scale-specific detail; GPU resources stay local |
 | Material/cover profile | `packages/game-renderer/src/terrain/materialProfile.ts` | Explicit detail wavelengths and cover mixtures for each scale |
 | Vegetation identities and meshes | Existing `models/shared/sceneryPropRegistry.ts` | Placement eligibility, density budgets, projected representation thresholds |
-| Shared scenery instances and drawing | `game-renderer/src/terrain/scenery.ts`; `photoreal-renderer/src/landscape/sceneryLayer.ts` | Per-world visibility/reservations; no battle import from a campaign GPU pass |
+| Scenery instances and drawing | Neutral `game-renderer/src/terrain/scenery.ts` inputs and shared assets | Backend-local drawing, visibility and reservations; no battle import from a campaign GPU pass |
 | Campaign tile residency | `photoreal-renderer/src/campaign/terrainTiles.ts` | Battle may reuse edge/mesh primitives; its existing playable/vista layout stays owned by battle |
-| Standards | Existing shared standard asset and `photoreal-renderer/src/landscape/standardLayer.ts` | Tier, grounded scale, livery and label policy |
-| Environment and color | Existing `game-renderer/src/environment/environment.ts` and `photoreal-renderer/src/environment.ts` | Preset, distance scaling, view-fitted shadow extent |
-| Campaign composition | **In progress:** `photoreal-renderer/src/campaign/campaignWorld.ts` | Territory, fog, roads, cards, labels, entities, campaign scene data |
+| Standards | Shared standard assets | Backend-local drawing; tier, grounded scale, livery and label policy |
+| Environment and color | Neutral `game-renderer/src/environment/` policy | Backend-local lighting implementation; preset, distance scaling and view-fitted shadows |
+| Campaign composition | `photoreal-renderer/src/campaign/campaignWorld.ts` | Territory, fog, roads, cards, labels, entities, campaign scene data |
 | Application interaction | Existing `web/src/campaign/renderer.ts` and `scene.ts` | Commands, saves, selections, UI state, camera controls |
 
-Do not move whole files just to make names neutral. Extract shared response from battle's ground/sea orchestration, then have battle and campaign import it directly. Move the existing node math helpers to a neutral home only when they have actual cross-world consumers. Retain the battle turf/blade owner and physical generator.
+Share actual policy and data, not a wrapper around incompatible shader APIs. Keep constants, assets and CPU semantics in neutral owners; verify equivalent appearance through each production consumer. Three node helpers remain local to Three. Retain battle turf, blades and physical generation in their existing owners.
 
 ## Surface semantics
 
@@ -67,7 +65,7 @@ The implementer may lower detail or change tile dimensions/resolutions within th
 
 ## Graphics and performance acceptance
 
-Keep the installed Three.js version and existing sample-count/depth policy. No second GPU canvas, private projection, fallback WebGL renderer, global MSAA change, or private haze layer. Shadow visibility includes objects that cast into the view; cast and receiver transforms share the same terrain/instance coordinates.
+Keep the installed renderer dependencies and each production backend's sample-count/depth policy. No second GPU canvas, private projection, fallback WebGL renderer, global MSAA change, or private haze layer. Shadow visibility includes objects that cast into the view; cast and receiver transforms share the same terrain/instance coordinates.
 
 Correctness captures use the existing SwiftShader harness. Hardware timing uses the current machine's actual adapter and browser, named in the report; choose it automatically and record the provenance. The campaign engineering target is p95 frame time <=33 ms during frozen-state pan/zoom with the full UI, and warm tile integration must not cause >100 ms frames. Measure at 1280×800 DPR1, with a separate DPR2 correctness/interaction check. These are selected targets, not existing user-specified hardware guarantees.
 

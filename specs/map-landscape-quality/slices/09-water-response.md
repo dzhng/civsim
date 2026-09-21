@@ -1,10 +1,10 @@
 # 09 — Shared water depth, surf and motion
 
-Status: complete; material accepted, exact-repeat and merged water controls verified. Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
+Status: campaign material accepted; merged TypeGPU battle response verification remains open under [13](13-battle-adoption.md). Dependencies: [05](05-terrain-material.md), [08](08-water-boundaries.md).
 
 ## Contract and owner
 
-Extract the existing physical water response from battle sea orchestration into the common landscape waterMaterial owner. Battle ocean/lake/field shapes remain local consumers.
+Share neutral water signals, physical response policy and wave inputs across campaign Three materials and battle TypeGPU shaders. Geometry and GPU implementation remain local consumers; backend-specific shader helpers are not a common cross-backend owner.
 
 Slice variable: **Water material and restrained animation on fixed water geometry.**
 
@@ -28,7 +28,7 @@ Apply [compare-screenshots](../../../.agents/skills/compare-screenshots/SKILL.md
 
 ## Delegated decisions and protected behavior
 
-Depth ramps, wave/foam amplitudes, wavelengths and normal detail falloff are delegated within the water and performance contracts. No second sea shader or unowned time source.
+Depth ramps, wave/foam amplitudes, wavelengths and normal detail falloff are delegated within the water and performance contracts. Backend-local shaders consume shared policy; neither introduces an independent palette or unowned time source.
 
 Everything outside this slice's variable stays fixed; the relevant existing gameplay, water-color, surface and lifecycle tests stay green. Follow the [ownership contracts](../architecture.md). Record new implementation decisions and measured deviations in this slice before ending a pass.
 
@@ -36,7 +36,11 @@ Feedback that would change the slice: Preference for calmer/brighter water chang
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
-## Shared owner checkpoint
+## Merged consumer boundary
+
+Campaign retains the accepted material response. Battle now expresses water through TypeGPU shaders using neutral physical and wave policy. Historical battle captures do not establish the new consumer's shallow/deep response, masks or clock behavior. [Battle adoption](13-battle-adoption.md) owns that revalidation alongside the merged terrain response; keep this cross-map gate open until that evidence passes. Do not restore a Three battle material merely to share its shader helper.
+
+## Pre-merge shared owner checkpoint
 
 The existing response now lives in `landscape/waterMaterial.ts`; terrain, ocean and lake consumers import it directly. Geometry and displacement remain mode-specific. The [extraction control](../assets/slice-09/owner/README.md) preserves the prior water output. Next add separate campaign coverage/shore/depth inputs and review the composed water; this extraction alone does not complete09.
 

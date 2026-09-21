@@ -250,3 +250,14 @@ two CSS pixels between label claims in the existing importance-ordered occupancy
 owner. Keep measured ink bounds truthful and card precedence unchanged. This may
 hide an additional low-importance name at a crowded zoom; its city marker remains.
 This replaces the earlier assumption that any non-overlapping halo was readable.
+
+### Main renderer integration — sound, high confidence
+
+Keep main's TypeGPU battle renderer and the campaign's Three renderer. Sharing
+appearance means both consume the same terrain coverage, asset identities,
+material policy and environment inputs; it does not require putting battle back
+onto the retired backend. When main removes a consumer of an accepted feature,
+that consumer's acceptance reopens until its replacement implements and verifies
+the feature. Campaign evidence remains valid within its original scope. This
+retains main's shipped architecture without pretending shared asset files prove
+shared visible behavior.

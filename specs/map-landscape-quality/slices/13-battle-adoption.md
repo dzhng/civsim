@@ -1,10 +1,10 @@
 # 13 — Battle presentation adopts the shared landscape
 
-Status: in progress; shared owners and authored material checkpoint implemented. Dependencies: [05](05-terrain-material.md), [06](06-crown-shapes.md), [07](07-ecological-placement.md), [09](09-water-response.md), [10](10-environment.md).
+Status: in progress; TypeGPU production adoption remains open after the main merge. Dependencies: [05](05-terrain-material.md), [06](06-crown-shapes.md), [07](07-ecological-placement.md), [09](09-water-response.md), [10](10-environment.md).
 
 ## Contract and owner
 
-Battle consumes the same shared material/water/scenery owners through battleTerrainBuild and terrainLayer. Existing campaign battlegen and battle descriptors remain the source of local character.
+Production battle uses TypeGPU; campaign and landscape material controls use Three. Share CPU terrain, coverage and appearance policy across those adapters. Existing campaign battlegen and battle descriptors remain the source of local character. Matching character does not require one rendering backend.
 
 Slice variable: **Consistency of terrain character and visual integration in battle.**
 
@@ -14,9 +14,9 @@ Apply the accepted physical materials, cover transitions and scale-appropriate s
 
 ## Runnable checkpoint
 
-Prepared additions to battle-landscape-character preserve isolated authored A/C controls and include full compositions (application A; existing shared-world lab C). The existing battle-genmap-curated scene owns the pinned highland, wooded and coastal production worlds; prepared forest-edge and water-join cameras inspect source features outside the corridor-facing army vista. Actual campaign handoffs remain part of final integration verification.
+Use battle-landscape-character for isolated authored A/C controls and battle-genmap-curated for pinned highland, wooded and coastal production worlds. Verify each route reaches the current TypeGPU adapter before using its captures as production evidence. Frame forest edges and water joins at their source features, including those outside the corridor-facing army vista. Actual campaign handoffs remain part of final integration verification.
 
-The [composed audit](../assets/slice-13/composed/README.md) records nine exact-repeat hardware captures and remaining defects. Canonical baselines and full visual acceptance remain pending. A named map or green certificate alone does not prove the intended feature is visible in the image.
+The [composed audit](../assets/slice-13/composed/README.md) records nine exact-repeat hardware captures from the pre-merge Three battle and remaining defects. It is historical evidence, not acceptance of current TypeGPU output. Canonical baselines and full visual acceptance remain pending. A named map or green certificate alone does not prove the intended feature is visible in the image.
 
 ## Verification and review
 
@@ -36,21 +36,22 @@ Feedback that would change the slice: Exact-geography replication or new tactica
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
-## Authored material checkpoint
+## Current TypeGPU pickup
 
-The current audit found that null gameplay slope descriptors disable physical rock response on authored templates. The focused checkpoint resolves a visual default inside the existing material, preserving semantic tint and all physical inputs. Existing shared scenery and forest membership/slope work is already adopted. See [evidence and corrected cover audit](../assets/slice-13/README.md). Full slice acceptance remains pending.
+1. **Categorical coverage before interpolation.** Production still interpolates scalar tint IDs, both in `game-renderer/src/battle/vistaGeometry.ts` seam construction and the TypeGPU terrain shader. Grass 0 and forest 4 can invent rock 2. Promote rock/forest/scree coverage channels into the shared CPU ground/vista recipe before joins; both adapters consume those channels, replacing scalar material classification. Preserve the simulation tint grid. Extend `battleTerrainCover.test.ts` through the production CPU vista recipe: a grass/forest seam must yield fractional forest coverage with zero rock and scree. The existing Three-only test does not prove this contract. Verify a visible grass/forest boundary and playable/vista join in production, plus authored A/C controls.
 
-Fresh composed-image critique keeps acceptance open: forest density and boundary transitions belong to 07, water/vista seam to 08, and heavy distant haze to 10. Battle-specific integration must address isolated cool rock props on beige patches and the weak visible join between playable field and distant relief using material/vista presentation, preserving physical terrain and gameplay. The hardware audit is archived; scene edits await canonical baseline delivery.
+2. **Bitmap rock response and authored slope defaults.** Port the accepted filtered triplanar rock response into TypeGPU using one shared asset and material-policy owner. Reuse its existing image-upload/mipmap implementation; one immutable terrain-scene image serves ground, vista and replacements, with constructor-failure/disposal coverage. Replace the older procedural face/pebble response, retain the accepted bench/base blend and roughness response, and keep feature scales appropriate to battle units. Authored maps need the default visual slope profile without fabricated gameplay slope bands or generated-terrain footprint classification. Inspect both an authored rock patch and generated exposed slopes at close and distant cameras.
 
-The [density checkpoint](../assets/slice-07/battle-density/README.md) is accepted only for woodland presence and bounded cost. Its world crop is deterministic, while full-frame hardware cardbar raster drift remains unresolved; software baseline delivery is still pending. The standing 30k scene requests close zoom 24/28 but records settled zoom 8, so fix that verification mismatch before making close-camera performance claims.
+3. **Common water policy and linear blending.** Consume `TERRAIN_WATER_BLEND` and the shared physical-water palette rather than duplicate constants. TypeGPU currently converts water to linear, blends with display-authored dry albedo, then converts the result again; match the accepted single-conversion boundary. Preserve the already-shared affine `shoreWaterSignal`. Campaign signed kilometre shores and battle filtered water weights remain distinct inputs. Compare field-water edges, oblique vista shores and lake/ocean joins in actual production images.
 
-## Readout output/depth audit
+**Dry normals already have the required source:** TypeGPU beauty uses interpolated geometric normals without procedural bump. Preserve that behavior; clay's derivative face normals are a diagnostic, not a replacement for beauty normals. Normalize interpolated normals at the shading boundary where needed.
 
-The current battle readout material explicitly sets `depthTest=false` and
-`toneMapped=false`, while its diagnostic string claims depth-tested, ungraded
-billboards. The WebGPU tone-map flag is ineffective, as the campaign output
-control demonstrates. Preserve actual battle behavior during the bounded
-campaign output proof; do not treat that diagnostic string as an implemented
-occlusion contract. After the shared output seam is verified, reconcile this
-readout owner and its diagnostics, preserving camera-facing world projection
-and checking troops/terrain/readout layering in actual battle frames.
+Each pass needs focused CPU/resource tests, production before/after pixels, fresh visual critique and exact repeats. Use terrain-seam/control and water scenes alongside the character views; the Three rock-detail test alone cannot prove TypeGPU output. Rerun the current hardware performance gate after bitmap sampling. No remaining visual or performance gate is closed by this plan.
+
+## Historical checkpoints and remaining acceptance
+
+The pre-merge Three [authored material and cover checkpoint](../assets/slice-13/README.md) established the accepted visual defaults and categorical coverage behavior. Its implementation and evidence do not establish production TypeGPU adoption.
+
+The pre-merge composed critique identified forest density/boundary transitions (07), water/vista seams (08), heavy distant haze (10), isolated cool rock props on beige patches and a weak playable-field/distant-relief join. Reassess these in current production while preserving physical terrain and gameplay. The [density checkpoint](../assets/slice-07/battle-density/README.md) records historical woodland presence and bounded cost, including unresolved full-frame hardware cardbar raster drift.
+
+The old close-camera zoom mismatch and Three readout `depthTest`/`toneMapped` discrepancy describe the retired battle adapter. Main's TypeGPU migration supersedes those implementation diagnoses. Use current production camera telemetry, readout depth/output contracts and performance evidence for new verdicts; do not carry the old findings forward as present-tense defects or infer that final landscape acceptance has passed.

@@ -1,6 +1,6 @@
 # 06 — Shared tree crown representation
 
-Status: complete. Depends on 01; regional planting and environment remain in 07/10.
+Status: shared crown assets and campaign consumer accepted; TypeGPU battle consumer integration open. Depends on 01; regional planting and environment remain in 07/10.
 
 ## Contract
 
@@ -8,7 +8,11 @@ Both map pitches use the shared scenery registry and the same connected crown ge
 
 The accepted character is a solid, irregular canopy with readable lobes and connected trunks. Broad families use fewer main lobes; narrow aspen retains fuller coverage. Leaves intersect the crown instead of forming a loose fringe. Species dimensions and instance scale remain unchanged. Fixed geometry budgets and family/detail draw buckets are preserved.
 
-## Evidence and acceptance
+## Merged battle acceptance
+
+The shared crown geometry survives the backend change, but battle currently uses a single default variant with full leaf detail and different visible/shadow cutouts. Restore stable variant selection, projected detail and matching cutout coverage in the TypeGPU consumer, then repeat both-pitch coverage and fresh visual review through production. The earlier battle images below prove the retired consumer only. This reopens consumer acceptance, not the accepted crown design or campaign planting policy.
+
+## Accepted pre-merge evidence
 
 The family sheets and both map-pitch zoom/return sequences pass unchanged coverage gates. All 14 distinct tree PNGs repeat exactly over 18 capture calls, with frozen clocks and SwiftShader. The final merged code passes 464 tests and TypeScript. Independent code reviews found no actionable regressions.
 
@@ -20,4 +24,4 @@ The final merged regional images change 273,845 Alpine pixels and 150,947 Italia
 
 ## Protected scope
 
-This accepts tree form, coverage and attachment, not forest density, tree-to-mountain scale, ground clutter or landscape shadow extent. Those remain with 07 and 10. Campaign and battle keep their placement policies while sharing asset identity and drawing. Future asset changes must repeat the family and both-pitch consumer gates through the existing snapshot primitive, then use an unprimed screenshot critique before acceptance.
+This accepts tree form, coverage and attachment, not forest density, tree-to-mountain scale, ground clutter or landscape shadow extent. Those remain with 07 and 10. Campaign and battle keep their placement policies while sharing asset identity and representation policy; drawing remains backend-local. Future asset changes must repeat the family and both-pitch consumer gates through the existing snapshot primitive, then use an unprimed screenshot critique before acceptance.

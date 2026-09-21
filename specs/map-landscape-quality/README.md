@@ -1,78 +1,61 @@
 # Shared landscape quality
 
-Status: implementation active; slices 01–03, 06 and 09 complete; production adapter adopted, acceptance still open. Updated: 2026-09-21.
+Status: implementation active; foundations01–03 complete; campaign crown/water accepted, merged battle consumers and final visual acceptance open. Updated: 2026-09-21.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on `codex/map-landscape-quality`.
-Production shares terrain and appearance policy across two backends; overall
-visual quality still falls short of the reference. Keep every open slice below open until its own
-acceptance evidence is complete.
+Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
+`codex/map-landscape-quality`. Keep this one worktree; do not retain alternate
+implementations or create sibling project folders. The integrated server uses5186.
+Inspect live processes and keep source edits out of the single GPU capture lane.
 
-**Main integration boundary:** latest main (`fa2e11bf`) replaces the production
-Three battle with TypeGPU and moves the authoritative battle simulation into a
-worker. Campaign retains its Three world. Keep shared CPU terrain, signed-shore
-inputs, scenery, environment and asset policy in neutral owners; do not restore
-the retired battle backend to satisfy the original single-substrate plan.
-The vista reader and worker transfer now carry signed shore distances, and the
-neutral vista mesh converts them through the shared shoreline signal.
+**Current pickup: finish the road surface-width pass.** The uncommitted builder
+emits road center anchors; the geographic layer preserves local surface width
+through slope and terrain replacement without changing routes, style widths or
+water gaps. Six CPU tests and typecheck pass. Merged-base production controls are
+in `throwaway/road-surface-merged`; candidate/repeat work uses
+`road-surface-merged.mjs`. Check the live process before restarting. Geography
+controls use `road-geography-merged.mjs`; the scene now waits for a frame at the
+requested camera before trusting terrain readiness. Its prior Alps capture raced
+revision16→32; settled controls restore exactly. Evidence is accumulating under
+`assets/slice-11/road-surface-width/`. Finish production comparison, fresh review,
+exact repeats, geography verification, review/choices, and commit this pass.
 
-Battle adoption remains open: the new battle shader still needs assessment of
-categorical terrain coverage, bitmap rock response and geometric dry normals
-against the accepted landscape behavior. Earlier screenshots, lifetime results
-and performance numbers below describe the pre-merge runtime, not acceptance of
-this integration. Re-run merged campaign/battle and handoff evidence before
-closing those gates; main's performance evidence has its own scope.
+**Main boundary:** merge `72177093` integrates `fa2e11bf`. Battle now uses TypeGPU
+and a simulation worker; campaign retains Three. Share neutral terrain, appearance,
+scenery, asset and environment policy. Do not restore the retired battle backend.
+The merged runtime passed1,060 frontend tests, typecheck, production build, release
+WASM build, independent review and campaign→16,000-soldier battle→campaign with no
+page errors; see `assets/main-integration/verification.md`. This proves integration,
+not final art or hardware performance.
 
-**Current pickup:** correct campaign road width inflation on steep cross-slopes.
-The saddle/label checkpoint is verified:565 frontend tests, typecheck, two code
-reviews, fresh Alps/Italy/production reviews, three exact production repeats and
-seven exact canonical mountain repeats (22 checks). Evidence is in
-`assets/slice-04/downward-saddles/`. This is a bounded improvement; slice04 stays open.
+**Priority after roads:**
 
-Road audit: `roadGeometry.ts` extrudes fixed XY widths; `geographicLayer.ts`
-seats both sides independently, stretching the ribbon across steep slopes.
-Keep centerlines, land runs, water gaps and gameplay graph fixed. Give existing
-seating enough centerline/lateral-width information to maintain surface width,
-including junction caps and terrain replacement. Avoid repeatedly shrinking
-already-seated vertices. Prove width/centerline invariants with a steep-plane CPU
-case, then compare the same close Alps production view. Keep style tuning separate:
-roadScale also controls traffic clearances, so globally reducing it is not isolated.
+1. Restore missing battle appearance contracts: categorical coverage before CPU
+   seams/GPU interpolation, then common rock/water response. Dry beauty normals
+   already come from geometry. The current patch plan is in13.
+2. Restore battle tree variants, projected detail selection and a common visible/
+   shadow leaf mask in06. Campaign crown work remains accepted; the new battle
+   consumer does not yet satisfy it. Battle water verification in09 belongs to13.
+3. Improve the reference gap: mountains still read as similar rounded ribs with
+   narrow grass streaks, dark hollows and isolated woods. Try the smallest isolated
+   source-rock/slope gate to reveal existing gentle shelves; require unchanged
+   clay/geometry and reject a mere recoloring of the same ribs. Do not repeat
+   rejected fine-mesh or raised-crest experiments without new evidence.
+4. Complete label-owner coverage, shore/water motion, whole-frame/camera coverage,
+   lifetime and hardware gates, then whole-spec review and closeout.
 
-Only the integrated worktree is retained. The main server uses5186; inspect its
-live process before use. Freeze runtime edits during the single GPU capture lane.
+Accepted pre-merge terrain/label evidence is in
+`assets/slice-04/downward-saddles/`; earlier material and lifetime evidence remains
+in its slice assets. Those captures do not accept the migrated battle renderer.
+The old regional white-pixel label gate remains open; replace it only with direct
+positive/negative checks of the actual label owner. Earlier performance numbers
+are historical; run the current hardware gate for final acceptance.
 
-The finer-mesh clay comparison is rejected: close stair steps improve but regional
-character does not, at3.5× triangles. Evidence is in slice04's
-accepted-field-sampling/visual folder. No resolution/residency redesign follows.
-
-The forest-edge size prototype is rejected: regional Alps inspection and fresh
-review found smaller scattered trees but no material improvement to dense woodland
-boundaries. Three candidate campaign captures completed with no page errors;
-no final ecological acceptance follows. Evidence remains in
-`throwaway/edge-age-campaign/`. The prototype and obsolete comparison worktrees
-are deleted, rather than retained as alternatives.
-
-Next priorities: mountain/forest visual quality, direct label coverage checks,
-coast/water motion and campaign/battle handoff, then full visual and hardware
-acceptance. The original regional white-pixel gate remains red; replace it only
-with positive/negative checks of actual label owners. The10m battle camera still
-has a recorded33.74ms p95 against33ms; profile rather than weaken the gate.
-
-Evidence: adopted rock material has14 browser checks, exact campaign repeats and
-125 lifetime checks. Stable toolbar markup makes both full battle frames repeat
-exactly. On2026-09-21 all565 frontend tests passed; the previously timed-out
-allocation check also passed independently, with its timeout and budget unchanged.
-Detailed evidence remains in each slice's assets; this is not final acceptance.
-
-Only this task's integrated landscape worktree remains. The four remaining side
-worktrees, their branches, and older backup archives were deleted at the user's
-request. Do not refer to them as available controls. Rejected work must not be
-retained just in case. Fetched staging66cf9293 is already an ancestor.
-Claude previously reached a spending limit; use Opus when available without
-changing billing. Continue autonomously, keep one GPU lane, and preserve all gates.
+Claude previously reached its spending limit. Use Opus when available without
+changing billing; continue other authorized work when that service is unavailable.
 
 ### Global TODO
 
@@ -81,10 +64,10 @@ changing billing. Continue autonomously, keep one GPU lane, and preserve all gat
 - [x] [03 — Bounded terrain residency and joins](slices/03-bounded-terrain.md)
 - [ ] [04 — Connected mountain form and foothills](slices/04-mountain-form.md)
 - [ ] [05 — Shared rock, scree and grass response](slices/05-terrain-material.md)
-- [x] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)
+- [ ] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)
 - [ ] [07 — Forests, edges and intermediate ground detail](slices/07-ecological-placement.md)
 - [ ] [08 — Coasts, channels and river connections](slices/08-water-boundaries.md)
-- [x] [09 — Shared water depth, surf and motion](slices/09-water-response.md)
+- [ ] [09 — Shared water depth, surf and motion](slices/09-water-response.md)
 - [ ] [10 — Coherent lighting and landscape composition](slices/10-environment.md)
 - [ ] [11 — Campaign roads, ownership and fog](slices/11-campaign-geographic-layers.md)
 - [ ] [12 — Campaign entities, labels and selection](slices/12-campaign-entities-labels.md)
@@ -100,7 +83,7 @@ Tree representation (06) can follow 01 independently. Water boundaries (08) can 
 
 ## Fixed decisions
 
-- One physical rendering foundation: campaign adopts the existing `PhotorealWorld` substrate. Share surface math, terrain/water response, model identities and environmental lighting. Keep strategic geography and battle physics in their existing owners.
+- Share neutral surface math, terrain/water response policy, model identities and environmental lighting across Three campaign and TypeGPU battle. Each world owns one composition; strategic geography and battle physics retain their existing owners.
 - Mountains are connected terrain, not large rock props. Grass, scree and exposed rock follow the landform. Vegetation follows actual cover, slope and clearances.
 - Match the reference's landscape qualities, not its exact coastline or pixel colors. Audit whole frames after judging individual variables. The existing aesthetic remains Bronze-Age Aegean.
 - Retain current battle site recipes and authored templates. No new locale schema, map generator, erosion simulator, package dependency or renderer upgrade by default.

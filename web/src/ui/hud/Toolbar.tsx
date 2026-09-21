@@ -61,6 +61,11 @@ const LAYOUT: (ToolDef | "sep")[] = [
   },
 ];
 
+// Keep static SVG nodes across the toolbar's state refreshes.
+const ICON_HTML = Object.fromEntries(
+  LAYOUT.flatMap((item) => (item === "sep" ? [] : [[item.cmd, { __html: toolbarIcon(item.cmd) }]])),
+);
+
 export interface ToolbarProps {
   state: Record<string, ToolButtonState>;
   onCmd(cmd: string): void;
@@ -82,7 +87,7 @@ export function Toolbar({ state, onCmd }: ToolbarProps) {
               className={state[item.cmd]?.on ? "on" : undefined}
               disabled={state[item.cmd]?.disabled ?? false}
               onClick={() => onCmd(item.cmd)}
-              dangerouslySetInnerHTML={{ __html: toolbarIcon(item.cmd) }}
+              dangerouslySetInnerHTML={ICON_HTML[item.cmd]}
             />
           </Tooltip>
         ),

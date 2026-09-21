@@ -233,3 +233,12 @@ before/after visual evidence.
   Ownership can move to a containing resource without keeping a second disposal
   path. This replaces duplicated route cleanup as the asynchronous image load
   creates a real failure interval; it adds no product lifecycle manager.
+
+
+## Toolbar stability
+
+- **Sound, high confidence — keep fixed icon markup stable while command state changes.**
+  A toolbar refresh needs to change button state, not rebuild the same SVG. One
+  immutable markup object per command lets React retain the icon nodes; classes,
+  disabled state and click handlers still update. This removes redundant work
+  and observed snapshot drift without adding a renderer cache or changing art.

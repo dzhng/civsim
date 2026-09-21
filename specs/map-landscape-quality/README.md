@@ -1,65 +1,46 @@
 # Shared landscape quality
 
-Status: implementation active; slices 01–03, 06 and 09 complete; production adapter adopted, acceptance still open. Updated: 2026-09-15.
+Status: implementation active; slices 01–03, 06 and 09 complete; production adapter adopted, acceptance still open. Updated: 2026-09-21.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
 ## Next Agent Prompt
 
 Work in `/Users/david/dev/game-map-landscape-quality` on `codex/map-landscape-quality`.
-The production shared world, source mountain band, removed campaign rock props,
-card packing, painted label bounds and ungraded screen UI are integrated. Shared
-rock image ownership and geometric dry normals now pass564 frontend tests,
-14 material browser checks with four exact repeats, three exact campaign repeats,
-and125 production lifetime checks. The final material build matches the ten
-artifacts used in that lifetime proof. Overall landscape quality remains below
-the reference; no final slice acceptance follows from these checkpoints.
+Production uses the shared rendering foundation; overall visual quality still
+falls short of the reference. Keep every open slice below open until its own
+acceptance evidence is complete.
 
-**Current pickup:** integrate the small stable-toolbar-markup fix from
-`/Users/david/dev/game-screen-ui-output` (only Toolbar.tsx and Toolbar.test.tsx).
-A red/green test proves the old5Hz refresh recreated unchanged SVG nodes; caching
-the static markup preserves nodes and button state. The isolated actual battle
-vista and rock-face frames now both repeat exactly. Root's earlier captures had
-small toolbar-only drift on both hardware and software. Use the corrected
-capture setup: freeze when the debug API is installed, verify tick60, then wait
-for the0.2s HUD refresh and portrait decode. Ordinary freezeAtTick cannot rewind
-a run that has already passed its requested tick.
+**Current pickup:** compare the forest-edge age/size prototype in
+`/Users/david/dev/game-landscape-understory` (5214) with the retained painted-label
+parent (5213). Both servers were restarted on 2026-09-21. The campaign comparison
+runner is `throwaway/edge-age-campaign-proof.mjs`; do not edit runtime files during
+captures. Prototype scope and CPU evidence are in slice07 and its worktree's
+`throwaway/edge-age-status.md`. Reject it if shrinking trees only loses canopy.
+Then test finer sampling of the accepted mountain field through the existing lab
+`cell` parameter. Production1km trials exceeded the128MiB limit and were rejected;
+slice04 holds the diagnosis. Do not reintroduce them without visible value and a
+bounded allocation design.
 
-Then compare the four-file forest-edge age/size prototype in
-`/Users/david/dev/game-landscape-understory` (server5214) with parent5213.
-Extra-budget shrubs and bush relocation were rejected. The new prototype uses
-existing eligible sites and caps: smaller campaign fringe trees and a smaller,
-more shrub-heavy battle edge. Real WASM seeds7/8 preserve every site and all-prop
-forest exclusions; campaign stays at32,000 candidates, with59 site substitutions
-from smaller coastal footprints.13 focused tests/typecheck pass. Visual value
-and composition with the rock material remain unverified. Claude hit a monthly
-spend limit; root completed this prototype's tests and review locally.
+Next priorities: mountain/forest visual quality, direct label coverage checks,
+coast/water motion and campaign/battle handoff, then full visual and hardware
+acceptance. The original regional white-pixel gate remains red; replace it only
+with positive/negative checks of actual label owners. The10m battle camera still
+has a recorded33.74ms p95 against33ms; profile rather than weaken the gate.
 
-For mountain shape, the accepted-field CPU diagnostic finds1km geometry reduces
-p95 interpolation error73%, at roughly4× mesh storage. Global1km and a9-tile
-close-view version both exceed the unchanged128MiB allocation ceiling during the
-existing transition test; both remain unadopted. The temporary sampling worktree
-was removed, with failures archived in throwaway/sampling-allocation-probes.
-Use the existing campaign-landscape lab's `cell` parameter for a bounded visual
-control before designing any production refinement. Preserve the accepted height
-field: earlier source-crest, signed-profile and natural/apron alternatives were
-rejected. Finer sampling cannot create a new drainage topology by itself.
+Evidence: adopted rock material has14 browser checks, exact campaign repeats and
+125 lifetime checks. Stable toolbar markup makes both full battle frames repeat
+exactly. On2026-09-21 all565 frontend tests passed; the previously timed-out
+allocation check also passed independently, with its timeout and budget unchanged.
+Detailed evidence remains in each slice's assets; this is not final acceptance.
 
-After these visual passes, finish the direct label-coverage oracle, canonical
-campaign/battle acceptance, controlled handoff, water motion and hardware timing.
-The original regional white-pixel floor remains red and unchanged; historical
-audit proves it cannot establish neutral-name coverage, so any replacement needs
-positive/negative actual-owner controls. The actual10m battle camera still has a
-recorded33.74ms p95 against33ms; profile it rather than weaken the gate. Whole-game
-visual/performance review, choices consolidation and spec closure remain open.
-
-The user authorizes implementation/refactoring/spikes without permission questions.
-Keep the original `/Users/david/dev/game` untouched and use isolated worktrees.
-Use Claude Opus for implementation when available; don't change billing settings.
-Keep one GPU verification lane and freeze runtime/scene edits during captures.
-Do not let historical or flat-ground screenshots stand in for actual mountain
-views. Retired worktree cleanup recovered about44GiB; preserve remaining controls
-and unrelated work. Each owning slice/evidence folder retains detailed limits.
+Cleanup retained the active prototype and comparison parent. Twelve retired
+worktrees and27 branches were removed; patches/evidence are archived in
+`throwaway/worktree-cleanup-2026-09-21`, with tips under
+`refs/archive/cleanup-2026-09-21/`. Removed worktrees must not be used as live paths.
+Fetched staging66cf9293 is already an ancestor. The original checkout stays untouched.
+Claude previously reached a spending limit; use Opus when available without changing
+billing. Continue autonomously, keep one GPU lane, and preserve all remaining gates.
 
 ### Global TODO
 

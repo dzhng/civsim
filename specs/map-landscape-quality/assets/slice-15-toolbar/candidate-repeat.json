@@ -1,0 +1,175 @@
+{
+  "stage": "candidate-repeat",
+  "base": "http://127.0.0.1:5186",
+  "requestedAdapter": "hardware",
+  "checks": [
+    {
+      "name": "exact simulation tick",
+      "ok": true,
+      "detail": 60
+    },
+    {
+      "name": "vista actual pitch",
+      "ok": true,
+      "detail": {
+        "x": 0,
+        "y": -650,
+        "zoom": 7.76,
+        "zoomT": 0.967887323943662,
+        "camera3d": {
+          "target": [
+            0,
+            -650,
+            3.114326238632202
+          ],
+          "distance": 197.69521904964176,
+          "pitch": 0.30499999999999994,
+          "yaw": -1.5707963267948966,
+          "fovY": 0.6115695836867723,
+          "aspect": 1.6,
+          "near": 1
+        }
+      }
+    },
+    {
+      "name": "vista eye clears terrain",
+      "ok": true,
+      "detail": {
+        "eye": [
+          1.1546642489861877e-14,
+          -838.57098222771,
+          62.4808512907396
+        ],
+        "heightAt": -0.7505579908861932,
+        "vistaHeightAt": -0.8837513453844263,
+        "renderedSurfaceHeightAt": -0.7505579908861932,
+        "clearance": 63.231409281625794,
+        "camera3d": {
+          "target": [
+            0,
+            -650,
+            3.114326238632202
+          ],
+          "distance": 197.69521904964176,
+          "pitch": 0.30499999999999994,
+          "yaw": -1.5707963267948966,
+          "fovY": 0.6115695836867723,
+          "aspect": 1.6,
+          "near": 1
+        }
+      }
+    },
+    {
+      "name": "snapshot vista",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "rock-seam actual pitch",
+      "ok": true,
+      "detail": {
+        "x": -1198,
+        "y": 0,
+        "zoom": 7.8,
+        "zoomT": 0.9732394366197182,
+        "camera3d": {
+          "target": [
+            -1198,
+            0,
+            139.6468849182129
+          ],
+          "distance": 141.95682879445167,
+          "pitch": 0.42,
+          "yaw": 0,
+          "fovY": 0.6466878854526068,
+          "aspect": 1.6,
+          "near": 1
+        }
+      }
+    },
+    {
+      "name": "rock-seam eye clears terrain",
+      "ok": true,
+      "detail": {
+        "eye": [
+          -1068.3807896259784,
+          0,
+          197.53126574233835
+        ],
+        "heightAt": 98.19611705490598,
+        "vistaHeightAt": null,
+        "renderedSurfaceHeightAt": 98.19611705490598,
+        "clearance": 99.33514868743237,
+        "camera3d": {
+          "target": [
+            -1198,
+            0,
+            139.6468849182129
+          ],
+          "distance": 141.95682879445167,
+          "pitch": 0.42,
+          "yaw": 0,
+          "fovY": 0.6466878854526068,
+          "aspect": 1.6,
+          "near": 1
+        }
+      }
+    },
+    {
+      "name": "snapshot rock-seam",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    }
+  ],
+  "errors": [],
+  "frames": [
+    {
+      "name": "vista",
+      "tick": 60,
+      "camera": {
+        "x": 0,
+        "y": -650,
+        "zoom": 7.76,
+        "zoomT": 0.967887323943662,
+        "camera3d": {
+          "target": [
+            0,
+            -650,
+            3.114326238632202
+          ],
+          "distance": 197.69521904964176,
+          "pitch": 0.30499999999999994,
+          "yaw": -1.5707963267948966,
+          "fovY": 0.6115695836867723,
+          "aspect": 1.6,
+          "near": 1
+        }
+      },
+      "device": "apple / metal-3"
+    },
+    {
+      "name": "rock-seam",
+      "tick": 60,
+      "camera": {
+        "x": -1198,
+        "y": 0,
+        "zoom": 7.8,
+        "zoomT": 0.9732394366197182,
+        "camera3d": {
+          "target": [
+            -1198,
+            0,
+            139.6468849182129
+          ],
+          "distance": 141.95682879445167,
+          "pitch": 0.42,
+          "yaw": 0,
+          "fovY": 0.6466878854526068,
+          "aspect": 1.6,
+          "near": 1
+        }
+      },
+      "device": "apple / metal-3"
+    }
+  ]
+}

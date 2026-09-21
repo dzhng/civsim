@@ -10,22 +10,19 @@ import {
   max,
   mix,
   smoothstep,
-  step,
   texture,
   textureLoad,
   varying,
   vec3,
 } from "three/tsl";
-import { TANGENT_FRAME_EPSILON_SQUARED } from "../../../soldier-assets/src/skin";
+import { TANGENT_FRAME_EPSILON_SQUARED } from "../../src/skin";
 import {
   packSoldierMaterials,
   SOLDIER_MATERIAL_ROWS,
   type SoldierSurface,
   type SoldierTextureChannel,
-} from "../../../soldier-assets/src/material";
+} from "../../src/material";
 import { createSoldierImageOwner, type OwnedSoldierImage } from "./soldierImages";
-import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
-import { linearAlbedo } from "./battleTsl";
 
 /** Scale before squaring: even a finite authored normal scale can overflow dot(v,v). */
 export function soldierUnitDirection(direction: THREE.Node<"vec3">, fallback: THREE.Node<"vec3">) {
@@ -44,14 +41,6 @@ export function soldierUnitDirection(direction: THREE.Node<"vec3">, fallback: TH
  * light only; callers gate it off for corpses, independently of authored AO. */
 export function soldierContactOcclusion(posedHeight: THREE.Node<"float">) {
   return mix(0.45, 1, smoothstep(0, 0.42, posedHeight));
-}
-
-export function soldierFactionAccent(faction: THREE.Node<"float">) {
-  const blue = linearAlbedo(vec3(...factionForTeam(0).primary));
-  const red = linearAlbedo(vec3(...factionForTeam(1).primary));
-  const neutral = linearAlbedo(vec3(...factionForTeam(2).primary));
-  const team = mix(mix(blue, red, step(0.5, faction)), neutral, step(1.5, faction));
-  return mix(team, linearAlbedo(vec3(0.42, 0.34, 0.26)), 0.35);
 }
 
 export interface PreparedSoldierSurface {

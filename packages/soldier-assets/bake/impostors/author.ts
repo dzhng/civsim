@@ -9,8 +9,8 @@ import {
   type ImpostorAtlasArtifact,
   type ImpostorAtlasData,
 } from "../../src/impostorAtlas";
-import { createSoldierImpostorAtlas } from "../../../photoreal-renderer/src/battle/impostorLayer";
-import { prepareSoldierSurface } from "../../../photoreal-renderer/src/battle/soldierSurface";
+import { createSoldierImpostorAtlas } from "./atlas";
+import { prepareSoldierSurface } from "./soldierSurface";
 import { captureMipChain } from "./capture";
 
 const renderer = new THREE.WebGPURenderer({ antialias: false, reversedDepthBuffer: true });

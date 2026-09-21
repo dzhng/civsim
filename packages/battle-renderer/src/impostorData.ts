@@ -1,10 +1,7 @@
 import type { ImpostorAtlasLayout } from "../../soldier-assets/src/impostorAtlas";
 import type { CrowdInstance } from "../../crowd-runtime/src/instanceData";
 import { corpsePresentationStrength } from "../../crowd-runtime/src/instanceData";
-import {
-  hemiOctTileDirections,
-  nearestHemiOctTile,
-} from "../../photoreal-renderer/src/battle/impostorTile";
+import { hemiOctTileDirections, nearestHemiOctTile } from "../../soldier-assets/src/impostorTile";
 
 export interface ImpostorView {
   right: readonly [number, number, number];

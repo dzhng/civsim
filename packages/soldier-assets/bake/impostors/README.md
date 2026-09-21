@@ -1,9 +1,10 @@
 # Offline property atlases
 
 An impostor atlas is an authored material-property asset, independent of live sun,
-sky, exposure or faction. This tool calls the actual production Three baker in an
-authoring browser. Alternative renderers load its output; they do not load Three
-or recreate the bake during a battle.
+sky, exposure or faction. The asset package owns its Three baker and material/image preparation in an
+authoring browser. Battle renderers load its output; they do not load Three
+or recreate the bake during a battle. The shared [view projection](../../src/impostorTile.ts)
+contains only CPU math used by both authoring and runtime tile selection.
 
 The bake preserves the manifest's fixed far pose, hemi-octahedral views, shared
 model-space anchor, framing, double-sided properties and transparent margins.

@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { afterEach, expect, test, vi } from "vitest";
 import * as THREE from "three/webgpu";
-import { prepareSoldierSurface } from "@packages/photoreal-renderer/src/battle/soldierSurface";
-import { createSoldierImageOwner } from "@packages/photoreal-renderer/src/battle/soldierImages";
+import { prepareSoldierSurface } from "@packages/soldier-assets/bake/impostors/soldierSurface";
+import { createSoldierImageOwner } from "@packages/soldier-assets/bake/impostors/soldierImages";
 import { uploadImageTexture } from "@packages/renderer-core/src/imageTexture";
 import type { SoldierSampler, SoldierSurface } from "@packages/soldier-assets/src/material";
 

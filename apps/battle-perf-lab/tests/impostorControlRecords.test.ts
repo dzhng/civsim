@@ -10,7 +10,7 @@ import {
   packImpostors,
   type ImpostorView,
 } from "../../../packages/battle-renderer/src/impostorData";
-import { hemiOctTileDirections } from "../../../packages/photoreal-renderer/src/battle/impostorTile";
+import { hemiOctTileDirections } from "../../../packages/soldier-assets/src/impostorTile";
 import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
 import type { ImpostorAtlasLayout } from "../../../packages/soldier-assets/src/impostorAtlas";
 import type { ImpostorRecordControl } from "../src/impostorControlBackend";

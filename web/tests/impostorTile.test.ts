@@ -5,7 +5,7 @@ import {
   hemiOctTileDirections,
   nearestHemiOctTile,
   nearestTileByDot,
-} from "@packages/photoreal-renderer/src/battle/impostorTile.ts";
+} from "@packages/soldier-assets/src/impostorTile.ts";
 
 // Deterministic LCG so a failure reproduces.
 function rng(seed: number) {

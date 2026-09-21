@@ -4,7 +4,7 @@ import {
   packImpostors,
   type ImpostorView,
 } from "../../../../packages/battle-renderer/src/impostorData";
-import { hemiOctTileDirections } from "../../../../packages/photoreal-renderer/src/battle/impostorTile";
+import { hemiOctTileDirections } from "../../../../packages/soldier-assets/src/impostorTile";
 import { tanHalfFov } from "./impostorDerivation";
 
 /** The fixture and the verdict every check of the derived billboard record shares: the CPU

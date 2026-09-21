@@ -33,7 +33,7 @@ import type { CrowdInstance } from "../../../../../packages/crowd-runtime/src/in
 import {
   hemiOctTileDirections,
   nearestHemiOctTile,
-} from "../../../../../packages/photoreal-renderer/src/battle/impostorTile";
+} from "../../../../../packages/soldier-assets/src/impostorTile";
 import { packImpostors } from "../../../../../packages/battle-renderer/src/impostorData";
 
 const SQUARE: ImpostorAtlasLayout = {

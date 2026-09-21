@@ -10,7 +10,7 @@ import {
   SOLDIER_TEXTURE_COLOR_SPACES,
   type SoldierSampler,
   type SoldierTextureChannel,
-} from "../../../soldier-assets/src/material";
+} from "../../src/material";
 import { imageTextureBytes, uploadImageTexture } from "../../../renderer-core/src/imageTexture";
 import {
   createSoldierImageIdentity,

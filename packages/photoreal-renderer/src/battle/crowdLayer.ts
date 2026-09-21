@@ -37,7 +37,8 @@ import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBun
 import { decodeLocalSample, resolveLocalSample } from "../../../soldier-assets/src/localAnimation";
 import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose";
 import { viewNormalNode } from "./battleTsl";
-import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
+import { createSoldierImpostorAtlas } from "../../../soldier-assets/bake/impostors/atlas";
+import { OctahedralImpostorLayer } from "./impostorLayer";
 import {
   createCrowdLodBuffers,
   planCrowdLods,
@@ -48,15 +49,15 @@ import { RENDER_ORDER } from "./terrainLayer";
 import { weightedPaletteColumns } from "./skinNodes";
 import { SoldierPosePalette, type PaletteColumns } from "./posePalette";
 import { soldierGeometry } from "./meshGeometry";
-import { createSoldierImageOwner } from "./soldierImages";
+import { createSoldierImageOwner } from "../../../soldier-assets/bake/impostors/soldierImages";
+import { soldierFactionAccent } from "./soldierFaction";
 import {
   prepareSoldierSurface,
   type PreparedSoldierSurface,
-  soldierFactionAccent,
   soldierSurfaceNodes,
   soldierContactOcclusion,
   soldierUnitDirection,
-} from "./soldierSurface";
+} from "../../../soldier-assets/bake/impostors/soldierSurface";
 
 interface ClassBucket {
   audience: CrowdAudience;

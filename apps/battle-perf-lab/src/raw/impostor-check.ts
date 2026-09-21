@@ -26,11 +26,9 @@ import {
 import { PhotorealWorld } from "../../../../packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "../../../../packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "../../../../packages/photoreal-renderer/src/cameraBridge";
-import {
-  createSoldierImpostorAtlas,
-  OctahedralImpostorLayer,
-} from "../../../../packages/photoreal-renderer/src/battle/impostorLayer";
-import { prepareSoldierSurface } from "../../../../packages/photoreal-renderer/src/battle/soldierSurface";
+import { createSoldierImpostorAtlas } from "../../../../packages/soldier-assets/bake/impostors/atlas";
+import { OctahedralImpostorLayer } from "../../../../packages/photoreal-renderer/src/battle/impostorLayer";
+import { prepareSoldierSurface } from "../../../../packages/soldier-assets/bake/impostors/soldierSurface";
 import { loadAppearanceCatalog } from "../../../../packages/soldier-assets/src/appearanceBundle";
 import {
   decodeLocalSample,

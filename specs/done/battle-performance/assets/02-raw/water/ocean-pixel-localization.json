@@ -1,0 +1,197 @@
+[
+  {
+    "sample": 1,
+    "label": "overview-t0",
+    "changed": 6043,
+    "overOneByte": 0,
+    "maxByte": 1,
+    "worst": []
+  },
+  {
+    "sample": 1,
+    "label": "overview-t3.25",
+    "changed": 6008,
+    "overOneByte": 1,
+    "maxByte": 2,
+    "worst": [
+      {
+        "x": 498,
+        "y": 14,
+        "difference": 2
+      }
+    ]
+  },
+  {
+    "sample": 1,
+    "label": "horizon-t0",
+    "changed": 7279,
+    "overOneByte": 1,
+    "maxByte": 2,
+    "worst": [
+      {
+        "x": 300,
+        "y": 163,
+        "difference": 2
+      }
+    ]
+  },
+  {
+    "sample": 1,
+    "label": "horizon-t3.25",
+    "changed": 7284,
+    "overOneByte": 0,
+    "maxByte": 1,
+    "worst": []
+  },
+  {
+    "sample": 4,
+    "label": "overview-t0",
+    "changed": 6059,
+    "overOneByte": 1,
+    "maxByte": 6,
+    "worst": [
+      {
+        "x": 669,
+        "y": 16,
+        "difference": 6
+      }
+    ]
+  },
+  {
+    "sample": 4,
+    "label": "overview-t3.25",
+    "changed": 6047,
+    "overOneByte": 2,
+    "maxByte": 10,
+    "worst": [
+      {
+        "x": 714,
+        "y": 34,
+        "difference": 10
+      },
+      {
+        "x": 498,
+        "y": 14,
+        "difference": 2
+      }
+    ]
+  },
+  {
+    "sample": 4,
+    "label": "horizon-t0",
+    "changed": 7360,
+    "overOneByte": 29,
+    "maxByte": 15,
+    "worst": [
+      {
+        "x": 502,
+        "y": 161,
+        "difference": 15
+      },
+      {
+        "x": 298,
+        "y": 163,
+        "difference": 15
+      },
+      {
+        "x": 495,
+        "y": 162,
+        "difference": 11
+      },
+      {
+        "x": 466,
+        "y": 161,
+        "difference": 8
+      },
+      {
+        "x": 650,
+        "y": 161,
+        "difference": 8
+      },
+      {
+        "x": 689,
+        "y": 161,
+        "difference": 7
+      },
+      {
+        "x": 553,
+        "y": 152,
+        "difference": 6
+      },
+      {
+        "x": 646,
+        "y": 153,
+        "difference": 6
+      },
+      {
+        "x": 504,
+        "y": 161,
+        "difference": 6
+      },
+      {
+        "x": 426,
+        "y": 162,
+        "difference": 6
+      }
+    ]
+  },
+  {
+    "sample": 4,
+    "label": "horizon-t3.25",
+    "changed": 7354,
+    "overOneByte": 26,
+    "maxByte": 12,
+    "worst": [
+      {
+        "x": 670,
+        "y": 160,
+        "difference": 12
+      },
+      {
+        "x": 588,
+        "y": 161,
+        "difference": 12
+      },
+      {
+        "x": 465,
+        "y": 152,
+        "difference": 8
+      },
+      {
+        "x": 469,
+        "y": 169,
+        "difference": 8
+      },
+      {
+        "x": 438,
+        "y": 152,
+        "difference": 7
+      },
+      {
+        "x": 603,
+        "y": 160,
+        "difference": 7
+      },
+      {
+        "x": 412,
+        "y": 162,
+        "difference": 6
+      },
+      {
+        "x": 399,
+        "y": 152,
+        "difference": 5
+      },
+      {
+        "x": 439,
+        "y": 152,
+        "difference": 5
+      },
+      {
+        "x": 478,
+        "y": 157,
+        "difference": 5
+      }
+    ]
+  }
+]

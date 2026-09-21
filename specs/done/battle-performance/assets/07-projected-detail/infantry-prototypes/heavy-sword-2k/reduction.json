@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/heavy-kit/heavy-kit.blend",
+  "sourceSha256": "5eb5e4d2093d198b070c3b61230e657bb699829b37cd1238d3b954affa9b4c05",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 2000,
+      "sourceTriangles": 127196,
+      "triangles": 1958,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "cec530fedc3f72eeb30ee644a8736b030c4a5b498c2d81d43d3c89efe77e944e"
+    }
+  ]
+}

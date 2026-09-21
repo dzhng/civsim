@@ -1,0 +1,36 @@
+{
+  "reason": "TypeGPU is the battle owner. These owner-specific Three experiments are removed rather than retained as an alternate battle runtime. Historical source and snapshots remain in Git history. Retirement is not a passing visual result.",
+  "retiredScenes": {
+    "battle-model-budget": "Three crowd bucket, scene mesh, and per-frame upload instrumentation is specific to the retired runtime.",
+    "battle-model-far-admission": "Three runtime atlas baking/error-scope interception is replaced by offline atlas admission and native publication tests.",
+    "battle-model-far-bundles": "Forced Three atlas camera magnification bypassed production LOD. Actual persisted-atlas roster admission remains in battle-model-workbench.",
+    "battle-model-far-grounding": "Three atlas texture format/filter mutation and forced diagnostic camera are retired. Native material/contact shader tests and actual far roster cover the current representation.",
+    "battle-model-far-properties": "Synthetic replacement Three crowd/atlas property probes are retired; native impostor derivation/material tests own properties.",
+    "battle-model-image-properties": "Three surface/atlas/scene-node mutation probes are retired; shared material validation and native image ownership/admission tests retain numerical and lifecycle coverage.",
+    "battle-model-material-swatches": "Injects Three material meshes into a battle scene; authoring workbench material reload/property checks remain active.",
+    "battle-model-normal-frame": "Three scene/material replacement and direct atlas render targets cannot verify TypeGPU; mapped tangent-frame and native soldier shader tests own numerical behavior.",
+    "battle-model-palette": "Three storage nodes and palette pipeline interception are retired; native pose kernel/readback, pose upload, and admission tests own this contract."
+  },
+  "retiredSubchecks": {
+    "battle-model-action-replay/temporal-oracle": "Fresh Three crowd/material/LOD oracle removed; controller, equipment handoff, disabled/protected gait visual replay remains active. Native pose tests cover numerical blending and snapshots.",
+    "mesh-lod-diagnostic": "Magnification without re-tiering through Three setCamera removed; actual projected mesh tier context sheets remain active.",
+    "battle-model-workbench/three-allocation": "Three Scene.add failure injection removed; failed asset reload retains its generation and pixels; native lifecycle tests cover staged GPU rollback.",
+    "battle-model-reload-disposal/gpu-internals": "Direct Three pending mesh and palette disposal probes replaced by native scene/crowd/pose admission tests. Network-disposal browser check remains active."
+  },
+  "replacementTests": [
+    "web/tests/poseUpload.test.ts",
+    "web/tests/rawPosePalette.test.ts",
+    "web/tests/localPoseBlend.test.ts",
+    "web/tests/localPoseSampling.test.ts",
+    "web/tests/impostorAtlasArtifact.test.ts",
+    "web/tests/impostorTransport.test.ts",
+    "web/tests/impostorAtlasAuthoring.test.ts",
+    "web/tests/battle-renderer/crowdAudienceAdmission.test.ts",
+    "web/tests/battle-renderer/typegpuSceneLifecycle.test.ts"
+  ],
+  "portableVisualCoverage": "Workbench pose/formation/material reload/faction/life-state checks, persisted-atlas far roster, action replay and candidate sheets remain active. Per-pixel far normal/roughness/contact and synthetic tangent-frame screenshots need fresh native equivalents if pursued; numerical tests are not claimed as pixel parity.",
+  "retiredLabRoutes": {
+    "/renderer/photoreal-crowd": "Standalone old battle crowd layer playground; TypeGPU battle-models owns current asset review.",
+    "/renderer/battle-ground-turf": "Old Three ground-detail TSL playground; production TypeGPU battle ground and ground-edge fixture own current review."
+  }
+}

@@ -69,9 +69,11 @@ export function terrainNormalAt(field: TerrainHeightField, x: number, y: number,
   return [nx / len, ny / len, nz / len];
 }
 
-/** Peak-to-trough relief across the field, in rendered world Z. */
-export function heightSpan(field: TerrainHeightField): number {
-  if (field.height.length === 0) return 0;
+/** Lowest and highest rendered ground Z across the field. Shadow fitting needs
+ * the datum, not just the relief: a light-space volume has to enclose the ground
+ * it shades, wherever that ground sits. */
+export function heightFieldRange(field: TerrainHeightField): [number, number] {
+  if (field.height.length === 0) return [0, 0];
   let lo = Infinity;
   let hi = -Infinity;
   for (let i = 0; i < field.height.length; i++) {
@@ -79,7 +81,13 @@ export function heightSpan(field: TerrainHeightField): number {
     if (v < lo) lo = v;
     if (v > hi) hi = v;
   }
-  return (hi - lo) * field.verticalScale;
+  return [lo * field.verticalScale, hi * field.verticalScale];
+}
+
+/** Peak-to-trough relief across the field, in rendered world Z. */
+export function heightSpan(field: TerrainHeightField): number {
+  const [lo, hi] = heightFieldRange(field);
+  return hi - lo;
 }
 
 function clamp(v: number, lo: number, hi: number): number {

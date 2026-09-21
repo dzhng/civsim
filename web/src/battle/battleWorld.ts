@@ -1,23 +1,23 @@
+import type { BattleRendererApi } from "./battleRendererApi";
+import type { BattleBenchmarkScenario } from "./benchmark/benchmarkScenario";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import type {
   BattleEdgeRole,
   BattleGroundCover,
   BattleSlopeBands,
+  BattleTerrainGrid,
 } from "@packages/game-renderer/src/battle/terrainFeatures";
 import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
-import type { Game, InitOutput } from "../wasm/game_wasm.js";
 import { Camera } from "../shared/camera";
 import { getGraphicsSettings } from "../shared/graphicsSettings";
 import { BattleAmbientAudio } from "./battleAudio";
 import { battleCameraRig, type CameraRigRange } from "./cameraRig";
 import { BattleRenderer } from "./renderer";
 import { installViewportGate } from "./viewportGate";
-import { createBattleViews } from "./battleViews";
-import { ACTION_TICK_SECONDS } from "@packages/crowd-runtime/src/actionTimeline";
+import type { BattleSimClient } from "./sim/battleSimClient";
+import type { BattleSimSetup } from "./sim/battleSetup";
 
 export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB" | "gen";
-export const BATTLE_TICK_DT = ACTION_TICK_SECONDS;
-export const BATTLE_MAX_TICKS_PER_FRAME = 4;
 
 export interface GeneratedBattleMapDescriptor {
   seed: number | string;
@@ -72,16 +72,16 @@ export interface GeneratedBattleMapDescriptor {
 }
 
 export interface BattleConfig {
-  wasm: InitOutput;
-  game: Game;
+  /** How this battle begins. The authority builds the one `Game` from it. */
+  setup: BattleSimSetup;
   kind: BattleKind;
   onExit: () => void;
   onLaunch: (kind: BattleKind) => void;
   wasmMapId?: number;
   environment?: BattleEnvironmentId;
-  generatedMap?: GeneratedBattleMapDescriptor;
   restart?: () => void;
   inCampaign?: boolean;
+  benchmark?: BattleBenchmarkScenario;
 }
 
 export class BattleCameraRig {
@@ -104,16 +104,15 @@ export class BattleCameraRig {
     this.camera.setRig(this.range, this.bounds);
   };
 
-  frameArmies(game: Game, unitInfo: () => Float32Array, stride: number): void {
-    const mapW = game.terrain_w() * game.terrain_cell();
-    const mapH = game.terrain_h() * game.terrain_cell();
-    const ox = game.terrain_origin_x();
-    const oy = game.terrain_origin_y();
+  frameArmies(terrain: BattleTerrainGrid, info: Float32Array, units: number, stride: number): void {
+    const mapW = terrain.w * terrain.cell;
+    const mapH = terrain.h * terrain.cell;
+    const ox = terrain.ox;
+    const oy = terrain.oy;
     this.camera.bounds = [ox, oy, ox + mapW, oy + mapH];
     this.bounds = { width: mapW, height: mapH };
-    const info = unitInfo();
     let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
-    for (let unit = 0; unit < game.unit_count(); unit++) {
+    for (let unit = 0; unit < units; unit++) {
       const offset = unit * stride;
       if (info[offset + UNIT_INFO.team] !== 0) continue;
       x0 = Math.min(x0, info[offset]);
@@ -235,42 +234,55 @@ export class BattleCameraRig {
   }
 }
 
-export interface BattleWorld extends ReturnType<typeof createBattleViews> {
+/** The scene's view of one battle. Every record here is a copy of one completed
+ * tick, rewritten in place when the next tick arrives, so a consumer reads it
+ * within the frame that asked for it and copies anything it keeps. */
+export interface BattleWorld {
   cfg: BattleConfig;
-  game: Game;
-  memory: WebAssembly.Memory;
+  sim: BattleSimClient;
+  terrain: BattleTerrainGrid;
+  generatedMap: GeneratedBattleMapDescriptor | null;
+  wasmMapId: number | undefined;
   canvas: HTMLCanvasElement;
   camera: Camera;
   cameraRig: BattleCameraRig;
-  renderer: BattleRenderer;
+  renderer: BattleRendererApi;
   disposeRenderer(): void;
   audio: BattleAmbientAudio;
   signal: AbortSignal;
   stride: number;
+  unitInfo(): Float32Array;
+  positions(): Float32Array;
 }
 
-let sharedRenderer: BattleRenderer | null = null;
+let sharedRenderer: BattleRendererApi | null = null;
 
-function disposeSharedRenderer(renderer: BattleRenderer): void {
+function disposeSharedRenderer(renderer: BattleRendererApi): void {
   if (sharedRenderer !== renderer) return;
   renderer.dispose();
   sharedRenderer = null;
 }
 
-export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): BattleWorld {
+/** Built once the authority has answered with the battle's immutable identity:
+ * the renderer's environment and terrain are decided by the map the sim actually
+ * generated, so there is nothing to build before that reply. */
+export function createBattleWorld(
+  cfg: BattleConfig,
+  sim: BattleSimClient,
+  cleanups: (() => void)[],
+  signal: AbortSignal,
+): BattleWorld {
   const ui = document.getElementById("battle-ui")!;
   ui.style.display = "block";
   cleanups.push(() => {
     ui.style.display = "none";
   });
   cleanups.push(installViewportGate(document.getElementById("viewport-too-small")!));
-  const abortController = new AbortController();
-  cleanups.push(() => abortController.abort());
 
-  const { game, wasm } = cfg;
+  const identity = sim.identity;
   const canvas = document.getElementById("battlefield") as HTMLCanvasElement;
   const camera = new Camera(canvas);
-  const defaultEnvironment = cfg.environment ?? cfg.generatedMap?.defaultEnvironment ?? null;
+  const defaultEnvironment = cfg.environment ?? identity.generatedMap?.defaultEnvironment ?? null;
   const graphics = getGraphicsSettings();
   if (
     sharedRenderer &&
@@ -298,21 +310,23 @@ export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): 
   };
   renderer.resize();
 
-  const stride = game.unit_info_stride();
   const world: BattleWorld = {
     cfg,
-    game,
-    memory: wasm.memory,
+    sim,
+    terrain: identity.terrain,
+    generatedMap: identity.generatedMap,
+    wasmMapId: cfg.wasmMapId,
     canvas,
     camera,
     cameraRig: new BattleCameraRig(camera, canvas),
     renderer,
     disposeRenderer: () => disposeSharedRenderer(renderer),
     audio,
-    signal: abortController.signal,
-    stride,
-    ...createBattleViews(game, wasm.memory),
+    signal,
+    stride: identity.unitInfoStride,
+    unitInfo: () => sim.unitInfo(),
+    positions: () => sim.positions(),
   };
-  world.cameraRig.frameArmies(game, world.unitInfo, stride);
+  world.cameraRig.frameArmies(world.terrain, sim.unitInfo(), sim.unitCount(), world.stride);
   return world;
 }

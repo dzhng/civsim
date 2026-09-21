@@ -1,0 +1,32 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-raw-post-verification/apps/battle-perf-lab
+
+ ❯ tests/vgpuFrame.test.ts (5 tests | 1 failed | 4 skipped) 4ms
+   × a staged cleanup error cannot skip original frame resources or replace disposal failure 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/vgpuFrame.test.ts > a staged cleanup error cannot skip original frame resources or replace disposal failure
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/vgpuFrame.test.ts:159:27
+    157|   expect(messages(error).join(" ")).toContain("disposed");
+    158|   expect(messages(error).join(" ")).toContain("staged cleanup");
+    159|   expect(state.live.size).toBe(0);
+       |                           ^
+    160| });
+    161|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed | 3 skipped (5)
+      Tests  1 failed | 1 passed | 26 skipped (28)
+   Start at  14:02:41
+   Duration  137ms (transform 241ms, setup 0ms, import 297ms, tests 6ms, environment 0ms)

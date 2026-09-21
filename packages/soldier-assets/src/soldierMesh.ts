@@ -1,4 +1,5 @@
 import type { SoldierMeshData } from "./mesh";
+import { APPEARANCE_MESH_TIERS, type MeshTiers } from "./appearanceBundle.ts";
 import type { SoldierMaterial } from "./material";
 
 type Rgba = [number, number, number, number];
@@ -185,13 +186,17 @@ export function createPlaceholderSoldierMeshes(
   );
 }
 
-/** L0 full / L1 reduced silhouette equipment / L2 coarse body+head+legs.
- *  Tiers skin to the same bones, so one joint palette drives every tier. */
+/** Near full / intermediate simplified weapon / mid without helmet or blanket /
+ *  far coarse body+head+legs. Tiers skin to the same bones, so one joint palette
+ *  drives every tier. */
 export function createPlaceholderSoldierMeshTiers(
   armBandSrgb: [number, number, number] = [0.06, 0.1, 0.98],
-): SoldierMeshData[][] {
-  return APPEARANCE_DESCRIPTORS.map((_, classId) =>
-    [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandSrgb, classId, lod)),
+): MeshTiers<SoldierMeshData>[] {
+  return APPEARANCE_DESCRIPTORS.map(
+    (_, classId) =>
+      APPEARANCE_MESH_TIERS.map((_, lod) =>
+        createPlaceholderSoldierMesh(armBandSrgb, classId, lod),
+      ) as MeshTiers<SoldierMeshData>,
   );
 }
 
@@ -227,14 +232,14 @@ export function createPlaceholderSoldierMesh(
     addBox(v, indices, [0, -0.04, 0.86], [0.54, 1.18, 0.38], 0, horse);
     addBox(v, indices, [0, 0.62, 1.08], [0.26, 0.42, 0.48], 0, horse);
     addBox(v, indices, [0, 0.92, 1.22], [0.3, 0.3, 0.28], 0, horse);
-    if (lod < 2) addBox(v, indices, [-0.08, 1.06, 1.3], [0.08, 0.12, 0.16], 0, leather);
-    if (lod < 2) addBox(v, indices, [0.08, 1.06, 1.3], [0.08, 0.12, 0.16], 0, leather);
-    if (lod < 2) addBox(v, indices, [0, -0.74, 0.98], [0.12, 0.42, 0.1], 0, leather);
+    if (lod < 3) addBox(v, indices, [-0.08, 1.06, 1.3], [0.08, 0.12, 0.16], 0, leather);
+    if (lod < 3) addBox(v, indices, [0.08, 1.06, 1.3], [0.08, 0.12, 0.16], 0, leather);
+    if (lod < 3) addBox(v, indices, [0, -0.74, 0.98], [0.12, 0.42, 0.1], 0, leather);
     addBox(v, indices, [-0.24, -0.4, 0.48], [0.12, 0.14, 0.72], 0, horse);
     addBox(v, indices, [0.24, -0.4, 0.48], [0.12, 0.14, 0.72], 0, horse);
     addBox(v, indices, [-0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
     addBox(v, indices, [0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
-    if (lod < 1) addBox(v, indices, [0, -0.02, 1.17], [0.46, 0.34, 0.12], 0, horseBlanket);
+    if (lod < 2) addBox(v, indices, [0, -0.02, 1.17], [0.46, 0.34, 0.12], 0, horseBlanket);
   }
   addBox(v, indices, [0, 0.02, 1.33 + riderLift], [0.48, 0.28, 0.52], 1, body);
   addBox(v, indices, [0, 0.02, 0.98 + riderLift], [0.48, 0.28, 0.18], 1, leather);
@@ -246,8 +251,8 @@ export function createPlaceholderSoldierMesh(
     2,
     helmetSurface(look.helmet, bronze, body),
   );
-  // L2 keeps only body, head, legs (the readable silhouette); L0/L1 add arms.
-  if (lod < 2) {
+  // Far keeps only body, head, legs (the readable silhouette); finer tiers add arms.
+  if (lod < 3) {
     addBox(v, indices, [-0.34, 0.02, 1.28 + riderLift], [0.18, 0.18, 0.58], 3, leather);
     addBox(v, indices, [0.34, 0.02, 1.28 + riderLift], [0.18, 0.18, 0.58], 4, leather);
     addArmBand(v, indices, armBand, riderLift);
@@ -262,12 +267,12 @@ export function createPlaceholderSoldierMesh(
     addBox(v, indices, [-0.17, 0, 0.58], [0.18, 0.18, 0.78], 5, leather);
     addBox(v, indices, [0.17, 0, 0.58], [0.18, 0.18, 0.78], 6, leather);
   }
-  if (lod < 2) addShield(v, indices, look.shield, shieldHide, bronze, riderLift);
-  if (lod < 1) {
+  if (lod < 3) addShield(v, indices, look.shield, shieldHide, bronze, riderLift);
+  if (lod < 2) {
     addHelmet(v, indices, look, horsehair, bronze, riderLift);
   }
-  if (lod < 2) {
-    addWeapon(v, indices, look, lod, surface(leather.color, "wood"), bronze, iron, riderLift);
+  if (lod < 3) {
+    addWeapon(v, indices, look, lod > 0, surface(leather.color, "wood"), bronze, iron, riderLift);
   }
   return splitInterleaved(new Float32Array(v), new Uint16Array(indices));
 }
@@ -347,7 +352,7 @@ function addWeapon(
   out: number[],
   indices: number[],
   look: AppearanceLook,
-  lod: number,
+  simplified: boolean,
   wood: Surface,
   bronze: Surface,
   iron: Surface,
@@ -420,7 +425,7 @@ function addWeapon(
     addHand([-0.39, 0.02, 1.04 + lift], 3);
     if (look.mounted) addBox(out, indices, [0.3, -0.08, 1.46 + lift], [0.1, 0.42, 0.1], 1, wood);
   };
-  if (lod === 1) {
+  if (simplified) {
     switch (weapon) {
       case "pike":
       case "pike_upright":

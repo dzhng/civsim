@@ -1,0 +1,61 @@
+{
+  "scope": "static bundle inspection only; no JavaScript executed, no browser, no GPU, no timing",
+  "threeWebgpuPinnedSha256": "50e4013dd3903e8afb09a4829962dbf105488de7bd47f61308f44bd2e66b3340",
+  "threeWebgpuInstalledSha256": "50e4013dd3903e8afb09a4829962dbf105488de7bd47f61308f44bd2e66b3340",
+  "pinMatches": true,
+  "tapPluginSha256": "6be9a043e144eef6534a074f7af627edb8f30cf4a681eeeee05960390ea37091",
+  "aggregationSourceSha256": "e180a3e1d7ef58fe034f17542373b8530de9c9016f0a57ca93c3f7a5c80e61f7",
+  "backends": {
+    "three": {
+      "sourceTapCallSites": [
+        {
+          "file": "views-Bx6_qhcc.js",
+          "call": "du(this.device,this.type,t,i,c)",
+          "immediatelyPrecededByTimestampPairRead": true,
+          "context": "includes(r)===!1&&s.push(r),o[r]===void 0&&(o[r]=0);let i=a[n],c=a[n+1],l=Number(c-i)/1e6;du(this.device,this.type,t,i,c),this.timestamps.set(t,l),o[r]+=l}let c=o[s[s.length-1]];ret"
+        }
+      ],
+      "sourceTapPresent": true,
+      "intervalAggregationFiles": [
+        "index-BTwP5LkX.js",
+        "views-Bx6_qhcc.js"
+      ],
+      "intervalAggregationPresent": true
+    },
+    "raw": {
+      "sourceTapCallSites": [],
+      "sourceTapPresent": false,
+      "intervalAggregationFiles": [
+        "gpuAdmission-BynuasgG.js",
+        "index-C59nw6W2.js",
+        "posePaletteWgsl-DaySzZs6.js",
+        "router-_LM9ebng.js"
+      ],
+      "intervalAggregationPresent": true
+    },
+    "typegpu": {
+      "sourceTapCallSites": [],
+      "sourceTapPresent": false,
+      "intervalAggregationFiles": [
+        "gpuAdmission-BynuasgG.js",
+        "index-Q9h_3Imf.js",
+        "posePaletteWgsl-DaySzZs6.js",
+        "router-_LM9ebng.js"
+      ],
+      "intervalAggregationPresent": true
+    },
+    "vgpu": {
+      "sourceTapCallSites": [],
+      "sourceTapPresent": false,
+      "intervalAggregationFiles": [
+        "gpuAdmission-BynuasgG.js",
+        "index-Cqyidlhz.js",
+        "posePaletteWgsl-DaySzZs6.js",
+        "router-_LM9ebng.js"
+      ],
+      "intervalAggregationPresent": true
+    }
+  },
+  "tapMatchesExpectation": true,
+  "aggregationInAllBackends": true
+}

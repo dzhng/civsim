@@ -17,17 +17,13 @@ import { LOCAL_STEP_T, LOCAL_STEP_R, LOCAL_STEP_S } from "../../soldier-assets/s
 import { SNAPSHOT_BANK_COUNT } from "./posePaletteStorage";
 
 /** Shared compute math, not an alternate persisted animation encoding. */
-export const POSE_PALETTE_HELPERS_WGSL = `
-struct PaletteLocal { t: vec3f, q: vec4f, s: vec3f };
-
-// Shortest-arc slerp only evaluates sine on [0, pi/2]. Degree-11 odd Taylor
-// remainder is below 5.7e-8 there, before Float32 evaluation error.
-fn paletteSin(x: f32) -> f32 {
+export const posePaletteHelpers = {
+  // Shortest-arc slerp evaluates sine on [0, pi/2]; degree-11 Taylor remainder <5.7e-8.
+  paletteSin: `(x: f32) -> f32 {
   let square = x * x;
   return x * (1.0 + square * (-0.16666666666666667 + square * (0.008333333333333333 + square * (-0.0001984126984126984 + square * (0.0000027557319223985893 + square * -0.00000002505210838544172)))));
-}
-
-fn paletteSlerp(a: vec4f, inputB: vec4f, weight: f32) -> vec4f {
+}`,
+  paletteSlerp: `(a: vec4f, inputB: vec4f, weight: f32) -> vec4f {
   if (weight == 0.0) { return a; }
   if (weight == 1.0) { return inputB; }
   var b = inputB;
@@ -49,25 +45,21 @@ fn paletteSlerp(a: vec4f, inputB: vec4f, weight: f32) -> vec4f {
   }
   let magnitude = length(result);
   return result / select(1.0, magnitude, magnitude > 0.0);
-}
-
-fn paletteBlend(a: PaletteLocal, b: PaletteLocal, weight: f32) -> PaletteLocal {
+}`,
+  paletteBlend: `(a: PaletteLocal, b: PaletteLocal, weight: f32) -> PaletteLocal {
   if (weight == 0.0) { return a; }
   if (weight == 1.0) { return b; }
   return PaletteLocal(a.t + (b.t - a.t) * weight, paletteSlerp(a.q, b.q, weight), a.s + (b.s - a.s) * weight);
-}
-
-fn paletteRead(data: ptr<storage, array<vec4f>, read>, offset: u32) -> PaletteLocal {
+}`,
+  paletteRead: `(data: ptr<storage, array<vec4f>, read>, offset: u32) -> PaletteLocal {
   return PaletteLocal((*data)[offset].xyz, (*data)[offset + 1u], (*data)[offset + 2u].xyz);
-}
-
-fn paletteSnapshot(bank0: ptr<storage, array<vec4f>, read>, bank1: ptr<storage, array<vec4f>, read>, slot: u32, joint: u32, bones: u32) -> PaletteLocal {
+}`,
+  paletteSnapshot: `(bank0: ptr<storage, array<vec4f>, read>, bank1: ptr<storage, array<vec4f>, read>, slot: u32, joint: u32, bones: u32) -> PaletteLocal {
   let offset = (slot / ${SNAPSHOT_BANK_COUNT}u * bones + joint) * 3u;
   if (slot % ${SNAPSHOT_BANK_COUNT}u == 0u) { return paletteRead(bank0, offset); }
   return paletteRead(bank1, offset);
-}
-
-fn paletteSample(data: ptr<storage, array<vec4f>, read>, metadata: ptr<storage, array<u32>, read>, descriptor: vec4u, joint: u32, bones: u32, stepBase: u32) -> PaletteLocal {
+}`,
+  paletteSample: `(data: ptr<storage, array<vec4f>, read>, metadata: ptr<storage, array<u32>, read>, descriptor: vec4u, joint: u32, bones: u32, stepBase: u32) -> PaletteLocal {
   let a = paletteRead(data, (descriptor.x * bones + joint) * 3u);
   let b = paletteRead(data, (descriptor.y * bones + joint) * 3u);
   var result = paletteBlend(a, b, bitcast<f32>(descriptor.z));
@@ -76,9 +68,8 @@ fn paletteSample(data: ptr<storage, array<vec4f>, read>, metadata: ptr<storage, 
   if ((steps & ${LOCAL_STEP_R}u) != 0u) { result.q = a.q; }
   if ((steps & ${LOCAL_STEP_S}u) != 0u) { result.s = a.s; }
   return result;
-}
-
-fn paletteTrs(pose: PaletteLocal) -> mat4x4f {
+}`,
+  paletteTrs: `(pose: PaletteLocal) -> mat4x4f {
   let q = pose.q;
   let x2 = q.x + q.x; let y2 = q.y + q.y; let z2 = q.z + q.z;
   let xx = q.x * x2; let xy = q.x * y2; let xz = q.x * z2;
@@ -90,15 +81,20 @@ fn paletteTrs(pose: PaletteLocal) -> mat4x4f {
     vec4f(vec3f(xz + wy, yz - wx, 1.0 - (xx + yy)) * pose.s.z, 0.0),
     vec4f(pose.t, 1.0)
   );
-}
+}`,
+} as const;
+export const POSE_PALETTE_HELPERS_WGSL = `
+struct PaletteLocal { t: vec3f, q: vec4f, s: vec3f };
+${Object.entries(posePaletteHelpers)
+  .map(([name, body]) => `fn ${name}${body}`)
+  .join("\n")}
 `;
 
 /** One invocation owns one instance's hierarchy; no workgroup or inter-dispatch dependency. */
-export function posePaletteFunctionWgsl(bones: number): string {
+export function posePaletteBodyWgsl(bones: number): string {
   if (!Number.isInteger(bones) || bones < 1)
     throw new Error("palette requires a positive joint count");
-  return `
-fn preparePosePalette(
+  return `(
   samples: ptr<storage, array<vec4f>, read>,
   metadata: ptr<storage, array<u32>, read>,
   inverseBinds: ptr<storage, array<mat4x4f>, read>,
@@ -147,4 +143,8 @@ fn preparePosePalette(
   return 1u;
 }
 `;
+}
+
+export function posePaletteFunctionWgsl(bones: number): string {
+  return `fn preparePosePalette${posePaletteBodyWgsl(bones)}`;
 }

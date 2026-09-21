@@ -1,0 +1,512 @@
+{
+  "frame-pose-repeat-1": {
+    "errors": [],
+    "pageErrors": [],
+    "cases": [
+      {
+        "label": "tactical-plain",
+        "priorHdrDifference": null,
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0.135009765625,
+          "maxRelative": 1.0891452543261668,
+          "rmse": 0.00029263692248917775,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.0000003576278687,
+          "samples": 4992
+        }
+      },
+      {
+        "label": "tactical-repeat-plain",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.0000003576278687,
+          "samples": 4992
+        }
+      },
+      {
+        "label": "tactical-repeat-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.0000003576278687,
+          "samples": 4992
+        }
+      },
+      {
+        "label": "horizon-plain",
+        "priorHdrDifference": {
+          "maxAbs": 1.358642578125,
+          "maxRelative": 18.8653564453125,
+          "rmse": 0.41790717389988863,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.0000003576278687,
+          "samples": 4992
+        }
+      },
+      {
+        "label": "horizon-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.0000003576278687,
+          "samples": 4992
+        }
+      }
+    ]
+  },
+  "frame-settled-init": {
+    "errors": [],
+    "pageErrors": [],
+    "cases": [
+      {
+        "label": "tactical-plain",
+        "priorHdrDifference": null,
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0.135009765625,
+          "maxRelative": 1.0891452543261668,
+          "rmse": 0.00029263692248917775,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-plain",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-plain",
+        "priorHdrDifference": {
+          "maxAbs": 1.358642578125,
+          "maxRelative": 18.8653564453125,
+          "rmse": 0.41790717389988863,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      }
+    ]
+  },
+  "frame-material-albedo": {
+    "errors": [],
+    "pageErrors": [],
+    "cases": [
+      {
+        "label": "tactical-plain",
+        "priorHdrDifference": null,
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-plain",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-plain",
+        "priorHdrDifference": {
+          "maxAbs": 1.3392333984375,
+          "maxRelative": 22.73645058448459,
+          "rmse": 0.4056105635569547,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      }
+    ]
+  },
+  "frame-material-normal": {
+    "errors": [],
+    "pageErrors": [],
+    "cases": [
+      {
+        "label": "tactical-plain",
+        "priorHdrDifference": null,
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-plain",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-plain",
+        "priorHdrDifference": {
+          "maxAbs": 1.087890625,
+          "maxRelative": 19.99406337738037,
+          "rmse": 0.24248700818800634,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.587890625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      }
+    ]
+  },
+  "frame-material-roughness": {
+    "errors": [],
+    "pageErrors": [],
+    "cases": [
+      {
+        "label": "tactical-plain",
+        "priorHdrDifference": null,
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.716796875,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-plain",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.716796875,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "tactical-repeat-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.716796875,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-plain",
+        "priorHdrDifference": {
+          "maxAbs": 1.7275390625,
+          "maxRelative": 34.55078125,
+          "rmse": 0.4355410727701869,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.7275390625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      },
+      {
+        "label": "horizon-bloom",
+        "priorHdrDifference": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1.7275390625,
+          "samples": 1572864
+        },
+        "priorPoseDifference": null
+      }
+    ]
+  }
+}

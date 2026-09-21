@@ -1,0 +1,17 @@
+[
+  {
+    "arm": "B1",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "arm": "B2",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "arm": "A2",
+    "changedPixels": 0,
+    "maxChannelDelta": 0
+  }
+]

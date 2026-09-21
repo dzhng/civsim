@@ -1,0 +1,38 @@
+[
+  {
+    "source": "throwaway/shadow-readability-audit/stderr.log",
+    "file": "stderr.log.gz",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "source": "throwaway/shadow-readability-audit/observe-fits.mjs",
+    "file": "observe-fits.mjs.gz",
+    "bytes": 2764,
+    "sha256": "6cc8006f1c348ce530d4b46b5bceed7fa17d36388913fdee141536441908d1ef"
+  },
+  {
+    "source": "throwaway/shadow-readability-audit/result.txt",
+    "file": "result.txt.gz",
+    "bytes": 7337,
+    "sha256": "82728b6de2b3e94fc2558554159899eb8abeacb88152d86fe998672fa78c5955"
+  },
+  {
+    "source": "throwaway/shadow-readability-audit/fit-observations.log",
+    "file": "fit-observations.log.gz",
+    "bytes": 1439,
+    "sha256": "fdf4ef39b9613655efa882ed47081625c34ad64778156e15acdd747617cccbc3"
+  },
+  {
+    "source": "throwaway/shadow-readability-audit/prompt.txt",
+    "file": "prompt.txt.gz",
+    "bytes": 2171,
+    "sha256": "2cfeebab5011daa9f7b099943ab73e2f72a779c3169bf3b31aec5dea3884817c"
+  },
+  {
+    "source": "throwaway/shadow-readability-audit/fit-observations.json",
+    "file": "fit-observations.json.gz",
+    "bytes": 78121,
+    "sha256": "392f7e16aea7e61d0565286e002ecf479332f6905829f4de4001fd20ae6b93f2"
+  }
+]

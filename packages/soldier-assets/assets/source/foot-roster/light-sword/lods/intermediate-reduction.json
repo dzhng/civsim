@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/light-sword/light-sword.blend",
+  "sourceSha256": "217c19b03e10452f47d5734a78e9f335177f3c8d6e0072b56ff0db21835f0d26",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 98364,
+      "triangles": 3970,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "ee463b69b0ddfb72c13cd7e60f58737ef54a21ca4e0f1d4b34326c022894dbca"
+    }
+  ]
+}

@@ -14,6 +14,7 @@ export interface MenuProps {
   initialConfig?: QuickBattleConfig;
   setupError?: string;
   onOpenBattle: () => void;
+  onBenchmark: () => void;
   onCloseBattle: () => void;
   hasSave: boolean;
   /** Class rows for the custom-battle army builder (now React). */
@@ -98,6 +99,14 @@ export function Menu(props: MenuProps) {
         </div>
 
         <div className="menu-section">
+          <button
+            id="menu-benchmark"
+            disabled={!ok}
+            title={disabledTitle}
+            onClick={props.onBenchmark}
+          >
+            Battle Benchmark <small>five minutes of real battle</small>
+          </button>
           <button id="menu-settings" onClick={() => setSettingsOpen(true)}>
             Settings <small>graphics</small>
           </button>

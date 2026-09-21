@@ -7,7 +7,7 @@ export const meta = {
   tier: "full",
   snapshots: [],
   describe:
-    "Real LOD mesh tiers (L0/L1/L2) reduce geometry; per-instance distance binning coarsens monotonically with hysteresis.",
+    "Real LOD mesh tiers reduce geometry; per-instance distance binning coarsens monotonically with hysteresis.",
 };
 
 function countNonBlank(png) {
@@ -38,13 +38,12 @@ export async function run(ctx) {
     ctx.check(
       "lod-tiers: each coarser mesh tier draws fewer triangles",
       stats.reduces === true &&
-        stats.triCounts[0] > stats.triCounts[1] &&
-        stats.triCounts[1] > stats.triCounts[2],
+        stats.triCounts.every((count, lod) => lod === 0 || count < stats.triCounts[lod - 1]),
       JSON.stringify({ triCounts: stats.triCounts }),
     );
     ctx.check(
-      "lod-tiers: per-instance distance binning coarsens monotonically and reaches L0/L1/L2",
-      stats.monotonic === true && stats.tiersReached >= 3,
+      "lod-tiers: per-instance distance binning coarsens monotonically and reaches every mesh tier",
+      stats.monotonic === true && stats.tiersReached === stats.triCounts.length,
       JSON.stringify({ probeLevels: stats.probeLevels, tiersReached: stats.tiersReached }),
     );
     ctx.check(
@@ -54,13 +53,13 @@ export async function run(ctx) {
     );
     ctx.check(
       "lod-tiers: the pipeline builds a resource per (class, lod) tier",
-      stats.meshVariants === 60,
-      JSON.stringify({ meshVariants: stats.meshVariants }),
+      stats.meshVariants === 20 * stats.triCounts.length,
+      JSON.stringify({ meshVariants: stats.meshVariants, tiers: stats.triCounts.length }),
     );
 
     const pixels = countNonBlank(PNG.sync.read(await page.screenshot()));
     ctx.check(
-      "lod-tiers: L0/L1/L2 soldiers render a nonblank frame",
+      "lod-tiers: one soldier per mesh tier renders a nonblank frame",
       pixels > 100000,
       JSON.stringify({ pixels }),
     );

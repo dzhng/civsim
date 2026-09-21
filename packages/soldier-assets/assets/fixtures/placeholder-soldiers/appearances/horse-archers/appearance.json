@@ -53,7 +53,8 @@
   "tiers": [
     "tier-0.mesh.json",
     "tier-1.mesh.json",
-    "tier-2.mesh.json"
+    "tier-2.mesh.json",
+    "tier-3.mesh.json"
   ],
   "far": {
     "mesh": "tier-0.mesh.json",

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 import { heavyMotionBake, heavyPresentation } from "./heavy-motion-contract.mjs";
 
@@ -10,11 +11,11 @@ const {
 const bundle = bakeAppearance({
   name: "heavy-kit",
   mounted: false,
-  tiers: [
-    await readFile(new URL("../assets/source/heavy-kit/lods/near.glb", import.meta.url)),
-    await readFile(new URL("../assets/source/heavy-kit/lods/mid.glb", import.meta.url)),
-    await readFile(new URL("../assets/source/heavy-kit/lods/far.glb", import.meta.url)),
-  ],
+  tiers: await Promise.all(
+    APPEARANCE_MESH_TIERS.map((tier) =>
+      readFile(new URL(`../assets/source/heavy-kit/lods/${tier}.glb`, import.meta.url)),
+    ),
+  ),
   ...heavyMotionBake,
   presentation: heavyPresentation,
 });

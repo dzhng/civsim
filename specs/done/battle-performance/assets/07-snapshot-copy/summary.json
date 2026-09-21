@@ -1,0 +1,129 @@
+{
+  "summary": [
+    {
+      "arm": "A1",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 359,
+          "fps": 29.876018695043875,
+          "renderCpuMs": 24.419999999925494,
+          "uploadMs": 20.194999999832362,
+          "frameCpuMs": 21.184999998658895,
+          "intervalMs": 33.330000000001746
+        },
+        {
+          "moving": true,
+          "frames": 458,
+          "fps": 38.13783866108648,
+          "renderCpuMs": 15.87749999994412,
+          "uploadMs": 13.367499999934807,
+          "frameCpuMs": 14.207499999785796,
+          "intervalMs": 33.32999999999811
+        }
+      ]
+    },
+    {
+      "arm": "B1",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 407,
+          "fps": 33.83468672080216,
+          "renderCpuMs": 17.6949999993667,
+          "uploadMs": 14.950000000651926,
+          "frameCpuMs": 15.910000000149012,
+          "intervalMs": 33.32999999999993
+        },
+        {
+          "moving": true,
+          "frames": 654,
+          "fps": 54.4945484588391,
+          "renderCpuMs": 13.787499999627471,
+          "uploadMs": 11.460000000195578,
+          "frameCpuMs": 12.31000000052154,
+          "intervalMs": 16.665000000000873
+        }
+      ]
+    },
+    {
+      "arm": "B2",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 436,
+          "fps": 36.30188143888974,
+          "renderCpuMs": 18.10749999852851,
+          "uploadMs": 15.344999999273568,
+          "frameCpuMs": 16.1875,
+          "intervalMs": 33.32999999999993
+        },
+        {
+          "moving": true,
+          "frames": 629,
+          "fps": 52.40823343361555,
+          "renderCpuMs": 14.020000000484288,
+          "uploadMs": 11.639999998733401,
+          "frameCpuMs": 12.429999998770654,
+          "intervalMs": 16.665000000000873
+        }
+      ]
+    },
+    {
+      "arm": "A2",
+      "segments": [
+        {
+          "moving": false,
+          "frames": 360,
+          "fps": 29.917863381201915,
+          "renderCpuMs": 21.487500000279397,
+          "uploadMs": 18.407500000670552,
+          "frameCpuMs": 19.290000000502914,
+          "intervalMs": 33.330000000001746
+        },
+        {
+          "moving": true,
+          "frames": 446,
+          "fps": 37.08481672600237,
+          "renderCpuMs": 17.132500001229346,
+          "uploadMs": 14.700000000651926,
+          "frameCpuMs": 15.512499999720603,
+          "intervalMs": 33.32999999999811
+        }
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "moving": false,
+      "bothBeat": true,
+      "control": 23.489999999292195,
+      "candidate": 17.939999998547137,
+      "improvement": 0.23627075355097027
+    },
+    {
+      "moving": true,
+      "bothBeat": true,
+      "control": 16.44249999988824,
+      "candidate": 13.84499999973923,
+      "improvement": 0.15797476053925297
+    }
+  ],
+  "images": [
+    {
+      "arm": "B1",
+      "changed": 0,
+      "max": 0
+    },
+    {
+      "arm": "B2",
+      "changed": 0,
+      "max": 0
+    },
+    {
+      "arm": "A2",
+      "changed": 0,
+      "max": 0
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "createdAt": "2026-09-16T12:28:25.796Z",
+  "status": {
+    "phase": "complete",
+    "scenario": {
+      "id": "generated-seven-heavy-combat",
+      "version": 1,
+      "simSeed": 1592639710,
+      "mapSeed": "7",
+      "armySource": "generated-default",
+      "orders": "player-nearest-enemy-at-tick-zero",
+      "startTick": 9000,
+      "durationMs": 300000,
+      "cameraScript": "contact-9000-v2"
+    },
+    "preparationMs": 70873.04999998331,
+    "elapsedMs": 300087.995,
+    "startTick": 9000,
+    "tick": 13077,
+    "reason": "Timed window complete"
+  },
+  "identity": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "adapter": "apple / metal-3",
+    "viewport": [
+      1440,
+      900
+    ],
+    "framebuffer": [
+      2880,
+      1800
+    ],
+    "dpr": 2,
+    "initialStateHash": "9928381812590497427",
+    "soldiers": 15560,
+    "graphics": {
+      "shadows": "single",
+      "grassQuality": "standard",
+      "grass": true,
+      "farGrass": true,
+      "bloom": true,
+      "audio": {
+        "masterVolume": 0.55,
+        "muted": true,
+        "birds": true,
+        "water": true
+      }
+    }
+  },
+  "summary": {
+    "validCount": 6240,
+    "invalidCount": 0,
+    "durationMs": 300087.99500000314,
+    "averageFps": 20.793900802329446,
+    "low1PercentFps": 6.551379715368312,
+    "low01PercentFps": 4.468232462985259,
+    "minFps": 4.0000800015991755,
+    "maxFps": 60.02400960393381,
+    "p50FrameMs": 33.33999999999651,
+    "p95FrameMs": 100,
+    "p99FrameMs": 133.32500000001164,
+    "maxFrameMs": 249.99500000005355,
+    "spikes": {
+      "over25Ms": 4558,
+      "over33_33Ms": 4245,
+      "over50Ms": 1932
+    }
+  },
+  "simulatedSeconds": 135.9,
+  "phases": [
+    {
+      "name": "tactical",
+      "startMs": 0,
+      "endMs": 30000,
+      "summary": {
+        "validCount": 715,
+        "invalidCount": 0,
+        "durationMs": 29998.800000000003,
+        "averageFps": 23.834286704801524,
+        "low1PercentFps": 9.600384015360413,
+        "low01PercentFps": 8.57155102215686,
+        "minFps": 8.57155102215686,
+        "maxFps": 60.02400960388138,
+        "p50FrameMs": 33.33499999999185,
+        "p95FrameMs": 83.33000000000175,
+        "p99FrameMs": 99.99499999999534,
+        "maxFrameMs": 116.66500000000815,
+        "spikes": {
+          "over25Ms": 568,
+          "over33_33Ms": 543,
+          "over50Ms": 147
+        }
+      }
+    },
+    {
+      "name": "pan",
+      "startMs": 30000,
+      "endMs": 90000,
+      "summary": {
+        "validCount": 1174,
+        "invalidCount": 0,
+        "durationMs": 59997.59999999999,
+        "averageFps": 19.567449364641256,
+        "low1PercentFps": 7.659875973841188,
+        "low01PercentFps": 7.500187504686701,
+        "minFps": 7.500187504686701,
+        "maxFps": 60.02400960388138,
+        "p50FrameMs": 49.995000000009895,
+        "p95FrameMs": 100,
+        "p99FrameMs": 116.66500000000815,
+        "maxFrameMs": 133.3300000000163,
+        "spikes": {
+          "over25Ms": 979,
+          "over33_33Ms": 935,
+          "over50Ms": 337
+        }
+      }
+    },
+    {
+      "name": "zoom",
+      "startMs": 90000,
+      "endMs": 150000,
+      "summary": {
+        "validCount": 1352,
+        "invalidCount": 0,
+        "durationMs": 59980.935,
+        "averageFps": 22.540495575802545,
+        "low1PercentFps": 7.567813010151552,
+        "low01PercentFps": 6.000240009599734,
+        "minFps": 5.45479339969964,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.33499999999185,
+        "p95FrameMs": 116.65999999997439,
+        "p99FrameMs": 116.66500000000815,
+        "maxFrameMs": 183.32500000001164,
+        "spikes": {
+          "over25Ms": 894,
+          "over33_33Ms": 795,
+          "over50Ms": 283
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "startMs": 150000,
+      "endMs": 210000,
+      "summary": {
+        "validCount": 1267,
+        "invalidCount": 0,
+        "durationMs": 59997.600000000035,
+        "averageFps": 21.117511367121338,
+        "low1PercentFps": 6.0939594798570935,
+        "low01PercentFps": 4.285913274544986,
+        "minFps": 4.000160006400405,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.335000000020955,
+        "p95FrameMs": 99.99499999999534,
+        "p99FrameMs": 133.3299999999872,
+        "maxFrameMs": 249.9899999999907,
+        "spikes": {
+          "over25Ms": 864,
+          "over33_33Ms": 789,
+          "over50Ms": 469
+        }
+      }
+    },
+    {
+      "name": "combined",
+      "startMs": 210000,
+      "endMs": 270000,
+      "summary": {
+        "validCount": 1199,
+        "invalidCount": 0,
+        "durationMs": 59980.935,
+        "averageFps": 19.9896850557598,
+        "low1PercentFps": 5.806681070461269,
+        "low01PercentFps": 4.285821431249276,
+        "minFps": 4.0000800015991755,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 33.335000000020955,
+        "p95FrameMs": 116.65999999997439,
+        "p99FrameMs": 133.3300000000163,
+        "maxFrameMs": 249.99500000005355,
+        "spikes": {
+          "over25Ms": 849,
+          "over33_33Ms": 804,
+          "over50Ms": 454
+        }
+      }
+    },
+    {
+      "name": "return",
+      "startMs": 270000,
+      "endMs": 300000,
+      "summary": {
+        "validCount": 533,
+        "invalidCount": 0,
+        "durationMs": 30132.125,
+        "averageFps": 17.68876240889084,
+        "low1PercentFps": 5.7145306227412025,
+        "low01PercentFps": 4.285867352405229,
+        "minFps": 4.285867352405229,
+        "maxFps": 60.02400960393381,
+        "p50FrameMs": 50,
+        "p95FrameMs": 116.66499999997905,
+        "p99FrameMs": 149.99499999999534,
+        "maxFrameMs": 233.32500000001164,
+        "spikes": {
+          "over25Ms": 404,
+          "over33_33Ms": 379,
+          "over50Ms": 242
+        }
+      }
+    }
+  ],
+  "runtimeRevision": "a4c250d3",
+  "scope": "Full hardware functional run; not an eligible quiet paired ranking.",
+  "checks": [
+    "PASS  battle-benchmark-complete: entire live window completed",
+    "PASS  battle-benchmark-complete: timing starts at the canonical tick",
+    "PASS  battle-benchmark-complete: canonical contact state",
+    "PASS  battle-benchmark-complete: simulation remained live",
+    "PASS  battle-benchmark-complete: all camera phases recorded",
+    "PASS  battle-benchmark-complete: camera reached near wide and horizon views",
+    "PASS  battle-benchmark-complete: every recorded callback submitted a new primary frame",
+    "PASS  battle-benchmark-complete: recorded interval total agrees with run clock",
+    "PASS  battle-benchmark-complete: result actions remain inside the initial viewport",
+    "PASS  battle-benchmark-complete: export retains the full raw recording",
+    "PASS  runner: no page errors",
+    "",
+    "ALL CHECKS PASSED",
+    "{\"code\":0,\"quiet\":{\"verified\":false,\"issues\":[\"pre observation at 2026-09-16T12:22:13.135Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 26.8% cannot be split between this trial and anything else\",\"periodic observation at 2026-09-16T12:22:43.172Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 40% cannot be split between this trial and anything else\",\"periodic observation at 2026-09-16T12:23:13.173Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 38.7% cannot be split between this trial and anything else\",\"11 further unattributable observation(s)\",\"pre observation at 2026-09-16T12:22:13.135Z was not quiet (busiest other process 43.9%, load 3.0986328125)\",\"periodic observation at 2026-09-16T12:22:43.172Z was not quiet (busiest other process 10.1%, load 4.09130859375)\",\"periodic observation at 2026-09-16T12:23:13.173Z was not quiet (busiest other process 7.9%, load 4.0595703125)\",\"11 further busy observation(s)\"]},\"ownPid\":7284}"
+  ]
+}

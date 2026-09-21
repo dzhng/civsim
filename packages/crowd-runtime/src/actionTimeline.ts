@@ -77,24 +77,40 @@ export function evaluatePlaybackPose(
 ): LocalPose {
   const pose = (sample: ClipSample) =>
     sampleRigLocalPose(appearance.rig, sample.clip, sample.phase);
-  const source = (value: PoseSource) =>
-    value.kind === "frozen" ? Float64Array.from(value.locals) : pose(value.sample);
-  const base = blendLocalPoses(
-    source(playback.base.source),
-    pose(playback.base.destination),
-    playback.base.weight,
-  );
+  const source = (value: PoseSource) => {
+    if (value.kind === "clip") return pose(value.sample);
+    // An endpoint returns a frozen source unblended, so its layout is checked against the
+    // skeleton here instead of incidentally, by a blend against a freshly sampled pose.
+    if (value.locals.length !== appearance.rig.bones.length * 10)
+      throw new Error("frozen pose source does not match skeleton");
+    return Float64Array.from(value.locals);
+  };
+  // Sampling already returns owned locals; exact endpoints need no second sample or copy.
+  const base =
+    playback.base.weight === 1
+      ? pose(playback.base.destination)
+      : playback.base.weight === 0
+        ? source(playback.base.source)
+        : blendLocalPoses(
+            source(playback.base.source),
+            pose(playback.base.destination),
+            playback.base.weight,
+          );
   if (!playback.riderUpperBody) return base;
   const mask = appearance.manifest.presentation!.riderUpperBodyJoints!.map((name) =>
     appearance.rig.bones.findIndex((bone) => bone.name === name),
   );
   const upper = playback.riderUpperBody;
-  const destination = "kind" in upper.destination ? base : pose(upper.destination);
-  return composeMaskedLocals(
-    base,
-    blendLocalPoses(source(upper.source), destination, upper.weight),
-    mask,
-  );
+  let upperPose: LocalPose;
+  if (upper.weight === 0) upperPose = source(upper.source);
+  else {
+    const destination = "kind" in upper.destination ? base : pose(upper.destination);
+    upperPose =
+      upper.weight === 1
+        ? destination
+        : blendLocalPoses(source(upper.source), destination, upper.weight);
+  }
+  return composeMaskedLocals(base, upperPose, mask);
 }
 
 function sameSample(a: ClipSample, b: ClipSample): boolean {
@@ -138,10 +154,12 @@ function frozenPoseCapture() {
       first = hit;
       return hit.source;
     }
-    const source: PoseSource = Object.freeze({
-      kind: "frozen",
-      locals: Object.freeze(Array.from(evaluatePlaybackPose(appearance, playback))),
-    });
+    const pose = evaluatePlaybackPose(appearance, playback);
+    // Avoid iterator-driven materialization for frequently captured skeletons;
+    // final-sized storage preserves exact values and immutable ownership.
+    const locals = new Array<number>(pose.length);
+    for (let i = 0; i < pose.length; i++) locals[i] = pose[i];
+    const source: PoseSource = Object.freeze({ kind: "frozen", locals: Object.freeze(locals) });
     const entry = second ?? { appearance, playback, source };
     entry.appearance = appearance;
     entry.playback = playback;

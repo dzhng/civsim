@@ -1,0 +1,4611 @@
+{
+  "scope": "CDP 1000us sampling over same static wide workload including warmup; diagnostic, not acceptance. Inclusive rows overlap.",
+  "totalMs": 4109.966,
+  "rows": [
+    {
+      "id": 40,
+      "function": "(idle)",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1292.675,
+      "inclusiveMs": 1292.675
+    },
+    {
+      "id": 2,
+      "function": "(program)",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 630.588,
+      "inclusiveMs": 630.588
+    },
+    {
+      "id": 35,
+      "function": "Fn",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/impostorData.ts",
+        "line": 16,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 421,
+        "column": 13
+      },
+      "selfMs": 323.101,
+      "inclusiveMs": 386.88
+    },
+    {
+      "id": 24,
+      "function": "begin",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/crowdAudienceHistory.ts",
+        "line": 82,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 328,
+        "column": 1006
+      },
+      "selfMs": 314.038,
+      "inclusiveMs": 667.536
+    },
+    {
+      "id": 25,
+      "function": "capture",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/frameSnapshot.ts",
+        "line": 74,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 3383
+      },
+      "selfMs": 275.635,
+      "inclusiveMs": 275.635
+    },
+    {
+      "id": 13,
+      "function": "sample",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/actionTimeline.ts",
+        "line": 312,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 63222
+      },
+      "selfMs": 234.359,
+      "inclusiveMs": 281.917
+    },
+    {
+      "id": 29,
+      "function": "prepare",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/playbackPacking.ts",
+        "line": 44,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 81,
+        "column": 204
+      },
+      "selfMs": 154.202,
+      "inclusiveMs": 210.699
+    },
+    {
+      "id": 16,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 534,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 41691
+      },
+      "selfMs": 111.957,
+      "inclusiveMs": 126.051
+    },
+    {
+      "id": 58,
+      "function": "(garbage collector)",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 80.065,
+      "inclusiveMs": 80.065
+    },
+    {
+      "id": 30,
+      "function": "It",
+      "original": {
+        "source": "../../../../packages/soldier-assets/src/localAnimation.ts",
+        "line": 239,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 25998
+      },
+      "selfMs": 56.497,
+      "inclusiveMs": 56.497
+    },
+    {
+      "id": 27,
+      "function": "pack",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/crowdData.ts",
+        "line": 82,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 328,
+        "column": 3141
+      },
+      "selfMs": 54.675,
+      "inclusiveMs": 54.675
+    },
+    {
+      "id": 234,
+      "function": "$e",
+      "original": {
+        "source": "../../../../packages/photoreal-renderer/src/battle/impostorTile.ts",
+        "line": 57,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 7362
+      },
+      "selfMs": 46.173,
+      "inclusiveMs": 46.173
+    },
+    {
+      "id": 59,
+      "function": "present",
+      "original": {
+        "source": "../../../../web/src/battle/battleCrowd.ts",
+        "line": 198,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 59393
+      },
+      "selfMs": 44.803,
+      "inclusiveMs": 44.803
+    },
+    {
+      "id": 31,
+      "function": "writeBuffer",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 40.114,
+      "inclusiveMs": 40.114
+    },
+    {
+      "id": 33,
+      "function": "writeBuffer",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 38.437,
+      "inclusiveMs": 38.437
+    },
+    {
+      "id": 77,
+      "function": "writeBuffer",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 37.536,
+      "inclusiveMs": 37.536
+    },
+    {
+      "id": 23,
+      "function": "f",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowdAudience.ts",
+        "line": 58,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 15856
+      },
+      "selfMs": 36.253,
+      "inclusiveMs": 1548.824
+    },
+    {
+      "id": 158,
+      "function": "Xe",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/visibility.ts",
+        "line": 63,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 6029
+      },
+      "selfMs": 31.657,
+      "inclusiveMs": 52.736
+    },
+    {
+      "id": 231,
+      "function": "prepare",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/playbackPacking.ts",
+        "line": 44,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 81,
+        "column": 204
+      },
+      "selfMs": 29.591,
+      "inclusiveMs": 44.448
+    },
+    {
+      "id": 57,
+      "function": "Ue",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/lod.ts",
+        "line": 62,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 5142
+      },
+      "selfMs": 25.127,
+      "inclusiveMs": 25.127
+    },
+    {
+      "id": 233,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/impostorData.ts",
+        "line": 24,
+        "column": 12,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 421,
+        "column": 129
+      },
+      "selfMs": 17.606,
+      "inclusiveMs": 63.779
+    },
+    {
+      "id": 223,
+      "function": "vn",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/actionTimeline.ts",
+        "line": 230,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 62299
+      },
+      "selfMs": 15.084,
+      "inclusiveMs": 37.514
+    },
+    {
+      "id": 242,
+      "function": "It",
+      "original": {
+        "source": "../../../../packages/soldier-assets/src/localAnimation.ts",
+        "line": 239,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 25998
+      },
+      "selfMs": 14.857,
+      "inclusiveMs": 14.857
+    },
+    {
+      "id": 225,
+      "function": "mn",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/actionTimeline.ts",
+        "line": 204,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 61833
+      },
+      "selfMs": 12.588,
+      "inclusiveMs": 12.588
+    },
+    {
+      "id": 232,
+      "function": "writeBuffer",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 12.56,
+      "inclusiveMs": 12.56
+    },
+    {
+      "id": 227,
+      "function": "Et",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/instanceData.ts",
+        "line": 55,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 19407
+      },
+      "selfMs": 10.325,
+      "inclusiveMs": 14.094
+    },
+    {
+      "id": 222,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/actionTimeline.ts",
+        "line": 318,
+        "column": 26,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 63573
+      },
+      "selfMs": 10.044,
+      "inclusiveMs": 47.558
+    },
+    {
+      "id": 241,
+      "function": "Je",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/visibility.ts",
+        "line": 24,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 5751
+      },
+      "selfMs": 10.04,
+      "inclusiveMs": 10.04
+    },
+    {
+      "id": 12,
+      "function": "build",
+      "original": {
+        "source": "../../../../web/src/battle/battleCrowd.ts",
+        "line": 107,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 57791
+      },
+      "selfMs": 7.529,
+      "inclusiveMs": 347.568
+    },
+    {
+      "id": 26,
+      "function": "upload",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowd.ts",
+        "line": 313,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 11368
+      },
+      "selfMs": 6.442,
+      "inclusiveMs": 409.884
+    },
+    {
+      "id": 224,
+      "function": "gn",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/actionTimeline.ts",
+        "line": 215,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 62070
+      },
+      "selfMs": 6.087,
+      "inclusiveMs": 22.43
+    },
+    {
+      "id": 243,
+      "function": "commit",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/crowdAudienceHistory.ts",
+        "line": 117,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 328,
+        "column": 1579
+      },
+      "selfMs": 5.71,
+      "inclusiveMs": 5.71
+    },
+    {
+      "id": 83,
+      "function": "beginRenderPass",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 5.034,
+      "inclusiveMs": 5.034
+    },
+    {
+      "id": 114,
+      "function": "a",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/terrainPicking.ts",
+        "line": 66,
+        "column": 8,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 23483
+      },
+      "selfMs": 5.02,
+      "inclusiveMs": 5.02
+    },
+    {
+      "id": 96,
+      "function": "requestAnimationFrame",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 3.819,
+      "inclusiveMs": 3.819
+    },
+    {
+      "id": 34,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/impostor.ts",
+        "line": 146,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 15113
+      },
+      "selfMs": 3.771,
+      "inclusiveMs": 429.441
+    },
+    {
+      "id": 92,
+      "function": "o",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/terrainPicking.ts",
+        "line": 93,
+        "column": 19,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 23862
+      },
+      "selfMs": 3.764,
+      "inclusiveMs": 8.784
+    },
+    {
+      "id": 278,
+      "function": "",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 3.763,
+      "inclusiveMs": 3.763
+    },
+    {
+      "id": 245,
+      "function": "hn",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/actionTimeline.ts",
+        "line": 212,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 62007
+      },
+      "selfMs": 3.755,
+      "inclusiveMs": 3.755
+    },
+    {
+      "id": 108,
+      "function": "update",
+      "original": {
+        "source": "../../../../web/src/ui/hud/UnitCardsView.tsx",
+        "line": 115,
+        "column": 8,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 50508
+      },
+      "selfMs": 3.735,
+      "inclusiveMs": 3.735
+    },
+    {
+      "id": 240,
+      "function": "Ue",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/lod.ts",
+        "line": 62,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 5142
+      },
+      "selfMs": 3.501,
+      "inclusiveMs": 3.501
+    },
+    {
+      "id": 196,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/gpuAdmission.ts",
+        "line": 8,
+        "column": 18,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/gpuAdmission-YK3WhRiy.js",
+        "line": 1,
+        "column": 293
+      },
+      "selfMs": 2.575,
+      "inclusiveMs": 2.575
+    },
+    {
+      "id": 102,
+      "function": "writeBuffer",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 2.518,
+      "inclusiveMs": 2.518
+    },
+    {
+      "id": 54,
+      "function": "beginRenderPass",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 2.517,
+      "inclusiveMs": 2.517
+    },
+    {
+      "id": 248,
+      "function": "dt",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/camera3d.ts",
+        "line": 126,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 17396
+      },
+      "selfMs": 2.516,
+      "inclusiveMs": 2.516
+    },
+    {
+      "id": 239,
+      "function": "z",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/lod.ts",
+        "line": 92,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 5399
+      },
+      "selfMs": 2.514,
+      "inclusiveMs": 6.015
+    },
+    {
+      "id": 73,
+      "function": "beginComputePass",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 2.512,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 247,
+      "function": "s",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/terrain/heightField.ts",
+        "line": 44,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 676
+      },
+      "selfMs": 2.51,
+      "inclusiveMs": 2.51
+    },
+    {
+      "id": 56,
+      "function": "Oa",
+      "original": {
+        "source": "../../../../web/src/battle/battleOrders.ts",
+        "line": 289,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 68956
+      },
+      "selfMs": 2.509,
+      "inclusiveMs": 3.759
+    },
+    {
+      "id": 103,
+      "function": "_n",
+      "original": {
+        "source": "../../../../web/src/battle/battlePresentation.ts",
+        "line": 9,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 206,
+        "column": 12433
+      },
+      "selfMs": 2.415,
+      "inclusiveMs": 2.415
+    },
+    {
+      "id": 244,
+      "function": "attackArcs",
+      "original": {
+        "source": "../../../../web/src/battle/battleCrowd.ts",
+        "line": 236,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 60230
+      },
+      "selfMs": 2.02,
+      "inclusiveMs": 2.02
+    },
+    {
+      "id": 75,
+      "function": "publish",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 416,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 29849
+      },
+      "selfMs": 1.79,
+      "inclusiveMs": 3.047
+    },
+    {
+      "id": 113,
+      "function": "setBindGroup",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.288,
+      "inclusiveMs": 1.288
+    },
+    {
+      "id": 178,
+      "function": "setPipeline",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.276,
+      "inclusiveMs": 1.276
+    },
+    {
+      "id": 285,
+      "function": "visibleNow",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/battleGrassResidency.ts",
+        "line": 603,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 81010
+      },
+      "selfMs": 1.27,
+      "inclusiveMs": 1.27
+    },
+    {
+      "id": 46,
+      "function": "encode",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 435,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 28517
+      },
+      "selfMs": 1.269,
+      "inclusiveMs": 16.407
+    },
+    {
+      "id": 189,
+      "function": "setCamera",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/readout.ts",
+        "line": 153,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 20688
+      },
+      "selfMs": 1.264,
+      "inclusiveMs": 1.264
+    },
+    {
+      "id": 192,
+      "function": "Pe",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/windSignal.ts",
+        "line": 101,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 12643
+      },
+      "selfMs": 1.264,
+      "inclusiveMs": 1.264
+    },
+    {
+      "id": 184,
+      "function": "presentationTick",
+      "original": {
+        "source": "../../../../web/src/battle/battleSimTime.ts",
+        "line": 64,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 9800
+      },
+      "selfMs": 1.263,
+      "inclusiveMs": 1.263
+    },
+    {
+      "id": 188,
+      "function": "o",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/terrainPicking.ts",
+        "line": 93,
+        "column": 19,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 23862
+      },
+      "selfMs": 1.262,
+      "inclusiveMs": 1.262
+    },
+    {
+      "id": 39,
+      "function": "Sn",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/frameCamera.ts",
+        "line": 9,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 328,
+        "column": 14
+      },
+      "selfMs": 1.262,
+      "inclusiveMs": 1.262
+    },
+    {
+      "id": 266,
+      "function": "isDate",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 40,
+        "column": 15
+      },
+      "selfMs": 1.262,
+      "inclusiveMs": 1.262
+    },
+    {
+      "id": 211,
+      "function": "now",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.261,
+      "inclusiveMs": 1.261
+    },
+    {
+      "id": 185,
+      "function": "stats",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/battleGrassResidency.ts",
+        "line": 509,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 78559
+      },
+      "selfMs": 1.261,
+      "inclusiveMs": 1.261
+    },
+    {
+      "id": 207,
+      "function": "di",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 2452,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 28075
+      },
+      "selfMs": 1.26,
+      "inclusiveMs": 1.26
+    },
+    {
+      "id": 252,
+      "function": "field",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/terrainScene.ts",
+        "line": 183,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 9351
+      },
+      "selfMs": 1.259,
+      "inclusiveMs": 1.259
+    },
+    {
+      "id": 251,
+      "function": "draw",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/grassField.ts",
+        "line": 189,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 713,
+        "column": 2610
+      },
+      "selfMs": 1.257,
+      "inclusiveMs": 1.257
+    },
+    {
+      "id": 253,
+      "function": "i",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 439,
+        "column": 20,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 30212
+      },
+      "selfMs": 1.257,
+      "inclusiveMs": 1.257
+    },
+    {
+      "id": 174,
+      "function": "stats",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/terrainScene.ts",
+        "line": 214,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 9839
+      },
+      "selfMs": 1.257,
+      "inclusiveMs": 1.257
+    },
+    {
+      "id": 199,
+      "function": "",
+      "original": {
+        "source": "../../../../web/src/battle/battleLoop.ts",
+        "line": 433,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 80489
+      },
+      "selfMs": 1.257,
+      "inclusiveMs": 1.257
+    },
+    {
+      "id": 14,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 476,
+        "column": 32,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40716
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 1692.964
+    },
+    {
+      "id": 200,
+      "function": "commitPrepared",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/playbackPacking.ts",
+        "line": 163,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 81,
+        "column": 2245
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 1.256
+    },
+    {
+      "id": 149,
+      "function": "L",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 162,
+        "column": 24,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 24483
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 2.509
+    },
+    {
+      "id": 194,
+      "function": "createView",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 1.256
+    },
+    {
+      "id": 161,
+      "function": "Nc",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 7392,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 79713
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 5.025
+    },
+    {
+      "id": 163,
+      "function": "Co",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 4333,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 47369
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 2.509
+    },
+    {
+      "id": 201,
+      "function": "presentationTick",
+      "original": {
+        "source": "../../../../web/src/battle/battleSimTime.ts",
+        "line": 64,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 9800
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 1.256
+    },
+    {
+      "id": 226,
+      "function": "gn",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/actionTimeline.ts",
+        "line": 215,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 62070
+      },
+      "selfMs": 1.256,
+      "inclusiveMs": 1.256
+    },
+    {
+      "id": 51,
+      "function": "encode",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/post.ts",
+        "line": 213,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 524
+      },
+      "selfMs": 1.255,
+      "inclusiveMs": 3.772
+    },
+    {
+      "id": 110,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 447,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 28701
+      },
+      "selfMs": 1.255,
+      "inclusiveMs": 3.8
+    },
+    {
+      "id": 238,
+      "function": "stats",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/rawPosePalette.ts",
+        "line": 266,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/rawPosePalette-BSOoI6za.js",
+        "line": 9,
+        "column": 2740
+      },
+      "selfMs": 1.255,
+      "inclusiveMs": 1.255
+    },
+    {
+      "id": 228,
+      "function": "R",
+      "original": {
+        "source": "../../../../packages/crowd-runtime/src/lod.ts",
+        "line": 46,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 5053
+      },
+      "selfMs": 1.254,
+      "inclusiveMs": 2.508
+    },
+    {
+      "id": 250,
+      "function": "pt",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/camera3d.ts",
+        "line": 150,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 17520
+      },
+      "selfMs": 1.254,
+      "inclusiveMs": 1.254
+    },
+    {
+      "id": 190,
+      "function": "writeBuffer",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.254,
+      "inclusiveMs": 1.254
+    },
+    {
+      "id": 181,
+      "function": "pxPerWorldSampler",
+      "original": {
+        "source": "../../../../web/src/shared/camera.ts",
+        "line": 303,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 120490
+      },
+      "selfMs": 1.253,
+      "inclusiveMs": 2.515
+    },
+    {
+      "id": 230,
+      "function": "upload",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/rawPosePalette.ts",
+        "line": 149,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/rawPosePalette-BSOoI6za.js",
+        "line": 9,
+        "column": 413
+      },
+      "selfMs": 1.253,
+      "inclusiveMs": 58.261
+    },
+    {
+      "id": 203,
+      "function": "finish",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.253,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 157,
+      "function": "Sr",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 525,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 48217
+      },
+      "selfMs": 1.253,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 210,
+      "function": "getMappedRange",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.253,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 212,
+      "function": "qa",
+      "original": {
+        "source": "../../../../web/node_modules/@radix-ui/react-presence/dist/index.mjs",
+        "line": 17,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 104367
+      },
+      "selfMs": 1.253,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 193,
+      "function": "i",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 439,
+        "column": 20,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 30212
+      },
+      "selfMs": 1.251,
+      "inclusiveMs": 1.251
+    },
+    {
+      "id": 249,
+      "function": "requestAnimationFrame",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 1.251,
+      "inclusiveMs": 1.251
+    },
+    {
+      "id": 216,
+      "function": "c",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 481,
+        "column": 25,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40748
+      },
+      "selfMs": 1.251,
+      "inclusiveMs": 2.521
+    },
+    {
+      "id": 99,
+      "function": "get observed",
+      "original": {
+        "source": "../../../../web/src/battle/sim/battleSimClient.ts",
+        "line": 255,
+        "column": 14,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 91053
+      },
+      "selfMs": 1.25,
+      "inclusiveMs": 1.25
+    },
+    {
+      "id": 171,
+      "function": "stats",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 473,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 28880
+      },
+      "selfMs": 1.247,
+      "inclusiveMs": 1.247
+    },
+    {
+      "id": 180,
+      "function": "admitted",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/crowdAudienceHistory.ts",
+        "line": 80,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 328,
+        "column": 921
+      },
+      "selfMs": 1.153,
+      "inclusiveMs": 1.153
+    },
+    {
+      "id": 74,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 253,
+        "column": 14,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 27289
+      },
+      "selfMs": 1.151,
+      "inclusiveMs": 6.702
+    },
+    {
+      "id": 93,
+      "function": "It",
+      "original": {
+        "source": "../../../../packages/soldier-assets/src/localAnimation.ts",
+        "line": 239,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 25998
+      },
+      "selfMs": 1.109,
+      "inclusiveMs": 1.109
+    },
+    {
+      "id": 221,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/overlayStaging.ts",
+        "line": 45,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 897,
+        "column": 844
+      },
+      "selfMs": 1.102,
+      "inclusiveMs": 1.102
+    },
+    {
+      "id": 267,
+      "function": "isError",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 54,
+        "column": 16
+      },
+      "selfMs": 1.065,
+      "inclusiveMs": 1.065
+    },
+    {
+      "id": 148,
+      "function": "Yc",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 8725,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 93067
+      },
+      "selfMs": 0.519,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 277,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0.155,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 84,
+      "function": "L",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 162,
+        "column": 24,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 24483
+      },
+      "selfMs": 0.126,
+      "inclusiveMs": 0.341
+    },
+    {
+      "id": 217,
+      "function": "sr",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 171,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 45060
+      },
+      "selfMs": 0.12,
+      "inclusiveMs": 0.12
+    },
+    {
+      "id": 209,
+      "function": "et",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/mat4.ts",
+        "line": 87,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 15851
+      },
+      "selfMs": 0.106,
+      "inclusiveMs": 0.106
+    },
+    {
+      "id": 164,
+      "function": "Tr",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/sceneCamera.ts",
+        "line": 14,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 914,
+        "column": 101
+      },
+      "selfMs": 0.096,
+      "inclusiveMs": 0.28
+    },
+    {
+      "id": 89,
+      "function": "Er",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 741,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 49577
+      },
+      "selfMs": 0.095,
+      "inclusiveMs": 0.215
+    },
+    {
+      "id": 167,
+      "function": "st",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/camera3d.ts",
+        "line": 77,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 17020
+      },
+      "selfMs": 0.078,
+      "inclusiveMs": 0.078
+    },
+    {
+      "id": 65,
+      "function": "pa",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/models/shared/standardAsset.ts",
+        "line": 168,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 89032
+      },
+      "selfMs": 0.033,
+      "inclusiveMs": 0.033
+    },
+    {
+      "id": 62,
+      "function": "upload",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/standards.ts",
+        "line": 105,
+        "column": 12,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 17292
+      },
+      "selfMs": 0.024,
+      "inclusiveMs": 0.057
+    },
+    {
+      "id": 261,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0.016,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 263,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0.013,
+      "inclusiveMs": 2.495
+    },
+    {
+      "id": 1,
+      "function": "(root)",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 0,
+        "column": -1
+      },
+      "selfMs": 0,
+      "inclusiveMs": 4109.966
+    },
+    {
+      "id": 3,
+      "function": "i",
+      "original": {
+        "source": "../../../../web/src/shared/sceneFrames.ts",
+        "line": 84,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 2,
+        "column": 2594
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 4,
+      "function": "",
+      "original": {
+        "source": "../../../../web/src/main.ts",
+        "line": 254,
+        "column": 5,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 152754
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 5,
+      "function": "frame",
+      "original": {
+        "source": "../../../../web/src/battle/scene.ts",
+        "line": 55,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 98303
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 6,
+      "function": "frame",
+      "original": {
+        "source": "../../../../web/src/shared/sceneFrames.ts",
+        "line": 38,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 2,
+        "column": 2281
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 7,
+      "function": "",
+      "original": {
+        "source": "../../../../web/src/battle/scene.ts",
+        "line": 15,
+        "column": 5,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 97816
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 8,
+      "function": "",
+      "original": {
+        "source": "../../../../web/src/battle/battleLoop.ts",
+        "line": 69,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 75732
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 9,
+      "function": "",
+      "original": {
+        "source": "../../../../web/src/battle/battleLoop.ts",
+        "line": 531,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 81761
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 10,
+      "function": "Se",
+      "original": {
+        "source": "../../../../web/src/battle/battleLoop.ts",
+        "line": 305,
+        "column": 17,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 78558
+      },
+      "selfMs": 0,
+      "inclusiveMs": 357.477
+    },
+    {
+      "id": 11,
+      "function": "prepare",
+      "original": {
+        "source": "../../../../web/src/battle/battleCrowd.ts",
+        "line": 72,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 57349
+      },
+      "selfMs": 0,
+      "inclusiveMs": 347.568
+    },
+    {
+      "id": 90,
+      "function": "build",
+      "original": {
+        "source": "../../../../web/src/battle/battleUnitPresentation.ts",
+        "line": 66,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 54917
+      },
+      "selfMs": 0,
+      "inclusiveMs": 11.299
+    },
+    {
+      "id": 91,
+      "function": "heightAt",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 759,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 45956
+      },
+      "selfMs": 0,
+      "inclusiveMs": 8.784
+    },
+    {
+      "id": 186,
+      "function": "params",
+      "original": {
+        "source": "../../../../web/src/shared/camera.ts",
+        "line": 194,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 9,
+        "column": 118860
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.262
+    },
+    {
+      "id": 187,
+      "function": "heightAt",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 759,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 45956
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.262
+    },
+    {
+      "id": 55,
+      "function": "frame",
+      "original": {
+        "source": "../../../../web/src/battle/battleOrders.ts",
+        "line": 621,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 71973
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.759
+    },
+    {
+      "id": 97,
+      "function": "unitInfo",
+      "original": {
+        "source": "../../../../web/src/battle/battleWorld.ts",
+        "line": 327,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 53426
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.25
+    },
+    {
+      "id": 98,
+      "function": "unitInfo",
+      "original": {
+        "source": "../../../../web/src/battle/sim/battleSimClient.ts",
+        "line": 226,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 90627
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.25
+    },
+    {
+      "id": 104,
+      "function": "tickCards",
+      "original": {
+        "source": "../../../../web/src/battle/battleHudBridge.ts",
+        "line": 172,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 13487
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.735
+    },
+    {
+      "id": 105,
+      "function": "update",
+      "original": {
+        "source": "../../../../web/src/ui/hud/BattleHud.tsx",
+        "line": 212,
+        "column": 24,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 3069
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.735
+    },
+    {
+      "id": 106,
+      "function": "updateCards",
+      "original": {
+        "source": "../../../../web/src/ui/hud/BattleHud.tsx",
+        "line": 184,
+        "column": 20,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 2659
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.735
+    },
+    {
+      "id": 107,
+      "function": "update",
+      "original": {
+        "source": "../../../../web/src/ui/hud/BattleHud.tsx",
+        "line": 143,
+        "column": 15,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 2314
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.735
+    },
+    {
+      "id": 15,
+      "function": "c",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 481,
+        "column": 25,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40748
+      },
+      "selfMs": 0,
+      "inclusiveMs": 126.051
+    },
+    {
+      "id": 246,
+      "function": "z",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 182,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 24691
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.769
+    },
+    {
+      "id": 17,
+      "function": "u",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 490,
+        "column": 21,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40848
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1563.243
+    },
+    {
+      "id": 18,
+      "function": "run",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/gpuAdmission.ts",
+        "line": 24,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/gpuAdmission-YK3WhRiy.js",
+        "line": 1,
+        "column": 494
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1563.243
+    },
+    {
+      "id": 19,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 491,
+        "column": 27,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40870
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1560.668
+    },
+    {
+      "id": 20,
+      "function": "c",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 481,
+        "column": 25,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40748
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1560.668
+    },
+    {
+      "id": 21,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 556,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 42138
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1553.21
+    },
+    {
+      "id": 22,
+      "function": "uploadCrowd",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 332,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 26772
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1553.21
+    },
+    {
+      "id": 28,
+      "function": "upload",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/rawPosePalette.ts",
+        "line": 149,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/rawPosePalette-BSOoI6za.js",
+        "line": 9,
+        "column": 413
+      },
+      "selfMs": 0,
+      "inclusiveMs": 252.069
+    },
+    {
+      "id": 32,
+      "function": "write",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/gpuBuffers.ts",
+        "line": 28,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/rawPosePalette-BSOoI6za.js",
+        "line": 1,
+        "column": 1626
+      },
+      "selfMs": 0,
+      "inclusiveMs": 38.437
+    },
+    {
+      "id": 229,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowd.ts",
+        "line": 319,
+        "column": 17,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 11436
+      },
+      "selfMs": 0,
+      "inclusiveMs": 58.261
+    },
+    {
+      "id": 76,
+      "function": "write",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/gpuBuffers.ts",
+        "line": 28,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/rawPosePalette-BSOoI6za.js",
+        "line": 1,
+        "column": 1626
+      },
+      "selfMs": 0,
+      "inclusiveMs": 37.536
+    },
+    {
+      "id": 66,
+      "function": "t",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/gpuScope.ts",
+        "line": 11,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/gpuAdmission-YK3WhRiy.js",
+        "line": 1,
+        "column": 28
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 67,
+      "function": "withScope",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 188,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 25934
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 68,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 347,
+        "column": 31,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 27035
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 69,
+      "function": "precompute",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowdAudience.ts",
+        "line": 162,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 17221
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 70,
+      "function": "precompute",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowd.ts",
+        "line": 336,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 11712
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 71,
+      "function": "precompute",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/rawPosePalette.ts",
+        "line": 256,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/rawPosePalette-BSOoI6za.js",
+        "line": 9,
+        "column": 2511
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 72,
+      "function": "t.beginComputePass",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 144,
+        "column": 33,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 25336
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.512
+    },
+    {
+      "id": 85,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/shadow.ts",
+        "line": 120,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 6290
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.215
+    },
+    {
+      "id": 86,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/shadowData.ts",
+        "line": 294,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 42,
+        "column": 5242
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.215
+    },
+    {
+      "id": 87,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 311,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 45814
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.215
+    },
+    {
+      "id": 88,
+      "function": "viewFit",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 342,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 46220
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.215
+    },
+    {
+      "id": 165,
+      "function": "Sn",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/frameCamera.ts",
+        "line": 9,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 328,
+        "column": 14
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.184
+    },
+    {
+      "id": 166,
+      "function": "Pa",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/cameraUniform.ts",
+        "line": 74,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 95141
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.184
+    },
+    {
+      "id": 208,
+      "function": "ot",
+      "original": {
+        "source": "../../../../packages/renderer-core/src/camera3d.ts",
+        "line": 73,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 16982
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.106
+    },
+    {
+      "id": 202,
+      "function": "t.finish",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 157,
+        "column": 23,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 25514
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 36,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 603,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 43139
+      },
+      "selfMs": 0,
+      "inclusiveMs": 6.299
+    },
+    {
+      "id": 37,
+      "function": "prepare",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 387,
+        "column": 12,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 27681
+      },
+      "selfMs": 0,
+      "inclusiveMs": 6.299
+    },
+    {
+      "id": 38,
+      "function": "Tr",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/sceneCamera.ts",
+        "line": 14,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 914,
+        "column": 101
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.262
+    },
+    {
+      "id": 150,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/shadow.ts",
+        "line": 120,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 6290
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 151,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/shadowData.ts",
+        "line": 294,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 42,
+        "column": 5242
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 152,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 311,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 45814
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 153,
+      "function": "viewFit",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 342,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 46220
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 154,
+      "function": "Er",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 741,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 49577
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 155,
+      "function": "Tr",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 709,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 49234
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 156,
+      "function": "Cr",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/shadowPolicy.ts",
+        "line": 565,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 48488
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.253
+    },
+    {
+      "id": 191,
+      "function": "Ie",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/windSignal.ts",
+        "line": 171,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 13455
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.264
+    },
+    {
+      "id": 60,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 555,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 42078
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.057
+    },
+    {
+      "id": 61,
+      "function": "uploadReadouts",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 350,
+        "column": 12,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 27106
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.057
+    },
+    {
+      "id": 63,
+      "function": "write",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/models/shared/battleStandardData.ts",
+        "line": 63,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 27108
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.033
+    },
+    {
+      "id": 64,
+      "function": "wn",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/models/shared/battleStandardData.ts",
+        "line": 32,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/overlayData-Bo3Gf7iO.js",
+        "line": 1,
+        "column": 26777
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.033
+    },
+    {
+      "id": 218,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 585,
+        "column": 41,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 42776
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.102
+    },
+    {
+      "id": 219,
+      "function": "uploadTriangles",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 366,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 27257
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.102
+    },
+    {
+      "id": 220,
+      "function": "upload",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/overlay.ts",
+        "line": 154,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 22960
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.102
+    },
+    {
+      "id": 195,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/gpuAdmission.ts",
+        "line": 7,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/gpuAdmission-YK3WhRiy.js",
+        "line": 1,
+        "column": 284
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.575
+    },
+    {
+      "id": 179,
+      "function": "B",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 186,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 24717
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.153
+    },
+    {
+      "id": 41,
+      "function": "d",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 494,
+        "column": 23,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40897
+      },
+      "selfMs": 0,
+      "inclusiveMs": 16.407
+    },
+    {
+      "id": 42,
+      "function": "c",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 481,
+        "column": 25,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40748
+      },
+      "selfMs": 0,
+      "inclusiveMs": 16.407
+    },
+    {
+      "id": 43,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 497,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40946
+      },
+      "selfMs": 0,
+      "inclusiveMs": 16.407
+    },
+    {
+      "id": 44,
+      "function": "submit",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 688,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 44688
+      },
+      "selfMs": 0,
+      "inclusiveMs": 16.407
+    },
+    {
+      "id": 45,
+      "function": "submitPresentation",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/sceneBackend.ts",
+        "line": 32,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 21043
+      },
+      "selfMs": 0,
+      "inclusiveMs": 16.407
+    },
+    {
+      "id": 47,
+      "function": "encode",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/frame.ts",
+        "line": 172,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 3693
+      },
+      "selfMs": 0,
+      "inclusiveMs": 8.828
+    },
+    {
+      "id": 48,
+      "function": "t",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/gpuScope.ts",
+        "line": 11,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/gpuAdmission-YK3WhRiy.js",
+        "line": 1,
+        "column": 28
+      },
+      "selfMs": 0,
+      "inclusiveMs": 8.828
+    },
+    {
+      "id": 49,
+      "function": "withScope",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 188,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 25934
+      },
+      "selfMs": 0,
+      "inclusiveMs": 8.828
+    },
+    {
+      "id": 50,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/frame.ts",
+        "line": 205,
+        "column": 32,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 4243
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.772
+    },
+    {
+      "id": 52,
+      "function": "i",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/post.ts",
+        "line": 215,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 599
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.517
+    },
+    {
+      "id": 53,
+      "function": "t.beginRenderPass",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 131,
+        "column": 32,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 25152
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.517
+    },
+    {
+      "id": 109,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/frame.ts",
+        "line": 180,
+        "column": 32,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 3747
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.056
+    },
+    {
+      "id": 111,
+      "function": "draw",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowdAudience.ts",
+        "line": 166,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 17258
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.288
+    },
+    {
+      "id": 112,
+      "function": "draw",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/impostor.ts",
+        "line": 158,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 15243
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.288
+    },
+    {
+      "id": 78,
+      "function": "encode",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/shadow.ts",
+        "line": 131,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 6388
+      },
+      "selfMs": 0,
+      "inclusiveMs": 6.31
+    },
+    {
+      "id": 79,
+      "function": "t",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/gpuScope.ts",
+        "line": 11,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/gpuAdmission-YK3WhRiy.js",
+        "line": 1,
+        "column": 28
+      },
+      "selfMs": 0,
+      "inclusiveMs": 6.31
+    },
+    {
+      "id": 80,
+      "function": "withScope",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 188,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 25934
+      },
+      "selfMs": 0,
+      "inclusiveMs": 6.31
+    },
+    {
+      "id": 81,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/shadow.ts",
+        "line": 139,
+        "column": 34,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 6523
+      },
+      "selfMs": 0,
+      "inclusiveMs": 6.31
+    },
+    {
+      "id": 82,
+      "function": "t.beginRenderPass",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/nativeGpuTelemetry.ts",
+        "line": 131,
+        "column": 32,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 25152
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.034
+    },
+    {
+      "id": 175,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 441,
+        "column": 23,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 28633
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.276
+    },
+    {
+      "id": 176,
+      "function": "drawShadow",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/terrainScene.ts",
+        "line": 234,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 10113
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.276
+    },
+    {
+      "id": 177,
+      "function": "draw",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/scenery.ts",
+        "line": 169,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 5744
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.276
+    },
+    {
+      "id": 94,
+      "function": "o.then.r",
+      "original": {
+        "source": "../../../../web/src/shared/sceneFrames.ts",
+        "line": 89,
+        "column": 21,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 2,
+        "column": 2628
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.819
+    },
+    {
+      "id": 95,
+      "function": "",
+      "original": {
+        "source": "../../../../web/src/main.ts",
+        "line": 255,
+        "column": 5,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 152772
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.819
+    },
+    {
+      "id": 100,
+      "function": "prepare",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/grassField.ts",
+        "line": 142,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 713,
+        "column": 2007
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.518
+    },
+    {
+      "id": 101,
+      "function": "update",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/grass.ts",
+        "line": 274,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 14569
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.518
+    },
+    {
+      "id": 115,
+      "function": "",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 12089,
+        "column": 20,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 123105
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.544
+    },
+    {
+      "id": 116,
+      "function": "od",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 11966,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 121693
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.544
+    },
+    {
+      "id": 117,
+      "function": "id",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 11918,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 121280
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.544
+    },
+    {
+      "id": 118,
+      "function": "ld",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 12084,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 123043
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.544
+    },
+    {
+      "id": 119,
+      "function": "gu",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 10681,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 110984
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.544
+    },
+    {
+      "id": 120,
+      "function": "_u",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 10848,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 112075
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 121,
+      "function": "Lu",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 11457,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 116787
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 122,
+      "function": "Ru",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 11524,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 117344
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 123,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 124,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 125,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 126,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 127,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 128,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 129,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 130,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 131,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 132,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 133,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 134,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 135,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 136,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 137,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 138,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 139,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 140,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 141,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 142,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 143,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 144,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 145,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 146,
+      "function": "gl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9384,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99394
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 147,
+      "function": "vl",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 9427,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 99872
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.519
+    },
+    {
+      "id": 159,
+      "function": "Ou",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 11120,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 114251
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.025
+    },
+    {
+      "id": 160,
+      "function": "ku",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 11181,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 114707
+      },
+      "selfMs": 0,
+      "inclusiveMs": 5.025
+    },
+    {
+      "id": 162,
+      "function": "gc",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 6489,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 69979
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.509
+    },
+    {
+      "id": 204,
+      "function": "ac",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 6115,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 66536
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.26
+    },
+    {
+      "id": 205,
+      "function": "",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 3961,
+        "column": 9,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 43034
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.26
+    },
+    {
+      "id": 206,
+      "function": "x",
+      "original": {
+        "source": "../../../../web/node_modules/react-dom/cjs/react-dom-client.production.js",
+        "line": 3793,
+        "column": 11,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/views-D4XN-2Mx.js",
+        "line": 8,
+        "column": 41678
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.26
+    },
+    {
+      "id": 168,
+      "function": "",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 1,
+        "column": 0
+      },
+      "selfMs": 0,
+      "inclusiveMs": 8.79
+    },
+    {
+      "id": 169,
+      "function": "read",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 1,
+        "column": 97
+      },
+      "selfMs": 0,
+      "inclusiveMs": 7.539
+    },
+    {
+      "id": 170,
+      "function": "stats",
+      "original": {
+        "source": "../../../../web/src/battle/battleDebugApi.ts",
+        "line": 104,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 4011
+      },
+      "selfMs": 0,
+      "inclusiveMs": 7.539
+    },
+    {
+      "id": 172,
+      "function": "stats",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 873,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 47753
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.773
+    },
+    {
+      "id": 173,
+      "function": "stats",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 473,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 28880
+      },
+      "selfMs": 0,
+      "inclusiveMs": 3.773
+    },
+    {
+      "id": 235,
+      "function": "stats",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowdAudience.ts",
+        "line": 171,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 17355
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.255
+    },
+    {
+      "id": 236,
+      "function": "stats",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowd.ts",
+        "line": 365,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 12326
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.255
+    },
+    {
+      "id": 237,
+      "function": "",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/world/crowd.ts",
+        "line": 372,
+        "column": 30,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 82,
+        "column": 12426
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.255
+    },
+    {
+      "id": 182,
+      "function": "metrics",
+      "original": {
+        "source": "../../../../web/src/battle/battleLoop.ts",
+        "line": 494,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 81076
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.519
+    },
+    {
+      "id": 183,
+      "function": "alphaAt",
+      "original": {
+        "source": "../../../../web/src/battle/battleSimTime.ts",
+        "line": 69,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 9881
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.263
+    },
+    {
+      "id": 197,
+      "function": "",
+      "original": {
+        "source": "../../../../web/src/battle/presentationCompletion.ts",
+        "line": 32,
+        "column": 53,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 206,
+        "column": 12283
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.257
+    },
+    {
+      "id": 198,
+      "function": "c",
+      "original": {
+        "source": "../../../../web/src/battle/presentationCompletion.ts",
+        "line": 22,
+        "column": 8,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 206,
+        "column": 12089
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.257
+    },
+    {
+      "id": 213,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 472,
+        "column": 18,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40648
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.521
+    },
+    {
+      "id": 214,
+      "function": "run",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/sceneLifecycle.ts",
+        "line": 29,
+        "column": 10,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneLifecycle-D9iqOP8u.js",
+        "line": 1,
+        "column": 255
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.521
+    },
+    {
+      "id": 215,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 476,
+        "column": 32,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 40716
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.521
+    },
+    {
+      "id": 279,
+      "function": "",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 503,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 41044
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.27
+    },
+    {
+      "id": 280,
+      "function": "reconcile",
+      "original": {
+        "source": "../../../../apps/battle-perf-lab/src/live/NativeBattleRenderer.ts",
+        "line": 439,
+        "column": 16,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/index-nUIp2w2S.js",
+        "line": 218,
+        "column": 39968
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.27
+    },
+    {
+      "id": 281,
+      "function": "setVisibility",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/battleScene.ts",
+        "line": 323,
+        "column": 6,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/battleScene-nV04zACV.js",
+        "line": 85,
+        "column": 26615
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.27
+    },
+    {
+      "id": 282,
+      "function": "setVisible",
+      "original": {
+        "source": "../../../../packages/battle-renderer/src/grassField.ts",
+        "line": 128,
+        "column": 4,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/sceneCamera-CiRn1egC.js",
+        "line": 713,
+        "column": 1831
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.27
+    },
+    {
+      "id": 283,
+      "function": "setVisible",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/battleGrassResidency.ts",
+        "line": 498,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 78393
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.27
+    },
+    {
+      "id": 284,
+      "function": "updateRoutingState",
+      "original": {
+        "source": "../../../../packages/game-renderer/src/battle/battleGrassResidency.ts",
+        "line": 885,
+        "column": 2,
+        "name": null
+      },
+      "generated": {
+        "url": "http://localhost:5298/assets/posePaletteWgsl-Bz5I0lyr.js",
+        "line": 1,
+        "column": 86415
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.27
+    },
+    {
+      "id": 254,
+      "function": "",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 327,
+        "column": 14
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 255,
+      "function": "safeJson",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 319,
+        "column": 21
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 256,
+      "function": "jsonValue",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 313,
+        "column": 11
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 257,
+      "function": "serializeAsCallArgument",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 165,
+        "column": 32
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 258,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 259,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 260,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.511
+    },
+    {
+      "id": 262,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 2.495
+    },
+    {
+      "id": 264,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.417
+    },
+    {
+      "id": 265,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0,
+      "inclusiveMs": 1.417
+    },
+    {
+      "id": 268,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 269,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 270,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 271,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 272,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 273,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 274,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 275,
+      "function": "innerSerialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 179,
+        "column": 23
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    },
+    {
+      "id": 276,
+      "function": "serialize",
+      "original": null,
+      "generated": {
+        "url": "",
+        "line": 168,
+        "column": 18
+      },
+      "selfMs": 0,
+      "inclusiveMs": 0.155
+    }
+  ]
+}

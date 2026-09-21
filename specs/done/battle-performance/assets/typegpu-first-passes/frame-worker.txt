@@ -1,0 +1,34 @@
+Done — committed as `218fc896` on `codex/battle-typegpu-frame`, not pushed.
+
+## What changed
+
+**`apps/battle-perf-lab/candidates/typegpu/frame.ts`** (259 → 292 lines, +41/−6)
+
+- The depth texture is now created with `BATTLE_DEPTH_ATTACHMENT.format`, and the render pass clears with `.clearValue` / `.loadOp` / `.storeOp` from the same owner. The three literals (`"depth32float"`, `0`, `"clear"`/`"store"`) are gone. TypeGPU's `DepthStencilAttachment` constrains `view.props.format` to a depth format, so the shared policy's format is now checked at compile time where the attachment is installed.
+- New `depthStats()` beside `encode`, reading the installed typed texture's own `props` (`size`, `format`, `sampleCount`) and its own `destroyed` flag — not a descriptor remembered beside it. Owner id is `"typegpu-battle-frame"`, distinct from raw's `"raw-battle-frame"`.
+- Untouched: camera buffer/group identity, 1x/4x aliasing, the existing `beginGpuAdmission` around attachment materialization (no second barrier added — `frameResources` already awaits admission and `resize` awaits `frameResources`), rollback, disposal, root lifetime, `createCommandEncoder`/`nativeEncoder`/`encode`/`render`.
+
+**Tests** (`typegpuFrameLifecycle.test.ts`, 141 → 269 lines): the typegpu mock's textures now carry the props they were created with and flip their own `destroyed`, so the frame reads back from the resource rather than from test bookkeeping. Three new cases:
+
+- `…shared battle policy at 1x` / `at 4x` — drives a recording encoder through `encode`, then asserts on the *actual* pass descriptor: the depth view's props (`size [128,96]`, policy format, sample count), the clear/load/store against the owner, the 1x/4x colour aliasing (1x view **is** `frame.hdr` with no resolve target; 4x resolves into it), and that `depthStats()` reports the same pass with `reversed: true` and real byte counts.
+- `depth stats describe the attachment actually installed…` — 128×96 → resize to 192×128 (stats and the pass's depth view both follow) → failed resize rolls back without the reported attachment moving → disposal drops to `installed: false`, `requestedBytes: 0`.
+
+All 4 original tests still pass; 17/17 in the candidate suite, both tsconfigs clean.
+
+## Falsification
+
+Each new test was seen red for its own reason and reverted: canonical format flipped to `depth24plus` while the frame kept its literal (red on `props.format`); `GPU_DEPTH_CLEAR` → 1 while the frame kept `depthClearValue: 0` (red, `expected +0 to be 1`, both sample counts); `depthStats` ignoring the texture's `destroyed` flag (red with `installed: true` / `requestedBytes: 98304` after disposal). Commands and exits in `throwaway/typegpu-frame/verification.md`.
+
+## Choices you may want to audit
+
+1. **Tests went into the existing lifecycle file, not a new one.** A second file would need a verbatim copy of the ~35-line typegpu mock; one mock owner beat one file per topic.
+2. **`installed` reads the texture's `destroyed` flag, not `this.disposed`.** Raw mirrors its own `disposed` field. The typed resource already answers for itself, which is the more truthful reading and a genuine TypeGPU-side difference — but it does mean the two owners derive the same field differently.
+3. **`requestedBytes` keeps a literal `4` bytes/sample** beside a format that now comes from the policy, matching raw. Commented as tied to `GPU_DEPTH_FORMAT` being `depth32float` (documented as having no fallback). Deriving it would need a format→bytes map, which the contract rules out as speculative machinery.
+4. **Left the ~12 lines of duplication with `RawBattleFrame.depthStats` alone.** Consolidating means editing `worldDepth.ts` and the product raw frame — out of scope, and a shared helper used by one caller would be a parallel abstraction, not a fix.
+5. **Pre-existing `oxfmt` long-import line and `oxlint` triple-slash warning left untouched** — both fail identically at HEAD.
+
+## Remaining obligations
+
+- **Hardware/GPU correctness is unverified by this pass** — CPU only, per the split. The reverse-Z pairing, the depth32float attachment at 4x, and the cleared buffer need the colour worker's GPU run.
+- **Nothing consumes `depthStats()` yet.** `candidates/typegpu/battleScene.ts` `stats()` has no `depth` field; wiring it is the battleScene owner's call (I did not touch that file).
+- No spec edits, no other worktree touched, no push. Scratch is confined to `throwaway/typegpu-frame/`; `runner-result.txt` untouched.

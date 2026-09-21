@@ -17,6 +17,7 @@ export interface MenuConfig {
   /** Canonical class rows (id/name/cost) for the custom-battle army builders. */
   classSpecs: QuickBattleClassSpec[];
   onNewCampaign: () => void;
+  onBenchmark: () => void;
   /** Load the named save slot; absent slot disables the button. */
   onLoadCampaign: () => void;
   hasSave: () => boolean;
@@ -51,6 +52,7 @@ export class MenuScene implements Scene {
           classes: this.cfg.classSpecs,
           onCustomBattle: this.cfg.onCustomBattle,
           onNewCampaign: this.cfg.onNewCampaign,
+          onBenchmark: this.cfg.onBenchmark,
           onLoadCampaign: this.cfg.onLoadCampaign,
           onToggleManual: () => {
             manual.style.display = manual.style.display === "block" ? "none" : "block";

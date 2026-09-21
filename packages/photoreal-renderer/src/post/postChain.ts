@@ -1,3 +1,4 @@
+import { clampBattlePostGrade } from "../../../game-renderer/src/environment/postParameters";
 // BattlePostChain — the ONE post-processing owner for the photoreal battle
 // world. Built on three's
 // node-based post pipeline (RenderPipeline, the r183 rename of PostProcessing):
@@ -27,58 +28,40 @@
 //     bloom threshold once linearized, so they never bloom; the true HUD
 //     (DOM cardbar) is composited outside the WebGPU canvas entirely and is
 //     categorically unreachable by this chain.
-import * as THREE from 'three/webgpu';
-import type { Node } from 'three/webgpu';
-import { clamp, dot, float, max, mix, pass, smoothstep, uniform, vec3, vec4 } from 'three/tsl';
-import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js';
-import type { CivsimEnvironmentId } from '../../../game-renderer/src/environment/environment';
+import * as THREE from "three/webgpu";
+import type { Node } from "three/webgpu";
+import { clamp, dot, float, max, mix, pass, smoothstep, uniform, vec3, vec4 } from "three/tsl";
+import { bloom } from "three/examples/jsm/tsl/display/BloomNode.js";
+import type { CivsimEnvironmentId } from "../../../game-renderer/src/environment/environment";
 
-type Vec4Node = Node<'vec4'>;
+type Vec4Node = Node<"vec4">;
 
-/** Physically-restrained bloom. Threshold is LINEAR-HDR luminance (pre-tone-map,
- *  because the scene passes render with NoToneMapping): 1.02 sits just above a
- *  fully sunlit diffuse surface, so only super-white specular/emissive — the
- *  sky sun disc and the disciplined GGX sea glint — spills. Strength/radius and
- *  highpass softness lean toward the pen's five-level glow without turning
- *  bright grass into bloom. */
-const BLOOM_STRENGTH = 0.085;
-const BLOOM_RADIUS = 0.56;
-const BLOOM_THRESHOLD = 1.02;
-const BLOOM_SMOOTH_WIDTH = 0.75;
-const BLOOM_LEVELS = 5;
+import {
+  BLOOM_STRENGTH,
+  BLOOM_RADIUS,
+  BLOOM_THRESHOLD,
+  BLOOM_SMOOTH_WIDTH,
+  BLOOM_LEVELS,
+  GRADE_SATURATION_BOOST,
+  GRADE_CONTRAST,
+  GRADE_SPLIT_TONE,
+  GRADE_SHADOW_LIFT,
+  GRADE_LUMA as LUMA,
+  GRADE_SHADOW_TINT as SHADOW_TINT,
+  GRADE_HIGHLIGHT_TINT as HIGHLIGHT_TINT,
+  GRADE_LIFT as LIFT,
+  gradeStrengthForPreset,
+  type BattlePostGradeUniforms,
+} from "../../../game-renderer/src/environment/postParameters";
 
-/** Pen print-grade constants applied as post-chain policy rather than material
- *  albedo. Shadow tint follows the #5C6E9E violet family; highlight tint follows
- *  the pen's warm cream push. */
-// This saturation keeps close-crop grass at the hero band low end without
-// losing its green undertone.
-const GRADE_SATURATION_BOOST = 1.15;
-const GRADE_CONTRAST = 0.16;
-const GRADE_SPLIT_TONE = 0.85;
-const GRADE_SHADOW_LIFT = 1.0;
-const GRADE_LUMA = vec3(0.2126, 0.7152, 0.0722);
-const GRADE_SHADOW_TINT = vec3(0.9, 0.95, 1.16);
-const GRADE_HIGHLIGHT_TINT = vec3(1.055, 1.012, 0.925);
-const GRADE_LIFT = vec3(0.017, 0.021, 0.036);
+const GRADE_LUMA = vec3(...LUMA);
+const GRADE_SHADOW_TINT = vec3(...SHADOW_TINT);
+const GRADE_HIGHLIGHT_TINT = vec3(...HIGHLIGHT_TINT);
+const GRADE_LIFT = vec3(...LIFT);
 const GRADE_ONE = vec3(1.0);
 
-const PRESET_GRADE_STRENGTH: Record<CivsimEnvironmentId, number> = {
-  golden: 1.0,
-  dusk: 0.45,
-  noon: 0.3,
-  'overcast-highland': 0.06,
-};
-
-export interface BattlePostGradeUniforms {
-  strength: number;
-  saturationBoost: number;
-  contrast: number;
-  splitTone: number;
-  shadowLift: number;
-}
-
 interface BattlePostChainStats {
-  owner: 'battlePostChain';
+  owner: "battlePostChain";
   enabled: boolean;
   bloom: {
     enabled: boolean;
@@ -89,7 +72,7 @@ interface BattlePostChainStats {
     levels: number;
   };
   grade: {
-    placement: 'pre-agx';
+    placement: "pre-agx";
     preset: CivsimEnvironmentId;
     presetStrength: number;
     uniforms: BattlePostGradeUniforms;
@@ -101,9 +84,9 @@ interface BattlePostChainStats {
 /** Names the active tone-map operator for the stats identity; every supported
  *  operator remains legible in a lab A/B. */
 function toneMappingName(toneMapping: THREE.ToneMapping): string {
-  if (toneMapping === THREE.AgXToneMapping) return 'agx';
-  if (toneMapping === THREE.ACESFilmicToneMapping) return 'aces-filmic';
-  return 'other';
+  if (toneMapping === THREE.AgXToneMapping) return "agx";
+  if (toneMapping === THREE.ACESFilmicToneMapping) return "aces-filmic";
+  return "other";
 }
 
 export class BattlePostChain {
@@ -133,7 +116,7 @@ export class BattlePostChain {
     this.presetStrength = gradeStrengthForPreset(environmentId);
     this.gradeStrength.value = this.presetStrength;
     this.scenePass = pass(scene, camera);
-    this.sceneColor = this.scenePass.getTextureNode('output');
+    this.sceneColor = this.scenePass.getTextureNode("output");
     this.bloomNode = bloom(this.sceneColor, BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD);
     this.bloomNode.smoothWidth.value = BLOOM_SMOOTH_WIDTH;
     this.pipeline = new THREE.RenderPipeline(renderer);
@@ -153,7 +136,9 @@ export class BattlePostChain {
     const mappedLuma = baseLuma.div(baseLuma.add(1.0));
     const printCurveLuma = mappedLuma.mul(mappedLuma).mul(float(3.0).sub(mappedLuma.mul(2.0)));
     const contrastMappedLuma = mix(mappedLuma, printCurveLuma, strength.mul(this.gradeContrast));
-    const contrastLuma = contrastMappedLuma.div(max(float(0.0001), float(1.0).sub(contrastMappedLuma)));
+    const contrastLuma = contrastMappedLuma.div(
+      max(float(0.0001), float(1.0).sub(contrastMappedLuma)),
+    );
     let graded = base.mul(contrastLuma.div(baseLuma));
     const l = contrastMappedLuma;
 
@@ -180,26 +165,20 @@ export class BattlePostChain {
       float(1.0).sub(smoothstep(float(0.62), float(0.96), l)),
     );
     const saturationWindow = float(0.55).add(midtone.mul(0.45));
-    const saturation = float(1.0).add(strength.mul(this.gradeSaturationBoost).mul(saturationWindow));
+    const saturation = float(1.0).add(
+      strength.mul(this.gradeSaturationBoost).mul(saturationWindow),
+    );
     return vec4(max(mix(vec3(saturationLuma), graded, saturation), vec3(0.0)), input.a);
   }
 
   setGradeUniforms(uniforms: Partial<BattlePostGradeUniforms>): void {
-    if (uniforms.strength !== undefined) {
-      this.gradeStrength.value = finiteClamped(uniforms.strength, 0, 1.5);
-    }
-    if (uniforms.saturationBoost !== undefined) {
-      this.gradeSaturationBoost.value = finiteClamped(uniforms.saturationBoost, 0, 4.0);
-    }
-    if (uniforms.contrast !== undefined) {
-      this.gradeContrast.value = finiteClamped(uniforms.contrast, 0, 0.6);
-    }
-    if (uniforms.splitTone !== undefined) {
-      this.gradeSplitTone.value = finiteClamped(uniforms.splitTone, 0, 1.5);
-    }
-    if (uniforms.shadowLift !== undefined) {
-      this.gradeShadowLift.value = finiteClamped(uniforms.shadowLift, 0, 1.5);
-    }
+    const values = clampBattlePostGrade(uniforms);
+    if (values.strength !== undefined) this.gradeStrength.value = values.strength;
+    if (values.saturationBoost !== undefined)
+      this.gradeSaturationBoost.value = values.saturationBoost;
+    if (values.contrast !== undefined) this.gradeContrast.value = values.contrast;
+    if (values.splitTone !== undefined) this.gradeSplitTone.value = values.splitTone;
+    if (values.shadowLift !== undefined) this.gradeShadowLift.value = values.shadowLift;
   }
 
   setBloomEnabled(on: boolean): void {
@@ -224,7 +203,7 @@ export class BattlePostChain {
 
   stats(): BattlePostChainStats {
     return {
-      owner: 'battlePostChain',
+      owner: "battlePostChain",
       enabled: this.enabled,
       bloom: {
         enabled: this.enabled && this.bloomEnabled,
@@ -235,7 +214,7 @@ export class BattlePostChain {
         levels: BLOOM_LEVELS,
       },
       grade: {
-        placement: 'pre-agx',
+        placement: "pre-agx",
         preset: this.preset,
         presetStrength: this.presetStrength,
         uniforms: {
@@ -249,45 +228,4 @@ export class BattlePostChain {
       tonemap: toneMappingName(this.renderer.toneMapping),
     };
   }
-}
-
-function gradeStrengthForPreset(environmentId: CivsimEnvironmentId): number {
-  return PRESET_GRADE_STRENGTH[environmentId];
-}
-
-export function postGradeUniformsFromParams(
-  params: Pick<URLSearchParams, 'has' | 'get'>,
-): Partial<BattlePostGradeUniforms> | null {
-  const uniforms: Partial<BattlePostGradeUniforms> = {};
-  readFiniteParam(params, 'grade', (value) => {
-    uniforms.strength = value;
-  });
-  readFiniteParam(params, 'gradeSat', (value) => {
-    uniforms.saturationBoost = value;
-  });
-  readFiniteParam(params, 'gradeContrast', (value) => {
-    uniforms.contrast = value;
-  });
-  readFiniteParam(params, 'gradeSplit', (value) => {
-    uniforms.splitTone = value;
-  });
-  readFiniteParam(params, 'gradeLift', (value) => {
-    uniforms.shadowLift = value;
-  });
-  return Object.keys(uniforms).length > 0 ? uniforms : null;
-}
-
-function finiteClamped(value: number, minValue: number, maxValue: number): number {
-  if (!Number.isFinite(value)) return minValue;
-  return Math.min(maxValue, Math.max(minValue, value));
-}
-
-function readFiniteParam(
-  params: Pick<URLSearchParams, 'has' | 'get'>,
-  name: string,
-  apply: (value: number) => void,
-): void {
-  if (!params.has(name)) return;
-  const value = Number(params.get(name));
-  if (Number.isFinite(value)) apply(value);
 }

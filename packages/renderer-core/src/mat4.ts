@@ -131,3 +131,22 @@ export function perspectiveReverseZ(fovY: number, aspect: number, near: number, 
   m[14] = B;
   return m;
 }
+
+/** Orthographic WebGPU projection, right-handed view space, near→1 and far→0. */
+export function orthographicReverseZ(
+  left: number,
+  right: number,
+  top: number,
+  bottom: number,
+  near: number,
+  far: number,
+): Mat4 {
+  const m = identity();
+  m[0] = 2 / (right - left);
+  m[5] = 2 / (top - bottom);
+  m[10] = 1 / (far - near);
+  m[12] = -(right + left) / (right - left);
+  m[13] = -(top + bottom) / (top - bottom);
+  m[14] = far / (far - near);
+  return m;
+}

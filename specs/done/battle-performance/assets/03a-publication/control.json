@@ -1,0 +1,11 @@
+{
+  "kind": "cpu-publication-control",
+  "wasmSha256": "ffd7a918715590608f2bfbbc9281c3da8d0d9e2842d76f520818940616a9de95",
+  "node": "v24.14.0",
+  "ticks": 300,
+  "batchTicks": 4,
+  "elapsedMs": 9420.511125,
+  "ticksPerSecond": 31.845405840439465,
+  "hash": "6696754498600804919",
+  "diagnosticOnly": true
+}

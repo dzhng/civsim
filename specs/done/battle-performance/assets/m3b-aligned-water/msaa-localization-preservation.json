@@ -1,0 +1,62 @@
+[
+  {
+    "label": "ocean-overview-t0",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-overview-t3.25",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-t0",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-t3.25",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-repeat-t0",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-repeat-t3.25",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-overview-t0-aligned",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-overview-t3.25-aligned",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-t0-aligned",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-t3.25-aligned",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-repeat-t0-aligned",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  },
+  {
+    "label": "ocean-horizon-repeat-t3.25-aligned",
+    "imagesEqual": true,
+    "maxAbsEqual": true
+  }
+]

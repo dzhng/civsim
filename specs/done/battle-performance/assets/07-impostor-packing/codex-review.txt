@@ -1,0 +1,1 @@
+The direct indexed writes preserve the packed layout, arithmetic, padding, and fresh-buffer ownership. No actionable regressions were found, and all nine new tests passed.

@@ -1,0 +1,15 @@
+{
+  "frames": 120,
+  "warmFrames": 60,
+  "soldiers": 15560,
+  "allPayloadBytesAndSlotsEqual": true,
+  "baseline": {
+    "payloadAllocations": 7200,
+    "allocatedBytes": 39211200
+  },
+  "candidate": {
+    "payloadAllocations": 0,
+    "allocatedBytes": 0
+  },
+  "scope": "Float32 payload backing allocations only; excludes small views, maps and JS arrays; not GPU or FPS evidence"
+}

@@ -1,0 +1,558 @@
+{
+  "scope": "Exact-WASM Node windows, not browser FPS or final performance acceptance. Single instrumented A/B and reverse-order uninstrumented B/A; no quiet-host ranking.",
+  "rows": [
+    {
+      "arm": "kernel-later-stages",
+      "window": "early",
+      "meanTickMs": 27.88432954870128,
+      "start": {
+        "tick": 9000,
+        "hash": "9928381812590497427",
+        "alive": 15529,
+        "engaged": 540,
+        "projectiles": 70,
+        "victor": -1
+      },
+      "end": {
+        "tick": 9308,
+        "hash": "13217042291758616190",
+        "alive": 15488,
+        "engaged": 1005,
+        "projectiles": 0,
+        "victor": -1
+      },
+      "stages": [
+        [
+          "combat resolution",
+          0.4230384350422272
+        ],
+        [
+          "combat targeting",
+          12.589020162360304
+        ],
+        [
+          "commander AI",
+          6.304870112217031e-05
+        ],
+        [
+          "contact_facing",
+          0.0004226396101460393
+        ],
+        [
+          "displacement",
+          0.04381072727317752
+        ],
+        [
+          "integrate_units",
+          0.002798311688584599
+        ],
+        [
+          "kinematics",
+          0.02444494155884944
+        ],
+        [
+          "mark_at_ease",
+          0.006865977272933709
+        ],
+        [
+          "missiles",
+          0.007979899350033662
+        ],
+        [
+          "morale",
+          0.07538571428581649
+        ],
+        [
+          "navigate_units",
+          0.007666665583827409
+        ],
+        [
+          "orders and reflexes",
+          0.01885782142808357
+        ],
+        [
+          "reform_slots",
+          0.007173000000178733
+        ],
+        [
+          "separation body pairs",
+          1.9795281201298274
+        ],
+        [
+          "separation momentum",
+          0.022496068181574735
+        ],
+        [
+          "separation projection",
+          5.715949370129899
+        ],
+        [
+          "separation setup",
+          0.16764433766361259
+        ],
+        [
+          "separation walls",
+          0.05444959090787701
+        ],
+        [
+          "separation weapon repel",
+          2.81469900324685
+        ],
+        [
+          "slide_halted_frames",
+          0.00033415909066596735
+        ],
+        [
+          "steer precompute_unit",
+          0.45233197727245533
+        ],
+        [
+          "steer_soldiers",
+          3.4388416006501767
+        ],
+        [
+          "unit motion",
+          0.0038401136361799573
+        ]
+      ]
+    },
+    {
+      "arm": "kernel-later-stages",
+      "window": "later",
+      "meanTickMs": 54.67452840259648,
+      "start": {
+        "tick": 12000,
+        "hash": "17530755159512483058",
+        "alive": 13061,
+        "engaged": 2042,
+        "projectiles": 90,
+        "victor": -1
+      },
+      "end": {
+        "tick": 12308,
+        "hash": "12041783451115246395",
+        "alive": 12807,
+        "engaged": 2096,
+        "projectiles": 178,
+        "victor": -1
+      },
+      "stages": [
+        [
+          "combat resolution",
+          0.4725131103645159
+        ],
+        [
+          "combat targeting",
+          29.108843048726335
+        ],
+        [
+          "commander AI",
+          4.786688361208063e-05
+        ],
+        [
+          "contact_facing",
+          0.000652603895400421
+        ],
+        [
+          "displacement",
+          0.043431275974268956
+        ],
+        [
+          "integrate_units",
+          0.002817237012745214
+        ],
+        [
+          "kinematics",
+          0.024445724025725497
+        ],
+        [
+          "mark_at_ease",
+          0.006631204546973496
+        ],
+        [
+          "missiles",
+          0.018220590909431966
+        ],
+        [
+          "morale",
+          0.08176027922063323
+        ],
+        [
+          "navigate_units",
+          0.006453483767732645
+        ],
+        [
+          "orders and reflexes",
+          0.037833464284867425
+        ],
+        [
+          "reform_slots",
+          0.038400012985977054
+        ],
+        [
+          "separation body pairs",
+          2.909067668831569
+        ],
+        [
+          "separation momentum",
+          0.021948016232579595
+        ],
+        [
+          "separation projection",
+          8.367326181817932
+        ],
+        [
+          "separation setup",
+          0.14174260389577226
+        ],
+        [
+          "separation walls",
+          0.055776993507464935
+        ],
+        [
+          "separation weapon repel",
+          9.171215633117495
+        ],
+        [
+          "slide_halted_frames",
+          0.0003160129868396703
+        ],
+        [
+          "steer precompute_unit",
+          0.9176173831166868
+        ],
+        [
+          "steer_soldiers",
+          3.2080836623377738
+        ],
+        [
+          "unit motion",
+          0.003857707792050931
+        ]
+      ]
+    },
+    {
+      "arm": "friend-cutoff-stages",
+      "window": "early",
+      "meanTickMs": 25.88280276298809,
+      "start": {
+        "tick": 9000,
+        "hash": "9928381812590497427",
+        "alive": 15529,
+        "engaged": 540,
+        "projectiles": 70,
+        "victor": -1
+      },
+      "end": {
+        "tick": 9308,
+        "hash": "13217042291758616190",
+        "alive": 15488,
+        "engaged": 1005,
+        "projectiles": 0,
+        "victor": -1
+      },
+      "stages": [
+        [
+          "combat resolution",
+          0.3863163214120103
+        ],
+        [
+          "combat targeting",
+          11.224331237029608
+        ],
+        [
+          "commander AI",
+          3.3717532519344846e-05
+        ],
+        [
+          "contact_facing",
+          0.00024013311736166248
+        ],
+        [
+          "displacement",
+          0.041989707791846693
+        ],
+        [
+          "integrate_units",
+          0.0020941525969186392
+        ],
+        [
+          "kinematics",
+          0.023788665584685408
+        ],
+        [
+          "mark_at_ease",
+          0.00633899350658168
+        ],
+        [
+          "missiles",
+          0.007074003246703182
+        ],
+        [
+          "morale",
+          0.0723778474024726
+        ],
+        [
+          "navigate_units",
+          0.005167568181569585
+        ],
+        [
+          "orders and reflexes",
+          0.017527704545736687
+        ],
+        [
+          "reform_slots",
+          0.006229844155880871
+        ],
+        [
+          "separation body pairs",
+          1.8987616493507737
+        ],
+        [
+          "separation momentum",
+          0.02169548376592242
+        ],
+        [
+          "separation projection",
+          5.437081568182541
+        ],
+        [
+          "separation setup",
+          0.1595571590913025
+        ],
+        [
+          "separation walls",
+          0.050022077921123315
+        ],
+        [
+          "separation weapon repel",
+          2.715395435064911
+        ],
+        [
+          "slide_halted_frames",
+          0.0002379350651183329
+        ],
+        [
+          "steer precompute_unit",
+          0.43367800000005563
+        ],
+        [
+          "steer_soldiers",
+          3.3482819448048784
+        ],
+        [
+          "unit motion",
+          0.003115097402627867
+        ]
+      ]
+    },
+    {
+      "arm": "friend-cutoff-stages",
+      "window": "later",
+      "meanTickMs": 49.97793737337671,
+      "start": {
+        "tick": 12000,
+        "hash": "17530755159512483058",
+        "alive": 13061,
+        "engaged": 2042,
+        "projectiles": 90,
+        "victor": -1
+      },
+      "end": {
+        "tick": 12308,
+        "hash": "12041783451115246395",
+        "alive": 12807,
+        "engaged": 2096,
+        "projectiles": 178,
+        "victor": -1
+      },
+      "stages": [
+        [
+          "combat resolution",
+          0.4389395454950259
+        ],
+        [
+          "combat targeting",
+          24.83563634411531
+        ],
+        [
+          "commander AI",
+          3.990909100174541e-05
+        ],
+        [
+          "contact_facing",
+          0.0005228506496052149
+        ],
+        [
+          "displacement",
+          0.0430718181814882
+        ],
+        [
+          "integrate_units",
+          0.0024863116884628286
+        ],
+        [
+          "kinematics",
+          0.023825496753890146
+        ],
+        [
+          "mark_at_ease",
+          0.006296558441974483
+        ],
+        [
+          "missiles",
+          0.01647392532492643
+        ],
+        [
+          "morale",
+          0.0806185227270539
+        ],
+        [
+          "navigate_units",
+          0.005269496753628898
+        ],
+        [
+          "orders and reflexes",
+          0.03638022727190892
+        ],
+        [
+          "reform_slots",
+          0.03654469155932114
+        ],
+        [
+          "separation body pairs",
+          2.847116051948279
+        ],
+        [
+          "separation momentum",
+          0.021624974025486722
+        ],
+        [
+          "separation projection",
+          8.237465655844558
+        ],
+        [
+          "separation setup",
+          0.1382182500006324
+        ],
+        [
+          "separation walls",
+          0.05395237012942437
+        ],
+        [
+          "separation weapon repel",
+          9.055974935065118
+        ],
+        [
+          "slide_halted_frames",
+          0.00024593181769414987
+        ],
+        [
+          "steer precompute_unit",
+          0.9002213344161623
+        ],
+        [
+          "steer_soldiers",
+          3.1612264415562565
+        ],
+        [
+          "unit motion",
+          0.0033373993509804357
+        ]
+      ]
+    },
+    {
+      "arm": "friend-cutoff-release",
+      "window": "early",
+      "meanTickMs": 25.906469558441994,
+      "start": {
+        "tick": 9000,
+        "hash": "9928381812590497427",
+        "alive": 15529,
+        "engaged": 540,
+        "projectiles": 70,
+        "victor": -1
+      },
+      "end": {
+        "tick": 9308,
+        "hash": "13217042291758616190",
+        "alive": 15488,
+        "engaged": 1005,
+        "projectiles": 0,
+        "victor": -1
+      },
+      "stages": []
+    },
+    {
+      "arm": "friend-cutoff-release",
+      "window": "later",
+      "meanTickMs": 49.650622301947024,
+      "start": {
+        "tick": 12000,
+        "hash": "17530755159512483058",
+        "alive": 13061,
+        "engaged": 2042,
+        "projectiles": 90,
+        "victor": -1
+      },
+      "end": {
+        "tick": 12308,
+        "hash": "12041783451115246395",
+        "alive": 12807,
+        "engaged": 2096,
+        "projectiles": 178,
+        "victor": -1
+      },
+      "stages": []
+    },
+    {
+      "arm": "friend-cutoff-control",
+      "window": "early",
+      "meanTickMs": 26.664746915584512,
+      "start": {
+        "tick": 9000,
+        "hash": "9928381812590497427",
+        "alive": 15529,
+        "engaged": 540,
+        "projectiles": 70,
+        "victor": -1
+      },
+      "end": {
+        "tick": 9308,
+        "hash": "13217042291758616190",
+        "alive": 15488,
+        "engaged": 1005,
+        "projectiles": 0,
+        "victor": -1
+      },
+      "stages": []
+    },
+    {
+      "arm": "friend-cutoff-control",
+      "window": "later",
+      "meanTickMs": 53.84593723051786,
+      "start": {
+        "tick": 12000,
+        "hash": "17530755159512483058",
+        "alive": 13061,
+        "engaged": 2042,
+        "projectiles": 90,
+        "victor": -1
+      },
+      "end": {
+        "tick": 12308,
+        "hash": "12041783451115246395",
+        "alive": 12807,
+        "engaged": 2096,
+        "projectiles": 178,
+        "victor": -1
+      },
+      "stages": []
+    }
+  ],
+  "tests": "Three friend sample unit tests, two targeting mechanics tests, one unchanged golden-state test pass. Independent review found no actionable issue.",
+  "sourceHashes": {
+    "crates/sim/src/combat.rs": "282f14944f1c6100975fa1f323f0983e4582544414e711b611308a2b1f947bf1",
+    "crates/sim/src/combat/targeting.rs": "2c97bc21f9223bf862db4cebeee59f8d18e3c130012ac326f9dbd1e39149d831"
+  }
+}

@@ -2,7 +2,7 @@
 const PARITY_PHASE = 0.9991202346041055;
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
-import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
+import { TYPEGPU_BATTLE_IDENTITY } from "../../../packages/battle-renderer/src/world/identity.ts";
 import {
   bakeLocalAnimation,
   encodeLocalAnimation,
@@ -91,13 +91,16 @@ export async function run(ctx) {
         (previous) => window.__battleModels.stats().frame > previous,
         previous,
       );
-      await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
       const stats = await page.evaluate(() => window.__battleModels.stats());
       ctx.check(
         `${name}: production path and submitted count`,
-        stats.render.substrate === PHOTOREAL_SUBSTRATE &&
-          stats.render.soldiers === (pose.formation ? 16 : 1),
-        JSON.stringify({ substrate: stats.render.substrate, soldiers: stats.render.soldiers }),
+        stats.render.substrate === TYPEGPU_BATTLE_IDENTITY.substrate &&
+          stats.render.crowd.instances === (pose.formation ? 16 : 1),
+        JSON.stringify({
+          substrate: stats.render.substrate,
+          soldiers: stats.render.crowd.instances,
+        }),
       );
       const shot = await page.screenshot();
       const png = PNG.sync.read(shot);
@@ -121,7 +124,7 @@ export async function run(ctx) {
     const loaded = await page.evaluate(() => window.__battleModels.reload());
     await page.waitForFunction(() => window.__battleModels.stats().reloads === 1);
     await page.waitForTimeout(300);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     const after = await page.screenshot();
     ctx.check(
       "local bake reload keeps identical production pixels",
@@ -152,7 +155,7 @@ export async function run(ctx) {
       "failed reload is explicit and preserves last good crowd",
       !failed.ok &&
         failed.error.length > 0 &&
-        (await page.evaluate(() => window.__battleModels.stats().render.soldiers === 16)),
+        (await page.evaluate(() => window.__battleModels.stats().render.crowd.instances === 16)),
       JSON.stringify(failed),
     );
     await page.unroute("**/assets/soldiers/catalog.json");
@@ -165,7 +168,7 @@ export async function run(ctx) {
     const incompatible = await page.evaluate(() => window.__battleModels.reload());
     ctx.check(
       "incompatible reload retains the active appearance",
-      !incompatible.ok && incompatible.error.includes("active appearance"),
+      !incompatible.ok && incompatible.error.includes("appearance 0"),
     );
     await page.unroute("**/assets/soldiers/catalog.json");
     await page.route(animationUrl, (route) =>
@@ -240,8 +243,8 @@ export async function run(ctx) {
       String(incompleteStartup),
     );
     await page.unroute(animationUrl);
-    const nodesBefore = await page.evaluate(
-      () => window.__battleModels.world.world.scene.children.length,
+    const retainedAssets = await page.evaluateHandle(
+      () => window.__battleModels.world.soldierAssets,
     );
     await page.route(animationUrl, async (route) => {
       const response = await route.fetch();
@@ -251,46 +254,19 @@ export async function run(ctx) {
     });
     for (let retry = 0; retry < 2; retry++) {
       const malformed = await page.evaluate(() => window.__battleModels.reload());
-      const nodesAfter = await page.evaluate(
-        () => window.__battleModels.world.world.scene.children.length,
+      const retained = await page.evaluate(
+        (previous) => window.__battleModels.world.soldierAssets === previous,
+        retainedAssets,
       );
       ctx.check(
-        `invalid local animation retry ${retry}: no orphaned scene meshes`,
-        !malformed.ok && nodesBefore === nodesAfter,
-        JSON.stringify({ nodesBefore, nodesAfter }),
+        `invalid local animation retry ${retry}: retains the published asset generation`,
+        !malformed.ok && retained,
+        JSON.stringify({ malformed, retained }),
       );
     }
     await page.unroute(animationUrl);
-    const allocationFailure = await page.evaluate(async () => {
-      const harness = window.__battleModels;
-      const scene = harness.world.world.scene;
-      const add = scene.add;
-      const before = scene.children.length;
-      let attempts = 0;
-      let peak = before;
-      scene.add = function (...objects) {
-        if (++attempts === 3) throw new Error("Injected replacement allocation failure");
-        const result = add.apply(this, objects);
-        peak = Math.max(peak, this.children.length);
-        return result;
-      };
-      try {
-        const result = await harness.reload();
-        return { ...result, before, after: scene.children.length, peak, attempts };
-      } finally {
-        scene.add = add;
-      }
-    });
-    ctx.check(
-      "partially allocated replacement is rolled back without orphaned meshes",
-      !allocationFailure.ok &&
-        allocationFailure.error.includes("Injected replacement allocation failure") &&
-        allocationFailure.peak > allocationFailure.before &&
-        allocationFailure.before === allocationFailure.after,
-      JSON.stringify(allocationFailure),
-    );
+    await retainedAssets.dispose();
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     ctx.check(
       "rejected bundles preserve the last good production pixels",
       after.equals(await page.screenshot()),
@@ -299,12 +275,9 @@ export async function run(ctx) {
     // before manually driving the two production entry points.
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     await page.evaluate(async (phase) => {
-      // three's post scene PassNode updates once per browser frame. A second
-      // submission in the retained pose's frame would sample its cached image.
-      await new Promise(requestAnimationFrame);
       const world = window.__battleModels.world;
       world.setStatic(new Uint32Array(1), [0], [0]);
-      world.draw(
+      await world.draw(
         new Float32Array([0, 0]),
         new Float32Array([Math.PI / 2]),
         [
@@ -328,14 +301,13 @@ export async function run(ctx) {
         ],
         new Float32Array([1]),
         1,
-        world.stats().camera,
+        world.stats().preparedCamera,
       );
-      world.render();
-      await world.settlePresentedFrame();
+      await world.render();
     }, PARITY_PHASE);
     ctx.check(
       "battle submission replaces the retained formation",
-      await page.evaluate(() => window.__battleModels.world.stats().soldiers === 1),
+      await page.evaluate(() => window.__battleModels.world.stats().crowd.instances === 1),
     );
     const fromBattle = await page.screenshot();
     await ctx.snap(page, "shared/soldiers/workbench/submission-parity", {
@@ -379,9 +351,8 @@ export async function run(ctx) {
           unitTeam: [0],
           terrainHeight: () => 0,
         });
-        world.drawInstances(built.instances, world.stats().camera);
-        world.render();
-        await world.settlePresentedFrame();
+        await world.drawInstances(built.instances, world.stats().preparedCamera);
+        await world.render();
       },
       { source: instanceModule, phase: PARITY_PHASE },
     );
@@ -432,7 +403,7 @@ export async function run(ctx) {
       timeout: 60000,
     });
     await page.waitForTimeout(300);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     await ctx.snap(page, "shared/soldiers/workbench/controls", { threshold: 0, maxDiffRatio: 0 });
 
     // Change authored factors without changing the mesh or its vertex colors.
@@ -450,6 +421,9 @@ export async function run(ctx) {
         meshUrls: bundle.tiers.map((path) => new URL(path, bundleUrl).href),
       };
     });
+    // Switching out of the controls layout resizes the canvas. Wait for its
+    // new frame before comparing reloads against that same frozen camera.
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     const beforeReindex = await page.screenshot();
     await page.route(materialUrl, async (route) => {
       const materials = await (await route.fetch()).json();
@@ -458,7 +432,6 @@ export async function run(ctx) {
     });
     const malformedMaterial = await page.evaluate(() => window.__battleModels.reload());
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     ctx.check(
       "malformed material rejects reload and preserves the last good pixels",
       !malformedMaterial.ok &&
@@ -483,7 +456,6 @@ export async function run(ctx) {
     const reindexed = await page.evaluate(() => window.__battleModels.reload());
     ctx.check("equivalent material-table reindex loads", reindexed.ok, reindexed.error);
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     ctx.check(
       "material slot numbering cannot change surface pixels",
       beforeReindex.equals(await page.screenshot()),
@@ -517,7 +489,7 @@ export async function run(ctx) {
         result.error,
       );
       await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-      await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
       materialShots.push(await page.screenshot());
       await page.unroute(materialUrl);
     }
@@ -563,9 +535,8 @@ export async function run(ctx) {
             terrainHeight: () => 0,
           });
           built.instances[0].seed = seed;
-          world.drawInstances(built.instances, world.stats().camera);
-          world.render();
-          await world.settlePresentedFrame();
+          await world.drawInstances(built.instances, world.stats().preparedCamera);
+          await world.render();
         },
         { source: instanceModule, seed, faction, phase: PARITY_PHASE },
       );
@@ -608,9 +579,8 @@ export async function run(ctx) {
         zoom: 0.9,
       });
       while (h.stats().pendingDraw) await new Promise(requestAnimationFrame);
-      // Keep this custom submission out of the workbench's cached camera frame.
-      await new Promise(requestAnimationFrame);
       const w = h.world;
+      await w.loadPublishedAtlases();
       const entries = Object.entries(w.soldierAssets);
       const instances = entries.flatMap(([id, asset], index) =>
         Array.from({ length: 16 }, (_, n) => ({
@@ -628,16 +598,16 @@ export async function run(ctx) {
           lod: 0,
         })),
       );
-      w.drawInstances(instances, structuredClone(w.stats().camera));
-      w.render();
-      await w.settlePresentedFrame();
+      await w.drawInstances(instances, structuredClone(w.stats().preparedCamera));
+      await w.render();
+
       return { stats: w.stats(), ids: entries.map(([id]) => Number(id)), count: instances.length };
     });
     ctx.check(
       "complete authored roster uses production far admission",
       roster.ids.length === Object.keys(bindings).length &&
-        roster.stats.soldiers === roster.count &&
-        roster.stats.lod.impostors === roster.count,
+        roster.stats.crowd.instances === roster.count &&
+        roster.stats.crowd.visibleTierHistogram.l4 === roster.count,
       roster,
     );
     await ctx.snap(page, "shared/soldiers/workbench/authored-roster-far", {
@@ -674,7 +644,7 @@ async function checkManualLifeState(ctx, page) {
       const stats = window.__battleModels.stats();
       return !stats.pendingDraw && stats.pose.alive === alive;
     }, alive);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     const shot = await page.screenshot();
     shots.push(shot);
     if (shots.length < 3)
@@ -695,7 +665,7 @@ async function checkManualLifeState(ctx, page) {
   );
   await page.evaluate((saved) => window.__battleModels.set(saved), saved);
   await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-  await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+  await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
 }
 
 async function checkLatePoseReload(ctx, page) {
@@ -714,40 +684,28 @@ async function checkLatePoseReload(ctx, page) {
   try {
     const result = await page.evaluate(async () => {
       const harness = window.__battleModels;
-      const renderer = harness.world.world.renderer;
-      const scene = harness.world.world.scene;
-      const device = renderer.backend.device;
-      const target = renderer.getRenderTarget();
-      const originalPop = device.popErrorScope;
-      const beforeNodes = scene.children.length;
-      let release;
-      let signal;
-      let held = false;
+      const previous = harness.world.soldierAssets;
+      const originalFetch = window.fetch;
+      let release, signal;
       const entered = new Promise((resolve) => {
         signal = resolve;
       });
-      device.popErrorScope = function () {
-        const popped = originalPop.call(this);
-        // Three's inner pipeline scopes run with the atlas target installed.
-        // Admission is after target restoration and before replacement commit.
-        if (!held && renderer.getRenderTarget() === target) {
-          held = true;
-          return popped.then(
-            (error) =>
-              new Promise((resolve) => {
-                release = () => resolve(error);
-                signal();
-              }),
-          );
+      window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+        if (String(args[0]).includes("/catalog.json")) {
+          signal();
+          await new Promise((resolve) => {
+            release = resolve;
+          });
         }
-        return popped;
+        return response;
       };
       try {
         const pending = harness.reload();
         await Promise.race([
           entered,
           pending.then(() => {
-            throw new Error("Reload did not await GPU admission");
+            throw new Error("Reload did not await catalog loading");
           }),
         ]);
         harness.set({
@@ -759,23 +717,22 @@ async function checkLatePoseReload(ctx, page) {
         const loaded = await pending;
         return {
           ...loaded,
-          beforeNodes,
-          afterNodes: scene.children.length,
+          retainedGeneration: harness.world.soldierAssets === previous,
           activeClass: harness.stats().pose.classId,
           retainedAppearance: Boolean(harness.world.soldierAssets[14]),
         };
       } finally {
         release?.();
-        device.popErrorScope = originalPop;
+        window.fetch = originalFetch;
       }
     });
     ctx.check(
-      "pose changed during GPU admission retains the last valid crowd",
+      "pose changed during catalog loading retains the last valid crowd",
       !result.ok &&
         result.error.includes("appearance 14") &&
         result.retainedAppearance &&
         result.activeClass === 14 &&
-        result.beforeNodes === result.afterNodes,
+        result.retainedGeneration,
       JSON.stringify(result),
     );
   } finally {

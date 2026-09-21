@@ -1,0 +1,550 @@
+{
+  "kind": "same-binary-cpu-replay",
+  "diagnosticOnly": true,
+  "hostCondition": "Shared host; parent may run GPU diagnostics concurrently. Not a release timing gate.",
+  "createdAt": "2026-09-14T18:45:01.149Z",
+  "source": "/Users/david/dev/game-battle-performance-spec",
+  "identity": {
+    "node": "v24.14.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5 Pro",
+    "loadAverage": [
+      14.1162109375,
+      11.93603515625,
+      9.3369140625
+    ],
+    "wasmBytes": 1023893,
+    "wasmSha256": "ffd7a918715590608f2bfbbc9281c3da8d0d9e2842d76f520818940616a9de95",
+    "buildCommand": "CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 RUSTFLAGS='-C target-feature=+simd128' wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
+    "cargoProfile": "[workspace]\nmembers = [\"crates/contract\", \"crates/sim\", \"crates/game-wasm\", \"crates/mapgen\", \"crates/campaign\"]\nresolver = \"2\"\n\n[profile.release]\nopt-level = 3\nlto = \"thin\"\n\n# Tests simulate minutes of battle at 30Hz: optimize them. (IEEE float\n# semantics are opt-level-independent in Rust, so the golden hash holds.)\n[profile.test]\nopt-level = 2\n",
+    "wasmHashAfterRun": "ffd7a918715590608f2bfbbc9281c3da8d0d9e2842d76f520818940616a9de95"
+  },
+  "orders": [
+    {
+      "tick": 0,
+      "unit": 0,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 1,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 2,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 3,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 4,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 5,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 6,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 7,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 8,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 9,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 10,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 11,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 12,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 13,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 14,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 15,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 16,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 17,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 18,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 19,
+      "target": 20
+    }
+  ],
+  "initial": {
+    "tick": 0,
+    "hash": "1610507740289060947",
+    "alive": 15560,
+    "engaged": 0,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "prepared": {
+    "tick": 9000,
+    "hash": "9928381812590497427",
+    "alive": 15529,
+    "engaged": 540,
+    "projectiles": 70,
+    "victor": -1
+  },
+  "final": {
+    "tick": 9300,
+    "hash": "6696754498600804919",
+    "alive": 15488,
+    "engaged": 992,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "preparationMs": 110580.359916,
+  "elapsedMs": 17826.590291,
+  "summary": {
+    "batchTicks": 4,
+    "batchCount": 75,
+    "averageBatchMs": 237.68424001333304,
+    "p95BatchMs": 433.23450000000594,
+    "averageTickMs": 59.42106000333326,
+    "minBatchMs": 176.2242499999993,
+    "maxBatchMs": 544.0341670000053
+  },
+  "measurement": "Synchronous Game.advance_ticks(4), including commander AI and one unit/posture export refresh. No renderer, no browser, no gameplay changes.",
+  "batches": [
+    {
+      "tick": 9004,
+      "ticks": 4,
+      "elapsedMs": 224.0995830000029
+    },
+    {
+      "tick": 9008,
+      "ticks": 4,
+      "elapsedMs": 230.7719999999972
+    },
+    {
+      "tick": 9012,
+      "ticks": 4,
+      "elapsedMs": 228.22658400000364
+    },
+    {
+      "tick": 9016,
+      "ticks": 4,
+      "elapsedMs": 214.19383299999754
+    },
+    {
+      "tick": 9020,
+      "ticks": 4,
+      "elapsedMs": 204.3879159999924
+    },
+    {
+      "tick": 9024,
+      "ticks": 4,
+      "elapsedMs": 212.68887499999255
+    },
+    {
+      "tick": 9028,
+      "ticks": 4,
+      "elapsedMs": 223.3387500000099
+    },
+    {
+      "tick": 9032,
+      "ticks": 4,
+      "elapsedMs": 219.2546250000014
+    },
+    {
+      "tick": 9036,
+      "ticks": 4,
+      "elapsedMs": 219.53820799999812
+    },
+    {
+      "tick": 9040,
+      "ticks": 4,
+      "elapsedMs": 215.78262499999255
+    },
+    {
+      "tick": 9044,
+      "ticks": 4,
+      "elapsedMs": 219.89229099999648
+    },
+    {
+      "tick": 9048,
+      "ticks": 4,
+      "elapsedMs": 221.27804199999082
+    },
+    {
+      "tick": 9052,
+      "ticks": 4,
+      "elapsedMs": 200.87587500001246
+    },
+    {
+      "tick": 9056,
+      "ticks": 4,
+      "elapsedMs": 197.4689170000056
+    },
+    {
+      "tick": 9060,
+      "ticks": 4,
+      "elapsedMs": 197.15833400000702
+    },
+    {
+      "tick": 9064,
+      "ticks": 4,
+      "elapsedMs": 194.87137500000244
+    },
+    {
+      "tick": 9068,
+      "ticks": 4,
+      "elapsedMs": 192.98741699999664
+    },
+    {
+      "tick": 9072,
+      "ticks": 4,
+      "elapsedMs": 186.35383400000865
+    },
+    {
+      "tick": 9076,
+      "ticks": 4,
+      "elapsedMs": 190.8847090000054
+    },
+    {
+      "tick": 9080,
+      "ticks": 4,
+      "elapsedMs": 187.97275000000081
+    },
+    {
+      "tick": 9084,
+      "ticks": 4,
+      "elapsedMs": 189.27779200000805
+    },
+    {
+      "tick": 9088,
+      "ticks": 4,
+      "elapsedMs": 185.36258299999463
+    },
+    {
+      "tick": 9092,
+      "ticks": 4,
+      "elapsedMs": 185.6912919999886
+    },
+    {
+      "tick": 9096,
+      "ticks": 4,
+      "elapsedMs": 176.2242499999993
+    },
+    {
+      "tick": 9100,
+      "ticks": 4,
+      "elapsedMs": 191.2115829999966
+    },
+    {
+      "tick": 9104,
+      "ticks": 4,
+      "elapsedMs": 194.35912499998813
+    },
+    {
+      "tick": 9108,
+      "ticks": 4,
+      "elapsedMs": 236.7095840000111
+    },
+    {
+      "tick": 9112,
+      "ticks": 4,
+      "elapsedMs": 219.35379199999443
+    },
+    {
+      "tick": 9116,
+      "ticks": 4,
+      "elapsedMs": 211.18712499999674
+    },
+    {
+      "tick": 9120,
+      "ticks": 4,
+      "elapsedMs": 206.13658299999952
+    },
+    {
+      "tick": 9124,
+      "ticks": 4,
+      "elapsedMs": 214.268167000002
+    },
+    {
+      "tick": 9128,
+      "ticks": 4,
+      "elapsedMs": 223.997749999995
+    },
+    {
+      "tick": 9132,
+      "ticks": 4,
+      "elapsedMs": 223.61812500000815
+    },
+    {
+      "tick": 9136,
+      "ticks": 4,
+      "elapsedMs": 225.90216599999985
+    },
+    {
+      "tick": 9140,
+      "ticks": 4,
+      "elapsedMs": 231.40683300000092
+    },
+    {
+      "tick": 9144,
+      "ticks": 4,
+      "elapsedMs": 237.17958300000464
+    },
+    {
+      "tick": 9148,
+      "ticks": 4,
+      "elapsedMs": 224.81650000000081
+    },
+    {
+      "tick": 9152,
+      "ticks": 4,
+      "elapsedMs": 226.46300000000338
+    },
+    {
+      "tick": 9156,
+      "ticks": 4,
+      "elapsedMs": 225.18691599999147
+    },
+    {
+      "tick": 9160,
+      "ticks": 4,
+      "elapsedMs": 232.05004200000258
+    },
+    {
+      "tick": 9164,
+      "ticks": 4,
+      "elapsedMs": 226.31516699999338
+    },
+    {
+      "tick": 9168,
+      "ticks": 4,
+      "elapsedMs": 213.68083299999125
+    },
+    {
+      "tick": 9172,
+      "ticks": 4,
+      "elapsedMs": 211.10941699999967
+    },
+    {
+      "tick": 9176,
+      "ticks": 4,
+      "elapsedMs": 211.36633399999118
+    },
+    {
+      "tick": 9180,
+      "ticks": 4,
+      "elapsedMs": 207.91904199999408
+    },
+    {
+      "tick": 9184,
+      "ticks": 4,
+      "elapsedMs": 204.5812500000029
+    },
+    {
+      "tick": 9188,
+      "ticks": 4,
+      "elapsedMs": 202.2278329999972
+    },
+    {
+      "tick": 9192,
+      "ticks": 4,
+      "elapsedMs": 197.0527080000029
+    },
+    {
+      "tick": 9196,
+      "ticks": 4,
+      "elapsedMs": 197.7794159999903
+    },
+    {
+      "tick": 9200,
+      "ticks": 4,
+      "elapsedMs": 196.49516600000788
+    },
+    {
+      "tick": 9204,
+      "ticks": 4,
+      "elapsedMs": 231.30645799999184
+    },
+    {
+      "tick": 9208,
+      "ticks": 4,
+      "elapsedMs": 201.49650000000838
+    },
+    {
+      "tick": 9212,
+      "ticks": 4,
+      "elapsedMs": 197.50720800001
+    },
+    {
+      "tick": 9216,
+      "ticks": 4,
+      "elapsedMs": 190.63708399998723
+    },
+    {
+      "tick": 9220,
+      "ticks": 4,
+      "elapsedMs": 199.16254099999787
+    },
+    {
+      "tick": 9224,
+      "ticks": 4,
+      "elapsedMs": 180.95437500000116
+    },
+    {
+      "tick": 9228,
+      "ticks": 4,
+      "elapsedMs": 194.7399999999907
+    },
+    {
+      "tick": 9232,
+      "ticks": 4,
+      "elapsedMs": 191.64329200000793
+    },
+    {
+      "tick": 9236,
+      "ticks": 4,
+      "elapsedMs": 193.63700000000244
+    },
+    {
+      "tick": 9240,
+      "ticks": 4,
+      "elapsedMs": 208.1074590000062
+    },
+    {
+      "tick": 9244,
+      "ticks": 4,
+      "elapsedMs": 216.44487500000105
+    },
+    {
+      "tick": 9248,
+      "ticks": 4,
+      "elapsedMs": 275.086833999987
+    },
+    {
+      "tick": 9252,
+      "ticks": 4,
+      "elapsedMs": 352.1100829999923
+    },
+    {
+      "tick": 9256,
+      "ticks": 4,
+      "elapsedMs": 544.0341670000053
+    },
+    {
+      "tick": 9260,
+      "ticks": 4,
+      "elapsedMs": 481.46224999999686
+    },
+    {
+      "tick": 9264,
+      "ticks": 4,
+      "elapsedMs": 319.1564999999973
+    },
+    {
+      "tick": 9268,
+      "ticks": 4,
+      "elapsedMs": 354.804707999996
+    },
+    {
+      "tick": 9272,
+      "ticks": 4,
+      "elapsedMs": 342.5922910000081
+    },
+    {
+      "tick": 9276,
+      "ticks": 4,
+      "elapsedMs": 339.81508400000166
+    },
+    {
+      "tick": 9280,
+      "ticks": 4,
+      "elapsedMs": 315.83837500000664
+    },
+    {
+      "tick": 9284,
+      "ticks": 4,
+      "elapsedMs": 280.07866700000886
+    },
+    {
+      "tick": 9288,
+      "ticks": 4,
+      "elapsedMs": 274.0263750000013
+    },
+    {
+      "tick": 9292,
+      "ticks": 4,
+      "elapsedMs": 433.23450000000594
+    },
+    {
+      "tick": 9296,
+      "ticks": 4,
+      "elapsedMs": 362.8907079999917
+    },
+    {
+      "tick": 9300,
+      "ticks": 4,
+      "elapsedMs": 434.5941670000029
+    }
+  ],
+  "browserSameTickWindow": {
+    "frameCount": 74,
+    "meanBatchMs": 165.6971621577804,
+    "meanTickMs": 41.4242905394451,
+    "note": "Browser batches begin at9001; approximate matching tickwindow, separate runtime and shared-host conditions."
+  },
+  "reproduction": {
+    "command": "node throwaway/battle-performance/cpu-replay.mjs /Users/david/dev/game-battle-performance-spec /Users/david/dev/game-battle-benchmark-run/specs/battle-performance/assets/01-benchmark/cpu-replay/report.json",
+    "scriptStatus": "One-off runner is ignored scratch, not production infrastructure.",
+    "scenario": "Game(0x5eedc0de); start_battle_generated(7n); team1 AI; copy unit_info before issuing retained tick0 orders; advance_ticks(30) to9000; assert prepared hash;75 calls advance_ticks(4) through9300; measure synchronous calls.",
+    "sourceWorktreeRevisionObservedAfterRun": "d6d2a804d754cae94d0b5e1c9dd3df2a86223621"
+  }
+}

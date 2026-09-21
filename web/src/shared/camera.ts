@@ -2,6 +2,8 @@ import { battleCameraRig, type CameraRigRange, type ZoomCameraRig } from "../bat
 import {
   eyePosition,
   projectPoint,
+  pxPerWorldSampler,
+  type PxPerWorldSampler,
   unprojectToPlaneZ,
   screenRay,
   type WorldRay,
@@ -290,6 +292,16 @@ export class Camera {
     const clampedY = hh >= (y1 - y0) / 2 ? (y0 + y1) / 2 : Math.min(y1 - hh, Math.max(y0 + hh, cy));
     this.x += clampedX - cx;
     this.y += clampedY - cy;
+  }
+
+  /** Pixels-per-world-meter at a world point, in the CSS pixels `worldToScreen`
+   *  returns — the sizing unit for every overlay anchored in the world. Reads
+   *  the pose being prepared, not one already drawn, so sizing tracks a pan or
+   *  zoom in the same frame it happens, and the laid-out CSS height rather than
+   *  the backing store, which only catches up on the renderer's next resize.
+   *  Bind once per frame; params() and the eye resolve here, not per anchor. */
+  pxPerWorldSampler(): PxPerWorldSampler {
+    return pxPerWorldSampler(this.params(), this.canvas.clientHeight || 1);
   }
 
   /** World coords to CSS-pixel screen coords (DOM overlays). `wz` lets anchors

@@ -1,0 +1,307 @@
+{
+  "results": [
+    {
+      "label": "0-oblique",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0.002685546875,
+        "maxRelative": 0.025634765625,
+        "rmse": 0.000007387334685485801,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.525390625,
+        "samples": 1228800
+      },
+      "covered": 3337,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCommon": 0.002685546875,
+      "passed": true,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "0-overhead",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0.0010986328125,
+        "maxRelative": 0.011147540983606558,
+        "rmse": 0.0000018953402317104434,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 2.388671875,
+        "samples": 1228800
+      },
+      "covered": 1928,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCommon": 0.0010986328125,
+      "passed": true,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "0-floor",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1228800
+      },
+      "covered": 70,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCommon": 0,
+      "passed": true,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "3-oblique",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0.001953125,
+        "maxRelative": 0.015869140625,
+        "rmse": 0.000006896677247589782,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.232421875,
+        "samples": 1228800
+      },
+      "covered": 3888,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCommon": 0.001953125,
+      "passed": true,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "3-overhead",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0.01165771484375,
+        "maxRelative": 0.2116343490304709,
+        "rmse": 0.000016175583423915435,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 2.5859375,
+        "samples": 1228800
+      },
+      "covered": 2703,
+      "coverageMismatch": 0,
+      "different": 1,
+      "maxCommon": 0.01165771484375,
+      "passed": false,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "3-floor",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1228800
+      },
+      "covered": 15,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCommon": 0,
+      "passed": true,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "6-oblique",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0.01025390625,
+        "maxRelative": 0.036057692307692304,
+        "rmse": 0.00001780452498120547,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.5166015625,
+        "samples": 1228800
+      },
+      "covered": 8130,
+      "coverageMismatch": 0,
+      "different": 3,
+      "maxCommon": 0.01025390625,
+      "passed": false,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "6-overhead",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0.001953125,
+        "maxRelative": 0.016647531572904706,
+        "rmse": 0.000004854712025445521,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1.107421875,
+        "samples": 1228800
+      },
+      "covered": 7212,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCommon": 0.001953125,
+      "passed": true,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    },
+    {
+      "label": "6-floor",
+      "packingEqual": true,
+      "pixels": {
+        "maxAbs": 0.000030517578125,
+        "maxRelative": 0.0006103515625,
+        "rmse": 3.077970620955957e-8,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1228800
+      },
+      "covered": 52,
+      "coverageMismatch": 0,
+      "different": 0,
+      "maxCommon": 0.000030517578125,
+      "passed": true,
+      "width": 640,
+      "height": 480,
+      "mipLevels": 10,
+      "stats": {
+        "instances": 12,
+        "draws": 1,
+        "castShadow": false,
+        "receiveShadow": false,
+        "atlasSource": "captured full mip chain"
+      }
+    }
+  ],
+  "lifecycle": [
+    {
+      "classId": 0,
+      "emptyDraw": true,
+      "disposedGuard": true,
+      "borrowedAlive": true
+    },
+    {
+      "classId": 3,
+      "emptyDraw": true,
+      "disposedGuard": true,
+      "borrowedAlive": true
+    },
+    {
+      "classId": 6,
+      "emptyDraw": true,
+      "disposedGuard": true,
+      "borrowedAlive": true
+    }
+  ],
+  "errors": [],
+  "passed": false,
+  "scope": "Captured production atlas mip chains; native bake and full renderer parity pending",
+  "pageErrors": []
+}

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
-import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
+import { TYPEGPU_BATTLE_IDENTITY } from "../../../packages/battle-renderer/src/world/identity.ts";
 
 export const meta = {
   name: "blender-production-candidates",
@@ -111,12 +111,12 @@ export async function run(ctx) {
             (frame) => window.__battleModels.stats().frame > frame,
             before,
           );
-          await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+          await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
           const stats = await page.evaluate(() => window.__battleModels.stats());
           ctx.check(
             `${id}/${sample.name}/${view}: production weighted pose submitted`,
-            stats.render.substrate === PHOTOREAL_SUBSTRATE &&
-              stats.render.soldiers === 1 &&
+            stats.render.substrate === TYPEGPU_BATTLE_IDENTITY.substrate &&
+              stats.render.crowd.instances === 1 &&
               stats.sampled.clip === sample.clip &&
               stats.sampled.phase === pose.phase,
             JSON.stringify(stats.sampled),
@@ -129,7 +129,7 @@ export async function run(ctx) {
             return frame;
           }, pose);
           await page.waitForFunction((frame) => window.__battleModels.stats().frame > frame, frame);
-          await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+          await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
           ctx.check(
             `${id}/${sample.name}/${view}: fresh render is byte-stable`,
             shot.equals(await page.screenshot()),
@@ -155,7 +155,6 @@ export async function run(ctx) {
     const beforeReload = await page.screenshot();
     const reloaded = await page.evaluate(() => window.__battleModels.reload());
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     ctx.check(
       "candidate reload retains the chosen catalog and production pixels",
       reloaded.ok && beforeReload.equals(await page.screenshot()),
@@ -165,7 +164,6 @@ export async function run(ctx) {
     );
     const failed = await page.evaluate(() => window.__battleModels.reload());
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     ctx.check(
       "bad candidate rebuild keeps its last good production render",
       !failed.ok && failed.error.length > 0 && beforeReload.equals(await page.screenshot()),

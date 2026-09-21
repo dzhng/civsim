@@ -1,0 +1,182 @@
+{
+  "id": 12,
+  "name": "medium-infantry",
+  "selection": {
+    "unitClass": 12,
+    "state": "primary"
+  },
+  "pass": true,
+  "failures": [],
+  "catalogEntry": "/@fs/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/appearances/12-medium-infantry/appearance.json",
+  "productionAppearance": "/Users/david/dev/game-battle-lod-prototypes/web/public/assets/soldiers/appearances/medium-infantry/ec22437c4107731e",
+  "source": {
+    "key": "foot-roster--medium-infantry",
+    "blend": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/medium-infantry/medium-infantry.blend",
+    "body": "medium-infantry-Deform",
+    "scene": "FootVariant-medium-infantry",
+    "sha256": "6cb754d4b8cad20dbabf22f27b1cb53a23d73b14b6c2d827c406fb8375c71264",
+    "savedSourceRecordSha256": "6cb754d4b8cad20dbabf22f27b1cb53a23d73b14b6c2d827c406fb8375c71264",
+    "triangles": 127196,
+    "vertices": 63632
+  },
+  "candidate": {
+    "mode": "reduce",
+    "glb": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/foot-roster--medium-infantry/near.glb",
+    "reduction": {
+      "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/medium-infantry/medium-infantry.blend",
+      "sourceSha256": "6cb754d4b8cad20dbabf22f27b1cb53a23d73b14b6c2d827c406fb8375c71264",
+      "tiers": [
+        {
+          "name": "near",
+          "targetTriangles": 4000,
+          "sourceTriangles": 127196,
+          "triangles": 3960,
+          "omittedBelowMetres": 0,
+          "retainedIslandTriangleFloor": 12,
+          "glbSha256": "216bbabab2510c49496d850b612347812b0a2ee78af9a3c7e3974b8fec39c287"
+        }
+      ]
+    }
+  },
+  "tiers": [
+    {
+      "role": "original near",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/medium-infantry/lods/near.glb",
+      "sha256": "3e5de999f83ea7877f93cf4a73016e604cc7a62baa91eb30b03b77fea05b4d35",
+      "glb": {
+        "triangles": 7958,
+        "vertices": 8119,
+        "primitives": 7
+      },
+      "mesh": {
+        "triangles": 7958,
+        "vertices": 8119
+      }
+    },
+    {
+      "role": "candidate 4k",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/foot-roster--medium-infantry/near.glb",
+      "sha256": "216bbabab2510c49496d850b612347812b0a2ee78af9a3c7e3974b8fec39c287",
+      "glb": {
+        "triangles": 3960,
+        "vertices": 4808,
+        "primitives": 7
+      },
+      "mesh": {
+        "triangles": 3960,
+        "vertices": 4808
+      }
+    },
+    {
+      "role": "original mid",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/medium-infantry/lods/mid.glb",
+      "sha256": "7bb29233d20a8764c7abe0bfe416942b13b0d4572c83589594672786cc534f95",
+      "glb": {
+        "triangles": 982,
+        "vertices": 1785,
+        "primitives": 7
+      },
+      "mesh": {
+        "triangles": 982,
+        "vertices": 1785
+      }
+    }
+  ],
+  "productionTier1Mesh": {
+    "triangles": 982,
+    "vertices": 1785
+  },
+  "identity": [
+    {
+      "candidate": "skeleton.json",
+      "production": "skeleton.json",
+      "equal": true,
+      "sha256": "d4af58818e265c9be1ac8e671e2e3772287725ba3ee894289d8c6bcf8b6df76b"
+    },
+    {
+      "candidate": "animation.json",
+      "production": "animation.json",
+      "equal": true,
+      "sha256": "f98b47ca92d8153baba8599a8088868932453a8c6c64b4a36df09962977e72be"
+    },
+    {
+      "candidate": "materials.json",
+      "production": "materials.json",
+      "equal": true,
+      "sha256": "84c11c5b4f038e852e7a00e233b488f9fa0f50cd0805bf2c04d69492fb374c0c"
+    },
+    {
+      "candidate": "tier-0.mesh.json",
+      "production": "tier-0.mesh.json",
+      "equal": true,
+      "sha256": "de5112a367ff46eb4db4db07feb9bc84fb228e6d5cf370308a6020d620b25541"
+    },
+    {
+      "candidate": "tier-2.mesh.json",
+      "production": "tier-1.mesh.json",
+      "equal": true,
+      "sha256": "f0d12124e17ff5f1048fa08de683841deac9124610a5f0fe65df95cc9dac0dc0"
+    },
+    {
+      "candidate": "source/tier-0.glb",
+      "production": "source/tier-0.glb",
+      "equal": true,
+      "sha256": "3e5de999f83ea7877f93cf4a73016e604cc7a62baa91eb30b03b77fea05b4d35"
+    },
+    {
+      "candidate": "source/tier-2.glb",
+      "production": "source/tier-1.glb",
+      "equal": true,
+      "sha256": "7bb29233d20a8764c7abe0bfe416942b13b0d4572c83589594672786cc534f95"
+    },
+    {
+      "candidate": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "production": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "equal": true,
+      "sha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1"
+    },
+    {
+      "candidate": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "production": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "equal": true,
+      "sha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb"
+    },
+    {
+      "candidate": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "production": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "equal": true,
+      "sha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765"
+    }
+  ],
+  "appearanceJson": {
+    "differingFields": [],
+    "bounds": {
+      "candidate": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 2.873556137084961
+      },
+      "production": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 2.873556137084961
+      }
+    },
+    "far": {
+      "mesh": "tier-0.mesh.json",
+      "clip": "ready",
+      "phase": 0
+    }
+  },
+  "lodContract": {
+    "log": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/logs/invariants/foot-roster--medium-infantry.log",
+    "pass": true,
+    "result": "{\"triangles\":[7958,3960,982],\"clips\":[\"bend\",\"bend-pronation\",\"death\",\"guarded-backward-walk\",\"guarded-left-walk\",\"guarded-right-walk\",\"hit\",\"idle\",\"pronation\",\"ready\",\"run\",\"sword-effort\",\"walk\"],\"invariant\":\"exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export\"}"
+  }
+}

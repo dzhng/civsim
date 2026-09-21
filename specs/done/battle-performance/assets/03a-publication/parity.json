@@ -1,0 +1,55 @@
+{
+  "kind": "cpu-publication-parity",
+  "comparedTicks": 309,
+  "wasmSha256": "ffd7a918715590608f2bfbbc9281c3da8d0d9e2842d76f520818940616a9de95",
+  "completedTickHashes": [
+    {
+      "tick": 9000,
+      "hash": "9928381812590497427"
+    },
+    {
+      "tick": 9300,
+      "hash": "6696754498600804919"
+    },
+    {
+      "tick": 9308,
+      "hash": "13217042291758616190"
+    }
+  ],
+  "orderedCommand": {
+    "seq": 1,
+    "tick": 9301,
+    "unit": 0,
+    "target": 21
+  },
+  "rawObservationParity": true,
+  "direct": {
+    "maxNodeDispatchGapMs": 9047.619958,
+    "contactTicks": 300,
+    "tickMs": 8648.436667999995,
+    "ticksPerCpuSecond": 34.68835022056962,
+    "copyMs": 43.273629000000014,
+    "maxAgeMs": 0.827917,
+    "maxOutstanding": 0,
+    "bufferCapacity": 4194304,
+    "slowConsumerHoldMs": 0
+  },
+  "worker": {
+    "maxNodeDispatchGapMs": 9.768833,
+    "contactTicks": 300,
+    "tickMs": 8700.914953999994,
+    "ticksPerCpuSecond": 34.47913254939743,
+    "copyMs": 43.061703999999956,
+    "maxAgeMs": 0.658958,
+    "maxOutstanding": 1,
+    "bufferCapacity": 4194304,
+    "slowConsumerHoldMs": 200
+  },
+  "limitations": [
+    "CPU-only Node diagnostic, no browser or renderer acceptance.",
+    "Raw ActionAdapter inputs match; ActionAdapter/ActionTimeline execution and visible transient semantics remain unverified.",
+    "Single-credit backpressure deliberately slows simulation under a slow consumer.",
+    "One measured pair, no stable throughput or main-thread responsiveness conclusion.",
+    "See separate control report; sequential single runs cannot isolate publication overhead from runtime variance."
+  ]
+}

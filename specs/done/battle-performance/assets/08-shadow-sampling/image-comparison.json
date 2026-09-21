@@ -1,0 +1,23 @@
+[
+  {
+    "mode": "single",
+    "pixels": 0,
+    "max": 0,
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "mode": "off",
+    "pixels": 0,
+    "max": 0,
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "mode": "csm",
+    "pixels": 0,
+    "max": 0,
+    "width": 2880,
+    "height": 1800
+  }
+]

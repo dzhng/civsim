@@ -1,0 +1,182 @@
+{
+  "id": 4,
+  "name": "archers",
+  "selection": {
+    "unitClass": 4,
+    "state": "primary"
+  },
+  "pass": true,
+  "failures": [],
+  "catalogEntry": "/@fs/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/appearances/4-archers/appearance.json",
+  "productionAppearance": "/Users/david/dev/game-battle-lod-prototypes/web/public/assets/soldiers/appearances/archers/bc6a74f442885e51",
+  "source": {
+    "key": "foot-roster--archers",
+    "blend": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/archers/archers.blend",
+    "body": "archers-Deform",
+    "scene": "FootVariant-archers",
+    "sha256": "bab7443ad2450e830a5f2294405fb176b10ec6bb6f3d0ada395bc46fb42ef049",
+    "savedSourceRecordSha256": "bab7443ad2450e830a5f2294405fb176b10ec6bb6f3d0ada395bc46fb42ef049",
+    "triangles": 94036,
+    "vertices": 47064
+  },
+  "candidate": {
+    "mode": "reduce",
+    "glb": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/foot-roster--archers/near.glb",
+    "reduction": {
+      "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/archers/archers.blend",
+      "sourceSha256": "bab7443ad2450e830a5f2294405fb176b10ec6bb6f3d0ada395bc46fb42ef049",
+      "tiers": [
+        {
+          "name": "near",
+          "targetTriangles": 4000,
+          "sourceTriangles": 94036,
+          "triangles": 3959,
+          "omittedBelowMetres": 0,
+          "retainedIslandTriangleFloor": 12,
+          "glbSha256": "b3715107e89b6300ed153633eb6726009aa810677d22090ab744e3c9ec2fb772"
+        }
+      ]
+    }
+  },
+  "tiers": [
+    {
+      "role": "original near",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/archers/lods/near.glb",
+      "sha256": "6059cbf264da9c2688ffff0566936928059ea5ad30a282b3b23e0c8d303fdc48",
+      "glb": {
+        "triangles": 7978,
+        "vertices": 8094,
+        "primitives": 6
+      },
+      "mesh": {
+        "triangles": 7978,
+        "vertices": 8094
+      }
+    },
+    {
+      "role": "candidate 4k",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/foot-roster--archers/near.glb",
+      "sha256": "b3715107e89b6300ed153633eb6726009aa810677d22090ab744e3c9ec2fb772",
+      "glb": {
+        "triangles": 3959,
+        "vertices": 4773,
+        "primitives": 6
+      },
+      "mesh": {
+        "triangles": 3959,
+        "vertices": 4773
+      }
+    },
+    {
+      "role": "original mid",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/archers/lods/mid.glb",
+      "sha256": "4fdb7fccca5b508fc763cf3cb360cdce24c3913934f8388d3e2cd105f3871fad",
+      "glb": {
+        "triangles": 980,
+        "vertices": 1778,
+        "primitives": 6
+      },
+      "mesh": {
+        "triangles": 980,
+        "vertices": 1778
+      }
+    }
+  ],
+  "productionTier1Mesh": {
+    "triangles": 980,
+    "vertices": 1778
+  },
+  "identity": [
+    {
+      "candidate": "skeleton.json",
+      "production": "skeleton.json",
+      "equal": true,
+      "sha256": "d60e5f1ebc06dea6c02f97322c9fafde3287c4e82c7d75e7be959eca5cbe316b"
+    },
+    {
+      "candidate": "animation.json",
+      "production": "animation.json",
+      "equal": true,
+      "sha256": "b09fd0ce99c1668230f3b6d125e73e52fdb35c57d1a4d4cea61001701d8f24d6"
+    },
+    {
+      "candidate": "materials.json",
+      "production": "materials.json",
+      "equal": true,
+      "sha256": "74596fe7ec3ccdb13d9a8bc7501f8d9352ce4c2416b2da216d97d784fd35c0f2"
+    },
+    {
+      "candidate": "tier-0.mesh.json",
+      "production": "tier-0.mesh.json",
+      "equal": true,
+      "sha256": "637b7ce29a5983af14e205c66031907f8f483bc2eef295995e0edbb8998e6bac"
+    },
+    {
+      "candidate": "tier-2.mesh.json",
+      "production": "tier-1.mesh.json",
+      "equal": true,
+      "sha256": "ddf41bcd5fccc76edba052904aa8dd279ce5e8b6fb343dcb9e695e40b2989aba"
+    },
+    {
+      "candidate": "source/tier-0.glb",
+      "production": "source/tier-0.glb",
+      "equal": true,
+      "sha256": "6059cbf264da9c2688ffff0566936928059ea5ad30a282b3b23e0c8d303fdc48"
+    },
+    {
+      "candidate": "source/tier-2.glb",
+      "production": "source/tier-1.glb",
+      "equal": true,
+      "sha256": "4fdb7fccca5b508fc763cf3cb360cdce24c3913934f8388d3e2cd105f3871fad"
+    },
+    {
+      "candidate": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "production": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "equal": true,
+      "sha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1"
+    },
+    {
+      "candidate": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "production": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "equal": true,
+      "sha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb"
+    },
+    {
+      "candidate": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "production": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "equal": true,
+      "sha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765"
+    }
+  ],
+  "appearanceJson": {
+    "differingFields": [],
+    "bounds": {
+      "candidate": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 2.8735742568969727
+      },
+      "production": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 2.8735742568969727
+      }
+    },
+    "far": {
+      "mesh": "tier-0.mesh.json",
+      "clip": "ready",
+      "phase": 0
+    }
+  },
+  "lodContract": {
+    "log": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/logs/invariants/foot-roster--archers.log",
+    "pass": true,
+    "result": "{\"triangles\":[7978,3959,980],\"clips\":[\"bend\",\"bend-pronation\",\"bow-release\",\"death\",\"guarded-backward-walk\",\"guarded-left-walk\",\"guarded-right-walk\",\"hit\",\"idle\",\"pronation\",\"ready\",\"run\",\"sword-effort\",\"walk\"],\"invariant\":\"exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export\"}"
+  }
+}

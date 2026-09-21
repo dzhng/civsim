@@ -1,0 +1,63 @@
+{
+  "scope": "Instrumented raw-renderer wall time, paused tick30, identical recorded camera packets and crowd signatures, deterministic packet render time. Shared-host diagnostic, not a live FPS or backend ranking.",
+  "identicalCameraPackets": true,
+  "identicalCrowdSignatures": true,
+  "results": [
+    {
+      "run": "baseline-0",
+      "frames": 120,
+      "tickBefore": 30,
+      "tickAfter": 30,
+      "crowdSignature": {
+        "count": 15560,
+        "tick": 30,
+        "hash": 3148025163
+      },
+      "medianWallMs": 14.63500002026558,
+      "p95WallMs": 21.990000009536743,
+      "maxWallMs": 28.2049999833107
+    },
+    {
+      "run": "candidate-1",
+      "frames": 120,
+      "tickBefore": 30,
+      "tickAfter": 30,
+      "crowdSignature": {
+        "count": 15560,
+        "tick": 30,
+        "hash": 3148025163
+      },
+      "medianWallMs": 10.390000015497208,
+      "p95WallMs": 14.110000014305115,
+      "maxWallMs": 20.680000007152557
+    },
+    {
+      "run": "candidate-2",
+      "frames": 120,
+      "tickBefore": 30,
+      "tickAfter": 30,
+      "crowdSignature": {
+        "count": 15560,
+        "tick": 30,
+        "hash": 3148025163
+      },
+      "medianWallMs": 11.160000026226044,
+      "p95WallMs": 15.2049999833107,
+      "maxWallMs": 19.3299999833107
+    },
+    {
+      "run": "baseline-3",
+      "frames": 120,
+      "tickBefore": 30,
+      "tickAfter": 30,
+      "crowdSignature": {
+        "count": 15560,
+        "tick": 30,
+        "hash": 3148025163
+      },
+      "medianWallMs": 15.757499992847443,
+      "p95WallMs": 20.540000021457672,
+      "maxWallMs": 24.044999957084656
+    }
+  ]
+}

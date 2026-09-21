@@ -1,10 +1,8 @@
 import { gpuFailureMessage } from "@packages/renderer-core/src/device";
-import { route as routePhotorealCrowd } from "./routes/photorealCrowd";
 import { route as routePhotorealPbr } from "./routes/photorealPbr";
 import { route as routePhotorealBattle } from "./routes/photorealBattle";
 import { route as routeBattleModels } from "./routes/battleModels";
 import { route as routeBlenderReference } from "./routes/blenderReference";
-import { route as routeBattleGroundTurf } from "./routes/battleGroundTurf";
 import { type LabRoute, el } from "./labShell";
 import { route as routeDevice } from "./routes/device";
 import { route as routeBladeField } from "./routes/bladeField";
@@ -55,13 +53,11 @@ const routes: Record<string, LabRoute> = {
   "/renderer/shared-standard-models": routeSharedStandardModelShots,
   "/renderer/world-camera": routeWorldCamera,
   "/renderer/card-bar": routeCardBar,
-  // The photoreal ladder uses three.js WebGPU + TSL on the camera3d spine.
+  // Generic PBR reference tooling remains separate from the TypeGPU battle previews.
   "/renderer/photoreal-pbr": routePhotorealPbr,
-  "/renderer/photoreal-crowd": routePhotorealCrowd,
   "/renderer/photoreal-battle": routePhotorealBattle,
   "/renderer/battle-models": routeBattleModels,
   "/renderer/blender-reference": routeBlenderReference,
-  "/renderer/battle-ground-turf": routeBattleGroundTurf,
   "/renderer/blade-field": routeBladeField,
 };
 

@@ -1,0 +1,26 @@
+[
+  {
+    "source": "throwaway/held-fixed/confirmation/disabled-12000-typegpu/menu-export.json",
+    "archive": "menu-export.json.gz",
+    "sha256": "d611d03269f5b020ed60485ac0c734a63e2dfe796a01dd9ae8e2be8d268a5b21",
+    "bytes": 9049100
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/disabled-12000-typegpu/trial.json",
+    "archive": "trial.json.gz",
+    "sha256": "7fc1da74b735f470e51957b4c26e39fc383ac8e447efd477bbeabc7533dfacae",
+    "bytes": 60251
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/disabled-12000-typegpu/host-observations.json",
+    "archive": "host-observations.json.gz",
+    "sha256": "8d1eddbf6047cf6eb5495691fa87462e2ef00673d742eedb8a85c7b58be77174",
+    "bytes": 26630
+  },
+  {
+    "source": "throwaway/held-fixed/confirmation/disabled-12000-typegpu/scenario-report.json",
+    "archive": "scenario-report.json.gz",
+    "sha256": "5bd900714609a563804e4eb789dd73d5d478918f5c3fe1458dbd4101eb84b392",
+    "bytes": 2281
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "graphics": {
+    "shadows": "single",
+    "grassQuality": "standard",
+    "grass": true,
+    "farGrass": true,
+    "bloom": true,
+    "audio": {
+      "masterVolume": 0.55,
+      "muted": false,
+      "birds": true,
+      "water": true
+    }
+  }
+}

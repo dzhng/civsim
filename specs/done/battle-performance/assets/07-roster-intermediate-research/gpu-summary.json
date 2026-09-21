@@ -1,0 +1,50 @@
+{
+  "horizon-200m": {
+    "control": {
+      "main": 13.675875000000001,
+      "union": 16.46042575,
+      "mainTriangles": 15945302.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 64.0
+    },
+    "roster2k": {
+      "main": 10.9661555,
+      "union": 13.772435,
+      "mainTriangles": 8270240.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 64.0
+    }
+  },
+  "tactical-200m": {
+    "control": {
+      "main": 13.652489500000001,
+      "union": 16.4328115,
+      "mainTriangles": 15845822.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 56.0
+    },
+    "roster2k": {
+      "main": 10.96852025,
+      "union": 13.887152,
+      "mainTriangles": 8140558.0,
+      "shadowTriangles": 5852498.0,
+      "draws": 56.0
+    }
+  },
+  "wide-600m": {
+    "control": {
+      "main": 9.21468225,
+      "union": 12.2079705,
+      "mainTriangles": 6738100.0,
+      "shadowTriangles": 6207200.0,
+      "draws": 59.0
+    },
+    "roster2k": {
+      "main": 9.2465775,
+      "union": 12.12785725,
+      "mainTriangles": 6738100.0,
+      "shadowTriangles": 6207200.0,
+      "draws": 59.0
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "scope": "Node24 V8 isolated authored pose sampling; not live publication or FPS evidence",
+  "timings": [
+    {
+      "label": "before",
+      "ms": 753.7074170000001,
+      "poses": 237980
+    },
+    {
+      "label": "after",
+      "ms": 316.246666,
+      "poses": 237980
+    },
+    {
+      "label": "after",
+      "ms": 326.1043750000001,
+      "poses": 237980
+    },
+    {
+      "label": "before",
+      "ms": 762.7437500000001,
+      "poses": 237980
+    }
+  ],
+  "checksum": 0
+}

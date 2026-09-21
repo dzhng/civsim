@@ -1,0 +1,9 @@
+   Compiling sim v0.1.0 (/Users/david/dev/game-battle-performance-spec/crates/sim)
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.27s
+     Running unittests src/lib.rs (target/debug/deps/sim-6f2a6c69bacc1ecc)
+
+running 1 test
+test combat::targeting::tests::seen_buckets_admit_each_distinct_bucket_once_in_offer_order ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+

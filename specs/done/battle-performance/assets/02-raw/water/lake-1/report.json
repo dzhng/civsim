@@ -1,0 +1,128 @@
+{
+  "samples": 1,
+  "results": [
+    {
+      "label": "lake-overview-t0",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.0054931640625,
+        "rmse": 0.00008275137053891347,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      }
+    },
+    {
+      "label": "lake-overview-t3.25",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.0067138671875,
+        "rmse": 0.00008271087209697348,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      }
+    },
+    {
+      "label": "lake-horizon-t0",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.0030211480362537764,
+        "rmse": 0.00006594014308952819,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      }
+    },
+    {
+      "label": "lake-horizon-t3.25",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.005770816158285243,
+        "rmse": 0.00006591578376381425,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      }
+    },
+    {
+      "label": "lake-horizon-repeat-t0",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.0030211480362537764,
+        "rmse": 0.00006594014308952819,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      }
+    },
+    {
+      "label": "lake-horizon-repeat-t3.25",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.005770816158285243,
+        "rmse": 0.00006591578376381425,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      }
+    }
+  ],
+  "errors": [],
+  "liveTextures": 0,
+  "kind": "lake",
+  "beforeDispose": {
+    "draws": 1,
+    "triangles": 1232,
+    "ownedBuffers": 4,
+    "depth": "read-write",
+    "blending": "opaque",
+    "disposed": false
+  },
+  "afterDispose": {
+    "draws": 1,
+    "triangles": 1232,
+    "ownedBuffers": 0,
+    "depth": "read-write",
+    "blending": "opaque",
+    "disposed": true
+  },
+  "passed": true,
+  "pageErrors": []
+}

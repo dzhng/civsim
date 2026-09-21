@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import { PNG } from "pngjs";
 import { hasBattleWorldDepthContract } from "../_renderer-contract.mjs";
 
@@ -23,19 +24,7 @@ export async function run(ctx) {
 
   const page = await ctx.newPage({ deviceScaleFactor: 2, errorPrefix: "battle-effects-dpr2" });
   await page.goto(`${ctx.target}?battle=5v5&ai=on`);
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 20000 },
-  );
+  await battleRendererReady(page, 20000);
 
   await page.evaluate(() => {
     window.__cam.zoom = 2.6;
@@ -64,7 +53,8 @@ export async function run(ctx) {
     state.tick === 473 &&
       state.stats.renderer === "gpu" &&
       hasBattleWorldDepthContract(state.stats.renderStats) &&
-      effects?.lineSegments >= 40,
+      // Native line counts are vertices: retain the forty-segment requirement.
+      effects?.count >= 80,
     JSON.stringify({ tick: state.tick, effects, renderStats: state.stats.renderStats }),
   );
 

@@ -1,0 +1,1 @@
+No actionable regressions were found. The typed helpers preserve the existing formulas and consumer bindings; all 23 candidate tests and the TypeScript type gate passed. Hardware numerical validation was not rerun.

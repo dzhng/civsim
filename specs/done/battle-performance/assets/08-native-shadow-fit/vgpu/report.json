@@ -1,0 +1,119 @@
+{
+  "liveCandidateTexturesAfterDispose": 0,
+  "backend": "vgpu",
+  "unusedColorBytes": 4194304,
+  "results": [
+    {
+      "actualShadowPixels": 18860,
+      "expectedShadowPixels": 18860,
+      "repeat": null,
+      "label": "local",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0015869140625,
+        "maxRelative": 0.015869140625,
+        "rmse": 0.00000788766334001755,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "projectionMax": 2.6858883117597543e-8
+    },
+    {
+      "actualShadowPixels": 18860,
+      "expectedShadowPixels": 18860,
+      "repeat": {
+        "actual": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        },
+        "expected": {
+          "maxAbs": 0,
+          "maxRelative": 0,
+          "rmse": 0,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      "label": "local-repeat",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0015869140625,
+        "maxRelative": 0.015869140625,
+        "rmse": 0.00000788766334001755,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "projectionMax": 2.6858883117597543e-8
+    },
+    {
+      "actualShadowPixels": 3367,
+      "expectedShadowPixels": 3367,
+      "repeat": null,
+      "label": "horizon",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.004382761139517896,
+        "rmse": 0.0000026117446780451113,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "projectionMax": 4.9934740786738985e-8
+    },
+    {
+      "actualShadowPixels": 19524,
+      "expectedShadowPixels": 19524,
+      "repeat": null,
+      "label": "whole-map",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0009765625,
+        "maxRelative": 0.015716552734375,
+        "rmse": 0.000007700664347444382,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "projectionMax": 1.7585223277549744e-9
+    }
+  ],
+  "errors": [],
+  "passed": true,
+  "pageErrors": []
+}

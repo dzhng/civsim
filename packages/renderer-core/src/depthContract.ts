@@ -15,3 +15,11 @@ export const GPU_DEPTH_CLEAR = 0;
 export function isGpuDepthMode(value: unknown): value is GpuDepthMode {
   return typeof value === 'string' && (GPU_DEPTH_MODES as readonly string[]).includes(value);
 }
+
+/** Reverse-Z is not a label a renderer can claim: it is the pairing of a
+ * clear at the far plane with a `greater` comparison. A forward-Z frame clears
+ * to 1 and compares `less`, so reading both off the resources and pipelines a
+ * renderer actually installed reports the convention rather than asserting it. */
+export function isGpuReverseZ(compare: GPUCompareFunction, clearValue: number): boolean {
+  return clearValue === GPU_DEPTH_CLEAR && (compare === 'greater' || compare === 'greater-equal');
+}

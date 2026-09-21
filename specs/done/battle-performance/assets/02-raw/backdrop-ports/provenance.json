@@ -1,0 +1,23 @@
+{
+  "baseCommit": "10265cdfb4e097f8f60a80f15eb8b368e74165ab",
+  "pins": {
+    "typegpu": "0.12.5",
+    "unplugin-typegpu": "0.12.3",
+    "vgpu": "0.5.0"
+  },
+  "sourceSha256": {
+    "apps/battle-perf-lab/candidates/typegpu/backdrop.ts": "4f43d0cfe33d307953db296f395bef91819ad02bd3c4de66e4b49fde60e98e1d",
+    "apps/battle-perf-lab/candidates/typegpu/terrainFunctions.ts": "4722eae7f4ee3b6207fc2d3dd6bacd677dfa108355117340ed81c9d502d1d281",
+    "apps/battle-perf-lab/src/vgpu/backdrop.ts": "947bc098288255ac6260ca349c7573fab37791e1810b026a2c6673d2bee93633",
+    "apps/battle-perf-lab/src/backdropData.ts": "a7690a4935b5f9675dc7f2c5451fa5185f6a149d47bca8c1553176e8446ce229",
+    "apps/battle-perf-lab/src/backdropControlBackend.ts": "e4310ed27bbad17d03671cc5d0866109fd44192c66ff67b0719667cb8044d390",
+    "apps/battle-perf-lab/src/raw/backdrop-check.ts": "df7979b4d022d78c332f44d90f381d9b2d4b10e5f55b8c8793d70f68cd51d72a",
+    "apps/battle-perf-lab/src/raw/backdrop.ts": "229b671b9642c7cd689fa712094279e440d22b510f16df5fac9f76669b9b6990",
+    "apps/battle-perf-lab/src/shaders/backdrop.ts": "292019da03b4061146cf0e29ea5e5c7c8b16c8cb1947d0dda518c5f3073acb39"
+  },
+  "rawVsOriginalPngDifferences": 0,
+  "typedVsRawPngDifferences": 0,
+  "vgpuVsRawDifferingCases": 6,
+  "vgpuVsRawChangedPixels": 14,
+  "vgpuVsRawMaxDisplayCode": 1
+}

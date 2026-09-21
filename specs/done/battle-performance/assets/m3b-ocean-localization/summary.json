@@ -1,0 +1,682 @@
+{
+  "unchanged-beauty": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "liveTextures": 0,
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0029296875,
+          "maxAbsIndex": 17188,
+          "maxAbsActual": 0.509765625,
+          "maxAbsExpected": 0.5126953125,
+          "maxRelative": 0.00701904296875,
+          "rmse": 7.845781812056919e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.004638671875,
+          "maxAbsIndex": 45000,
+          "maxAbsActual": 0.4755859375,
+          "maxAbsExpected": 0.470947265625,
+          "maxRelative": 0.009849663037843442,
+          "rmse": 7.844268002148054e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00439453125,
+          "maxAbsIndex": 501937,
+          "maxAbsActual": 0.66943359375,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.008653326122228232,
+          "rmse": 9.585969075415238e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00244140625,
+          "maxAbsIndex": 582640,
+          "maxAbsActual": 0.40625,
+          "maxAbsExpected": 0.40380859375,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.55370740572322e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00439453125,
+          "maxAbsIndex": 501937,
+          "maxAbsActual": 0.66943359375,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.008653326122228232,
+          "rmse": 9.585969075415238e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00244140625,
+          "maxAbsIndex": 582640,
+          "maxAbsActual": 0.40625,
+          "maxAbsExpected": 0.40380859375,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.55370740572322e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  },
+  "-roughness": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "liveTextures": 0,
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00146484375,
+          "maxAbsIndex": 17192,
+          "maxAbsActual": 0.448486328125,
+          "maxAbsExpected": 0.449951171875,
+          "maxRelative": 0.0067138671875,
+          "rmse": 7.785093563805044e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.001708984375,
+          "maxAbsIndex": 125248,
+          "maxAbsActual": 0.408935546875,
+          "maxAbsExpected": 0.4072265625,
+          "maxRelative": 0.00701904296875,
+          "rmse": 7.781674134143089e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.003662109375,
+          "maxAbsIndex": 501938,
+          "maxAbsActual": 0.4541015625,
+          "maxAbsExpected": 0.450439453125,
+          "maxRelative": 0.008130081300813009,
+          "rmse": 9.525984355320196e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00146484375,
+          "maxAbsIndex": 582640,
+          "maxAbsActual": 0.384765625,
+          "maxAbsExpected": 0.38330078125,
+          "maxRelative": 0.006103515625,
+          "rmse": 9.511593240965066e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.003662109375,
+          "maxAbsIndex": 501938,
+          "maxAbsActual": 0.4541015625,
+          "maxAbsExpected": 0.450439453125,
+          "maxRelative": 0.008130081300813009,
+          "rmse": 9.525984355320196e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00146484375,
+          "maxAbsIndex": 582640,
+          "maxAbsActual": 0.384765625,
+          "maxAbsExpected": 0.38330078125,
+          "maxRelative": 0.006103515625,
+          "rmse": 9.511593240965066e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  },
+  "-normals": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "liveTextures": 0,
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.000732421875,
+          "maxAbsIndex": 3722,
+          "maxAbsActual": 0.438232421875,
+          "maxAbsExpected": 0.43896484375,
+          "maxRelative": 0.00211864406779661,
+          "rmse": 7.74991195591637e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0009765625,
+          "maxAbsIndex": 12160,
+          "maxAbsActual": 0.6748046875,
+          "maxAbsExpected": 0.673828125,
+          "maxRelative": 0.00211864406779661,
+          "rmse": 7.747417750426921e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00341796875,
+          "maxAbsIndex": 501936,
+          "maxAbsActual": 0.66845703125,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.005139500734214391,
+          "rmse": 9.484265904227751e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0009765625,
+          "maxAbsIndex": 302570,
+          "maxAbsActual": 0.70361328125,
+          "maxAbsExpected": 0.70263671875,
+          "maxRelative": 0.001841620626151013,
+          "rmse": 9.476731149647199e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00341796875,
+          "maxAbsIndex": 501936,
+          "maxAbsActual": 0.66845703125,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.005139500734214391,
+          "rmse": 9.484265904227751e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0009765625,
+          "maxAbsIndex": 302570,
+          "maxAbsActual": 0.70361328125,
+          "maxAbsExpected": 0.70263671875,
+          "maxRelative": 0.001841620626151013,
+          "rmse": 9.476731149647199e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  },
+  "-shared-projector": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "liveTextures": 0,
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00244140625,
+          "maxAbsIndex": 66592,
+          "maxAbsActual": 0.413818359375,
+          "maxAbsExpected": 0.416259765625,
+          "maxRelative": 0.00701904296875,
+          "rmse": 7.804408903438032e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.004638671875,
+          "maxAbsIndex": 45000,
+          "maxAbsActual": 0.4755859375,
+          "maxAbsExpected": 0.470947265625,
+          "maxRelative": 0.009849663037843442,
+          "rmse": 7.814240249474898e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0068359375,
+          "maxAbsIndex": 551240,
+          "maxAbsActual": 0.52734375,
+          "maxAbsExpected": 0.5205078125,
+          "maxRelative": 0.013133208255159476,
+          "rmse": 9.632602677998784e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0107421875,
+          "maxAbsIndex": 646420,
+          "maxAbsActual": 0.46630859375,
+          "maxAbsExpected": 0.47705078125,
+          "maxRelative": 0.022517911975435005,
+          "rmse": 9.700829515476561e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0068359375,
+          "maxAbsIndex": 551240,
+          "maxAbsActual": 0.52734375,
+          "maxAbsExpected": 0.5205078125,
+          "maxRelative": 0.013133208255159476,
+          "rmse": 9.632602677998784e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0107421875,
+          "maxAbsIndex": 646420,
+          "maxAbsActual": 0.46630859375,
+          "maxAbsExpected": 0.47705078125,
+          "maxRelative": 0.022517911975435005,
+          "rmse": 9.700829515476561e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  },
+  "-shader-capture": {
+    "passed": false,
+    "errors": [],
+    "warnings": [],
+    "liveTextures": 0,
+    "afterDispose": {
+      "draws": 1,
+      "triangles": 51200,
+      "ownedBuffers": 0,
+      "depth": "read-write",
+      "blending": "opaque",
+      "disposed": true
+    },
+    "results": [
+      {
+        "label": "ocean-overview-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.0029296875,
+          "maxAbsIndex": 17188,
+          "maxAbsActual": 0.509765625,
+          "maxAbsExpected": 0.5126953125,
+          "maxRelative": 0.00701904296875,
+          "rmse": 7.845781812056919e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-overview-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.004638671875,
+          "maxAbsIndex": 45000,
+          "maxAbsActual": 0.4755859375,
+          "maxAbsExpected": 0.470947265625,
+          "maxRelative": 0.009849663037843442,
+          "rmse": 7.844268002148054e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00439453125,
+          "maxAbsIndex": 501937,
+          "maxAbsActual": 0.66943359375,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.008653326122228232,
+          "rmse": 9.585969075415238e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00244140625,
+          "maxAbsIndex": 582640,
+          "maxAbsActual": 0.40625,
+          "maxAbsExpected": 0.40380859375,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.55370740572322e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t0",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00439453125,
+          "maxAbsIndex": 501937,
+          "maxAbsActual": 0.66943359375,
+          "maxAbsExpected": 0.6650390625,
+          "maxRelative": 0.008653326122228232,
+          "rmse": 9.585969075415238e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      },
+      {
+        "label": "ocean-horizon-repeat-t3.25",
+        "width": 768,
+        "height": 512,
+        "comparison": {
+          "maxAbs": 0.00244140625,
+          "maxAbsIndex": 582640,
+          "maxAbsActual": 0.40625,
+          "maxAbsExpected": 0.40380859375,
+          "maxRelative": 0.0067138671875,
+          "rmse": 9.55370740572322e-05,
+          "nonfinite": 0,
+          "actualNonfinite": 0,
+          "expectedNonfinite": 0,
+          "nonfiniteMismatch": 0,
+          "nonfiniteCoordinates": [],
+          "peak": 1,
+          "samples": 1572864
+        }
+      }
+    ]
+  }
+}

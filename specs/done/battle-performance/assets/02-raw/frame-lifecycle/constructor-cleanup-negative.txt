@@ -1,0 +1,53 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-raw-post-verification/web
+
+ ❯ tests/nativeFrameLifecycle.test.ts (8 tests | 2 failed | 6 skipped) 5ms
+   × every partial post constructor allocation is released 4ms
+   × frame construction releases camera and attachments when nested post allocation fails 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/nativeFrameLifecycle.test.ts > every partial post constructor allocation is released
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/nativeFrameLifecycle.test.ts:84:25
+     82|     g.fail(offset);
+     83|     expect(() => new RawBattlePost(g.native, {} as GPUTextureView, 127…
+     84|     expect(g.live.size).toBe(0);
+       |                         ^
+     85|   }
+     86| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/nativeFrameLifecycle.test.ts > frame construction releases camera and attachments when nested post allocation fails
+AssertionError: expected 5 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 5
+
+ ❯ tests/nativeFrameLifecycle.test.ts:139:23
+    137|     "injected",
+    138|   );
+    139|   expect(g.live.size).toBe(0);
+       |                       ^
+    140| });
+    141|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 6 skipped (8)
+   Start at  12:42:35
+   Duration  140ms (transform 36ms, setup 46ms, import 33ms, tests 5ms, environment 0ms)
+

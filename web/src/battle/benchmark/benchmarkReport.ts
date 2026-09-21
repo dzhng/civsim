@@ -1,0 +1,54 @@
+import type { BattleLoopFrameMetrics } from "../battleDebugApi";
+import { ACTION_TICK_SECONDS } from "@packages/crowd-runtime/src/actionTimeline";
+import type { GraphicsSettings } from "../../shared/graphicsSettings";
+import { summarizeFrameIntervals } from "./benchmarkMetrics";
+import { BENCHMARK_CAMERA_PHASES } from "./benchmarkCamera";
+import type { BenchmarkFrame, BenchmarkRecording } from "./benchmarkRecording";
+import type { BenchmarkStatus, HeldBenchmarkScope } from "./benchmarkRun";
+
+export interface BenchmarkIdentity {
+  userAgent: string;
+  adapter: string;
+  viewport: [number, number];
+  framebuffer: [number, number];
+  dpr: number;
+  initialStateHash: string;
+  soldiers: number;
+  graphics: GraphicsSettings;
+}
+
+export function createBenchmarkReport(
+  status: BenchmarkStatus,
+  identity: BenchmarkIdentity | null,
+  frames: readonly BenchmarkFrame[],
+  firstFrame: BattleLoopFrameMetrics | null = null,
+  gpu: ReturnType<BenchmarkRecording["gpuSnapshot"]> | null = null,
+  held: HeldBenchmarkScope | null = null,
+) {
+  const summary = summarizeFrameIntervals(frames.map((frame) => frame.intervalMs));
+  const phases = BENCHMARK_CAMERA_PHASES.map((phase) => ({
+    ...phase,
+    summary: summarizeFrameIntervals(
+      frames.filter((frame) => frame.phase === phase.name).map((frame) => frame.intervalMs),
+    ),
+  }));
+  return {
+    // A held recording gets its own kind so no live-benchmark acceptance can admit it.
+    kind: held ? ("battle-benchmark-renderer-only" as const) : ("battle-benchmark" as const),
+    version: 2,
+    ...(held && { scope: held }),
+    createdAt: new Date().toISOString(),
+    status,
+    identity,
+    measurement: "Animation-frame cadence; GPU presentation latency is not measured" as const,
+    completeWindow: status.phase === "complete" && status.elapsedMs >= status.scenario.durationMs,
+    simulatedSeconds:
+      status.startTick === null ? 0 : (status.tick - status.startTick) * ACTION_TICK_SECONDS,
+    summary,
+    phases,
+    frames: frames.slice(),
+    firstFrame,
+    gpu,
+  };
+}
+export type BenchmarkReport = ReturnType<typeof createBenchmarkReport>;

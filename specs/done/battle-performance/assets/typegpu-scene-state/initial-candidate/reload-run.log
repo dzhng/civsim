@@ -1,0 +1,5 @@
+TypeGPU public catalog boots all soldiers true
+successful reload replaces generation at same tick true
+missing atlas retains installed crowd true
+real GPU validation failure retains installed crowd true
+disposal during GPU admission rejects pending and future reload true

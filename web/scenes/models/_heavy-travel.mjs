@@ -89,7 +89,7 @@ export async function captureHeavyTravel(ctx, page) {
         const { travelInstances } = await import(`/@fs${root}web/scenes/models/_travel-sample.mjs`);
         const h = window.__battleModels,
           w = h.world;
-        const camera = structuredClone(w.stats().camera);
+        const camera = structuredClone(w.stats().preparedCamera);
         const source = modelInstances(h.stats().pose, w.soldierAssets);
         const clip = w.soldierAssets[0].animation.clips.find((clip) => clip.name === row.clip);
         if (Math.abs(clip.duration - row.duration) > 1e-6)
@@ -103,15 +103,15 @@ export async function captureHeavyTravel(ctx, page) {
             row.travelAngleOffset,
           );
           w.setTime(0);
-          w.drawInstances(instances, camera);
-          await w.settlePresentedFrame();
-          w.render();
-          await w.world.settlePresentedFrame();
+          await w.drawInstances(instances, camera);
+
+          await w.render();
+
           return {
             seconds,
             instance: instances[0],
             sampled: w.debugSoldierAnim(0),
-            soldiers: w.stats().soldiers,
+            soldiers: w.stats().crowd.instances,
             routeFrame: h.stats().frame,
           };
         };

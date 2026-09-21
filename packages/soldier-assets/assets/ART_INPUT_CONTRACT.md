@@ -1,6 +1,6 @@
 # Authored appearance inputs
 
-An appearance is an atomic bundle: three explicit geometry tiers, compatible skeleton,
+An appearance is an atomic bundle: explicit geometry tiers, compatible skeleton,
 animation, materials, conservative animated bounds, and an explicit far pose. The
 catalog selects complete bundles; absent or malformed inputs fail visibly instead of
 silently substituting a procedural model.
@@ -11,7 +11,9 @@ attributes, hierarchy and bind transforms, deterministic baking, and actionable
 errors. Skeleton-local tracks are retained alongside sampled skin matrices so
 later animation composition does not need to reconstruct a rig from matrices.
 
-All three tiers must be supplied deliberately. The near tier owns animation;
+Every mesh tier named by [the appearance loader](../src/appearanceBundle.ts) must be
+supplied deliberately, finest first; a bundle with a different tier count is rejected
+rather than adapted. The near tier owns animation;
 compatible joint names and binds permit index remapping, not a different rig hidden
 behind a shared label. Clip looping is authored explicitly, never guessed from its
 name. Source Y-up coordinates use the shared engine-basis conversion.
@@ -24,3 +26,7 @@ this transport contract, not the finished art-quality target.
 Generated placeholders remain catalog entries until deliberately replaced. Source
 candidates use a separate catalog for review through the same production loader
 and renderer; reviewing a candidate never promotes it to the default roster.
+
+The fixed far pose can be prepared as a [verified offline property atlas](../bake/impostors/README.md).
+Its content identity follows posed geometry and authored material inputs; runtime
+renderers consume the shared mip-byte contract without loading the authoring renderer.

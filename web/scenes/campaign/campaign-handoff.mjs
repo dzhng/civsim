@@ -1,9 +1,10 @@
 import { PNG } from "pngjs";
 import {
   hasBattleWorldDepthContract,
+  hasBattleSeatingInspection,
   hasCampaignWorldDepthContract,
 } from "../_renderer-contract.mjs";
-import { campaign, ready } from "../worlds.mjs";
+import { battleRendererReady, campaign, ready } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-handoff",
@@ -75,25 +76,14 @@ export async function run(ctx) {
 
   const launched = await page.evaluate(() => window.__campaign.fightReady());
   ctx.check("fightReady launches the pending encounter", launched === true, String(launched));
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 22000 },
-  );
+  await battleRendererReady(page, 22000);
   await page.waitForFunction(
     () => document.querySelector("#pause-exit")?.textContent?.includes("Campaign") === true,
     undefined,
     { timeout: 8000 },
   );
   await page.waitForTimeout(300);
+  await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
   const battleStats = await page.evaluate(() => ({
     ready: window.__ready,
     game: window.__game.stats(),
@@ -101,6 +91,12 @@ export async function run(ctx) {
     continueLabel: document.querySelector("#pause-exit")?.textContent ?? "",
     gameoverLabel: document.querySelector("#gameover-menu")?.textContent ?? "",
   }));
+  const seating = await page.evaluate(() => window.__game.verifySeating());
+  ctx.check(
+    "campaign battle seats its entire presented army on the installed generated terrain",
+    hasBattleSeatingInspection(seating),
+    JSON.stringify(seating),
+  );
   const soldierPixels = countFactionSoldierPixels(PNG.sync.read(await page.screenshot()));
   ctx.check(
     "campaign open-field battle opens as a generated WebGPU battle",

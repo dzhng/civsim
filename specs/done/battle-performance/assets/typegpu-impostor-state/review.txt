@@ -1,0 +1,1 @@
+No actionable regressions were identified. The TypeGPU test suite passes all 75 tests, and the test TypeScript configuration type-checks successfully. GPU execution was not verified.

@@ -1,0 +1,1 @@
+No actionable regressions were identified in the diff. The checkpoint observer’s focused test suite passes all 21 tests; browser execution was not independently verified.

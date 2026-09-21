@@ -1,0 +1,106 @@
+[
+  {
+    "backend": "9000-raw",
+    "valid": true,
+    "basis": "two recorded samples second and cancellation, plus unchanged post-cancel frame",
+    "secondCamera": {
+      "center": [
+        89.99999992800193,
+        -105.00000007199807
+      ],
+      "distance": 175.00038367517163,
+      "yaw": -1.4500000005759845,
+      "pitch": 0.6000000002399936
+    },
+    "cancelCamera": {
+      "center": [
+        89.98896090849644,
+        -104.99779218169928
+      ],
+      "distance": 175.01545554338145,
+      "yaw": -1.450052987639217,
+      "pitch": 0.6000220781830071
+    },
+    "secondFrame": 4414,
+    "cancelFrame": 4421,
+    "afterFrame": 4421
+  },
+  {
+    "backend": "9000-three",
+    "valid": true,
+    "basis": "two recorded samples second and cancellation, plus unchanged post-cancel frame",
+    "secondCamera": {
+      "center": [
+        89.99964343513862,
+        -104.99992868702772
+      ],
+      "distance": 175.0008527329719,
+      "yaw": -1.4500017115113346,
+      "pitch": 0.6000007131297227
+    },
+    "cancelCamera": {
+      "center": [
+        89.92909879580215,
+        -104.98581975916044
+      ],
+      "distance": 175.0992619896174,
+      "yaw": -1.4503403257801497,
+      "pitch": 0.6001418024083957
+    },
+    "secondFrame": 4465,
+    "cancelFrame": 4480,
+    "afterFrame": 4480
+  },
+  {
+    "backend": "9000-typegpu",
+    "valid": true,
+    "basis": "two recorded samples second and cancellation, plus unchanged post-cancel frame",
+    "secondCamera": {
+      "center": [
+        89.99977003052399,
+        -105.00022996947601
+      ],
+      "distance": 175.00038367517163,
+      "yaw": -1.450001839755808,
+      "pitch": 0.6000007665649201
+    },
+    "cancelCamera": {
+      "center": [
+        89.99087586632405,
+        -104.99817517326481
+      ],
+      "distance": 175.0127744089691,
+      "yaw": -1.4500437958416446,
+      "pitch": 0.6000182482673518
+    },
+    "secondFrame": 4317,
+    "cancelFrame": 4324,
+    "afterFrame": 4324
+  },
+  {
+    "backend": "9000-vgpu",
+    "valid": true,
+    "basis": "two recorded samples second and cancellation, plus unchanged post-cancel frame",
+    "secondCamera": {
+      "center": [
+        89.99994042970037,
+        -105.00005957029963
+      ],
+      "distance": 175.00009977205764,
+      "yaw": -1.4500004765623968,
+      "pitch": 0.6000001985676654
+    },
+    "cancelCamera": {
+      "center": [
+        89.98896030682462,
+        -104.99779206136492
+      ],
+      "distance": 175.01545554338145,
+      "yaw": -1.4500529905272417,
+      "pitch": 0.6000220793863508
+    },
+    "secondFrame": 4248,
+    "cancelFrame": 4253,
+    "afterFrame": 4253
+  }
+]

@@ -19,20 +19,20 @@ export async function run(ctx) {
   await page.evaluate(() => window.__game.freezeAtTick(480));
   const info4 = await page.evaluate(() => window.__game.unitInfo(4));
   await page.evaluate(
-    ([ax, ay]) => {
+    async ([ax, ay]) => {
       window.__game.select(4);
       window.__game.setOrder(4, ax, ay + 60);
-      window.__game.advance(300);
+      await window.__game.advance(300);
     },
     [info4[0], info4[1]],
   );
 
   const ls = await page.evaluate(() => window.__game.unitInfo(9));
   await page.evaluate(
-    ([x, y]) => {
+    async ([x, y]) => {
       window.__game.setPace(17, 1);
       window.__game.setOrder(17, x, y);
-      window.__game.advance(2700);
+      await window.__game.advance(2700);
     },
     [ls[0], ls[1]],
   );

@@ -1,0 +1,33 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-checkpoint-observer/apps/battle-perf-lab
+
+ ❯ trials/checkpointObserver.test.ts (22 tests | 1 failed | 21 skipped) 4ms
+   × a missing Menu frame cannot pass camera verification 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  trials/checkpointObserver.test.ts > a missing Menu frame cannot pass camera verification
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ trials/checkpointObserver.test.ts:568:21
+    566|   const archive = archiveOf("three", threeStats, { reportFrames: {} });
+    567|   const report = compareCheckpointArchives([archive]);
+    568|   expect(report.ok).toBe(false);
+       |                     ^
+    569|   expect(report.issues).toContain(
+    570|     "three-checkpoints @15000ms: sampled frame 42 is absent from the M…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 21 skipped (22)
+   Start at  03:27:45
+   Duration  184ms (transform 94ms, setup 0ms, import 118ms, tests 4ms, environment 0ms)
+

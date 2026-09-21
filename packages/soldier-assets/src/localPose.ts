@@ -32,11 +32,14 @@ export function sampleRigLocalPoseSeconds(
 function sampleClipLocals(rig: ImportedRig, clip: RigClip, time: number): LocalPose {
   const pose = new Float64Array(rig.bones.length * 10);
   for (let joint = 0; joint < rig.bones.length; joint++) {
-    const track = clip.tracks[joint] || {};
+    const track = clip.tracks[joint];
     const bind = rig.bones[joint].bind;
-    pose.set(track.T ? sampleChannel(track.T, time, "vec3") : bind.T, joint * 10);
-    pose.set(track.R ? sampleChannel(track.R, time, "quat") : bind.R, joint * 10 + 3);
-    pose.set(track.S ? sampleChannel(track.S, time, "vec3") : bind.S, joint * 10 + 7);
+    if (track?.T) writeChannel(track.T, time, "vec3", pose, joint * 10);
+    else pose.set(bind.T, joint * 10);
+    if (track?.R) writeChannel(track.R, time, "quat", pose, joint * 10 + 3);
+    else pose.set(bind.R, joint * 10 + 3);
+    if (track?.S) writeChannel(track.S, time, "vec3", pose, joint * 10 + 7);
+    else pose.set(bind.S, joint * 10 + 7);
   }
   return pose;
 }
@@ -54,15 +57,13 @@ export function blendLocalPoses(a: LocalPose, b: LocalPose, weight: number): Loc
   if (weight === 1) return b.slice();
   const out = new Float64Array(a.length);
   for (let joint = 0; joint < a.length; joint += 10) {
-    out.set(vec3Lerp(a.subarray(joint, joint + 3), b.subarray(joint, joint + 3), weight), joint);
-    out.set(
-      quatSlerp(a.subarray(joint + 3, joint + 7), b.subarray(joint + 3, joint + 7), weight),
-      joint + 3,
-    );
-    out.set(
-      vec3Lerp(a.subarray(joint + 7, joint + 10), b.subarray(joint + 7, joint + 10), weight),
-      joint + 7,
-    );
+    for (let component = 0; component < 3; component++) {
+      const translation = joint + component;
+      const scale = joint + 7 + component;
+      out[translation] = scalarLerp(a[translation], b[translation], weight);
+      out[scale] = scalarLerp(a[scale], b[scale], weight);
+    }
+    writeQuatSlerp(a, joint + 3, b, joint + 3, weight, out, joint + 3);
   }
   return out;
 }
@@ -167,14 +168,24 @@ function scalarLerp(a: number, b: number, u: number) {
   return Math.max(Math.min(a, b), Math.min(Math.max(a, b), a + (b - a) * u));
 }
 
-function vec3Lerp(a: NumericArray, b: NumericArray, u: number) {
-  return [scalarLerp(a[0], b[0], u), scalarLerp(a[1], b[1], u), scalarLerp(a[2], b[2], u)];
-}
-
-/** Shortest-arc quaternion slerp (x,y,z,w), normalized. */
-export function quatSlerp(a: NumericArray, b: NumericArray, u: number) {
-  let [ax, ay, az, aw] = a;
-  let [bx, by, bz, bw] = b;
+/** Shortest-arc normalized slerp, written without temporary arrays or views. */
+function writeQuatSlerp(
+  a: NumericArray,
+  aOffset: number,
+  b: NumericArray,
+  bOffset: number,
+  u: number,
+  out: LocalPose,
+  outOffset: number,
+) {
+  const ax = a[aOffset],
+    ay = a[aOffset + 1],
+    az = a[aOffset + 2],
+    aw = a[aOffset + 3];
+  let bx = b[bOffset],
+    by = b[bOffset + 1],
+    bz = b[bOffset + 2],
+    bw = b[bOffset + 3];
   let dot = ax * bx + ay * by + az * bz + aw * bw;
   if (dot < 0) {
     bx = -bx;
@@ -198,25 +209,51 @@ export function quatSlerp(a: NumericArray, b: NumericArray, u: number) {
     qz = s0 * az + s1 * bz,
     qw = s0 * aw + s1 * bw;
   const len = Math.hypot(qx, qy, qz, qw) || 1;
-  return [qx / len, qy / len, qz / len, qw / len];
+  out[outOffset] = qx / len;
+  out[outOffset + 1] = qy / len;
+  out[outOffset + 2] = qz / len;
+  out[outOffset + 3] = qw / len;
 }
 
-/** Sample a keyframe channel `{ times:[t...], values:[v...] }` at time `t`.
- *  `kind` is 'vec3' (translation/scale) or 'quat' (rotation). Holds the
- *  endpoints outside the range; linear between (slerp for quats). */
-export function sampleChannel(ch: RigChannel, t: number, kind: "vec3" | "quat") {
+function writeChannel(
+  ch: RigChannel,
+  t: number,
+  kind: "vec3" | "quat",
+  out: LocalPose,
+  offset: number,
+) {
   const { times, values } = ch;
   const n = times.length;
   const stride = kind === "quat" ? 4 : 3;
-  const at = (i: number) => values.slice(i * stride, i * stride + stride);
-  if (n === 0) return kind === "quat" ? [0, 0, 0, 1] : [0, 0, 0];
-  if (t <= times[0]) return at(0);
-  if (t >= times[n - 1]) return at(n - 1);
-  let i = 0;
-  while (i < n - 1 && times[i + 1] < t) i++;
-  if (ch.interpolation === "STEP") return at(times[i + 1] === t ? i + 1 : i);
-  const u = (t - times[i]) / (times[i + 1] - times[i] || 1);
-  return kind === "quat" ? quatSlerp(at(i), at(i + 1), u) : vec3Lerp(at(i), at(i + 1), u);
+  if (n === 0) {
+    for (let component = 0; component < stride; component++)
+      out[offset + component] = component === 3 ? 1 : 0;
+    return;
+  }
+  let key: number;
+  if (t <= times[0]) key = 0;
+  else if (t >= times[n - 1]) key = n - 1;
+  else {
+    let i = 0;
+    while (i < n - 1 && times[i + 1] < t) i++;
+    if (ch.interpolation === "STEP") key = times[i + 1] === t ? i + 1 : i;
+    else {
+      const u = (t - times[i]) / (times[i + 1] - times[i] || 1);
+      if (kind === "quat")
+        writeQuatSlerp(values, i * stride, values, (i + 1) * stride, u, out, offset);
+      else
+        for (let component = 0; component < stride; component++)
+          out[offset + component] = scalarLerp(
+            values[i * stride + component],
+            values[(i + 1) * stride + component],
+            u,
+          );
+      return;
+    }
+  }
+  const start = key * stride;
+  for (let component = 0; component < stride && start + component < values.length; component++)
+    out[offset + component] = values[start + component];
 }
 
 /** Apply a column-major mat4 to a homogeneous point (x,y,z,1) -> [x,y,z]. */

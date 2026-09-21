@@ -131,6 +131,7 @@ impl Battle {
             }
         }
         self.sim.tick();
+        perf_scope!(_timer, "commander AI");
         for team in 0..2u32 {
             if self.ai_teams[team as usize] {
                 ai_commander(&mut self.sim, team);

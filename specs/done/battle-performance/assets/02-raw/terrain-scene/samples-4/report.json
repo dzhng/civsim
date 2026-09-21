@@ -1,0 +1,371 @@
+{
+  "samples": 4,
+  "results": [
+    {
+      "label": "initial",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.16259765625,
+        "maxRelative": 0.27611940298507465,
+        "rmse": 0.017723242960880393,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "label": "repeat",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.116455078125,
+        "maxRelative": 0.20829694323144105,
+        "rmse": 0.00033787567469415164,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "label": "failed-replacement",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.116455078125,
+        "maxRelative": 0.20829694323144105,
+        "rmse": 0.00033787567469415164,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "preserved": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "label": "pending-old",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.116455078125,
+        "maxRelative": 0.20829694323144105,
+        "rmse": 0.00033787567469415164,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "preserved": {
+        "maxAbs": 0,
+        "maxRelative": 0,
+        "rmse": 0,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "label": "vista",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.0006103515625,
+        "maxRelative": 0.0027548209366391185,
+        "rmse": 0.000014654825497401058,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 9.485974311828613,
+          "expected": 9.485974311828613
+        }
+      ]
+    },
+    {
+      "label": "restored",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.116455078125,
+        "maxRelative": 0.20829694323144105,
+        "rmse": 0.00033787567469415164,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "label": "weak-detail",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.116455078125,
+        "maxRelative": 0.20829694323144105,
+        "rmse": 0.00033787581489218727,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "label": "horizon",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.105224609375,
+        "maxRelative": 0.28859060402684567,
+        "rmse": 0.00329235895559508,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "label": "horizon-repeat",
+      "width": 768,
+      "height": 512,
+      "comparison": {
+        "maxAbs": 0.105224609375,
+        "maxRelative": 0.28859060402684567,
+        "rmse": 0.00329235895559508,
+        "nonfinite": 0,
+        "actualNonfinite": 0,
+        "expectedNonfinite": 0,
+        "nonfiniteMismatch": 0,
+        "nonfiniteCoordinates": [],
+        "peak": 1,
+        "samples": 1572864
+      },
+      "queries": [
+        {
+          "x": -10,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "actual": 0,
+          "expected": 0
+        }
+      ]
+    }
+  ],
+  "failedReplacement": true,
+  "pendingPreserved": true,
+  "cancelledRejected": true,
+  "errors": [],
+  "liveBuffers": 0,
+  "liveTextures": 0,
+  "numericalPassed": false,
+  "passed": false,
+  "pageErrors": []
+}

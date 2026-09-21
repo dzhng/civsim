@@ -1,0 +1,20 @@
+[
+  {
+    "zoom": "7.5",
+    "changedPixels": 6729,
+    "maxChannelDifference": 153,
+    "totalPixels": 5184000
+  },
+  {
+    "zoom": "7.75",
+    "changedPixels": 3438,
+    "maxChannelDifference": 140,
+    "totalPixels": 5184000
+  },
+  {
+    "zoom": "7.884923",
+    "changedPixels": 5729,
+    "maxChannelDifference": 153,
+    "totalPixels": 5184000
+  }
+]

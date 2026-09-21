@@ -1,0 +1,221 @@
+{
+  "scope": "Actual frozen8643cf05 terminal stat shape only, not coherent interior checkpoint evidence",
+  "rows": [
+    {
+      "source": "throwaway/held-fixed/round-2/9000-three/trial.json",
+      "tick": 9000,
+      "backend": "three",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 5884,
+        "shadowOnly": 8386
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    },
+    {
+      "source": "throwaway/held-fixed/round-2/9000-raw/trial.json",
+      "tick": 9000,
+      "backend": "raw",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 5884,
+        "shadowOnly": 8386
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    },
+    {
+      "source": "throwaway/held-fixed/round-2/9000-typegpu/trial.json",
+      "tick": 9000,
+      "backend": "typegpu",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 5884,
+        "shadowOnly": 8386
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    },
+    {
+      "source": "throwaway/held-fixed/round-2/9000-vgpu/trial.json",
+      "tick": 9000,
+      "backend": "vgpu",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 5884,
+        "shadowOnly": 8386
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    },
+    {
+      "source": "throwaway/held-fixed/round-2/12000-three/trial.json",
+      "tick": 12000,
+      "backend": "three",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 7874,
+        "shadowOnly": 6848
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    },
+    {
+      "source": "throwaway/held-fixed/round-2/12000-raw/trial.json",
+      "tick": 12000,
+      "backend": "raw",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 7874,
+        "shadowOnly": 6848
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    },
+    {
+      "source": "throwaway/held-fixed/round-2/12000-typegpu/trial.json",
+      "tick": 12000,
+      "backend": "typegpu",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 7874,
+        "shadowOnly": 6848
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    },
+    {
+      "source": "throwaway/held-fixed/round-2/12000-vgpu/trial.json",
+      "tick": 12000,
+      "backend": "vgpu",
+      "counts": {
+        "soldiers": 15560,
+        "instances": 15560,
+        "mainVisible": 7874,
+        "shadowOnly": 6848
+      },
+      "histogramKeys": {
+        "visibleTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ],
+        "shadowTierHistogram": [
+          "l0",
+          "l1",
+          "l2",
+          "l3",
+          "l4"
+        ]
+      }
+    }
+  ]
+}

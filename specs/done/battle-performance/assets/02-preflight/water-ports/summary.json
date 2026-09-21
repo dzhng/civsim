@@ -1,0 +1,362 @@
+[
+  {
+    "backend": "typegpu",
+    "kind": "lake",
+    "samples": 1,
+    "passed": true,
+    "maxAbs": 0.0009765625,
+    "maxRmse": 0.00008272118455907563,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 1,
+      "changedChannelsAcrossSixFrames": 29
+    }
+  },
+  {
+    "backend": "typegpu",
+    "kind": "lake",
+    "samples": 4,
+    "passed": true,
+    "maxAbs": 0.0009765625,
+    "maxRmse": 0.00008270602429725958,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 1,
+      "changedChannelsAcrossSixFrames": 29
+    }
+  },
+  {
+    "backend": "typegpu",
+    "kind": "ocean",
+    "samples": 1,
+    "passed": false,
+    "maxAbs": 0.0087890625,
+    "maxRmse": 0.00009700598102510465,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 0,
+      "changedChannelsAcrossSixFrames": 0
+    }
+  },
+  {
+    "backend": "typegpu",
+    "kind": "ocean",
+    "samples": 4,
+    "passed": false,
+    "maxAbs": 0.0595703125,
+    "maxRmse": 0.0001593223421132565,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 0,
+      "changedChannelsAcrossSixFrames": 0
+    }
+  },
+  {
+    "backend": "vgpu",
+    "kind": "lake",
+    "samples": 1,
+    "passed": true,
+    "maxAbs": 0.0009765625,
+    "maxRmse": 0.00008271162090680906,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 1,
+      "changedChannelsAcrossSixFrames": 81
+    }
+  },
+  {
+    "backend": "vgpu",
+    "kind": "lake",
+    "samples": 4,
+    "passed": true,
+    "maxAbs": 0.0009765625,
+    "maxRmse": 0.00008269668801618663,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 1,
+      "changedChannelsAcrossSixFrames": 81
+    }
+  },
+  {
+    "backend": "vgpu",
+    "kind": "ocean",
+    "samples": 1,
+    "passed": false,
+    "maxAbs": 0.0087890625,
+    "maxRmse": 0.0000970530432149001,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 1,
+      "changedChannelsAcrossSixFrames": 92
+    }
+  },
+  {
+    "backend": "vgpu",
+    "kind": "ocean",
+    "samples": 4,
+    "passed": false,
+    "maxAbs": 0.08251953125,
+    "maxRmse": 0.0001886532549687521,
+    "errors": [],
+    "pageErrors": [],
+    "liveTextures": 0,
+    "ownedBuffersAfterDispose": 0,
+    "lifecycle": {
+      "peakOwnedBuffers": 8,
+      "liveBuffersAfterReplacement": 0,
+      "liveBuffersAfterFailure": 0,
+      "allocationFailureRejected": true,
+      "failures": [
+        {
+          "allocation": 1,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 2,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 3,
+          "rejected": true,
+          "liveBuffers": 0
+        },
+        {
+          "allocation": 4,
+          "rejected": true,
+          "liveBuffers": 0
+        }
+      ]
+    },
+    "repeatPngIdentity": true,
+    "rawComparison": {
+      "maxByte": 21,
+      "changedChannelsAcrossSixFrames": 326
+    }
+  }
+]

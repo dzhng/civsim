@@ -1,0 +1,559 @@
+{
+  "kind": "paired-build-cpu-replay",
+  "pair": 1,
+  "arm": "no-opt",
+  "wasmDirectory": "/Users/david/dev/game-battle-benchmark-run/throwaway/battle-performance/wasm-symbols",
+  "hostBefore": {
+    "utc": "2026-09-14T19:38:45.391Z",
+    "loadAverage": [
+      9.54443359375,
+      7.443359375,
+      6.94775390625
+    ]
+  },
+  "hostAfter": {
+    "utc": "2026-09-14T19:40:15.657Z",
+    "loadAverage": [
+      7.6396484375,
+      7.3671875,
+      6.96484375
+    ]
+  },
+  "artifactUnchanged": true,
+  "diagnosticOnly": true,
+  "hostCondition": "Serialized fresh Node processes in coordinated CPU window. Host load recorded; diagnostic feasibility evidence, not a release timing gate.",
+  "createdAt": "2026-09-14T19:40:15.658Z",
+  "source": "/Users/david/dev/game-battle-performance-spec",
+  "identity": {
+    "node": "v24.14.0",
+    "v8": "13.6.233.17-node.41",
+    "execArgv": [],
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5 Pro",
+    "loadAverage": [
+      7.6396484375,
+      7.3671875,
+      6.96484375
+    ],
+    "wasmBytes": 1172019,
+    "wasmSha256": "7777f996eed3b223fb4e9a23049bbfe4573bbddb8943e5c6f1acd4bf413016f2",
+    "productionBuildCommandForReference": "CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 RUSTFLAGS='-C target-feature=+simd128' wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
+    "cargoProfile": "[workspace]\nmembers = [\"crates/contract\", \"crates/sim\", \"crates/game-wasm\", \"crates/mapgen\", \"crates/campaign\"]\nresolver = \"2\"\n\n[profile.release]\nopt-level = 3\nlto = \"thin\"\n\n# Tests simulate minutes of battle at 30Hz: optimize them. (IEEE float\n# semantics are opt-level-independent in Rust, so the golden hash holds.)\n[profile.test]\nopt-level = 2\n"
+  },
+  "orders": [
+    {
+      "tick": 0,
+      "unit": 0,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 1,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 2,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 3,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 4,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 5,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 6,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 7,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 8,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 9,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 10,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 11,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 12,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 13,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 14,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 15,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 16,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 17,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 18,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 19,
+      "target": 20
+    }
+  ],
+  "initial": {
+    "tick": 0,
+    "hash": "1610507740289060947",
+    "alive": 15560,
+    "engaged": 0,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "prepared": {
+    "tick": 9000,
+    "hash": "9928381812590497427",
+    "alive": 15529,
+    "engaged": 540,
+    "projectiles": 70,
+    "victor": -1
+  },
+  "final": {
+    "tick": 9300,
+    "hash": "6696754498600804919",
+    "alive": 15488,
+    "engaged": 992,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "preparationMs": 80695.371667,
+  "elapsedMs": 9416.299707999991,
+  "summary": {
+    "batchTicks": 4,
+    "batchCount": 75,
+    "averageBatchMs": 125.54748606666689,
+    "p95BatchMs": 140.47341700000106,
+    "averageTickMs": 31.386871516666723,
+    "minBatchMs": 110.81316600000719,
+    "maxBatchMs": 146.56704199999513
+  },
+  "measurement": "Synchronous Game.advance_ticks(4), including commander AI and one unit/posture export refresh. No renderer, browser, inspector profiler, V8 tuning flags, or gameplay changes. Batch cost includes unchanged simulation, AI, and export refresh; not isolated Sim::tick alone.",
+  "batches": [
+    {
+      "tick": 9004,
+      "ticks": 4,
+      "elapsedMs": 110.81316600000719
+    },
+    {
+      "tick": 9008,
+      "ticks": 4,
+      "elapsedMs": 121.97516699999687
+    },
+    {
+      "tick": 9012,
+      "ticks": 4,
+      "elapsedMs": 131.1583329999994
+    },
+    {
+      "tick": 9016,
+      "ticks": 4,
+      "elapsedMs": 122.8242079999909
+    },
+    {
+      "tick": 9020,
+      "ticks": 4,
+      "elapsedMs": 121.68108400001074
+    },
+    {
+      "tick": 9024,
+      "ticks": 4,
+      "elapsedMs": 116.28145799999766
+    },
+    {
+      "tick": 9028,
+      "ticks": 4,
+      "elapsedMs": 112.57220800001232
+    },
+    {
+      "tick": 9032,
+      "ticks": 4,
+      "elapsedMs": 114.97320900000341
+    },
+    {
+      "tick": 9036,
+      "ticks": 4,
+      "elapsedMs": 124.46404099999927
+    },
+    {
+      "tick": 9040,
+      "ticks": 4,
+      "elapsedMs": 131.05462499998976
+    },
+    {
+      "tick": 9044,
+      "ticks": 4,
+      "elapsedMs": 130.81929099999252
+    },
+    {
+      "tick": 9048,
+      "ticks": 4,
+      "elapsedMs": 134.47537499999453
+    },
+    {
+      "tick": 9052,
+      "ticks": 4,
+      "elapsedMs": 134.9651670000021
+    },
+    {
+      "tick": 9056,
+      "ticks": 4,
+      "elapsedMs": 130.3889579999959
+    },
+    {
+      "tick": 9060,
+      "ticks": 4,
+      "elapsedMs": 121.66508299999987
+    },
+    {
+      "tick": 9064,
+      "ticks": 4,
+      "elapsedMs": 118.63220900000306
+    },
+    {
+      "tick": 9068,
+      "ticks": 4,
+      "elapsedMs": 120.80545800000255
+    },
+    {
+      "tick": 9072,
+      "ticks": 4,
+      "elapsedMs": 128.92679099999077
+    },
+    {
+      "tick": 9076,
+      "ticks": 4,
+      "elapsedMs": 125.48837500000081
+    },
+    {
+      "tick": 9080,
+      "ticks": 4,
+      "elapsedMs": 123.06012500000361
+    },
+    {
+      "tick": 9084,
+      "ticks": 4,
+      "elapsedMs": 117.72162500000559
+    },
+    {
+      "tick": 9088,
+      "ticks": 4,
+      "elapsedMs": 118.52500000000873
+    },
+    {
+      "tick": 9092,
+      "ticks": 4,
+      "elapsedMs": 131.85541699999885
+    },
+    {
+      "tick": 9096,
+      "ticks": 4,
+      "elapsedMs": 124.75545900000725
+    },
+    {
+      "tick": 9100,
+      "ticks": 4,
+      "elapsedMs": 121.81191699999908
+    },
+    {
+      "tick": 9104,
+      "ticks": 4,
+      "elapsedMs": 118.7012090000062
+    },
+    {
+      "tick": 9108,
+      "ticks": 4,
+      "elapsedMs": 116.317292000007
+    },
+    {
+      "tick": 9112,
+      "ticks": 4,
+      "elapsedMs": 115.97058300000208
+    },
+    {
+      "tick": 9116,
+      "ticks": 4,
+      "elapsedMs": 116.31520799999998
+    },
+    {
+      "tick": 9120,
+      "ticks": 4,
+      "elapsedMs": 114.9627909999981
+    },
+    {
+      "tick": 9124,
+      "ticks": 4,
+      "elapsedMs": 117.06070800000452
+    },
+    {
+      "tick": 9128,
+      "ticks": 4,
+      "elapsedMs": 117.4253330000065
+    },
+    {
+      "tick": 9132,
+      "ticks": 4,
+      "elapsedMs": 117.10941699999967
+    },
+    {
+      "tick": 9136,
+      "ticks": 4,
+      "elapsedMs": 115.25516699999571
+    },
+    {
+      "tick": 9140,
+      "ticks": 4,
+      "elapsedMs": 130.03008299999055
+    },
+    {
+      "tick": 9144,
+      "ticks": 4,
+      "elapsedMs": 122.28616699999839
+    },
+    {
+      "tick": 9148,
+      "ticks": 4,
+      "elapsedMs": 119.97574999999779
+    },
+    {
+      "tick": 9152,
+      "ticks": 4,
+      "elapsedMs": 128.33345800000825
+    },
+    {
+      "tick": 9156,
+      "ticks": 4,
+      "elapsedMs": 131.67658400000073
+    },
+    {
+      "tick": 9160,
+      "ticks": 4,
+      "elapsedMs": 145.20754200000374
+    },
+    {
+      "tick": 9164,
+      "ticks": 4,
+      "elapsedMs": 136.3480419999978
+    },
+    {
+      "tick": 9168,
+      "ticks": 4,
+      "elapsedMs": 125.0011669999949
+    },
+    {
+      "tick": 9172,
+      "ticks": 4,
+      "elapsedMs": 125.81291700000293
+    },
+    {
+      "tick": 9176,
+      "ticks": 4,
+      "elapsedMs": 123.59370900000795
+    },
+    {
+      "tick": 9180,
+      "ticks": 4,
+      "elapsedMs": 126.26087500000722
+    },
+    {
+      "tick": 9184,
+      "ticks": 4,
+      "elapsedMs": 130.37174999999115
+    },
+    {
+      "tick": 9188,
+      "ticks": 4,
+      "elapsedMs": 123.90670799999498
+    },
+    {
+      "tick": 9192,
+      "ticks": 4,
+      "elapsedMs": 121.83241600000474
+    },
+    {
+      "tick": 9196,
+      "ticks": 4,
+      "elapsedMs": 122.98279199999524
+    },
+    {
+      "tick": 9200,
+      "ticks": 4,
+      "elapsedMs": 122.35833299999649
+    },
+    {
+      "tick": 9204,
+      "ticks": 4,
+      "elapsedMs": 124.37483300000895
+    },
+    {
+      "tick": 9208,
+      "ticks": 4,
+      "elapsedMs": 125.18216699999175
+    },
+    {
+      "tick": 9212,
+      "ticks": 4,
+      "elapsedMs": 127.76395800001046
+    },
+    {
+      "tick": 9216,
+      "ticks": 4,
+      "elapsedMs": 123.65879099999438
+    },
+    {
+      "tick": 9220,
+      "ticks": 4,
+      "elapsedMs": 125.30129200000374
+    },
+    {
+      "tick": 9224,
+      "ticks": 4,
+      "elapsedMs": 122.37212499999441
+    },
+    {
+      "tick": 9228,
+      "ticks": 4,
+      "elapsedMs": 123.70795799999905
+    },
+    {
+      "tick": 9232,
+      "ticks": 4,
+      "elapsedMs": 122.59008300000278
+    },
+    {
+      "tick": 9236,
+      "ticks": 4,
+      "elapsedMs": 124.22308299998986
+    },
+    {
+      "tick": 9240,
+      "ticks": 4,
+      "elapsedMs": 124.4307919999992
+    },
+    {
+      "tick": 9244,
+      "ticks": 4,
+      "elapsedMs": 126.15599999998813
+    },
+    {
+      "tick": 9248,
+      "ticks": 4,
+      "elapsedMs": 127.32733299999381
+    },
+    {
+      "tick": 9252,
+      "ticks": 4,
+      "elapsedMs": 125.97325000001001
+    },
+    {
+      "tick": 9256,
+      "ticks": 4,
+      "elapsedMs": 127.41037500000675
+    },
+    {
+      "tick": 9260,
+      "ticks": 4,
+      "elapsedMs": 138.46483300000546
+    },
+    {
+      "tick": 9264,
+      "ticks": 4,
+      "elapsedMs": 144.60950000000594
+    },
+    {
+      "tick": 9268,
+      "ticks": 4,
+      "elapsedMs": 146.56704199999513
+    },
+    {
+      "tick": 9272,
+      "ticks": 4,
+      "elapsedMs": 137.7019580000051
+    },
+    {
+      "tick": 9276,
+      "ticks": 4,
+      "elapsedMs": 140.47341700000106
+    },
+    {
+      "tick": 9280,
+      "ticks": 4,
+      "elapsedMs": 136.48145799999475
+    },
+    {
+      "tick": 9284,
+      "ticks": 4,
+      "elapsedMs": 130.16199999999662
+    },
+    {
+      "tick": 9288,
+      "ticks": 4,
+      "elapsedMs": 127.3034159999952
+    },
+    {
+      "tick": 9292,
+      "ticks": 4,
+      "elapsedMs": 131.1490829999966
+    },
+    {
+      "tick": 9296,
+      "ticks": 4,
+      "elapsedMs": 127.32270800000697
+    },
+    {
+      "tick": 9300,
+      "ticks": 4,
+      "elapsedMs": 128.5642499999958
+    }
+  ]
+}

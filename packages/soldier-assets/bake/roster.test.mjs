@@ -32,7 +32,7 @@ for (const [id, descriptor] of APPEARANCE_DESCRIPTORS.entries()) {
   assert.deepEqual(bundle.manifest.presentation, recipe.presentation);
   const triangles = bundle.tiers.map((mesh) => mesh.indices.length / 3);
   assert.ok(
-    triangles[0] > triangles[1] && triangles[1] > triangles[2],
+    triangles.every((count, tier) => tier === 0 || count < triangles[tier - 1]),
     `${descriptor.name}: expected actual reduced geometry, got ${triangles}`,
   );
   const expected = await bakeRosterAppearance(descriptor);

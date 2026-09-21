@@ -1,0 +1,682 @@
+[
+  {
+    "id": "02-raw/frame-ports/samples-1/horizon-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00049591064453125,
+    "maxDelta": 57.0,
+    "changedPixels": 325,
+    "ratio16": 5.086263020833333e-06,
+    "ratio32": 2.5431315104166665e-06,
+    "grayMAE": 0.00046012115478515715,
+    "luminance": [
+      152.218087252299,
+      152.21822652689616
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-1/horizon-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00046539306640625,
+    "maxDelta": 58.0,
+    "changedPixels": 292,
+    "ratio16": 5.086263020833333e-06,
+    "ratio32": 2.5431315104166665e-06,
+    "grayMAE": 0.000427256266276042,
+    "luminance": [
+      151.7527259750366,
+      151.75286530303956
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-1/tactical-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005357530381944445,
+    "maxDelta": 24.0,
+    "changedPixels": 289,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.0004818522135416675,
+    "luminance": [
+      120.29918446350098,
+      120.29920365397136
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-1/tactical-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.002682156032986111,
+    "maxDelta": 36.0,
+    "changedPixels": 1000,
+    "ratio16": 1.2715657552083334e-05,
+    "ratio32": 0.0,
+    "grayMAE": 0.0022765604654947924,
+    "luminance": [
+      120.29918446350098,
+      120.29866880289713
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-1/tactical-repeat-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005357530381944445,
+    "maxDelta": 24.0,
+    "changedPixels": 289,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.0004818522135416675,
+    "luminance": [
+      120.29918446350098,
+      120.29920365397136
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-1/tactical-repeat-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005357530381944445,
+    "maxDelta": 24.0,
+    "changedPixels": 289,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.0004818522135416675,
+    "luminance": [
+      120.29918446350098,
+      120.29920365397136
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-4/horizon-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00026533338758680556,
+    "maxDelta": 1.0,
+    "changedPixels": 309,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00021475982666015704,
+    "luminance": [
+      152.23304533131918,
+      152.23310283915202
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-4/horizon-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00023905436197916666,
+    "maxDelta": 1.0,
+    "changedPixels": 280,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.0001847101847330732,
+    "luminance": [
+      151.76884858449299,
+      151.76890935262045
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-4/tactical-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00025770399305555556,
+    "maxDelta": 21.0,
+    "changedPixels": 223,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022283681233724014,
+    "luminance": [
+      120.33889926910399,
+      120.33873807779946
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-4/tactical-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00025770399305555556,
+    "maxDelta": 21.0,
+    "changedPixels": 223,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022283681233724014,
+    "luminance": [
+      120.33889926910399,
+      120.33873807779946
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-4/tactical-repeat-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00025770399305555556,
+    "maxDelta": 21.0,
+    "changedPixels": 223,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022283681233724014,
+    "luminance": [
+      120.33889926910399,
+      120.33873807779946
+    ]
+  },
+  {
+    "id": "02-raw/frame-ports/samples-4/tactical-repeat-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00025770399305555556,
+    "maxDelta": 21.0,
+    "changedPixels": 223,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022283681233724014,
+    "luminance": [
+      120.33889926910399,
+      120.33873807779946
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-1/horizon-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0004942152235243055,
+    "maxDelta": 57.0,
+    "changedPixels": 323,
+    "ratio16": 5.086263020833333e-06,
+    "ratio32": 2.5431315104166665e-06,
+    "grayMAE": 0.00045954132080078215,
+    "luminance": [
+      152.218087252299,
+      152.21822594706217
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-1/horizon-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00046369764539930556,
+    "maxDelta": 58.0,
+    "changedPixels": 290,
+    "ratio16": 5.086263020833333e-06,
+    "ratio32": 2.5431315104166665e-06,
+    "grayMAE": 0.0004250030517578128,
+    "luminance": [
+      151.7527259750366,
+      151.75286603546144
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-1/tactical-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005323621961805555,
+    "maxDelta": 24.0,
+    "changedPixels": 285,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.00047854868570963623,
+    "luminance": [
+      120.29918446350098,
+      120.29920333607993
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-1/tactical-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00267791748046875,
+    "maxDelta": 36.0,
+    "changedPixels": 996,
+    "ratio16": 1.2715657552083334e-05,
+    "ratio32": 0.0,
+    "grayMAE": 0.0022717641194661465,
+    "luminance": [
+      120.29918446350098,
+      120.29866997782388
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-1/tactical-repeat-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005323621961805555,
+    "maxDelta": 24.0,
+    "changedPixels": 285,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.00047854868570963623,
+    "luminance": [
+      120.29918446350098,
+      120.29920333607993
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-1/tactical-repeat-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005323621961805555,
+    "maxDelta": 24.0,
+    "changedPixels": 285,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.00047854868570963623,
+    "luminance": [
+      120.29918446350098,
+      120.29920333607993
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-4/horizon-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0002644856770833333,
+    "maxDelta": 1.0,
+    "changedPixels": 308,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00021446990966796957,
+    "luminance": [
+      152.23304533131918,
+      152.23310254923504
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-4/horizon-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00023905436197916666,
+    "maxDelta": 1.0,
+    "changedPixels": 280,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00018277486165364616,
+    "luminance": [
+      151.76884858449299,
+      151.76890830230712
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-4/tactical-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00019243028428819444,
+    "maxDelta": 5.0,
+    "changedPixels": 217,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00014649200439453177,
+    "luminance": [
+      120.33889926910399,
+      120.33881815083821
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-4/tactical-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00019243028428819444,
+    "maxDelta": 5.0,
+    "changedPixels": 217,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00014649200439453177,
+    "luminance": [
+      120.33889926910399,
+      120.33881815083821
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-4/tactical-repeat-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00019243028428819444,
+    "maxDelta": 5.0,
+    "changedPixels": 217,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00014649200439453177,
+    "luminance": [
+      120.33889926910399,
+      120.33881815083821
+    ]
+  },
+  {
+    "id": "02-typegpu/frame-ports/samples-4/tactical-repeat-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00019243028428819444,
+    "maxDelta": 5.0,
+    "changedPixels": 217,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00014649200439453177,
+    "luminance": [
+      120.33889926910399,
+      120.33881815083821
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-1/horizon-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005018446180555555,
+    "maxDelta": 57.0,
+    "changedPixels": 331,
+    "ratio16": 5.086263020833333e-06,
+    "ratio32": 2.5431315104166665e-06,
+    "grayMAE": 0.00046779378255208453,
+    "luminance": [
+      152.218087252299,
+      152.21821647898355
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-1/horizon-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0004730224609375,
+    "maxDelta": 58.0,
+    "changedPixels": 301,
+    "ratio16": 5.086263020833333e-06,
+    "ratio32": 2.5431315104166665e-06,
+    "grayMAE": 0.00043368275960286505,
+    "luminance": [
+      151.7527259750366,
+      151.75286484781898
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-1/tactical-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005137125651041666,
+    "maxDelta": 24.0,
+    "changedPixels": 275,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.00046903228759765693,
+    "luminance": [
+      120.29918446350098,
+      120.2992301457723
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-1/tactical-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.002860175238715278,
+    "maxDelta": 36.0,
+    "changedPixels": 1029,
+    "ratio16": 1.52587890625e-05,
+    "ratio32": 0.0,
+    "grayMAE": 0.0024478098551432297,
+    "luminance": [
+      120.29918446350098,
+      120.29864069112142
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-1/tactical-repeat-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005137125651041666,
+    "maxDelta": 24.0,
+    "changedPixels": 275,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.00046903228759765693,
+    "luminance": [
+      120.29918446350098,
+      120.2992301457723
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-1/tactical-repeat-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0005137125651041666,
+    "maxDelta": 24.0,
+    "changedPixels": 275,
+    "ratio16": 2.5431315104166665e-06,
+    "ratio32": 0.0,
+    "grayMAE": 0.00046903228759765693,
+    "luminance": [
+      120.29918446350098,
+      120.2992301457723
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-4/horizon-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0002712673611111111,
+    "maxDelta": 1.0,
+    "changedPixels": 315,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.0002212295532226572,
+    "luminance": [
+      152.23304533131918,
+      152.23309457397463
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-4/horizon-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0002466837565104167,
+    "maxDelta": 1.0,
+    "changedPixels": 289,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00019113667805989627,
+    "luminance": [
+      151.76884858449299,
+      151.7689088973999
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-4/tactical-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0002551608615451389,
+    "maxDelta": 21.0,
+    "changedPixels": 220,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022102610270182343,
+    "luminance": [
+      120.33889926910399,
+      120.33873626708983
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-4/tactical-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0002551608615451389,
+    "maxDelta": 21.0,
+    "changedPixels": 220,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022102610270182343,
+    "luminance": [
+      120.33889926910399,
+      120.33873626708983
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-4/tactical-repeat-bloom-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0002551608615451389,
+    "maxDelta": 21.0,
+    "changedPixels": 220,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022102610270182343,
+    "luminance": [
+      120.33889926910399,
+      120.33873626708983
+    ]
+  },
+  {
+    "id": "02-vgpu/frame-ports/samples-4/tactical-repeat-plain-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0002551608615451389,
+    "maxDelta": 21.0,
+    "changedPixels": 220,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00022102610270182343,
+    "luminance": [
+      120.33889926910399,
+      120.33873626708983
+    ]
+  },
+  {
+    "id": "throwaway/shadow-control/initial/horizon-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.0,
+    "maxDelta": 0.0,
+    "changedPixels": 0,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.0,
+    "luminance": [
+      253.41726684570312,
+      253.41726684570312
+    ]
+  },
+  {
+    "id": "throwaway/shadow-control/initial/local-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 1.7801920572916668e-05,
+    "maxDelta": 1.0,
+    "changedPixels": 7,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 1.7801920572916668e-05,
+    "luminance": [
+      244.92183685302734,
+      244.92183939615884
+    ]
+  },
+  {
+    "id": "throwaway/shadow-control/initial/local-repeat-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 1.7801920572916668e-05,
+    "maxDelta": 1.0,
+    "changedPixels": 7,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 1.7801920572916668e-05,
+    "luminance": [
+      244.92183685302734,
+      244.92183939615884
+    ]
+  },
+  {
+    "id": "throwaway/shadow-control/initial/whole-map-expectedRgba.png",
+    "size": [
+      768,
+      512
+    ],
+    "rgbMAE": 0.00011444091796875,
+    "maxDelta": 1.0,
+    "changedPixels": 45,
+    "ratio16": 0.0,
+    "ratio32": 0.0,
+    "grayMAE": 0.00011444091796874978,
+    "luminance": [
+      243.22781372070312,
+      243.22783660888672
+    ]
+  }
+]

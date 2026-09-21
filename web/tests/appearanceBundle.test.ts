@@ -34,7 +34,7 @@ test("normal-mapped bind frames are admitted per slot on all tiers and far conte
       skeleton: "rig.json",
       animation: "clips.json",
       materials: "materials.json",
-      tiers: ["near.json", "mid.json", "far.json"],
+      tiers: ["near.json", "intermediate.json", "mid.json", "far.json"],
       far: { mesh: "atlas.json", clip: "idle", phase: 0 },
       bounds: { center: [0, 0, 0], radius: 1 },
     },
@@ -64,6 +64,7 @@ test("normal-mapped bind frames are admitted per slot on all tiers and far conte
     },
     "normal.png": new Uint8Array([137, 80, 78, 71]),
     "near.json": mesh,
+    "intermediate.json": mesh,
     "mid.json": mesh,
     "far.json": mesh,
     "atlas.json": mesh,
@@ -78,7 +79,7 @@ test("normal-mapped bind frames are admitted per slot on all tiers and far conte
     const bundle = await loadAppearanceBundle("https://assets.test/bundle.json");
     expect(bundle.tiers[0].tangents[7]).toBe(-1);
     expect(bundle.tiers[0].tangents[3]).toBe(0);
-    for (const path of ["near.json", "mid.json", "far.json", "atlas.json"]) {
+    for (const path of ["near.json", "intermediate.json", "mid.json", "far.json", "atlas.json"]) {
       for (const tangent of [
         [0, 0, 0, 1],
         [0, 0, 1, 1],
@@ -106,13 +107,14 @@ test("an incomplete appearance fails instead of silently using placeholder dista
           skeleton: "rig.json",
           animation: "clips.json",
           materials: "materials.json",
-          tiers: ["near.json"],
+          // A former three-mesh bundle has no compatibility reader.
+          tiers: ["near.json", "mid.json", "far.json"],
         }),
       ),
   );
   try {
     await expect(loadAppearanceBundle("https://assets.test/heavy/bundle.json")).rejects.toThrow(
-      /three mesh tiers/,
+      /requires mesh tiers/,
     );
   } finally {
     vi.unstubAllGlobals();
@@ -154,7 +156,7 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
       skeleton: "rig.json",
       animation: "clips.json",
       materials: "materials.json",
-      tiers: ["near.json", "mid.json", "far.json"],
+      tiers: ["near.json", "intermediate.json", "mid.json", "far.json"],
       far: { mesh: "far.json", clip: "idle", phase: 0 },
       bounds: { center: [0, 0, 1], radius: 5 },
     },
@@ -167,8 +169,9 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
     },
     "materials.json": { materials: PLACEHOLDER_MATERIALS, textures: {} },
     "near.json": tier(0),
-    "mid.json": tier(1),
-    "far.json": tier(2),
+    "intermediate.json": tier(1),
+    "mid.json": tier(2),
+    "far.json": tier(3),
   };
   const requests: string[] = [];
   vi.stubGlobal("fetch", async (url: string) => {
@@ -186,7 +189,8 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
     expect(bundle.tiers[0].positions[2]).toBeCloseTo(original.positions[2]);
     expect(bundle.tiers[1].positions[2]).toBeCloseTo(original.positions[2] + 1);
     expect(bundle.tiers[2].positions[2]).toBeCloseTo(original.positions[2] + 2);
-    expect(bundle.farMesh.positions[2]).toBe(bundle.tiers[2].positions[2]);
+    expect(bundle.tiers[3].positions[2]).toBeCloseTo(original.positions[2] + 3);
+    expect(bundle.farMesh.positions[2]).toBe(bundle.tiers[3].positions[2]);
     expect(bundle.tiers[0].indices).toBeInstanceOf(Uint32Array);
     expect(requests.filter((url) => url.endsWith("/far.json"))).toHaveLength(1);
     expect(bundle.manifest.bounds.radius).toBe(5);

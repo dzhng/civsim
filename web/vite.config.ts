@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import typegpu from "unplugin-typegpu/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -20,9 +21,13 @@ const isolationHeaders = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), typegpu()],
   resolve: {
     alias: [
+      {
+        find: /^typegpu$/,
+        replacement: fileURLToPath(new URL("./node_modules/typegpu/index.js", import.meta.url)),
+      },
       // The renderer lab is a development surface and must not be resolved or bundled by Vercel.
       ...(process.env.VERCEL
         ? [

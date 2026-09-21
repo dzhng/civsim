@@ -1,0 +1,285 @@
+{
+  "scope": "Correctness only; CPU implementation may overlap. Timings are not performance evidence.",
+  "valid": true,
+  "first": {
+    "status": {
+      "phase": "running",
+      "scenario": {
+        "id": "generated-seven-heavy-combat",
+        "version": 1,
+        "simSeed": 1592639710,
+        "mapSeed": "7",
+        "armySource": "generated-default",
+        "orders": "player-nearest-enemy-at-tick-zero",
+        "startTick": 12000,
+        "durationMs": 300000,
+        "cameraScript": "contact-9000-v2"
+      },
+      "preparationMs": 178414.90999999642,
+      "elapsedMs": 33.33499999999185,
+      "startTick": 12000,
+      "tick": 12000,
+      "reason": null
+    },
+    "scope": {
+      "measurement": "renderer-only",
+      "simulation": "held",
+      "tick": 12000,
+      "initialStateHash": "17530755159512483058",
+      "finalStateHash": "17530755159512483058"
+    },
+    "kind": "battle-benchmark-renderer-only",
+    "hash": "17530755159512483058",
+    "clock": {
+      "alpha": 0,
+      "paused": false,
+      "frozen": false
+    },
+    "frame": {
+      "frameId": 10459,
+      "timestampMs": 179221.335,
+      "intervalMs": 33.33499999999185,
+      "ready": true,
+      "simTick": 12000,
+      "ticksAdvanced": 0,
+      "simCpuMs": 43.90016666650772,
+      "renderCpuMs": 13.150000005960464,
+      "renderAwaitMs": 14.474999994039536,
+      "renderWallMs": 16.615000009536743,
+      "loopCpuMs": 13.304999977350235,
+      "renderer": {
+        "renderedFrameId": 5,
+        "gpuSubmission": {
+          "submissionId": 85,
+          "backend": "typegpu",
+          "source": "battle-draw"
+        },
+        "skippedFrozenFrame": false,
+        "buildMs": 2.209999978542328,
+        "uploadMs": 8.01000002026558,
+        "drawMs": 0.7849999964237213,
+        "frameCpuMs": 11.014999985694885
+      }
+    },
+    "camera": {
+      "center": [
+        75.0002219151775,
+        -119.9997780848225
+      ],
+      "distance": 200.00000054171505,
+      "yaw": -1.56999822467858,
+      "pitch": 0.6499992602827417
+    }
+  },
+  "second": {
+    "status": {
+      "phase": "running",
+      "scenario": {
+        "id": "generated-seven-heavy-combat",
+        "version": 1,
+        "simSeed": 1592639710,
+        "mapSeed": "7",
+        "armySource": "generated-default",
+        "orders": "player-nearest-enemy-at-tick-zero",
+        "startTick": 12000,
+        "durationMs": 300000,
+        "cameraScript": "contact-9000-v2"
+      },
+      "preparationMs": 178414.90999999642,
+      "elapsedMs": 15032.734999999986,
+      "startTick": 12000,
+      "tick": 12000,
+      "reason": null
+    },
+    "scope": {
+      "measurement": "renderer-only",
+      "simulation": "held",
+      "tick": 12000,
+      "initialStateHash": "17530755159512483058",
+      "finalStateHash": "17530755159512483058"
+    },
+    "kind": "battle-benchmark-renderer-only",
+    "hash": "17530755159512483058",
+    "clock": {
+      "alpha": 0,
+      "paused": false,
+      "frozen": false
+    },
+    "frame": {
+      "frameId": 10906,
+      "timestampMs": 194220.735,
+      "intervalMs": 33.329999999987194,
+      "ready": true,
+      "simTick": 12000,
+      "ticksAdvanced": 0,
+      "simCpuMs": 43.90016666650772,
+      "renderCpuMs": 5.729999989271164,
+      "renderAwaitMs": 23.959999978542328,
+      "renderWallMs": 25.209999978542328,
+      "loopCpuMs": 5.854999989271164,
+      "renderer": {
+        "renderedFrameId": 452,
+        "gpuSubmission": {
+          "submissionId": 1426,
+          "backend": "typegpu",
+          "source": "battle-draw"
+        },
+        "skippedFrozenFrame": false,
+        "buildMs": 0.3199999928474426,
+        "uploadMs": 3.7850000262260437,
+        "drawMs": 0.375,
+        "frameCpuMs": 4.485000014305115
+      }
+    },
+    "camera": {
+      "center": [
+        89.99964332626838,
+        -104.99992866525368
+      ],
+      "distance": 175.00038367517163,
+      "yaw": -1.4500017120339117,
+      "pitch": 0.6000007133474632
+    }
+  },
+  "cancelled": {
+    "status": {
+      "phase": "cancelled",
+      "scenario": {
+        "id": "generated-seven-heavy-combat",
+        "version": 1,
+        "simSeed": 1592639710,
+        "mapSeed": "7",
+        "armySource": "generated-default",
+        "orders": "player-nearest-enemy-at-tick-zero",
+        "startTick": 12000,
+        "durationMs": 300000,
+        "cameraScript": "contact-9000-v2"
+      },
+      "preparationMs": 178414.90999999642,
+      "elapsedMs": 15736.040000021458,
+      "startTick": 12000,
+      "tick": 12000,
+      "reason": "Cancelled — partial run"
+    },
+    "scope": {
+      "measurement": "renderer-only",
+      "simulation": "held",
+      "tick": 12000,
+      "initialStateHash": "17530755159512483058",
+      "finalStateHash": "17530755159512483058"
+    },
+    "kind": "battle-benchmark-renderer-only",
+    "hash": "17530755159512483058",
+    "clock": {
+      "alpha": 0,
+      "paused": false,
+      "frozen": false
+    },
+    "frame": {
+      "frameId": 10911,
+      "timestampMs": 194370.73,
+      "intervalMs": 16.66500000000815,
+      "ready": true,
+      "simTick": 12000,
+      "ticksAdvanced": 0,
+      "simCpuMs": 43.90016666650772,
+      "renderCpuMs": 5.53999999165535,
+      "renderAwaitMs": 6.659999996423721,
+      "renderWallMs": 7.869999974966049,
+      "loopCpuMs": 5.6150000393390656,
+      "renderer": {
+        "renderedFrameId": 457,
+        "gpuSubmission": {
+          "submissionId": 1441,
+          "backend": "typegpu",
+          "source": "battle-draw"
+        },
+        "skippedFrozenFrame": false,
+        "buildMs": 0.32499998807907104,
+        "uploadMs": 3.6800000369548798,
+        "drawMs": 0.3199999928474426,
+        "frameCpuMs": 4.330000013113022
+      }
+    },
+    "camera": {
+      "center": [
+        89.98896030682462,
+        -104.99779206136492
+      ],
+      "distance": 175.01545554338145,
+      "yaw": -1.4500529905272417,
+      "pitch": 0.6000220793863508
+    }
+  },
+  "after": {
+    "status": {
+      "phase": "cancelled",
+      "scenario": {
+        "id": "generated-seven-heavy-combat",
+        "version": 1,
+        "simSeed": 1592639710,
+        "mapSeed": "7",
+        "armySource": "generated-default",
+        "orders": "player-nearest-enemy-at-tick-zero",
+        "startTick": 12000,
+        "durationMs": 300000,
+        "cameraScript": "contact-9000-v2"
+      },
+      "preparationMs": 178414.90999999642,
+      "elapsedMs": 15736.040000021458,
+      "startTick": 12000,
+      "tick": 12000,
+      "reason": "Cancelled — partial run"
+    },
+    "scope": {
+      "measurement": "renderer-only",
+      "simulation": "held",
+      "tick": 12000,
+      "initialStateHash": "17530755159512483058",
+      "finalStateHash": "17530755159512483058"
+    },
+    "kind": "battle-benchmark-renderer-only",
+    "hash": "17530755159512483058",
+    "clock": {
+      "alpha": 0,
+      "paused": false,
+      "frozen": false
+    },
+    "frame": {
+      "frameId": 10912,
+      "timestampMs": 194920.705,
+      "intervalMs": 549.9749999999767,
+      "ready": true,
+      "simTick": 12000,
+      "ticksAdvanced": 0,
+      "simCpuMs": 43.90016666650772,
+      "renderCpuMs": 5.914999961853027,
+      "renderAwaitMs": 11.805000007152557,
+      "renderWallMs": 13.219999998807907,
+      "loopCpuMs": 6.0849999487400055,
+      "renderer": {
+        "renderedFrameId": 458,
+        "gpuSubmission": {
+          "submissionId": 1444,
+          "backend": "typegpu",
+          "source": "battle-draw"
+        },
+        "skippedFrozenFrame": false,
+        "buildMs": 0.33500000834465027,
+        "uploadMs": 3.754999965429306,
+        "drawMs": 0.4000000059604645,
+        "frameCpuMs": 4.499999970197678
+      }
+    },
+    "camera": {
+      "center": [
+        89.98896030682462,
+        -104.99779206136492
+      ],
+      "distance": 175.01545554338145,
+      "yaw": -1.4500529905272417,
+      "pitch": 0.6000220793863508
+    }
+  },
+  "errors": []
+}

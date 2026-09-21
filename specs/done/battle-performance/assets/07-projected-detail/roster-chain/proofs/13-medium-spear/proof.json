@@ -1,0 +1,182 @@
+{
+  "id": 13,
+  "name": "medium-spear",
+  "selection": {
+    "unitClass": 13,
+    "state": "primary"
+  },
+  "pass": true,
+  "failures": [],
+  "catalogEntry": "/@fs/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/appearances/13-medium-spear/appearance.json",
+  "productionAppearance": "/Users/david/dev/game-battle-lod-prototypes/web/public/assets/soldiers/appearances/medium-spear/45f3aa3d1d591b58",
+  "source": {
+    "key": "medium-spear",
+    "blend": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/medium-spear/medium-spear.blend",
+    "body": "medium-spear-Deform",
+    "scene": "FootVariant-medium-spear",
+    "sha256": "5f8ddf97979b1d029b5c8326cffe20dbc930589173ed4c368ad97378b6f89d71",
+    "savedSourceRecordSha256": "5f8ddf97979b1d029b5c8326cffe20dbc930589173ed4c368ad97378b6f89d71",
+    "triangles": 127000,
+    "vertices": 63532
+  },
+  "candidate": {
+    "mode": "reduce",
+    "glb": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/medium-spear/near.glb",
+    "reduction": {
+      "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/medium-spear/medium-spear.blend",
+      "sourceSha256": "5f8ddf97979b1d029b5c8326cffe20dbc930589173ed4c368ad97378b6f89d71",
+      "tiers": [
+        {
+          "name": "near",
+          "targetTriangles": 4000,
+          "sourceTriangles": 127000,
+          "triangles": 3952,
+          "omittedBelowMetres": 0,
+          "retainedIslandTriangleFloor": 12,
+          "glbSha256": "1a4790daf82966713ad620c60ada4a87070ab76037de5c0e25c93178d8e06b86"
+        }
+      ]
+    }
+  },
+  "tiers": [
+    {
+      "role": "original near",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/medium-spear/lods/near.glb",
+      "sha256": "7ccdd6c027bc1690f073686720a91c7acc2ebc7968cbd5e9e81c74a0fb4e08f4",
+      "glb": {
+        "triangles": 7962,
+        "vertices": 8157,
+        "primitives": 7
+      },
+      "mesh": {
+        "triangles": 7962,
+        "vertices": 8157
+      }
+    },
+    {
+      "role": "candidate 4k",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/reductions/medium-spear/near.glb",
+      "sha256": "1a4790daf82966713ad620c60ada4a87070ab76037de5c0e25c93178d8e06b86",
+      "glb": {
+        "triangles": 3952,
+        "vertices": 4828,
+        "primitives": 7
+      },
+      "mesh": {
+        "triangles": 3952,
+        "vertices": 4828
+      }
+    },
+    {
+      "role": "original mid",
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/medium-spear/lods/mid.glb",
+      "sha256": "8adb01ae31958f369c53e721bfffdc4941fa175db445c5ee8338280814866396",
+      "glb": {
+        "triangles": 986,
+        "vertices": 1810,
+        "primitives": 7
+      },
+      "mesh": {
+        "triangles": 986,
+        "vertices": 1810
+      }
+    }
+  ],
+  "productionTier1Mesh": {
+    "triangles": 986,
+    "vertices": 1810
+  },
+  "identity": [
+    {
+      "candidate": "skeleton.json",
+      "production": "skeleton.json",
+      "equal": true,
+      "sha256": "9e7a924aee785a4276186db2a08bacbec053ae53d63bfa6266957442d1115573"
+    },
+    {
+      "candidate": "animation.json",
+      "production": "animation.json",
+      "equal": true,
+      "sha256": "91017d4582d82fc0aa06af170688f76b22cb9fe2306c70c0529fe6d6d1f475b2"
+    },
+    {
+      "candidate": "materials.json",
+      "production": "materials.json",
+      "equal": true,
+      "sha256": "84c11c5b4f038e852e7a00e233b488f9fa0f50cd0805bf2c04d69492fb374c0c"
+    },
+    {
+      "candidate": "tier-0.mesh.json",
+      "production": "tier-0.mesh.json",
+      "equal": true,
+      "sha256": "fd623b9b7f411bab64120d97fd7ae7d0a3fd9d0e61dbebf5d7c00e4ceca20617"
+    },
+    {
+      "candidate": "tier-2.mesh.json",
+      "production": "tier-1.mesh.json",
+      "equal": true,
+      "sha256": "ba14f54f14723105578d6fca6555f036d1bf6ca8a52140bc487f967ca40f3a3c"
+    },
+    {
+      "candidate": "source/tier-0.glb",
+      "production": "source/tier-0.glb",
+      "equal": true,
+      "sha256": "7ccdd6c027bc1690f073686720a91c7acc2ebc7968cbd5e9e81c74a0fb4e08f4"
+    },
+    {
+      "candidate": "source/tier-2.glb",
+      "production": "source/tier-1.glb",
+      "equal": true,
+      "sha256": "8adb01ae31958f369c53e721bfffdc4941fa175db445c5ee8338280814866396"
+    },
+    {
+      "candidate": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "production": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
+      "equal": true,
+      "sha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1"
+    },
+    {
+      "candidate": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "production": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
+      "equal": true,
+      "sha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb"
+    },
+    {
+      "candidate": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "production": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
+      "equal": true,
+      "sha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765"
+    }
+  ],
+  "appearanceJson": {
+    "differingFields": [],
+    "bounds": {
+      "candidate": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 3.7193105220794678
+      },
+      "production": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "radius": 3.7193105220794678
+      }
+    },
+    "far": {
+      "mesh": "tier-0.mesh.json",
+      "clip": "ready",
+      "phase": 0
+    }
+  },
+  "lodContract": {
+    "log": "/Users/david/dev/game-battle-lod-prototypes/throwaway/roster-4k-chain/logs/invariants/medium-spear.log",
+    "pass": true,
+    "result": "{\"triangles\":[7962,3952,986],\"clips\":[\"bend\",\"bend-pronation\",\"death\",\"guarded-backward-walk\",\"guarded-left-walk\",\"guarded-right-walk\",\"hit\",\"idle\",\"pronation\",\"ready\",\"run\",\"spear-effort\",\"walk\"],\"invariant\":\"exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export\"}"
+  }
+}

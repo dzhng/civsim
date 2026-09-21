@@ -1,0 +1,170 @@
+[
+  {
+    "samples": 1,
+    "label": "tactical-plain",
+    "actual": {
+      "shadowEffect": {
+        "changed": 19047,
+        "max": 72,
+        "rmse": 3.170053645020016
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    },
+    "expected": {
+      "shadowEffect": {
+        "changed": 14759,
+        "max": 72,
+        "rmse": 2.6196177369885247
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    }
+  },
+  {
+    "samples": 1,
+    "label": "tactical-repeat-plain",
+    "actual": {
+      "shadowEffect": {
+        "changed": 19047,
+        "max": 72,
+        "rmse": 3.170081723159581
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    },
+    "expected": {
+      "shadowEffect": {
+        "changed": 19049,
+        "max": 72,
+        "rmse": 3.1700651437167635
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    }
+  },
+  {
+    "samples": 1,
+    "label": "horizon-plain",
+    "actual": {
+      "shadowEffect": {
+        "changed": 2538,
+        "max": 70,
+        "rmse": 1.1531717834814907
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    },
+    "expected": {
+      "shadowEffect": {
+        "changed": 2538,
+        "max": 70,
+        "rmse": 1.1531864856292848
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    }
+  },
+  {
+    "samples": 4,
+    "label": "tactical-plain",
+    "actual": {
+      "shadowEffect": {
+        "changed": 19673,
+        "max": 54,
+        "rmse": 3.1480664543904853
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    },
+    "expected": {
+      "shadowEffect": {
+        "changed": 15480,
+        "max": 54,
+        "rmse": 2.5687347073394986
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    }
+  },
+  {
+    "samples": 4,
+    "label": "tactical-repeat-plain",
+    "actual": {
+      "shadowEffect": {
+        "changed": 19673,
+        "max": 54,
+        "rmse": 3.1480664543904853
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    },
+    "expected": {
+      "shadowEffect": {
+        "changed": 19674,
+        "max": 54,
+        "rmse": 3.1480544714194307
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    }
+  },
+  {
+    "samples": 4,
+    "label": "horizon-plain",
+    "actual": {
+      "shadowEffect": {
+        "changed": 2837,
+        "max": 64,
+        "rmse": 1.1373137045534554
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    },
+    "expected": {
+      "shadowEffect": {
+        "changed": 2837,
+        "max": 64,
+        "rmse": 1.1373260029612084
+      },
+      "unchangedOff": {
+        "changed": 0,
+        "max": 0,
+        "rmse": 0
+      }
+    }
+  }
+]

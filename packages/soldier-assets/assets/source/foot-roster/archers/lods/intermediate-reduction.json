@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/archers/archers.blend",
+  "sourceSha256": "bab7443ad2450e830a5f2294405fb176b10ec6bb6f3d0ada395bc46fb42ef049",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 94036,
+      "triangles": 3959,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "b3715107e89b6300ed153633eb6726009aa810677d22090ab744e3c9ec2fb772"
+    }
+  ]
+}

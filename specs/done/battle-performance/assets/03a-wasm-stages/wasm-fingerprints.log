@@ -1,0 +1,8 @@
+(node:74050) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-performance-spec/packages/game-renderer/src/battle/unitInfoLayout.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-performance-spec/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"tick":0,"hash":"1610507740289060947","alive":15560,"engaged":0,"projectiles":0,"victor":-1}
+{"tick":1,"hash":"8204592236405777275","alive":15560,"engaged":0,"projectiles":0,"victor":-1}
+{"tick":30,"hash":"16188545925158140204","alive":15560,"engaged":0,"projectiles":0,"victor":-1}
+{"tick":300,"hash":"15867982621099641832","alive":15560,"engaged":0,"projectiles":0,"victor":-1}

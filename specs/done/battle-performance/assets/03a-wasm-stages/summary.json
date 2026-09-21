@@ -1,0 +1,141 @@
+{
+  "prepared": {
+    "tick": 9000,
+    "hash": "9928381812590497427",
+    "alive": 15529,
+    "engaged": 540,
+    "projectiles": 70,
+    "victor": -1
+  },
+  "final": {
+    "tick": 9308,
+    "hash": "13217042291758616190",
+    "alive": 15488,
+    "engaged": 1005,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "summary": {
+    "batchTicks": 1,
+    "batchCount": 308,
+    "averageBatchMs": 29.368257324675024,
+    "p95BatchMs": 34.618542000011075,
+    "averageTickMs": 29.368257324675024,
+    "minBatchMs": 25.801040999998804,
+    "maxBatchMs": 40.149583000005805
+  },
+  "identity": {
+    "node": "v24.14.0",
+    "v8": "13.6.233.17-node.41",
+    "execArgv": [],
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5 Pro",
+    "loadAverage": [
+      5.6552734375,
+      4.88427734375,
+      4.43798828125
+    ],
+    "wasmBytes": 1098765,
+    "wasmSha256": "41e9f71c97956db1e5e5deed082318994a22367998a54c47d79d95b05ee06905",
+    "productionBuildCommandForReference": "CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 RUSTFLAGS='-C target-feature=+simd128' wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
+    "cargoProfile": "[workspace]\nmembers = [\"crates/contract\", \"crates/sim\", \"crates/game-wasm\", \"crates/mapgen\", \"crates/campaign\"]\nresolver = \"2\"\n\n[profile.release]\nopt-level = 3\nlto = \"thin\"\n\n# Tests simulate minutes of battle at 30Hz: optimize them. (IEEE float\n# semantics are opt-level-independent in Rust, so the golden hash holds.)\n[profile.test]\nopt-level = 2\n"
+  },
+  "stages": [
+    [
+      "combat resolution",
+      0.4295758896465935
+    ],
+    [
+      "combat targeting",
+      13.306705181781581
+    ],
+    [
+      "commander AI",
+      5.6055194528942757e-05
+    ],
+    [
+      "contact_facing",
+      0.000461454545429306
+    ],
+    [
+      "displacement",
+      0.04434550000011071
+    ],
+    [
+      "integrate_units",
+      0.0034998636359202242
+    ],
+    [
+      "kinematics",
+      0.02574010714306496
+    ],
+    [
+      "mark_at_ease",
+      0.00759321428593868
+    ],
+    [
+      "missiles",
+      0.009027613636985793
+    ],
+    [
+      "morale",
+      0.07690937337681973
+    ],
+    [
+      "navigate_units",
+      0.009437915584964107
+    ],
+    [
+      "orders and reflexes",
+      0.020303587662764785
+    ],
+    [
+      "reform_slots",
+      0.007835808441582643
+    ],
+    [
+      "separation body pairs",
+      2.0880656298704943
+    ],
+    [
+      "separation momentum",
+      0.023263097402566737
+    ],
+    [
+      "separation projection",
+      6.027139087662552
+    ],
+    [
+      "separation setup",
+      0.1772174123381136
+    ],
+    [
+      "separation walls",
+      0.061532191557914784
+    ],
+    [
+      "separation weapon repel",
+      2.972341272727064
+    ],
+    [
+      "slide_halted_frames",
+      0.0003928701301553595
+    ],
+    [
+      "steer precompute_unit",
+      0.4676877564936574
+    ],
+    [
+      "steer_soldiers",
+      3.573073191558381
+    ],
+    [
+      "unit motion",
+      0.004462961038607082
+    ]
+  ],
+  "artifactUnchanged": true,
+  "intermediateHash9300": "6696754498600804919",
+  "scope": "Diagnostic attribution, not browser acceptance. Stages include instrumentation effects."
+}

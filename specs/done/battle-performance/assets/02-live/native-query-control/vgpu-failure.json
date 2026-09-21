@@ -1,0 +1,208 @@
+{
+  "scope": "Instrumented frozen-state hardware correctness control; no overhead timing or motion verdict",
+  "checks": [
+    {
+      "name": "vgpu/enabled completed",
+      "ok": false,
+      "detail": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded."
+    },
+    {
+      "name": "vgpu/disabled completed",
+      "ok": false,
+      "detail": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded."
+    }
+  ],
+  "pixelDiagnostics": [],
+  "rows": [
+    {
+      "backend": "vgpu",
+      "mode": "enabled",
+      "error": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded.",
+      "errors": [],
+      "diagnostic": {
+        "ready": false,
+        "trace": {
+          "features": [
+            [
+              "timestamp-query"
+            ]
+          ],
+          "querySets": 0,
+          "queryBuffers": 0,
+          "timestampWrites": 0,
+          "resolves": 0,
+          "maps": 0,
+          "submits": 2
+        },
+        "text": "Menu\nloading wasm…\nSkirmishers\nSkirmishers\nHeavy Sword\nHeavy Phalanx\nHeavy Sword\nHeavy Phalanx\nHeavy Sword\nLight Spear\nHeavy Sword\nLong Swords\nHeavy Sword\nLight Spear\nArchers\nLight Spear\nArchers\nArchers\nArtillery Crew\nShock Cavalry\nShock Cavalry\nHorse Archers\nWebGPU failed to start\nVGPU-MESH-ATTRIBUTE-UNMATCHED: Geometry attribute 'n' has no shader input.\nReload",
+        "stats": {
+          "soldiers": 15560,
+          "units": 40,
+          "tickMs": 0,
+          "audioUpdateMs": 0,
+          "fps": 60,
+          "clock": {
+            "alpha": 0,
+            "paused": true,
+            "frozen": true
+          },
+          "victor": -1,
+          "renderer": "gpu",
+          "renderStats": {
+            "ready": false,
+            "soldiers": 0,
+            "renderer": "gpu",
+            "device": "apple metal-3",
+            "backend": "vgpu",
+            "performance": {
+              "buildMs": 0,
+              "uploadMs": 0,
+              "drawMs": 0,
+              "frameCpuMs": 0,
+              "gpuTimeMs": null
+            },
+            "native": null,
+            "submission": {
+              "actualQueueSubmissions": 2,
+              "readinessSubmissions": 0,
+              "latest": null
+            },
+            "gpuTiming": {
+              "supported": true,
+              "timingQueries": "enabled",
+              "availability": "available",
+              "submissionCount": 2,
+              "outsideSubmissionPasses": 33,
+              "querySlots": 0,
+              "busyQuerySlots": 0
+            },
+            "labBuild": {
+              "backend": "vgpu",
+              "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+              "timingQueries": "enabled",
+              "scope": "compile-time default: this observer's timestamp queries, resolve/copy submission and readback are active"
+            },
+            "allocations": {
+              "scope": "requested buffer and texture bytes, including telemetry; not physical VRAM",
+              "buffers": {
+                "liveCount": 0,
+                "createdCount": 38,
+                "currentBytes": 0,
+                "peakBytes": 4918676,
+                "unknownCount": 0
+              },
+              "textures": {
+                "liveCount": 0,
+                "createdCount": 22,
+                "currentBytes": 0,
+                "peakBytes": 112470920,
+                "unknownCount": 0
+              },
+              "currentBytes": 0,
+              "peakBytes": 117389596
+            },
+            "cpuCoverage": "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+            "picking": {
+              "triangles": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "backend": "vgpu",
+      "mode": "disabled",
+      "error": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded.",
+      "errors": [],
+      "diagnostic": {
+        "ready": false,
+        "trace": {
+          "features": [
+            [
+              "timestamp-query"
+            ]
+          ],
+          "querySets": 0,
+          "queryBuffers": 0,
+          "timestampWrites": 0,
+          "resolves": 0,
+          "maps": 0,
+          "submits": 2
+        },
+        "text": "Menu\nloading wasm…\nSkirmishers\nSkirmishers\nHeavy Sword\nHeavy Phalanx\nHeavy Sword\nHeavy Phalanx\nHeavy Sword\nLight Spear\nHeavy Sword\nLong Swords\nHeavy Sword\nLight Spear\nArchers\nLight Spear\nArchers\nArchers\nArtillery Crew\nShock Cavalry\nShock Cavalry\nHorse Archers\nWebGPU failed to start\nVGPU-MESH-ATTRIBUTE-UNMATCHED: Geometry attribute 'n' has no shader input.\nReload",
+        "stats": {
+          "soldiers": 15560,
+          "units": 40,
+          "tickMs": 0,
+          "audioUpdateMs": 0,
+          "fps": 60,
+          "clock": {
+            "alpha": 0,
+            "paused": true,
+            "frozen": true
+          },
+          "victor": -1,
+          "renderer": "gpu",
+          "renderStats": {
+            "ready": false,
+            "soldiers": 0,
+            "renderer": "gpu",
+            "device": "apple metal-3",
+            "backend": "vgpu",
+            "performance": {
+              "buildMs": 0,
+              "uploadMs": 0,
+              "drawMs": 0,
+              "frameCpuMs": 0,
+              "gpuTimeMs": null
+            },
+            "native": null,
+            "submission": {
+              "actualQueueSubmissions": 2,
+              "readinessSubmissions": 0,
+              "latest": null
+            },
+            "gpuTiming": {
+              "supported": false,
+              "timingQueries": "disabled",
+              "availability": "disabled-by-lab-control",
+              "submissionCount": 2,
+              "outsideSubmissionPasses": 0,
+              "querySlots": 0,
+              "busyQuerySlots": 0
+            },
+            "labBuild": {
+              "backend": "vgpu",
+              "timingQueryFlag": "BATTLE_NATIVE_TIMING_QUERIES",
+              "timingQueries": "disabled",
+              "scope": "compile-time control: no timestamp query sets, no injected timestampWrites, no query resolve/copy submission and no timestamp readback; GPU timing is unavailable, never zero. CPU submission observation, admission scopes, device features and drawing are unchanged, so this is an incremental query/readback overhead control, not an uninstrumented renderer"
+            },
+            "allocations": {
+              "scope": "requested buffer and texture bytes, including telemetry; not physical VRAM",
+              "buffers": {
+                "liveCount": 0,
+                "createdCount": 38,
+                "currentBytes": 0,
+                "peakBytes": 4918676,
+                "unknownCount": 0
+              },
+              "textures": {
+                "liveCount": 0,
+                "createdCount": 22,
+                "currentBytes": 0,
+                "peakBytes": 112470920,
+                "unknownCount": 0
+              },
+              "currentBytes": 0,
+              "peakBytes": 117389596
+            },
+            "cpuCoverage": "measured synchronous API calls and instance packing; asynchronous continuations are not CPU-profiled",
+            "picking": {
+              "triangles": 0
+            }
+          }
+        }
+      }
+    }
+  ]
+}

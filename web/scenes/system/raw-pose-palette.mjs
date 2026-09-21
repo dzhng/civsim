@@ -51,7 +51,7 @@ export async function run(ctx) {
           rig,
           animation: bakeLocalAnimation(rig),
           manifest,
-          tiers: [mesh, mesh, mesh],
+          tiers: manifest.tiers.map(() => mesh),
           farMesh: mesh,
           surface: {
             textures: {},
@@ -275,7 +275,7 @@ export async function run(ctx) {
               ...bundle,
               rig: identityRig,
               animation: bakeLocalAnimation(identityRig),
-              tiers: [posedMesh, posedMesh, posedMesh],
+              tiers: bundle.tiers.map(() => posedMesh),
             };
             inputs.push({ ...instance, ...placement, classId: item, clip: "static" });
           });

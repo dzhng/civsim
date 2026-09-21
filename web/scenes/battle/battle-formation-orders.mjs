@@ -39,11 +39,11 @@ export async function run(ctx) {
     await page.mouse.move(...setup.points[1], { steps: 6 });
     await page.mouse.up({ button: "right" });
     const result = await page.evaluate(
-      ({ ally, info }) => {
+      async ({ ally, info }) => {
         const g = window.__game;
         // Let the unselected unit reach the group's approach point, then deliver
         // its final attack; renderer timing is irrelevant to this order-state check.
-        for (let i = 0; i < 40; i++) g.advance(60);
+        for (let i = 0; i < 40; i++) await g.advance(60);
         return { selected: g.unitInfo(0)[info.mode], other: g.unitInfo(ally)[info.mode] };
       },
       { ally: setup.ally, info: UNIT_INFO },

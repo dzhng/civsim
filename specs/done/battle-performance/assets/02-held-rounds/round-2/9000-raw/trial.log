@@ -1,0 +1,22 @@
+PASS  battle-benchmark-complete: entire live window completed
+PASS  battle-benchmark-complete: timing starts at the canonical tick
+PASS  battle-benchmark-complete: canonical contact state
+PASS  battle-benchmark-complete: report declares a renderer-only held simulation
+PASS  battle-benchmark-complete: simulation stayed exactly at the held state
+PASS  battle-benchmark-complete: all camera phases recorded
+PASS  battle-benchmark-complete: camera reached near wide and horizon views
+PASS  battle-benchmark-complete: every recorded callback submitted a new primary frame
+PASS  battle-benchmark-complete: recorded interval total agrees with run clock
+PASS  battle-benchmark-complete: result actions remain inside the initial viewport
+PASS  battle-benchmark-complete: export retains the full raw recording
+PASS  runner: no page errors
+
+ALL CHECKS PASSED
+scenarioReport=throwaway/held-fixed/round-2/9000-raw/scenario-report.json
+held-9000-raw-round-2: complete (renderer-only); functional=true quiet-rankable=false; archived in /Users/david/dev/game-battle-performance-spec/throwaway/held-fixed/round-2/9000-raw
+  periodic observation at 2026-09-19T12:30:49.471Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 29.6% cannot be split between this trial and anything else
+  periodic observation at 2026-09-19T12:31:49.487Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 28% cannot be split between this trial and anything else
+  periodic observation at 2026-09-19T12:32:49.524Z: shared system process(es) /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer 27.3% cannot be split between this trial and anything else
+  1 further unattributable observation(s)
+  periodic observation at 2026-09-19T12:33:49.563Z was not quiet (busiest other process 94.4%, load 3.70166015625)
+  periodic observation at 2026-09-19T12:34:49.601Z was not quiet (busiest other process 60.4%, load 3.3447265625)

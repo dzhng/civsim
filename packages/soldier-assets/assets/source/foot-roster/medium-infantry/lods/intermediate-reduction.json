@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/medium-infantry/medium-infantry.blend",
+  "sourceSha256": "6cb754d4b8cad20dbabf22f27b1cb53a23d73b14b6c2d827c406fb8375c71264",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 127196,
+      "triangles": 3960,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "216bbabab2510c49496d850b612347812b0a2ee78af9a3c7e3974b8fec39c287"
+    }
+  ]
+}

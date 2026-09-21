@@ -1,5 +1,7 @@
+import type { BattleCrowdPresentation } from "./battlePresentation";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import {
+  ACTION_TICK_SECONDS,
   ActionTimeline,
   type ActionObservation,
   type SoldierPlayback,
@@ -30,6 +32,7 @@ export class BattleCrowd {
   private readonly adapter: BattleActionAdapter;
   private timeline: ActionTimeline | null = null;
   private catalog: Record<number, AppearanceBundle> | null = null;
+  private heldReplaySeconds: number | null = null;
   private alive = new Float32Array(0);
   private renderPositions = new Float32Array(0);
   private renderFacings = new Float32Array(0);
@@ -40,6 +43,7 @@ export class BattleCrowd {
   private weapons = new Uint8Array(0);
   private units = new Uint32Array(0);
   private observations: readonly ActionObservation[] = [];
+  private catalogReplaced = false;
   get presented(): PresentedSoldiers {
     return { positions: this.renderPositions, alive: this.alive, units: this.units };
   }
@@ -51,45 +55,101 @@ export class BattleCrowd {
     private world: BattleWorld,
     private presentation: BattleUnitPresentation,
   ) {
-    this.adapter = new BattleActionAdapter(world.game, world.memory);
+    this.adapter = new BattleActionAdapter(world.sim.observations);
   }
 
-  draw(
-    simTick: number,
+  /** Consume one completed tick. This runs as the publication lands, not when a
+   * frame is drawn, so a skipped draw never skips a release, a death or a weapon
+   * switch: the timeline still sees every tick's transitions in order. */
+  observeTick(tick: number): void {
+    // Before the soldier catalog exists there is no timeline to carry a
+    // transition into, and nothing is on screen for one to be missed from.
+    if (!this.readyCatalog()) return;
+    this.consume(tick);
+  }
+
+  /** Sample the observed ticks at a presentation time the camera loop chooses. */
+  prepare(
+    renderTick: number,
     frozen: boolean,
-    alpha: number,
     frameDt: number,
     selectedUnits: number[],
-  ): void {
+  ): BattleCrowdPresentation | null {
+    if (!this.sampleable()) return null;
+    const tick = Math.max(this.left!.tick, frozen ? this.right!.tick : renderTick);
+    return this.build(tick, tick, frozen, frameDt, selectedUnits);
+  }
+
+  /** Renderer-only benchmark presentation of a held authority. Bodies, life and
+   * weapons stay exactly on the newest completed tick; only actions play on. The
+   * timeline clamps one-shot clips at their end and no new tick restarts them, so
+   * the held interval replays once the catalog's longest one-shot could finish. */
+  prepareHeld(
+    elapsedSeconds: number,
+    frameDt: number,
+    selectedUnits: number[],
+  ): BattleCrowdPresentation | null {
+    if (!this.sampleable()) return null;
+    this.heldReplaySeconds ??= longestOneShotSeconds(this.catalog!);
+    const endpoint = this.right!.tick;
+    const replay = (elapsedSeconds % this.heldReplaySeconds) / ACTION_TICK_SECONDS;
+    return this.build(endpoint, endpoint + replay, false, frameDt, selectedUnits);
+  }
+
+  private sampleable(): boolean {
+    if (!this.readyCatalog()) return false;
+    // A catalog that arrived between ticks, or a first frame before any tick was
+    // consumed, still needs the newest completed tick before it can be sampled.
+    if (this.catalogReplaced || !this.left) this.consume(this.world.sim.tick());
+    return this.left !== null;
+  }
+
+  private build(
+    bodyTick: number,
+    poseTick: number,
+    frozen: boolean,
+    frameDt: number,
+    selectedUnits: number[],
+  ): BattleCrowdPresentation {
+    const playback: SoldierPlayback[] = this.timeline!.sample(poseTick);
+    this.present(bodyTick);
+    const labels = this.presentation.build(selectedUnits, this.unitInfo);
+    return {
+      positions: this.renderPositions,
+      facings: this.renderFacings,
+      playback,
+      alive: this.alive,
+      count: this.observations.length,
+      observationTick: this.right!.tick,
+      frameDt,
+      ...labels,
+      triangles: this.attackArcs(frozen),
+    };
+  }
+
+  /** An accepted catalog replacement cannot blend samples across different rigs. */
+  private readyCatalog(): boolean {
     const assets = this.world.renderer.soldierAssets;
-    if (!assets) return;
-    const replaced = assets !== this.catalog;
-    if (replaced) {
-      // An accepted catalog replacement cannot blend samples across different rigs.
+    if (!assets) return false;
+    if (assets !== this.catalog) {
       this.catalog = assets;
       this.timeline = new ActionTimeline(assets);
+      this.heldReplaySeconds = null;
+      this.catalogReplaced = true;
     }
-    const { observations, facings } = this.adapter.read(simTick);
+    return true;
+  }
+
+  private consume(tick: number): void {
+    if (tick < 0) return;
+    const replaced = this.catalogReplaced;
+    this.catalogReplaced = false;
+    const { observations, facings } = this.adapter.read(tick);
     if (replaced || observations !== this.observations) {
-      this.timeline!.update(simTick, observations);
-      this.observe(simTick, observations, facings, replaced);
+      this.timeline!.update(tick, observations);
+      this.observe(tick, observations, facings, replaced);
     }
     this.observations = observations;
-    const tick = frozen ? simTick : Math.max(this.left!.tick, simTick - 1 + alpha);
-    const playback: SoldierPlayback[] = this.timeline!.sample(tick);
-    this.present(tick);
-    this.presentation.update(selectedUnits, this.unitInfo);
-    this.world.renderer.draw(
-      this.renderPositions,
-      this.renderFacings,
-      playback,
-      this.alive,
-      observations.length,
-      this.world.camera,
-      simTick,
-      frameDt,
-    );
-    this.drawAttackArcs(frozen);
   }
 
   private observe(
@@ -98,15 +158,15 @@ export class BattleCrowd {
     facings: Float32Array,
     replaced: boolean,
   ): void {
-    const { game, memory } = this.world;
+    const { sim } = this.world;
     const count = observations.length;
     const next: CrowdEndpoint = {
       tick,
       positions: new Float32Array(this.world.positions()),
       facings: new Float32Array(facings),
       observations: observations.map((observation) => ({ ...observation })),
-      units: new Uint32Array(new Uint32Array(memory.buffer, game.soldier_unit_ptr(), count)),
-      weapons: new Uint8Array(new Uint8Array(memory.buffer, game.cur_weapon_ptr(), count)),
+      units: new Uint32Array(sim.soldierUnits().subarray(0, count)),
+      weapons: new Uint8Array(sim.weapons().subarray(0, count)),
       unitInfo: new Float32Array(this.world.unitInfo()),
     };
     const previous = this.right;
@@ -142,7 +202,7 @@ export class BattleCrowd {
     const before = tick < right.tick;
     this.unitInfo.set(right.unitInfo);
     if (before) this.unitInfo.set(left.unitInfo);
-    const unitCount = this.unitInfo.length / this.world.game.unit_info_stride();
+    const unitCount = this.unitInfo.length / this.world.stride;
     this.presentation.beginFrame(unitCount);
     for (let soldier = 0; soldier < right.observations.length; soldier++) {
       const start = soldier < left.observations.length ? left : right;
@@ -173,9 +233,9 @@ export class BattleCrowd {
     this.presentation.finishFrame(unitCount);
   }
 
-  private drawAttackArcs(frozen: boolean): void {
-    const { camera, canvas, renderer, stride } = this.world;
-    if (frozen || camera.zoom <= 2.5) return;
+  private attackArcs(frozen: boolean): Float32Array {
+    const { camera, canvas, stride } = this.world;
+    if (frozen || camera.zoom <= 2.5) return new Float32Array();
     const triangles: number[] = [];
     const positions = this.renderPositions;
     const facings = this.renderFacings;
@@ -229,6 +289,21 @@ export class BattleCrowd {
       }
       budget--;
     }
-    if (triangles.length) renderer.drawTris(new Float32Array(triangles), camera);
+    return new Float32Array(triangles);
   }
+}
+
+function longestOneShotSeconds(catalog: Record<number, AppearanceBundle>): number {
+  const duration = Math.max(
+    0,
+    ...Object.values(catalog).flatMap(({ manifest, animation }) =>
+      Object.values(manifest.presentation?.actions ?? {}).flatMap((action) =>
+        animation.clips
+          .filter((clip) => clip.name === action?.clip && !clip.loop)
+          .map((clip) => clip.duration),
+      ),
+    ),
+  );
+  // Loop-only catalogs need no wrap; their clips already cycle independently.
+  return duration > 0 ? duration : Infinity;
 }

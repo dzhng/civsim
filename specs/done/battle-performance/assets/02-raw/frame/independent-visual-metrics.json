@@ -1,0 +1,144 @@
+[
+  {
+    "folder": "frame-repeat-1",
+    "case": "horizon-bloom-actualRgba",
+    "maeRGB": 0.00049591064453125,
+    "changedRatio": 0.0008265177408854166,
+    "max": 57,
+    "bbox": [
+      5,
+      1,
+      762,
+      502
+    ]
+  },
+  {
+    "folder": "frame-repeat-1",
+    "case": "horizon-plain-actualRgba",
+    "maeRGB": 0.00046539306640625,
+    "changedRatio": 0.0007425944010416666,
+    "max": 58,
+    "bbox": [
+      0,
+      1,
+      762,
+      479
+    ]
+  },
+  {
+    "folder": "frame-repeat-1",
+    "case": "tactical-bloom-actualRgba",
+    "maeRGB": 0.0005357530381944445,
+    "changedRatio": 0.0007349650065104166,
+    "max": 24,
+    "bbox": [
+      4,
+      0,
+      767,
+      439
+    ]
+  },
+  {
+    "folder": "frame-repeat-1",
+    "case": "tactical-plain-actualRgba",
+    "maeRGB": 0.002682156032986111,
+    "changedRatio": 0.0025431315104166665,
+    "max": 36,
+    "bbox": [
+      4,
+      0,
+      767,
+      439
+    ]
+  },
+  {
+    "folder": "frame-repeat-1",
+    "case": "tactical-repeat-bloom-actualRgba",
+    "maeRGB": 0.0005357530381944445,
+    "changedRatio": 0.0007349650065104166,
+    "max": 24,
+    "bbox": [
+      4,
+      0,
+      767,
+      439
+    ]
+  },
+  {
+    "folder": "frame-repeat-1",
+    "case": "tactical-repeat-plain-actualRgba",
+    "maeRGB": 0.0005357530381944445,
+    "changedRatio": 0.0007349650065104166,
+    "max": 24,
+    "bbox": [
+      4,
+      0,
+      767,
+      439
+    ]
+  },
+  {
+    "folder": "frame-compose-4",
+    "case": "horizon-bloom-actualRgba",
+    "maeRGB": 0.00026533338758680556,
+    "changedRatio": 0.00078582763671875,
+    "max": 1,
+    "bbox": [
+      5,
+      1,
+      762,
+      502
+    ]
+  },
+  {
+    "folder": "frame-compose-4",
+    "case": "horizon-plain-actualRgba",
+    "maeRGB": 0.00023905436197916666,
+    "changedRatio": 0.0007120768229166666,
+    "max": 1,
+    "bbox": [
+      0,
+      1,
+      762,
+      479
+    ]
+  },
+  {
+    "folder": "frame-compose-4",
+    "case": "tactical-bloom-actualRgba",
+    "maeRGB": 0.00025770399305555556,
+    "changedRatio": 0.0005671183268229166,
+    "max": 21,
+    "bbox": [
+      4,
+      0,
+      767,
+      439
+    ]
+  },
+  {
+    "folder": "frame-compose-4",
+    "case": "tactical-plain-actualRgba",
+    "maeRGB": 0.00025770399305555556,
+    "changedRatio": 0.0005671183268229166,
+    "max": 21,
+    "bbox": [
+      4,
+      0,
+      767,
+      439
+    ]
+  },
+  {
+    "comparison": "tactical plain vs repeat actual",
+    "maeRGBA": 0.0018768310546875,
+    "changedRatio": 0.00199127197265625,
+    "max": 36,
+    "bbox": [
+      266,
+      166,
+      503,
+      295
+    ]
+  }
+]

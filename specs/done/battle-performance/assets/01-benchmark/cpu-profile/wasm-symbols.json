@@ -1,0 +1,844 @@
+{
+  "kind": "same-binary-cpu-replay",
+  "diagnosticOnly": true,
+  "hostCondition": "Shared host; parent may run GPU diagnostics concurrently. Not a release timing gate.",
+  "createdAt": "2026-09-14T18:57:58.405Z",
+  "source": "/Users/david/dev/game-battle-performance-spec",
+  "identity": {
+    "node": "v24.14.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5 Pro",
+    "loadAverage": [
+      7.52880859375,
+      8.8056640625,
+      9.39892578125
+    ],
+    "wasmBytes": 1172019,
+    "wasmSha256": "7777f996eed3b223fb4e9a23049bbfe4573bbddb8943e5c6f1acd4bf413016f2",
+    "buildCommand": "CARGO_TARGET_DIR=throwaway/profile-target CARGO_PROFILE_RELEASE_OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_PROFILE_RELEASE_DEBUG=1 RUSTFLAGS='-C target-feature=+simd128' wasm-pack build crates/game-wasm --target web --profiling --no-opt --out-dir ../../throwaway/battle-performance/wasm-symbols",
+    "cargoProfile": "[workspace]\nmembers = [\"crates/contract\", \"crates/sim\", \"crates/game-wasm\", \"crates/mapgen\", \"crates/campaign\"]\nresolver = \"2\"\n\n[profile.release]\nopt-level = 3\nlto = \"thin\"\n\n# Tests simulate minutes of battle at 30Hz: optimize them. (IEEE float\n# semantics are opt-level-independent in Rust, so the golden hash holds.)\n[profile.test]\nopt-level = 2\n"
+  },
+  "orders": [
+    {
+      "tick": 0,
+      "unit": 0,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 1,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 2,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 3,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 4,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 5,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 6,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 7,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 8,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 9,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 10,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 11,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 12,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 13,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 14,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 15,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 16,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 17,
+      "target": 21
+    },
+    {
+      "tick": 0,
+      "unit": 18,
+      "target": 20
+    },
+    {
+      "tick": 0,
+      "unit": 19,
+      "target": 20
+    }
+  ],
+  "initial": {
+    "tick": 0,
+    "hash": "1610507740289060947",
+    "alive": 15560,
+    "engaged": 0,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "prepared": {
+    "tick": 9000,
+    "hash": "9928381812590497427",
+    "alive": 15529,
+    "engaged": 540,
+    "projectiles": 70,
+    "victor": -1
+  },
+  "final": {
+    "tick": 9300,
+    "hash": "6696754498600804919",
+    "alive": 15488,
+    "engaged": 992,
+    "projectiles": 0,
+    "victor": -1
+  },
+  "preparationMs": 85729.23658400001,
+  "elapsedMs": 11400.916708999997,
+  "summary": {
+    "batchTicks": 4,
+    "batchCount": 75,
+    "averageBatchMs": 152.00947497333323,
+    "p95BatchMs": 183.63483299998916,
+    "averageTickMs": 38.00236874333331,
+    "minBatchMs": 118.77208300000348,
+    "maxBatchMs": 187.0161669999943
+  },
+  "measurement": "Diagnostic optimized Rust WASM with symbols; wasm-opt skipped because it stripped names even with --profiling. Not performance-comparable to production binary. No mechanics edits; tick9000/9300 hashes match production.",
+  "batches": [
+    {
+      "tick": 9004,
+      "ticks": 4,
+      "elapsedMs": 122.2668330000015
+    },
+    {
+      "tick": 9008,
+      "ticks": 4,
+      "elapsedMs": 120.50641700001142
+    },
+    {
+      "tick": 9012,
+      "ticks": 4,
+      "elapsedMs": 122.16279199998826
+    },
+    {
+      "tick": 9016,
+      "ticks": 4,
+      "elapsedMs": 121.08200000000943
+    },
+    {
+      "tick": 9020,
+      "ticks": 4,
+      "elapsedMs": 118.77208300000348
+    },
+    {
+      "tick": 9024,
+      "ticks": 4,
+      "elapsedMs": 123.32983299999614
+    },
+    {
+      "tick": 9028,
+      "ticks": 4,
+      "elapsedMs": 130.36870900000213
+    },
+    {
+      "tick": 9032,
+      "ticks": 4,
+      "elapsedMs": 133.7718329999916
+    },
+    {
+      "tick": 9036,
+      "ticks": 4,
+      "elapsedMs": 136.92262500000652
+    },
+    {
+      "tick": 9040,
+      "ticks": 4,
+      "elapsedMs": 141.49920900000143
+    },
+    {
+      "tick": 9044,
+      "ticks": 4,
+      "elapsedMs": 139.61699999999837
+    },
+    {
+      "tick": 9048,
+      "ticks": 4,
+      "elapsedMs": 145.52925000000687
+    },
+    {
+      "tick": 9052,
+      "ticks": 4,
+      "elapsedMs": 145.4043329999986
+    },
+    {
+      "tick": 9056,
+      "ticks": 4,
+      "elapsedMs": 150.23766699999396
+    },
+    {
+      "tick": 9060,
+      "ticks": 4,
+      "elapsedMs": 151.42520800000057
+    },
+    {
+      "tick": 9064,
+      "ticks": 4,
+      "elapsedMs": 150.19220900000073
+    },
+    {
+      "tick": 9068,
+      "ticks": 4,
+      "elapsedMs": 148.41849999999977
+    },
+    {
+      "tick": 9072,
+      "ticks": 4,
+      "elapsedMs": 149.99783300000126
+    },
+    {
+      "tick": 9076,
+      "ticks": 4,
+      "elapsedMs": 144.96883399999933
+    },
+    {
+      "tick": 9080,
+      "ticks": 4,
+      "elapsedMs": 146.78920900000958
+    },
+    {
+      "tick": 9084,
+      "ticks": 4,
+      "elapsedMs": 149.86699999999837
+    },
+    {
+      "tick": 9088,
+      "ticks": 4,
+      "elapsedMs": 149.77087500000198
+    },
+    {
+      "tick": 9092,
+      "ticks": 4,
+      "elapsedMs": 152.10983300000953
+    },
+    {
+      "tick": 9096,
+      "ticks": 4,
+      "elapsedMs": 147.94858300000487
+    },
+    {
+      "tick": 9100,
+      "ticks": 4,
+      "elapsedMs": 140.96266599999217
+    },
+    {
+      "tick": 9104,
+      "ticks": 4,
+      "elapsedMs": 142.3125
+    },
+    {
+      "tick": 9108,
+      "ticks": 4,
+      "elapsedMs": 145.68554099999892
+    },
+    {
+      "tick": 9112,
+      "ticks": 4,
+      "elapsedMs": 146.3272500000021
+    },
+    {
+      "tick": 9116,
+      "ticks": 4,
+      "elapsedMs": 142.99512500000128
+    },
+    {
+      "tick": 9120,
+      "ticks": 4,
+      "elapsedMs": 145.6835829999909
+    },
+    {
+      "tick": 9124,
+      "ticks": 4,
+      "elapsedMs": 149.765625
+    },
+    {
+      "tick": 9128,
+      "ticks": 4,
+      "elapsedMs": 149.00766699999804
+    },
+    {
+      "tick": 9132,
+      "ticks": 4,
+      "elapsedMs": 149.5001670000056
+    },
+    {
+      "tick": 9136,
+      "ticks": 4,
+      "elapsedMs": 151.68595800000185
+    },
+    {
+      "tick": 9140,
+      "ticks": 4,
+      "elapsedMs": 152.21537499999977
+    },
+    {
+      "tick": 9144,
+      "ticks": 4,
+      "elapsedMs": 155.56741600000532
+    },
+    {
+      "tick": 9148,
+      "ticks": 4,
+      "elapsedMs": 148.1070000000036
+    },
+    {
+      "tick": 9152,
+      "ticks": 4,
+      "elapsedMs": 138.42612499999814
+    },
+    {
+      "tick": 9156,
+      "ticks": 4,
+      "elapsedMs": 140.8969999999972
+    },
+    {
+      "tick": 9160,
+      "ticks": 4,
+      "elapsedMs": 134.22716599999694
+    },
+    {
+      "tick": 9164,
+      "ticks": 4,
+      "elapsedMs": 140.71312499999476
+    },
+    {
+      "tick": 9168,
+      "ticks": 4,
+      "elapsedMs": 137.35883399999875
+    },
+    {
+      "tick": 9172,
+      "ticks": 4,
+      "elapsedMs": 136.56670899999153
+    },
+    {
+      "tick": 9176,
+      "ticks": 4,
+      "elapsedMs": 143.35929200000828
+    },
+    {
+      "tick": 9180,
+      "ticks": 4,
+      "elapsedMs": 149.55754100000195
+    },
+    {
+      "tick": 9184,
+      "ticks": 4,
+      "elapsedMs": 152.26108300000487
+    },
+    {
+      "tick": 9188,
+      "ticks": 4,
+      "elapsedMs": 148.48412500000268
+    },
+    {
+      "tick": 9192,
+      "ticks": 4,
+      "elapsedMs": 146.13604099999066
+    },
+    {
+      "tick": 9196,
+      "ticks": 4,
+      "elapsedMs": 150.24424999998882
+    },
+    {
+      "tick": 9200,
+      "ticks": 4,
+      "elapsedMs": 149.06912499999453
+    },
+    {
+      "tick": 9204,
+      "ticks": 4,
+      "elapsedMs": 147.3788329999952
+    },
+    {
+      "tick": 9208,
+      "ticks": 4,
+      "elapsedMs": 144.46358299998974
+    },
+    {
+      "tick": 9212,
+      "ticks": 4,
+      "elapsedMs": 150.81862499999988
+    },
+    {
+      "tick": 9216,
+      "ticks": 4,
+      "elapsedMs": 156.67245800000092
+    },
+    {
+      "tick": 9220,
+      "ticks": 4,
+      "elapsedMs": 162.79300000000512
+    },
+    {
+      "tick": 9224,
+      "ticks": 4,
+      "elapsedMs": 176.85141699999804
+    },
+    {
+      "tick": 9228,
+      "ticks": 4,
+      "elapsedMs": 182.28191700000025
+    },
+    {
+      "tick": 9232,
+      "ticks": 4,
+      "elapsedMs": 186.7211249999964
+    },
+    {
+      "tick": 9236,
+      "ticks": 4,
+      "elapsedMs": 180.81587500000023
+    },
+    {
+      "tick": 9240,
+      "ticks": 4,
+      "elapsedMs": 183.4565419999999
+    },
+    {
+      "tick": 9244,
+      "ticks": 4,
+      "elapsedMs": 178.69891700000153
+    },
+    {
+      "tick": 9248,
+      "ticks": 4,
+      "elapsedMs": 180.16416699999536
+    },
+    {
+      "tick": 9252,
+      "ticks": 4,
+      "elapsedMs": 183.63483299998916
+    },
+    {
+      "tick": 9256,
+      "ticks": 4,
+      "elapsedMs": 186.59541599999648
+    },
+    {
+      "tick": 9260,
+      "ticks": 4,
+      "elapsedMs": 182.25641699999687
+    },
+    {
+      "tick": 9264,
+      "ticks": 4,
+      "elapsedMs": 175.528999999995
+    },
+    {
+      "tick": 9268,
+      "ticks": 4,
+      "elapsedMs": 171.46795800000837
+    },
+    {
+      "tick": 9272,
+      "ticks": 4,
+      "elapsedMs": 170.80504199999268
+    },
+    {
+      "tick": 9276,
+      "ticks": 4,
+      "elapsedMs": 160.32158300001174
+    },
+    {
+      "tick": 9280,
+      "ticks": 4,
+      "elapsedMs": 173.95487500001036
+    },
+    {
+      "tick": 9284,
+      "ticks": 4,
+      "elapsedMs": 187.0161669999943
+    },
+    {
+      "tick": 9288,
+      "ticks": 4,
+      "elapsedMs": 172.2172500000015
+    },
+    {
+      "tick": 9292,
+      "ticks": 4,
+      "elapsedMs": 164.94520800000464
+    },
+    {
+      "tick": 9296,
+      "ticks": 4,
+      "elapsedMs": 154.85450000000128
+    },
+    {
+      "tick": 9300,
+      "ticks": 4,
+      "elapsedMs": 155.92095800000243
+    }
+  ],
+  "profileSummary": {
+    "sampledMs": 11419.041999999865,
+    "self": [
+      {
+        "function": "sim::combat::run::run_combat::h5325248b1c897d69",
+        "ms": 4793.421000000021,
+        "percent": 41.97743558522753,
+        "msPerTick": 15.97807000000007
+      },
+      {
+        "function": "sim::separation::apply_separation::hc74e53faf9b7000b",
+        "ms": 4440.785000000012,
+        "percent": 38.88929561691834,
+        "msPerTick": 14.802616666666706
+      },
+      {
+        "function": "sim::steer::steer_soldiers::h0ea1f062f938caf6",
+        "ms": 1057.1310000000008,
+        "percent": 9.257615481228752,
+        "msPerTick": 3.5237700000000025
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::atanf::atanf::h2cc93dd21c5f960f",
+        "ms": 220.501,
+        "percent": 1.9309938609561348,
+        "msPerTick": 0.7350033333333333
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::atan2f::atan2f::h2f58fd522d55958c",
+        "ms": 161.668,
+        "percent": 1.4157755090138202,
+        "msPerTick": 0.5388933333333333
+      },
+      {
+        "function": "compiler_builtins::math::partial_availability::acosf::h5a3935729870e34f",
+        "ms": 125.58099999999999,
+        "percent": 1.0997507496688554,
+        "msPerTick": 0.41860333333333327
+      },
+      {
+        "function": "sim::terrain::Terrain::segment_passable::hfcb4dbda5af3f424",
+        "ms": 101.70399999999998,
+        "percent": 0.8906526484445997,
+        "msPerTick": 0.3390133333333333
+      },
+      {
+        "function": "fminf",
+        "ms": 93.00200000000001,
+        "percent": 0.8144466059412087,
+        "msPerTick": 0.3100066666666667
+      },
+      {
+        "function": "sim::sim::Sim::tick::h58ff75cbb8ac4152",
+        "ms": 86.87299999999999,
+        "percent": 0.7607731016314768,
+        "msPerTick": 0.28957666666666665
+      },
+      {
+        "function": "sim::grid::SpatialHash::rebuild::h7745d0d99aab7c99",
+        "ms": 84.41799999999999,
+        "percent": 0.739273925080589,
+        "msPerTick": 0.28139333333333333
+      },
+      {
+        "function": "fmaxf",
+        "ms": 65.11899999999999,
+        "percent": 0.5702667526750559,
+        "msPerTick": 0.21706333333333327
+      },
+      {
+        "function": "sim::steer::weave::slot_neighbours::hb897b0038f90cbb5",
+        "ms": 42.333000000000006,
+        "percent": 0.37072286799541065,
+        "msPerTick": 0.14111
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::expf::expf::hb66cef0cb23cca7d",
+        "ms": 34.376,
+        "percent": 0.30104101552477347,
+        "msPerTick": 0.11458666666666666
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::cosf::cosf::had600b9ea68b622c",
+        "ms": 28.418000000000006,
+        "percent": 0.24886500986685522,
+        "msPerTick": 0.09472666666666668
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::sinf::sinf::hfb681a67c15f6caf",
+        "ms": 20.499999999999996,
+        "percent": 0.1795246921764561,
+        "msPerTick": 0.06833333333333332
+      },
+      {
+        "function": "post",
+        "ms": 18.167,
+        "percent": 0.15909390647656974,
+        "msPerTick": 0.060556666666666675
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::fmod::fmodf::hccc1b68a3d9ab472",
+        "ms": 13.418999999999999,
+        "percent": 0.11751423630809098,
+        "msPerTick": 0.04473
+      },
+      {
+        "function": "hypot",
+        "ms": 11.668000000000001,
+        "percent": 0.10218020040560442,
+        "msPerTick": 0.038893333333333335
+      },
+      {
+        "function": "sim::unit::covered_fighting_files::hfa7f4a6d312d4f96",
+        "ms": 4.5,
+        "percent": 0.039407859258246476,
+        "msPerTick": 0.015
+      },
+      {
+        "function": "__powisf2",
+        "ms": 4.376,
+        "percent": 0.03832195380313035,
+        "msPerTick": 0.014586666666666668
+      },
+      {
+        "function": "sim::path::plan::h82e36703a7c176cb",
+        "ms": 2.667,
+        "percent": 0.023355724587054077,
+        "msPerTick": 0.008889999999999999
+      },
+      {
+        "function": "wrappedFn",
+        "ms": 1.541,
+        "percent": 0.01349500247043507,
+        "msPerTick": 0.005136666666666666
+      },
+      {
+        "function": "hypotf",
+        "ms": 1.541,
+        "percent": 0.01349500247043507,
+        "msPerTick": 0.005136666666666666
+      },
+      {
+        "function": "sim::runner::Battle::tick::h7fa961e4ded5b638",
+        "ms": 1.541,
+        "percent": 0.01349500247043507,
+        "msPerTick": 0.005136666666666666
+      },
+      {
+        "function": "cosf",
+        "ms": 1.5,
+        "percent": 0.013135953086082158,
+        "msPerTick": 0.005
+      }
+    ],
+    "inclusive": [
+      {
+        "function": "(root)",
+        "ms": 11419.041999999865,
+        "percent": 100.0,
+        "msPerTick": 38.06347333333288
+      },
+      {
+        "function": "",
+        "ms": 11227.832999999888,
+        "percent": 98.32552503090909,
+        "msPerTick": 37.426109999999625
+      },
+      {
+        "function": "sim::runner::Battle::tick::h7fa961e4ded5b638",
+        "ms": 11208.124999999889,
+        "percent": 98.15293612196207,
+        "msPerTick": 37.360416666666296
+      },
+      {
+        "function": "game_advance_ticks",
+        "ms": 11208.124999999889,
+        "percent": 98.15293612196207,
+        "msPerTick": 37.360416666666296
+      },
+      {
+        "function": "js-to-wasm::",
+        "ms": 11208.124999999889,
+        "percent": 98.15293612196207,
+        "msPerTick": 37.360416666666296
+      },
+      {
+        "function": "advance_ticks",
+        "ms": 11208.124999999889,
+        "percent": 98.15293612196207,
+        "msPerTick": 37.360416666666296
+      },
+      {
+        "function": "sim::sim::Sim::tick::h58ff75cbb8ac4152",
+        "ms": 11206.583999999888,
+        "percent": 98.13944111949164,
+        "msPerTick": 37.355279999999624
+      },
+      {
+        "function": "sim::combat::run::run_combat::h5325248b1c897d69",
+        "ms": 5117.798000000032,
+        "percent": 44.81810295469701,
+        "msPerTick": 17.059326666666774
+      },
+      {
+        "function": "sim::separation::apply_separation::hc74e53faf9b7000b",
+        "ms": 4535.079000000015,
+        "percent": 39.71505665711773,
+        "msPerTick": 15.116930000000051
+      },
+      {
+        "function": "sim::steer::steer_soldiers::h0ea1f062f938caf6",
+        "ms": 1398.8319999999974,
+        "percent": 12.249994351540296,
+        "msPerTick": 4.662773333333325
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::atan2f::atan2f::h2f58fd522d55958c",
+        "ms": 357.8349999999996,
+        "percent": 3.1336691817054687,
+        "msPerTick": 1.192783333333332
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::atanf::atanf::h2cc93dd21c5f960f",
+        "ms": 220.501,
+        "percent": 1.9309938609561348,
+        "msPerTick": 0.7350033333333333
+      },
+      {
+        "function": "compiler_builtins::math::partial_availability::acosf::h5a3935729870e34f",
+        "ms": 125.58099999999999,
+        "percent": 1.0997507496688554,
+        "msPerTick": 0.41860333333333327
+      },
+      {
+        "function": "sim::terrain::Terrain::segment_passable::hfcb4dbda5af3f424",
+        "ms": 101.70399999999998,
+        "percent": 0.8906526484445997,
+        "msPerTick": 0.3390133333333333
+      },
+      {
+        "function": "fminf",
+        "ms": 93.00200000000001,
+        "percent": 0.8144466059412087,
+        "msPerTick": 0.3100066666666667
+      },
+      {
+        "function": "sim::grid::SpatialHash::rebuild::h7745d0d99aab7c99",
+        "ms": 84.41799999999999,
+        "percent": 0.739273925080589,
+        "msPerTick": 0.28139333333333333
+      },
+      {
+        "function": "fmaxf",
+        "ms": 65.11899999999999,
+        "percent": 0.5702667526750559,
+        "msPerTick": 0.21706333333333327
+      },
+      {
+        "function": "sim::steer::weave::slot_neighbours::hb897b0038f90cbb5",
+        "ms": 42.333000000000006,
+        "percent": 0.37072286799541065,
+        "msPerTick": 0.14111
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::expf::expf::hb66cef0cb23cca7d",
+        "ms": 34.376,
+        "percent": 0.30104101552477347,
+        "msPerTick": 0.11458666666666666
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::cosf::cosf::had600b9ea68b622c",
+        "ms": 28.418000000000006,
+        "percent": 0.24886500986685522,
+        "msPerTick": 0.09472666666666668
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::sinf::sinf::hfb681a67c15f6caf",
+        "ms": 20.499999999999996,
+        "percent": 0.1795246921764561,
+        "msPerTick": 0.06833333333333332
+      },
+      {
+        "function": "post",
+        "ms": 18.167,
+        "percent": 0.15909390647656974,
+        "msPerTick": 0.060556666666666675
+      },
+      {
+        "function": "compiler_builtins::math::libm_math::fmod::fmodf::hccc1b68a3d9ab472",
+        "ms": 13.418999999999999,
+        "percent": 0.11751423630809098,
+        "msPerTick": 0.04473
+      },
+      {
+        "function": "hypot",
+        "ms": 11.668000000000001,
+        "percent": 0.10218020040560442,
+        "msPerTick": 0.038893333333333335
+      },
+      {
+        "function": "sim::unit::covered_fighting_files::hfa7f4a6d312d4f96",
+        "ms": 4.5,
+        "percent": 0.039407859258246476,
+        "msPerTick": 0.015
+      }
+    ]
+  }
+}

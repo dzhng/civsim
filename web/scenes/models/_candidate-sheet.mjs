@@ -1,7 +1,7 @@
 import { PNG } from "pngjs";
 import { isDeepStrictEqual } from "node:util";
 import { snapshotSelected } from "../../snapshot.mjs";
-import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
+import { TYPEGPU_BATTLE_IDENTITY } from "../../../packages/battle-renderer/src/world/identity.ts";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 
 const views = [
@@ -115,7 +115,7 @@ export async function runCandidateSheet(
         { pose, caption },
       );
       await page.waitForFunction((frame) => window.__battleModels.stats().frame > frame, before);
-      await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
       return page.screenshot({ clip: crop });
     };
 
@@ -148,21 +148,23 @@ export async function runCandidateSheet(
           const stats = await page.evaluate(() => window.__battleModels.stats());
           ctx.check(
             `${camera.name}/${stance}/${view}: production weighted pose submitted`,
-            stats.render.substrate === PHOTOREAL_SUBSTRATE &&
-              stats.render.width === 1280 &&
-              stats.render.height === 800 &&
-              stats.render.soldiers === soldierCount &&
-              stats.render.lod.skinned === soldierCount &&
+            stats.render.substrate === TYPEGPU_BATTLE_IDENTITY.substrate &&
+              stats.render.framebuffer.width === 1280 &&
+              stats.render.framebuffer.height === 800 &&
+              stats.render.crowd.instances === soldierCount &&
+              stats.render.crowd.mainVisible - stats.render.crowd.visibleTierHistogram.l4 ===
+                soldierCount &&
               stats.sampled.clip === clip &&
               stats.sampled.phase === phase &&
               stats.pose.alive === pose.alive &&
-              stats.render.crowd.palettes.some(
-                (palette) => palette.bones === admission.assets[0].bones,
+              stats.render.crowd.mesh.pose.some(
+                (palette) =>
+                  palette.instances > 0 && palette.paletteBytes >= admission.assets[0].bones * 64,
               ),
             JSON.stringify({
               sampled: stats.sampled,
-              lod: stats.render.lod,
-              palettes: stats.render.crowd.palettes,
+              lod: stats.render.crowd.visibleTierHistogram,
+              palettes: stats.render.crowd.mesh.pose,
             }),
           );
           ctx.check(

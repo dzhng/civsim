@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/foot-roster/artillery-crew/artillery-crew.blend",
+  "sourceSha256": "fb6afe7a48051998fc9cfec3ce99e344f1452ec6f02ca1bb9428a77f445c227f",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 97420,
+      "triangles": 3984,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "74f133540a5e82a967347ae628aad0ebee94cca933fcfb136ece879e02ee0947"
+    }
+  ]
+}

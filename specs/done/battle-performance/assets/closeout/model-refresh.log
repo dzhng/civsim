@@ -1,0 +1,97 @@
+(node:33417) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-performance-spec/packages/game-renderer/src/battle/unitInfoLayout.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-performance-spec/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS  battle-model-action-replay: each observed release enters its authored release phase  ([object Object])
+PASS  battle-model-action-replay: health decrease selects a fresh hit  ([object Object])
+PASS  battle-model-action-replay: terminal death holds its final phase  ([object Object])
+PASS  battle-model-action-replay: backward seek replays intermediate observations
+PASS  battle-model-action-replay: frozen replay has deterministic pose state
+PASS  battle-model-action-replay: explicit reset clears terminal history
+PASS  battle-model-action-replay: switching back to manual inspection clears replay tick
+PASS  battle-model-action-replay: equipment replay uses the canonical sidearm appearance
+PASS  battle-model-action-replay: compatible equipment handoff starts from a frozen source under the new appearance  ([object Object])
+PASS  battle-model-action-replay: snapshot shared/soldiers/action-replay/equipment-handoff  (baseline updated)
+PASS  battle-model-action-replay: event picker seeks the real replay
+PASS  battle-model-action-replay: play and pause operate the replay clock
+PASS  battle-model-action-replay: mounted controller submits an overlay and reports the base destination separately
+PASS  battle-model-action-replay: replay controls and submitted status fit inside the captured viewport  ([{"text":"Action replay","top":86,"bottom":104,"left":997,"right":1254},{"text":"Synthetic inputs · real controller.Local poses blended on GPU.Base and masked rider action.","top":118,"bottom":181,"left":997,"right":1254},{"text":"Replay the selected appearance","top":195,"bottom":216,"left":997,"right":1254},{"text":"Play replay","top":234,"bottom":267,"left":997,"right":1088.953125},{"text":"Reset replay","top":234,"bottom":267,"left":1093.953125,"right":1194.796875},{"text":"Tick (0–240) 90","top":284,"bottom":321,"left":997,"right":1254},{"text":"Jump to event 0: Ready15: Walk30: Run45: Melee effort60: Release observed90: Repeated release105: Health decreased150: Recover / walk165: Equipment unchanged195: Death240: Terminal hold","top":334,"bottom":386,"left":997,"right":1254},{"text":"Now: Repeated release\nNext: Health decreased","top":400,"bottom":442,"left":997,"right":1254},{"text":"Base · appearance 7From: run · phase 0.236\nTo: run · phase 0.236\nBlend weight: 1.00","top":456,"bottom":548,"left":997,"right":1254},{"text":"Rider upper bodyFrom: frozen local pose\nTo: release · phase 0.600\nBlend weight: 0.00","top":556,"bottom":648,"left":997,"right":1254},{"text":"Submitted base destinationrun · phase 0.236","top":656,"bottom":706,"left":997,"right":1254},{"text":"Generated applicability matrix","top":714,"bottom":732,"left":997,"right":1213.203125},{"text":"1 soldier · run 0.236 · golden","top":770,"bottom":788,"left":983,"right":1268}])
+PASS  battle-model-action-replay: footer reports submitted replay pose
+PASS  battle-model-action-replay: snapshot shared/soldiers/action-replay/controller  (baseline updated)
+PASS  battle-model-action-replay: failed reload retains replay history
+PASS  battle-model-action-replay: successful reload resets replay against new bundles
+PASS  battle-model-action-replay: valid manual-only reload exits replay successfully
+PASS  battle-model-action-replay: manual-only appearance disables replay but keeps clip inspection
+PASS  battle-model-action-replay: source-generated applicability matrix is available
+PASS  battle-model-action-replay: disabled/15.1: exact repeated submitted pose
+PASS  battle-model-action-replay: disabled/15.1: exact repeated pixels
+PASS  battle-model-action-replay: disabled/15.1: completed travel retained with no prospective advance  ({"appearanceId":4,"base":{"source":{"kind":"clip","sample":{"clip":"walk","phase":0.5555555702727522}},"destination":{"clip":"walk","phase":0.5555555702727522},"weight":1}})
+PASS  battle-model-action-replay: snapshot shared/soldiers/action-replay/disabled-15.1  (baseline updated)
+PASS  battle-model-action-replay: disabled/15.9: exact repeated submitted pose
+PASS  battle-model-action-replay: disabled/15.9: exact repeated pixels
+PASS  battle-model-action-replay: disabled/15.9: completed travel retained with no prospective advance  ({"appearanceId":4,"base":{"source":{"kind":"clip","sample":{"clip":"walk","phase":0.5555555702727522}},"destination":{"clip":"walk","phase":0.5555555702727522},"weight":1}})
+PASS  battle-model-action-replay: snapshot shared/soldiers/action-replay/disabled-15.9  (baseline updated)
+PASS  battle-model-action-replay: disabled: fractional submitted pose holds exactly
+PASS  battle-model-action-replay: disabled: fractional production pixels hold exactly
+PASS  battle-model-action-replay: protected/safe: exact repeat pose and pixels
+PASS  battle-model-action-replay: protected/safe: canonical posture selects diagnostic clip  ([object Object])
+PASS  battle-model-action-replay: snapshot shared/soldiers/action-replay/protected-safe  (baseline updated)
+PASS  battle-model-action-replay: protected/threatened: exact repeat pose and pixels
+PASS  battle-model-action-replay: protected/threatened: canonical posture selects diagnostic clip  ([object Object])
+PASS  battle-model-action-replay: snapshot shared/soldiers/action-replay/protected-threatened  (baseline updated)
+PASS  battle-model-action-replay: protected: posture changes submitted pose and production pixels
+PASS  battle-model-reload-disposal: disposed reload rejects without installing a generation  ([object Object])
+PASS  battle-model-reload-disposal: closed preview rejects before network work  ([object Object])
+PASS  battle-model-workbench: heavy-front: production path and submitted count  ({"substrate":"typegpu","soldiers":1})
+PASS  battle-model-workbench: heavy-front: readable foreground model coverage  (22966)
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/heavy-front  (baseline updated)
+PASS  battle-model-workbench: heavy-front: frozen frame is byte-stable
+PASS  battle-model-workbench: phalanx-side: production path and submitted count  ({"substrate":"typegpu","soldiers":1})
+PASS  battle-model-workbench: phalanx-side: readable foreground model coverage  (11469)
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/phalanx-side  (baseline updated)
+PASS  battle-model-workbench: phalanx-side: frozen frame is byte-stable
+PASS  battle-model-workbench: formation: production path and submitted count  ({"substrate":"typegpu","soldiers":16})
+PASS  battle-model-workbench: formation: readable foreground model coverage  (55294)
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/formation  (baseline updated)
+PASS  battle-model-workbench: formation: frozen frame is byte-stable
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/manual-alive  (baseline updated)
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/manual-dead  (baseline updated)
+PASS  battle-model-workbench: manual life control changes corpse treatment without changing the clip
+PASS  battle-model-workbench: manual life control preserves clip and phase
+PASS  battle-model-workbench: local bake reload keeps identical production pixels
+PASS  battle-model-workbench: failed reload is explicit and preserves last good crowd  ({"ok":false,"error":"SyntaxError: Unexpected token 'm', \"malformed fixture\" is not valid JSON"})
+PASS  battle-model-workbench: incompatible reload retains the active appearance
+PASS  battle-model-workbench: incompatible reload retains the active appearance-specific clip  ({"missingClip":{"ok":false,"error":"Error: presentation walk references a missing clip: walk"},"retainedClip":{"pose":{"classId":0,"clip":"walk","phase":0.25,"alive":true,"formation":true,"yaw":0.45,"pitch":0.9,"zoom":65,"target":[0,0,1.05]},"present":true}})
+PASS  battle-model-workbench: truncated local animation samples are rejected explicitly  ({"ok":false,"error":"Error: appearance local animation has invalid samples or metadata"})
+PASS  battle-model-workbench: production reload rejects a missing non-active action before replacing the crowd  ({"ok":false,"error":"Error: presentation melee references a missing clip: sword-effort"})
+PASS  battle-model-workbench: production startup rejects a missing controller action  (Error: presentation melee references a missing clip: sword-effort)
+PASS  battle-model-workbench: invalid local animation retry 0: retains the published asset generation  ({"malformed":{"ok":false,"error":"Error: appearance local animation has invalid samples or metadata"},"retained":true})
+PASS  battle-model-workbench: invalid local animation retry 1: retains the published asset generation  ({"malformed":{"ok":false,"error":"Error: appearance local animation has invalid samples or metadata"},"retained":true})
+PASS  battle-model-workbench: rejected bundles preserve the last good production pixels
+PASS  battle-model-workbench: battle submission replaces the retained formation
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/submission-parity  (baseline updated)
+PASS  battle-model-workbench: battle adapter and explicit pose submission have identical pixels
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/submission-parity  (baseline unchanged)
+PASS  battle-model-workbench: interactive clip playback and turntable change the rendered pose
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/controls  (baseline updated)
+PASS  battle-model-workbench: malformed material rejects reload and preserves the last good pixels  ({"ok":false,"error":"Error: appearance materials require finite base RGBA, roughness and metallic in [0, 1]"})
+PASS  battle-model-workbench: equivalent material-table reindex loads
+PASS  battle-model-workbench: material slot numbering cannot change surface pixels
+PASS  battle-model-workbench: authored roughness 0.9, metallic 0: replacement loads
+PASS  battle-model-workbench: authored roughness 0.15, metallic 0: replacement loads
+PASS  battle-model-workbench: authored roughness 0.15, metallic 1: replacement loads
+PASS  battle-model-workbench: authored roughness changes pixels with fixed color and metallic
+PASS  battle-model-workbench: authored metallic changes pixels with fixed color and roughness
+PASS  battle-model-workbench: instance seed does not vary authored appearance
+PASS  battle-model-workbench: blue mesh with explicit mask 0: replacement loads
+PASS  battle-model-workbench: ordinary blue does not imply faction tint
+PASS  battle-model-workbench: blue mesh with explicit mask 1: replacement loads
+PASS  battle-model-workbench: explicit mask permits faction tint
+PASS  battle-model-workbench: far roster restores authored materials after tint probes
+PASS  battle-model-workbench: complete authored roster uses production far admission  ([object Object])
+PASS  battle-model-workbench: snapshot shared/soldiers/workbench/authored-roster-far  (baseline updated)
+PASS  battle-model-workbench: admission probe starts from the complete authored catalog
+PASS  battle-model-workbench: pose changed during catalog loading retains the last valid crowd  ({"ok":false,"error":"Error: Reload does not contain appearance 14 / clip at-ease","retainedGeneration":true,"activeClass":14,"retainedAppearance":true})
+PASS  runner: no page errors
+
+ALL CHECKS PASSED

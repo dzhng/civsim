@@ -1,49 +1,46 @@
+import { IMAGE_MIP_WGSL } from "./imageMipWgsl";
 /** Image values are sampled in linear light; only base-color images use sRGB. */
 export interface ImageTextureOptions {
   colorSpace: "srgb" | "linear";
   generateMipmaps: boolean;
 }
 
-const MIP_SHADER = /* wgsl */ `
-@group(0) @binding(0) var source: texture_2d<f32>;
-
-@vertex fn vs(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
-  let p = array<vec2f, 3>(vec2f(-1, -1), vec2f(3, -1), vec2f(-1, 3));
-  return vec4f(p[index], 0, 1);
+export interface RgbaTextureData {
+  width: number;
+  height: number;
+  data: Uint8Array;
 }
 
-@fragment fn fs(@builtin(position) position: vec4f) -> @location(0) vec4f {
-  let size = textureDimensions(source);
-  let destinationSize = max(size / 2u, vec2u(1));
-  let scale = vec2f(size) / vec2f(destinationSize);
-  let low = floor(position.xy) * scale;
-  let high = low + scale;
-  var total = vec4f(0);
-  // Area coverage includes every source texel for odd sizes and 1-pixel axes.
-  // textureLoad decodes sRGB; the sRGB attachment encodes the resulting mean.
-  for (var y = i32(floor(low.y)); y < i32(ceil(high.y)); y++) {
-    for (var x = i32(floor(low.x)); x < i32(ceil(high.x)); x++) {
-      let overlap = max(vec2f(0), min(high, vec2f(f32(x + 1), f32(y + 1)))
-        - max(low, vec2f(f32(x), f32(y))));
-      total += textureLoad(source, vec2i(x, y), 0) * overlap.x * overlap.y;
-    }
-  }
-  return total / (scale.x * scale.y);
-}`;
+/**
+ * The texel payload of an image and its mip chain. Every texture this module
+ * uploads is 8-bit RGBA, so the size follows from the dimensions alone. It is a
+ * logical payload for comparing what a preparation retains, never a claim about
+ * physical VRAM.
+ */
+export function imageTextureBytes(width: number, height: number, mipLevels: number) {
+  let bytes = 0;
+  for (let level = 0; level < mipLevels; level++)
+    bytes += Math.max(1, width >> level) * Math.max(1, height >> level) * 4;
+  return bytes;
+}
 
 /**
  * Prepare an immutable, caller-owned GPU texture. The caller also retains
- * ownership of image and may close it after this promise settles. No decoding,
+ * ownership of bitmap or packed RGBA data. It may close the bitmap after this
+ * promise settles. Typed data is uploaded verbatim in the declared color space. No decoding,
  * resizing, CPU readback, or sampler policy belongs to this upload boundary.
  */
 export async function uploadImageTexture(
   device: GPUDevice,
-  image: ImageBitmap,
+  image: ImageBitmap | RgbaTextureData,
   options: ImageTextureOptions,
 ): Promise<GPUTexture> {
   const { width, height } = image;
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) {
-    throw new Error("Image texture requires a nonempty, open ImageBitmap");
+    throw new Error("Image texture requires nonempty integer dimensions");
+  }
+  if ("data" in image && image.data.byteLength !== width * height * 4) {
+    throw new Error("RGBA texture data must contain exactly four bytes per pixel");
   }
   const limit = device.limits.maxTextureDimension2D;
   if (width > limit || height > limit) {
@@ -71,13 +68,23 @@ export async function uploadImageTexture(
         GPUTextureUsage.TEXTURE_BINDING |
         GPUTextureUsage.RENDER_ATTACHMENT,
     });
-    device.queue.copyExternalImageToTexture(
-      { source: image, flipY: false },
-      { texture, premultipliedAlpha: false, colorSpace: "srgb" },
-      [width, height],
-    );
+    if ("data" in image) {
+      device.queue.writeTexture({ texture }, image.data, { bytesPerRow: width * 4 }, [
+        width,
+        height,
+      ]);
+    } else {
+      device.queue.copyExternalImageToTexture(
+        { source: image, flipY: false },
+        { texture, premultipliedAlpha: false, colorSpace: "srgb" },
+        [width, height],
+      );
+    }
     if (mipLevelCount > 1) {
-      const module = device.createShaderModule({ label: "image-mip-area-mean", code: MIP_SHADER });
+      const module = device.createShaderModule({
+        label: "image-mip-area-mean",
+        code: IMAGE_MIP_WGSL,
+      });
       const pipeline = device.createRenderPipeline({
         label: "image-mip-area-mean",
         layout: "auto",

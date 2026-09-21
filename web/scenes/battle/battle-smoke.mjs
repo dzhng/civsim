@@ -112,10 +112,10 @@ export async function run(ctx) {
   const s4 = await page.evaluate(() => window.__game.soldierStartOf(4));
   const before = await page.evaluate((i) => window.__game.soldierPos(i), s4);
   await page.evaluate(
-    ([ax, ay]) => {
+    async ([ax, ay]) => {
       window.__game.select(4);
       window.__game.setOrder(4, ax, ay + 60);
-      window.__game.advance(300);
+      await window.__game.advance(300);
     },
     [info4[0], info4[1]],
   );

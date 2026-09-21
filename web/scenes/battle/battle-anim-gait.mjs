@@ -25,7 +25,7 @@ export async function run(ctx) {
       const g = window.__game;
       g.freeze(true);
       const step = async () => {
-        g.advance(1);
+        await g.advance(1);
         await new Promise((resolve) => requestAnimationFrame(resolve));
       };
 

@@ -1,0 +1,52 @@
+
+ RUN  v4.1.9 /Users/david/dev/game-battle-performance-spec/web
+
+ ❯ tests/nativeSceneLifecycle.test.ts (3 tests | 2 failed) 7ms
+   × failed staged terrain replacement retains the previously prepared scene 4ms
+   × a dependent failure after terrain commit cannot present mixed generations 1ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  13:40:27
+   Duration  176ms (transform 63ms, setup 47ms, import 68ms, tests 7ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/nativeSceneLifecycle.test.ts > failed staged terrain replacement retains the previously prepared scene
+AssertionError: expected [Function] to not throw an error but 'Error: Battle scene has no completed …' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: Battle scene has no completed preparation"
+
+ ❯ tests/nativeSceneLifecycle.test.ts:157:81
+    155|   state.replace.mockRejectedValueOnce(Error("allocation failed"));
+    156|   await expect(scene.replaceTerrain(terrain)).rejects.toThrow("allocat…
+    157|   expect(() => scene.encode({} as GPUCommandEncoder, {} as GPUTextureV…
+       |                                                                                 ^
+    158|   expect(state.owners.every((x) => x.dispose.mock.calls.length === 0))…
+    159|   scene.dispose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/nativeSceneLifecycle.test.ts > a dependent failure after terrain commit cannot present mixed generations
+AssertionError: expected [Function] to throw error including 'disposed' but got 'Battle scene has no completed prepara…'
+
+Expected: "disposed"
+Received: "Battle scene has no completed preparation"
+
+ ❯ tests/nativeSceneLifecycle.test.ts:168:77
+    166|   });
+    167|   await expect(scene.replaceTerrain(terrain)).rejects.toThrow("grass a…
+    168|   expect(() => scene.encode({} as GPUCommandEncoder, {} as GPUTextureV…
+       |                                                                             ^
+    169|   expect(state.owners.every((x) => x.dispose.mock.calls.length === 1))…
+    170|   scene.dispose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+Exit code: 1

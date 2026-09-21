@@ -42,6 +42,14 @@ export interface Camera3DParams {
   far?: number;
 }
 
+// Far plane for a consumer that cannot take an infinite far plane; the canonical
+// projection above still omits `far` for the infinite limit. three@0.185 has no
+// infinite-far branch (Matrix4.makePerspective NaNs on far=Infinity), so such a
+// consumer substitutes this huge finite plane. Under reverse-Z the depth terms
+// converge to the infinite limit (A=0, B=near) at ~near/far relative error —
+// inside the epsilon web/tests/photorealCamera.test.ts pins the two stacks to.
+export const FINITE_CAMERA_FAR_FALLBACK = 1e7;
+
 // Eye position derived from the orbit params. Pitch is clamped just shy of
 // vertical so `lookAt`'s up vector never degenerates at exact top-down.
 export function eyePosition(p: Camera3DParams): Vec3 {
@@ -80,6 +88,19 @@ export function projectPoint(p: Camera3DParams, world: Vec3): { ndc: Vec3; clipW
   return { ndc: [clip[0] * inv, clip[1] * inv, clip[2] * inv], clipW: w };
 }
 
+/** Pixels per world meter at a world point. */
+export type PxPerWorldSampler = (x: number, y: number, z: number) => number;
+
+/** Preserve the overlay sizing policy based on Euclidean eye distance, rather
+ * than projected depth. It is an approximation off-axis. `viewportHeightPx`
+ * selects CSS or device pixels; resolve the eye and lens once per frame. */
+export function pxPerWorldSampler(p: Camera3DParams, viewportHeightPx: number): PxPerWorldSampler {
+  const eye = eyePosition(p);
+  const pxPerMeterAtUnitDistance = viewportHeightPx / (2 * Math.tan(p.fovY / 2));
+  return (x, y, z) =>
+    pxPerMeterAtUnitDistance / Math.max(0.001, Math.hypot(eye[0] - x, eye[1] - y, eye[2] - z));
+}
+
 /** Frame-owned projection scale: no matrices or vectors allocated per body. */
 export interface ProjectionFootprint {
   view: ArrayLike<number>;
@@ -112,8 +133,20 @@ export function projectionDepth(
   return -(m[2] * x + m[6] * y + m[10] * z + m[14]);
 }
 
-/** Camera-facing span, stable at overhead views. Near-plane crossings demand
- * full detail; wholly near/behind spans make no view contribution. */
+/** Only a perspective footprint grows without bound as a span approaches the
+ * eye, so only a perspective near crossing demands full detail. An orthographic
+ * span covers the same pixels at every depth, near crossing or not. Both LOD
+ * audiences ask this of the projection rather than deciding it themselves. */
+export function nearCrossingDemandsFullDetail(
+  projection: ProjectionFootprint,
+  depth: number,
+  halfExtent: number,
+): boolean {
+  return projection.perspective && depth - halfExtent <= projection.near;
+}
+
+/** Camera-facing span, stable at overhead views. Wholly near/behind spans make
+ * no view contribution. */
 export function projectedSpanPixels(
   projection: ProjectionFootprint,
   x: number,
@@ -123,7 +156,7 @@ export function projectedSpanPixels(
 ): number {
   const depth = projectionDepth(projection, x, y, z);
   if (depth + span / 2 <= projection.near) return 0;
-  if (depth - span / 2 <= projection.near) return Infinity;
+  if (nearCrossingDemandsFullDetail(projection, depth, span / 2)) return Infinity;
   return (span * projection.pixelsPerViewUnit) / (projection.perspective ? depth : 1);
 }
 

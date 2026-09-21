@@ -1,0 +1,10 @@
+{
+  "baseline vs baseline-repeat": {
+    "pixels": 68,
+    "max": 16
+  },
+  "baseline-repeat vs candidate": {
+    "pixels": 74,
+    "max": 29
+  }
+}

@@ -13,7 +13,7 @@ const bake = (source) =>
   bakeAppearance({
     presentation: null,
     name: "tangent-diagnostic",
-    tiers: [source, source, source],
+    tiers: [source, source, source, source],
     loopClips: [],
   });
 const collapse = editGlb(human, (json, bin) => {

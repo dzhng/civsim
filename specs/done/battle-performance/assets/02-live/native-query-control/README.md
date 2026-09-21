@@ -1,0 +1,15 @@
+# Native timing-query hardware control
+
+The fixed enabled/disabled builds were run on the actual map-A route at frozen tick 30, 1440×900 CSS pixels and DPR 2. An extra public-WebGPU observer counted requested features, query resources, timestamp writes, resolves, maps and submissions. This is instrumented correctness evidence, not a query-overhead or frame-rate measurement.
+
+[The control](control.json) passes for raw WebGPU and TypeGPU: both keep the timestamp-query device feature; enabled modes exercise real queries, and disabled modes allocate no query resources and issue no timestamp writes, resolves or maps. Actual submission identity survives. Each mode has identical repeat captures. Cross-launch comparisons differ by one raw pixel and three TypeGPU pixels, so strict cross-mode pixel equality does not pass. [Capture hashes](capture-hashes.json) identify the scratch images; no visual or motion acceptance follows from these diagnostics.
+
+Both vgpu modes fail startup. [The diagnostic rerun](vgpu-failure.json) records the visible app error, `VGPU-MESH-ATTRIBUTE-UNMATCHED: Geometry attribute 'n' has no shader input.`, with no page/console error. Readiness is false and no soldiers are admitted. Failure cleanup reports zero retained tracked allocations. The terrain horizon shadow draw supplies a position-only shader with a geometry that also declares normal and color attributes; its per-pass contract is being corrected in an isolated candidate. Neither vgpu mode is validated by this control, and earlier Menu-flow evidence cannot stand in for this failed map-A startup.
+
+These builds remain immutable in the dedicated builds worktree, from source a72bb34310f3cbecc70c2171b14d299702c5d24f; the enabled/disabled trial manifests identify emitted hashes. The affected vgpu build and correctness controls must be refreshed after the fix. Quiet paired overhead and backend comparisons remain open for every candidate.
+
+## Corrected vgpu control
+
+The position-only caster layout in `1356d6a7` borrows the beauty mesh's vertex/index buffers through the library API. Root independently passed four focused real-library/mock tests, then the full integrated 120-test lab suite. Independent Codex review found no actionable regressions. [Fresh enabled/disabled builds](vgpu-fixed-builds.json) preserve the earlier outputs; [their hardware control](vgpu-fixed.json) now passes map-A readiness, all soldiers admitted, no page errors, actual submission identity and the expected query operation counts in both modes. Repeat captures are identical within each mode; cross-mode captures differ by one pixel, which remains a strict diagnostic difference rather than a visual or performance verdict.
+
+The corrected builds' trial manifests live under root's `throwaway/native-query-control/fixed-vgpu/{enabled,disabled}/`. Use those for vgpu; use the original fixed manifests for the other candidates. The old vgpu startup failure remains retained above, and final timing/visual acceptance remains open.

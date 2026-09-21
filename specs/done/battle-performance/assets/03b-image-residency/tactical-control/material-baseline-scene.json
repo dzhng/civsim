@@ -1,0 +1,127 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-15T12:28:01.255Z",
+  "target": "http://127.0.0.1:5293",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-image-properties",
+      "file": "models/battle-model-image-properties.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/scalar: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/checker: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "snapshot battle/image-properties/checker-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/base: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/base-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/repeat: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/clamp: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/clamp-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/bottom-left-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/bottom-right-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/linear: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"baseColor\",\"width\":2,\"height\":2,\"mipLevels\":1,\"bytes\":16}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/linear-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/mr: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"orm\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/mr-oracle: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "near/ao: representation",
+      "ok": true,
+      "detail": "{\"lod\":{\"skinned\":1,\"impostors\":0},\"images\":[{\"channel\":\"orm\",\"width\":1,\"height\":1,\"mipLevels\":1,\"bytes\":4}]}"
+    },
+    {
+      "scenario": "battle-model-image-properties",
+      "name": "scene completed without throwing",
+      "ok": false,
+      "detail": "page.evaluate: TypeError: replacement.buckets[0].map is not a function or its return value is not iterable\n    at eval (eval at evaluate (:302:30), <anonymous>:113:43)\n    at async <anonymous>:328:30\n    at Object.run (/Users/david/dev/game-battle-performance-spec/web/scenes/models/battle-model-image-properties.mjs:82:34)\n    at async runSelected (/Users/david/dev/game-battle-performance-spec/web/scene.mjs:189:9)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-image-properties: scene completed without throwing"
+  ],
+  "pageErrors": []
+}

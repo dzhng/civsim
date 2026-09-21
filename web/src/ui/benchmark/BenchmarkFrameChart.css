@@ -1,0 +1,103 @@
+.benchmark-frame-chart {
+  margin: 0;
+  padding: 12px;
+  border-width: 3px;
+  color: var(--bronze-ink);
+  font:
+    12px/1.5 ui-monospace,
+    Menlo,
+    monospace;
+}
+
+.benchmark-frame-chart figcaption {
+  margin-bottom: 8px;
+  color: var(--bronze-ink-bright);
+  font:
+    700 15px/1.4 Cinzel,
+    Georgia,
+    serif;
+  letter-spacing: 1px;
+}
+
+.benchmark-frame-chart__plot {
+  background: var(--well-bg);
+  box-shadow: var(--well-shadow);
+  padding: 2px;
+}
+
+.benchmark-frame-chart__plot:focus-visible {
+  outline: 2px solid var(--bronze-ink-bright);
+  outline-offset: 2px;
+}
+
+.benchmark-frame-chart svg {
+  display: block;
+  width: 100%;
+  height: 280px;
+  touch-action: pan-y;
+}
+
+.benchmark-frame-chart svg text {
+  fill: var(--bronze-ink);
+  font:
+    11px ui-monospace,
+    Menlo,
+    monospace;
+}
+
+.benchmark-frame-chart__phase {
+  fill: #291a10;
+}
+
+.benchmark-frame-chart__phase-group:nth-child(even) .benchmark-frame-chart__phase {
+  fill: #392619;
+}
+
+.benchmark-frame-chart__reference {
+  stroke: #aa8652;
+  stroke-dasharray: 5 4;
+}
+
+.benchmark-frame-chart__envelope {
+  stroke: var(--bronze-ink-bright);
+  stroke-width: 1.5;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.benchmark-frame-chart__cursor {
+  stroke: #e5aa57;
+  stroke-dasharray: 2 3;
+}
+
+.benchmark-frame-chart__point {
+  fill: #e5aa57;
+  stroke: var(--well-bg);
+  stroke-width: 1.5;
+}
+
+.benchmark-frame-chart__detail {
+  min-height: 3em;
+  margin-top: 6px;
+  padding: 8px;
+  color: var(--bronze-ink-bright);
+  background: var(--well-bg);
+  box-shadow: var(--well-shadow);
+  overflow-wrap: anywhere;
+}
+
+.benchmark-frame-chart__phases {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.benchmark-frame-chart__phases li {
+  padding: 3px 10px 3px 0;
+}
+
+.benchmark-frame-chart__note {
+  margin: 6px 0 0;
+}

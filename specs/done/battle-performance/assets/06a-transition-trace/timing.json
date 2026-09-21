@@ -1,0 +1,95 @@
+{
+  "provenance": {
+    "node": "v24.14.0",
+    "v8": "13.6.233.17-node.41",
+    "execArgv": [
+      "--expose-gc"
+    ],
+    "comparison": "Combined direct pose blending and authored-channel sampling",
+    "hashes": {
+      "packages/crowd-runtime/src/actionTimeline.ts": "0c38f3e243f93a9586fa915b8cac0893b12f3af012a14bdede0c12dfe4dcc66e",
+      "packages/soldier-assets/src/localPose.ts": "7fbdde82e79cfb1d2676a92abcf4dead1c787325fdeab30182397d33f37ba867",
+      "throwaway/pose-blend-allocation/localPose-before.ts": "4ec522a1994469eb9fe314ed349d33f2e629a47ec4d3d62fa563f56f1b35c2ff",
+      "throwaway/transition-trace/before.mjs": "a62ff62d2cc0aafea9990f2fdb9f3f6c5bac6a4bbeac609f0b818c945caab3e5",
+      "throwaway/transition-trace/after.mjs": "e4fa2df77fa2dc8f91085680c46def13c01202c0e4c9b74ccb3ffbe4fd4d523f"
+    }
+  },
+  "scope": "V8 same-input ActionTimeline.update CPU replay; excludes hydration/IO/adapter/crowd/render/sampling, includes GC within update window. Three balanced ABBA blocks after warmup; no live FPS claim",
+  "traceSha256": "b1755d4c5ef1b9af4e3e39a96996a52fe460fbaade02f48d0d34bcbbf25eb986",
+  "events": 32,
+  "soldiers": 15560,
+  "results": [
+    {
+      "label": "before",
+      "elapsedMs": 630.9161670000012,
+      "cpuMs": 1001.419,
+      "gcMs": 97.28641898930073
+    },
+    {
+      "label": "after",
+      "elapsedMs": 489.28108299999985,
+      "cpuMs": 856.33,
+      "gcMs": 88.38170699775219
+    },
+    {
+      "label": "after",
+      "elapsedMs": 490.64016699999956,
+      "cpuMs": 847.834,
+      "gcMs": 91.41441898792982
+    },
+    {
+      "label": "before",
+      "elapsedMs": 639.7356660000005,
+      "cpuMs": 999.038,
+      "gcMs": 98.73708800971508
+    },
+    {
+      "label": "before",
+      "elapsedMs": 628.8004579999997,
+      "cpuMs": 987.188,
+      "gcMs": 95.24516601115465
+    },
+    {
+      "label": "after",
+      "elapsedMs": 489.9868750000005,
+      "cpuMs": 849.158,
+      "gcMs": 89.45883199572563
+    },
+    {
+      "label": "after",
+      "elapsedMs": 489.01670899999954,
+      "cpuMs": 850.276,
+      "gcMs": 90.1428310200572
+    },
+    {
+      "label": "before",
+      "elapsedMs": 627.8519579999993,
+      "cpuMs": 983.192,
+      "gcMs": 97.92166897654533
+    },
+    {
+      "label": "before",
+      "elapsedMs": 636.2325829999991,
+      "cpuMs": 997.643,
+      "gcMs": 98.30816599726677
+    },
+    {
+      "label": "after",
+      "elapsedMs": 487.9545419999995,
+      "cpuMs": 851.841,
+      "gcMs": 88.84275202453136
+    },
+    {
+      "label": "after",
+      "elapsedMs": 505.01566699999967,
+      "cpuMs": 869.414,
+      "gcMs": 93.91428898274899
+    },
+    {
+      "label": "before",
+      "elapsedMs": 627.6852909999998,
+      "cpuMs": 984.905,
+      "gcMs": 97.86612996459007
+    }
+  ]
+}

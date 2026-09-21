@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import { fileURLToPath } from "node:url";
 import { PNG } from "pngjs";
 import { VIEWPORT, VISTA_CAMERA } from "./battle-map-style.mjs";
@@ -94,13 +95,10 @@ async function gate(ctx, id) {
     const stats = await page.evaluate(() => window.__game.stats().renderStats);
     ctx.check(
       `${id} renders under the generated-map golden-hour default`,
-      stats?.environment === "golden" &&
-        stats?.terrain?.environment?.id === "golden-hour" &&
-        stats?.terrain?.environment?.source === "CIVSIM_ENVIRONMENTS.golden" &&
+      stats?.native?.environment === "golden" &&
         stats?.terrain?.vista?.bands?.some((band) => band.name === "farFog"),
       JSON.stringify({
-        environment: stats?.environment,
-        terrainEnvironment: stats?.terrain?.environment,
+        environment: stats?.native?.environment,
         vista: stats?.terrain?.vista,
       }),
     );
@@ -136,10 +134,12 @@ async function catalogEntry(page, target, id) {
 
 async function boot(page, target, seed) {
   await page.goto(`${target}/?map=gen&seed=${seed}&ai=off`);
+  await battleRendererReady(page, 180000);
   await page.waitForFunction(
-    () =>
-      window.__ready === true &&
-      window.__game?.stats?.().renderStats?.terrain?.vista?.bands?.length === 2,
+    () => {
+      const terrain = window.__game?.stats?.().renderStats?.terrain;
+      return terrain?.installed === true && terrain.vistaBands === 2;
+    },
     undefined,
     { timeout: 180000 },
   );

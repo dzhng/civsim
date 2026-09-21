@@ -1,0 +1,57 @@
+(node:31379) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-battle-performance-spec/packages/game-renderer/src/battle/unitInfoLayout.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-battle-performance-spec/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS  battle-model-workbench: heavy-front: production path and submitted count  ({"substrate":"typegpu","soldiers":1})
+PASS  battle-model-workbench: heavy-front: readable foreground model coverage  (22966)
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/heavy-front  (945159 px differ (92.3007%) — see shots/diff/shared/soldiers/workbench/heavy-front.png)
+PASS  battle-model-workbench: heavy-front: frozen frame is byte-stable
+PASS  battle-model-workbench: phalanx-side: production path and submitted count  ({"substrate":"typegpu","soldiers":1})
+PASS  battle-model-workbench: phalanx-side: readable foreground model coverage  (11469)
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/phalanx-side  (948650 px differ (92.6416%) — see shots/diff/shared/soldiers/workbench/phalanx-side.png)
+PASS  battle-model-workbench: phalanx-side: frozen frame is byte-stable
+PASS  battle-model-workbench: formation: production path and submitted count  ({"substrate":"typegpu","soldiers":16})
+PASS  battle-model-workbench: formation: readable foreground model coverage  (55294)
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/formation  (906543 px differ (88.5296%) — see shots/diff/shared/soldiers/workbench/formation.png)
+PASS  battle-model-workbench: formation: frozen frame is byte-stable
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/manual-alive  (945159 px differ (92.3007%) — see shots/diff/shared/soldiers/workbench/manual-alive.png)
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/manual-dead  (944976 px differ (92.2828%) — see shots/diff/shared/soldiers/workbench/manual-dead.png)
+PASS  battle-model-workbench: manual life control changes corpse treatment without changing the clip
+PASS  battle-model-workbench: manual life control preserves clip and phase
+PASS  battle-model-workbench: local bake reload keeps identical production pixels
+PASS  battle-model-workbench: failed reload is explicit and preserves last good crowd  ({"ok":false,"error":"SyntaxError: Unexpected token 'm', \"malformed fixture\" is not valid JSON"})
+PASS  battle-model-workbench: incompatible reload retains the active appearance
+PASS  battle-model-workbench: incompatible reload retains the active appearance-specific clip  ({"missingClip":{"ok":false,"error":"Error: presentation walk references a missing clip: walk"},"retainedClip":{"pose":{"classId":0,"clip":"walk","phase":0.25,"alive":true,"formation":true,"yaw":0.45,"pitch":0.9,"zoom":65,"target":[0,0,1.05]},"present":true}})
+PASS  battle-model-workbench: truncated local animation samples are rejected explicitly  ({"ok":false,"error":"Error: appearance local animation has invalid samples or metadata"})
+PASS  battle-model-workbench: production reload rejects a missing non-active action before replacing the crowd  ({"ok":false,"error":"Error: presentation melee references a missing clip: sword-effort"})
+PASS  battle-model-workbench: production startup rejects a missing controller action  (Error: presentation melee references a missing clip: sword-effort)
+PASS  battle-model-workbench: invalid local animation retry 0: retains the published asset generation  ({"malformed":{"ok":false,"error":"Error: appearance local animation has invalid samples or metadata"},"retained":true})
+PASS  battle-model-workbench: invalid local animation retry 1: retains the published asset generation  ({"malformed":{"ok":false,"error":"Error: appearance local animation has invalid samples or metadata"},"retained":true})
+PASS  battle-model-workbench: rejected bundles preserve the last good production pixels
+PASS  battle-model-workbench: battle submission replaces the retained formation
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/submission-parity  (893727 px differ (87.2780%) — see shots/diff/shared/soldiers/workbench/submission-parity.png)
+PASS  battle-model-workbench: battle adapter and explicit pose submission have identical pixels
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/submission-parity  (893727 px differ (87.2780%) — see shots/diff/shared/soldiers/workbench/submission-parity.png)
+PASS  battle-model-workbench: interactive clip playback and turntable change the rendered pose
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/controls  (678503 px differ (66.2601%) — see shots/diff/shared/soldiers/workbench/controls.png)
+PASS  battle-model-workbench: malformed material rejects reload and preserves the last good pixels  ({"ok":false,"error":"Error: appearance materials require finite base RGBA, roughness and metallic in [0, 1]"})
+PASS  battle-model-workbench: equivalent material-table reindex loads
+PASS  battle-model-workbench: material slot numbering cannot change surface pixels
+PASS  battle-model-workbench: authored roughness 0.9, metallic 0: replacement loads
+PASS  battle-model-workbench: authored roughness 0.15, metallic 0: replacement loads
+PASS  battle-model-workbench: authored roughness 0.15, metallic 1: replacement loads
+PASS  battle-model-workbench: authored roughness changes pixels with fixed color and metallic
+PASS  battle-model-workbench: authored metallic changes pixels with fixed color and roughness
+PASS  battle-model-workbench: instance seed does not vary authored appearance
+PASS  battle-model-workbench: blue mesh with explicit mask 0: replacement loads
+PASS  battle-model-workbench: ordinary blue does not imply faction tint
+PASS  battle-model-workbench: blue mesh with explicit mask 1: replacement loads
+PASS  battle-model-workbench: explicit mask permits faction tint
+PASS  battle-model-workbench: far roster restores authored materials after tint probes
+PASS  battle-model-workbench: complete authored roster uses production far admission  ([object Object])
+FAIL  battle-model-workbench: snapshot shared/soldiers/workbench/authored-roster-far  (52821 px differ (5.1583%) — see shots/diff/shared/soldiers/workbench/authored-roster-far.png)
+PASS  battle-model-workbench: admission probe starts from the complete authored catalog
+PASS  battle-model-workbench: pose changed during catalog loading retains the last valid crowd  ({"ok":false,"error":"Error: Reload does not contain appearance 14 / clip at-ease","retainedGeneration":true,"activeClass":14,"retainedAppearance":true})
+PASS  runner: no page errors
+
+9 FAILURE(S)

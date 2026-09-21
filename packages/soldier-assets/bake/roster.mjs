@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { createHash } from "node:crypto";
 import { APPEARANCE_DESCRIPTORS } from "../src/appearance.ts";
+import { APPEARANCE_MESH_TIERS } from "../src/appearanceBundle.ts";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
 import { heavyMotionBake, heavyPresentation } from "./heavy-motion-contract.mjs";
 
@@ -74,9 +75,7 @@ export async function bakeRosterAppearance(descriptor) {
   const { source, lods = "lods", ...motion } = await rosterRecipe(descriptor);
   const root = new URL(`../assets/source/${source}/`, import.meta.url);
   const tiers = await Promise.all(
-    ["near", "mid", "far"]
-      .map((tier) => `${lods}/${tier}.glb`)
-      .map((path) => readFile(new URL(path, root))),
+    APPEARANCE_MESH_TIERS.map((tier) => readFile(new URL(`${lods}/${tier}.glb`, root))),
   );
   return bakeAppearance({
     name: descriptor.name,

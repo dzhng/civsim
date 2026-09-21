@@ -1,0 +1,202 @@
+{
+  "lake-1/overview-t0/pair": {
+    "changedPixels": 6477,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0042266845703125
+  },
+  "lake-1/overview-t3.25/pair": {
+    "changedPixels": 6454,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.00421142578125
+  },
+  "lake-1/horizon-t0/pair": {
+    "changedPixels": 3616,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0023365020751953125
+  },
+  "lake-1/horizon-t3.25/pair": {
+    "changedPixels": 3607,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.002330144246419271
+  },
+  "lake-1/horizon-repeat-t0/pair": {
+    "changedPixels": 3616,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0023365020751953125
+  },
+  "lake-1/horizon-repeat-t3.25/pair": {
+    "changedPixels": 3607,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.002330144246419271
+  },
+  "lake-1/t0/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "lake-1/t0/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "lake-1/t3.25/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "lake-1/t3.25/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "lake-4/overview-t0/pair": {
+    "changedPixels": 6470,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.004222869873046875
+  },
+  "lake-4/overview-t3.25/pair": {
+    "changedPixels": 6446,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.004206339518229167
+  },
+  "lake-4/horizon-t0/pair": {
+    "changedPixels": 3628,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0023441314697265625
+  },
+  "lake-4/horizon-t3.25/pair": {
+    "changedPixels": 3615,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.002335230509440104
+  },
+  "lake-4/horizon-repeat-t0/pair": {
+    "changedPixels": 3628,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0023441314697265625
+  },
+  "lake-4/horizon-repeat-t3.25/pair": {
+    "changedPixels": 3615,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.002335230509440104
+  },
+  "lake-4/t0/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "lake-4/t0/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "lake-4/t3.25/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "lake-4/t3.25/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-1/overview-t0/pair": {
+    "changedPixels": 6043,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0039437611897786455
+  },
+  "ocean-1/overview-t3.25/pair": {
+    "changedPixels": 6008,
+    "maxChannelDelta": 2,
+    "meanChannelDelta": 0.0039221445719401045
+  },
+  "ocean-1/horizon-t0/pair": {
+    "changedPixels": 7279,
+    "maxChannelDelta": 2,
+    "meanChannelDelta": 0.004723866780598958
+  },
+  "ocean-1/horizon-t3.25/pair": {
+    "changedPixels": 7284,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0047245025634765625
+  },
+  "ocean-1/horizon-repeat-t0/pair": {
+    "changedPixels": 7279,
+    "maxChannelDelta": 2,
+    "meanChannelDelta": 0.004723866780598958
+  },
+  "ocean-1/horizon-repeat-t3.25/pair": {
+    "changedPixels": 7284,
+    "maxChannelDelta": 1,
+    "meanChannelDelta": 0.0047245025634765625
+  },
+  "ocean-1/t0/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-1/t0/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-1/t3.25/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-1/t3.25/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-4/overview-t0/pair": {
+    "changedPixels": 6059,
+    "maxChannelDelta": 6,
+    "meanChannelDelta": 0.003963470458984375
+  },
+  "ocean-4/overview-t3.25/pair": {
+    "changedPixels": 6047,
+    "maxChannelDelta": 10,
+    "meanChannelDelta": 0.0039653778076171875
+  },
+  "ocean-4/horizon-t0/pair": {
+    "changedPixels": 7360,
+    "maxChannelDelta": 15,
+    "meanChannelDelta": 0.004942576090494792
+  },
+  "ocean-4/horizon-t3.25/pair": {
+    "changedPixels": 7354,
+    "maxChannelDelta": 12,
+    "meanChannelDelta": 0.004923502604166667
+  },
+  "ocean-4/horizon-repeat-t0/pair": {
+    "changedPixels": 7360,
+    "maxChannelDelta": 15,
+    "meanChannelDelta": 0.004942576090494792
+  },
+  "ocean-4/horizon-repeat-t3.25/pair": {
+    "changedPixels": 7354,
+    "maxChannelDelta": 12,
+    "meanChannelDelta": 0.004923502604166667
+  },
+  "ocean-4/t0/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-4/t0/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-4/t3.25/actual/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  },
+  "ocean-4/t3.25/expected/repeat": {
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "meanChannelDelta": 0
+  }
+}

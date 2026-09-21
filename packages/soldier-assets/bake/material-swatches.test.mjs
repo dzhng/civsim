@@ -20,7 +20,7 @@ const options = {
   presentation: null,
   name: "six-material-swatches",
   mounted: false,
-  tiers: [bytes, bytes, bytes],
+  tiers: [bytes, bytes, bytes, bytes],
   loopClips: [],
 };
 const files = bakeAppearance(options);

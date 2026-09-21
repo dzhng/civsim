@@ -1,0 +1,34 @@
+[
+  {
+    "run": "0-control",
+    "earlyMsPerTick": 24.021797724025927,
+    "lateMsPerTick": 47.468559519480195,
+    "earlyHash": "13217042291758616190",
+    "lateStartHash": "17530755159512483058",
+    "lateFinalHash": "12041783451115246395"
+  },
+  {
+    "run": "1-candidate",
+    "earlyMsPerTick": 23.368433581168645,
+    "lateMsPerTick": 45.78494251948109,
+    "earlyHash": "13217042291758616190",
+    "lateStartHash": "17530755159512483058",
+    "lateFinalHash": "12041783451115246395"
+  },
+  {
+    "run": "2-candidate",
+    "earlyMsPerTick": 23.326230944805502,
+    "lateMsPerTick": 45.928219295454376,
+    "earlyHash": "13217042291758616190",
+    "lateStartHash": "17530755159512483058",
+    "lateFinalHash": "12041783451115246395"
+  },
+  {
+    "run": "3-control",
+    "earlyMsPerTick": 23.932319126623703,
+    "lateMsPerTick": 47.17225500324682,
+    "earlyHash": "13217042291758616190",
+    "lateStartHash": "17530755159512483058",
+    "lateFinalHash": "12041783451115246395"
+  }
+]

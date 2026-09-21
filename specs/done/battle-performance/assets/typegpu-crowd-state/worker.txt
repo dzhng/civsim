@@ -1,0 +1,43 @@
+Done — committed as `30c8f216`.
+
+## What changed
+
+**One owner:** `packages/battle-renderer/src/crowdAudienceDiagnostics.ts` (new, 110 lines, ~91 of them moved verbatim from the raw audience) owns `admitted`, `admittedSubmission`, `verifySeating`, `admittedPoses`, `debugSoldierAnim`. Both audiences expose it by spreading it into their returned object — no wrapper, no shim, no second loop:
+- `packages/battle-renderer/src/world/crowdAudience.ts:59` (−91 lines, 3 imports dropped)
+- `apps/battle-perf-lab/candidates/typegpu/crowdAudience.ts:90` (+1 line, the TypeGPU surface that didn't exist)
+
+**Contract reuse:** `crowdAudienceHistory.ts` now exports `AdmittedCrowdPose` and annotates `admitted()` with it, so the diagnostics consume the history's named contract instead of restating its shape. The seating tolerance, the `classId\u0000clip` pose key (still parsed at `NativeBattleRenderer.ts:309`), the `Number.isFinite` rejection, the `toFixed(3)` span and the per-submission record cache are byte-identical to the raw originals.
+
+**Semantics preserved:** cache keyed on `recordedSubmission`, cleared when the admitted submission changes; a reprojection or camera-only billboard refresh re-reads one pose; disposal and a failed upload both report nothing admitted. Nothing runs per frame.
+
+## Decisions I made
+
+- **Separate module rather than folding into the history.** The history's return is `begin`/`commit`/`abort`/`check`, which must not appear on an audience's public surface, so the diagnostics needed their own object anyway; giving them their own file keeps publication policy and diagnostic reads each nameable.
+- **Left the photoreal renderer alone.** `packages/photoreal-renderer/src/battle/battleWorld.ts:535` has its own `1e-3` seating compare and `crowdLayer.ts:437` its own `debugSoldierAnim`. That's a different crowd layer, not a consumer of this history — folding it in would be the broadening the contract forbids.
+- **No README edit.** Nothing in the candidate README became false; the new surface isn't described there, and the scope list doesn't include it.
+- **Left `crowdAudienceHistory.ts`'s pre-existing formatter drift alone** (the `lod` import block reflows under `oxfmt`, but `packages/**` isn't covered by the repo's format script) rather than add unrelated churn to this diff.
+
+## Commands and exit codes
+
+| Command | Exit |
+|---|---|
+| `web/node_modules/.bin/tsc --noEmit` (cwd `web/`) | 0 |
+| `tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tsconfig.json` | 0 |
+| `tsc --noEmit -p apps/battle-perf-lab/candidates/typegpu/tests/tsconfig.json` | 0 |
+| `vitest run --config apps/battle-perf-lab/candidates/typegpu/vitest.config.mts` | 0 — 7 files, 31 tests |
+| `vitest run --config apps/battle-perf-lab/vitest.config.mts` | 0 — 18 files, 162 tests |
+| `vitest run` (cwd `web/`, full suite) | 1 — 134/136 files, 777/778 tests |
+| `oxfmt --check` on the 5 changed source/test files | 0 |
+| `oxlint` on the 6 touched files | 0 (one pre-existing `triple-slash-reference` warning, matching every other candidate test) |
+
+**The two web-suite failures are pre-existing worktree state, not this change:** `tests/soldierCapture.test.ts` and `tests/campaignRenderMask.test.ts` fail on `web/shots/models/scripts/_soldier-capture.mjs` and `specs/done/campaign-map-bugs/assets/probe/mask-probe.json` — both tracked in git, both absent from this sparse worktree (verified with `git ls-files --error-unmatch` + `ls`). Neither touches the crowd audience.
+
+## Tests
+
+- **New** `apps/battle-perf-lab/candidates/typegpu/tests/crowdAudienceAdmission.test.ts` — 5 tests driving the real `createTypegpuCrowdAudience` with `../crowd` and `../impostor` mocked (no device, no `typegpu` runtime): mutable-input isolation after the caller mutates its submitted record and playback; submission identity across reproject/refresh/new upload plus record identity; whole-population seating with a defect in the last soldier and both tolerance boundaries; NaN elevation and non-finite surface; unadmitted/empty/refused/disposed.
+- **Added** to `web/tests/crowdAudience.test.ts` — one raw-side mutable-input isolation test (the only listed behavior the existing raw suite didn't already pin).
+- All 20 existing raw diagnostic tests preserved unchanged; no thresholds or goldens touched.
+
+## Limits
+
+CPU-only — no GPU, browser, build or timing was run. The TypeGPU surface is proven through the real audience with GPU leaves mocked; `battleScene.ts`, the environment/shadow/frame/colour helpers and `NativeBattleRenderer` were not touched, so nothing yet routes these answers to a scene or facade. Not pushed.

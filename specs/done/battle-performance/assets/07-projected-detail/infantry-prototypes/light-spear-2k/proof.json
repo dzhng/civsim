@@ -1,0 +1,60 @@
+{
+  "classId": 1,
+  "descriptor": "light-spear",
+  "source": "light-spear",
+  "catalog": "/Users/david/dev/game-battle-lod-prototypes/throwaway/lod-prototypes/light-spear-2k/appearance/catalog.json",
+  "catalogEntry": "/@fs/Users/david/dev/game-battle-lod-prototypes/throwaway/lod-prototypes/light-spear-2k/appearance/appearance.json",
+  "productionAppearance": "/Users/david/dev/game-battle-lod-prototypes/web/public/assets/soldiers/appearances/light-spear/414836041c7c3455",
+  "paths": [
+    {
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/light-spear/lods/near.glb",
+      "sha256": "309a63e8a49ed7be5e8f3c75b06733474b9371464c85b0a9ad14495cf073a184"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-lod-prototypes/throwaway/lod-prototypes/light-spear-2k/near.glb",
+      "sha256": "3980083409bbbf414541d14efbad2366c8b8b0521215c9b586fd8a350ec2e300"
+    },
+    {
+      "path": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/light-spear/lods/far.glb",
+      "sha256": "b9f9b820378e71540646e3f3bf94fb88036e1ef34b7472e95944fa31d7422b47"
+    }
+  ],
+  "checks": [
+    {
+      "name": "skeleton.json",
+      "equal": true,
+      "original": "9e7a924aee785a4276186db2a08bacbec053ae53d63bfa6266957442d1115573",
+      "candidate": "9e7a924aee785a4276186db2a08bacbec053ae53d63bfa6266957442d1115573"
+    },
+    {
+      "name": "animation.json",
+      "equal": true,
+      "original": "91017d4582d82fc0aa06af170688f76b22cb9fe2306c70c0529fe6d6d1f475b2",
+      "candidate": "91017d4582d82fc0aa06af170688f76b22cb9fe2306c70c0529fe6d6d1f475b2"
+    },
+    {
+      "name": "materials.json",
+      "equal": true,
+      "original": "96de5804b2420df4bb855242685ae8b0d1bea1a337a6e943bc5f04b1a7388fe0",
+      "candidate": "96de5804b2420df4bb855242685ae8b0d1bea1a337a6e943bc5f04b1a7388fe0"
+    },
+    {
+      "name": "tier-0.mesh.json",
+      "equal": true,
+      "original": "6534854fa73e62c7db23dab50c009afdfd627666f4e2c5927491fa20d23fc7dc",
+      "candidate": "6534854fa73e62c7db23dab50c009afdfd627666f4e2c5927491fa20d23fc7dc"
+    },
+    {
+      "name": "tier-2.mesh.json",
+      "equal": true,
+      "original": "40e5f1af98984e3ca9fd274d6a546c214172d2c90e95b4a78bbfa4924d963c6d",
+      "candidate": "40e5f1af98984e3ca9fd274d6a546c214172d2c90e95b4a78bbfa4924d963c6d"
+    }
+  ],
+  "triangles": {
+    "tier0": 7962,
+    "tier1Candidate": 1970,
+    "tier1Production": 986,
+    "tier2": 786
+  }
+}

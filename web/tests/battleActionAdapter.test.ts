@@ -1,3 +1,5 @@
+import type { BattlePresentationReceipt } from "../src/battle/battleRendererApi";
+import type { BattlePresentation, BattleCrowdPresentation } from "../src/battle/battlePresentation";
 // @vitest-environment node
 import { readFile } from "node:fs/promises";
 import { beforeAll, expect, test } from "vitest";
@@ -12,7 +14,8 @@ import {
 } from "@packages/crowd-runtime/src/actionTimeline";
 import { sampleRigLocalPose } from "@packages/soldier-assets/src/localPose";
 import { BattleCrowd } from "../src/battle/battleCrowd";
-import { createBattleViews } from "../src/battle/battleViews";
+import { createBattleViews, createLiveObservationSource } from "../src/battle/battleViews";
+import { liveBattleSim } from "./support/liveBattleSim";
 import type { BattleWorld } from "../src/battle/battleWorld";
 import type { BattleUnitPresentation } from "../src/battle/battleUnitPresentation";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
@@ -67,7 +70,7 @@ test("targetless Disengage selects protected travel only when the actual engine 
         game.spawn_class(enemyX, 0, Math.PI, 10, 5, 0, 1);
         if (evade) game.set_move_order(0, -30, 0);
         else game.set_disengage_order(0, -30, 0);
-        const adapter = new BattleActionAdapter(game, wasm.memory);
+        const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
         const first = adapter.read(0).observations[0];
         game.tick();
         const observation = adapter.read(1).observations[0];
@@ -134,25 +137,53 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
     game.set_move_order(0, 100, 0);
     game.advance_ticks(60);
     const views = createBattleViews(game, wasm.memory);
-    const submitted: Parameters<BattleWorld["renderer"]["draw"]>[2][] = [];
+    const submitted: BattleCrowdPresentation["playback"][] = [];
+    const sim = liveBattleSim(game, wasm.memory);
     const world = {
-      game,
-      memory: wasm.memory,
+      sim,
       ...views,
+      stride: game.unit_info_stride(),
       camera: { zoom: 0 },
       renderer: {
         soldierAssets: { 0: bundle },
-        draw: (...args: Parameters<BattleWorld["renderer"]["draw"]>) => submitted.push(args[2]),
+        present: (packet: BattlePresentation): BattlePresentationReceipt => {
+          submitted.push(structuredClone(packet.crowd!.playback));
+          return {
+            submitted: true,
+            renderedFrameId: submitted.length,
+            gpuSubmission: null,
+            submittedAtMs: 0,
+            cpuMs: 0,
+          };
+        },
       },
     } as unknown as BattleWorld;
     const presentation = {
       beginFrame() {},
       addSoldier() {},
       finishFrame() {},
-      update() {},
+      build: () => ({ standards: [], readouts: [] }),
     } as unknown as BattleUnitPresentation;
     const crowd = new BattleCrowd(world, presentation);
-    crowd.draw(60, true, 0, 0, []);
+    const draw = (tick: number, frozen: boolean, alpha: number) => {
+      sim.setTick(tick);
+      crowd.observeTick(tick);
+      const f = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
+      world.renderer.present({
+        crowd: f,
+        camera: world.camera,
+        timeSeconds: tick / 30,
+        clock: "wall",
+        fixedTime: frozen ? tick / 30 : null,
+        preserveFrozenEffects: false,
+        tacticalLines: {
+          groundCues: new Float32Array(),
+          rings: new Float32Array(),
+          effects: new Float32Array(),
+        },
+      });
+    };
+    draw(60, true, 0);
     let measuredDistance = 0;
     for (let tick = 61; tick <= 70; tick++) {
       const before = Array.from(views.positions().slice(0, 2));
@@ -162,7 +193,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
         views.positions()[1] - before[1],
       );
       views.unitInfo()[UNIT_INFO.running] = 1; // Contrary exported order, not a gait authority.
-      crowd.draw(tick, true, 0, 0, []);
+      draw(tick, true, 0);
     }
     const playback = submitted.at(-1)![0];
     const walk = bundle.animation.clips.find(
@@ -174,12 +205,12 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       Array.from(sampleRigLocalPose(bundle.rig, walk.name, playback.base.destination.phase)),
     );
     const paused = structuredClone(playback);
-    crowd.draw(70, true, 0, 0, []);
+    draw(70, true, 0);
     expect(submitted.at(-1)![0]).toEqual(paused);
     // Unqualified endpoint transport cannot keep a gait moving. Root placement
     // still follows positions; this pass does not alter that separate owner.
     views.positions()[0] += 3;
-    crowd.draw(71, true, 0, 0, []);
+    draw(71, true, 0);
     expect(submitted.at(-1)![0].base.destination.clip).toBe(
       manifest.presentation.actions.atEase.clip,
     );
@@ -207,16 +238,25 @@ test("production crowd preserves delayed positions across append and resets play
     const submitted: { positions: number[]; phase: number }[] = [];
     const renderer = {
       soldierAssets: { 0: bundle },
-      draw: (...args: Parameters<BattleWorld["renderer"]["draw"]>) =>
+      present: (packet: BattlePresentation): BattlePresentationReceipt => {
         submitted.push({
-          positions: Array.from(args[0]),
-          phase: args[2][0].base.destination.phase,
-        }),
+          positions: Array.from(packet.crowd!.positions),
+          phase: packet.crowd!.playback[0].base.destination.phase,
+        });
+        return {
+          submitted: true,
+          renderedFrameId: submitted.length,
+          gpuSubmission: null,
+          submittedAtMs: 0,
+          cpuMs: 0,
+        };
+      },
     };
+    const sim = liveBattleSim(game, wasm.memory);
     const world = {
-      game,
-      memory: wasm.memory,
+      sim,
       ...views,
+      stride: game.unit_info_stride(),
       renderer,
       camera: { zoom: 0 },
     } as unknown as BattleWorld;
@@ -224,26 +264,44 @@ test("production crowd preserves delayed positions across append and resets play
       beginFrame() {},
       addSoldier() {},
       finishFrame() {},
-      update() {},
+      build: () => ({ standards: [], readouts: [] }),
     } as unknown as BattleUnitPresentation;
     const crowd = new BattleCrowd(world, presentation);
-    crowd.draw(0, false, 0, 0, []);
+    const draw = (tick: number, frozen: boolean, alpha: number) => {
+      sim.setTick(tick);
+      crowd.observeTick(tick);
+      const f = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
+      world.renderer.present({
+        crowd: f,
+        camera: world.camera,
+        timeSeconds: tick / 30,
+        clock: "wall",
+        fixedTime: frozen ? tick / 30 : null,
+        preserveFrozenEffects: false,
+        tacticalLines: {
+          groundCues: new Float32Array(),
+          rings: new Float32Array(),
+          effects: new Float32Array(),
+        },
+      });
+    };
+    draw(0, false, 0);
     const initialX = views.positions()[0];
     views.positions()[0] += 1;
-    crowd.draw(1, false, 0, 0, []);
+    draw(1, false, 0);
     expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     game.spawn_class(4, 0, 0, 1, 1, 0, 0);
-    crowd.draw(1, false, 0, 0, []);
+    draw(1, false, 0);
     expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     expect(submitted.at(-1)!.positions.slice(2)).toEqual(Array.from(views.positions().slice(2)));
-    crowd.draw(2, false, 0, 0, []);
+    draw(2, false, 0);
     expect(submitted.at(-1)!.positions[0]).toBeCloseTo(initialX + 1);
-    crowd.draw(3, false, 0, 0, []);
+    draw(3, false, 0);
     expect(submitted.at(-1)!.phase).toBeGreaterThan(0);
     renderer.soldierAssets = { 0: bundle };
-    crowd.draw(3, false, 0, 0, []);
+    draw(3, false, 0);
     expect(submitted.at(-1)!.phase).toBe(0);
-    crowd.draw(0, false, 0, 0, []);
+    draw(0, false, 0);
     expect(submitted.at(-1)!.positions).toEqual(Array.from(views.positions()));
   } finally {
     game.free();
@@ -254,7 +312,7 @@ test("observation histories survive append and memory growth, but reset on rewin
   const game = new Game(41);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const initial = adapter.read(10).observations[0];
     const travel = createBattleViews(game, wasm.memory).motorTravel;
     travel().set([0.1, 0, 0.1]);
@@ -291,12 +349,52 @@ test("observation histories survive append and memory growth, but reset on rewin
   }
 });
 
+test("an unchanged tick is answered without materialising the tick's raw records", () => {
+  const game = new Game(41);
+  try {
+    game.spawn_class(0, 0, 0, 2, 1, 0, 0);
+    const live = createLiveObservationSource(game, wasm.memory);
+    let materialised = 0;
+    // The real producer, with only its record construction counted: what a repeated read
+    // must avoid is building this tick's typed-array views over the soldier arrays again.
+    const adapter = new BattleActionAdapter({
+      ...live,
+      raw: () => {
+        materialised++;
+        return live.raw();
+      },
+    });
+    const first = adapter.read(7);
+    expect(first.observations).toHaveLength(2);
+    expect(materialised).toBe(1);
+    const again = adapter.read(7);
+    expect(materialised).toBe(1);
+    expect(again.observations).toBe(first.observations);
+    expect(again.facings).toBe(first.facings);
+    // Growth inside the same tick is still real work: the new soldier has to be derived.
+    game.spawn_class(4, 0, 0, 1, 1, 0, 0);
+    const grown = adapter.read(7);
+    expect(materialised).toBe(2);
+    expect(grown.observations).toHaveLength(3);
+    expect(grown.observations[0]).toBe(first.observations[0]);
+    expect(adapter.read(7).observations).toBe(grown.observations);
+    expect(materialised).toBe(2);
+    // A rewind re-derives from a cleared baseline rather than reusing a later tick.
+    const rewound = adapter.read(6);
+    expect(materialised).toBe(3);
+    expect(rewound.observations[0]).not.toBe(grown.observations[0]);
+    expect(rewound.observations[0].speedMps).toBe(0);
+  } finally {
+    game.free();
+  }
+});
+
 test("motion retains forward and lateral signs in the presented facing basis", () => {
   const game = new Game(53);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
     const views = createBattleViews(game, wasm.memory);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     adapter.read(0);
     // Face +y: travel toward -y is backwards, while +x is to the right.
     views.facings()[0] = Math.PI / 2;
@@ -325,7 +423,7 @@ test("held pike motion uses the presented unit facing, returning to soldier faci
   const game = new Game(59);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 3, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const views = createBattleViews(game, wasm.memory);
     const weapons = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), 1);
     weapons[0] = adapter.classSpecs[3].weapons.findIndex((weapon) => weapon.braced);
@@ -357,7 +455,7 @@ test("routing and incapacitation stay distinct from guarded facing and signed di
   const game = new Game(59);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const views = createBattleViews(game, wasm.memory);
     const posture = new Uint8Array(wasm.memory.buffer, game.posture_ptr(), 1);
     expect(adapter.read(0).observations[0]).toMatchObject({
@@ -400,7 +498,7 @@ test("engine targetless withdrawal reaches the real held-pike adapter without sy
     // non-remnant formations so this probes withdrawal, not rout.
     game.spawn_class(0, 0, 0, 10, 5, 3, 0);
     game.spawn_class(80, 0, Math.PI, 10, 5, 0, 1);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const views = createBattleViews(game, wasm.memory);
     expect(adapter.read(0).observations[0].guardedFacing).toBe(false);
     game.set_disengage_order(0, -30, 0);
@@ -432,7 +530,7 @@ test("actual routing ticks reach batched motor-travel observations in the displa
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
     game.spawn_class(80, 0, Math.PI, 10, 5, 0, 1);
     const views = createBattleViews(game, wasm.memory);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     game.advance_ticks(10);
     expect(adapter.read(10).observations[0].routing).toBe(true);
     let path = 0;
@@ -470,7 +568,7 @@ test("health does not replace alive authority, and fighting or switch cooldown i
   const game = new Game(43);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 6, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const first = adapter.read(0).observations[0];
     new Uint8Array(wasm.memory.buffer, game.fighting_ptr(), 1)[0] = 1;
     new Float32Array(wasm.memory.buffer, game.switch_cd_ptr(), 1)[0] = 0.4;
@@ -494,7 +592,7 @@ test("battle observations preserve real injury/release signals while selecting h
   const game = new Game(37);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 3, 0);
-    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const adapter = new BattleActionAdapter(createLiveObservationSource(game, wasm.memory));
     const hedge = adapter.classSpecs[3].weapons.findIndex((weapon) => weapon.braced);
     const weapons = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), 1);
     const info = new Float32Array(

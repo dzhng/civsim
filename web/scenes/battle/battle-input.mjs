@@ -62,7 +62,7 @@ export async function run(ctx) {
     // for a rendered frame — software-GPU frames take hundreds of ms.
     const ringsGrew = await page
       .waitForFunction(
-        () => window.__game.stats().renderStats.tacticalLines.rings?.rings > 0,
+        () => window.__game.stats().renderStats.tacticalLines.rings?.count > 0,
         undefined,
         { timeout: 10000, polling: 100 },
       )
@@ -73,23 +73,38 @@ export async function run(ctx) {
     const ringStats = await page.evaluate(() => window.__game.stats().renderStats.tacticalLines);
     ctx.check(
       `dpr${dpr}: selection grows per-soldier ground rings`,
-      ringsGrew && ringStats.rings?.rings > 0,
+      ringsGrew && ringStats.rings?.count > 0,
       JSON.stringify(ringStats),
     );
 
+    await page.mouse.move(400, 300); // outside HUD controls and the edge-scroll band
     await page.evaluate(() => window.__game.freezeAtTick(72));
     await page.waitForTimeout(120);
     const canvas = page.locator("#battlefield");
-    const frozenA = PNG.sync.read(await canvas.screenshot());
+    // A locator screenshot composites overlapping DOM too: toolbar SVG raster
+    // changes produced 3,168 differing bytes despite an unchanged framebuffer.
+    // Export the actual canvas; HUD appearance remains covered by the UI scenes.
+    const captureFramebuffer = async () =>
+      PNG.sync.read(
+        Buffer.from(
+          await canvas.evaluate((node) => node.toDataURL("image/png").split(",")[1]),
+          "base64",
+        ),
+      );
+    const frozenA = await captureFramebuffer();
     await page.evaluate(() => window.__game.freezeAtTick(72));
     await page.waitForTimeout(120);
-    const frozenB = PNG.sync.read(await canvas.screenshot());
+    const frozenB = await captureFramebuffer();
+    const hasImage = (png) =>
+      png.data.some((value, index) => index % 4 < 3 && value !== png.data[index % 4]);
     const frozenStats = await page.evaluate(() => window.__game.stats());
     const frozenDiff = pixelByteDiff(frozenA, frozenB);
     ctx.check(
       `dpr${dpr}: freezeAtTick keeps WebGPU canvas pixels stable`,
       frozenStats.renderer === "gpu" &&
         hasBattleWorldDepthContract(frozenStats.renderStats) &&
+        hasImage(frozenA) &&
+        hasImage(frozenB) &&
         frozenDiff === 0,
       JSON.stringify({
         renderer: frozenStats.renderer,
@@ -127,12 +142,12 @@ export async function run(ctx) {
     await page.evaluate(() => window.__game.freeze(false));
     await page.waitForTimeout(200);
     const cuesIdle = await page.evaluate(
-      () => window.__game.stats().renderStats.tacticalLines.groundCues.vertices,
+      () => window.__game.stats().renderStats.tacticalLines.groundCues.count,
     );
     await page.keyboard.down(" ");
     const cuesShown = await page
       .waitForFunction(
-        (idle) => window.__game.stats().renderStats.tacticalLines.groundCues.vertices > idle,
+        (idle) => window.__game.stats().renderStats.tacticalLines.groundCues.count > idle,
         cuesIdle,
         { timeout: 10000, polling: 100 },
       )
@@ -141,7 +156,7 @@ export async function run(ctx) {
         () => false,
       );
     const cuesHeld = await page.evaluate(
-      () => window.__game.stats().renderStats.tacticalLines.groundCues.vertices,
+      () => window.__game.stats().renderStats.tacticalLines.groundCues.count,
     );
     await page.keyboard.up(" ");
     ctx.check(
@@ -256,10 +271,10 @@ export async function run(ctx) {
             if (sy > maxY) maxY = sy;
           }
           // Banners are GPU billboards, so read the owner's uploaded
-          // standard anchors (renderStats.terrain.standards).
+          // standard anchors (renderStats.native.standards.anchors).
           const anchor = g
             .stats()
-            .renderStats?.terrain?.standards?.find((candidate) => candidate.unitId === u);
+            .renderStats?.native?.standards?.anchors?.find((candidate) => candidate.unitId === u);
           const projected = anchor ? cam.worldToScreen(anchor.x, anchor.y, anchor.z) : null;
           return {
             minX,

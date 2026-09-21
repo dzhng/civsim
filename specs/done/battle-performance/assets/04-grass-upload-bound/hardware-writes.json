@@ -1,0 +1,45 @@
+{
+  "scope": "Actual WebGPU queue.writeBuffer calls during a 180-step camera pan/zoom. Instrumented correctness, not FPS or physical VRAM bandwidth. Before is the newly integrated tiled candidate, not the original game baseline.",
+  "reports": {
+    "before": {
+      "sampledCameraFrames": 180,
+      "recordBuffers": [
+        {
+          "id": 493,
+          "size": 65536000,
+          "label": "",
+          "usage": 172,
+          "phase": "loading"
+        }
+      ],
+      "writeCalls": 1983,
+      "totalSubmittedBytes": 48951091200,
+      "maxSubmittedBytesPerRenderFrame": 328499200,
+      "wholeCapacityWrites": 745,
+      "recordBufferAllocationsDuringTravel": 0,
+      "errors": [],
+      "partialCoverageFrames": 77,
+      "invalidResidentCoverageFrames": 0
+    },
+    "after": {
+      "sampledCameraFrames": 180,
+      "recordBuffers": [
+        {
+          "id": 493,
+          "size": 65536000,
+          "label": "",
+          "usage": 172,
+          "phase": "loading"
+        }
+      ],
+      "writeCalls": 1237,
+      "totalSubmittedBytes": 126668800,
+      "maxSubmittedBytesPerRenderFrame": 819200,
+      "wholeCapacityWrites": 0,
+      "recordBufferAllocationsDuringTravel": 0,
+      "errors": [],
+      "partialCoverageFrames": 78,
+      "invalidResidentCoverageFrames": 0
+    }
+  }
+}

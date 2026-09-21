@@ -1,0 +1,15 @@
+{
+  "source": "/Users/david/dev/game-battle-lod-prototypes/packages/soldier-assets/assets/source/heavy-spear/heavy-spear.blend",
+  "sourceSha256": "d41cb70c3892ebba33b53ae569f3f0bb66626b4d34747f1da278741febb7ce82",
+  "tiers": [
+    {
+      "name": "intermediate",
+      "targetTriangles": 4000,
+      "sourceTriangles": 127036,
+      "triangles": 3954,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "8990a7b59cf2c92b9ac1fafc4db8dcbf5b63aae04f56554cdec083074a2af810"
+    }
+  ]
+}

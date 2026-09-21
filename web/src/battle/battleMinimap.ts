@@ -1,6 +1,5 @@
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
-import type { Game } from "../wasm/game_wasm.js";
 import type { Camera } from "../shared/camera";
 import { unprojectToPlaneZ } from "@packages/renderer-core/src/camera3d";
 
@@ -22,22 +21,25 @@ export interface BattleMinimap {
 export function createBattleMinimap({
   canvas,
   camera,
-  game,
+  certificates,
   generatedMap,
   minimap,
   signal,
   stride,
   terrain,
+  unitCount,
   unitInfo,
 }: {
   canvas: HTMLCanvasElement;
   camera: Camera;
-  game: Game;
+  /** The sim's own certificate verdicts for a generated map, read once. */
+  certificates: string | null;
   generatedMap: unknown;
   minimap: HTMLCanvasElement;
   signal: AbortSignal;
   stride: number;
   terrain: BattleTerrainGrid;
+  unitCount: () => number;
   unitInfo: () => Float32Array;
 }): BattleMinimap {
   const miniBack = document.createElement("canvas");
@@ -93,7 +95,7 @@ export function createBattleMinimap({
       const g = minimap.getContext("2d")!;
       g.drawImage(miniBack, 0, 0);
       const info = unitInfo();
-      for (let u = 0; u < game.unit_count(); u++) {
+      for (let u = 0; u < unitCount(); u++) {
         const o = u * stride;
         if (info[o + UNIT_INFO.alive] === 0) continue;
         const [mx, my] = worldToMini(info[o], info[o + UNIT_INFO.y]);
@@ -153,8 +155,8 @@ export function createBattleMinimap({
         worldWidth: w * cell,
         worldHeight: h * cell,
         generatedMap,
-        certificates: generatedMap
-          ? (JSON.parse(game.generated_map_certificates()) as Record<string, number | boolean>)
+        certificates: certificates
+          ? (JSON.parse(certificates) as Record<string, number | boolean>)
           : null,
         counts,
         features: {

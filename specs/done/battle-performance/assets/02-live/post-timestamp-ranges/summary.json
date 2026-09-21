@@ -1,0 +1,62 @@
+[
+  {
+    "backend": "typegpu",
+    "passed": true,
+    "modes": [
+      {
+        "bloom": true,
+        "samples": 24,
+        "meanPassSumMs": 9.205182333333333,
+        "meanObservedSpanMs": 1.7299325,
+        "meanObservedUnionMs": 1.7299325
+      },
+      {
+        "bloom": false,
+        "samples": 24,
+        "meanPassSumMs": 0.7863089583333333,
+        "meanObservedSpanMs": 0.7863089583333333,
+        "meanObservedUnionMs": 0.7863089583333333
+      }
+    ]
+  },
+  {
+    "backend": "raw",
+    "passed": true,
+    "modes": [
+      {
+        "bloom": true,
+        "samples": 24,
+        "meanPassSumMs": 11.833825500000001,
+        "meanObservedSpanMs": 1.8217452916666668,
+        "meanObservedUnionMs": 1.8217452916666668
+      },
+      {
+        "bloom": false,
+        "samples": 24,
+        "meanPassSumMs": 0.9793031249999999,
+        "meanObservedSpanMs": 0.9793031249999999,
+        "meanObservedUnionMs": 0.9793031249999999
+      }
+    ]
+  },
+  {
+    "backend": "vgpu",
+    "passed": true,
+    "modes": [
+      {
+        "bloom": true,
+        "samples": 24,
+        "meanPassSumMs": 12.028789708333333,
+        "meanObservedSpanMs": 1.8117163749999998,
+        "meanObservedUnionMs": 1.8117163749999998
+      },
+      {
+        "bloom": false,
+        "samples": 24,
+        "meanPassSumMs": 1.619181875,
+        "meanObservedSpanMs": 1.619181875,
+        "meanObservedUnionMs": 1.619181875
+      }
+    ]
+  }
+]

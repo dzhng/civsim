@@ -13,6 +13,13 @@ export type SoldierMeshAsset = { [K in keyof SoldierMeshData]: number[] } & {
   indexFormat: "uint16" | "uint32";
 };
 
+/** Mesh tiers, finest first. The crowd draws its impostor after the last. */
+export const APPEARANCE_MESH_TIERS = ["near", "intermediate", "mid", "far"] as const;
+
+type Replace<Tuple extends readonly unknown[], T> = { -readonly [K in keyof Tuple]: T };
+/** One entry per mesh tier, in `APPEARANCE_MESH_TIERS` order. */
+export type MeshTiers<T> = Replace<typeof APPEARANCE_MESH_TIERS, T>;
+
 export interface AppearanceManifest {
   name: string;
   mounted: boolean;
@@ -20,7 +27,7 @@ export interface AppearanceManifest {
   skeleton: string;
   animation: string;
   materials: string;
-  tiers: [string, string, string];
+  tiers: MeshTiers<string>;
   far: { mesh: string; clip: string; phase: number };
   bounds: { center: [number, number, number]; radius: number };
 }
@@ -30,7 +37,7 @@ export interface AppearanceBundle {
   rig: ImportedRig;
   animation: LocalAnimation;
   surface: SoldierSurface;
-  tiers: [SoldierMeshData, SoldierMeshData, SoldierMeshData];
+  tiers: MeshTiers<SoldierMeshData>;
   farMesh: SoldierMeshData;
 }
 
@@ -216,10 +223,10 @@ async function readAppearanceBundle(
   const manifest = await read<AppearanceManifest>(url);
   if (
     !Array.isArray(manifest.tiers) ||
-    manifest.tiers.length !== 3 ||
+    manifest.tiers.length !== APPEARANCE_MESH_TIERS.length ||
     manifest.tiers.some((p) => !p)
   ) {
-    throw new Error("appearance requires three mesh tiers");
+    throw new Error(`appearance requires mesh tiers ${APPEARANCE_MESH_TIERS.join(", ")}`);
   }
   if (
     !manifest.skeleton ||

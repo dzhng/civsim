@@ -1,0 +1,92 @@
+[
+  {
+    "i": 0,
+    "pose": "melee",
+    "diffPixels": 240
+  },
+  {
+    "i": 0,
+    "pose": "death",
+    "diffPixels": 222
+  },
+  {
+    "i": 1,
+    "pose": "melee",
+    "diffPixels": 224
+  },
+  {
+    "i": 1,
+    "pose": "death",
+    "diffPixels": 230
+  },
+  {
+    "i": 2,
+    "pose": "melee",
+    "diffPixels": 243
+  },
+  {
+    "i": 2,
+    "pose": "death",
+    "diffPixels": 186
+  },
+  {
+    "i": 3,
+    "pose": "melee",
+    "diffPixels": 221
+  },
+  {
+    "i": 3,
+    "pose": "death",
+    "diffPixels": 218
+  },
+  {
+    "i": 4,
+    "pose": "melee",
+    "diffPixels": 221
+  },
+  {
+    "i": 4,
+    "pose": "death",
+    "diffPixels": 221
+  },
+  {
+    "i": 5,
+    "pose": "melee",
+    "diffPixels": 223
+  },
+  {
+    "i": 5,
+    "pose": "death",
+    "diffPixels": 235
+  },
+  {
+    "i": 6,
+    "pose": "melee",
+    "diffPixels": 220
+  },
+  {
+    "i": 6,
+    "pose": "death",
+    "diffPixels": 249
+  },
+  {
+    "i": 7,
+    "pose": "melee",
+    "diffPixels": 231
+  },
+  {
+    "i": 7,
+    "pose": "death",
+    "diffPixels": 248
+  },
+  {
+    "i": 8,
+    "pose": "melee",
+    "diffPixels": 240
+  },
+  {
+    "i": 8,
+    "pose": "death",
+    "diffPixels": 244
+  }
+]

@@ -69,6 +69,19 @@ pub struct Game {
     generated_vista: Option<VistaGrid>,
 }
 
+#[cfg(all(feature = "perf_timing", target_arch = "wasm32"))]
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = performance, js_name = now)]
+    fn profile_now() -> f64;
+}
+
+#[cfg(all(feature = "perf_timing", target_arch = "wasm32"))]
+#[wasm_bindgen(start)]
+pub fn initialize_profile_clock() {
+    sim::perf_timing::set_clock(profile_now);
+}
+
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen(constructor)]
@@ -587,6 +600,17 @@ impl Game {
             self.battle.tick();
         }
         self.refresh_unit_info();
+    }
+
+    /// Reset after preparation so diagnostic costs describe only the measured window.
+    #[cfg(feature = "perf_timing")]
+    pub fn reset_perf_timing(&self) {
+        sim::perf_timing::reset();
+    }
+
+    #[cfg(feature = "perf_timing")]
+    pub fn perf_timing_json(&self, ticks: u32) -> String {
+        serde_json::to_string(&sim::perf_timing::snapshot(ticks as usize)).unwrap()
     }
 
     pub fn set_ai_team(&mut self, team: i32) {

@@ -737,50 +737,77 @@ mod tests {
     }
 }
 
-/// Hand a Pending encounter to the battle layer. The campaign freezes until
-/// `report_battle`. Returns null if the encounter isn't pending.
 #[wasm_bindgen]
-pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
-    let setup = c.inner.battle_setup(encounter)?;
-    let terrain_source = setup.terrain.clone();
-    let mut battle = sim::Battle::from_setup(
-        &setup,
-        &|unit| {
-            let option = unit
-                .unit_type
-                .map(campaign::units::UnitOption::from_unit_type)
-                .unwrap_or(campaign::units::UnitOption::Regular);
-            sim::class_stats(unit.class).with_modifiers(&option.modifiers())
-        },
-        &|unit| unit.class as u32,
-    );
-    // Whoever isn't the player fights themselves; battle_setup_for puts the
-    // player on team 0 when involved.
-    battle.set_ai(1, true);
-    if !c
-        .inner
-        .state
-        .armies
-        .iter()
-        .any(|a| a.encounter == Some(encounter) && a.faction == c.inner.state.player_faction)
-    {
-        battle.set_ai(0, true);
+impl Campaign {
+    /// Hand a Pending encounter to the battle layer as data. The campaign freezes
+    /// until `report_campaign_battle` brings the outcome back. Returns null if the
+    /// encounter isn't pending.
+    ///
+    /// The description, not a built `Game`, is what leaves the campaign: the one
+    /// authoritative battle `Game` is built from this wherever it runs, which need
+    /// not be the thread that owns the `Campaign`.
+    pub fn begin_campaign_battle(&mut self, encounter: u32) -> Option<String> {
+        let setup = self.inner.battle_setup(encounter)?;
+        // Whoever isn't the player fights themselves; battle_setup_for puts the
+        // player on team 0 when involved.
+        let player_here = self.inner.state.armies.iter().any(|a| {
+            a.encounter == Some(encounter) && a.faction == self.inner.state.player_faction
+        });
+        let ai_teams = if player_here { vec![1] } else { vec![0, 1] };
+        let json = serde_json::to_string(&contract::BattleHandoff { setup, ai_teams }).ok()?;
+        self.fighting = Some(encounter);
+        Some(json)
     }
-    c.fighting = Some(encounter);
-    Some(Game::from_battle_with_terrain_source(
-        battle,
-        &terrain_source,
-    ))
+
+    /// Battle over (sim verdict, or forced by remaining strength if cut short):
+    /// write the reported outcome back and let the world breathe again. False means
+    /// nothing was applied — no battle is outstanding, or the result is unreadable —
+    /// and the encounter stays outstanding rather than resolving on a guess.
+    pub fn report_campaign_battle(&mut self, result_json: &str) -> bool {
+        let Some(eid) = self.fighting else {
+            return false;
+        };
+        let Ok(result) = serde_json::from_str::<contract::BattleResult>(result_json) else {
+            return false;
+        };
+        self.fighting = None;
+        self.inner.apply_outcome(eid, &result);
+        self.refresh();
+        true
+    }
 }
 
-/// Battle over (sim verdict, or forced by remaining strength if cut short):
-/// write the outcome back and let the world breathe again.
 #[wasm_bindgen]
-pub fn report_battle(c: &mut Campaign, g: &Game) {
-    let Some(eid) = c.fighting.take() else { return };
-    let result = g.battle_result();
-    c.inner.apply_outcome(eid, &result);
-    c.refresh();
+impl Game {
+    /// Build the battle a campaign encounter describes. Pure in the handoff: it
+    /// touches no `Campaign`, so the authority can call it wherever it lives.
+    pub fn from_campaign_handoff(handoff_json: &str) -> Option<Game> {
+        let handoff = serde_json::from_str::<contract::BattleHandoff>(handoff_json).ok()?;
+        let mut battle = sim::Battle::from_setup(
+            &handoff.setup,
+            &|unit| {
+                let option = unit
+                    .unit_type
+                    .map(campaign::units::UnitOption::from_unit_type)
+                    .unwrap_or(campaign::units::UnitOption::Regular);
+                sim::class_stats(unit.class).with_modifiers(&option.modifiers())
+            },
+            &|unit| unit.class as u32,
+        );
+        for team in handoff.ai_teams {
+            battle.set_ai(team, true);
+        }
+        Some(Game::from_battle_with_terrain_source(
+            battle,
+            &handoff.setup.terrain,
+        ))
+    }
+
+    /// What the campaign applies: the sim's verdict, or the outcome forced by
+    /// remaining strength when the fight was cut short.
+    pub fn campaign_battle_result(&self) -> String {
+        serde_json::to_string(&self.battle_result()).unwrap_or_default()
+    }
 }
 
 impl Game {
@@ -788,5 +815,204 @@ impl Game {
         self.battle()
             .result()
             .unwrap_or_else(|| self.battle().forced_result())
+    }
+}
+
+#[cfg(test)]
+mod battle_handoff_tests {
+    use super::*;
+
+    /// Red (the player) and Blue, one road between them: enough campaign to reach a
+    /// pending encounter and apply its outcome.
+    const MAP: &str = r#"{
+      "half_w": 100, "half_h": 100,
+      "nodes": [
+        {"id": 1, "name": "Red",  "pos": [0,0],  "kind": "city", "tier": 2, "port": false, "owner": "red"},
+        {"id": 2, "name": "Mid",  "pos": [20,0], "kind": "junction", "tier": 0, "port": false, "owner": ""},
+        {"id": 3, "name": "Blue", "pos": [40,0], "kind": "city", "tier": 1, "port": false, "owner": "blue"}
+      ],
+      "edges": [
+        {"a": 1, "b": 2, "kind": "road", "via": [[0,0],[20,0]], "tiles": ["open","open","open","open","open","open"]},
+        {"a": 2, "b": 3, "kind": "road", "via": [[20,0],[40,0]], "tiles": ["open","open","open","open","open","open"]}
+      ],
+      "ambush_spots": [],
+      "factions": [
+        {"id": "red",  "name": "Red",  "color": [200,0,0], "playable": true},
+        {"id": "blue", "name": "Blue", "color": [0,0,200], "playable": true},
+        {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
+      ],
+      "start_armies": [
+        {"faction": "red",  "at": "Red",  "roster": [["HeavySword", 3], ["Archers", 1]]},
+        {"faction": "blue", "at": "Blue", "roster": [["LightSpear", 2]]}
+      ]
+    }"#;
+
+    /// Walk two hostile armies onto the same road tile and stop at the encounter the
+    /// player would be offered.
+    fn pending(player_faction: u32) -> (Campaign, u32) {
+        let mut c = Campaign::new(MAP, 11, player_faction);
+        c.debug_place(0, 1, 0, 3);
+        c.debug_place(1, 1, 0, 4);
+        for _ in 0..400 {
+            c.tick(1);
+            if c.battle_ready() >= 0 {
+                let eid = c.battle_ready() as u32;
+                return (c, eid);
+            }
+        }
+        panic!("the armies never formed a pending battle");
+    }
+
+    fn handoff_of(json: &str) -> contract::BattleHandoff {
+        serde_json::from_str(json).expect("the handoff is the contract's own shape")
+    }
+
+    fn soldiers(c: &Campaign, army: u32) -> u32 {
+        serde_json::from_str::<Vec<serde_json::Value>>(&c.army_roster_json(army))
+            .unwrap()
+            .iter()
+            .map(|entry| entry["count"].as_u64().unwrap() as u32)
+            .sum()
+    }
+
+    /// Every roster unit in the fight, halved, as the battle would report it.
+    fn half_strength_result(handoff: &contract::BattleHandoff, victor: u32) -> String {
+        let units = handoff
+            .setup
+            .deployments
+            .iter()
+            .flat_map(|d| {
+                d.units.iter().map(|u| contract::UnitResult {
+                    id: u.id,
+                    team: d.team,
+                    survivors: u.count / 2,
+                    routed: false,
+                    morale_cap: u.morale_cap,
+                    deployed: true,
+                })
+            })
+            .collect();
+        serde_json::to_string(&contract::BattleResult { victor, units }).unwrap()
+    }
+
+    #[test]
+    fn one_handoff_describes_the_same_battle_wherever_it_is_built() {
+        let (mut c, eid) = pending(0);
+        let json = c.begin_campaign_battle(eid).expect("a pending encounter");
+        let mut here = Game::from_campaign_handoff(&json).expect("a battle here");
+        let mut there =
+            Game::from_campaign_handoff(&json).expect("a battle in another address space");
+        assert_eq!(here.soldier_count(), there.soldier_count());
+        assert!(here.soldier_count() > 0);
+        for _ in 0..60 {
+            here.advance_ticks(1);
+            there.advance_ticks(1);
+            assert_eq!(here.state_hash(), there.state_hash());
+        }
+        assert_eq!(
+            here.campaign_battle_result(),
+            there.campaign_battle_result()
+        );
+    }
+
+    #[test]
+    fn the_sim_commands_the_sides_the_player_is_not_fighting() {
+        let (mut player, eid) = pending(0);
+        assert_eq!(
+            handoff_of(&player.begin_campaign_battle(eid).unwrap()).ai_teams,
+            vec![1]
+        );
+        // Faction 2 is not in this fight, so both sides are commanded by the sim.
+        let (mut watcher, eid) = pending(2);
+        assert_eq!(
+            handoff_of(&watcher.begin_campaign_battle(eid).unwrap()).ai_teams,
+            vec![0, 1]
+        );
+    }
+
+    #[test]
+    fn the_world_holds_its_breath_until_the_outcome_is_reported() {
+        let (mut c, eid) = pending(0);
+        let json = c.begin_campaign_battle(eid).unwrap();
+        let frozen_at = c.current_tick();
+        assert!(!c.can_save());
+        c.tick(30);
+        assert_eq!(
+            c.current_tick(),
+            frozen_at,
+            "the campaign must not tick during a battle"
+        );
+
+        let mut game = Game::from_campaign_handoff(&json).unwrap();
+        game.advance_ticks(30);
+        assert!(c.report_campaign_battle(&game.campaign_battle_result()));
+        assert!(c.can_save());
+        c.tick(1);
+        assert!(c.current_tick() > frozen_at);
+    }
+
+    /// A battle cut short still reports an applicable outcome for every unit that
+    /// entered it — the same report leaving a battle the moment it opens produces.
+    #[test]
+    fn a_battle_cut_short_reports_every_unit_that_entered_it() {
+        let (mut c, eid) = pending(0);
+        let json = c.begin_campaign_battle(eid).unwrap();
+        let handoff = handoff_of(&json);
+        let entered: Vec<u64> = handoff
+            .setup
+            .deployments
+            .iter()
+            .flat_map(|d| d.units.iter().map(|u| u.id))
+            .collect();
+        let mut game = Game::from_campaign_handoff(&json).unwrap();
+        game.advance_ticks(5);
+        let result: contract::BattleResult =
+            serde_json::from_str(&game.campaign_battle_result()).unwrap();
+        let mut reported: Vec<u64> = result.units.iter().map(|u| u.id).collect();
+        reported.sort_unstable();
+        let mut expected = entered.clone();
+        expected.sort_unstable();
+        assert_eq!(reported, expected);
+        assert!(c.report_campaign_battle(&game.campaign_battle_result()));
+    }
+
+    #[test]
+    fn a_reported_result_lands_on_the_campaign_rosters() {
+        let (mut c, eid) = pending(0);
+        let before = (soldiers(&c, 0), soldiers(&c, 1));
+        let handoff = handoff_of(&c.begin_campaign_battle(eid).unwrap());
+        assert!(c.report_campaign_battle(&half_strength_result(&handoff, 0)));
+        let after = (soldiers(&c, 0), soldiers(&c, 1));
+        assert!(
+            after.0 < before.0 && after.1 < before.1,
+            "{before:?} -> {after:?}"
+        );
+        assert_eq!(c.battle_ready(), -1);
+    }
+
+    #[test]
+    fn an_unreadable_result_resolves_nothing_and_leaves_the_encounter_outstanding() {
+        let (mut c, eid) = pending(0);
+        let before = soldiers(&c, 0);
+        let handoff = handoff_of(&c.begin_campaign_battle(eid).unwrap());
+        assert!(!c.report_campaign_battle("{ not a battle result"));
+        assert!(!c.can_save(), "the encounter is still outstanding");
+        assert_eq!(soldiers(&c, 0), before);
+        // The campaign is still able to take the real outcome afterwards.
+        assert!(c.report_campaign_battle(&half_strength_result(&handoff, 0)));
+        assert!(c.can_save());
+    }
+
+    /// Exit and disposal can both try to close the same battle; the second report
+    /// must not apply the same casualties twice.
+    #[test]
+    fn a_result_reported_with_no_battle_outstanding_changes_nothing() {
+        let (mut c, eid) = pending(0);
+        let handoff = handoff_of(&c.begin_campaign_battle(eid).unwrap());
+        let result = half_strength_result(&handoff, 0);
+        assert!(c.report_campaign_battle(&result));
+        let after = (soldiers(&c, 0), soldiers(&c, 1));
+        assert!(!c.report_campaign_battle(&result));
+        assert_eq!((soldiers(&c, 0), soldiers(&c, 1)), after);
     }
 }

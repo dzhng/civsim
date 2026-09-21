@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
-import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
+import { TYPEGPU_BATTLE_IDENTITY } from "../../../packages/battle-renderer/src/world/identity.ts";
 
 const views = [
   { name: "front", yaw: 0.35, pitch: 1.4, zoom: 230, target: [0, 0, 0.95] },
@@ -47,13 +47,13 @@ export async function run(ctx) {
           { classId, camera },
         );
         await page.waitForFunction((frame) => window.__battleModels.stats().frame > frame, before);
-        await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+        await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
         const stats = await page.evaluate(() => window.__battleModels.stats());
         ctx.check(
           `${name}/${classId}: production frozen presentation`,
-          stats.render.substrate === PHOTOREAL_SUBSTRATE &&
+          stats.render.substrate === TYPEGPU_BATTLE_IDENTITY.substrate &&
             stats.sampled.phase === 0 &&
-            stats.render.soldiers === (camera.formation ? 16 : 1),
+            stats.render.crowd.instances === (camera.formation ? 16 : 1),
           JSON.stringify(stats.sampled),
         );
         const crop = { x: 320, y: 96, width: 640, height: 640 };
@@ -65,7 +65,7 @@ export async function run(ctx) {
           return frame;
         });
         await page.waitForFunction((frame) => window.__battleModels.stats().frame > frame, frame);
-        await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+        await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
         ctx.check(
           `${name}/${classId}: newly rendered crop is byte-stable`,
           shot.equals(await page.screenshot({ clip: crop })),

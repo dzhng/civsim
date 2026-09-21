@@ -28,20 +28,16 @@ import {
   type Vec3Node,
 } from "./shaderNodes";
 
-// The neutral scattering colour the sea contributes beneath its sky reflection.
-// These are display-authored effective albedos: pale Aegean turquoise in the
-// shallows and a restrained deep-water blue offshore under the golden preset.
-export const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.22, 0.58, 0.6];
-export const WATER_DEEP_ALBEDO: [number, number, number] = [0.025, 0.095, 0.22];
-export const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
-export const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.4];
-// Calm water is glossy: the sun track is standard-material GGX specular from
-// the live environment sun; foam stays matte.
-export const WATER_ROUGHNESS = 0.105;
-export const WATER_FOAM_ROUGHNESS = 0.78;
-// Field ripple detail fades before distant fragments alias under the sun.
-const FIELD_WATER_DETAIL_FADE_START = 120;
-const FIELD_WATER_DETAIL_FADE_END = 420;
+import {
+  WATER_SHALLOW_ALBEDO,
+  WATER_DEEP_ALBEDO,
+  WATER_FOAM_ALBEDO,
+  WATER_SAND_TURBIDITY_ALBEDO,
+  WATER_ROUGHNESS,
+  WATER_FOAM_ROUGHNESS,
+  LAKE_NORMAL_DETAIL_FADE_START,
+  LAKE_NORMAL_DETAIL_FADE_END,
+} from "../../../game-renderer/src/water/physicalWaterPolicy";
 
 /** waterShoreRamp(shoreDist) → depth01 (the haze leg of the shared ramp
  *  table is a bespoke-WGSL knob; photoreal haze is the aerial owner's). */
@@ -87,8 +83,8 @@ export function fieldWaterSurfaceNodes(
   const swash = smoothstepN(0.16, 0.02, shoreDist).mul(smoothstepN(0.006, 0.03, shoreDist));
   const viewDist = length(p.sub(vec2(frame.focus))).toVar();
   const detailFade = smoothstepN(
-    FIELD_WATER_DETAIL_FADE_START,
-    FIELD_WATER_DETAIL_FADE_END,
+    LAKE_NORMAL_DETAIL_FADE_START,
+    LAKE_NORMAL_DETAIL_FADE_END,
     viewDist,
   );
   const detail = float(1.0).sub(detailFade).toVar();

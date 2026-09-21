@@ -13,7 +13,10 @@ import {
   LAKE_NORMAL_DETAIL_FADE_START,
   LAKE_NORMAL_DETAIL_FADE_END,
 } from "../../../game-renderer/src/water/physicalWaterPolicy";
-import { FIELD_WATER_RAMP } from "../../../game-renderer/src/water/waterShoreRamp";
+import {
+  FIELD_WATER_RAMP,
+  TERRAIN_WATER_BLEND,
+} from "../../../game-renderer/src/water/waterShoreRamp";
 import type { BattleSlopeBands } from "../../../game-renderer/src/battle/terrainFeatures";
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 
@@ -27,7 +30,7 @@ const f = (n: number) => `${n.toExponential(16)}f`;
 const rgb = (v: readonly number[]) => `vec3f(${v.map(f).join(",")})`;
 
 /** Linear albedo + authored roughness, matching createGroundMesh's base terrain.
- * The on-field water's existing inner and outer EOTF are deliberately preserved.
+ * Dry and wet display-authored colors each convert once, before linear blending.
  * Requires the shared terrain noise functions; performs no lighting, fog, or GPU orchestration. */
 export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
   const sdf = options.earthDistance,
@@ -46,7 +49,7 @@ export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
  return quiet*value;
 }`,
     terrainSurface: `(position:vec3f,normal:vec3f,surfaceColor:vec3f,coverage:vec3f,water:f32,time:f32,focus:vec2f,farStrength:f32,earthSdf:texture_2d<f32>,linear:sampler,rockMap:texture_2d<f32>,rockSampler:sampler)->vec4f {
- let world=position.xy;let rawWater=clamp(water,0.0,1.0);let waterBlend=smoothstep(0.08,0.55,rawWater);
+ let world=position.xy;let rawWater=clamp(water,0.0,1.0);let waterBlend=smoothstep(${f(TERRAIN_WATER_BLEND[0])},${f(TERRAIN_WATER_BLEND[1])},rawWater);
  var unionDistance=${f(-(sdf?.rangeMeters ?? 1))};var roadDistance=unionDistance;
  ${
    sdf
@@ -120,9 +123,9 @@ export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
  let foam=clamp(swash*lace*0.7*waterDetail,0.0,1.0);
  let depth=smoothstep(${f(FIELD_WATER_RAMP.depthNear)},${f(FIELD_WATER_RAMP.depthFar)},rawWater);
  let waterAlbedo=terrainLinear(mix(mix(${rgb(WATER_SHALLOW_ALBEDO)},${rgb(WATER_DEEP_ALBEDO)},depth),${rgb(WATER_FOAM_ALBEDO)},foam));
- albedo=mix(albedo,waterAlbedo,waterBlend);
+ albedo=mix(terrainLinear(clamp(albedo,vec3f(0),vec3f(1))),waterAlbedo,waterBlend);
  roughness=mix(${options.vistaBand ? `max(roughness,${f(options.vistaBand === "farFog" ? 0.995 : 0.985)})` : "roughness"},mix(${f(WATER_ROUGHNESS)},${f(WATER_FOAM_ROUGHNESS)},foam),waterBlend);
- return vec4f(terrainLinear(clamp(albedo,vec3f(0),vec3f(1))),roughness);
+ return vec4f(albedo,roughness);
 }`,
   };
 }

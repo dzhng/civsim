@@ -1,0 +1,18 @@
+{
+  "lake-ground": {
+    "changedPixels": 223384,
+    "rgbMAE": 9.471977213541667
+  },
+  "lake-oblique": {
+    "changedPixels": 674931,
+    "rgbMAE": 28.882163411458333
+  },
+  "coast-join": {
+    "changedPixels": 80810,
+    "rgbMAE": 2.189109375
+  },
+  "dry-control": {
+    "changedPixels": 0,
+    "rgbMAE": 0
+  }
+}

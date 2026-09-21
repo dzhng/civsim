@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import { PNG } from "pngjs";
 import { UNIT_INFO, worldPointNearUnit } from "../_battle-unit-info.mjs";
 import { hasBattleWorldDepthContract } from "../_renderer-contract.mjs";
@@ -27,19 +28,7 @@ export async function run(ctx) {
     errorPrefix: "renderer-battle-visual-dpr2",
   });
   await page.goto(`${ctx.target}?battle=5v5&ai=off`);
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 20000 },
-  );
+  await battleRendererReady(page, 20000);
 
   await page.evaluate((unitInfo) => {
     window.__game.freezeAtTick(72);
@@ -62,7 +51,7 @@ export async function run(ctx) {
     .waitForFunction(
       () => {
         const t = window.__game.stats().renderStats.tacticalLines;
-        return t?.rings?.rings > 0 && t?.groundCues?.lineSegments > 0;
+        return t?.rings?.count > 0 && t?.groundCues?.count > 0;
       },
       undefined,
       { timeout: 10000, polling: 100 },
@@ -87,19 +76,19 @@ export async function run(ctx) {
       Math.hypot(state.targetX - orderTarget.worldX, state.targetY - orderTarget.worldY) < 2.0 &&
       state.stats.renderer === "gpu" &&
       hasBattleWorldDepthContract(state.stats.renderStats) &&
-      state.stats.renderStats?.tacticalLines?.rings?.rings > 0,
+      state.stats.renderStats?.tacticalLines?.rings?.count > 0,
     JSON.stringify({ orderTarget, state }),
   );
   ctx.check(
     "WebGPU battle visual frame includes terrain props and tactical ground cues",
-    state.stats.renderStats?.terrain?.fixture === "sim-tint" &&
-      state.stats.renderStats.terrain.layer === "photoreal-battle-ground" &&
+    state.stats.renderStats?.terrain?.installed === true &&
+      state.stats.renderStats.terrain.generation > 0 &&
       state.stats.renderStats.terrain.groundTriangles > 1000 &&
       state.stats.renderStats.terrain.scenery > 0 &&
       // Tactical ground decals in the frozen frame: selection rings (the
       // frozen scene renders no post-order flash frames).
-      (state.stats.renderStats.tacticalLines?.groundCues?.lineSegments > 0 ||
-        state.stats.renderStats.tacticalLines?.rings?.rings > 0),
+      (state.stats.renderStats.tacticalLines?.groundCues?.count > 0 ||
+        state.stats.renderStats.tacticalLines?.rings?.count > 0),
     JSON.stringify({
       terrain: state.stats.renderStats?.terrain,
       tacticalLines: state.stats.renderStats?.tacticalLines,

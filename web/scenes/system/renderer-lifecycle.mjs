@@ -1,6 +1,15 @@
 import { battleRendererReady, campaign, ready } from "../worlds.mjs";
 
 const CYCLES = 10;
+const RESOURCE_FIELDS = ["buffers", "textures", "bufferBytes", "textureBytes", "totalBytes"];
+
+function measuredResources(value) {
+  return (
+    value?.scope === "requested-webgpu-resources" &&
+    RESOURCE_FIELDS.every((key) => Number.isFinite(value[key]) && value[key] >= 0) &&
+    value.totalBytes === value.bufferBytes + value.textureBytes
+  );
+}
 
 export const meta = {
   name: "renderer-lifecycle",
@@ -31,9 +40,34 @@ export async function run(ctx) {
     ctx.check(`cycle ${cycle} launches battle`, launched === true, String(launched));
     await ready(page, "__ready", 22000);
     await battleRendererReady(page, 22000);
-    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
 
-    const renderer = await page.evaluate(() => window.__game.rendererMemoryInfo());
+    // Keep this world's bound reader after the campaign replaces __game.
+    const memoryReader = await page.evaluateHandle(() => window.__game.rendererMemoryInfo);
+    const { renderer, timing } = await page.evaluate(
+      (read) => ({
+        renderer: read(),
+        timing: window.__game.stats().renderStats.gpuTiming,
+      }),
+      memoryReader,
+    );
+    // Timestamp readbacks grow with GPU scheduling demand. Subtract only the
+    // telemetry owner's measured retained buffers for the live-world plateau;
+    // disposal below must still release those buffers together with the world.
+    const telemetryMeasured =
+      Number.isFinite(timing?.requestedBuffers) &&
+      timing.requestedBuffers >= 0 &&
+      Number.isFinite(timing?.requestedBufferBytes) &&
+      timing.requestedBufferBytes >= 0;
+    const worldResources =
+      telemetryMeasured && measuredResources(renderer)
+        ? {
+            ...renderer,
+            buffers: renderer.buffers - timing.requestedBuffers,
+            bufferBytes: renderer.bufferBytes - timing.requestedBufferBytes,
+            totalBytes: renderer.totalBytes - timing.requestedBufferBytes,
+          }
+        : null;
     await page.evaluate(async () => {
       const disposeRenderer = window.__game.disposeRenderer;
       document.querySelector("#btn-menu")?.click();
@@ -43,7 +77,28 @@ export async function run(ctx) {
     });
     await ready(page, "__campaignReady", 22000);
     await page.waitForFunction(() => window.__ready === false, undefined, { timeout: 22000 });
-    await page.waitForTimeout(1000);
+    let released;
+    try {
+      await page.waitForFunction(
+        ({ read, fields }) => {
+          const memory = read();
+          return (
+            memory?.scope === "requested-webgpu-resources" &&
+            fields.every((key) => memory[key] === 0)
+          );
+        },
+        { read: memoryReader, fields: RESOURCE_FIELDS },
+        { timeout: 22000 },
+      );
+    } finally {
+      released = await memoryReader.evaluate((read) => read());
+      await memoryReader.dispose();
+    }
+    ctx.check(
+      `cycle ${cycle} retires every requested battle buffer and texture`,
+      measuredResources(released) && RESOURCE_FIELDS.every((key) => released[key] === 0),
+      JSON.stringify(released),
+    );
     await page.requestGC();
     const userAgentMemory = await page.evaluate(async () => {
       const measure = performance.measureUserAgentSpecificMemory;
@@ -64,22 +119,30 @@ export async function run(ctx) {
     });
     const sample = {
       cycle,
-      ...renderer,
+      renderer,
+      timing,
+      worldResources,
       userAgentBytes: userAgentMemory?.bytes ?? null,
       userAgentBreakdown: userAgentMemory?.breakdown ?? null,
     };
     series.push(sample);
     ctx.check(
       `cycle ${cycle} samples renderer resources`,
-      renderer !== null,
+      measuredResources(worldResources) &&
+        measuredResources(renderer) &&
+        renderer.buffers > 0 &&
+        renderer.textures > 0 &&
+        renderer.totalBytes > 0,
       JSON.stringify(sample),
     );
   }
 
-  const constant = (key) => series.every((sample) => sample[key] === series[0]?.[key]);
+  const constant = (key) =>
+    series.every((sample) => sample.worldResources?.[key] === series[0]?.worldResources?.[key]);
   ctx.check(
-    "renderer counters stay flat across dispose cycles",
-    constant("geometries") && constant("textures") && constant("programs"),
+    "live battle resources excluding measured telemetry stay flat across dispose cycles",
+    series.every((sample) => measuredResources(sample.worldResources)) &&
+      RESOURCE_FIELDS.every(constant),
     JSON.stringify(series),
   );
   ctx.check(

@@ -26,7 +26,7 @@ export const PROJECTION_IDENTITY = readSourceStringConst(
   "PROJECTION_IDENTITY",
   "shared camera uniform contract",
 );
-// The photoreal ownership identity is also the production battle identity.
+// Retained photoreal lab routes declare their own ownership identity.
 export const PHOTOREAL_SUBSTRATE = readSourceStringConst(
   PHOTOREAL_STATS_SOURCE,
   "PHOTOREAL_SUBSTRATE",
@@ -174,28 +174,50 @@ function hasSemanticPassRoles(phases) {
   );
 }
 
-// The production battle world renders on the photoreal substrate (three.js
-// WebGPU + TSL behind BattleRenderer): depth is a real
-// reverse-Z buffer owned by three, posed by camera3d through cameraBridge, and
-// battle exposes no bespoke frame-graph phase stats. The contract
-// asserts the ownership identity fields (single owners, README "Photoreal
-// ladder invariants"), the reverse-Z depth convention read off the live
-// renderer, the heightfield seating firewall, and the tactical-line overlay
-// seams. The bespoke phase-graph contract belongs only to campaign
-// (`hasCampaignWorldDepthContract`).
+// Production battle reports installed TypeGPU ownership and the last presented
+// frame. Seating is an explicit inspection; routine stats never scan the army.
 export function hasBattleWorldDepthContract(renderStats) {
   return (
     renderStats?.ready === true &&
-    renderStats?.substrate === PHOTOREAL_SUBSTRATE &&
-    renderStats?.projection === PHOTOREAL_PROJECTION &&
+    renderStats?.substrate === "typegpu" &&
+    renderStats?.projection === "camera3d" &&
     typeof renderStats?.environment === "string" &&
     renderStats.environment.length > 0 &&
-    renderStats?.depth?.owner === "three-webgpu" &&
-    renderStats?.depth?.reversed === true &&
-    renderStats?.seating?.matches === true &&
+    renderStats?.depth?.owner === "typegpu-battle-frame" &&
+    renderStats.depth.installed === true &&
+    renderStats.depth.format === GPU_DEPTH_FORMAT &&
+    renderStats.depth.reversed === true &&
+    renderStats.depth.width > 0 &&
+    renderStats.depth.height > 0 &&
+    renderStats.depth.requestedBytes > 0 &&
+    renderStats?.presentedFrameId > 0 &&
+    renderStats?.camera?.camera3d != null &&
     renderStats?.tacticalLines?.groundCues != null &&
     renderStats?.tacticalLines?.effects != null &&
-    renderStats?.drawCalls > 0
+    Number.isFinite(renderStats?.drawCalls) &&
+    renderStats.drawCalls > 0 &&
+    renderStats.drawCallsUnavailable === null
+  );
+}
+
+/** A whole-population measurement belongs to the frame that presented this
+ * admitted pose and terrain, not to whichever frame happens to be latest. */
+export function hasBattleSeatingInspection(inspection) {
+  const measurement = inspection?.measurement;
+  const identity = inspection?.presented;
+  return (
+    inspection?.unavailable === null &&
+    inspection.presentedFrameId > 0 &&
+    inspection.expectedSoldiers > 0 &&
+    measurement?.checked === inspection.expectedSoldiers &&
+    measurement.matches === true &&
+    measurement.nonFinite === 0 &&
+    Number.isFinite(measurement.worstDelta) &&
+    measurement.worstDelta <= measurement.tolerance &&
+    identity != null &&
+    ["crowdGeneration", "submission", "terrainGeneration"].every(
+      (key) => Number.isInteger(identity[key]) && identity[key] === inspection.installed?.[key],
+    )
   );
 }
 

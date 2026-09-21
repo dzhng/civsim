@@ -43,11 +43,10 @@ export async function run(ctx) {
     const grass = await page.evaluate(() => window.__game.stats().renderStats.terrain.grass);
     ctx.check(
       "wide overview does not submit invisible dense grass",
-      stops.at(-1) > 2500 && !grass.enabled,
+      stops.at(-1) > 2500 && grass?.visibility?.base === false && grass?.visibility?.ring === false,
       JSON.stringify({
         distance: stops.at(-1),
-        enabled: grass.enabled,
-        triangles: grass.submittedTriangles,
+        visibility: grass?.visibility,
       }),
     );
     await page.mouse.wheel(0, 120);

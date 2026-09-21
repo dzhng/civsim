@@ -62,7 +62,7 @@ export async function run(ctx) {
     // for a rendered frame — software-GPU frames take hundreds of ms.
     const ringsGrew = await page
       .waitForFunction(
-        () => window.__game.stats().renderStats.tacticalLines.rings?.rings > 0,
+        () => window.__game.stats().renderStats.tacticalLines.rings?.count > 0,
         undefined,
         { timeout: 10000, polling: 100 },
       )
@@ -73,7 +73,7 @@ export async function run(ctx) {
     const ringStats = await page.evaluate(() => window.__game.stats().renderStats.tacticalLines);
     ctx.check(
       `dpr${dpr}: selection grows per-soldier ground rings`,
-      ringsGrew && ringStats.rings?.rings > 0,
+      ringsGrew && ringStats.rings?.count > 0,
       JSON.stringify(ringStats),
     );
 
@@ -127,12 +127,12 @@ export async function run(ctx) {
     await page.evaluate(() => window.__game.freeze(false));
     await page.waitForTimeout(200);
     const cuesIdle = await page.evaluate(
-      () => window.__game.stats().renderStats.tacticalLines.groundCues.vertices,
+      () => window.__game.stats().renderStats.tacticalLines.groundCues.count,
     );
     await page.keyboard.down(" ");
     const cuesShown = await page
       .waitForFunction(
-        (idle) => window.__game.stats().renderStats.tacticalLines.groundCues.vertices > idle,
+        (idle) => window.__game.stats().renderStats.tacticalLines.groundCues.count > idle,
         cuesIdle,
         { timeout: 10000, polling: 100 },
       )
@@ -141,7 +141,7 @@ export async function run(ctx) {
         () => false,
       );
     const cuesHeld = await page.evaluate(
-      () => window.__game.stats().renderStats.tacticalLines.groundCues.vertices,
+      () => window.__game.stats().renderStats.tacticalLines.groundCues.count,
     );
     await page.keyboard.up(" ");
     ctx.check(
@@ -256,10 +256,10 @@ export async function run(ctx) {
             if (sy > maxY) maxY = sy;
           }
           // Banners are GPU billboards, so read the owner's uploaded
-          // standard anchors (renderStats.terrain.standards).
+          // standard anchors (renderStats.native.standards.anchors).
           const anchor = g
             .stats()
-            .renderStats?.terrain?.standards?.find((candidate) => candidate.unitId === u);
+            .renderStats?.native?.standards?.anchors?.find((candidate) => candidate.unitId === u);
           const projected = anchor ? cam.worldToScreen(anchor.x, anchor.y, anchor.z) : null;
           return {
             minX,

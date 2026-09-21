@@ -71,7 +71,7 @@ export async function ready(page, flag, timeoutMs = 60000) {
 }
 
 /** Battle boot contract: the page flag alone means the shell mounted; the
- *  renderer is ready only once it reports ready and has uploaded every soldier.
+ *  renderer is ready only once it has presented and admitted every soldier.
  *  Every battle boot waits on this so no scene freezes or shoots a half-built
  *  frame. */
 export async function battleRendererReady(page, timeoutMs = 60000) {
@@ -82,7 +82,11 @@ export async function battleRendererReady(page, timeoutMs = 60000) {
         window.__ready === true &&
         stats?.renderer === "gpu" &&
         stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
+        stats.renderStats.soldiers === stats.soldiers &&
+        stats.renderStats.expectedSoldiers === stats.soldiers &&
+        stats.renderStats.substrate === "typegpu" &&
+        stats.renderStats.presentedFrameId > 0 &&
+        stats.renderStats.drawCalls > 0
       );
     },
     undefined,

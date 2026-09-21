@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 import { battleReal } from "../worlds.mjs";
-import { hasBattleWorldDepthContract } from "../_renderer-contract.mjs";
+import { hasBattleWorldDepthContract, hasBattleSeatingInspection } from "../_renderer-contract.mjs";
 
 export const meta = {
   name: "battle-renderer-default",
@@ -8,7 +8,7 @@ export const meta = {
   world: "battle-real",
   tier: "quick",
   snapshots: [],
-  describe: "Normal battle launch uses the production photoreal WebGPU renderer.",
+  describe: "Normal battle launch uses the production TypeGPU renderer.",
 };
 
 export async function run(ctx) {
@@ -22,27 +22,18 @@ export async function run(ctx) {
   }
 
   const page = await battleReal(ctx, { settle: 500, errorPrefix: "gpu-default" });
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 12000 },
-  );
+
+  await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
   const stats = await page.evaluate(() => window.__game.stats());
   ctx.check(
-    "battle default renderer is the photoreal WebGPU world",
+    "battle default renderer is the TypeGPU world",
     stats.renderer === "gpu" &&
       stats.renderStats?.ready === true &&
       stats.renderStats.soldiers === stats.soldiers &&
-      stats.renderStats.markerLayer === "far-lod-impostor" &&
-      stats.renderStats.lod?.impostors > 0 &&
-      stats.renderStats.environment === "golden" &&
+      Object.values(stats.renderStats.native?.crowd?.impostors ?? {}).some(
+        (layer) => layer.instances > 0 && layer.draws > 0,
+      ) &&
+      stats.renderStats.environment === "golden-hour" &&
       hasBattleWorldDepthContract(stats.renderStats),
     JSON.stringify(stats),
   );
@@ -58,21 +49,22 @@ export async function run(ctx) {
   );
   ctx.check(
     "WebGPU battle terrain includes sim-sourced feature detail",
-    stats.renderStats?.terrain?.fixture === "sim-tint" &&
-      stats.renderStats.terrain.layer === "photoreal-battle-ground" &&
-      stats.renderStats.terrain.environment?.id === "golden-hour" &&
-      stats.renderStats.terrain.environment?.source === "CIVSIM_ENVIRONMENTS.golden" &&
-      stats.renderStats.terrain.grass?.layer === "photoreal-blade-field" &&
-      stats.renderStats.terrain.grass?.recordCount > 0 &&
-      // The GPU compute route is WIRED (drawIndirect), but whether it RUNS a
-      // given frame is gated by the zoom cutoff — this default view frames
-      // the whole battle at max zoom-out, where grass is intentionally hidden,
-      // so runtimeComputeRoute reads "not-run" here. recordCount proves the
-      // static field is built; drawIndirect proves the route is wired.
-      stats.renderStats.terrain.grass?.sourceStorageCore?.drawIndirect === true &&
+    stats.renderStats?.terrain?.installed === true &&
+      stats.renderStats.terrain.generation > 0 &&
+      stats.renderStats.environment === "golden-hour" &&
+      stats.renderStats.terrain.grass?.layers?.some((layer) => layer.recordCount > 0) &&
+      // Owner-reported indirect-draw wiring; resolved GPU blade counts are unavailable.
+      stats.renderStats.terrain.grass.layers.every((layer) => layer.drawIndirect === true) &&
       stats.renderStats.terrain.groundTriangles > 1000 &&
       stats.renderStats.terrain.scenery > 0,
     JSON.stringify(stats.renderStats?.terrain),
+  );
+
+  const seating = await page.evaluate(() => window.__game.verifySeating());
+  ctx.check(
+    "presented crowd seats every expected soldier on its installed terrain",
+    hasBattleSeatingInspection(seating),
+    JSON.stringify(seating),
   );
 
   const shot = await page.screenshot();
@@ -97,7 +89,7 @@ export async function run(ctx) {
       for (let i = 0; i < 3; i++) await new Promise((resolve) => requestAnimationFrame(resolve));
     };
     game.freeze(true);
-    await frames();
+    await game.freezeAtTick(game.tickCount());
     const first = game.debugSoldierAnim(0);
     await frames();
     const repeated = game.debugSoldierAnim(0);
@@ -105,17 +97,24 @@ export async function run(ctx) {
     await frames();
     const advanced = game.debugSoldierAnim(0);
     const tickBeforeReload = game.tickCount();
+    const beforeReload = await game.verifySeating();
     await game.reloadSoldierAssets();
     await frames();
+    await game.freezeAtTick(tickBeforeReload);
     const reloaded = game.debugSoldierAnim(0);
+    const afterReload = await game.verifySeating();
     return {
-      repeatedSamePayload: first?.playback === repeated?.playback,
-      advancedNewPayload: advanced?.playback !== repeated?.playback,
+      repeatedSamePayload: !!first?.playback && first.playback === repeated?.playback,
+      advancedNewPayload: !!advanced?.playback && advanced.playback !== repeated?.playback,
       advancedPhase: advanced?.phase,
       priorPhase: repeated?.phase,
       reloadSameTick: game.tickCount() === tickBeforeReload,
       reloadNewPayload: !!reloaded?.playback && reloaded.playback !== advanced?.playback,
       reloadPhase: reloaded?.phase,
+      reloadClip: reloaded?.clip,
+      priorClip: advanced?.clip,
+      beforeReload,
+      afterReload,
     };
   });
   ctx.check(
@@ -129,8 +128,15 @@ export async function run(ctx) {
     JSON.stringify(cache),
   );
   ctx.check(
-    "successful same-tick catalog reload replaces the submitted pose history",
-    cache.reloadSameTick && cache.reloadNewPayload && cache.reloadPhase === 0,
+    "successful same-tick catalog reload presents a new crowd generation with the same pose",
+    cache.reloadSameTick &&
+      cache.reloadNewPayload &&
+      cache.reloadPhase === cache.advancedPhase &&
+      cache.reloadClip === cache.priorClip &&
+      hasBattleSeatingInspection(cache.beforeReload) &&
+      hasBattleSeatingInspection(cache.afterReload) &&
+      cache.afterReload.presentedFrameId > cache.beforeReload.presentedFrameId &&
+      cache.afterReload.presented.crowdGeneration > cache.beforeReload.presented.crowdGeneration,
     JSON.stringify(cache),
   );
   await page.close();

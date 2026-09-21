@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import {
   hasBattleWorldDepthContract,
   hasCampaignWorldDepthContract,
@@ -204,7 +205,7 @@ export async function run(ctx) {
   await page.click("#qb-army-0 .qb-template");
   await page.waitForFunction(() => document.getElementById("qb-launch")?.disabled === false);
   await page.click("#qb-launch");
-  await waitForRendererBattleUpload(page);
+  await battleRendererReady(page, 22000);
   const customStats = await page.evaluate(() => window.__game.stats());
   const deploymentRows = await page.evaluate(() => {
     const g = window.__game;
@@ -228,7 +229,7 @@ export async function run(ctx) {
     battleStatsMatch(customStats) &&
       customStats.units >= 10 &&
       customStats.renderStats?.environment === "overcast-highland" &&
-      customStats.renderStats?.terrain?.environment?.id === "overcast-highland",
+      customStats.renderStats?.terrain?.installed === true,
     JSON.stringify(customStats),
   );
   ctx.check(
@@ -389,22 +390,6 @@ async function returnBattleToMenu(page) {
   await page.click("#qb-back");
   await page.waitForURL((url) => url.pathname === "/");
   await page.locator("#menu-manual").waitFor();
-}
-
-async function waitForRendererBattleUpload(page) {
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 22000 },
-  );
 }
 
 function battleStatsMatch(stats) {

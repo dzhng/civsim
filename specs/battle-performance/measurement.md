@@ -1,5 +1,9 @@
 # Measurement and acceptance protocol
 
+The [user-directed closure scope](closure-scope.md) supersedes the absolute 60 FPS
+closing target below. Retain this protocol and its results as historical
+measurement evidence; do not report its unmet targets as passed.
+
 ## Workload identity before timing
 
 Acquire actual Mac model, GPU/adapter label and features, OS, browser/version, refresh cadence, power mode, CSS viewport, DPR and physical drawing-buffer dimensions. Use a production build with no hot reload. Record commit, dependencies, graphics settings, seed/map, full army setup, environment, asset hashes, camera snapshot/path, live/paused mode and all exclusions. The supplied image is 1440×900 image pixels; it does **not** establish CSS size or DPR. Use a 1440×900 CSS reference fixture with explicit recorded DPR as a reproducible companion, plus David's normal window at its actual backing resolution for acceptance. No claim that either reconstructs an unknown original framebuffer.

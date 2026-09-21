@@ -8,18 +8,22 @@ Work in `/Users/david/dev/game-battle-performance-spec`, branch
 Read [the backend decision](backend-decision.md), [cutover graph](migration.md)
 and [TypeGPU conversion plan](slices/typegpu-conversion.md).
 
-Current pickup: broaden the preserved-component intermediate reduction to the
-remaining distinct model sources, keeping L1's omission/floor settings and unchanged
-rig/material/other-tier contracts. [The heavy-pike pilot](assets/07-pike-intermediate/README.md)
-has matched static, sampled zoom and 44 authored-pose reviews without identified
-one-sided loss. Its completed 24-block GPU comparison saves about 0.7–0.8ms main
-GPU time at 200m, with unchanged shadows; this is not live FPS. Raw candidate
-bundles, exact source hashes and runners remain under
-`throwaway/lod-intermediate-preserved/`. No production asset or threshold changed.
-[Existing L2](assets/07-l2-footprint/README.md) remains rejected at L1 footprints;
-[constant-color controls](assets/07-lod-coverage/README.md) prove thinner pike coverage.
-Disabled texture-feature branches are lower priority: only about 2–3% of catalog
-L1 triangles use disabled features, not a measured screen-space cost fraction.
+Current pickup: production TypeGPU cutover and closeout, per the user's
+2026-09-21 direction. Stop expanding performance experiments. The closing bar is
+**demonstrated performance improvement plus complete migration to the selected
+battle architecture**, with working default shadows/menu benchmark and preserved
+gameplay/campaign behavior. The earlier 60 FPS target is no longer a closing
+requirement. Keep measured limits explicit; do not claim all stutter is solved.
+[Closure scope](closure-scope.md) owns this revision.
+
+The preserved-component intermediate experiment covers all 20 appearances:
+18 original assemblies, unchanged rig/material/other-tier files, 104 paired posed
+cases, and independent equipment reviews. Its isolated 24-block comparison reduces
+main GPU time about 20% at 200m (13.65→10.97ms), with unchanged shadows. Scratch
+and inputs are under `throwaway/lod-preserved-roster/`. It is not published yet.
+One actual 300-second Menu run is in progress there; finish it before builds or
+other GPU jobs. Then integrate the validated shared-image owner and ship the sole
+TypeGPU world. No production asset or threshold has changed yet.
 
 [The combined blend/channel replay](assets/06a-transition-trace/README.md)
 is complete:32 actual late-window updates over15,560 soldiers, exact full state

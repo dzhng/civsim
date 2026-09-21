@@ -6,6 +6,6 @@ TypeGPU owns typed textures, mip views, pipelines and command submission. vgpu o
 
 Sixteen controls cover both runtimes, linear/sRGB formats, even dimensions, odd dimensions, and both one-pixel axes. All 88 mip comparisons are byte-identical to the existing native image preparation on the recorded Apple adapter. The reference and candidates use the same initial bitmap; resource tracking reaches zero textures after disposal, with no GPU/browser warnings or errors. This proves the mip preparation component, not complete material or battle-frame equivalence.
 
-The TypeGPU shader initially referenced an unavailable output constructor. Independent review identified it; the final typed entrypoint constructs its output through the public JS shader API. The successful report is `specs/battle-performance/assets/02-native-mips/report.json`.
+The TypeGPU shader initially referenced an unavailable output constructor. Independent review identified it; the final typed entrypoint constructs its output through the public JS shader API. The successful report is `specs/done/battle-performance/assets/02-native-mips/report.json`.
 
 Run the lab control server with `mip.vite.config.mts`, then `MIP_CHECK_URL=http://localhost:5199/mip-check.html node apps/battle-perf-lab/src/raw/verify-mip.mjs` from the repository root. Full mesh controls consume these same preparation functions.

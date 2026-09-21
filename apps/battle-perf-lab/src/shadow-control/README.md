@@ -89,5 +89,5 @@ of them is an open obligation rather than a settled one:
 
 Scene content, DPR, camera, crowd LOD, grass and post are untouched here and
 must be held equal by the protocol instead. The A/B/C run, its hardware and its
-acceptance belong to [the measurement protocol](../../../../specs/battle-performance/measurement.md)
-and [the shadow slice](../../../../specs/battle-performance/slices/08-shadow-coverage.md).
+acceptance belong to [the measurement protocol](../../../../specs/done/battle-performance/measurement.md)
+and [the shadow slice](../../../../specs/done/battle-performance/slices/08-shadow-coverage.md).

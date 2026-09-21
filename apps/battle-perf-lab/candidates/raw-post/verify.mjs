@@ -33,7 +33,7 @@ try {
     reports,
   };
   const directory = new URL(
-    "../../../../specs/battle-performance/assets/02-raw/frame-lifecycle/",
+    "../../../../specs/done/battle-performance/assets/02-raw/frame-lifecycle/",
     import.meta.url,
   );
   await mkdir(directory, { recursive: true });

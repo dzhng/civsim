@@ -16,7 +16,7 @@ try {
     userAgent: navigator.userAgent,
   }));
   console.log(JSON.stringify({ ...report, errors }));
-  const out = new URL("../../../../specs/battle-performance/assets/02-preflight/", import.meta.url);
+  const out = new URL("../../../../specs/done/battle-performance/assets/02-preflight/", import.meta.url);
   await mkdir(out, { recursive: true });
   await writeFile(new URL("raw.json", out), JSON.stringify({ ...report, errors }, null, 2));
   if (!report.result.passed || errors.length) process.exitCode = 1;

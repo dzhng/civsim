@@ -103,7 +103,7 @@ CPU verification: native live tests, source crowd/action/presentation/scheduler/
 benchmark tests, typechecks and a production lab build. Independent code review
 found readiness cancellation, delayed canvas teardown and frozen invalidation
 races; regression tests cover all three. Fixed-checkout Menu controls are recorded
-in [live evidence](../../../../specs/battle-performance/assets/02-live/native-facade/README.md).
+in [live evidence](../../../../specs/done/battle-performance/assets/02-live/native-facade/README.md).
 Frozen settings, native picking, source capture compatibility and final matched
 performance still need their respective hardware controls. No visual or performance
 acceptance is claimed by this checkpoint.

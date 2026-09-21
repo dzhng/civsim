@@ -5,9 +5,9 @@ The Three ground/horizon comparison belongs to pinned Git revision
 checkout of that revision; it depends on the Three battle owner retired from the
 active tree.
 
-The [raw](../../../../specs/battle-performance/assets/02-raw/terrain/),
-[TypeGPU](../../../../specs/battle-performance/assets/02-typegpu/terrain/) and
-[vgpu](../../../../specs/battle-performance/assets/02-vgpu/terrain/) archives retain
+The [raw](../../../../specs/done/battle-performance/assets/02-raw/terrain/),
+[TypeGPU](../../../../specs/done/battle-performance/assets/02-typegpu/terrain/) and
+[vgpu](../../../../specs/done/battle-performance/assets/02-vgpu/terrain/) archives retain
 the numerical and image evidence, including unresolved coplanar horizon and
 multisample beauty differences. These partial-scene comparisons do not establish
 full-scene appearance or performance parity.

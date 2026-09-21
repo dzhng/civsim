@@ -19,7 +19,7 @@ Three's public readback returns GPU-aligned rows, which the harness strips befor
 comparison. Recreating the pass across presets reuses the same borrowed input,
 checking that disposal preserves caller-owned resources.
 
-The [native frame lifecycle extension](../../../../specs/battle-performance/assets/02-raw/frame-lifecycle/README.md)
+The [native frame lifecycle extension](../../../../specs/done/battle-performance/assets/02-raw/frame-lifecycle/README.md)
 adds direct-render bypass checks with fractional alpha while retaining these opaque
 post-chain cases. Its verifier records new evidence under the spec assets; the
 older result above remains historical.

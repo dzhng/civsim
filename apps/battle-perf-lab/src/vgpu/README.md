@@ -2,7 +2,7 @@
 
 Each check below establishes only what its own report states; none of them is a fixture-parity or performance verdict for the backend. The small compute/draw check validates library resource reuse; it is not a battle renderer or an engine performance result.
 
-The dependency belongs to `web/package.json` and `web/bun.lock`. `identity.ts` records the exact release and upstream commits. The [official release source](https://github.com/vercel-labs/vgpu/tree/1c36ab82fcb38dc23dd3a1665ea086accd1d4e79) owns the API; the inspected published package namespaces compute cache owners separately from draw owners. The hardware preflight passes both shared and separate uniforms on Apple Metal / Chrome 153, including both updated values and pixel checks, with no validation errors. The historical defect was not reproduced; [the retained report](../../../../specs/battle-performance/assets/02-vgpu/preflight.json) records the observation.
+The dependency belongs to `web/package.json` and `web/bun.lock`. `identity.ts` records the exact release and upstream commits. The [official release source](https://github.com/vercel-labs/vgpu/tree/1c36ab82fcb38dc23dd3a1665ea086accd1d4e79) owns the API; the inspected published package namespaces compute cache owners separately from draw owners. The hardware preflight passes both shared and separate uniforms on Apple Metal / Chrome 153, including both updated values and pixel checks, with no validation errors. The historical defect was not reproduced; [the retained report](../../../../specs/done/battle-performance/assets/02-vgpu/preflight.json) records the observation.
 
 `runtime.ts` owns one vgpu device/surface/frame lifetime, consumes the shared fixture's viewport contract, and reports device errors. The library owns compute, buffers, bindings, draw submission and readback. Native WebGPU access in the probe is limited to validation/error observation; no native encoder or hidden Three renderer supplies an advertised vgpu operation.
 
@@ -16,7 +16,7 @@ web/node_modules/.bin/vite build --config apps/battle-perf-lab/src/vgpu/vite.con
 web/node_modules/.bin/vite preview --config apps/battle-perf-lab/src/vgpu/vite.config.mts --host 127.0.0.1 --port 4182 --strictPort
 ```
 
-With that preview running, `node apps/battle-perf-lab/src/vgpu/verify.mjs` performs the hardware check and writes results/pixel captures under `specs/battle-performance/assets/02-vgpu/`. Serialize this check with other GPU runs. A failed healthy control is inconclusive; never patch around it with raw rendering and call the result vgpu.
+With that preview running, `node apps/battle-perf-lab/src/vgpu/verify.mjs` performs the hardware check and writes results/pixel captures under `specs/done/battle-performance/assets/02-vgpu/`. Serialize this check with other GPU runs. A failed healthy control is inconclusive; never patch around it with raw rendering and call the result vgpu.
 
 
 The sky component uses shared physical-sky WGSL and environment parameters through vgpu draw pipelines, sampled HDR targets and reflected uniforms. It borrows the device, owns its vgpu wrapper, and encodes background work into the caller's frame without submitting it. It covers the LUT and linear HDR background only; the check establishes nothing about environment lighting, scene passes, final output or performance.

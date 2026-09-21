@@ -19,7 +19,7 @@ if (!output || !archive || !["raw", "typegpu", "vgpu"].includes(backend))
 const atlasCatalog =
   process.argv[6] ??
   "/@fs/" +
-    fileURLToPath(new URL("specs/battle-performance/assets/02-full-atlas/catalog.json", root));
+    fileURLToPath(new URL("specs/done/battle-performance/assets/02-full-atlas/catalog.json", root));
 if (resolve(archive) === resolve(output))
   throw Error("Replay requires a separate archive input and empty output directory");
 await mkdir(output, { recursive: true });

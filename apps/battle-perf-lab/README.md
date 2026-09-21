@@ -49,7 +49,7 @@ CPU recipe identity is reported separately from GPU readback. Source clock group
 remain recorded, while native shaders consume explicit recorded time/camera data.
 The native mode retains strict image/count gates and makes no timing claim.
 
-The first full native history result remains [diagnostic red](../../specs/battle-performance/assets/02-preflight/raw-spool/README.md).
+The first full native history result remains [diagnostic red](../../specs/done/battle-performance/assets/02-preflight/raw-spool/README.md).
 
 GPU allocation accounting in [nativeGpuAllocations](../../packages/battle-renderer/src/nativeGpuAllocations.ts)
 observes public device creation and explicit destruction. Install it before the

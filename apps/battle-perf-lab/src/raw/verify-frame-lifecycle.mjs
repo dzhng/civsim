@@ -22,7 +22,7 @@ try {
   const result = await page.evaluate(() => window.__frameLifecycle);
   const report = { ...result, pageErrors, passed: result.passed && !pageErrors.length };
   const path = new URL(
-    "../../../../specs/battle-performance/assets/02-raw/frame-lifecycle/",
+    "../../../../specs/done/battle-performance/assets/02-raw/frame-lifecycle/",
     import.meta.url,
   );
   await mkdir(path, { recursive: true });

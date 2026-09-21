@@ -24,7 +24,7 @@ try {
       capturedAt: new Date().toISOString(),
     };
   const directory = new URL(
-    process.env.MIP_EVIDENCE_DIR ?? `../../../../specs/battle-performance/assets/02-native-mips/`,
+    process.env.MIP_EVIDENCE_DIR ?? `../../../../specs/done/battle-performance/assets/02-native-mips/`,
     import.meta.url,
   );
   await mkdir(directory, { recursive: true });

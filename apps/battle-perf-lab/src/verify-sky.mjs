@@ -35,7 +35,7 @@ try {
         passed: result.passed && pageErrors.length === 0,
       };
       const directory = new URL(
-        `../../../specs/battle-performance/assets/02-${backend}/`,
+        `../../../specs/done/battle-performance/assets/02-${backend}/`,
         import.meta.url,
       );
       await mkdir(directory, { recursive: true });

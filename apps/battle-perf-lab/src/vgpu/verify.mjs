@@ -28,7 +28,7 @@ try {
     failure: window.vgpuPreflightError ?? null,
     browser: navigator.userAgent,
   }));
-  const output = new URL("../../../../specs/battle-performance/assets/02-vgpu/", import.meta.url);
+  const output = new URL("../../../../specs/done/battle-performance/assets/02-vgpu/", import.meta.url);
   await mkdir(output, { recursive: true });
   for (const name of ["shared", "separate"]) {
     const test = observation.report?.[name];

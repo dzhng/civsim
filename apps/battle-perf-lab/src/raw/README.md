@@ -25,13 +25,13 @@ pass when its input or framebuffer changes.
 There is no complete battle scene or performance result here. API and component
 checks do not establish full fixture parity or qualify this backend for ranking.
 
-The [water component control](../../../../specs/battle-performance/assets/02-raw/water/README.md)
+The [water component control](../../../../specs/done/battle-performance/assets/02-raw/water/README.md)
 compares real ocean displacement and inland water with shared CPU topology and
 surface policies. Water owns geometry/state buffers and borrows the frame's
 camera, environment and reverse-Z attachments. Its opaque depth writes belong
 before read-only world decals. Ocean numerical parity remains explicitly open.
 
-[TypeGPU/vgpu water controls](../../../../specs/battle-performance/assets/02-preflight/water-ports/README.md)
+[TypeGPU/vgpu water controls](../../../../specs/done/battle-performance/assets/02-preflight/water-ports/README.md)
 share the source fixture and water shader bodies while each runtime owns its
 resources and draw submission. Their replacement/failure probes check cleanup
 without destroying the borrowed device; ocean's strict numerical gate remains red.
